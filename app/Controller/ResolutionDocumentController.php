@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use finfo;
+use AgVote\WebSocket\EventBroadcaster;
 
 /**
  * Consolidates resolution_documents endpoints.
@@ -100,6 +101,13 @@ final class ResolutionDocumentController extends AbstractController {
             'file_size' => (int) $file['size'],
         ]);
 
+        // Broadcast SSE event for live session document additions
+        EventBroadcaster::documentAdded($meetingId, $motionId, [
+            'id' => $id,
+            'original_name' => basename($file['name']),
+            'file_size' => (int) $file['size'],
+        ]);
+
         api_ok([
             'document' => [
                 'id' => $id,
@@ -136,6 +144,8 @@ final class ResolutionDocumentController extends AbstractController {
             'motion_id' => $doc['motion_id'],
             'original_name' => $doc['original_name'],
         ]);
+
+        EventBroadcaster::documentRemoved($doc['meeting_id'], $doc['motion_id'], $id);
 
         api_ok(['deleted' => true]);
     }

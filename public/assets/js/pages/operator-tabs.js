@@ -3239,4 +3239,115 @@ window.OpS = { fn: {} };
     if (_clockInterval) clearInterval(_clockInterval);
   });
 
+  // =========================================================================
+  // DOCUMENT UPLOAD — per-motion PDF management for operator console
+  // =========================================================================
+
+  /**
+   * Add a document upload button and badge to a resolution card element.
+   * Uses native file input + fetch — no FilePond dependency required.
+   *
+   * @param {HTMLElement} cardEl - The resolution-section container element
+   * @param {string} motionId - UUID of the motion
+   * @param {string} meetingId - UUID of the meeting
+   */
+  function addDocUploadToMotionCard(cardEl, motionId, meetingId) {
+    // Avoid duplicating the button if already added
+    if (cardEl.querySelector('.btn-doc-upload')) return;
+
+    var uploadBtn = document.createElement('button');
+    uploadBtn.type = 'button';
+    uploadBtn.className = 'btn btn-sm btn-ghost btn-doc-upload';
+    uploadBtn.title = 'Ajouter un document PDF';
+    uploadBtn.innerHTML = icon('file-text', 'icon-sm icon-text') + '+ Document';
+
+    uploadBtn.addEventListener('click', function() {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/pdf';
+      input.addEventListener('change', function() {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+
+        if (file.size > 10 * 1024 * 1024) {
+          window.AgToast
+            ? window.AgToast.show('Le fichier depasse 10 Mo', 'error')
+            : notify('error', 'Le fichier depasse 10 Mo');
+          return;
+        }
+        if (file.type !== 'application/pdf') {
+          window.AgToast
+            ? window.AgToast.show('Seuls les fichiers PDF sont acceptes', 'error')
+            : notify('error', 'Seuls les fichiers PDF sont acceptes');
+          return;
+        }
+
+        var formData = new FormData();
+        formData.append('filepond', file);
+        formData.append('motion_id', motionId);
+        formData.append('meeting_id', meetingId);
+
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'X-Requested-With': 'XMLHttpRequest' };
+        if (csrfMeta) headers['X-CSRF-Token'] = csrfMeta.content;
+
+        fetch('/api/v1/resolution_documents', {
+          method: 'POST',
+          headers: headers,
+          body: formData
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(resp) {
+            if (resp && resp.ok) {
+              var msg = 'Document ajoute';
+              window.AgToast ? window.AgToast.show(msg, 'success') : notify('success', msg);
+              updateOperatorDocBadge(cardEl, motionId);
+            } else {
+              var errMsg = (resp && resp.error) ? resp.error : 'Erreur';
+              window.AgToast ? window.AgToast.show(errMsg, 'error') : notify('error', errMsg);
+            }
+          })
+          .catch(function() {
+            var errMsg = 'Erreur reseau';
+            window.AgToast ? window.AgToast.show(errMsg, 'error') : notify('error', errMsg);
+          });
+      });
+      input.click();
+    });
+
+    // Append upload button to the actions area
+    var actionsArea = cardEl.querySelector('.resolution-header-actions') || cardEl;
+    actionsArea.appendChild(uploadBtn);
+
+    // Load and display current doc count badge
+    updateOperatorDocBadge(cardEl, motionId);
+  }
+
+  /**
+   * Refresh the document count badge on a resolution card.
+   *
+   * @param {HTMLElement} cardEl - The resolution-section container element
+   * @param {string} motionId - UUID of the motion
+   */
+  function updateOperatorDocBadge(cardEl, motionId) {
+    window.api('/api/v1/resolution_documents?motion_id=' + encodeURIComponent(motionId)).then(function(resp) {
+      var count = (resp && resp.documents) ? resp.documents.length : 0;
+      var badge = cardEl.querySelector('.doc-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'doc-badge';
+        var actionsArea = cardEl.querySelector('.resolution-header-actions') || cardEl;
+        actionsArea.insertBefore(badge, actionsArea.firstChild);
+      }
+      badge.className = 'doc-badge' + (count > 0 ? ' doc-badge--has-docs' : ' doc-badge--empty');
+      badge.textContent = count > 0
+        ? count + ' doc' + (count > 1 ? 's' : '')
+        : 'Aucun doc';
+    }).catch(function() {});
+  }
+
+  // Expose document upload functions so operator-motions.js can wire them in
+  OpS.fn.addDocUploadToMotionCard = addDocUploadToMotionCard;
+  OpS.fn.updateOperatorDocBadge = updateOperatorDocBadge;
+
 })();

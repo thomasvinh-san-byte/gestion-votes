@@ -273,6 +273,61 @@
     docs.innerHTML = html;
   }
 
+  /* ── Resolution document badges (per-motion) ─────── */
+
+  function loadDocBadges(motions, meetingId) {
+    if (!motions || !motions.length || !meetingId) return;
+    motions.forEach(function(motion) {
+      window.api('/api/v1/resolution_documents?motion_id=' + encodeURIComponent(motion.id)).then(function(resp) {
+        var count = (resp && resp.documents) ? resp.documents.length : 0;
+        renderDocBadge(motion.id, count, resp && resp.documents ? resp.documents : []);
+      }).catch(function() {
+        renderDocBadge(motion.id, 0, []);
+      });
+    });
+  }
+
+  function renderDocBadge(motionId, docCount, docs) {
+    var badges = document.querySelectorAll('[data-motion-doc-badge][data-motion-id="' + motionId + '"]');
+    badges.forEach(function(badge) {
+      if (docCount === 0) {
+        badge.textContent = 'Aucun document';
+        badge.className = 'doc-badge doc-badge--empty';
+        badge.onclick = null;
+        badge.style.cursor = '';
+      } else {
+        badge.textContent = docCount + (docCount > 1 ? ' documents joints' : ' document joint');
+        badge.className = 'doc-badge doc-badge--has-docs';
+        badge.style.cursor = 'pointer';
+        badge.onclick = function() { openDocViewer(motionId, docs); };
+      }
+    });
+  }
+
+  function openDocViewer(motionId, cachedDocs) {
+    function doOpen(docs) {
+      if (!docs || docs.length === 0) return;
+      var viewer = document.querySelector('ag-pdf-viewer') || document.createElement('ag-pdf-viewer');
+      if (!viewer.parentElement) {
+        viewer.setAttribute('mode', 'panel');
+        viewer.setAttribute('allow-download', '');
+        document.body.appendChild(viewer);
+      }
+      var doc = docs[0];
+      viewer.setAttribute('src', '/api/v1/resolution_document_serve?id=' + encodeURIComponent(doc.id));
+      viewer.setAttribute('filename', doc.original_name || 'document.pdf');
+      if (typeof viewer.open === 'function') viewer.open();
+    }
+
+    if (cachedDocs && cachedDocs.length) {
+      doOpen(cachedDocs);
+    } else {
+      window.api('/api/v1/resolution_documents?motion_id=' + encodeURIComponent(motionId)).then(function(resp) {
+        doOpen(resp && resp.documents ? resp.documents : []);
+      }).catch(function() {});
+    }
+  }
+
   function render() {
     renderStatusBar();
     renderStepper();

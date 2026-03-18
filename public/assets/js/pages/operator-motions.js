@@ -214,6 +214,16 @@
         moveResolution(btn.dataset.motionId, 1);
       });
     });
+
+    // Wire document upload button per resolution card (operator can upload PDFs during live session)
+    if (O.currentMeetingId && typeof OpS !== 'undefined' && typeof OpS.fn.addDocUploadToMotionCard === 'function') {
+      list.querySelectorAll('.resolution-section[data-motion-id]').forEach(function(cardEl) {
+        var motionId = cardEl.getAttribute('data-motion-id');
+        if (motionId) {
+          OpS.fn.addDocUploadToMotionCard(cardEl, motionId, O.currentMeetingId);
+        }
+      });
+    }
   }
 
   // Edit resolution modal

@@ -112,6 +112,20 @@ class EventBroadcaster {
         ]);
     }
 
+    public static function documentAdded(string $meetingId, string $motionId, array $docData = []): void {
+        self::toMeeting($meetingId, 'document.added', [
+            'motion_id' => $motionId,
+            'document' => $docData,
+        ]);
+    }
+
+    public static function documentRemoved(string $meetingId, string $motionId, string $documentId): void {
+        self::toMeeting($meetingId, 'document.removed', [
+            'motion_id' => $motionId,
+            'document_id' => $documentId,
+        ]);
+    }
+
     // ── Queue operations ────────────────────────────────────────────────
 
     /**

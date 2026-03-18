@@ -86,6 +86,8 @@
       'quorum.updated',
       'meeting.status_changed',
       'speech.queue_updated',
+      'document.added',
+      'document.removed',
     ];
 
     eventTypes.forEach(function (type) {
