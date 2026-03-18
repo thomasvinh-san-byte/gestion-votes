@@ -139,7 +139,15 @@ Plans:
   4. The post-session stepper (Resultats -> Validation -> PV -> Archivage) shows a checkmark on each completed step
   5. The design system CSS has a @layer declaration (base, components, v4); all new component color variations use color-mix() derived tokens; every new token has a dark variant committed in the same change
   6. All pages pass measurable done criteria: transitions <= 200ms, CLS = 0 (Lighthouse), focus rings >= 3:1 contrast (axe-core), zero inline style="" in production HTML; voter screen verified at 375px
-**Plans**: TBD
+**Plans:** 7 plans
+Plans:
+- [ ] 29-01-PLAN.md — Design system @layer + color-mix tokens + dark parity
+- [ ] 29-02-PLAN.md — Operator console SSE indicator, delta badge, guidance panels
+- [ ] 29-03-PLAN.md — Voter full-screen ballot, optimistic commit, state management
+- [ ] 29-04-PLAN.md — Collapsible result cards with bar charts, stepper enhancement
+- [ ] 29-05-PLAN.md — @starting-style animations, View Transitions, Anime.js KPI count-up
+- [ ] 29-06-PLAN.md — All-page CSS polish (15 files), token audit, hover transitions
+- [ ] 29-07-PLAN.md — VIS-08 inline style audit + dark mode parity verification
 
 ---
 
@@ -151,7 +159,7 @@ Plans:
 | 26. Guided UX Components | 3/3 | Complete    | 2026-03-18 |
 | 27. Copropriete Transformation | 2/2 | Complete    | 2026-03-18 |
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
-| 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
+| 29. Operator Console, Voter View & Visual Polish | 0/7 | In progress | - |
 
 ---
 
