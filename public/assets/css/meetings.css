@@ -128,7 +128,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 14px;
 }
 
 .meetings-main .section-title {
@@ -504,8 +504,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  margin-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--color-border);
 }
 
@@ -529,19 +529,5 @@
 
   .session-meta-item.date {
     display: inline-flex;
-  }
-
-  .filter-pills {
-    padding: 0 1rem;
-  }
-
-  .page-content {
-    padding: 0 1rem 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-content {
-    padding: 0 1rem 1rem;
   }
 }
