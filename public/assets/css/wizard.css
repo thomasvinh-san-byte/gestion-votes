@@ -216,18 +216,14 @@
   display: block;
 }
 
-/* Grid layouts */
+/* Grid layouts — .grid-2 defined globally in pages.css (10px wireframe gap) */
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 10px; /* wireframe v3.19.2 density */
 }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+/* .grid-2 removed — uses global definition from pages.css */
 
 .flex-between {
   display: flex;

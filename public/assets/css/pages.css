@@ -1005,13 +1005,13 @@
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-5, 1.25rem);
+  gap: 10px; /* wireframe v3.19.2 density */
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-5, 1.25rem);
+  gap: 10px; /* wireframe v3.19.2 density */
 }
 
 /* Major sections: compacted to 14px for zero-scroll at 1080px (wireframe v3.19.2) */
