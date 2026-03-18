@@ -19,6 +19,19 @@
   var sseStream = null;
   var sseConnected = false;
 
+  // =========================================================================
+  // SSE INDICATOR (OPC-02)
+  // =========================================================================
+
+  var SSE_LABELS = { live: '\u25cf En direct', reconnecting: '\u26a0 Reconnexion...', offline: '\u2715 Hors ligne' };
+
+  function setSseIndicator(state) {
+    var el = document.getElementById('opSseIndicator');
+    var lb = document.getElementById('opSseLabel');
+    if (el) el.setAttribute('data-sse-state', state);
+    if (lb) lb.textContent = SSE_LABELS[state] || state;
+  }
+
   /**
    * Try to connect SSE for the current meeting. If SSE is available
    * (EventStream loaded + Redis + meeting selected), events trigger
@@ -34,10 +47,16 @@
     sseStream = EventStream.connect(O.currentMeetingId, {
       onConnect: function() {
         sseConnected = true;
+        setSseIndicator('live');
         console.info('[operator] SSE connected for meeting', O.currentMeetingId);
       },
       onDisconnect: function() {
         sseConnected = false;
+        setSseIndicator('reconnecting');
+        // If still disconnected after 5s, show offline state
+        setTimeout(function() {
+          if (!sseConnected) setSseIndicator('offline');
+        }, 5000);
       },
       onEvent: function(type, data) {
         handleSSEEvent(type, data);
@@ -224,6 +243,7 @@
       // Meeting cleared — disconnect SSE and stop polling
       if (sseStream) { sseStream.close(); sseStream = null; sseConnected = false; }
       if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+      setSseIndicator('offline');
       return;
     }
 

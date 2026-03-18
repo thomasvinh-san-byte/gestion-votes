@@ -23,6 +23,8 @@
   // =========================================================================
 
   var _execTimerInterval = null;
+  var _prevVoteTotal = 0;
+  var _deltaFadeTimer = null;
 
   // =========================================================================
   // QUORUM WARNING MODAL (OPR-09)
@@ -378,8 +380,22 @@
         var totalBallots = Object.keys(O.ballotsCache).length;
         var eligible = stats.present + stats.proxyActive;
         kpiVoted.innerHTML = totalBallots + '<span class="op-kpi-total">/' + eligible + '</span>';
+
+        // Delta badge: show +N when vote count increases
+        var delta = totalBallots - _prevVoteTotal;
+        if (delta > 0 && _prevVoteTotal > 0) {
+          var badge = document.getElementById('opVoteDeltaBadge');
+          if (badge) {
+            badge.textContent = '+' + delta + ' \u25b2';
+            badge.hidden = false;
+            if (_deltaFadeTimer) clearTimeout(_deltaFadeTimer);
+            _deltaFadeTimer = setTimeout(function() { badge.hidden = true; }, 10000);
+          }
+        }
+        _prevVoteTotal = totalBallots;
       } else {
         kpiVoted.innerHTML = '0<span class="op-kpi-total">/0</span>';
+        _prevVoteTotal = 0;
       }
     }
 
@@ -537,10 +553,15 @@
     var btnClose = document.getElementById('execBtnCloseVote');
     var noVotePanel = document.getElementById('execNoVote');
     var activeVotePanel = document.getElementById('execActiveVote');
+    var postVoteGuidance = document.getElementById('opPostVoteGuidance');
+    var endOfAgenda = document.getElementById('opEndOfAgenda');
 
     if (O.currentOpenMotion) {
       if (noVotePanel) Shared.hide(noVotePanel);
       if (activeVotePanel) activeVotePanel.hidden = false;
+      // Hide guidance panels when a vote is open
+      if (postVoteGuidance) postVoteGuidance.hidden = true;
+      if (endOfAgenda) endOfAgenda.hidden = true;
 
       if (titleEl) titleEl.textContent = O.currentOpenMotion.title;
       if (liveBadge) Shared.show(liveBadge);
@@ -592,7 +613,6 @@
       // Resolution tags
       updateResolutionTags(O.currentOpenMotion);
     } else {
-      if (noVotePanel) Shared.show(noVotePanel, 'block');
       if (activeVotePanel) activeVotePanel.hidden = true;
       if (liveBadge) Shared.hide(liveBadge);
       if (btnClose) { btnClose.disabled = true; Shared.hide(btnClose); }
@@ -601,7 +621,29 @@
       var liveDotOff = document.getElementById('opResLiveDot');
       if (liveDotOff) liveDotOff.hidden = true;
 
-      renderExecQuickOpenList();
+      // Determine which guidance panel to show
+      var isLive = O.currentMeetingStatus === 'live';
+      var openableMotions = O.motionsCache.filter(function(m) { return !m.opened_at && !m.closed_at; });
+      var hasClosedMotions = O.motionsCache.some(function(m) { return m.closed_at; });
+      var allMotionsClosed = O.motionsCache.length > 0 && openableMotions.length === 0 && !O.currentOpenMotion;
+
+      if (isLive && allMotionsClosed) {
+        // All motions are closed — show end-of-agenda guidance
+        if (noVotePanel) Shared.hide(noVotePanel);
+        if (postVoteGuidance) postVoteGuidance.hidden = true;
+        if (endOfAgenda) endOfAgenda.hidden = false;
+      } else if (isLive && hasClosedMotions && openableMotions.length > 0) {
+        // A vote just closed and there are more motions — show post-vote guidance
+        if (noVotePanel) Shared.hide(noVotePanel);
+        if (endOfAgenda) endOfAgenda.hidden = true;
+        if (postVoteGuidance) postVoteGuidance.hidden = false;
+      } else {
+        // Default: show no-vote panel with quick open list
+        if (postVoteGuidance) postVoteGuidance.hidden = true;
+        if (endOfAgenda) endOfAgenda.hidden = true;
+        if (noVotePanel) Shared.show(noVotePanel, 'block');
+        renderExecQuickOpenList();
+      }
     }
   }
 
@@ -768,6 +810,30 @@
       }
     });
   }
+
+  // =========================================================================
+  // GUIDANCE PANEL BUTTON HANDLERS (OPC-04 / OPC-05)
+  // =========================================================================
+
+  // Post-vote: "Vote suivant" — focus/open next openable motion
+  document.addEventListener('click', function(e) {
+    if (e.target.id === 'opBtnNextVote') {
+      var nextMotion = O.motionsCache.find(function(m) { return !m.opened_at && !m.closed_at; });
+      if (nextMotion) {
+        // Scroll the agenda item into view and open the vote
+        var agendaItem = document.querySelector('[data-motion-id="' + nextMotion.id + '"]');
+        if (agendaItem) agendaItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        O.fn.openVote(nextMotion.id);
+      }
+    }
+    if (e.target.id === 'opBtnCloseSession' || e.target.id === 'opBtnEndSession') {
+      // Trigger the existing close session button
+      var existingCloseBtn = document.getElementById('execBtnCloseSession');
+      if (existingCloseBtn) {
+        existingCloseBtn.click();
+      }
+    }
+  });
 
   // Initialize progress track click handler
   bindProgressSegmentClicks();

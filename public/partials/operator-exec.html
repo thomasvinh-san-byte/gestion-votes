@@ -14,6 +14,7 @@
           <div class="op-kpi-item">
             <span class="op-kpi-label">ONT VOTE</span>
             <span class="op-kpi-value" id="opKpiVoted">0<span class="op-kpi-total">/0</span></span>
+            <span id="opVoteDeltaBadge" class="op-vote-delta-badge" hidden aria-live="polite"></span>
           </div>
           <div class="op-kpi-item">
             <span class="op-kpi-label">RESOLUTION</span>
@@ -96,6 +97,17 @@
                   <div id="execQuickOpenList" class="quick-motion-list mt-4">
                     <!-- Filled by JS -->
                   </div>
+                </div>
+                <div class="op-post-vote-guidance" id="opPostVoteGuidance" hidden role="status" aria-live="polite">
+                  <p class="op-guidance-text">Vote cl&ocirc;tur&eacute; &mdash; Ouvrez le prochain vote ou cl&ocirc;turez la s&eacute;ance</p>
+                  <div class="op-guidance-actions">
+                    <button class="btn btn-primary btn-sm" id="opBtnNextVote">Vote suivant</button>
+                    <button class="btn btn-secondary btn-sm" id="opBtnCloseSession">Cl&ocirc;turer la s&eacute;ance</button>
+                  </div>
+                </div>
+                <div class="op-end-of-agenda" id="opEndOfAgenda" hidden role="status" aria-live="polite">
+                  <p class="op-guidance-text">Toutes les r&eacute;solutions ont &eacute;t&eacute; trait&eacute;es</p>
+                  <button class="btn btn-primary" id="opBtnEndSession">Cl&ocirc;turer la s&eacute;ance</button>
                 </div>
                 <div id="execActiveVote" hidden>
                   <div class="exec-vote-title" id="execVoteTitle">&mdash;</div>
