@@ -251,7 +251,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. When the operator opens the first vote on a frozen meeting, voters connected via SSE receive the motionOpened event immediately (not via 3s polling fallback)
   2. Clicking the postsession action button on the hub page navigates to the postsession page with meeting_id in the URL, auto-selecting the meeting
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 24-01-PLAN.md — motionOpened SSE on frozen→live path + hub meeting_id to postsession
 
 ### Future Milestones (Backlog)
 
@@ -287,4 +289,4 @@ Plans:
 | 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
 | 22. Final Audit | v3.0 | 2/2 | Complete | 2026-03-18 |
 | 23. Integration Wiring Fixes | v3.0 | 1/1 | Complete | 2026-03-18 |
-| 24. Final Wiring Polish | v3.0 | 0/TBD | Not started | - |
+| 24. Final Wiring Polish | v3.0 | 0/1 | Planning | - |
