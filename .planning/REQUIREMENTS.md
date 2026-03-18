@@ -50,20 +50,20 @@
 
 ### Operator Console (OPC)
 
-- [ ] **OPC-01**: Operator console layout — status bar (session name + quorum + SSE indicator), left panel (attendance + résolutions), main panel (active vote)
-- [ ] **OPC-02**: Live SSE connectivity indicator — "● En direct" (green pulse) / "⚠ Reconnexion..." (amber) / "✕ Hors ligne" (red) with colour + icon + label
-- [ ] **OPC-03**: Live vote count with delta indicators ("+3 votes in last 30s" alongside absolute count)
-- [ ] **OPC-04**: Contextual post-vote guidance — "Vote clôturé — Ouvrez le prochain vote ou clôturez la séance"
-- [ ] **OPC-05**: End-of-agenda guidance — "Toutes les résolutions ont été traitées — Clôturer la séance"
+- [x] **OPC-01**: Operator console layout — status bar (session name + quorum + SSE indicator), left panel (attendance + résolutions), main panel (active vote)
+- [x] **OPC-02**: Live SSE connectivity indicator — "● En direct" (green pulse) / "⚠ Reconnexion..." (amber) / "✕ Hors ligne" (red) with colour + icon + label
+- [x] **OPC-03**: Live vote count with delta indicators ("+3 votes in last 30s" alongside absolute count)
+- [x] **OPC-04**: Contextual post-vote guidance — "Vote clôturé — Ouvrez le prochain vote ou clôturez la séance"
+- [x] **OPC-05**: End-of-agenda guidance — "Toutes les résolutions ont été traitées — Clôturer la séance"
 
 ### Voter View (VOT)
 
-- [ ] **VOT-01**: Full-screen single-focus ballot card — all navigation and chrome hidden when a vote is open
-- [ ] **VOT-02**: Vote option buttons full-width, minimum 72px height, 8px spacing between options
-- [ ] **VOT-03**: Optimistic vote feedback under 50ms — instant selection visual, background server submission, rollback on error
-- [ ] **VOT-04**: Waiting state — "En attente d'un vote" single line, no other content when no vote is open
-- [ ] **VOT-05**: Confirmation state — "Vote enregistré ✓" for 3 seconds after vote closes
-- [ ] **VOT-06**: PDF consultation via ag-pdf-viewer bottom sheet (slide-up panel, stays in voting context)
+- [x] **VOT-01**: Full-screen single-focus ballot card — all navigation and chrome hidden when a vote is open
+- [x] **VOT-02**: Vote option buttons full-width, minimum 72px height, 8px spacing between options
+- [x] **VOT-03**: Optimistic vote feedback under 50ms — instant selection visual, background server submission, rollback on error
+- [x] **VOT-04**: Waiting state — "En attente d'un vote" single line, no other content when no vote is open
+- [x] **VOT-05**: Confirmation state — "Vote enregistré ✓" for 3 seconds after vote closes
+- [x] **VOT-06**: PDF consultation via ag-pdf-viewer bottom sheet (slide-up panel, stays in voting context)
 
 ### Results & Post-Session (RES)
 
