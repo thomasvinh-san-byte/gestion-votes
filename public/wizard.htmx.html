@@ -51,10 +51,20 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer la visite guid&eacute;e">
-          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-          Visite
-        </button>
+        <ag-popover trigger="click" position="bottom" width="320">
+          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Aide
+          </button>
+          <div slot="content">
+            <strong>Assistant de cr&eacute;ation &mdash; Comment &ccedil;a marche</strong>
+            <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+              <li>Compl&eacute;tez les 4 &eacute;tapes dans l'ordre</li>
+              <li>&Eacute;tapes 2 et 3 sont optionnelles &mdash; vous pouvez les compl&eacute;ter depuis la fiche s&eacute;ance</li>
+              <li>Vos donn&eacute;es sont sauvegard&eacute;es &agrave; chaque &eacute;tape</li>
+            </ul>
+          </div>
+        </ag-popover>
         <a class="btn btn-sm" href="/dashboard.htmx.html">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
           Retour
@@ -416,5 +426,6 @@
   <script src="https://cdn.jsdelivr.net/npm/filepond@4.32.12/dist/filepond.min.js"></script>
   <script src="/assets/js/pages/wizard.js"></script>
   <script type="module" src="/assets/js/components/ag-toast.js"></script>
+  <script type="module" src="/assets/js/components/ag-popover.js"></script>
 </body>
 </html>

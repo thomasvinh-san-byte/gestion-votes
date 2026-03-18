@@ -46,10 +46,20 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
-          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-          Tour
-        </button>
+        <ag-popover trigger="click" position="bottom" width="320">
+          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Aide
+          </button>
+          <div slot="content">
+            <strong>S&eacute;ances &mdash; Comment &ccedil;a marche</strong>
+            <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+              <li>Filtrez par &eacute;tat avec les onglets</li>
+              <li>Cliquez sur une s&eacute;ance pour ouvrir sa fiche hub</li>
+              <li>Utilisez la barre de recherche pour retrouver une s&eacute;ance par nom</li>
+            </ul>
+          </div>
+        </ag-popover>
         <a class="btn btn-primary btn-sm" href="/wizard.htmx.html">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
           Nouvelle s&eacute;ance

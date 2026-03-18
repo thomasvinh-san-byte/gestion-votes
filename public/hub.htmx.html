@@ -53,10 +53,20 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer la visite guid&eacute;e">
-          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-          Guide
-        </button>
+        <ag-popover trigger="click" position="bottom" width="320">
+          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Aide
+          </button>
+          <div slot="content">
+            <strong>Fiche s&eacute;ance &mdash; Comment &ccedil;a marche</strong>
+            <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+              <li>Suivez les &eacute;tapes dans l'ordre</li>
+              <li>Chaque &eacute;tape d&eacute;bloque la suivante</li>
+              <li>La console op&eacute;rateur s'ouvre depuis l'&eacute;tape Pr&eacute;sences</li>
+            </ul>
+          </div>
+        </ag-popover>
         <a class="btn btn-sm btn-ghost" href="/wizard.htmx.html">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
           Modifier
@@ -236,5 +246,6 @@
   <script src="/assets/js/services/meeting-context.js"></script>
   <script src="/assets/js/pages/hub.js"></script>
   <script type="module" src="/assets/js/components/ag-toast.js"></script>
+  <script type="module" src="/assets/js/components/ag-popover.js"></script>
 </body>
 </html>

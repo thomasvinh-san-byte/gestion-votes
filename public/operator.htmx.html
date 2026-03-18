@@ -60,10 +60,20 @@
           <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données" aria-label="Actualiser les donn&eacute;es">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
           </button>
-          <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
-            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-            Tour
-          </button>
+          <ag-popover trigger="click" position="bottom" width="320">
+            <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+              <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+              Aide
+            </button>
+            <div slot="content">
+              <strong>Console op&eacute;rateur &mdash; Comment &ccedil;a marche</strong>
+              <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+                <li>Mode Pr&eacute;paration : g&eacute;rez membres et r&eacute;solutions</li>
+                <li>Mode Ex&eacute;cution : pilotez les votes en direct</li>
+                <li>Le bouton principal change selon l'&eacute;tat de la s&eacute;ance</li>
+              </ul>
+            </div>
+          </ag-popover>
         </div>
       </div>
       <div class="meeting-bar-actions" id="meetingBarActions" hidden data-tour="operator-actions">

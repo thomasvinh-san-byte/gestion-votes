@@ -42,10 +42,20 @@
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
           Exporter CSV
         </a>
-        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
-          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-          Tour
-        </button>
+        <ag-popover trigger="click" position="bottom" width="320">
+          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Aide
+          </button>
+          <div slot="content">
+            <strong>Membres &mdash; Comment &ccedil;a marche</strong>
+            <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+              <li>Importez un CSV pour ajouter des membres en masse</li>
+              <li>Chaque membre re&ccedil;oit un lien de vote unique</li>
+              <li>La colonne Poids d&eacute;finit le droit de vote pond&eacute;r&eacute;</li>
+            </ul>
+          </div>
+        </ag-popover>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>

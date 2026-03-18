@@ -53,10 +53,20 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="tour-trigger-btn" id="btnTour" aria-label="Lancer le tour guid&eacute;">
-          <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-          Tour
-        </button>
+        <ag-popover trigger="click" position="bottom" width="320">
+          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Aide
+          </button>
+          <div slot="content">
+            <strong>Post-session &mdash; Comment &ccedil;a marche</strong>
+            <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+              <li>Validez les r&eacute;sultats avant de g&eacute;n&eacute;rer le PV</li>
+              <li>La g&eacute;n&eacute;ration PDF prend quelques secondes</li>
+              <li>Le PV archiv&eacute; est accessible depuis la page Archives</li>
+            </ul>
+          </div>
+        </ag-popover>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -486,6 +496,8 @@
   <script src="/assets/js/core/shell.js"></script>
   <script src="/assets/js/services/meeting-context.js"></script>
   <script type="module" src="/assets/js/components/ag-searchable-select.js"></script>
+  <script type="module" src="/assets/js/components/ag-popover.js"></script>
+  <script type="module" src="/assets/js/components/ag-tooltip.js"></script>
   <script src="/assets/js/pages/postsession.js"></script>
 </body>
 </html>
