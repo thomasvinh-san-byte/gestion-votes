@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Completed 28-01-PLAN.md
-last_updated: "2026-03-18T16:50:59.433Z"
+stopped_at: Completed 28-03 Tasks 1-2; awaiting checkpoint Task 3 (human-verify)
+last_updated: "2026-03-18T16:57:23.806Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 20
 ---
 
@@ -51,6 +51,7 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 27-copropriete-transformation P02 | 15 | 2 tasks | 11 files |
 | Phase 28-wizard-session-hub-ux-overhaul P02 | 2 | 2 tasks | 2 files |
 | Phase 28-wizard-session-hub-ux-overhaul P01 | 5 | 2 tasks | 2 files |
+| Phase 28-wizard-session-hub-ux-overhaul P03 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 28-01]: Steps 2 (Membres) and 3 (Résolutions) are optional — validateStep n=1/n=2 return true; step 4 shows warnings but does not block creation
 - [Phase 28-01]: resoKey (Clé de répartition) removed from wizard — copropriété vocabulary; key hard-coded to Charges générales in setupAddReso()
 - [Phase 28-01]: MOTION_TEMPLATES are hardcoded JS objects (3 templates) — not DB-stored (v5+ deferred)
+- [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: .wiz-step-body scoped field overrides prevent wizard CSS from bleeding to other pages
+- [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: hub-identity-date uses var(--font-display) Fraunces for semantic heading hierarchy in hub banner
+- [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: wizFadeIn 150ms translateY(4px) animation on .wiz-step — satisfies WIZ-05 step transition requirement
 
 ### Pending Todos
 
@@ -110,7 +114,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T16:50:59.427Z
-Stopped at: Completed 28-01-PLAN.md
+Last session: 2026-03-18T16:57:23.801Z
+Stopped at: Completed 28-03 Tasks 1-2; awaiting checkpoint Task 3 (human-verify)
 Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)

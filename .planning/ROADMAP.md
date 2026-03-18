@@ -58,7 +58,7 @@
 - [x] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
 - [x] **Phase 26: Guided UX Components** — ag-empty-state, help panels (no Driver.js), status-aware dashboard cards, disabled-button explanations, term popovers (completed 2026-03-18)
 - [x] **Phase 27: Copropriete Transformation** — Vocabulary cleanup, lot field removal, openKeyModal removal, weighted-vote regression test (completed 2026-03-18)
-- [ ] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar
+- [x] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar (completed 2026-03-18)
 - [ ] **Phase 29: Operator Console, Voter View & Visual Polish** — Console layout, voter ballot card, result cards, CSS @layer, animations, PC-first validation
 
 ---
@@ -122,7 +122,7 @@ Plans:
   4. Step 2's advanced voting settings are hidden behind a toggle ("Parametres de vote avances") and only appear when the toggle is activated
   5. The session hub pre-meeting checklist shows which items are blocked and why ("Disponible apres: resolutions ajoutees") with a quorum progress bar that animates from amber to green once quorum is reached
   6. Each motion in the hub displays "Document joint" or "Aucun document" as its document status
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 28-01-PLAN.md — Wizard functional overhaul: named stepper, optional steps, review card, templates, progressive disclosure
 - [ ] 28-02-PLAN.md — Hub enhancements: checklist blocked reasons, quorum bar, motions doc badges, convocation flow
@@ -150,7 +150,7 @@ Plans:
 | 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
 | 26. Guided UX Components | 3/3 | Complete    | 2026-03-18 |
 | 27. Copropriete Transformation | 2/2 | Complete    | 2026-03-18 |
-| 28. Wizard & Session Hub UX Overhaul | 2/3 | In Progress|  |
+| 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete   | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
 
 ---
