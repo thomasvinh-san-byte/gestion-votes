@@ -4,7 +4,7 @@ milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
 stopped_at: Completed 27-copropriete-transformation-27-02-PLAN.md
-last_updated: "2026-03-18T15:29:31.845Z"
+last_updated: "2026-03-18T15:33:39.592Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
