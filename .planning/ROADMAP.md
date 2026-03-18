@@ -56,7 +56,7 @@
 ### v4.0 Clarity & Flow (Phases 25-29) — ACTIVE
 
 - [x] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
-- [ ] **Phase 26: Guided UX Components** — ag-guide (Driver.js), ag-hint, ag-empty-state, status-aware cards, disabled-button explanations
+- [ ] **Phase 26: Guided UX Components** — ag-empty-state, help panels (no Driver.js), status-aware dashboard cards, disabled-button explanations, term popovers
 - [ ] **Phase 27: Copropriete Transformation** — Vocabulary cleanup, lot field removal, openKeyModal removal, weighted-vote regression test
 - [ ] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar
 - [ ] **Phase 29: Operator Console, Voter View & Visual Polish** — Console layout, voter ballot card, result cards, CSS @layer, animations, PC-first validation
@@ -82,16 +82,20 @@ Plans:
 - [x] 25-03-PLAN.md — Page wiring: hub badges, operator upload, voter bottom sheet, SSE events
 
 ### Phase 26: Guided UX Components
-**Goal**: Users are guided through unfamiliar flows without reading a manual — tours wire the existing stub buttons, empty states replace all blank containers, and every disabled action explains itself
+**Goal**: The design itself guides users naturally — help panels replace tour buttons, empty states replace blank containers, disabled buttons explain themselves, and the dashboard shows lifecycle-aware CTAs
 **Depends on**: Phase 25 (ag-pdf-viewer available for consistent component patterns)
 **Requirements**: GUX-01, GUX-02, GUX-03, GUX-04, GUX-05, GUX-06, GUX-07, GUX-08
 **Success Criteria** (what must be TRUE):
-  1. Clicking the existing tour button on wizard, postsession, and members pages launches a Driver.js step tour; clicking it again or having dismissed it in localStorage does not re-launch
+  1. Clicking the help button on any of the 8 pages opens a contextual help popover with page-relevant tips (not a sequential tour)
   2. Every list or table that can be empty shows a heading + description + secondary action (via ag-empty-state) instead of a blank container
-  3. Every locked button displays a tooltip or inline note explaining why it is disabled (e.g., "Disponible apres: resolutions ajoutees")
+  3. Every locked button displays a tooltip explaining why it is disabled (e.g., "Disponible apres ajout des resolutions")
   4. Each session card on the dashboard shows exactly one next-action CTA reflecting its current lifecycle state (draft / live / closed)
-  5. An ag-hint callout on a technical term (e.g., "majorite absolue") is dismissible and the dismissal persists across page reloads
-**Plans**: TBD
+  5. Technical terms (majorite absolue, quorum, scrutin secret) have (?) click popovers with clear definitions
+**Plans:** 3 plans
+Plans:
+- [ ] 26-01-PLAN.md — ag-empty-state Web Component + empty state migration (meetings, archives, settings, members, users)
+- [ ] 26-02-PLAN.md — Dashboard status-aware session cards with lifecycle CTAs
+- [ ] 26-03-PLAN.md — Help panel popovers (8 pages), disabled button tooltips, technical term popovers
 
 ### Phase 27: Copropriete Transformation
 **Goal**: The application uses generic AG vocabulary throughout the UI — no copropriete-specific language visible to users — while all weighted-vote calculations remain functionally identical
@@ -137,7 +141,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
-| 26. Guided UX Components | 0/? | Not started | - |
+| 26. Guided UX Components | 0/3 | Planned | - |
 | 27. Copropriete Transformation | 0/? | Not started | - |
 | 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
 | 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
