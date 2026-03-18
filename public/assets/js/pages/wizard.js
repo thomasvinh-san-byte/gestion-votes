@@ -12,6 +12,27 @@
 
   var DRAFT_KEY = 'ag-vote-wizard-draft';
 
+  var MOTION_TEMPLATES = [
+    {
+      id: 'approbation-comptes',
+      label: 'Approbation des comptes',
+      title: 'Approbation des comptes de l\u2019exercice',
+      desc: 'L\u2019assembl\u00e9e approuve les comptes de l\u2019exercice \u00e9coul\u00e9 tels qu\u2019ils ont \u00e9t\u00e9 pr\u00e9sent\u00e9s par le pr\u00e9sident et le tr\u00e9sorier.'
+    },
+    {
+      id: 'election-conseil',
+      label: '\u00c9lection au conseil',
+      title: '\u00c9lection des membres du conseil',
+      desc: 'L\u2019assembl\u00e9e proc\u00e8de \u00e0 l\u2019\u00e9lection des membres du conseil d\u2019administration pour l\u2019exercice \u00e0 venir.'
+    },
+    {
+      id: 'modification-reglement',
+      label: 'Modification du r\u00e8glement',
+      title: 'Modification du r\u00e8glement int\u00e9rieur',
+      desc: 'L\u2019assembl\u00e9e approuve les modifications propos\u00e9es au r\u00e8glement int\u00e9rieur telles que pr\u00e9sent\u00e9es en s\u00e9ance.'
+    }
+  ];
+
   // In-memory state
   var members = [];
   var resolutions = [];
@@ -33,6 +54,28 @@
 
   function getId(id) {
     return document.getElementById(id) || {};
+  }
+
+  /* ── Motion template application ─────────────────── */
+
+  function applyTemplate(tpl) {
+    var titleEl = document.getElementById('resoTitle');
+    var descEl = document.getElementById('resoDesc');
+    if (titleEl) titleEl.value = tpl.title;
+    if (descEl) descEl.value = tpl.desc;
+    if (titleEl) titleEl.focus();
+  }
+
+  /* ── Voting power progressive disclosure ──────────── */
+
+  function toggleVotingPower(show) {
+    var toggle = document.getElementById('wizVotingPowerToggle');
+    if (toggle) toggle.checked = show;
+    var vpField = document.getElementById('wizMemberVpField');
+    if (vpField) vpField.style.display = show ? '' : 'none';
+    document.querySelectorAll('.member-votes').forEach(function(el) {
+      el.style.display = show ? '' : 'none';
+    });
   }
 
   /* ── Step navigation ─────────────────────────────── */
@@ -80,7 +123,8 @@
           place:  (getId('wizPlace').value || ''),
           addr:   (getId('wizAddr').value || ''),
           quorum: (getId('wizQuorum').value || ''),
-          defaultMaj: (getId('wizDefaultMaj').value || '')
+          defaultMaj: (getId('wizDefaultMaj').value || ''),
+          votingPowerEnabled: (document.getElementById('wizVotingPowerToggle') || {}).checked || false
         },
         members: members,
         resolutions: resolutions
@@ -106,6 +150,7 @@
       if (s1.addr)       { var a = document.getElementById('wizAddr');       if (a) a.value = s1.addr; }
       if (s1.quorum)     { var q = document.getElementById('wizQuorum');     if (q) q.value = s1.quorum; }
       if (s1.defaultMaj) { var dm = document.getElementById('wizDefaultMaj'); if (dm) dm.value = s1.defaultMaj; }
+      if (s1.votingPowerEnabled) toggleVotingPower(true);
 
       // Restore arrays
       members = Array.isArray(draft.members) ? draft.members : [];
@@ -138,8 +183,8 @@
         mm.length === 2 && parseInt(mm, 10) >= 0 && parseInt(mm, 10) <= 59
       );
     }
-    if (n === 1) { return members.length > 0; }
-    if (n === 2) { return resolutions.length > 0; }
+    if (n === 1) { return true; }
+    if (n === 2) { return true; }
     return true;
   }
 
@@ -172,14 +217,6 @@
       if (mmEl)     mmEl.classList.toggle('field-error', !timeOk);
       if (errTime)  errTime.classList.toggle('visible', !timeOk);
     }
-    if (n === 1) {
-      var errMembers = document.getElementById('errStep1Members');
-      if (errMembers) errMembers.classList.toggle('visible', members.length === 0);
-    }
-    if (n === 2) {
-      var errReso = document.getElementById('errStep2Reso');
-      if (errReso) errReso.classList.toggle('visible', resolutions.length === 0);
-    }
   }
 
   function clearFieldErrors(n) {
@@ -194,14 +231,6 @@
         var el = document.getElementById(id);
         if (el) el.classList.remove('visible');
       });
-    }
-    if (n === 1) {
-      var err = document.getElementById('errStep1Members');
-      if (err) err.classList.remove('visible');
-    }
-    if (n === 2) {
-      var err2 = document.getElementById('errStep2Reso');
-      if (err2) err2.classList.remove('visible');
     }
   }
 
@@ -353,7 +382,6 @@
     var btnImport = document.getElementById('btnImportCSV');
     var fileInput = document.getElementById('csvFileInput');
     var dropZone  = document.getElementById('csvDropZone');
-    var btnManual = document.getElementById('btnAddManual');
 
     if (btnImport && fileInput) {
       btnImport.addEventListener('click', function() { fileInput.click(); });
@@ -381,14 +409,26 @@
       });
     }
 
-    if (btnManual) {
-      btnManual.addEventListener('click', function() {
-        var name = window.prompt('Nom du participant :');
-        if (!name || !name.trim()) return;
-        var voix = parseInt(window.prompt('Poids de vote (d\u00e9faut : 1) :') || '1', 10) || 1;
-        members.push({ nom: name.trim(), name: name.trim(), voix: voix });
+    var btnInline = document.getElementById('btnAddMemberInline');
+    if (btnInline) {
+      btnInline.addEventListener('click', function() {
+        var nameEl = document.getElementById('wizMemberName');
+        var emailEl = document.getElementById('wizMemberEmail');
+        var vpEl = document.getElementById('wizMemberVp');
+        var name = nameEl ? nameEl.value.trim() : '';
+        if (!name) {
+          if (nameEl) nameEl.classList.add('field-error');
+          return;
+        }
+        if (nameEl) nameEl.classList.remove('field-error');
+        var voix = vpEl && vpEl.offsetParent !== null ? (parseInt(vpEl.value, 10) || 1) : 1;
+        var email = emailEl ? emailEl.value.trim() : '';
+        members.push({ nom: name, name: name, email: email, voix: voix });
         renderMembersList();
         saveDraft();
+        if (nameEl) { nameEl.value = ''; nameEl.focus(); }
+        if (emailEl) emailEl.value = '';
+        if (vpEl) vpEl.value = '1';
       });
     }
   }
@@ -656,7 +696,6 @@
       var titleEl = document.getElementById('resoTitle');
       var descEl  = document.getElementById('resoDesc');
       var majEl   = document.getElementById('resoMaj');
-      var keyEl   = document.getElementById('resoKey');
       var chipOui = document.getElementById('chipSecret');
 
       var title = titleEl ? titleEl.value.trim() : '';
@@ -670,7 +709,7 @@
         title:  title,
         desc:   descEl ? descEl.value.trim() : '',
         maj:    majEl  ? majEl.value  : getDefaultMaj(),
-        key:    keyEl  ? keyEl.value  : 'Charges g\u00e9n\u00e9rales (d\u00e9faut)',
+        key:    'Charges g\u00e9n\u00e9rales',
         secret: chipOui ? chipOui.classList.contains('active') : false
       });
 
@@ -702,9 +741,9 @@
     }
   }
 
-  /* ── Recap builder ───────────────────────────────── */
+  /* ── Review card builder ─────────────────────────── */
 
-  function buildRecap() {
+  function buildReviewCard() {
     var recap = document.getElementById('wizRecap');
     if (!recap) return;
 
@@ -715,29 +754,74 @@
     var mm     = getId('wizTimeMM').value || '';
     var place  = getId('wizPlace').value  || '';
     var addr   = getId('wizAddr').value   || '';
-    var quorum = getId('wizQuorum').value || '';
-    var lieu   = [place, addr].filter(Boolean).join(', ') || '(non renseign\u00e9)';
-    var time   = hh && mm ? hh + ':' + mm : '';
-    var dateStr = date ? date + (time ? ' \u00e0 ' + time : '') : '(non renseign\u00e9e)';
+    var dateStr = date ? date + (hh && mm ? ' \u00e0 ' + hh + ':' + mm : '') : '(non renseign\u00e9e)';
+    var lieu = [place, addr].filter(Boolean).join(', ') || '(non renseign\u00e9)';
 
-    var rows = [
-      ['Titre',         title],
-      ['Type',          type],
-      ['Date',          dateStr],
-      ['Lieu',          lieu],
-      ['Quorum',        quorum],
-      ['Participants',  String(members.length) + ' participant(s)'],
-      ['R\u00e9solutions', String(resolutions.length) + ' r\u00e9solution(s)']
-    ];
+    var warnings = '';
+    if (members.length === 0) {
+      warnings += '<div class="review-warning">\u26a0 Aucun membre ajout\u00e9 \u2014 les votes ne pourront pas \u00eatre attribu\u00e9s</div>';
+    }
+    if (resolutions.length === 0) {
+      warnings += '<div class="review-warning">\u26a0 Aucune r\u00e9solution \u2014 l\u2019ordre du jour est vide</div>';
+    }
 
-    var html = '';
-    rows.forEach(function(r, i) {
-      html += '<div class="recap-row">' +
-        '<span class="recap-label">' + escapeHtml(r[0]) + '</span>' +
-        '<span class="recap-value">' + escapeHtml(r[1]) + '</span>' +
-      '</div>';
-    });
+    var memberPreview = members.length === 0
+      ? '<span class="review-empty">Aucun membre</span>'
+      : members.slice(0, 5).map(function(m) { return escapeHtml(m.name || m.nom || ''); }).join(', ') +
+        (members.length > 5 ? ' et ' + (members.length - 5) + ' autres' : '');
+
+    var resoPreview = resolutions.length === 0
+      ? '<span class="review-empty">Aucune r\u00e9solution</span>'
+      : '<ol class="review-reso-list">' + resolutions.map(function(r) {
+          return '<li>' + escapeHtml(r.title) + '</li>';
+        }).join('') + '</ol>';
+
+    var docCount = 0;
+    resolutions.forEach(function(r) { if (r.docs && r.docs.length) docCount += r.docs.length; });
+
+    var html =
+      '<div class="review-section">' +
+        '<div class="review-section-header">' +
+          '<span class="review-section-title">Informations</span>' +
+          '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="0">Modifier</button>' +
+        '</div>' +
+        '<div class="review-row"><span class="review-label">Titre</span><span class="review-value">' + escapeHtml(title) + '</span></div>' +
+        '<div class="review-row"><span class="review-label">Type</span><span class="review-value">' + escapeHtml(type) + '</span></div>' +
+        '<div class="review-row"><span class="review-label">Date</span><span class="review-value">' + escapeHtml(dateStr) + '</span></div>' +
+        '<div class="review-row"><span class="review-label">Lieu</span><span class="review-value">' + escapeHtml(lieu) + '</span></div>' +
+      '</div>' +
+      '<div class="review-section">' +
+        '<div class="review-section-header">' +
+          '<span class="review-section-title">Membres</span>' +
+          '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="1">Modifier</button>' +
+        '</div>' +
+        '<div class="review-row"><span class="review-label">Total</span><span class="review-value">' + members.length + ' participant' + (members.length !== 1 ? 's' : '') + '</span></div>' +
+        '<div class="review-row"><span class="review-label">Aper\u00e7u</span><span class="review-value">' + memberPreview + '</span></div>' +
+      '</div>' +
+      '<div class="review-section">' +
+        '<div class="review-section-header">' +
+          '<span class="review-section-title">R\u00e9solutions</span>' +
+          '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="2">Modifier</button>' +
+        '</div>' +
+        '<div class="review-row"><span class="review-label">Total</span><span class="review-value">' + resolutions.length + ' r\u00e9solution' + (resolutions.length !== 1 ? 's' : '') + '</span></div>' +
+        '<div class="review-row review-row-block">' + resoPreview + '</div>' +
+      '</div>' +
+      '<div class="review-section">' +
+        '<div class="review-section-header">' +
+          '<span class="review-section-title">Documents</span>' +
+        '</div>' +
+        '<div class="review-row"><span class="review-label">Fichiers</span><span class="review-value">' + docCount + ' document' + (docCount !== 1 ? 's' : '') + ' joint' + (docCount !== 1 ? 's' : '') + '</span></div>' +
+      '</div>' +
+      warnings;
+
     recap.innerHTML = html;
+
+    recap.querySelectorAll('.review-modifier').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var step = parseInt(btn.getAttribute('data-goto'), 10);
+        showStep(step);
+      });
+    });
   }
 
   /* ── API payload ─────────────────────────────────── */
@@ -792,11 +876,6 @@
     var btn1 = document.getElementById('btnNext1');
     if (btn1) {
       btn1.addEventListener('click', function() {
-        if (!validateStep(1)) {
-          showFieldErrors(1);
-          return;
-        }
-        clearFieldErrors(1);
         saveDraft();
         syncDefaultMaj();
         showStep(2);
@@ -809,13 +888,8 @@
     var btn2 = document.getElementById('btnNext2');
     if (btn2) {
       btn2.addEventListener('click', function() {
-        if (!validateStep(2)) {
-          showFieldErrors(2);
-          return;
-        }
-        clearFieldErrors(2);
         saveDraft();
-        buildRecap();
+        buildReviewCard();
         showStep(3);
       });
     }
@@ -823,10 +897,21 @@
     var btnP3 = document.getElementById('btnPrev3');
     if (btnP3) btnP3.addEventListener('click', function() { showStep(2); });
 
-    var btnPdf = document.getElementById('btnDownloadPdf');
-    if (btnPdf) {
-      btnPdf.addEventListener('click', function() {
-        window.print();
+    // Wire template quick-select buttons
+    document.querySelectorAll('.wiz-template-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = btn.getAttribute('data-template');
+        var tpl = MOTION_TEMPLATES.filter(function(t) { return t.id === id; })[0];
+        if (tpl) applyTemplate(tpl);
+      });
+    });
+
+    // Wire voting power toggle
+    var vpToggle = document.getElementById('wizVotingPowerToggle');
+    if (vpToggle) {
+      vpToggle.addEventListener('change', function() {
+        toggleVotingPower(vpToggle.checked);
+        saveDraft();
       });
     }
 
@@ -834,9 +919,7 @@
     if (btnCreate) {
       btnCreate.addEventListener('click', function() {
         btnCreate.disabled = true;
-        btnCreate.innerHTML =
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>' +
-          ' Cr\u00e9ation\u2026';
+        btnCreate.textContent = 'Cr\u00e9ation\u2026';
 
         var payload = buildPayload();
         api('/api/v1/meetings', payload)
@@ -862,9 +945,7 @@
           })
           .catch(function(err) {
             btnCreate.disabled = false;
-            btnCreate.innerHTML =
-              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>' +
-              ' Cr\u00e9er la s\u00e9ance';
+            btnCreate.textContent = 'Cr\u00e9er la s\u00e9ance \u2192';
             var msg = 'Erreur lors de la cr\u00e9ation. Veuillez r\u00e9essayer.';
             if (err && err.details && err.details[0] && err.details[0].message) {
               msg = err.details[0].message;
