@@ -44,8 +44,11 @@ services:
       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}"
       # --- Seed data ---
       LOAD_SEED_DATA: "${LOAD_SEED_DATA:-1}"
+      # --- Upload storage ---
+      AGVOTE_UPLOAD_DIR: "${AGVOTE_UPLOAD_DIR:-/var/agvote/uploads}"
     volumes:
       - app-storage:/tmp/ag-vote    # logs, cache PDF, fonts
+      - uploads:/var/agvote/uploads  # persistent PDF storage
     depends_on:
       db:
         condition: service_healthy
@@ -145,4 +148,6 @@ volumes:
   pgdata:
     driver: local
   app-storage:
+    driver: local
+  uploads:
     driver: local

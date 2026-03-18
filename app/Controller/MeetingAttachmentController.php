@@ -60,7 +60,7 @@ final class MeetingAttachmentController extends AbstractController {
             api_fail('invalid_file_type', 400, ['detail' => 'Extension .pdf requise.']);
         }
 
-        $uploadDir = '/tmp/ag-vote/uploads/meetings/' . $meetingId;
+        $uploadDir = AG_UPLOAD_DIR . '/meetings/' . $meetingId;
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0o750, true);
         }
@@ -115,7 +115,7 @@ final class MeetingAttachmentController extends AbstractController {
             api_fail('not_found', 404);
         }
 
-        $filePath = '/tmp/ag-vote/uploads/meetings/' . $att['meeting_id'] . '/' . $att['stored_name'];
+        $filePath = AG_UPLOAD_DIR . '/meetings/' . $att['meeting_id'] . '/' . $att['stored_name'];
         if (file_exists($filePath)) {
             unlink($filePath);
         }

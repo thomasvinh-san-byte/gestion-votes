@@ -74,12 +74,12 @@ COPY deploy/php.ini /usr/local/etc/php/conf.d/99-custom.ini
 # run the whole container as non-root.
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/public \
-    && mkdir -p /tmp/ag-vote /var/log/nginx /var/run/nginx \
+    && mkdir -p /tmp/ag-vote /var/agvote/uploads /var/log/nginx /var/run/nginx \
         /var/lib/nginx/tmp/client_body \
         /var/lib/nginx/tmp/proxy \
         /var/lib/nginx/tmp/fastcgi \
     && chown -R www-data:www-data \
-        /tmp/ag-vote /var/log/nginx /var/run/nginx /var/lib/nginx \
+        /tmp/ag-vote /var/agvote/uploads /var/log/nginx /var/run/nginx /var/lib/nginx \
         /usr/local/etc/php/conf.d \
         /etc/nginx/http.d \
     && chmod +x /var/www/deploy/entrypoint.sh
