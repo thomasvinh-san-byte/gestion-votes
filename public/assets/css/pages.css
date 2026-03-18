@@ -173,12 +173,12 @@
    TAB TOOLBAR
    ============================================================================= */
 
+/* consolidated — margin-bottom set in compaction block near line 1284 (14px wireframe density) */
 .tab-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -504,10 +504,10 @@
   box-shadow: var(--shadow-xs);
 }
 
+/* inherited from .card-clickable — translateY(-2px) already in design-system.css */
 .meeting-card:hover {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .meeting-card-header {
@@ -913,11 +913,11 @@
    SECTION HEADER
    ============================================================================= */
 
+/* consolidated — see .section-header block near line 1277 (14px wireframe density) */
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--color-border);
   flex-wrap: wrap;
@@ -1264,9 +1264,7 @@
    PAGE-HEADER COMPACTION — wireframe v3.19.2 density (14px spacing)
    ============================================================================= */
 
-.page-header {
-  margin-bottom: 14px;
-}
+/* consolidated — page-header margin-bottom defined in app.css (single canonical place) */
 
 .page-header h1,
 .page-header .page-title {
