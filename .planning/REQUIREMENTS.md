@@ -44,9 +44,9 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 ### Post-Session & PV
 
 - [x] **PST-01**: L'étape 1 du stepper post-session affiche les résultats vérifiés (fix endpoint motions_for_meeting)
-- [ ] **PST-02**: L'étape 2 déclenche la consolidation puis la transition closed→validated
-- [ ] **PST-03**: L'étape 3 génère le PV en PDF via Dompdf
-- [ ] **PST-04**: L'étape 4 permet l'archivage de la session (lien export_correspondance supprimé)
+- [x] **PST-02**: L'étape 2 déclenche la consolidation puis la transition closed→validated
+- [x] **PST-03**: L'étape 3 génère le PV en PDF via Dompdf
+- [x] **PST-04**: L'étape 4 permet l'archivage de la session (lien export_correspondance supprimé)
 
 ### Nettoyage
 
@@ -113,9 +113,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VOT-03 | Phase 20 | Complete |
 | VOT-04 | Phase 23 | Complete |
 | PST-01 | Phase 21 | Complete |
-| PST-02 | Phase 21 | Pending |
-| PST-03 | Phase 21 | Pending |
-| PST-04 | Phase 21 | Pending |
+| PST-02 | Phase 21 | Complete |
+| PST-03 | Phase 21 | Complete |
+| PST-04 | Phase 21 | Complete |
 | CLN-01 | Phase 22 | Complete |
 | CLN-02 | Phase 22 | Complete |
 | CLN-03 | Phase 17 | Complete |
