@@ -28,18 +28,20 @@ A **self-hosted, open-source** alternative to commercial voting platforms for or
 
 ## Current State
 
-AG-VOTE is a **brownfield project** with a fully wired session lifecycle:
+AG-VOTE is a **brownfield project** with a self-explanatory UX and full session lifecycle:
 - 38 PHP controllers, 30+ repositories, 18 services
-- 20 custom Web Components, 29 page JS modules
-- Full design system with 64 CSS tokens, dark/light theme switching
-- ~80,000 LOC (27k JS, 30k PHP, 24k CSS)
+- 23 custom Web Components (ag-pdf-viewer, ag-empty-state, + 21 originals), 29 page JS modules
+- Design system with 265+ CSS custom properties, @layer (base/components/v4), color-mix() tokens, dark/light parity
+- ~95,000 LOC (30k JS, 30k PHP, 35k CSS)
 - PHPUnit test suite (20+ test files), E2E suite (21 specs, ~230+ tests)
-- All pages aligned with wireframe v3.19.2 "Acte Officiel"
-- Dompdf ^3.1 installed for PV PDF generation
+- "Officiel et confiance" visual identity — bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono
+- Dompdf ^3.1 for PV PDF, FilePond for document upload, native iframe PDF viewer
 
-**Shipped v3.0 Session Lifecycle** (2026-03-18): Full session lifecycle wired end-to-end — wizard creates real sessions with atomic member+motion persistence, SSE multi-consumer infrastructure with Redis fan-out, live vote flow (operator opens/closes motions, voters cast ballots via SSE), post-session stepper (verified results, consolidation, PV PDF, archival), zero demo constants, every API call has loading/error/empty states.
+**Shipped v4.0 Clarity & Flow** (2026-03-18): PDF resolution attachments (upload, serve, viewer), guided UX layer (empty states, status cards, help panels, disabled tooltips), copropriété→AG vocabulary transformation, wizard overhaul (named stepper, templates, review card, progressive disclosure), hub enhancements (quorum bar, blocked reasons, convocations), operator console live indicators (SSE, delta badges, guidance), voter full-screen ballot (optimistic feedback, 72px cards), collapsible result cards, all-page CSS polish with @layer and color-mix().
 
-**Shipped v2.0 UI Redesign** (2026-03-16): Complete visual overhaul across all pages — design tokens, navigation, dashboard, sessions, wizard, hub, operator console, room display, voter view, post-session, archives, audit, statistics, users, settings, help/FAQ.
+**Shipped v3.0 Session Lifecycle** (2026-03-18): Full session lifecycle wired end-to-end — wizard creates real sessions, SSE multi-consumer infrastructure, live vote flow, post-session stepper, zero demo constants.
+
+**Shipped v2.0 UI Redesign** (2026-03-16): Complete visual overhaul across all pages — design tokens, navigation, component library.
 
 ## Requirements
 
@@ -53,18 +55,11 @@ AG-VOTE is a **brownfield project** with a fully wired session lifecycle:
 - v2.0: Design system alignment (64 tokens, dark/light), navigation & layout, dashboard & sessions, wizard & hub, operator console, room display & voter view, post-session & records, statistics & users, settings & help, component library
 - v3.0: Session creation wizard (atomic persistence), hub/dashboard real data, SSE multi-consumer infrastructure, operator console API wiring, live vote flow (open/cast/close/tally via SSE), post-session stepper (results/consolidation/PV PDF/archival), zero demo constants, loading/error/empty states on all pages, hub→operator meeting_id propagation, frozen→live transition with motionOpened SSE
 
+- v4.0: PDF resolution documents (upload/serve/view), guided UX (empty states, status cards, help panels, disabled tooltips), copropriété→AG transformation, wizard overhaul (named stepper, templates, review card, progressive disclosure), hub enhancements (quorum bar, blocked reasons, convocations), operator live indicators (SSE, delta, guidance), voter full-screen ballot (optimistic, 72px), result cards (collapsible, bar charts), CSS @layer + color-mix(), all-page visual polish, "officiel et confiance" design
+
 ### Active
 
-**Current Milestone: v4.0 "Clarity & Flow"**
-
-**Goal:** Transform AG-VOTE into a self-explanatory, visually impressive application where users never need external help to run a complete assembly — from session creation to archival.
-
-**Target features:**
-- Guided UX overhaul — progressive disclosure, smart defaults, contextual hints, step-by-step flows across all screens
-- PC-first design approach (1024px+, adaptive) — mobile only for voter screen (in-room voting on phone)
-- PDF résolutions — attach documents during creation and before meeting, inline viewer for voters
-- Copropriété transformation — convert tantièmes/millièmes logic into useful AG-standard features
-- Top 1% UI/UX — research-driven redesign from scratch, no wireframe constraint
+(No active requirements — next milestone not started)
 
 ### Out of Scope
 
@@ -119,4 +114,4 @@ Deferred ideas from v3.0:
 | PC-first approach | Optimize for 1024px+, mobile only for voter screen | — Pending |
 
 ---
-*Last updated: 2026-03-18 after v4.0 milestone started*
+*Last updated: 2026-03-18 after v4.0 milestone shipped*

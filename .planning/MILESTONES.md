@@ -1,5 +1,27 @@
 # Milestones
 
+## v4.0 Clarity & Flow (Shipped: 2026-03-18)
+
+**Scope:** Transform AG-VOTE into a self-explanatory, visually impressive application — zero training, officiel et confiance design language
+**Phases:** 5 phases (25-29), 18 plans
+**Timeline:** 1 day (2026-03-18)
+**Requirements:** 55/55 complete
+**Codebase:** 118 files changed, +14,955 / -1,170 lines
+
+**Key accomplishments:**
+1. PDF resolution documents — FilePond upload, authenticated serve endpoint, ag-pdf-viewer (inline/sheet/panel), SSE documentAdded events, Docker persistent volume
+2. Guided UX layer — ag-empty-state Web Component (11 migrations), status-aware dashboard cards with lifecycle CTAs, 8 contextual help panels, 7 disabled button tooltips
+3. Copropriété → generic AG vocabulary — 45+ occurrences across 21 files transformed, lot field removed, openKeyModal stub removed, PHPUnit weighted-vote regression test
+4. Wizard UX overhaul — named stepper, optional steps, review card with "Modifier" links, 3 motion templates, progressive disclosure for voting power, autosave on blur
+5. Hub enhancements — checklist blocked reasons, ag-quorum-bar with threshold tick, motions list with doc badges, convocation send with confirmation
+6. Operator console live indicators — SSE connectivity (live/reconnecting/offline), delta vote badge (+N ▲), post-vote/end-of-agenda guidance panels
+7. Voter full-screen ballot — data-vote-state machine, 72px stacked cards, optimistic feedback < 50ms, confirmation state, inline irreversibility notice
+8. Result cards — collapsible details/summary, CSS-only bar charts, ADOPTÉ/REJETÉ verdict, threshold display
+9. Design system — @layer (base/components/v4), 10 color-mix() derived tokens, dark mode parity, @starting-style animations, View Transitions
+10. All-page CSS polish — 15 page CSS files audited, tokens replacing hardcoded colors, transitions capped ≤200ms, inline style audit
+
+---
+
 ## v3.0 Session Lifecycle (Shipped: 2026-03-18)
 
 **Phases completed:** 13 phases, 37 plans, 4 tasks
