@@ -75,13 +75,13 @@
 
 ### Visual Polish (VIS)
 
-- [ ] **VIS-01**: CSS @layer declaration (base, components, v4) in design-system.css — new styles cannot regress existing pages
+- [x] **VIS-01**: CSS @layer declaration (base, components, v4) in design-system.css — new styles cannot regress existing pages
 - [ ] **VIS-02**: View Transitions API for wizard step transitions, tab switching, modal open/close (progressive enhancement)
 - [ ] **VIS-03**: @starting-style entry animations for modals, toasts, and new components
-- [ ] **VIS-04**: color-mix() derived tokens for all new component color variations
+- [x] **VIS-04**: color-mix() derived tokens for all new component color variations
 - [ ] **VIS-05**: Anime.js count-up animations for KPI numbers on dashboard and operator console
 - [ ] **VIS-06**: PC-first layout validation — 1024px+ default; mobile voter screen verified at 375px
-- [ ] **VIS-07**: Dark mode parity — every new token has a dark variant in the same commit
+- [x] **VIS-07**: Dark mode parity — every new token has a dark variant in the same commit
 - [ ] **VIS-08**: Measurable done criteria enforced: transitions ≤ 200ms, CLS = 0, focus rings 3:1 contrast, zero inline style=""
 
 ## v5+ Requirements (Deferred)

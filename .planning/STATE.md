@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Phase 29 context gathered
-last_updated: "2026-03-18T17:42:44.963Z"
+stopped_at: Completed 29-01-PLAN.md
+last_updated: "2026-03-18T18:06:18.062Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 18
+  completed_plans: 12
   percent: 20
 ---
 
@@ -52,6 +52,7 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 28-wizard-session-hub-ux-overhaul P02 | 2 | 2 tasks | 2 files |
 | Phase 28-wizard-session-hub-ux-overhaul P01 | 5 | 2 tasks | 2 files |
 | Phase 28-wizard-session-hub-ux-overhaul P03 | 3 | 2 tasks | 2 files |
+| Phase 29-operator-console-voter-view-visual-polish P01 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,8 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: .wiz-step-body scoped field overrides prevent wizard CSS from bleeding to other pages
 - [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: hub-identity-date uses var(--font-display) Fraunces for semantic heading hierarchy in hub banner
 - [Phase 28-wizard-session-hub-ux-overhaul]: [Phase 28-03]: wizFadeIn 150ms translateY(4px) animation on .wiz-step — satisfies WIZ-05 step transition requirement
+- [Phase 29-01]: CSS @layer cascade: base (sections 1-4) < components (sections 5-10) < v4 (new Phase 29 additions) < unlayered page CSS — zero regression, page CSS wins automatically
+- [Phase 29-01]: color-mix() tints use white in light mode, var(--color-surface) in dark mode — correct dark rendering; 10 token families added to :root and [data-theme=dark] in same commit
 
 ### Pending Todos
 
@@ -114,7 +117,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T17:42:44.957Z
-Stopped at: Phase 29 context gathered
-Resume file: .planning/phases/29-operator-console-voter-view-visual-polish/29-CONTEXT.md
+Last session: 2026-03-18T18:06:18.059Z
+Stopped at: Completed 29-01-PLAN.md
+Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)
