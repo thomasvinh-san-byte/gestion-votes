@@ -857,3 +857,41 @@
     min-width: 80px;
   }
 }
+
+/* =============================================================================
+   VISUAL HIERARCHY — Hub color accents (wireframe v3.19.2)
+   ============================================================================= */
+
+/* Hub identity card: persona accent top border */
+.hub-identity {
+  border-top: 3px solid var(--persona-operateur, var(--color-primary));
+}
+
+/* Hub KPI items: colored values */
+.hub-kpi-value {
+  color: var(--color-text-dark, var(--color-text));
+}
+
+/* Hub checklist items: colored check icons */
+.hub-checklist-item.done .hub-checklist-icon {
+  color: var(--color-success);
+}
+
+.hub-checklist-item.pending .hub-checklist-icon {
+  color: var(--color-warning);
+}
+
+/* Hub action buttons: accent colored icons */
+.hub-action .icon {
+  color: var(--color-primary);
+}
+
+/* Hub status bar: colored status text */
+.hub-status-live {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.hub-status-draft {
+  color: var(--color-text-muted);
+}

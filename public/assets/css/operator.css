@@ -2671,6 +2671,10 @@
   padding: 1rem;
 }
 
+.launch-modal[hidden] {
+  display: none;
+}
+
 .launch-modal .modal-dialog {
   background: var(--color-surface);
   border-radius: 12px;
@@ -4276,4 +4280,79 @@
   font-size: var(--text-base);
   font-weight: 700;
   margin: 0;
+}
+
+/* =============================================================================
+   VISUAL HIERARCHY — Operator color accents (wireframe v3.19.2)
+   The wireframe uses distinct colors for status, section identity, and emphasis.
+   ============================================================================= */
+
+/* Setup section headers: persona operateur accent on settings-section h3 */
+[data-page-role="operator"] .settings-section h3 {
+  color: var(--color-text-dark, var(--color-text));
+}
+
+[data-page-role="operator"] .settings-section h3 .icon {
+  color: var(--persona-operateur, var(--color-primary));
+}
+
+/* Tab buttons: active tab with accent color */
+.tabs-nav .tab-btn[aria-selected="true"] {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Live tab buttons: success/danger accents for live actions */
+.tab-btn-live[aria-selected="true"] {
+  color: var(--color-success);
+  border-bottom-color: var(--color-success);
+}
+
+/* Exec KPI strip: colored borders per metric */
+.exec-kpi {
+  border-top: 3px solid var(--color-primary);
+}
+
+.exec-kpi.for {
+  border-top-color: var(--color-success);
+}
+
+.exec-kpi.against {
+  border-top-color: var(--color-danger);
+}
+
+.exec-kpi.abstain {
+  border-top-color: var(--color-text-muted);
+}
+
+/* Hub layout: action card with accent top border */
+.hub-action-card {
+  border-top: 3px solid var(--color-primary);
+}
+
+/* Conformity items: colored indicators */
+.conformity-item.ok {
+  border-left-color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+
+/* Launch banner: success colored for ready state */
+.launch-banner {
+  border-left: 4px solid var(--color-success);
+}
+
+/* Onboarding banner: accent colored */
+.onboarding-banner {
+  border-left: 4px solid var(--color-primary);
+}
+
+/* Health indicators: colored text to match dot */
+.health-dot.ok + .health-label,
+.health-dot.ok ~ .health-value {
+  color: var(--color-success);
+}
+
+.health-dot.danger + .health-label,
+.health-dot.danger ~ .health-value {
+  color: var(--color-danger);
 }
