@@ -75,7 +75,7 @@
   3. PDF.js version is >= 4.2.67 (CVE-2024-4367 closed); isEvalSupported: false is set; serve endpoint sends X-Content-Type-Options: nosniff and Cache-Control: private, no-store
   4. The wizard step 3 FilePond upload enforces PDF-only and 10 MB max with inline error messages before submission
   5. Hub shows "Document joint" / "Aucun document" status per motion; clicking the indicator opens the inline ag-pdf-viewer
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 25-01-PLAN.md — Backend foundation: DB migration, controller, repository, serve endpoint, storage env var, Docker volume
 - [x] 25-02-PLAN.md — Frontend components: ag-pdf-viewer Web Component, FilePond upload in wizard step 3
@@ -136,7 +136,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 25. PDF Infrastructure Foundation | 3/3 | Complete |  |
+| 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
 | 26. Guided UX Components | 0/? | Not started | - |
 | 27. Copropriete Transformation | 0/? | Not started | - |
 | 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
