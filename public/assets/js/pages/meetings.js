@@ -280,40 +280,19 @@
 
   function renderEmptyState(filter) {
     if (filter === 'all' && allMeetings.length === 0) {
-      return Shared.emptyState({
-        icon: 'meetings',
-        title: 'Aucune s\u00e9ance',
-        description: 'Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour commencer.',
-        actionHtml: '<a class="btn btn-primary btn-sm" href="/wizard.htmx.html" style="margin-top:12px;">Nouvelle s\u00e9ance</a>'
-      });
+      return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour commencer." action-label="Nouvelle s\u00e9ance" action-href="/wizard.htmx.html"></ag-empty-state>';
     }
     if (filter === 'upcoming') {
-      return Shared.emptyState({
-        icon: 'meetings',
-        title: 'Aucune s\u00e9ance \u00e0 venir',
-        description: 'Toutes vos s\u00e9ances sont termin\u00e9es ou en cours.'
-      });
+      return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance \u00e0 venir" description="Toutes vos s\u00e9ances sont termin\u00e9es ou en cours."></ag-empty-state>';
     }
     if (filter === 'live') {
-      return Shared.emptyState({
-        icon: 'meetings',
-        title: 'Aucune s\u00e9ance en cours',
-        description: 'Lancez une s\u00e9ance depuis la page op\u00e9rateur.'
-      });
+      return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance en cours" description="Lancez une s\u00e9ance depuis la console op\u00e9rateur."></ag-empty-state>';
     }
     if (filter === 'completed') {
-      return Shared.emptyState({
-        icon: 'meetings',
-        title: 'Aucune s\u00e9ance termin\u00e9e',
-        description: 'Les s\u00e9ances termin\u00e9es appara\u00eetront ici.'
-      });
+      return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance termin\u00e9e" description="Les s\u00e9ances termin\u00e9es appara\u00eetront ici."></ag-empty-state>';
     }
     // Filtered 'all' with search but no results
-    return Shared.emptyState({
-      icon: 'meetings',
-      title: 'Aucun r\u00e9sultat',
-      description: 'Essayez un autre terme de recherche.'
-    });
+    return '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" description="Essayez un autre terme de recherche."></ag-empty-state>';
   }
 
   // === POPOVER MENUS ===

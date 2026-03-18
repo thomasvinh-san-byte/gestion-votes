@@ -192,7 +192,7 @@
     var el = document.getElementById('settingsQuorumList');
     if (!el) return;
     if (!items.length) {
-      el.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune politique de quorum', description: 'Cr\u00e9ez une politique avec le bouton ci-dessus.' });
+      el.innerHTML = '<ag-empty-state icon="generic" title="Aucune politique de quorum" description="Cr\u00e9ez une politique pour d\u00e9finir le seuil de pr\u00e9sence requis." action-label="Cr\u00e9er une politique" action-href="#addQuorumPolicy"></ag-empty-state>';
       return;
     }
     el.innerHTML = items.map(function(p) {

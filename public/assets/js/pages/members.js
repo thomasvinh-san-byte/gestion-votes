@@ -560,17 +560,9 @@
           '</div>' +
         '</div>';
       } else if (isFiltered) {
-        membersList.innerHTML = Shared.emptyState({
-          icon: 'members',
-          title: 'Aucun résultat',
-          description: 'Aucun membre ne correspond aux filtres actuels.'
-        });
+        membersList.innerHTML = '<ag-empty-state icon="members" title="Aucun r\u00e9sultat" description="Essayez un autre terme de recherche."></ag-empty-state>';
       } else {
-        membersList.innerHTML = Shared.emptyState({
-          icon: 'members',
-          title: 'Aucun membre',
-          description: 'Ajoutez des membres avec le formulaire ci-dessus ou importez un fichier CSV.'
-        });
+        membersList.innerHTML = '<ag-empty-state icon="members" title="Aucun membre" description="Importez une liste CSV ou ajoutez des membres un par un." action-label="Importer des membres" action-href="#importMembers"></ag-empty-state>';
       }
       return;
     }

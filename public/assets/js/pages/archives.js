@@ -41,20 +41,9 @@
     if (!items || items.length === 0) {
       var query = searchInput.value.trim();
       if (query) {
-        archivesList.innerHTML = Shared.emptyState({
-          icon: 'search',
-          title: 'Aucun résultat',
-          description: 'Aucune archive ne correspond à « ' + escapeHtml(query) + ' »'
-        });
+        archivesList.innerHTML = '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" description="Aucune archive ne correspond \u00e0 \u00ab ' + escapeHtml(query) + ' \u00bb"></ag-empty-state>';
       } else {
-        archivesList.innerHTML = Shared.emptyState({
-          icon: 'archive',
-          title: 'Aucune séance archivée',
-          description: currentYear
-            ? 'Aucune archive pour ' + currentYear
-            : 'Les séances validées par le président apparaîtront ici',
-          actionHtml: '<a href="/meetings.htmx.html" class="btn btn-primary btn-sm" style="margin-top:12px;">Voir les séances</a>'
-        });
+        archivesList.innerHTML = '<ag-empty-state icon="archives" title="Aucune s\u00e9ance archiv\u00e9e" description="' + (currentYear ? 'Aucune archive pour ' + currentYear : 'Les s\u00e9ances valid\u00e9es et archiv\u00e9es apparaissent ici.') + '"></ag-empty-state>';
       }
       if (paginationEl) paginationEl.innerHTML = '';
       return;
