@@ -4,7 +4,7 @@ milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
 stopped_at: Completed 29-07-PLAN.md (FINAL plan, v4.0 milestone complete)
-last_updated: "2026-03-18T18:38:15.753Z"
+last_updated: "2026-03-18T18:47:34.539Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
