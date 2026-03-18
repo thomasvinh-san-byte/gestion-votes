@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
 status: executing
-stopped_at: Completed 26-guided-ux-components 26-01-PLAN.md
-last_updated: "2026-03-18T14:25:52.679Z"
+stopped_at: Completed 26-guided-ux-components-26-02-PLAN.md
+last_updated: "2026-03-18T14:26:10.844Z"
 last_activity: 2026-03-18 — Phase 25 Plan 03 complete (PDF UI integration — hub badges, operator upload, voter bottom-sheet)
 progress:
   total_phases: 5
@@ -45,6 +45,7 @@ Progress: [==        ] 20% (1/5 phases, 3/3 plans in phase 25)
 | Phase 25-pdf-infrastructure-foundation P01 | 5 | 3 tasks | 11 files |
 | Phase 25-pdf-infrastructure-foundation P02 | 18min | 2 tasks | 5 files |
 | Phase 26-guided-ux-components P01 | 15 | 2 tasks | 7 files |
+| Phase 26-guided-ux-components P02 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ v4.0-specific decisions pending (to be logged as phases complete):
 - [Phase 26-guided-ux-components]: [Phase 26-01]: ag-empty-state uses light DOM (no attachShadow) so design-system.css .empty-state* classes apply directly
 - [Phase 26-guided-ux-components]: [Phase 26-01]: EMPTY_SVG duplicated inline in ag-empty-state.js to avoid window.Shared load-order dependency
 - [Phase 26-guided-ux-components]: [Phase 26-01]: Shared.emptyState() retained in table-cell (tr/td) contexts (admin.js, audit.js) — ag-empty-state for div containers only
+- [Phase 26-guided-ux-components]: STATUS_CTA map is the canonical source of CTA labels and hrefs per session lifecycle state on dashboard
+- [Phase 26-guided-ux-components]: Dashboard shows all 8 sessions sorted by STATUS_PRIORITY (live first) replacing upcoming-only filter
 
 ### Pending Todos
 
@@ -91,7 +94,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18T14:25:52.673Z
-Stopped at: Completed 26-guided-ux-components 26-01-PLAN.md
+Last session: 2026-03-18T14:26:10.838Z
+Stopped at: Completed 26-guided-ux-components-26-02-PLAN.md
 Resume file: None
 Next action: Execute Phase 25 Plan 03 (hub/operator/voter page integrations for PDF viewer)

@@ -7,7 +7,7 @@
 
 ### Guided UX (GUX)
 
-- [ ] **GUX-01**: Status-aware session cards on dashboard — each card shows the ONE next action for its current lifecycle state
+- [x] **GUX-01**: Status-aware session cards on dashboard — each card shows the ONE next action for its current lifecycle state
 - [x] **GUX-02**: Contextual empty states on every container (heading + description + secondary action) replacing blank tables/lists
 - [ ] **GUX-03**: Disabled button explanations — tooltip or inline note explaining WHY a button is locked
 - [ ] **GUX-04**: ag-guide Web Component wrapping Driver.js — step tours on wizard, postsession, and members pages
