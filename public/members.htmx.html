@@ -217,7 +217,9 @@
               <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
             </div>
             <div class="flex gap-2 mt-4">
-              <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
+              <ag-tooltip text="Disponible apr&egrave;s s&eacute;lection d'un fichier CSV" position="bottom">
+                <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
+              </ag-tooltip>
               <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
               <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
             </div>

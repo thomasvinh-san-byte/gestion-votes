@@ -86,7 +86,9 @@
           <!-- Mode switch removed: always show full tabs -->
         </div>
         <div class="meeting-bar-right">
-          <button class="btn btn-sm btn-primary" id="btnPrimary" disabled>Ouvrir la séance</button>
+          <ag-tooltip text="Disponible apr&egrave;s ajout des membres, enregistrement des pr&eacute;sences et configuration du vote" position="bottom">
+            <button class="btn btn-sm btn-primary" id="btnPrimary" disabled>Ouvrir la séance</button>
+          </ag-tooltip>
           <a class="btn btn-sm btn-secondary" id="btnProjector" href="/public.htmx.html" target="_blank" data-meeting-link>
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
           </a>
@@ -332,7 +334,7 @@
                     </div>
                     <div class="hub-kpi">
                       <div class="hub-kpi-value" id="hubKpiQuorum">—</div>
-                      <div class="hub-kpi-label">Quorum</div>
+                      <div class="hub-kpi-label">Quorum <ag-popover title="Quorum" content="Nombre minimum de participants requis pour que les votes soient valides." position="top" trigger="click"></ag-popover></div>
                     </div>
                   </div>
                 </div>
@@ -362,13 +364,17 @@
                 <div class="hub-accordion-body">
                   <p class="text-sm text-muted mb-3">G&eacute;rez l'envoi des convocations et la 2<sup>e</sup> convocation si n&eacute;cessaire.</p>
                   <div class="flex gap-2">
-                    <button class="btn btn-sm btn-secondary" id="hubSendConvocation" disabled>
-                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
-                      Envoyer 1<sup>&egrave;re</sup> convocation
-                    </button>
-                    <button class="btn btn-sm btn-ghost" id="hubSend2ndConvocation" disabled>
-                      2<sup>e</sup> convocation
-                    </button>
+                    <ag-tooltip text="Disponible apr&egrave;s compl&eacute;tion de la fiche s&eacute;ance" position="bottom">
+                      <button class="btn btn-sm btn-secondary" id="hubSendConvocation" disabled>
+                        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
+                        Envoyer 1<sup>&egrave;re</sup> convocation
+                      </button>
+                    </ag-tooltip>
+                    <ag-tooltip text="Disponible apr&egrave;s envoi de la premi&egrave;re convocation" position="bottom">
+                      <button class="btn btn-sm btn-ghost" id="hubSend2ndConvocation" disabled>
+                        2<sup>e</sup> convocation
+                      </button>
+                    </ag-tooltip>
                   </div>
                 </div>
               </div>

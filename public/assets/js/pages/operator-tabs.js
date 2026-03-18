@@ -1241,11 +1241,7 @@ window.OpS = { fn: {} };
     if (!container) return;
 
     if (agendaCache.length === 0) {
-      container.innerHTML = Shared.emptyState({
-        icon: 'generic',
-        title: 'Aucun point \u00e0 l\u2019ordre du jour',
-        description: 'Ajoutez les points qui structureront votre s\u00e9ance.'
-      });
+      container.innerHTML = '<ag-empty-state icon="generic" title="Aucun point \u00e0 l\u2019ordre du jour" description="Ajoutez les points qui structureront votre s\u00e9ance."></ag-empty-state>';
       return;
     }
 
@@ -2129,9 +2125,17 @@ window.OpS = { fn: {} };
   function updatePrimaryButton() {
     if (!btnPrimary) return;
 
+    var _TOOLTIP_PRIMARY = 'Disponible apr\u00e8s ajout des membres, enregistrement des pr\u00e9sences et configuration du vote';
+
+    function _syncPrimaryTooltip(isDisabled) {
+      var tipEl = btnPrimary.closest('ag-tooltip');
+      if (tipEl) tipEl.setAttribute('text', isDisabled ? _TOOLTIP_PRIMARY : '');
+    }
+
     if (!currentMeetingId) {
       btnPrimary.disabled = true;
       btnPrimary.textContent = 'Ouvrir la séance';
+      _syncPrimaryTooltip(true);
       primaryAction = null;
       return;
     }
@@ -2141,6 +2145,7 @@ window.OpS = { fn: {} };
         const score = getConformityScore();
         // All 3 mandatory prerequisites must be met (members, attendance, rules)
         btnPrimary.disabled = score < 3;
+        _syncPrimaryTooltip(score < 3);
         btnPrimary.textContent = 'Ouvrir la séance';
         primaryAction = 'launch';
         // Explain why button is disabled
@@ -2158,14 +2163,17 @@ window.OpS = { fn: {} };
         }
       } else if (currentMeetingStatus === 'live') {
         btnPrimary.disabled = false;
+        _syncPrimaryTooltip(false);
         btnPrimary.textContent = 'Passer en exécution';
         primaryAction = 'exec';
       } else if (currentMeetingStatus === 'paused') {
         btnPrimary.disabled = false;
+        _syncPrimaryTooltip(false);
         btnPrimary.textContent = 'Reprendre la séance';
         primaryAction = 'resume';
       } else {
         btnPrimary.disabled = true;
+        _syncPrimaryTooltip(true);
         btnPrimary.textContent = 'Séance terminée';
         primaryAction = null;
       }
@@ -2173,6 +2181,7 @@ window.OpS = { fn: {} };
       // Exec mode
       if (currentOpenMotion) {
         btnPrimary.disabled = false;
+        _syncPrimaryTooltip(false);
         btnPrimary.textContent = 'Voir le vote';
         primaryAction = 'scroll-vote';
       } else {
@@ -2180,10 +2189,12 @@ window.OpS = { fn: {} };
         const allDone = motionsCache.length > 0 && motionsCache.every(m => m.closed_at);
         if (allDone) {
           btnPrimary.disabled = false;
+          _syncPrimaryTooltip(false);
           btnPrimary.textContent = 'Clôturer la séance';
           primaryAction = 'close-session';
         } else {
           btnPrimary.disabled = false;
+          _syncPrimaryTooltip(false);
           btnPrimary.textContent = 'Préparation';
           primaryAction = 'setup';
         }

@@ -201,14 +201,18 @@
               </div>
               <div id="transitionActions" class="mt-4"></div>
               <div class="ps-validation-actions">
-                <button class="btn btn-success" id="btnValidate" disabled>
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
-                  Valider les r&eacute;sultats
-                </button>
-                <button class="btn btn-danger" id="btnReject" disabled>
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x-circle"></use></svg>
-                  Rejeter (renvoyer)
-                </button>
+                <ag-tooltip text="Disponible apr&egrave;s v&eacute;rification de tous les r&eacute;sultats" position="bottom">
+                  <button class="btn btn-success" id="btnValidate" disabled>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+                    Valider les r&eacute;sultats
+                  </button>
+                </ag-tooltip>
+                <ag-tooltip text="Disponible apr&egrave;s v&eacute;rification de tous les r&eacute;sultats" position="bottom">
+                  <button class="btn btn-danger" id="btnReject" disabled>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-x-circle"></use></svg>
+                    Rejeter (renvoyer)
+                  </button>
+                </ag-tooltip>
               </div>
             </div>
           </div>
@@ -463,10 +467,12 @@
               <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
               Pr&eacute;c&eacute;dent
             </button>
-            <button class="btn btn-primary" id="btnSuivant" disabled>
-              Suivant
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
-            </button>
+            <ag-tooltip text="Disponible apr&egrave;s validation des r&eacute;sultats" position="bottom">
+              <button class="btn btn-primary" id="btnSuivant" disabled>
+                Suivant
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg>
+              </button>
+            </ag-tooltip>
           </div>
         </div>
 
