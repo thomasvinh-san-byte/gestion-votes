@@ -19,7 +19,7 @@
 - [x] **Phase 20.2: Deep UI Wireframe Alignment** — Align all component CSS with wireframe v3.19.2 specs (INSERTED) (completed 2026-03-17)
 - [x] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED) (completed 2026-03-18, design issues deferred to 20.4)
 - [x] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED) (completed 2026-03-18)
-- [ ] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived
+- [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
 - [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
 
 <details>
@@ -207,7 +207,9 @@ Plans:
   2. Post-session step 2 triggers consolidation of official results and transitions the meeting from closed to validated; the hub checklist reflects the validated state
   3. Post-session step 3 generates a downloadable PV PDF via Dompdf containing the meeting details and vote results
   4. Post-session step 4 completes the archive action with no broken links; the export_correspondance link is absent from the UI
-**Plans**: TBD
+**Plans:** 1/1 plans complete
+Plans:
+- [x] 21-01-PLAN.md — Wire all 4 steps to correct endpoints, install Dompdf, remove dead correspondance link
 
 ### Phase 22: Final Audit
 **Goal**: The codebase contains zero demo constants and every API call site has correct loading, error, and empty states — the full lifecycle can be run end-to-end without encountering any placeholder data
@@ -249,5 +251,5 @@ Plans:
 | 20.2. Deep UI Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-17 |
 | 20.3. Page Layout Wireframe Alignment | v3.0 | 4/4 | Complete | 2026-03-18 |
 | 20.4. Design System Enforcement | v3.0 | 12/12 | Complete | 2026-03-18 |
-| 21. Post-Session & PV | v3.0 | 0/TBD | Not started | - |
+| 21. Post-Session & PV | v3.0 | 1/1 | Complete | 2026-03-18 |
 | 22. Final Audit | v3.0 | 0/TBD | Not started | - |
