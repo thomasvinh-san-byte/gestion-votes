@@ -136,7 +136,9 @@
           if (alert2) alert2.hidden = false;
           if (btnNext) btnNext.disabled = false;
         }
-      } catch (e2) { /* silent */ }
+      } catch (e2) {
+        setNotif('error', 'Impossible de charger les r\u00e9sultats de v\u00e9rification.');
+      }
     }
   }
 
@@ -350,7 +352,9 @@
             if (pvRate) pvRate.textContent = s.adoption_rate != null ? s.adoption_rate + '%' : '—';
           }
         })
-        .catch(function () { /* silent */ });
+        .catch(function () {
+          setNotif('error', 'Impossible de charger le r\u00e9sum\u00e9 de la s\u00e9ance.');
+        });
     }
   }
 

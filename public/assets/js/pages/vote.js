@@ -1101,12 +1101,19 @@
     handleInvitationToken()
       .then(() => loadMeetings())
       .then(() => {
+        // Hide loading skeleton
+        var loadingState = document.getElementById('voteLoadingState');
+        if (loadingState) loadingState.hidden = true;
         // After members loaded, apply invitation lock if token was used
         if (_invitationLocked) {
           applyInvitationLock();
         }
       })
-      .catch((e) => notify('error', e?.message || String(e)));
+      .catch((e) => {
+        var loadingState = document.getElementById('voteLoadingState');
+        if (loadingState) loadingState.hidden = true;
+        notify('error', e?.message || String(e));
+      });
 
     // ── Real-time: SSE (primary) + polling (fallback) ──────────────────
     if (window._voteMotionPollTimer) clearInterval(window._voteMotionPollTimer);

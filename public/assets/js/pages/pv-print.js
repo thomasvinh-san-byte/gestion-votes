@@ -62,6 +62,10 @@
     if (errors.length) {
       const el = document.getElementById('pvMeta');
       if (el) el.textContent += ' — Chargement partiel (données manquantes : ' + errors.join(', ') + ')';
+      const banner = document.createElement('div');
+      banner.style.cssText = 'margin:1rem 0;padding:0.75rem 1rem;border:1px solid #dc3545;border-radius:4px;background:#fff5f5;color:#dc3545;';
+      banner.textContent = 'Attention : donn\u00e9es manquantes (' + errors.join(', ') + '). Le PV peut \u00eatre incomplet.';
+      document.body.insertBefore(banner, document.body.firstChild);
     }
     const motions = (mot?.items || []).map(m => ({
       ...m,
