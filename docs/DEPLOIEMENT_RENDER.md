@@ -83,9 +83,9 @@ Le script `deploy/entrypoint.sh` effectue des verifications strictes au demarrag
 | `CSRF_ENABLED` | `1` | `[FATAL] CSRF_ENABLED doit etre 1 en production.` |
 | `RATE_LIMIT_ENABLED` | `1` | `[FATAL] RATE_LIMIT_ENABLED doit etre 1 en production.` |
 | `APP_SECRET` | Chaine non vide, differente des valeurs par defaut | `[FATAL] APP_SECRET non configure pour la production.` |
-| `LOAD_DEMO_DATA` | `0` (ou absent) | `[FATAL] LOAD_DEMO_DATA=1 interdit en production.` |
+| `LOAD_SEED_DATA` | `0` (ou absent) | `[FATAL] LOAD_SEED_DATA=1 interdit en production.` |
 
-> **Note :** `render-production.yaml` pre-configure deja `APP_AUTH_ENABLED=1`, `CSRF_ENABLED=1`, `RATE_LIMIT_ENABLED=1` et `LOAD_DEMO_DATA=0`. Seul `APP_SECRET` doit etre ajoute manuellement.
+> **Note :** `render-production.yaml` pre-configure deja `APP_AUTH_ENABLED=1`, `CSRF_ENABLED=1`, `RATE_LIMIT_ENABLED=1` et `LOAD_SEED_DATA=0`. Seul `APP_SECRET` doit etre ajoute manuellement.
 
 ### Valeurs APP_SECRET rejetees
 
@@ -174,7 +174,7 @@ Le `entrypoint.sh` durci refuse de demarrer si les verifications de securite ech
 | `APP_AUTH_ENABLED doit etre 1` | Ajouter `APP_AUTH_ENABLED=1` dans Environment |
 | `CSRF_ENABLED doit etre 1` | Ajouter `CSRF_ENABLED=1` dans Environment |
 | `RATE_LIMIT_ENABLED doit etre 1` | Ajouter `RATE_LIMIT_ENABLED=1` dans Environment |
-| `LOAD_DEMO_DATA=1 interdit` | Retirer `LOAD_DEMO_DATA` ou le mettre a `0` |
+| `LOAD_SEED_DATA=1 interdit` | Retirer `LOAD_SEED_DATA` ou le mettre a `0` |
 | `PostgreSQL non disponible` | Verifier que la base ag-vote-db est active dans Render |
 
 4. **Redeployer** apres correction : Manual Deploy > Deploy latest commit
@@ -218,7 +218,7 @@ done
 - [ ] `APP_AUTH_ENABLED=1`
 - [ ] `CSRF_ENABLED=1`
 - [ ] `RATE_LIMIT_ENABLED=1`
-- [ ] `LOAD_DEMO_DATA=0`
+- [ ] `LOAD_SEED_DATA=0`
 - [ ] `CORS_ALLOWED_ORIGINS` restreint au domaine de production
 - [ ] Health check `/api/v1/health.php` repond `{"ok":true}`
 - [ ] HTTPS actif (Render le fournit automatiquement)

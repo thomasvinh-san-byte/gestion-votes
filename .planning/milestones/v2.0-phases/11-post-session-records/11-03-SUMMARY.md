@@ -65,8 +65,8 @@ completed: 2026-03-15
 ## Accomplishments
 
 ### Task 1: audit.js (new file, 800+ lines)
-- 25 DEMO_EVENTS covering all 4 categories: votes, presences, securite, systeme — with info/success/danger/warning severity variety
-- `loadData()` calls `api('/api/v1/audit.php')` with graceful fallback to DEMO_EVENTS (`console.warn` only)
+- 25 SEED_EVENTS covering all 4 categories: votes, presences, securite, systeme — with info/success/danger/warning severity variety
+- `loadData()` calls `api('/api/v1/audit.php')` with graceful fallback to SEED_EVENTS (`console.warn` only)
 - KPI population: 100% integrity, event count, danger-severity anomaly count, latest event date
 - `renderTable()`: severity dots, mono timestamps, user tags, truncated hashes (first 12 chars + `...`), clickable rows
 - `renderTimeline()`: colored dots, chevron arrows, category/user/hash meta row

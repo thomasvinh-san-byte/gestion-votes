@@ -65,7 +65,7 @@ re_verification: false
 | HUB-02      | 14-02-PLAN.md  | Main action card (highlighted, large CTA) for next step                  | SATISFIED | Hub renders real meeting title/status from API; action card driven by real data |
 | HUB-03      | 14-02-PLAN.md  | 4 KPI cards (participants, resolutions, quorum needed, convocations)     | SATISFIED | mapApiDataToSession produces kpiParticipants, kpiResolutions, etc. from normalized wizard_status data |
 | HUB-04      | 14-02-PLAN.md  | Preparation checklist with completion tracking                           | SATISFIED | renderChecklist(sessionData) called with real API data path at hub.js:407 |
-| HUB-05      | 14-02-PLAN.md  | Associated documents panel with download links                           | SATISFIED | renderDocuments uses data.documents from API or DEMO_FILES fallback at hub.js:409 |
+| HUB-05      | 14-02-PLAN.md  | Associated documents panel with download links                           | SATISFIED | renderDocuments uses data.documents from API or SEED_FILES fallback at hub.js:409 |
 | DASH-01     | 14-02-PLAN.md  | 4 KPI cards (AG a venir, En cours, Convocations en attente, PV a envoyer) | SATISFIED | kpiSeances, kpiEnCours, kpiConvoc, kpiPV all populated from meetings.filter at dashboard.js:89-96 |
 | DASH-02     | 14-02-PLAN.md  | Urgent action card (red, large, clickable) when action needed            | SATISFIED | urgentCard.hidden = true when no live meeting; title/sub set from liveMeeting when present |
 

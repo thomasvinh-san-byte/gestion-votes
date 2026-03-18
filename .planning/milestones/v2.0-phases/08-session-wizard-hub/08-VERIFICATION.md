@@ -73,9 +73,9 @@ human_verification:
 | 9 | Hub shows a dynamic main action card that changes CTA text, icon, and color based on current stage | VERIFIED | `hub.js:201-232` renderAction() reads HUB_STEPS[currentStep] and updates hubActionIcon/hubActionTitle/hubActionDesc/hubMainBtn |
 | 10 | Hub displays 4 KPI cards: participants, resolutions, quorum needed, convocations | VERIFIED | `hub.js:236-254` renderKpis() populates 4 KPI groups; `hub.htmx.html:143-165` has grid-4 hub-kpi-card containers; populated from sessionData (real or demo) |
 | 11 | Hub shows a preparation checklist with auto-checked items based on session data | VERIFIED | `hub.js:119-127` CHECKLIST_ITEMS with 6 autoCheck predicates; `hub.js:128-159` renderChecklist() renders progress bar + item rows; called with sessionData from loadData() |
-| 12 | Hub displays a documents panel with download links | VERIFIED | `hub.js:255-273` renderDocuments() renders hub-doc-item/hub-doc-link; hub.htmx.html:171 has `<div class="hub-documents">` with `#hubDocsList`; real documents from API or DEMO_FILES fallback |
+| 12 | Hub displays a documents panel with download links | VERIFIED | `hub.js:255-273` renderDocuments() renders hub-doc-item/hub-doc-link; hub.htmx.html:171 has `<div class="hub-documents">` with `#hubDocsList`; real documents from API or SEED_FILES fallback |
 | 13 | Zero static inline style attributes remain in hub.htmx.html | VERIFIED | 0 inline style attributes confirmed (grep -c 'style="' returns 0); only `hidden` attribute used for JS-driven show/hide |
-| 14 | Hub loads real session data via GET /api/v1/meetings.php when a session ID is in the URL | VERIFIED | `hub.js:387-423` async loadData() reads `params.get('id')`, calls `window.api('/api/v1/meetings.php?id=' + encodeURIComponent(sessionId))`, maps response via `mapApiDataToSession()` (lines 336-385), calls renderKpis/renderChecklist/renderDocuments; falls back to DEMO_SESSION/DEMO_FILES with `console.warn` when no ID or API fails |
+| 14 | Hub loads real session data via GET /api/v1/meetings.php when a session ID is in the URL | VERIFIED | `hub.js:387-423` async loadData() reads `params.get('id')`, calls `window.api('/api/v1/meetings.php?id=' + encodeURIComponent(sessionId))`, maps response via `mapApiDataToSession()` (lines 336-385), calls renderKpis/renderChecklist/renderDocuments; falls back to SEED_SESSION/SEED_FILES with `console.warn` when no ID or API fails |
 
 **Score:** 14/14 truths verified
 
@@ -90,7 +90,7 @@ human_verification:
 | `public/assets/js/pages/wizard.js` | Wizard JS with localStorage draft, drag-drop, API wire, validation gating, PDF handler | VERIFIED | 748 lines; contains `localStorage`, `draggable`, `dragstart`, `api(`, `validateStep`, `btnDownloadPdf` (line 687), `window.print()` (line 690); uses var/IIFE/escapeHtml pattern |
 | `public/assets/css/hub.css` | All hub-specific CSS classes migrated from operator.css + new status bar styles | VERIFIED | 859 lines; contains `.hub-status-bar`, `.hub-bar-segment`, `.hub-checklist`, `.hub-check-item`, `.hub-doc-item`, `.hub-kpi-*`, responsive breakpoints |
 | `public/hub.htmx.html` | Hub HTML with CSS classes instead of inline styles, links hub.css | VERIFIED | Links `hub.css` (line 19); 0 inline style attributes; has `#hubStatusBar` (line 84) and `#hubChecklist` (line 127) |
-| `public/assets/js/pages/hub.js` | Hub JS with renderStatusBar, standalone checklist, async API-wired loadData with demo fallback | VERIFIED | 455 lines; contains `renderStatusBar` (line 100), `CHECKLIST_ITEMS` (line 119), `renderChecklist` (line 128), `async function loadData()` (line 387), `window.api(` (line 393), `mapApiDataToSession()` (line 336), `DEMO_SESSION` fallback (line 301); var/IIFE/escapeHtml pattern |
+| `public/assets/js/pages/hub.js` | Hub JS with renderStatusBar, standalone checklist, async API-wired loadData with demo fallback | VERIFIED | 455 lines; contains `renderStatusBar` (line 100), `CHECKLIST_ITEMS` (line 119), `renderChecklist` (line 128), `async function loadData()` (line 387), `window.api(` (line 393), `mapApiDataToSession()` (line 336), `SEED_SESSION` fallback (line 301); var/IIFE/escapeHtml pattern |
 
 ---
 
@@ -121,7 +121,7 @@ human_verification:
 | HUB-02 | 08-02 | Main action card (highlighted, large CTA) for next step | SATISFIED | hub.js:201-232 renderAction() with stage-driven title/desc/btn/icon/color; fed from real or demo sessionData |
 | HUB-03 | 08-02 | 4 KPI cards (participants, resolutions, quorum needed, convocations) | SATISFIED | hub.js:236-254 renderKpis(); hub.htmx.html:143-165 4 hub-kpi-card elements; real values from mapApiDataToSession() when API present |
 | HUB-04 | 08-02 | Preparation checklist with completion tracking | SATISFIED | hub.js:119-159 CHECKLIST_ITEMS + renderChecklist() with progress bar and 6 auto-check predicates; evaluated against real or demo sessionData |
-| HUB-05 | 08-02 | Associated documents panel with download links | SATISFIED | hub.js:255-273 renderDocuments(); real documents from api response data.documents array or DEMO_FILES fallback |
+| HUB-05 | 08-02 | Associated documents panel with download links | SATISFIED | hub.js:255-273 renderDocuments(); real documents from api response data.documents array or SEED_FILES fallback |
 
 **Orphaned requirements:** None — all 10 requirement IDs from REQUIREMENTS.md Phase 8 mapping are accounted for across plans 01, 02, and 03.
 
@@ -178,7 +178,7 @@ No TODO/FIXME/PLACEHOLDER/empty-return anti-patterns found in wizard.js, hub.js,
 ### 7. Hub Checklist Auto-Check
 
 **Test:** Load `/hub.htmx.html` without a session ID (demo fallback path). Inspect the preparation checklist section.
-**Expected:** All 6 items (Titre defini, Date fixee, Membres ajoutes, Resolutions creees, Convocations envoyees, Documents attaches) show as done since DEMO_SESSION has all fields populated. Progress bar shows 100%.
+**Expected:** All 6 items (Titre defini, Date fixee, Membres ajoutes, Resolutions creees, Convocations envoyees, Documents attaches) show as done since SEED_SESSION has all fields populated. Progress bar shows 100%.
 **Why human:** Predicate evaluation and DOM class rendering require browser inspection.
 
 ### 8. Hub Dynamic Action Card
@@ -215,7 +215,7 @@ No TODO/FIXME/PLACEHOLDER/empty-return anti-patterns found in wizard.js, hub.js,
 Commit `c4e4aef` added the "Telecharger PDF" button (`id="btnDownloadPdf"`) to `wizard.htmx.html` step3 `.step-nav` between the Precedent and Creer buttons. `wizard.js:687-692` wires a click handler calling `window.print()`. The `.step-nav .btn-outline` CSS variant was added to `wizard.css:139-148`. WIZ-05 is now fully satisfied: review + create button + PDF download option all present.
 
 **Gap 2 — Hub API GET (CLOSED):**
-Commit `e13a191` rewrote `hub.js` loadData() as an `async function` (line 387). It reads session ID from URL params, calls `window.api('/api/v1/meetings.php?id=' + encodeURIComponent(sessionId))`, maps the response through the new `mapApiDataToSession()` helper (lines 336-385) which handles multiple possible field names (members array, participants count, member_count integer), then passes real sessionData to renderKpis/renderChecklist/renderDocuments. Three fallback paths with `console.warn` handle: API call failure (try/catch), invalid API response, and no session ID in URL — all fall back to DEMO_SESSION/DEMO_FILES. The init() call uses `.catch()` to prevent unhandled promise rejection.
+Commit `e13a191` rewrote `hub.js` loadData() as an `async function` (line 387). It reads session ID from URL params, calls `window.api('/api/v1/meetings.php?id=' + encodeURIComponent(sessionId))`, maps the response through the new `mapApiDataToSession()` helper (lines 336-385) which handles multiple possible field names (members array, participants count, member_count integer), then passes real sessionData to renderKpis/renderChecklist/renderDocuments. Three fallback paths with `console.warn` handle: API call failure (try/catch), invalid API response, and no session ID in URL — all fall back to SEED_SESSION/SEED_FILES. The init() call uses `.catch()` to prevent unhandled promise rejection.
 
 **No regressions detected:** inline style counts unchanged (wizard: 4 JS-driven, hub: 0), no new TODO/FIXME/PLACEHOLDER anti-patterns, all var/IIFE conventions maintained.
 

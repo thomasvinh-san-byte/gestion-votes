@@ -45,7 +45,7 @@ This milestone's MVP definition is zero demo fallbacks and a working end-to-end 
 - Vote casting by voter: ballot cast, confirmation returned, SSE event fires
 - Post-session stepper: verify results → validate → generate PV PDF → send/archive
 - PV PDF generation via Dompdf is functional
-- Audit demo fallback removed (audit.js DEMO_EVENTS)
+- Audit demo fallback removed (audit.js SEED_EVENTS)
 
 **Should have (differentiators already built, need verification):**
 - SSE with Redis + file fallback — real-time without WebSocket infrastructure
@@ -146,7 +146,7 @@ Based on research, the lifecycle dependency chain is clear: data must be created
 
 ### Phase 7: Final Verification + "Looks Done But Isn't" Audit
 **Rationale:** A final sweep to confirm no demo data remains, all error states work, all SSE call sites fire correctly, and the full lifecycle can be completed end-to-end in an integration test.
-**Delivers:** Zero DEMO_ constants in codebase; every API call site has loading/error/empty states; EventBroadcaster call coverage audit (all 9 event types have verified call sites); Playwright E2E test covering the full session lifecycle from wizard to archive
+**Delivers:** Zero seed constants in codebase; every API call site has loading/error/empty states; EventBroadcaster call coverage audit (all 9 event types have verified call sites); Playwright E2E test covering the full session lifecycle from wizard to archive
 **Addresses:** All remaining P1/P2 items from feature prioritisation matrix
 **Avoids:** All "looks done but isn't" checklist items from PITFALLS.md
 **No research-phase needed** — this is verification and cleanup, not new implementation
@@ -204,7 +204,7 @@ Phases with standard patterns (skip research-phase):
 - `public/api/v1/events.php` — SSE endpoint implementation, LRANGE+DEL pattern, Redis polling loop
 - `public/assets/js/core/event-stream.js` — browser SSE client, reconnect logic
 - `public/assets/js/pages/operator-realtime.js` — SSE + polling integration, OpS bridge usage
-- `public/assets/js/pages/hub.js` — demo data fallback pattern (DEMO_SESSION, DEMO_FILES)
+- `public/assets/js/pages/hub.js` — demo data fallback pattern (SEED_SESSION, SEED_FILES)
 - `public/assets/js/pages/wizard.js` — payload field names, post-creation redirect
 - `public/assets/js/pages/postsession.js` — wrong endpoint call (meeting_motions.php)
 - `app/Controller/MeetingsController.php` + `ValidationSchemas.php` — wizard payload mismatch

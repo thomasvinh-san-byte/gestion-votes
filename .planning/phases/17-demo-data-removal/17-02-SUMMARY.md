@@ -45,7 +45,7 @@ completed: 2026-03-16
 
 # Phase 17 Plan 02: Audit Demo Data Removal Summary
 
-**Removed 252-line DEMO_EVENTS constant from audit.js, fixed API URL to audit_log.php, added field mapping and showAuditError() with retry-once pattern**
+**Removed 252-line SEED_EVENTS constant from audit.js, fixed API URL to audit_log.php, added field mapping and showAuditError() with retry-once pattern**
 
 ## Performance
 
@@ -56,7 +56,7 @@ completed: 2026-03-16
 - **Files modified:** 1
 
 ## Accomplishments
-- Deleted entire DEMO_EVENTS constant (252 lines, 25 hardcoded demo event objects)
+- Deleted entire SEED_EVENTS constant (252 lines, 25 hardcoded demo event objects)
 - Fixed API endpoint from `/api/v1/audit.php` to `/api/v1/audit_log.php?meeting_id=UUID`
 - Added defensive field mapping: `action_label`→`event`, `actor`→`user`, `created_at`→`timestamp` with fallbacks to legacy field names
 - Added `showAuditError()` following the hub.js pattern: Shared.showToast + error banner in both table and timeline views + retry button
@@ -68,12 +68,12 @@ completed: 2026-03-16
 
 Each task was committed atomically:
 
-1. **Task 1: Remove DEMO_EVENTS and fix audit API integration** - `5f4d981` (feat)
+1. **Task 1: Remove SEED_EVENTS and fix audit API integration** - `5f4d981` (feat)
 
 **Plan metadata:** (docs commit pending)
 
 ## Files Created/Modified
-- `public/assets/js/pages/audit.js` - Removed DEMO_EVENTS, rewrote loadData(), added showAuditError()
+- `public/assets/js/pages/audit.js` - Removed SEED_EVENTS, rewrote loadData(), added showAuditError()
 
 ## Decisions Made
 - Used promise chaining (`tryLoad(attempt)`) instead of async/await to match the ES5-compatible coding style of the surrounding file

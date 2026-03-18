@@ -70,7 +70,7 @@ completed: 2026-03-13
 
 - WIZ-05 gap closed: "Telecharger PDF" button (btnDownloadPdf) added to wizard step 4 recap nav, between Precedent and Creer buttons, with `window.print()` handler wired in wizard.js
 - Hub API gap closed: loadData() converted to async function, calls `window.api('/api/v1/meetings.php?id=...')`, maps response via `mapApiDataToSession()` helper, then renders KPIs, checklist, and documents
-- Demo fallback preserved: when no session ID in URL or API fails, hub falls back to DEMO_SESSION constants with console.warn — no breakage in dev environment
+- Demo fallback preserved: when no session ID in URL or API fails, hub falls back to SEED_SESSION constants with console.warn — no breakage in dev environment
 - CSS added for `.step-nav .btn-outline` in wizard.css since design-system.css does not define that variant
 
 ## Task Commits

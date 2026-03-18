@@ -114,7 +114,7 @@ APP_SECRET=dev-secret-do-not-use-in-production-change-me-now-please-64chr
 APP_AUTH_ENABLED=1
 CSRF_ENABLED=1
 RATE_LIMIT_ENABLED=1
-LOAD_DEMO_DATA=1
+LOAD_SEED_DATA=1
 ```
 
 En mode `development` :
@@ -140,7 +140,7 @@ APP_SECRET=<generer avec la commande ci-dessous>
 APP_AUTH_ENABLED=1
 CSRF_ENABLED=1
 RATE_LIMIT_ENABLED=1
-LOAD_DEMO_DATA=0
+LOAD_SEED_DATA=0
 DB_PASS=<mot_de_passe_fort>
 CORS_ALLOWED_ORIGINS=https://vote.mondomaine.fr
 ```
@@ -173,7 +173,7 @@ docker compose up -d
 | `APP_AUTH_ENABLED` | `1` (ou `0` pour tester sans auth) | `1` **obligatoire** |
 | `CSRF_ENABLED` | `1` (ou `0` pour tester) | `1` **obligatoire** |
 | `RATE_LIMIT_ENABLED` | `1` (ou `0` pour tester) | `1` **obligatoire** |
-| `LOAD_DEMO_DATA` | `1` | `0` **obligatoire** |
+| `LOAD_SEED_DATA` | `1` | `0` **obligatoire** |
 | `DB_PASS` | `vote_app_dev_2026` | Mot de passe fort unique |
 | Cookie `Secure` | OFF (HTTP) | ON (HTTPS) |
 | Logs | Detailles | Erreurs uniquement |
@@ -213,7 +213,7 @@ Toutes les variables sont definies dans `.env` (copie de `.env.example`).
 | `CSRF_LIFETIME` | `3600` | Duree de vie du token CSRF (secondes) |
 | `RATE_LIMIT_REQUESTS` | `100` | Nombre max de requetes par periode |
 | `RATE_LIMIT_PERIOD` | `60` | Periode du rate limiter (secondes) |
-| `LOAD_DEMO_DATA` | `1` | Charger les donnees de demo. **Doit etre `0` en production** |
+| `LOAD_SEED_DATA` | `1` | Charger les donnees de demo. **Doit etre `0` en production** |
 
 ### Reseau
 
@@ -273,7 +273,7 @@ Si `APP_ENV=production` ou `APP_ENV=prod`, le entrypoint verifie :
 | CSRF | `CSRF_ENABLED` doit etre `1` | `CSRF_ENABLED doit etre 1 en production.` |
 | Rate limiting | `RATE_LIMIT_ENABLED` doit etre `1` | `RATE_LIMIT_ENABLED doit etre 1 en production.` |
 | Secret | `APP_SECRET` ne doit etre ni vide ni la valeur par defaut de `.env.example` | `APP_SECRET non configure pour la production.` |
-| Donnees de demo | `LOAD_DEMO_DATA` ne doit pas etre `1` | `LOAD_DEMO_DATA=1 interdit en production.` |
+| Donnees de demo | `LOAD_SEED_DATA` ne doit pas etre `1` | `LOAD_SEED_DATA=1 interdit en production.` |
 
 **Si une verification echoue, le conteneur refuse de demarrer** (`exit 1`).
 
@@ -289,7 +289,7 @@ Le entrypoint attend jusqu'a 30 secondes que PostgreSQL soit pret (`pg_isready`)
 
 ### 4. Initialisation de la base
 
-- **Base vide** (< 5 tables) : applique `database/schema-master.sql` + seeds de demo si `LOAD_DEMO_DATA=1`
+- **Base vide** (< 5 tables) : applique `database/schema-master.sql` + seeds de demo si `LOAD_SEED_DATA=1`
 - **Base existante** : aucune action sur le schema
 
 ### 5. Migrations
@@ -326,7 +326,7 @@ database/
 
 Au premier demarrage, si la base est vide :
 1. Le schema est applique
-2. Si `LOAD_DEMO_DATA=1` : les 3 fichiers de seeds sont charges
+2. Si `LOAD_SEED_DATA=1` : les 3 fichiers de seeds sont charges
 
 ### Acces direct a PostgreSQL
 
@@ -669,7 +669,7 @@ docker compose logs app
 | `[FATAL] APP_AUTH_ENABLED doit etre 1` | Mode production avec auth desactivee | `APP_AUTH_ENABLED=1` dans `.env` |
 | `[FATAL] CSRF_ENABLED doit etre 1` | Mode production avec CSRF desactive | `CSRF_ENABLED=1` dans `.env` |
 | `[FATAL] RATE_LIMIT_ENABLED doit etre 1` | Mode production sans rate limiting | `RATE_LIMIT_ENABLED=1` dans `.env` |
-| `[FATAL] LOAD_DEMO_DATA=1 interdit` | Mode production avec donnees de demo | `LOAD_DEMO_DATA=0` dans `.env` |
+| `[FATAL] LOAD_SEED_DATA=1 interdit` | Mode production avec donnees de demo | `LOAD_SEED_DATA=0` dans `.env` |
 | `[FATAL] PostgreSQL non disponible apres 30s` | Le conteneur `db` n'est pas pret | Verifier `docker compose ps db` |
 | `[FATAL] Migration failed: xxx.sql` | Erreur dans une migration SQL | Consulter les logs pour le detail |
 

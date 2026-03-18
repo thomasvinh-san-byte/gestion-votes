@@ -63,7 +63,7 @@ Pattern to replace with:
 
 **Warning signs:**
 - Any `console.warn` containing "fallback" or "demo" in page JS files
-- `DEMO_SESSION`, `DEMO_FILES`, `DEMO_*` constant declarations in page scripts
+- `SEED_SESSION`, `SEED_FILES`, `SEED_*` constant declarations in page scripts
 - `showFallback()` function definitions in page scripts
 - A page renders content even when the API endpoint returns 500
 
@@ -252,7 +252,7 @@ All API wiring phases — enforce the pattern in code review.
 | `console.warn` instead of user-visible error state | Less UI work | Users see blank screens; errors invisible in production | Never in user-facing flows |
 | `error_log()` in broadcast failure handlers | Simple | Unstructured, no context, missed in log aggregation | Replace with `Logger::warning()` in the same PR |
 | Single PHP-FPM pool for both SSE and API requests | Simpler config | SSE starves API workers | Never in production with concurrent SSE clients |
-| Inline `DEMO_*` constants left in production code | "Safe" fallback | Makes backend errors invisible; breaks audit correctness | Remove before go-live |
+| Inline `SEED_*` constants left in production code | "Safe" fallback | Makes backend errors invisible; breaks audit correctness | Remove before go-live |
 | Triple poll interval when SSE is connected | Reduces server load | Extends operator blindness when Redis has transient issue | Acceptable only if SSE reliability is verified |
 
 ---
@@ -310,7 +310,7 @@ All API wiring phases — enforce the pattern in code review.
 ## "Looks Done But Isn't" Checklist
 
 - [ ] **SSE real-time:** Operator console, room display, and voter view all connected simultaneously — verify events reach ALL consumers, not just the first one to poll.
-- [ ] **Demo data removed:** Search for `DEMO_SESSION`, `DEMO_FILES`, `DEMO_`, `showFallback`, "falling back to demo" — zero occurrences required before go-live.
+- [ ] **Demo data removed:** Search for `SEED_SESSION`, `SEED_FILES`, `SEED_`, `showFallback`, "falling back to demo" — zero occurrences required before go-live.
 - [ ] **Error states:** Every API call site that previously fell back to demo data now renders a visible error message to the user on failure.
 - [ ] **nginx SSE config:** `fastcgi_buffering off` is set for `events.php` — verify with `curl -N` that events stream in real-time and are not buffered.
 - [ ] **PHP-FPM pool:** Confirm SSE connections don't exhaust the pool — run `ab -c 8 -n 8 /api/v1/events.php` (8 concurrent SSE connects) and verify normal API requests still respond.
@@ -341,7 +341,7 @@ All API wiring phases — enforce the pattern in code review.
 | SSE worker exhaustion (PHP-FPM pool) | SSE infrastructure phase | Run 10 concurrent curl SSE connections; verify API still responds |
 | SSE buffering (no nginx location for events.php) | SSE infrastructure phase | `curl -N` shows events streamed in real-time, not buffered |
 | Multi-consumer SSE queue destruction | SSE architecture phase (before voter/room wiring) | Open operator + room display + voter view simultaneously; all receive motion.opened event |
-| Demo data fallback masking errors | First wiring phase for each page | Search codebase for DEMO_ constants and showFallback — zero hits |
+| Demo data fallback masking errors | First wiring phase for each page | Search codebase for SEED_ constants and showFallback — zero hits |
 | Missing error states after demo removal | Same phase as demo removal | API endpoint returns 500; UI shows error message (not blank screen) |
 | `api()` destructure without ok-check | All API wiring phases | Network throttle to 0; no TypeErrors in console |
 | `window.OpS` stub missing | Every operator console wiring phase | Load operator page with all scripts; no TypeError in DevTools |

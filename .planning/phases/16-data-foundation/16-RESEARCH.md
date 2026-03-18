@@ -38,7 +38,7 @@
 **Hub error handling**
 - Toast + retry: On API failure, show a red toast with error message and a retry button
 - 1 automatic retry after 2 seconds, then manual retry button if still failing
-- Remove DEMO_SESSION and DEMO_FILES entirely — hub shows only real data
+- Remove SEED_SESSION and SEED_FILES entirely — hub shows only real data
 - Invalid meeting_id: Redirect to dashboard with toast "Séance introuvable"
 
 **Wizard → Hub redirect contract**
@@ -77,7 +77,7 @@ None — discussion stayed within phase scope
 | WIZ-02 | Les membres sélectionnés à l'étape 2 du wizard sont persistés en transaction atomique avec la session | `MemberRepository::findByEmail()` + `MemberRepository::create()` + `AttendanceRepository::upsertMode()` all exist; wire inside the same `api_transaction()` block |
 | WIZ-03 | Les résolutions saisies à l'étape 3 du wizard sont persistées en transaction atomique avec la session | `MotionRepository::create()` (via `MotionWriterTrait`) already exists; call inside the same transaction |
 | HUB-01 | Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo) | `loadData()` in hub.js already calls `wizard_status`; replace the demo fallback block (lines 421-430) with real error handling |
-| HUB-02 | Le hub affiche un état d'erreur explicite quand le backend est indisponible | Add toast + retry logic; remove `DEMO_SESSION` and `DEMO_FILES` constants entirely from hub.js |
+| HUB-02 | Le hub affiche un état d'erreur explicite quand le backend est indisponible | Add toast + retry logic; remove `SEED_SESSION` and `SEED_FILES` constants entirely from hub.js |
 </phase_requirements>
 
 ---
@@ -329,7 +329,7 @@ Update `wizard.js` lines 702–715 (the `btnCreate` click handler's `.then()` bl
 - **Using `IdempotencyGuard` before mapping:** The current code calls `IdempotencyGuard::check()` at the top of `createMeeting()`. Keep this — but the cached response must now include the expanded fields (`members_created`, etc.).
 - **Clearing localStorage draft on `.catch()`:** The decision is explicit: `clearDraft()` only after a confirmed 201. Do not call it in the error path.
 - **Generating UUIDs outside the PDO connection context:** `generateUuid()` calls `SELECT gen_random_uuid()` — this is fine inside or outside a transaction, but must use the same PDO connection that is in the transaction.
-- **Leaving DEMO_SESSION / DEMO_FILES as dead code:** They must be deleted, not just bypassed. Phase success criterion requires zero demo constants.
+- **Leaving SEED_SESSION / SEED_FILES as dead code:** They must be deleted, not just bypassed. Phase success criterion requires zero demo constants.
 
 ---
 
@@ -380,7 +380,7 @@ Update `wizard.js` lines 702–715 (the `btnCreate` click handler's `.then()` bl
 
 **What goes wrong:** If the wizard redirect somehow sends to `hub.htmx.html` without `?id=`, and the demo fallback is removed, the hub renders nothing.
 
-**Why it happens:** The decision says "remove DEMO_SESSION and DEMO_FILES entirely" without a conditional.
+**Why it happens:** The decision says "remove SEED_SESSION and SEED_FILES entirely" without a conditional.
 
 **How to avoid:** In the `loadData()` early check: if `sessionId` is empty or null, redirect to dashboard immediately with an error toast before any API call.
 
@@ -508,7 +508,7 @@ public function create(
 | Old Approach | Current Approach | Impact |
 |--------------|------------------|--------|
 | createMeeting() saves meeting only | createMeeting() saves meeting + members + motions in one transaction | Wizard completion is atomic — no partial state |
-| hub.js falls back to DEMO_SESSION on API error | hub.js shows toast + retry button, redirects on missing ID | HUB-02 satisfied; zero demo constants |
+| hub.js falls back to SEED_SESSION on API error | hub.js shows toast + retry button, redirects on missing ID | HUB-02 satisfied; zero demo constants |
 | Wizard toast always says "Séance créée avec succès" | Wizard toast says "Séance créée • N membres • M résolutions" using counts from 201 response | User has confirmation that data was persisted |
 | Draft cleared unconditionally | Draft cleared only after confirmed 201 | Prevents data loss on network failure |
 
@@ -584,7 +584,7 @@ All findings are from direct source code inspection of the repository.
 - `app/Core/Validation/Schemas/ValidationSchemas.php` — existing `member()` and `motion()` schemas
 - `app/Core/Security/IdempotencyGuard.php` — check/store pattern
 - `app/Core/Providers/RepositoryFactory.php` — all available repos via `$this->repo()`
-- `public/assets/js/pages/hub.js:301-431` — DEMO_SESSION, DEMO_FILES, loadData() structure
+- `public/assets/js/pages/hub.js:301-431` — SEED_SESSION, SEED_FILES, loadData() structure
 - `public/assets/js/pages/wizard.js:606,694-727` — buildPayload(), btnCreate handler
 - `app/Controller/MeetingWorkflowController.php:85` — api_transaction() usage pattern
 - `app/Controller/ImportController.php:106` — api_transaction() with member loops

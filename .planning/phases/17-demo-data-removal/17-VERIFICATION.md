@@ -25,7 +25,7 @@ re_verification: false
 | 2  | When no sessions exist, the dashboard shows an empty state instead of demo session cards           | VERIFIED   | `prochaines` element gets `'Aucune séance à venir'` inline state when `upcoming.length === 0` (line 117)                            |
 | 3  | When the API fails, the dashboard shows an error banner with a Réessayer button instead of demo data | VERIFIED | `showDashboardError()` present (4 references): toast + `.hub-error.dashboard-error` banner + `dashboardRetryBtn` wired to `loadDashboard()` |
 | 4  | The tasks panel shows an empty state instead of demo task rows                                    | VERIFIED   | On every successful load, `taches.innerHTML = Shared.emptyState(...)` with title `'Aucune tâche en attente'` (lines 121-128)        |
-| 5  | The DEMO_EVENTS constant no longer exists in audit.js                                             | VERIFIED   | `grep -c 'DEMO_EVENTS' audit.js` returns 0. 252-line constant confirmed deleted                                                     |
+| 5  | The SEED_EVENTS constant no longer exists in audit.js                                             | VERIFIED   | `grep -c 'SEED_EVENTS' audit.js` returns 0. 252-line constant confirmed deleted                                                     |
 | 6  | When the audit API fails, an error state with retry is shown instead of demo events               | VERIFIED   | `showAuditError()` present (2 references): toast + `Shared.emptyState` in both `_tableBody` and `_timeline` + `auditRetryBtn` wired to `loadData()` |
 | 7  | When no meeting_id is in the URL, a guidance message is shown instead of calling the API          | VERIFIED   | Guard at line 436: `if (!meetingId)` sets `_allEvents = []`, renders `'Sélectionnez une séance'` empty state in both views, returns early |
 | 8  | When the API succeeds, real audit events render in both table and timeline views                   | VERIFIED   | `loadData()` calls `window.api('/api/v1/audit_log.php?meeting_id=...')`, maps `action_label`→`event`, `actor`→`user`, `created_at`→`timestamp`, then calls `populateKPIs()` and `applyFilters()` which feed `renderTable()`/`renderTimeline()` |
@@ -39,7 +39,7 @@ re_verification: false
 | Artifact                                     | Expected                                      | Status     | Details                                                                                           |
 |----------------------------------------------|-----------------------------------------------|------------|---------------------------------------------------------------------------------------------------|
 | `public/assets/js/pages/dashboard.js`        | Dashboard with zero demo fallback             | VERIFIED   | 177 lines, `showFallback` absent, `showDashboardError` defined + 3 call sites, `node -c` passes  |
-| `public/assets/js/pages/audit.js`            | Audit page with zero demo fallback, real API  | VERIFIED   | 621 lines, `DEMO_EVENTS` absent, `showAuditError` defined + 1 call site, `node -c` passes        |
+| `public/assets/js/pages/audit.js`            | Audit page with zero demo fallback, real API  | VERIFIED   | 621 lines, `SEED_EVENTS` absent, `showAuditError` defined + 1 call site, `node -c` passes        |
 
 ---
 
@@ -58,7 +58,7 @@ re_verification: false
 |-------------|-------------|------------------------------------------------------------------------------------------|------------|---------------------------------------------------------------------------------------|
 | HUB-03      | 17-01-PLAN  | Le dashboard affiche les compteurs de sessions réels depuis la base de données           | SATISFIED  | KPIs computed from meetings array; no hardcoded values; marked `[x]` in REQUIREMENTS.md |
 | HUB-04      | 17-01-PLAN  | Le dashboard affiche un état d'erreur explicite au lieu du fallback démo                 | SATISFIED  | `showDashboardError()` with toast, banner, and retry button; marked `[x]` in REQUIREMENTS.md |
-| CLN-03      | 17-02-PLAN  | Le fallback démo audit.js (DEMO_EVENTS) est supprimé et remplacé par un état d'erreur   | SATISFIED  | DEMO_EVENTS fully deleted; `showAuditError()` implemented; marked `[x]` in REQUIREMENTS.md |
+| CLN-03      | 17-02-PLAN  | Le fallback démo audit.js (SEED_EVENTS) est supprimé et remplacé par un état d'erreur   | SATISFIED  | SEED_EVENTS fully deleted; `showAuditError()` implemented; marked `[x]` in REQUIREMENTS.md |
 
 All 3 requirements declared across both plans are accounted for. No orphaned requirements for Phase 17 were found in REQUIREMENTS.md.
 
@@ -108,8 +108,8 @@ The following behaviors cannot be verified by static analysis:
 
 No gaps. All automated checks pass:
 
-- `grep -c 'showFallback|DEMO_' dashboard.js` → 0
-- `grep -c 'DEMO_EVENTS' audit.js` → 0
+- `grep -c 'showFallback|SEED_' dashboard.js` → 0
+- `grep -c 'SEED_EVENTS' audit.js` → 0
 - `grep -c 'showDashboardError' dashboard.js` → 4 (definition + 3 call sites)
 - `grep -c 'showAuditError' audit.js` → 2 (definition + 1 call site)
 - `grep -c 'audit_log.php' audit.js` → 1

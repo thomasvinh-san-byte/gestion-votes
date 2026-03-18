@@ -136,7 +136,7 @@ Note: chart.js and htmx are **vendored locally** (`public/assets/vendor/`) — t
 - `APP_AUTH_ENABLED=1`
 - `CSRF_ENABLED=1`
 - `RATE_LIMIT_ENABLED=1`
-- `LOAD_DEMO_DATA=0`
+- `LOAD_SEED_DATA=0`
 - `APP_DEBUG=0`
 
 **Optional but recommended:**

@@ -76,7 +76,7 @@ Résultat attendu du healthcheck : un JSON contenant `"ok": true`.
 
 ## 4. Comptes de test
 
-Les données de démo sont chargées automatiquement (`LOAD_DEMO_DATA=1`).
+Les données de démo sont chargées automatiquement (`LOAD_SEED_DATA=1`).
 
 ### Utilisateurs système
 

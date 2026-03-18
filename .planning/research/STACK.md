@@ -47,7 +47,7 @@ Over 90 PHP API endpoints exist in `public/api/v1/`. All session lifecycle actio
 
 **File:** `public/assets/js/pages/hub.js`
 
-`hub.js` contains `DEMO_SESSION` and `DEMO_FILES` objects (lines 301–322). When `wizard_status` API returns data in unexpected shape, or when `session_id` is absent from URL, the page silently renders demo data. The `mapApiDataToSession()` function normalises multiple field name variants (`meeting_title`/`title`, `members_count`/`member_count`, etc.) — indicating the API contract between `wizard_status.php` and `hub.js` needs to be stabilised.
+`hub.js` contains `SEED_SESSION` and `SEED_FILES` objects (lines 301–322). When `wizard_status` API returns data in unexpected shape, or when `session_id` is absent from URL, the page silently renders demo data. The `mapApiDataToSession()` function normalises multiple field name variants (`meeting_title`/`title`, `members_count`/`member_count`, etc.) — indicating the API contract between `wizard_status.php` and `hub.js` needs to be stabilised.
 
 **Resolution approach:** Audit `DashboardController::wizardStatus()` response shape, align `mapApiDataToSession()` to that contract, replace silent demo fallback with an error state.
 

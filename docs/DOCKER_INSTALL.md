@@ -179,7 +179,7 @@ docker compose logs -f app
 Au premier lancement, l'entrypoint :
 1. Attend que PostgreSQL soit prêt
 2. Applique le schéma SQL + migrations
-3. Charge les données de démo (si `LOAD_DEMO_DATA=1`)
+3. Charge les données de démo (si `LOAD_SEED_DATA=1`)
 4. Démarre Nginx + PHP-FPM + WebSocket
 
 > Le premier build prend 2-5 minutes (compilation des extensions PHP).
@@ -218,7 +218,7 @@ Tester dans le navigateur :
 
 ## 6. Comptes de test
 
-Créés automatiquement par les seeds (si `LOAD_DEMO_DATA=1`) :
+Créés automatiquement par les seeds (si `LOAD_SEED_DATA=1`) :
 
 | Rôle | Email | Mot de passe |
 |------|-------|-------------|
@@ -229,7 +229,7 @@ Créés automatiquement par les seeds (si `LOAD_DEMO_DATA=1`) :
 | auditor | `auditor@ag-vote.local` | `Auditor2026!` |
 | viewer | `viewer@ag-vote.local` | `Viewer2026!` |
 
-> En production, désactivez les données de démo : `LOAD_DEMO_DATA=0` dans `.env`.
+> En production, désactivez les données de démo : `LOAD_SEED_DATA=0` dans `.env`.
 
 ---
 

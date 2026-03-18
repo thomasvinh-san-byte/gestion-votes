@@ -13,7 +13,7 @@
 - **Error handling pattern**: Reuse Phase 16 pattern — toast + retry button, established in hub.js. API failure → 1 automatic retry after 2 seconds, then error banner with "Réessayer" button.
 - **No demo data under any circumstance**: real data, empty state, or error state — the three valid states.
 - **Dashboard**: KPI cards load from real `/api/v1/dashboard` endpoint. When no sessions: show empty state message. When API fails: show error toast + retry button (same as hub). Delete the wireframe demo fallback block at dashboard.js line 127+.
-- **Audit page**: Delete `DEMO_EVENTS` constant entirely from audit.js. When API fails: show error state with retry, not demo events. When no events: show empty state. Both table and timeline views handle these states consistently.
+- **Audit page**: Delete `SEED_EVENTS` constant entirely from audit.js. When API fails: show error state with retry, not demo events. When no events: show empty state. Both table and timeline views handle these states consistently.
 
 ### Claude's Discretion
 - Exact empty state wording and layout
@@ -34,7 +34,7 @@ None — discussion stayed within phase scope
 |----|-------------|-----------------|
 | HUB-03 | Le dashboard affiche les compteurs de sessions réels depuis la base de données | dashboard.js already calls `/api/v1/dashboard` — remove `showFallback()` that overwrites real KPI values; API returns `data.meetings` array from which KPIs are computed |
 | HUB-04 | Le dashboard affiche un état d'erreur explicite au lieu du fallback démo | Replace `showFallback()` call in `.catch()` with `showDashboardError()` — mirror `showHubError()` from hub.js |
-| CLN-03 | Le fallback démo audit.js (DEMO_EVENTS) est supprimé et remplacé par un état d'erreur | Remove `var DEMO_EVENTS = [...]` block (lines 17–268) and replace the `_allEvents = DEMO_EVENTS` assignment in the catch block with an error-state render |
+| CLN-03 | Le fallback démo audit.js (SEED_EVENTS) est supprimé et remplacé par un état d'erreur | Remove `var SEED_EVENTS = [...]` block (lines 17–268) and replace the `_allEvents = SEED_EVENTS` assignment in the catch block with an error-state render |
 </phase_requirements>
 
 ---
@@ -45,9 +45,9 @@ Phase 17 is pure deletion + wiring: remove hardcoded demo constants, then route 
 
 The dashboard (`dashboard.js`) already makes a real API call to `/api/v1/dashboard` on load. When that call succeeds, it correctly computes KPIs from `data.meetings` and renders the list. The only problem is that `.catch()` and the `if (!data || !data.ok)` branch both invoke `showFallback()`, which overwrites the DOM with hardcoded demo values. Deleting `showFallback()` and replacing those two call sites with an error-state renderer (matching hub.js `showHubError()`) is the entire dashboard change.
 
-The audit page (`audit.js`) has a larger constant (`DEMO_EVENTS`, lines 17–268, 25 objects). The `loadData()` async function catches any failure and assigns `_allEvents = DEMO_EVENTS`. Deleting the constant and replacing the catch body with an error-state renderer — analogous to `showHubError()` — satisfies CLN-03. Because `renderTable` and `renderTimeline` already handle empty arrays via `Shared.emptyState()`, the empty-state case (successful API call returning zero items) is already handled correctly.
+The audit page (`audit.js`) has a larger constant (`SEED_EVENTS`, lines 17–268, 25 objects). The `loadData()` async function catches any failure and assigns `_allEvents = SEED_EVENTS`. Deleting the constant and replacing the catch body with an error-state renderer — analogous to `showHubError()` — satisfies CLN-03. Because `renderTable` and `renderTimeline` already handle empty arrays via `Shared.emptyState()`, the empty-state case (successful API call returning zero items) is already handled correctly.
 
-**Primary recommendation:** Delete `showFallback()` from dashboard.js and `DEMO_EVENTS` from audit.js; wire both catch paths to a `showXxxError()` function that follows hub.js `showHubError()` exactly (toast + prepended error banner with "Réessayer" button).
+**Primary recommendation:** Delete `showFallback()` from dashboard.js and `SEED_EVENTS` from audit.js; wire both catch paths to a `showXxxError()` function that follows hub.js `showHubError()` exactly (toast + prepended error banner with "Réessayer" button).
 
 ---
 
@@ -177,11 +177,11 @@ Three call sites to replace. The `if (!api)` guard check is a legacy path — in
 - Returns `{ "ok": true, "data": { "items": [...], "total": N } }`
 - Each item has: `id`, `timestamp` (= `created_at`), `action_label` (not `event`), `actor` (not `user`), no `hash`/`severity` fields
 
-**Critical mismatch discovered:** The audit page `loadData()` calls `/api/v1/audit.php` (line 653) but the actual endpoint is `/api/v1/audit_log.php`. Furthermore, the response shape expected by audit.js (`res.body.data || res.body.items`, then fields `event`, `user`, `hash`, `severity`) does NOT match what `AuditController::timeline()` returns (`items` under `data`, with `action_label`, `actor`, no `hash`). This means **the audit API call was already broken before Phase 17** — it would always fall through to `DEMO_EVENTS`. Phase 17 must either:
+**Critical mismatch discovered:** The audit page `loadData()` calls `/api/v1/audit.php` (line 653) but the actual endpoint is `/api/v1/audit_log.php`. Furthermore, the response shape expected by audit.js (`res.body.data || res.body.items`, then fields `event`, `user`, `hash`, `severity`) does NOT match what `AuditController::timeline()` returns (`items` under `data`, with `action_label`, `actor`, no `hash`). This means **the audit API call was already broken before Phase 17** — it would always fall through to `SEED_EVENTS`. Phase 17 must either:
   1. Fix the URL and field mapping while removing the fallback (correct approach), OR
   2. Acknowledge the mismatch in the error state
 
-The CONTEXT.md says "audit.js already has API call — just needs DEMO_EVENTS fallback removal", implying the URL/field mapping fix is in scope as the minimum needed to get real data showing.
+The CONTEXT.md says "audit.js already has API call — just needs SEED_EVENTS fallback removal", implying the URL/field mapping fix is in scope as the minimum needed to get real data showing.
 
 ### Anti-Patterns to Avoid
 
@@ -355,12 +355,12 @@ async function loadData() {
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
 | `showFallback()` in dashboard.js | `showDashboardError()` | Phase 17 | HUB-03, HUB-04 satisfied |
-| `_allEvents = DEMO_EVENTS` in audit.js | `showAuditError()` + empty `_allEvents` | Phase 17 | CLN-03 satisfied |
+| `_allEvents = SEED_EVENTS` in audit.js | `showAuditError()` + empty `_allEvents` | Phase 17 | CLN-03 satisfied |
 | Header comment "Données démo en fallback" | "zero demo fallback — real API only" | Phase 17 | Code clarity |
 
 **Deprecated/outdated after Phase 17:**
 - `showFallback()` function in dashboard.js: deleted entirely
-- `var DEMO_EVENTS = [...]` in audit.js (lines 17–268): deleted entirely
+- `var SEED_EVENTS = [...]` in audit.js (lines 17–268): deleted entirely
 - `console.warn('[audit.js] API unavailable, using demo data:', ...)` log message: replaced with error state log
 
 ---
@@ -393,17 +393,17 @@ async function loadData() {
 |--------|----------|-----------|-------------------|-------------|
 | HUB-03 | Dashboard KPI shows real count (not `3`/`1`/`12`/`3`) | E2E smoke | `cd tests/e2e && npx playwright test --project=chromium specs/dashboard.spec.js` | Partial (existing test checks overflow only) |
 | HUB-04 | Dashboard shows error banner when API fails | E2E | `cd tests/e2e && npx playwright test --project=chromium specs/dashboard.spec.js` | Partial — new test needed |
-| CLN-03 | `DEMO_EVENTS` symbol absent from audit.js bundle | Static grep | `grep -c 'DEMO_EVENTS' public/assets/js/pages/audit.js` (expect 0) | N/A — grep check |
+| CLN-03 | `SEED_EVENTS` symbol absent from audit.js bundle | Static grep | `grep -c 'SEED_EVENTS' public/assets/js/pages/audit.js` (expect 0) | N/A — grep check |
 | CLN-03 | Audit page shows error state when API fails | E2E | `cd tests/e2e && npx playwright test --project=chromium specs/audit-regression.spec.js` | Partial — audit-regression tests UX, not data |
 
 ### Sampling Rate
-- **Per task commit:** `grep -c 'DEMO_EVENTS\|showFallback' public/assets/js/pages/audit.js public/assets/js/pages/dashboard.js` (expect all zeros)
+- **Per task commit:** `grep -c 'SEED_EVENTS\|showFallback' public/assets/js/pages/audit.js public/assets/js/pages/dashboard.js` (expect all zeros)
 - **Per wave merge:** `cd tests/e2e && npx playwright test --project=chromium specs/dashboard.spec.js specs/audit-regression.spec.js`
 - **Phase gate:** Full suite green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
 - [ ] `tests/e2e/specs/dashboard.spec.js` — needs a new test: "KPI values are not hardcoded demo values (3, 1, 12, 3)" and "error banner shown when API returns non-ok" — existing test only checks horizontal overflow
-- [ ] `tests/e2e/specs/audit.spec.js` — no audit page test exists; need smoke test confirming `DEMO_EVENTS` strings do not appear in rendered output and error state renders on API failure
+- [ ] `tests/e2e/specs/audit.spec.js` — no audit page test exists; need smoke test confirming `SEED_EVENTS` strings do not appear in rendered output and error state renders on API failure
 
 ---
 
@@ -414,7 +414,7 @@ async function loadData() {
 - `DashboardController.php` — API response shape verified from PHP source
 - `AuditController.php` — audit API shape and `meeting_id` requirement verified from PHP source
 - `dashboard.htmx.html` — DOM element IDs (`#kpiSeances`, `#prochaines`, `#taches`, `#main-content`) verified
-- `audit.js` line references — `DEMO_EVENTS` lines 17–268, catch block lines 659–661
+- `audit.js` line references — `SEED_EVENTS` lines 17–268, catch block lines 659–661
 
 ### Secondary (MEDIUM confidence)
 - Playwright config and existing test files — framework/command structure confirmed by file read
@@ -430,7 +430,7 @@ async function loadData() {
 **Confidence breakdown:**
 - Standard stack: HIGH — all files read directly, no assumptions
 - Architecture patterns: HIGH — hub.js error pattern read verbatim, API response shape verified from PHP
-- Pitfalls: HIGH — audit endpoint mismatch verified by comparing audit.js line 653 vs AuditController routes; field mismatch verified by comparing DEMO_EVENTS shape vs `AuditController::formatEvents()` output shape
+- Pitfalls: HIGH — audit endpoint mismatch verified by comparing audit.js line 653 vs AuditController routes; field mismatch verified by comparing SEED_EVENTS shape vs `AuditController::formatEvents()` output shape
 - Validation: MEDIUM — Playwright framework confirmed, but new tests are gaps to fill in Wave 0
 
 **Research date:** 2026-03-16

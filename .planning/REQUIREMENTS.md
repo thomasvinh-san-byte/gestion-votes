@@ -50,9 +50,9 @@ Requirements for v3.0 release. Each maps to roadmap phases.
 
 ### Nettoyage
 
-- [ ] **CLN-01**: Zéro constante DEMO_ dans le codebase
+- [ ] **CLN-01**: Zero constante SEED_ dans le codebase
 - [ ] **CLN-02**: Chaque appel API dispose d'états loading, error et empty
-- [x] **CLN-03**: Le fallback démo audit.js (DEMO_EVENTS) est supprimé et remplacé par un état d'erreur
+- [x] **CLN-03**: Le fallback démo audit.js (SEED_EVENTS) est supprimé et remplacé par un état d'erreur
 
 ## v3.x+ Requirements
 

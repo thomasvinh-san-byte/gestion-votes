@@ -47,7 +47,7 @@ The wizard creates a complete session record in the database (meeting + members 
 ### Hub error handling
 - **Toast + retry**: On API failure, show a red toast with error message and a retry button
 - **1 automatic retry** after 2 seconds, then manual retry button if still failing
-- **Remove DEMO_SESSION and DEMO_FILES** entirely — hub shows only real data
+- **Remove SEED_SESSION and SEED_FILES** entirely — hub shows only real data
 - **Invalid meeting_id**: Redirect to dashboard with toast "Séance introuvable"
 
 ### Wizard → Hub redirect contract
@@ -77,7 +77,7 @@ The wizard creates a complete session record in the database (meeting + members 
 
 - Toast success format: "Séance créée • {n} membres • {n} résolutions" (uses counts from API response)
 - The wizard already sends the complete payload via `buildPayload()` at `wizard.js:606` — the data is there, backend just needs to stop ignoring it
-- Hub currently falls back to DEMO_SESSION at `hub.js:423-430` — this entire block gets replaced with real API data + error handling
+- Hub currently falls back to SEED_SESSION at `hub.js:423-430` — this entire block gets replaced with real API data + error handling
 
 </specifics>
 
@@ -101,8 +101,8 @@ The wizard creates a complete session record in the database (meeting + members 
 
 ### Integration Points
 - `MeetingsController::createMeeting()` (line 367): Extend this method to handle members[] and resolutions[]
-- `hub.js::loadData()`: Replace DEMO_SESSION fallback with real error handling
-- `hub.js` lines 301-330: DEMO_SESSION and DEMO_FILES constants to remove
+- `hub.js::loadData()`: Replace SEED_SESSION fallback with real error handling
+- `hub.js` lines 301-330: SEED_SESSION and SEED_FILES constants to remove
 - `wizard.js` line 702-708: Payload submission and clearDraft flow — update to use counts from response
 - `DashboardController::wizardStatus()`: Already returns real data — hub just needs to use it properly
 

@@ -94,7 +94,7 @@ Built into Docker image:
 - `.env` file loaded at boot by `app/Core/Providers/EnvProvider` (called from `Application::boot()`)
 - `.env.example` at project root documents all variables with comments
 - Required in all environments: `DB_PASS`, `APP_SECRET`, `DEFAULT_TENANT_ID`
-- Required in production: `APP_AUTH_ENABLED=1`, `CSRF_ENABLED=1`, `RATE_LIMIT_ENABLED=1`, `LOAD_DEMO_DATA=0`
+- Required in production: `APP_AUTH_ENABLED=1`, `CSRF_ENABLED=1`, `RATE_LIMIT_ENABLED=1`, `LOAD_SEED_DATA=0`
 - Optional: `REDIS_PASSWORD`, `MAIL_HOST`/`MAIL_PORT`/`MAIL_USER`/`MAIL_PASS`, `PUSH_ENABLED`, `MONITOR_WEBHOOK_URL`, `MONITOR_ALERT_EMAILS`
 - Config values accessed via `app/config.php` which returns an array from `getenv()` calls
 

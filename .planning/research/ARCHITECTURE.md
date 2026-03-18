@@ -333,7 +333,7 @@ Event types dispatched:
 | File | What to Wire | Backend Endpoint |
 |------|--------------|-----------------|
 | `hub.js` | Hub step navigation button actions (convocations send, documents upload) | `POST /api/v1/invitations_send_bulk`, `POST /api/v1/meeting_attachments` |
-| `hub.js` | Remove demo data fallback; show error state when API fails | N/A — replace `DEMO_SESSION` and `DEMO_FILES` with error handling |
+| `hub.js` | Remove demo data fallback; show error state when API fails | N/A — replace `SEED_SESSION` and `SEED_FILES` with error handling |
 | `dashboard.js` | Remove demo data fallback (`showFallback()` static data) | Already calls `GET /api/v1/dashboard` — just remove static fallback |
 | `operator-tabs.js` | Meeting selector must propagate `meeting_id` to all sub-modules via `MeetingContext.set()` | Existing `MeetingContext` service |
 | `operator-realtime.js` | SSE must start when a meeting is selected, not just on page load | Trigger `connectSSE()` on `MeetingContext:change` event |
@@ -364,7 +364,7 @@ Phase 1: Data Foundation (unblocks everything)
 
 Phase 2: Hub Checklist (first visible result)
     2a. Fix hub.js convocationsSent field (add to wizard_status response)
-    2b. Remove DEMO_SESSION / DEMO_FILES fallback from hub.js
+    2b. Remove SEED_SESSION / SEED_FILES fallback from hub.js
         Replace with error state when API unavailable
     2c. Wire hub document upload button → POST /api/v1/meeting_attachments
     2d. Wire hub convocations button → POST /api/v1/invitations_send_bulk

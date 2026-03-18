@@ -80,7 +80,7 @@ None - plan executed exactly as written. The file was already correctly implemen
 ## Issues Encountered
 
 None. Verification confirmed:
-- 0 occurrences of `showFallback` or `DEMO_` in dashboard.js
+- 0 occurrences of `showFallback` or `SEED_` in dashboard.js
 - 4 occurrences of `showDashboardError` (definition + 3 call sites)
 - `Réessayer` button present (encoded as `\u00e9essayer` Unicode escape)
 - `node -c` passes — valid JavaScript syntax

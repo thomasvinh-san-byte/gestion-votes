@@ -29,7 +29,7 @@ Features users assume exist. Missing these = product feels broken or fake.
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
 | Wizard → real DB session | Creating a session must persist and redirect to hub with real data | LOW | wizard.js already POSTs to `/api/v1/meetings`; hub.js calls `wizard_status` but falls back to demo data when session not found or no meeting_id in URL |
-| Hub loads real session state | Hub checklist must reflect actual backend state, not hardcoded demo | LOW | hub.js has DEMO_SESSION/DEMO_FILES fallback at lines 301-430; `wizard_status` endpoint exists and is called; need to remove fallback, show error on failure |
+| Hub loads real session state | Hub checklist must reflect actual backend state, not hardcoded demo | LOW | hub.js has SEED_SESSION/SEED_FILES fallback at lines 301-430; `wizard_status` endpoint exists and is called; need to remove fallback, show error on failure |
 | Dashboard shows real counts | KPI tiles (séances, en cours, convocations, PV) must come from DB | LOW | dashboard.js calls `/api/v1/dashboard` with fallback at line 127; fallback fires on any API error — should show error state instead |
 | Operator console loads real meeting | Meeting must be selected and data loaded from DB, not mock | MEDIUM | operator-tabs.js loads via `loadMeetingContext()` from URL param; this is wired but depends on meeting_id being passed correctly from hub |
 | Meeting state transitions work | draft→scheduled→frozen→live→closed→validated state machine must be reliable | MEDIUM | MeetingWorkflowService fully implemented; operator-exec.js calls `/api/v1/meeting_transition.php`; needs end-to-end testing |
@@ -57,14 +57,14 @@ Features that set the product apart. Not required for lifecycle completeness, bu
 | Paper ballot redemption | Hybrid meetings: operator enters physical votes manually | MEDIUM | `paper_ballot_redeem.php` and `manual_vote.php` endpoints exist; operator-motions.js has manual vote UI |
 | Device trust system | Voter devices tracked; operator can block misbehaving devices | HIGH | `devices_list.php`, `device_block.php`, `device_heartbeat.php` exist; trust.js and operator-tabs.js implement the UI |
 | Multi-tenant isolation | Single installation serves multiple organizations | MEDIUM | Enforced at repository layer via `tenant_id`; AuthMiddleware provides `DEFAULT_TENANT_ID`; no feature work needed |
-| Audit trail with hash verification | Every action logged with HMAC chain; audit_verify.php checks integrity | HIGH | Implemented; audit.js has demo fallback (DEMO_EVENTS) that needs removal |
+| Audit trail with hash verification | Every action logged with HMAC chain; audit_verify.php checks integrity | HIGH | Implemented; audit.js has demo fallback (SEED_EVENTS) that needs removal |
 | eIDAS-ready signatory workflow | PV step 3 records signataires for electronic signature compliance | MEDIUM | UI in postsession.js step 3 shows signataire/observations fields; backend storage TBD |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Silent demo fallbacks | Appears to work during development | Masks real integration failures in production; operators see fake data without knowing it | Remove all DEMO_SESSION/DEMO_EVENTS fallbacks; replace with clear error states showing what API call failed |
+| Silent demo fallbacks | Appears to work during development | Masks real integration failures in production; operators see fake data without knowing it | Remove all SEED_SESSION/SEED_EVENTS fallbacks; replace with clear error states showing what API call failed |
 | Polling as primary real-time | Simpler than SSE to implement | Adds unnecessary DB load; defeats the purpose of SSE infrastructure already built | SSE is already implemented; use it as primary, polling only as last resort |
 | Framework migration to wire the frontend | Might seem to simplify reactivity | Destroys existing vanilla JS conventions, breaks all 29 page modules, scope explosion | Use existing `window.api()` + IIFE pattern; Web Components for interactive UI pieces |
 | Bulk-delete or cascade-delete on sessions | Operators request convenience | Destroys audit trail; French copropriété law requires PV preservation | Soft-archive only; `archived_immutable` guard already in MeetingWorkflowService |
@@ -147,9 +147,9 @@ For this milestone (v3.0), MVP means zero demo fallbacks and a working end-to-en
 ### Launch With (v3.0 core)
 
 - [x] Wizard POST creates real session → redirects to hub with meeting_id — **already partially wired in Phase 14**
-- [ ] Hub removes DEMO_SESSION fallback → shows error state if API fails
+- [ ] Hub removes SEED_SESSION fallback → shows error state if API fails
 - [ ] Dashboard removes showFallback() → shows error state if API fails
-- [ ] audit.js removes DEMO_EVENTS fallback → shows error state if API fails
+- [ ] audit.js removes SEED_EVENTS fallback → shows error state if API fails
 - [ ] meeting_motions.php created (shim to motions_for_meeting or new endpoint) — **postsession is blocked without this**
 - [ ] export_correspondance.php: remove link from postsession.js UI or create stub
 - [ ] Operator console receives live SSE vote tallies → end-to-end test from ballot cast to KPI update
@@ -221,7 +221,7 @@ These are not design gaps but **integration gaps** that will cause 404s or broke
 
 2. **`/api/v1/export_correspondance.php` does not exist.** postsession.js step 4 export button will 404. Either remove the UI link or create the endpoint. No backend implementation exists.
 
-3. **Three demo fallbacks must be removed:** hub.js (DEMO_SESSION + DEMO_FILES), dashboard.js (showFallback with hardcoded 2026-02-XX data), audit.js (DEMO_EVENTS). These mask real failures.
+3. **Three demo fallbacks must be removed:** hub.js (SEED_SESSION + SEED_FILES), dashboard.js (showFallback with hardcoded 2026-02-XX data), audit.js (SEED_EVENTS). These mask real failures.
 
 4. **MeetingContext → operator console URL chain.** The hub's "Go to operator" button must pass `?meeting_id=X` to `operator.htmx.html`. If this link is missing or the param is dropped, the operator console starts with no meeting selected.
 

@@ -20,7 +20,7 @@
 - [x] **Phase 20.3: Page Layout Wireframe Alignment** — Page layouts aligned with wireframe density and composition (INSERTED) (completed 2026-03-18, design issues deferred to 20.4)
 - [x] **Phase 20.4: Design System Enforcement** — Systematic design reconstruction: audit each page against wireframe, clean contradictory CSS, rebuild pages to unified design language, fix JS bugs (INSERTED) (completed 2026-03-18)
 - [x] **Phase 21: Post-Session & PV** — Stepper completes all 4 steps; PV PDF generated and meeting archived (completed 2026-03-18)
-- [ ] **Phase 22: Final Audit** — Zero DEMO_ constants; every API call has loading/error/empty states
+- [ ] **Phase 22: Final Audit** — Zero SEED_ constants; every API call has loading/error/empty states
 
 <details>
 <summary>✅ v2.0 UI Redesign (Phases 4-15) — SHIPPED 2026-03-16</summary>
@@ -93,11 +93,11 @@ Plans:
   1. The dashboard session count KPIs reflect the actual number of sessions in the database, not hardcoded demo values
   2. When no sessions exist, the dashboard shows an empty state rather than demo cards
   3. When the backend is unreachable, the dashboard shows an explicit error state instead of fake session data
-  4. The audit page shows real audit events from the database; the DEMO_EVENTS fallback is gone and an error state is shown when the backend is unreachable
+  4. The audit page shows real audit events from the database; the SEED_EVENTS fallback is gone and an error state is shown when the backend is unreachable
 **Plans:** 2/2 plans complete
 Plans:
 - [ ] 17-01-PLAN.md — Replace dashboard demo fallback with error/empty states
-- [ ] 17-02-PLAN.md — Remove DEMO_EVENTS from audit.js, fix API integration
+- [ ] 17-02-PLAN.md — Remove SEED_EVENTS from audit.js, fix API integration
 
 ### Phase 18: SSE Infrastructure
 **Goal**: The SSE pipeline is safe for concurrent consumers and the server configuration supports long-lived SSE connections without resource exhaustion
@@ -216,7 +216,7 @@ Plans:
 **Depends on**: Phases 16-21 (all wiring must be complete before the audit can confirm coverage)
 **Requirements**: CLN-01, CLN-02
 **Success Criteria** (what must be TRUE):
-  1. A codebase search for DEMO_ returns zero results outside of test fixtures and comments
+  1. A codebase search for seed constants returns zero results outside of test fixtures and comments
   2. Every page that makes an API call displays a loading indicator while the request is in flight, a meaningful error message when the request fails, and an appropriate empty state when the response contains no data
 **Plans:** 2 plans
 Plans:

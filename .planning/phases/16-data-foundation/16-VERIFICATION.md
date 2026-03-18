@@ -31,7 +31,7 @@ re_verification:
 | 3 | Existing members (same email + tenant) are reused (upsert), not duplicated | VERIFIED | `$memberRepo->findByEmail($tenantId, $email)` at line 480; increments `$membersLinked` if found, creates new member only if null (line 485–488) |
 | 4 | API response includes meeting_id, title, members_created, members_linked, motions_created | VERIFIED | Return array at lines 524–530 contains all five fields; `IdempotencyGuard::store($result)` at line 539 stores the full result |
 | 5 | Wizard waits for 201 response, clears draft only after confirmed success, and redirects to hub with counts in sessionStorage | VERIFIED | wizard.js lines 704–722: `clearDraft()` called only inside `.then()` after `res.body.ok` is truthy; sessionStorage toast written before redirect to `/hub.htmx.html?id=` |
-| 6 | Hub loads real session data from wizard_status API and displays it — no demo fallback | VERIFIED | hub.js line 409 calls `window.api('/api/v1/wizard_status?meeting_id=...')`; DEMO_SESSION and DEMO_FILES absent (grep count = 0) |
+| 6 | Hub loads real session data from wizard_status API and displays it — no demo fallback | VERIFIED | hub.js line 409 calls `window.api('/api/v1/wizard_status?meeting_id=...')`; SEED_SESSION and SEED_FILES absent (grep count = 0) |
 | 7 | Hub shows error toast + retry button when API fails, not demo data or blank screen | VERIFIED | hub.js lines 371–391: `showHubError()` fires `Shared.showToast()` and prepends `.hub-error` banner with "Réessayer" button that re-calls `loadData()`; automatic 1 retry before error state |
 | 8 | Hub redirects to dashboard with toast when meeting_id is missing or invalid | VERIFIED | hub.js lines 397–403 (missing id) and 420–425 (`meeting_not_found`): both write `ag-vote-toast` to sessionStorage then redirect to `/dashboard.htmx.html` |
 
@@ -46,7 +46,7 @@ re_verification:
 | `app/Controller/MeetingsController.php` | Extended createMeeting() with atomic member + motion persistence | VERIFIED — WIRED | 659 lines; `createMeeting()` at line 366 fully implemented with `api_transaction()` wrapping all three insert loops |
 | `tests/Unit/MeetingsControllerTest.php` | Tests for atomic creation, upsert, validation rollback | VERIFIED — WIRED | 5 new source-inspection tests at lines 1292–1358 covering count fields, api_transaction usage, wizard field mapping, findByEmail upsert, empty arrays compatibility |
 | `public/assets/js/pages/wizard.js` | Updated success redirect with counts from API response | VERIFIED — WIRED | btnCreate handler lines 694–737; reads `members_created`, `members_linked`, `motions_created`; constructs pluralized toast; `clearDraft()` only on success path |
-| `public/assets/js/pages/hub.js` | Real data loading with error handling, zero demo constants | VERIFIED — WIRED | 469 lines; no DEMO_SESSION or DEMO_FILES; `loadData()` at line 393; `showHubError()` at line 371 |
+| `public/assets/js/pages/hub.js` | Real data loading with error handling, zero demo constants | VERIFIED — WIRED | 469 lines; no SEED_SESSION or SEED_FILES; `loadData()` at line 393; `showHubError()` at line 371 |
 
 ---
 
@@ -70,7 +70,7 @@ re_verification:
 | WIZ-01 | 16-01 | Le wizard crée une session en DB avec titre, type, lieu, date en une seule requête API | SATISFIED | `createMeeting()` maps wizard fields (`type`, `date`+`time`, `place`) before processing and creates the meeting record inside `api_transaction()` |
 | WIZ-02 | 16-01 | Les membres sélectionnés à l'étape 2 du wizard sont persistés en transaction atomique avec la session | SATISFIED | Member loop at lines 458–492 inside the same `api_transaction()` closure as the meeting creation |
 | WIZ-03 | 16-01 | Les résolutions saisies à l'étape 3 du wizard sont persistées en transaction atomique avec la session | SATISFIED | Resolution loop at lines 495–522 inside the same `api_transaction()` closure |
-| HUB-01 | 16-02 | Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo) | SATISFIED | DEMO_SESSION and DEMO_FILES deleted; `loadData()` at line 393 calls `wizard_status` API and passes result through `mapApiDataToSession()` to all render functions |
+| HUB-01 | 16-02 | Le hub charge l'état réel de la session via l'API wizard_status (zéro donnée démo) | SATISFIED | SEED_SESSION and SEED_FILES deleted; `loadData()` at line 393 calls `wizard_status` API and passes result through `mapApiDataToSession()` to all render functions |
 | HUB-02 | 16-02 | Le hub affiche un état d'erreur explicite quand le backend est indisponible | SATISFIED | `showHubError()` fires error toast + `.hub-error` banner with "Réessayer" button; automatic 1 retry before showing error state |
 
 **Documentation note:** REQUIREMENTS.md tracking table still marks HUB-01 and HUB-02 as `[ ]` (pending) and "Pending" in the phase matrix. This is a documentation discrepancy — the code fully satisfies both requirements. The tracker needs to be updated to reflect completion.

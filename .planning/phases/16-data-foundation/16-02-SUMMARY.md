@@ -20,16 +20,16 @@ Updated the wizard success flow to pass real member/resolution counts and replac
 - Draft cleared only after confirmed 201 success
 
 ### public/assets/js/pages/hub.js
-- **Deleted** `DEMO_SESSION` and `DEMO_FILES` constants entirely
+- **Deleted** `SEED_SESSION` and `SEED_FILES` constants entirely
 - `loadData()` fetches real session data from `wizard_status` API
 - Missing session ID → redirects to dashboard with "Identifiant de séance manquant" toast
 - `meeting_not_found` → redirects to dashboard with "Séance introuvable" toast
 - API failure → 1 automatic retry, then error banner with "Réessayer" button via `showHubError()`
-- Documents fallback changed from DEMO_FILES to empty array
+- Documents fallback changed from SEED_FILES to empty array
 
 ## Verification
 
-- `grep -c "DEMO_SESSION\|DEMO_FILES" public/assets/js/pages/hub.js` → 0
+- `grep -c "SEED_SESSION\|SEED_FILES" public/assets/js/pages/hub.js` → 0
 - Human-verified: wizard-to-hub flow works end-to-end with real data
 - `./vendor/bin/phpunit --no-coverage` → 2843 tests, 5974 assertions, all green
 
