@@ -441,6 +441,11 @@
             '<span>' + escapeHtml(r.key || 'Charges g\u00e9n\u00e9rales') + '</span>' +
             '<span>' + escapeHtml(secretLabel) + '</span>' +
           '</div>' +
+          '<div class="resolution-documents" data-motion-id="' + escapeHtml(String(r.id || '')) + '">' +
+            '<h4>Documents joints</h4>' +
+            '<div class="doc-list"></div>' +
+            '<input type="file" class="filepond-input" name="filepond" accept="application/pdf">' +
+          '</div>' +
         '</div>' +
         '<span class="reso-actions">' +
           '<button class="btn btn-sm" type="button" data-reso-del="' + i + '" aria-label="Supprimer">' +
@@ -467,7 +472,144 @@
       }
 
       list.appendChild(row);
+
+      // Initialize FilePond upload for this resolution's document section
+      var docsContainer = row.querySelector('.resolution-documents');
+      if (docsContainer) {
+        var motionId = r.id || '';
+        var meetingId = ''; // populated once meeting is saved; pre-creation uploads use motion_id only
+        initResolutionPond(docsContainer, motionId, meetingId);
+        if (motionId) loadExistingDocs(docsContainer, motionId);
+      }
     });
+  }
+
+  /* ── Resolution document upload (FilePond) ─────── */
+
+  function initResolutionPond(containerEl, motionId, meetingId) {
+    var inputEl = containerEl.querySelector('.filepond-input');
+    if (!inputEl || inputEl._pondInitialized) return null;
+    if (typeof FilePond === 'undefined') return null;
+
+    FilePond.registerPlugin(
+      FilePondPluginFileValidateType,
+      FilePondPluginFileValidateSize
+    );
+
+    var pond = FilePond.create(inputEl, {
+      acceptedFileTypes: ['application/pdf'],
+      labelFileTypeNotAllowed: 'Seuls les fichiers PDF sont acceptes',
+      fileValidateTypeLabelExpectedTypes: 'Format attendu : PDF',
+      maxFileSize: '10MB',
+      labelMaxFileSizeExceeded: 'Le fichier depasse 10 Mo',
+      labelMaxFileSize: 'Taille maximale : 10 Mo',
+      allowMultiple: true,
+      server: {
+        process: {
+          url: '/api/v1/resolution_documents',
+          method: 'POST',
+          headers: function() {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            return {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-Token': meta ? meta.content : ''
+            };
+          },
+          ondata: function(formData) {
+            if (motionId) formData.append('motion_id', motionId);
+            if (meetingId) formData.append('meeting_id', meetingId);
+            return formData;
+          },
+          onload: function(response) {
+            try {
+              var data = JSON.parse(response);
+              var listEl = containerEl.querySelector('.doc-list');
+              if (listEl && data.document) renderDocCard(listEl, data.document);
+              return data.document ? data.document.id : '';
+            } catch (e) { return ''; }
+          },
+          onerror: function(response) {
+            try {
+              var data = JSON.parse(response);
+              if (window.AgToast) window.AgToast.show(data.error || 'Erreur lors du telechargement', 'error');
+            } catch (e) {
+              if (window.AgToast) window.AgToast.show('Erreur lors du telechargement', 'error');
+            }
+          }
+        },
+        revert: null
+      },
+      labelIdle: 'Glissez un PDF ici ou <span class="filepond--label-action">parcourir</span>'
+    });
+
+    inputEl._pondInitialized = true;
+    return pond;
+  }
+
+  function renderDocCard(listEl, doc) {
+    var card = document.createElement('div');
+    card.className = 'doc-card';
+    card.dataset.docId = doc.id;
+
+    var sizeKb = Math.round((doc.file_size || 0) / 1024);
+    var sizeLabel = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' Mo' : sizeKb + ' Ko';
+
+    card.innerHTML =
+      '<span class="doc-card__icon">&#128196;</span>' +
+      '<span class="doc-card__name">' + escapeHtml(doc.original_name || doc.filename || '') + '</span>' +
+      '<span class="doc-card__size">' + escapeHtml(sizeLabel) + '</span>' +
+      '<button class="doc-card__preview btn btn--ghost btn--sm" title="Aper\u00e7u" type="button">' +
+        '<span class="icon">&#128065;</span>' +
+      '</button>' +
+      '<button class="doc-card__delete btn btn--ghost btn--sm btn--danger" title="Supprimer" type="button">' +
+        '<span class="icon">&times;</span>' +
+      '</button>';
+
+    // Preview button — open ag-pdf-viewer in panel mode
+    card.querySelector('.doc-card__preview').addEventListener('click', function() {
+      var viewer = document.querySelector('ag-pdf-viewer') || document.createElement('ag-pdf-viewer');
+      if (!viewer.parentElement) {
+        viewer.setAttribute('mode', 'panel');
+        viewer.setAttribute('allow-download', '');
+        document.body.appendChild(viewer);
+      }
+      viewer.setAttribute('src', '/api/v1/resolution_document_serve?id=' + doc.id);
+      viewer.setAttribute('filename', doc.original_name || doc.filename || 'document.pdf');
+      viewer.open();
+    });
+
+    // Delete button — use ag-confirm dialog
+    card.querySelector('.doc-card__delete').addEventListener('click', function() {
+      if (!window.AgConfirm) return;
+      window.AgConfirm.ask({
+        title: 'Supprimer le document',
+        message: 'Voulez-vous supprimer \u00ab\u00a0' + escapeHtml(doc.original_name || doc.filename || '') + '\u00a0\u00bb ?',
+        confirmLabel: 'Supprimer',
+        variant: 'danger'
+      }).then(function(confirmed) {
+        if (!confirmed) return;
+        window.api('/api/v1/resolution_documents', { id: doc.id }, 'DELETE').then(function() {
+          card.remove();
+          if (window.AgToast) window.AgToast.show('Document supprim\u00e9', 'success');
+        }).catch(function() {
+          if (window.AgToast) window.AgToast.show('Erreur lors de la suppression', 'error');
+        });
+      });
+    });
+
+    listEl.appendChild(card);
+  }
+
+  function loadExistingDocs(containerEl, motionId) {
+    var listEl = containerEl.querySelector('.doc-list');
+    if (!listEl || !motionId) return;
+    window.api('/api/v1/resolution_documents?motion_id=' + motionId).then(function(resp) {
+      if (resp && resp.documents) {
+        resp.documents.forEach(function(doc) {
+          renderDocCard(listEl, doc);
+        });
+      }
+    }).catch(function() { /* ignore — new resolution */ });
   }
 
   /* ── HTML5 Drag-and-drop handlers ────────────────── */
