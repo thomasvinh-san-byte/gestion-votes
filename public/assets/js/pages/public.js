@@ -442,11 +442,19 @@ async function refresh() {
     }
 
     updateTimestamp();
+    _refreshFails = 0;
+    var connLost = document.getElementById('connectionLost');
+    if (connLost) connLost.hidden = true;
 
   } catch (e) {
     console.error('refresh error:', e);
     err.textContent = 'Erreur : ' + e.message;
     err.classList.add('visible');
+    _refreshFails++;
+    if (_refreshFails >= 3) {
+      var connLostEl = document.getElementById('connectionLost');
+      if (connLostEl) connLostEl.hidden = false;
+    }
   }
 }
 
@@ -458,6 +466,8 @@ function getDeviceId() {
     return id;
   } catch(e) { return 'anon-' + Date.now(); }
 }
+
+var _refreshFails = 0;
 
 var _heartbeatFails = 0;
 async function heartbeat() {
