@@ -77,16 +77,16 @@
       <!-- Stepper progress -->
       <div class="wiz-progress-wrap" id="wizStepper" aria-label="Progression" role="navigation">
         <div class="wiz-step-item active" data-step="0">
-          <div class="wiz-snum">1</div><span>Infos g&eacute;n&eacute;rales</span>
+          <div class="wiz-snum">1</div><span>Informations</span>
         </div>
         <div class="wiz-step-item" data-step="1">
           <div class="wiz-snum">2</div><span>Membres</span>
         </div>
         <div class="wiz-step-item" data-step="2">
-          <div class="wiz-snum">3</div><span>Ordre du jour</span>
+          <div class="wiz-snum">3</div><span>R&eacute;solutions</span>
         </div>
         <div class="wiz-step-item" data-step="3">
-          <div class="wiz-snum">4</div><span>R&eacute;capitulatif</span>
+          <div class="wiz-snum">4</div><span>R&eacute;vision</span>
         </div>
       </div>
 
@@ -211,10 +211,6 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
             Importer (.csv)
           </button>
-          <button class="btn btn-sm" type="button" id="btnAddManual">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-            Ajout manuel
-          </button>
         </div>
         <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
 
@@ -222,7 +218,39 @@
         <div class="upload-zone" id="csvDropZone">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
           <div class="upload-zone-title">Glissez votre fichier</div>
-          <div class="muted">Colonnes attendues : Nom, Lot, Courriel, Cl&eacute; G&eacute;n&eacute;rale, Cl&eacute; Ascenseur, Cl&eacute; Chauffage&hellip;</div>
+          <div class="muted">Colonnes attendues : Nom, Courriel, Poids de vote</div>
+        </div>
+
+        <!-- Voting power toggle -->
+        <div class="wiz-toggle-row">
+          <label class="toggle-label" for="wizVotingPowerToggle">
+            <input type="checkbox" id="wizVotingPowerToggle" role="switch">
+            Activer la pond&eacute;ration des voix
+          </label>
+        </div>
+
+        <!-- Inline member add form -->
+        <div class="wiz-member-add-form" id="wizMemberAddForm">
+          <div class="row">
+            <div class="field">
+              <label class="field-label" for="wizMemberName">Nom <span class="req">*</span></label>
+              <input class="field-input" id="wizMemberName" placeholder="Nom du participant" maxlength="100" autocomplete="off">
+            </div>
+            <div class="field">
+              <label class="field-label" for="wizMemberEmail">Courriel</label>
+              <input class="field-input" id="wizMemberEmail" type="email" placeholder="adresse@exemple.fr" maxlength="200" autocomplete="off">
+            </div>
+            <div class="field member-votes-field" id="wizMemberVpField" style="display:none;">
+              <label class="field-label" for="wizMemberVp">Poids de vote</label>
+              <input class="field-input" id="wizMemberVp" type="number" min="1" value="1" autocomplete="off">
+            </div>
+            <div class="field" style="align-self:flex-end;">
+              <button class="btn btn-primary btn-sm" type="button" id="btnAddMemberInline">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Ajouter
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Members list -->
@@ -267,6 +295,14 @@
           R&eacute;solutions (ordre du jour)
         </div>
 
+        <!-- Motion template quick-select buttons -->
+        <div class="wiz-templates-row">
+          <span class="wiz-templates-label">Mod&egrave;les rapides :</span>
+          <button class="btn btn-sm btn-ghost wiz-template-btn" type="button" data-template="approbation-comptes">Approbation des comptes</button>
+          <button class="btn btn-sm btn-ghost wiz-template-btn" type="button" data-template="election-conseil">&Eacute;lection au conseil</button>
+          <button class="btn btn-sm btn-ghost wiz-template-btn" type="button" data-template="modification-reglement">Modification du r&egrave;glement</button>
+        </div>
+
         <!-- Add resolution form -->
         <div class="reso-add-panel">
           <div class="reso-add-title">
@@ -289,15 +325,6 @@
                 <option value="art25">Majorit&eacute; absolue (art. 25)</option>
                 <option value="art26">Double majorit&eacute; (art. 26)</option>
                 <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label class="field-label" for="resoKey">Cl&eacute; de r&eacute;partition <span class="req">*</span></label>
-              <select class="field-input" id="resoKey" aria-required="true">
-                <option>Charges g&eacute;n&eacute;rales (d&eacute;faut)</option>
-                <option>Ascenseur B&acirc;timent A</option>
-                <option>Chauffage collectif</option>
-                <option>Parking souterrain</option>
               </select>
             </div>
             <div class="field">
@@ -359,7 +386,7 @@
         <div class="wiz-step-body">
         <div class="wf-step">
           <div class="wf-step-num">4</div>
-          V&eacute;rification et cr&eacute;ation
+          R&eacute;vision
         </div>
 
         <div class="alert alert-success">
@@ -369,14 +396,6 @@
 
         <div id="wizRecap">
           <!-- Summary rows populated by JS -->
-        </div>
-
-        <div class="ctx-panel ctx-panel-spaced">
-          <h4>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
-            Guide
-          </h4>
-          <p>Cliquez sur une &eacute;tape pr&eacute;c&eacute;dente pour corriger. La s&eacute;ance sera cr&eacute;&eacute;e en brouillon, modifiable jusqu'au lancement.</p>
         </div>
 
         <div class="alert alert-warn alert-warn-recap">
@@ -390,13 +409,8 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             Pr&eacute;c&eacute;dent
           </button>
-          <button class="btn btn-outline" type="button" id="btnDownloadPdf">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            T&eacute;l&eacute;charger PDF
-          </button>
-          <button class="btn btn-success" type="button" id="btnCreate">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-            Cr&eacute;er la s&eacute;ance
+          <button class="btn btn-primary" type="button" id="btnCreate">
+            Cr&eacute;er la s&eacute;ance &rarr;
           </button>
         </div>
       </div>
