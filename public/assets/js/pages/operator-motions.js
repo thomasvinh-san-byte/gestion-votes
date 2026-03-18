@@ -779,7 +779,12 @@
     });
 
     try {
-      const openResult = await api('/api/v1/motions_open.php', { meeting_id: O.currentMeetingId, motion_id: motionId });
+      // VOT-01/VOT-04: When frozen, use operator_open_vote.php which atomically
+      // transitions meeting to live + opens motion + broadcasts meetingStatusChanged SSE
+      const endpoint = isFrozen
+        ? '/api/v1/operator_open_vote.php'
+        : '/api/v1/motions_open.php';
+      const openResult = await api(endpoint, { meeting_id: O.currentMeetingId, motion_id: motionId });
 
       if (!openResult.body?.ok) {
         const errorMsg = getApiError(openResult.body, 'Erreur ouverture vote');
@@ -790,6 +795,11 @@
 
       setNotif('success', 'Vote ouvert');
       O.announce('Vote ouvert.');
+      // Update local status immediately so the exec mode switch below works
+      // (meetingStatusChanged SSE will also update it, but arrives asynchronously)
+      if (isFrozen) {
+        O.currentMeetingStatus = 'live';
+      }
 
       await loadResolutions();
 
