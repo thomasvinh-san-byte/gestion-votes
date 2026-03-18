@@ -1262,7 +1262,6 @@
 
 /* =============================================================================
    PAGE-HEADER COMPACTION — wireframe v3.19.2 density (14px spacing)
-   Applied globally to all pages using .page-header or .app-header patterns.
    ============================================================================= */
 
 .page-header {
@@ -1274,15 +1273,6 @@
   margin-bottom: 0;
 }
 
-/* Card body density: 14-16px padding across all pages */
-.card-body {
-  padding: 14px;
-}
-
-.card-header {
-  padding: 10px 14px;
-}
-
 /* Section gaps: compact for 1080px fit */
 .section-header {
   margin-bottom: 14px;
@@ -1292,130 +1282,6 @@
 /* Tab toolbar: reduce bottom margin */
 .tab-toolbar {
   margin-bottom: 14px;
-}
-
-/* =============================================================================
-   VISUAL HIERARCHY — wireframe v3.19.2 color accents
-   Adds colored borders, semantic indicators, and card accents to prevent
-   monochrome flatness. Uses persona and semantic colors for differentiation.
-   ============================================================================= */
-
-/* Page title bar: 3px left accent indicator (wireframe pattern) */
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.page-title::before {
-  content: '';
-  display: inline-block;
-  width: 3px;
-  height: 1.2em;
-  background: var(--color-primary);
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-/* Section headers: accent color for visual weight */
-.section-header .section-title {
-  color: var(--color-text-dark, var(--color-text));
-}
-
-/* Card header: subtle bottom border with accent hint */
-.card-header {
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Card title: stronger text weight for hierarchy */
-.card-title {
-  color: var(--color-text-dark, var(--color-text));
-}
-
-/* Settings section h3: accent icon color */
-.settings-section h3 .icon {
-  color: var(--color-primary);
-}
-
-/* KPI card: colored top indicator bar */
-.kpi-card {
-  border-top: 3px solid var(--color-primary);
-}
-
-.kpi-card.success,
-.kpi-card[data-variant="success"] {
-  border-top-color: var(--color-success);
-}
-
-.kpi-card.danger,
-.kpi-card[data-variant="danger"] {
-  border-top-color: var(--color-danger);
-}
-
-.kpi-card.warning,
-.kpi-card[data-variant="warning"] {
-  border-top-color: var(--color-warning);
-}
-
-/* Result cards: colored value text */
-.result-card .value {
-  color: var(--color-primary);
-}
-
-.result-card.success .value {
-  color: var(--color-success);
-}
-
-.result-card.danger .value {
-  color: var(--color-danger);
-}
-
-/* Alert items: colored left border */
-.alert-item {
-  border-left: 3px solid var(--color-primary);
-}
-
-.alert-item.critical {
-  border-left-color: var(--color-danger);
-}
-
-.alert-item.warning {
-  border-left-color: var(--color-warning);
-}
-
-.alert-item.success {
-  border-left-color: var(--color-success);
-}
-
-/* Stats bar stat items: colored value text based on context */
-.stats-bar .stat-item .stat-value {
-  color: var(--color-text-dark, var(--color-text));
-}
-
-/* Shortcut card icons: ensure colored backgrounds */
-.shortcut-card-icon {
-  color: var(--color-text-inverse);
-}
-
-/* Badge semantic colors: ensure visibility */
-.badge-success {
-  background: var(--color-success);
-  color: var(--color-text-inverse);
-}
-
-.badge-danger {
-  background: var(--color-danger);
-  color: var(--color-text-inverse);
-}
-
-.badge-warning {
-  background: var(--color-warning);
-  color: var(--color-text-inverse);
-}
-
-.badge-primary {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
 }
 
 /* =============================================================================
