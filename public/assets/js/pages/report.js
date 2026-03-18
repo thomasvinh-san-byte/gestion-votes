@@ -14,12 +14,15 @@
     const reportUrl = `/api/v1/meeting_report.php?meeting_id=${mid}`;
     const pdfUrl = `/api/v1/meeting_generate_report_pdf.php?meeting_id=${mid}`;
 
-    // Set iframe src and show it (hide empty state)
+    // Set iframe src and show it (hide empty state, show loading)
     var pvFrame = document.getElementById('pvFrame');
     var pvEmpty = document.getElementById('pvEmptyState');
+    var pvLoading = document.getElementById('pvFrameLoading');
+    if (pvLoading) pvLoading.hidden = false;
+    if (pvEmpty) pvEmpty.style.display = 'none';
     pvFrame.src = reportUrl;
     pvFrame.style.display = '';
-    if (pvEmpty) pvEmpty.style.display = 'none';
+    pvFrame.onload = function () { if (pvLoading) pvLoading.hidden = true; };
 
     // Set links
     document.getElementById('btnExportPDF').href = pdfUrl;

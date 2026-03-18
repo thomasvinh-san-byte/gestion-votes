@@ -128,6 +128,7 @@
   function renderChecklist(sessionData) {
     var container = document.getElementById('hubChecklist');
     if (!container) return;
+    container.removeAttribute('aria-busy');
 
     var done = 0;
     var itemsHtml = '';
