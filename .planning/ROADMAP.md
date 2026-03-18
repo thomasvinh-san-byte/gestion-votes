@@ -106,7 +106,7 @@ Plans:
   2. The lot field is absent from the wizard member input form; submitting a member without a lot field produces no error and no DB change
   3. The "Cle de repartition" option is absent from the settings page; no broken stub JS runs when settings loads
   4. A PHPUnit test asserts that a session with two members having voting_power 3 and 1 tallies POUR:3, CONTRE:1 (not 1:1) — and this test passes both before and after the vocabulary changes
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 27-01-PLAN.md — PHPUnit regression test + vocabulary renames + dead code removal across core UI files
 - [ ] 27-02-PLAN.md — Seed data + documentation vocabulary cleanup + full codebase audit
@@ -145,7 +145,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 25. PDF Infrastructure Foundation | 3/3 | Complete    | 2026-03-18 |
 | 26. Guided UX Components | 3/3 | Complete    | 2026-03-18 |
-| 27. Copropriete Transformation | 0/2 | Not started | - |
+| 27. Copropriete Transformation | 1/2 | In Progress|  |
 | 28. Wizard & Session Hub UX Overhaul | 0/? | Not started | - |
 | 29. Operator Console, Voter View & Visual Polish | 0/? | Not started | - |
 

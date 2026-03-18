@@ -42,11 +42,11 @@
 
 ### Copropriété Transformation (CPR)
 
-- [ ] **CPR-01**: UI label rename — remove "copropriété", "tantièmes", "lot" vocabulary from all user-facing strings
-- [ ] **CPR-02**: Remove lot field from wizard member input form (dead code — not in DB schema)
-- [ ] **CPR-03**: Remove openKeyModal / "Clé de répartition" stub from settings.js (no API endpoint backs it)
-- [ ] **CPR-04**: Preserve voting_power column, BallotsService weight calculations, and tantième CSV import alias unchanged
-- [ ] **CPR-05**: PHPUnit regression test for weighted vote tally correctness (before and after transformation)
+- [x] **CPR-01**: UI label rename — remove "copropriété", "tantièmes", "lot" vocabulary from all user-facing strings
+- [x] **CPR-02**: Remove lot field from wizard member input form (dead code — not in DB schema)
+- [x] **CPR-03**: Remove openKeyModal / "Clé de répartition" stub from settings.js (no API endpoint backs it)
+- [x] **CPR-04**: Preserve voting_power column, BallotsService weight calculations, and tantième CSV import alias unchanged
+- [x] **CPR-05**: PHPUnit regression test for weighted vote tally correctness (before and after transformation)
 
 ### Operator Console (OPC)
 
