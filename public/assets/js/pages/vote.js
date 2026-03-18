@@ -245,6 +245,7 @@
   // Policy labels (visual indicator of overrides)
   // -----------------------------
   let _currentMotionId = null;
+  var _currentMotionDocs = [];
 
   // -----------------------------
   // Vote timer (elapsed time since motion opened)
@@ -828,6 +829,86 @@
     }
   }
 
+  // ── Document consultation (PDF-08 / PDF-10) ────────────────────────
+
+  /**
+   * Load documents for a motion and update the "Consulter le document" button.
+   * Silently ignores failures — documents are supplementary.
+   * @param {string} motionId
+   */
+  function loadMotionDocs(motionId) {
+    _currentMotionDocs = [];
+    var btn = document.getElementById('btnConsultDocument');
+    if (btn) btn.hidden = true;
+
+    if (!motionId) return;
+
+    window.api('/api/v1/resolution_documents?motion_id=' + encodeURIComponent(motionId)).then(function(resp) {
+      if (resp && resp.documents && resp.documents.length > 0) {
+        _currentMotionDocs = resp.documents;
+        var docBtn = document.getElementById('btnConsultDocument');
+        if (docBtn) {
+          docBtn.hidden = false;
+          docBtn.dataset.docId = resp.documents[0].id;
+          docBtn.dataset.docName = resp.documents[0].original_name || 'document.pdf';
+        }
+      }
+    }).catch(function() {
+      // Silently fail — documents are supplementary, do not block voting UX
+    });
+  }
+
+  /**
+   * Open the ag-pdf-viewer in bottom-sheet (sheet) mode for voter document consultation.
+   * Never sets the download attribute — voter mode is strictly read-only (PDF-10).
+   * @param {string} docId - Document UUID
+   * @param {string} docName - Original filename
+   */
+  function openVoterDocViewer(docId, docName) {
+    var viewer = document.querySelector('ag-pdf-viewer') || document.createElement('ag-pdf-viewer');
+    if (!viewer.parentElement) {
+      viewer.setAttribute('mode', 'sheet');
+      // Voter is read-only (PDF-10) — download is intentionally not permitted
+      document.body.appendChild(viewer);
+    }
+    viewer.setAttribute('src', '/api/v1/resolution_document_serve?id=' + encodeURIComponent(docId));
+    viewer.setAttribute('filename', docName || 'document.pdf');
+    if (typeof viewer.open === 'function') viewer.open();
+  }
+
+  /**
+   * Wire the "Consulter le document" button click handler.
+   * Called once during page init.
+   */
+  function wireConsultDocBtn() {
+    var btnConsult = document.getElementById('btnConsultDocument');
+    if (!btnConsult) return;
+    btnConsult.addEventListener('click', function() {
+      var docId = this.dataset.docId;
+      var docName = this.dataset.docName || 'document.pdf';
+      if (!docId) return;
+      openVoterDocViewer(docId, docName);
+    });
+  }
+
+  /**
+   * Clear document state and close viewer when a motion closes or ends.
+   */
+  function clearMotionDocs() {
+    _currentMotionDocs = [];
+    var btnDoc = document.getElementById('btnConsultDocument');
+    if (btnDoc) {
+      btnDoc.hidden = true;
+      delete btnDoc.dataset.docId;
+      delete btnDoc.dataset.docName;
+    }
+    // Also close any open ag-pdf-viewer
+    var viewer = document.querySelector('ag-pdf-viewer');
+    if (viewer && typeof viewer.close === 'function') viewer.close();
+  }
+
+  // ── End document consultation ──────────────────────────────────────
+
   /**
    * Refresh the current motion display.
    * Fetches the open motion for the selected meeting and updates the UI.
@@ -855,6 +936,7 @@
       const m = d?.motion;
       if (!m){
         _currentMotionId = null;
+        clearMotionDocs();
         var meetingStatus = d?.meeting_status;
         if (meetingStatus === 'closed' || meetingStatus === 'validated' || meetingStatus === 'archived') {
           updateMotionCard(null, 'ended');
@@ -867,7 +949,12 @@
         setVoteButtonsEnabled(false);
         return;
       }
+      var _prevMotionId = _currentMotionId;
       _currentMotionId = m.id || m.motion_id || null;
+      // Load documents when motion changes (or on first load)
+      if (_currentMotionId && _currentMotionId !== _prevMotionId) {
+        loadMotionDocs(_currentMotionId);
+      }
       updateMotionCard(m);
       updateMotionProgress(d, m);
       updateVoteParticipation(d);
@@ -1079,6 +1166,9 @@
     var presenceBtn = document.getElementById('btnPresence');
     if (presenceBtn) presenceBtn.addEventListener('click', togglePresence);
 
+    // Wire document consultation button (PDF-08 / PDF-10)
+    wireConsultDocBtn();
+
     // Only bind direct cast if no confirmation overlay (vote.htmx.html has its own overlay calling submitVote)
     if (!document.getElementById('confirmationOverlay')) {
       document.querySelectorAll('[data-choice]').forEach(btn=>{
@@ -1128,11 +1218,41 @@
       window._voteSseStream = EventStream.connect(_sseTargetMeeting, {
         onConnect: function() { _sseActive = true; },
         onDisconnect: function() { _sseActive = false; },
-        onEvent: function(type) {
+        onEvent: function(type, data) {
           // On any vote/motion event, trigger immediate refresh
           if (type === 'vote.cast' || type === 'vote.updated' ||
               type === 'motion.opened' || type === 'motion.closed' || type === 'motion.updated') {
             refresh().catch(function(e) { console.error('SSE refresh error:', e); });
+          }
+
+          // Handle document events without full refresh
+          if (type === 'document.added') {
+            if (data && data.motion_id === _currentMotionId && data.document) {
+              _currentMotionDocs.push(data.document);
+              var btn = document.getElementById('btnConsultDocument');
+              if (btn) {
+                btn.hidden = false;
+                btn.dataset.docId = data.document.id;
+                btn.dataset.docName = data.document.original_name || 'document.pdf';
+              }
+            }
+          }
+
+          if (type === 'document.removed') {
+            if (data && data.motion_id === _currentMotionId) {
+              _currentMotionDocs = _currentMotionDocs.filter(function(d) { return d.id !== data.document_id; });
+              var docBtn = document.getElementById('btnConsultDocument');
+              if (docBtn) {
+                if (_currentMotionDocs.length === 0) {
+                  docBtn.hidden = true;
+                  delete docBtn.dataset.docId;
+                  delete docBtn.dataset.docName;
+                } else {
+                  docBtn.dataset.docId = _currentMotionDocs[0].id;
+                  docBtn.dataset.docName = _currentMotionDocs[0].original_name || 'document.pdf';
+                }
+              }
+            }
           }
         },
       });
