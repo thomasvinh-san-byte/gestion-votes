@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Clarity & Flow
-status: active
-stopped_at: null
-last_updated: "2026-03-18T10:00:00.000Z"
-last_activity: 2026-03-18 — Roadmap defined, phases 25-29 ready for planning
+status: Roadmap defined
+stopped_at: Phase 25 context gathered
+last_updated: "2026-03-18T10:57:04.013Z"
+last_activity: 2026-03-18 — Roadmap v4.0 phases 25-29 created
 progress:
   total_phases: 5
   completed_phases: 0
@@ -76,7 +76,7 @@ v4.0-specific decisions pending (to be logged as phases complete):
 
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: Roadmap created — phases 25-29 defined
-Resume file: None
+Last session: 2026-03-18T10:57:04.011Z
+Stopped at: Phase 25 context gathered
+Resume file: .planning/phases/25-pdf-infrastructure-foundation/25-CONTEXT.md
 Next action: `/gsd:plan-phase 25`
