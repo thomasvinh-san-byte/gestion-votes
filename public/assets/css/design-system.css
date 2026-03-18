@@ -3755,9 +3755,13 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   );
   transition: clip-path var(--duration-normal) var(--ease-default);
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .tour-overlay.active {
+  opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 
