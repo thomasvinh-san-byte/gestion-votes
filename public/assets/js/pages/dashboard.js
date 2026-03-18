@@ -1,6 +1,7 @@
 /* GO-LIVE-STATUS: ready — Dashboard JS. zero demo fallback — real API only. */
 /**
  * Dashboard page — loads KPIs and session data from the API.
+ * Renders status-aware session cards with lifecycle-specific CTAs.
  */
 (function () {
   'use strict';
@@ -15,51 +16,62 @@
       .replace(/'/g, '&#39;');
   }
 
-  /* ── Helpers ──────────────────────────────────────────── */
+  /* ── Status maps ──────────────────────────────────────── */
 
-  function renderSeanceRow(s) {
-    var statusColors = {
-      'draft': 'var(--color-text-muted)',
-      'convocations': 'var(--color-warning)',
-      'in_progress': 'var(--color-danger)',
-      'closed': 'var(--color-success)',
-      'pv_sent': 'var(--color-success)',
-      'archived': 'var(--color-text-muted)'
-    };
-    var statusLabels = {
-      'draft': 'Brouillon',
-      'convocations': 'Convocations',
-      'in_progress': 'En cours',
-      'closed': 'Termin\u00e9e',
-      'pv_sent': 'PV envoy\u00e9',
-      'archived': 'Archiv\u00e9e'
-    };
-    var color = statusColors[s.status] || 'var(--color-text-muted)';
-    var label = statusLabels[s.status] || s.status;
-    var title = escapeHtml(s.title || 'S\u00e9ance');
-    var date = escapeHtml(s.date_time || '');
-    var participants = s.participant_count || 0;
-    var motions = s.motion_count || 0;
+  var STATUS_CTA = {
+    'draft':     { label: 'Compl\u00e9ter \u2192',                   href: '/wizard.htmx.html',       live: false },
+    'scheduled': { label: 'Enregistrer les pr\u00e9sences \u2192',   href: '/hub.htmx.html',          live: false },
+    'frozen':    { label: 'Ouvrir la console \u2192',                href: '/operator.htmx.html',     live: false },
+    'live':      { label: '\u25cf En cours \u2014 Rejoindre \u2192', href: '/operator.htmx.html',     live: true  },
+    'paused':    { label: '\u25cf En cours \u2014 Rejoindre \u2192', href: '/operator.htmx.html',     live: true  },
+    'closed':    { label: 'G\u00e9n\u00e9rer le PV \u2192',         href: '/postsession.htmx.html',  live: false },
+    'validated': { label: 'Archiver \u2192',                         href: '/postsession.htmx.html',  live: false },
+    'archived':  { label: null,                                       href: null,                      live: false }
+  };
 
-    return '<div class="session-row" onclick="location.href=\'/operator.htmx.html?meeting_id=' + encodeURIComponent(s.id) + '\'">' +
-      '<div class="session-dot" style="background:' + color + ';"></div>' +
-      '<div class="session-row-info">' +
-        '<div class="session-row-title">' + title + '</div>' +
-        '<div class="session-row-meta">' + date + ' &mdash; ' + participants + ' participants &mdash; ' + motions + ' r\u00e9solutions</div>' +
-      '</div>' +
-      '<span class="tag" style="color:' + color + ';">' + escapeHtml(label) + '</span>' +
-    '</div>';
-  }
+  var STATUS_COLORS = {
+    'draft':     'var(--color-text-muted)',
+    'scheduled': 'var(--color-warning)',
+    'frozen':    'var(--color-primary)',
+    'live':      'var(--color-success)',
+    'paused':    'var(--color-success)',
+    'closed':    'var(--color-text-muted)',
+    'validated': 'var(--color-primary)',
+    'archived':  'var(--color-text-muted)'
+  };
 
-  function renderTaskRow(t) {
-    var priorityAttr = t.priority ? ' data-priority="' + escapeHtml(t.priority) + '"' : '';
-    return '<div class="task-row"' + priorityAttr + '>' +
-      '<div class="task-row-info">' +
-        '<div class="task-row-title">' + escapeHtml(t.title) + '</div>' +
-        '<div class="task-row-sub">' + escapeHtml(t.sub) + '</div>' +
-      '</div>' +
-      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>' +
-    '</div>';
+  var STATUS_PRIORITY = ['live', 'paused', 'frozen', 'scheduled', 'draft', 'closed', 'validated', 'archived'];
+
+  /* ── Card renderer ────────────────────────────────────── */
+
+  function renderSessionCard(s) {
+    var cta = STATUS_CTA[s.status] || STATUS_CTA['draft'];
+    var href = cta.href ? cta.href + '?meeting_id=' + encodeURIComponent(s.id) : null;
+    var isLive = cta.live;
+    var isMuted = s.status === 'archived';
+    var color = STATUS_COLORS[s.status] || 'var(--color-text-muted)';
+    var dateStr = s.date_time || s.scheduled_at || '';
+    if (dateStr) {
+      try { dateStr = new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }); }
+      catch (e) { /* keep raw */ }
+    }
+
+    var h = '<div class="session-card' + (isLive ? ' session-card--live' : '') + (isMuted ? ' session-card--muted' : '') + '"';
+    if (href && !isMuted) h += ' onclick="location.href=\'' + escapeHtml(href) + '\'"';
+    h += '>';
+    h += '<div class="session-card-status-dot" style="background:' + color + '"></div>';
+    h += '<div class="session-card-info">';
+    h += '<div class="session-card-title">' + escapeHtml(s.title || 'S\u00e9ance') + '</div>';
+    h += '<div class="session-card-meta">' + escapeHtml(dateStr) + ' \u2014 ' + (s.participant_count || 0) + ' membres \u2014 ' + (s.motion_count || 0) + ' r\u00e9solutions</div>';
+    h += '</div>';
+    if (cta.label && href) {
+      h += '<a class="btn btn-sm btn-secondary session-card-cta' + (isLive ? ' btn-success' : '') + '" href="' + escapeHtml(href) + '" onclick="event.stopPropagation()">';
+      if (isLive) h += '<span class="pulse-dot" aria-hidden="true"></span>';
+      h += escapeHtml(cta.label);
+      h += '</a>';
+    }
+    h += '</div>';
+    return h;
   }
 
   /* ── Load data ───────────────────────────────────────── */
@@ -79,11 +91,13 @@
           var meetings = Array.isArray(d.meetings) ? d.meetings : [];
 
           // KPIs — computed from meetings array
-          var now = new Date();
-          var upcoming = meetings.filter(function(m) {
-            return m.status === 'draft' || m.status === 'planned' || (m.status !== 'live' && m.status !== 'paused' && m.status !== 'ended' && m.status !== 'archived' && m.scheduled_at && new Date(m.scheduled_at) > now);
+          var live = meetings.filter(function (m) { return m.status === 'live' || m.status === 'paused'; });
+          var upcoming = meetings.filter(function (m) {
+            return m.status === 'draft' || m.status === 'scheduled' || m.status === 'frozen' ||
+              (m.status !== 'live' && m.status !== 'paused' && m.status !== 'closed' &&
+               m.status !== 'validated' && m.status !== 'archived' &&
+               m.scheduled_at && new Date(m.scheduled_at) > new Date());
           });
-          var live = meetings.filter(function(m) { return m.status === 'live' || m.status === 'paused'; });
 
           var el;
           el = document.getElementById('kpiSeances');
@@ -93,7 +107,7 @@
           el = document.getElementById('kpiConvoc');
           if (el) el.textContent = 0; // convocation data not in dashboard API — show 0
           el = document.getElementById('kpiPV');
-          if (el) el.textContent = meetings.filter(function(m) { return m.status === 'ended'; }).length;
+          if (el) el.textContent = meetings.filter(function (m) { return m.status === 'closed' || m.status === 'validated'; }).length;
 
           // Urgent action — show if there's a live meeting
           var liveMeeting = live.length > 0 ? live[0] : null;
@@ -107,24 +121,27 @@
             if (urgentCard) urgentCard.hidden = true;
           }
 
-          // Prochaines s\u00e9ances
+          // S\u00e9ances — all meetings sorted by lifecycle priority
           var prochaines = document.getElementById('prochaines');
-          if (prochaines && upcoming.length > 0) {
-            var html = '';
-            upcoming.slice(0, 5).forEach(function(s) { html += renderSeanceRow(s); });
-            prochaines.innerHTML = html;
-          } else if (prochaines) {
-            prochaines.innerHTML = '<div class="session-row empty-state"><span class="session-row-meta">Aucune s\u00e9ance \u00e0 venir</span></div>';
+          if (prochaines) {
+            if (meetings.length === 0) {
+              prochaines.innerHTML = '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour g\u00e9rer vos assembl\u00e9es g\u00e9n\u00e9rales." action-label="Nouvelle s\u00e9ance" action-href="/wizard.htmx.html"></ag-empty-state>';
+            } else {
+              var sorted = meetings.slice().sort(function (a, b) {
+                var ai = STATUS_PRIORITY.indexOf(a.status);
+                var bi = STATUS_PRIORITY.indexOf(b.status);
+                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+              });
+              var html = '';
+              sorted.slice(0, 8).forEach(function (s) { html += renderSessionCard(s); });
+              prochaines.innerHTML = html;
+            }
           }
 
           // T\u00e2ches — not in dashboard API, show empty state
           var taches = document.getElementById('taches');
           if (taches) {
-            taches.innerHTML = Shared.emptyState({
-              icon: 'generic',
-              title: 'Aucune t\u00e2che en attente',
-              description: 'Les t\u00e2ches automatiques appara\u00eetront ici.'
-            });
+            taches.innerHTML = '<ag-empty-state icon="generic" title="Aucune t\u00e2che en attente" description="Les t\u00e2ches automatiques appara\u00eetront ici."></ag-empty-state>';
           }
         })
         .catch(function () {
