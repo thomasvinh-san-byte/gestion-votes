@@ -68,117 +68,126 @@
     </header>
 
     <main class="app-main" id="main-content" role="main">
+      <div class="dashboard-content">
 
-      <!-- Action urgente -->
-      <a href="/hub.htmx.html" class="card urgent-card" id="actionUrgente" data-tour="action-urgente">
-        <div class="urgent-card-body">
-          <div class="urgent-card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-          </div>
-          <div class="session-row-info">
-            <div class="urgent-card-label">Action urgente</div>
-            <div class="urgent-card-title" id="urgentTitle">Envoyer les convocations</div>
-            <div class="urgent-card-sub" id="urgentSub">Chargement&hellip;</div>
-          </div>
-          <div class="urgent-card-chevron">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
-        </div>
-      </a>
-
-      <!-- KPI Row -->
-      <div class="kpi-grid dashboard-grid" id="kpiRow" data-tour="kpi-row">
-        <a href="/meetings.htmx.html" class="kpi-card" aria-label="AG a venir">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-          <div class="kpi-value primary" id="kpiSeances">-</div>
-          <div class="kpi-label">AG &agrave; venir</div>
-        </a>
-        <a href="/operator.htmx.html" class="kpi-card" aria-label="En cours">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-          <div class="kpi-value danger" id="kpiEnCours">-</div>
-          <div class="kpi-label">En cours</div>
-        </a>
-        <a href="/hub.htmx.html" class="kpi-card" aria-label="Convocations en attente">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-          <div class="kpi-value warning" id="kpiConvoc">-</div>
-          <div class="kpi-label">Convoc. en attente</div>
-        </a>
-        <a href="/postsession.htmx.html" class="kpi-card" aria-label="PV a envoyer">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-          <div class="kpi-value primary" id="kpiPV">-</div>
-          <div class="kpi-label">PV &agrave; envoyer</div>
-        </a>
-      </div>
-
-      <!-- Prochaines s&eacute;ances + T&acirc;ches -->
-      <div class="grid-2 dashboard-grid">
-
-        <!-- Prochaines s&eacute;ances -->
-        <div class="card dashboard-panel">
-          <div class="flex-between">
-            <div class="card-title">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-              S&eacute;ances
+        <!-- Action urgente -->
+        <a href="/hub.htmx.html" class="card urgent-card" id="actionUrgente" data-tour="action-urgente">
+          <div class="urgent-card-body">
+            <div class="urgent-card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
             </div>
-            <a class="btn btn-sm btn-ghost" href="/meetings.htmx.html">Tout voir
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <div class="session-row-info">
+              <div class="urgent-card-label">Action urgente</div>
+              <div class="urgent-card-title" id="urgentTitle">Envoyer les convocations</div>
+              <div class="urgent-card-sub" id="urgentSub">Chargement&hellip;</div>
+            </div>
+            <div class="urgent-card-chevron">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- KPI Row -->
+        <div class="kpi-grid" id="kpiRow" data-tour="kpi-row">
+          <a href="/meetings.htmx.html" class="kpi-card" aria-label="AG a venir">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+            <div class="kpi-value primary" id="kpiSeances">-</div>
+            <div class="kpi-label">AG &agrave; venir</div>
+          </a>
+          <a href="/operator.htmx.html" class="kpi-card" aria-label="En cours">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <div class="kpi-value danger" id="kpiEnCours">-</div>
+            <div class="kpi-label">En cours</div>
+          </a>
+          <a href="/hub.htmx.html" class="kpi-card" aria-label="Convocations en attente">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+            <div class="kpi-value warning" id="kpiConvoc">-</div>
+            <div class="kpi-label">Convoc. en attente</div>
+          </a>
+          <a href="/postsession.htmx.html" class="kpi-card" aria-label="PV a envoyer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+            <div class="kpi-value primary" id="kpiPV">-</div>
+            <div class="kpi-label">PV &agrave; envoyer</div>
+          </a>
+        </div>
+
+        <!-- Body grid: session list + aside -->
+        <div class="dashboard-body">
+
+          <!-- Main: S&eacute;ances + T&acirc;ches -->
+          <main class="dashboard-main">
+
+            <!-- Prochaines s&eacute;ances -->
+            <div class="card dashboard-panel" style="margin-bottom: var(--space-card);">
+              <div class="flex-between">
+                <div class="card-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                  S&eacute;ances
+                </div>
+                <a class="btn btn-sm btn-ghost" href="/meetings.htmx.html">Tout voir
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+              </div>
+              <div id="prochaines" aria-live="polite">
+                <!-- Populated by JS -->
+                <div class="skeleton skeleton-session"></div>
+                <div class="skeleton skeleton-session"></div>
+                <div class="skeleton skeleton-session"></div>
+              </div>
+            </div>
+
+            <!-- T&acirc;ches en attente -->
+            <div class="card dashboard-panel" data-tour="card-taches">
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                T&acirc;ches en attente
+              </div>
+              <div id="taches" aria-live="polite">
+                <!-- Populated by JS -->
+                <div class="skeleton skeleton-task"></div>
+                <div class="skeleton skeleton-task"></div>
+                <div class="skeleton skeleton-task"></div>
+                <div class="skeleton skeleton-task"></div>
+              </div>
+            </div>
+
+          </main>
+
+          <!-- Aside: Acc&egrave;s rapides -->
+          <aside class="dashboard-aside" data-tour="card-raccourcis">
+            <div class="card-title" style="margin-bottom: var(--space-card);">Acc&egrave;s rapides</div>
+            <a href="/wizard.htmx.html" class="card shortcut-card" style="margin-bottom: var(--space-3);">
+              <div class="shortcut-card-icon accent">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+              </div>
+              <div class="shortcut-card-text">
+                <div class="shortcut-card-title">Cr&eacute;er une s&eacute;ance</div>
+                <div class="shortcut-card-sub">Assistant en 4 &eacute;tapes</div>
+              </div>
             </a>
-          </div>
-          <div id="prochaines" aria-live="polite">
-            <!-- Populated by JS -->
-            <div class="skeleton skeleton-session"></div>
-            <div class="skeleton skeleton-session"></div>
-            <div class="skeleton skeleton-session"></div>
-          </div>
-        </div>
+            <a href="/operator.htmx.html" class="card shortcut-card" style="margin-bottom: var(--space-3);">
+              <div class="shortcut-card-icon danger">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              </div>
+              <div class="shortcut-card-text">
+                <div class="shortcut-card-title">Piloter un vote</div>
+                <div class="shortcut-card-sub">S&eacute;ance en direct</div>
+              </div>
+            </a>
+            <a href="/trust.htmx.html" class="card shortcut-card">
+              <div class="shortcut-card-icon muted">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+              </div>
+              <div class="shortcut-card-text">
+                <div class="shortcut-card-title">Consulter le suivi</div>
+                <div class="shortcut-card-sub">Journal de tra&ccedil;abilit&eacute;</div>
+              </div>
+            </a>
+          </aside>
 
-        <!-- T&acirc;ches en attente -->
-        <div class="card dashboard-panel" data-tour="card-taches">
-          <div class="card-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
-            T&acirc;ches en attente
-          </div>
-          <div id="taches" aria-live="polite">
-            <!-- Populated by JS -->
-            <div class="skeleton skeleton-task"></div>
-            <div class="skeleton skeleton-task"></div>
-            <div class="skeleton skeleton-task"></div>
-            <div class="skeleton skeleton-task"></div>
-          </div>
-        </div>
-      </div>
+        </div><!-- .dashboard-body -->
 
-      <!-- Acc&egrave;s rapides -->
-      <div class="grid-3 dashboard-grid" data-tour="card-raccourcis">
-        <a href="/wizard.htmx.html" class="card shortcut-card">
-          <div class="shortcut-card-icon accent">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-          </div>
-          <div class="shortcut-card-text">
-            <div class="shortcut-card-title">Cr&eacute;er une s&eacute;ance</div>
-            <div class="shortcut-card-sub">Assistant en 4 &eacute;tapes</div>
-          </div>
-        </a>
-        <a href="/operator.htmx.html" class="card shortcut-card">
-          <div class="shortcut-card-icon danger">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-          </div>
-          <div class="shortcut-card-text">
-            <div class="shortcut-card-title">Piloter un vote</div>
-            <div class="shortcut-card-sub">S&eacute;ance en direct</div>
-          </div>
-        </a>
-        <a href="/trust.htmx.html" class="card shortcut-card">
-          <div class="shortcut-card-icon muted">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
-          </div>
-          <div class="shortcut-card-text">
-            <div class="shortcut-card-title">Consulter le suivi</div>
-            <div class="shortcut-card-sub">Journal de tra&ccedil;abilit&eacute;</div>
-          </div>
-        </a>
-      </div>
-
+      </div><!-- .dashboard-content -->
     </main>
     <footer class="app-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">

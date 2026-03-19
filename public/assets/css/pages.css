@@ -1004,31 +1004,70 @@
 }
 
 /* =============================================================================
-   DASHBOARD — Grid & Panel Layout
+   DASHBOARD — Grid & Panel Layout (LAY-01)
    ============================================================================= */
 
-/* Layout definitions for dashboard grids (not in global design-system) */
+/* Centered content wrapper at 1200px */
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-4) 0;
+}
+
+/* KPI grid: 4-column with design token gap */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-card);
+  margin-bottom: var(--space-card);
+}
+
+/* KPI cards use raised surface for three-depth model */
+.kpi-grid .kpi-card {
+  background: var(--color-surface-raised);
+}
+
+/* Body grid: session list + sticky aside */
+.dashboard-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-card);
+  align-items: start;
+}
+
+/* Sticky aside for quick-actions */
+.dashboard-aside {
+  position: sticky;
+  top: 80px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-card);
+}
+
+/* Responsive: 1024px breakpoint */
+@media (max-width: 1024px) {
+  .dashboard-body {
+    grid-template-columns: 1fr;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-aside {
+    position: static;
+  }
+}
+
+/* Keep legacy grid utilities for other potential uses */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px; /* wireframe v3.19.2 density */
+  gap: 10px;
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px; /* wireframe v3.19.2 density */
-}
-
-/* KPI grid: forced 4 columns + 10px gap (wireframe grid-4 pattern) */
-.kpi-grid.dashboard-grid {
-  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-}
-
-/* Major sections: compacted to 14px for zero-scroll at 1080px (wireframe v3.19.2) */
-.dashboard-grid {
-  margin-bottom: 14px;
 }
 
 /* Dashboard panels: wireframe inline style={{padding:16}} */
@@ -1065,11 +1104,6 @@
 /* =============================================================================
    DASHBOARD — KPI Cards
    ============================================================================= */
-
-/* Compact KPI card padding for zero-scroll at 1080px (wireframe v3.19.2) */
-.kpi-grid.dashboard-grid .kpi-card {
-  padding: 12px 8px;
-}
 
 /* KPI values are the focal point */
 .kpi-card .kpi-value {
