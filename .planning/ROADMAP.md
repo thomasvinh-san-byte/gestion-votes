@@ -221,10 +221,11 @@ Plans:
   3. The analytics page renders chart areas and KPI cards in a responsive grid — the layout does not produce a single-column stack at 1024px viewport width
   4. The help/FAQ page uses accordion components with correct padding (not raw details/summary defaults) — expanding an item does not cause layout shift on surrounding items
   5. The meetings list page applies the same card-or-table density pattern as the dashboard sessions list, with status badges using the semantic badge component from Phase 31
-**Plans:** 2 plans
+**Plans:** 3 plans
 Plans:
-- [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
-- [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
+- [ ] 33-01-PLAN.md — Hub CSS Grid layout + post-session centered max-width, sticky stepper, section spacing (LAY-07, LAY-08)
+- [ ] 33-02-PLAN.md — Analytics 2-column grid floor + help/FAQ accordion tokenization (LAY-09, LAY-10)
+- [ ] 33-03-PLAN.md — Email templates editor grid fix + meetings list density alignment (LAY-11, LAY-12)
 
 ### Phase 34: Quality Assurance Final Audit
 **Goal**: Every page in the application passes an objective checklist that distinguishes intentional premium design from AI-generated uniformity — the refonte is verifiably complete
@@ -255,7 +256,7 @@ Plans:
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
 | 31. Component Refresh | 3/3 | Complete    | 2026-03-19 |
 | 32. Page Layouts — Core Pages | 3/3 | Complete    | 2026-03-19 |
-| 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
+| 33. Page Layouts — Secondary Pages | 0/3 | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |
 
 ---
