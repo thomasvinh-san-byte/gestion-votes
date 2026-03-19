@@ -1022,6 +1022,11 @@
   margin-bottom: var(--space-card);
 }
 
+/* ag-tooltip wrappers must fill grid cells */
+.kpi-grid ag-tooltip {
+  display: contents;
+}
+
 /* KPI cards use raised surface for three-depth model */
 .kpi-grid .kpi-card {
   background: var(--color-surface-raised);
@@ -1070,13 +1075,15 @@
   gap: 10px;
 }
 
-/* Dashboard panels: wireframe inline style={{padding:16}} */
+/* Dashboard panels: Phase 35 — 24px padding with header/content separation */
 .dashboard-panel {
-  padding: 16px;
+  padding: var(--space-card, 24px);
 }
 
 .dashboard-panel .flex-between {
-  margin-bottom: 8px;
+  margin-bottom: var(--space-4, 16px);
+  padding-bottom: var(--space-3, 12px);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .dashboard-panel .card-title {
@@ -1102,20 +1109,61 @@
 }
 
 /* =============================================================================
-   DASHBOARD — KPI Cards
+   DASHBOARD — KPI Cards (Phase 35 Redesign)
    ============================================================================= */
 
-/* KPI values are the focal point */
-.kpi-card .kpi-value {
-  font-size: var(--text-3xl, 1.875rem);
-  font-weight: 700;
-  line-height: 1;
+/* KPI Card Redesign — Phase 35 */
+.kpi-card {
+  text-align: left;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: var(--transition-shadow), transform var(--duration-moderate) var(--ease-standard);
+  text-decoration: none;
+}
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-strong);
 }
 
+/* Icon container with per-card color differentiation */
+.kpi-card .kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.kpi-card--1 .kpi-icon { background: var(--color-primary-subtle); color: var(--color-primary); }
+.kpi-card--2 .kpi-icon { background: var(--color-danger-subtle); color: var(--color-danger); }
+.kpi-card--3 .kpi-icon { background: var(--color-warning-subtle); color: var(--color-warning); }
+.kpi-card--4 .kpi-icon { background: var(--color-accent-subtle, var(--color-primary-subtle)); color: var(--color-accent, var(--color-primary)); }
+
+/* KPI numbers — JetBrains Mono for scannable data */
+.kpi-card .kpi-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+/* KPI labels — uppercase small caps */
 .kpi-card .kpi-label {
-  font-size: var(--text-xs, 0.75rem);
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
-  margin-top: 0.25rem;
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.05em);
 }
 
 /* =============================================================================
