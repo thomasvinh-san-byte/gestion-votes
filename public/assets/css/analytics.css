@@ -156,7 +156,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .overview-card-value {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-mono);
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;

@@ -149,7 +149,7 @@
 }
 
 .login-title {
-  font-family: var(--font-display, 'Fraunces', serif);
+  font-family: var(--font-sans);
   font-size: var(--text-xl);
   font-weight: 700;
   margin-bottom: var(--space-6);

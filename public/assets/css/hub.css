@@ -65,7 +65,7 @@
 }
 
 .hub-identity-date {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 1.375rem;
   font-weight: 700;
   color: var(--color-text-dark);
@@ -117,7 +117,8 @@
   flex: 1;
   height: 8px;
   border-radius: var(--radius-sm);
-  transition: all 0.3s ease;
+  transition: width var(--duration-moderate) var(--ease-standard),
+              opacity var(--duration-normal) var(--ease-standard);
   position: relative;
   cursor: default;
 }
@@ -432,7 +433,7 @@
 }
 
 .hub-action-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text-dark);
@@ -838,7 +839,7 @@
 }
 
 .hub-kpi-value-num {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: 1.75rem;
   font-weight: 700;
   margin: 4px 0;

@@ -759,7 +759,7 @@ h1, .h1 {
 }
 
 h2, .h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   line-height: var(--leading-tight);
@@ -2320,7 +2320,7 @@ body:has(.drawer-backdrop.open) {
   height: 100%;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  transition: width var(--duration-normal, 300ms) ease;
+  transition: width var(--duration-normal) ease;
 }
 
 .progress-bar-fill.success { background: var(--color-success); }
@@ -4877,7 +4877,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 }
 
 .confirm-dialog-title {
-  font-family: var(--font-display, 'Fraunces', serif);
+  font-family: var(--font-sans);
   font-size: var(--text-xl);
   font-weight: 700;
   margin-bottom: var(--space-2);
