@@ -9,6 +9,10 @@
   const spinner = document.getElementById('loginSpinner');
   const btnText = submitBtn.querySelector('.login-btn-text');
 
+  // Clear field-level error when user starts re-typing
+  emailInput.addEventListener('input', function() { setFieldError(emailInput, false); });
+  passwordInput.addEventListener('input', function() { setFieldError(passwordInput, false); });
+
   // Toggle password visibility (eye icon)
   toggleBtn.addEventListener('click', function() {
     var eyeOpen = toggleBtn.querySelector('.eye-open');
@@ -27,6 +31,18 @@
       toggleBtn.setAttribute('aria-pressed', 'false');
     }
   });
+
+  // Field-level error state: add/remove .field-error class on the input's parent wrapper
+  function setFieldError(field, hasError) {
+    if (!field || !field.parentElement) return;
+    // For password inside .field-wrap, go one level up to the outer div
+    var wrapper = field.closest('.field-wrap') ? field.closest('.field-wrap').parentElement : field.parentElement;
+    if (hasError) {
+      wrapper.classList.add('field-error');
+    } else {
+      wrapper.classList.remove('field-error');
+    }
+  }
 
   function showError(msg) {
     errorBox.textContent = msg;
@@ -85,6 +101,10 @@
     var email = emailInput.value.trim();
     var password = passwordInput.value;
 
+    // Clear previous field-level errors on new submit attempt
+    setFieldError(emailInput, false);
+    setFieldError(passwordInput, false);
+
     if (!email || !password) {
       showError('Veuillez saisir votre email et votre mot de passe.');
       return;
@@ -141,6 +161,21 @@
     } else {
       var detail = Utils.getApiError(body, 'Email ou mot de passe incorrect.');
       showError(detail);
+
+      // Apply field-level error highlighting based on error content
+      var detailLower = (detail || '').toLowerCase();
+      if (detailLower.includes('email') || detailLower.includes('identifiant')) {
+        setFieldError(emailInput, true);
+      }
+      if (detailLower.includes('password') || detailLower.includes('mot de passe')) {
+        setFieldError(passwordInput, true);
+      }
+      // Generic auth error (wrong credentials) — highlight both fields
+      if (detailLower.includes('incorrect') || detailLower.includes('invalide')) {
+        setFieldError(emailInput, true);
+        setFieldError(passwordInput, true);
+      }
+
       submitBtn.disabled = false;
       btnText.textContent = 'Se connecter';
       spinner.style.display = 'none';
