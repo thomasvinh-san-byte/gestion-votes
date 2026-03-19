@@ -45,9 +45,9 @@
 ### Quality Assurance (QA)
 
 - [x] **QA-01**: Every page passes the "6 AI anti-patterns" check — no uniform shadows, no uniform radius, spatial hierarchy present, color used for signal not decoration, weight contrast visible, hover has transform not just color
-- [ ] **QA-02**: Background 3-layer stack (bg → surface → raised) applied consistently on every page
+- [x] **QA-02**: Background 3-layer stack (bg → surface → raised) applied consistently on every page
 - [x] **QA-03**: Fraunces display font used exactly once per page (page title only) — never for section headings
-- [ ] **QA-04**: Dark mode visual parity — every page looks intentionally designed in dark, not just inverted
+- [x] **QA-04**: Dark mode visual parity — every page looks intentionally designed in dark, not just inverted
 - [x] **QA-05**: All transitions ≤ 200ms, focus rings ≥ 3:1 contrast, zero inline style="" in production HTML
 
 ## v5+ Requirements (Deferred)
