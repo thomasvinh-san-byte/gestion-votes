@@ -37,18 +37,18 @@
 - [x] **LAY-06**: Mobile voter — 100dvh, 72px vote buttons, safe-area padding, clamp() fluid typography
 - [x] **LAY-07**: Hub — sidebar stepper + main content, quorum bar prominent, checklist with proper spacing
 - [x] **LAY-08**: Post-session — stepper with checkmarks, collapsible result cards, proper section spacing
-- [ ] **LAY-09**: Analytics/Statistics — chart area + KPI cards, proper responsive grid
-- [ ] **LAY-10**: Help/FAQ — accordion with proper padding, search if applicable
-- [ ] **LAY-11**: Email templates — editor layout with preview panel
-- [ ] **LAY-12**: Meetings list — card or table view with proper density and status badges
+- [x] **LAY-09**: Analytics/Statistics — chart area + KPI cards, proper responsive grid
+- [x] **LAY-10**: Help/FAQ — accordion with proper padding, search if applicable
+- [x] **LAY-11**: Email templates — editor layout with preview panel
+- [x] **LAY-12**: Meetings list — card or table view with proper density and status badges
 
 ### Quality Assurance (QA)
 
-- [ ] **QA-01**: Every page passes the "6 AI anti-patterns" check — no uniform shadows, no uniform radius, spatial hierarchy present, color used for signal not decoration, weight contrast visible, hover has transform not just color
+- [x] **QA-01**: Every page passes the "6 AI anti-patterns" check — no uniform shadows, no uniform radius, spatial hierarchy present, color used for signal not decoration, weight contrast visible, hover has transform not just color
 - [ ] **QA-02**: Background 3-layer stack (bg → surface → raised) applied consistently on every page
-- [ ] **QA-03**: Fraunces display font used exactly once per page (page title only) — never for section headings
+- [x] **QA-03**: Fraunces display font used exactly once per page (page title only) — never for section headings
 - [ ] **QA-04**: Dark mode visual parity — every page looks intentionally designed in dark, not just inverted
-- [ ] **QA-05**: All transitions ≤ 200ms, focus rings ≥ 3:1 contrast, zero inline style="" in production HTML
+- [x] **QA-05**: All transitions ≤ 200ms, focus rings ≥ 3:1 contrast, zero inline style="" in production HTML
 
 ## v5+ Requirements (Deferred)
 
