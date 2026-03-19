@@ -61,15 +61,34 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-01, UX-02 | TBD | Pending |
-| CORE-01 through CORE-06 | TBD | Pending |
-| DATA-01 through DATA-06 | TBD | Pending |
-| SEC-01 through SEC-08 | TBD | Pending |
+| UX-01 | Phase 35 | Pending |
+| UX-02 | Phase 35 | Pending |
+| CORE-01 | Phase 35 | Pending |
+| SEC-01 | Phase 35 | Pending |
+| CORE-02 | Phase 36 | Pending |
+| CORE-04 | Phase 36 | Pending |
+| CORE-03 | Phase 37 | Pending |
+| SEC-05 | Phase 37 | Pending |
+| CORE-05 | Phase 38 | Pending |
+| DATA-05 | Phase 38 | Pending |
+| DATA-06 | Phase 38 | Pending |
+| DATA-03 | Phase 39 | Pending |
+| DATA-04 | Phase 39 | Pending |
+| DATA-01 | Phase 39 | Pending |
+| DATA-02 | Phase 39 | Pending |
+| CORE-06 | Phase 40 | Pending |
+| SEC-04 | Phase 40 | Pending |
+| SEC-03 | Phase 40 | Pending |
+| SEC-02 | Phase 41 | Pending |
+| SEC-06 | Phase 41 | Pending |
+| SEC-07 | Phase 41 | Pending |
+| SEC-08 | Phase 41 | Pending |
 
 **Coverage:**
 - v4.2 requirements: 22 total (UX:2, CORE:6, DATA:6, SEC:8)
-- Mapped to phases: 0
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-19*
+*Traceability updated: 2026-03-19 — all 22 requirements mapped to phases 35-41*

@@ -5,9 +5,9 @@ milestone_name: Visual Redesign
 status: planning
 stopped_at: null
 last_updated: "2026-03-19"
-last_activity: 2026-03-19 — Milestone v4.2 started
+last_activity: 2026-03-19 — Roadmap created, 7 phases defined (35-41)
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,31 +20,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign — Page-by-page visual redesign with concrete references
+**Current focus:** v4.2 Visual Redesign — Phase 35: Entry Points (Dashboard + Login)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 35 of 41 (Entry Points — not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-19 — Milestone v4.2 started
+Status: Ready to plan
+Last activity: 2026-03-19 — Roadmap created, 7 phases defined (35-41), 22 requirements mapped
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: —
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
-(Carried from v4.1)
-- CSS token hierarchy established (primitive → semantic → component aliases)
-- Three-depth background model applied to all pages
-- 8 component types with differentiated specs
-- 4 Web Components fully tokenized
-- 12 page layouts rebuilt with CSS Grid/flex specs
-- QA audit complete (font discipline, inline styles, transitions)
-- **Key lesson: CSS infrastructure ≠ visual design — page-by-page redesign needed**
-
 ### Decisions
 
-- **Page-by-page approach** — each page redesigned individually with visual references
-- **References** — Linear (data density), Notion (whitespace), Clerk (auth/settings), Stripe (dashboard depth)
-- **Visible results first** — start with the most visible page, show before/after impact
+- **v4.2 scope**: Pure visual/UX — no new features, no infrastructure phases, every phase produces visible browser results
+- **References**: Linear (data density), Notion (whitespace), Clerk (auth/settings), Stripe (dashboard depth)
+- **Tooltips over tours**: User explicitly rejected guided tours — use hover tooltips for all guidance
+- **Page grouping**: Entry points first (highest user-facing impact), public pages last (close remaining gaps)
+- **Lesson from v4.1**: CSS infrastructure ≠ visual design; visible before/after contrast is the success metric
 
 ### Pending Todos
 
@@ -52,11 +56,11 @@ None
 
 ### Blockers/Concerns
 
-None at milestone start.
+None at roadmap creation.
 
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: null
+Stopped at: Roadmap created — ready to plan Phase 35
 Resume file: None
-Next action: Define requirements → roadmap
+Next action: /gsd:plan-phase 35
