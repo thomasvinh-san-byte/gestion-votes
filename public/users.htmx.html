@@ -50,12 +50,12 @@
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
-      <div class="container">
+      <div class="table-page">
         <!-- Notification area -->
-        <div id="notif_box" class="hidden mb-4"></div>
+        <div id="notif_box" class="hidden"></div>
 
         <!-- Role info panel (USR-01) -->
-        <div class="card mb-4 roles-explainer">
+        <div class="card roles-explainer">
           <div class="card-body">
             <div class="roles-explainer-grid">
               <div class="role-explain">
@@ -78,32 +78,30 @@
           </div>
         </div>
 
-        <!-- Filter / search bar -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <div class="flex items-center gap-4 flex-wrap">
-              <div class="form-group form-group-search">
-                <label class="form-label" for="searchUser">Rechercher</label>
-                <input class="form-input" type="search" id="searchUser" placeholder="Nom ou email...">
-              </div>
-              <div class="form-group form-group-filter">
-                <label class="form-label" for="filterRole">Filtrer par r&ocirc;le</label>
-                <select class="form-input" id="filterRole">
-                  <option value="">Tous</option>
-                  <option value="admin">Admin</option>
-                  <option value="operator">Op&eacute;rateur</option>
-                  <option value="auditor">Auditeur</option>
-                  <option value="viewer">Observateur</option>
-                </select>
-              </div>
-              <div class="text-sm text-muted users-count" id="usersCount">— utilisateurs</div>
+        <!-- Filter / search toolbar -->
+        <div class="table-toolbar">
+          <div class="flex items-center gap-4 flex-wrap">
+            <div class="form-group form-group-search">
+              <label class="form-label" for="searchUser">Rechercher</label>
+              <input class="form-input" type="search" id="searchUser" placeholder="Nom ou email...">
             </div>
+            <div class="form-group form-group-filter">
+              <label class="form-label" for="filterRole">Filtrer par r&ocirc;le</label>
+              <select class="form-input" id="filterRole">
+                <option value="">Tous</option>
+                <option value="admin">Admin</option>
+                <option value="operator">Op&eacute;rateur</option>
+                <option value="auditor">Auditeur</option>
+                <option value="viewer">Observateur</option>
+              </select>
+            </div>
+            <div class="text-sm text-muted users-count" id="usersCount">— utilisateurs</div>
           </div>
         </div>
 
         <!-- Users table container (USR-02) -->
-        <div class="card mb-4">
-          <div class="card-body p-0">
+        <div class="table-card">
+          <div class="table-wrapper">
             <div class="users-list" id="usersTableBody" aria-busy="true" aria-label="Liste des utilisateurs">
               <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
@@ -113,7 +111,9 @@
         </div>
 
         <!-- Pagination (USR-03) -->
-        <ag-pagination id="usersPagination" page-size="10"></ag-pagination>
+        <div class="table-pagination">
+          <ag-pagination id="usersPagination" page-size="10"></ag-pagination>
+        </div>
 
       </div>
     </main>

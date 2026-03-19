@@ -39,10 +39,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  /* background, position: sticky, top, z-index now inherited from .table-card .table thead th */
 }
 
 .audit-table tbody tr {

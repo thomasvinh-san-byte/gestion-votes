@@ -56,12 +56,12 @@
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
-      <div class="container">
+      <div class="table-page">
         <!-- Notification area -->
-        <div id="notif_box" class="hidden mb-4"></div>
+        <div id="notif_box" class="hidden"></div>
 
         <!-- Stats -->
-        <div class="kpi-grid mb-6">
+        <div class="kpi-grid">
           <div class="kpi-card">
             <div class="kpi-value primary" id="kpiTotal">—</div>
             <div class="kpi-label">Séances archivées</div>
@@ -85,37 +85,37 @@
         </div>
 
         <!-- Type filter chips -->
-        <div class="filter-tabs mb-4" id="archiveTypeFilter">
+        <div class="filter-tabs" id="archiveTypeFilter">
           <button class="filter-tab active" data-type="">Toutes</button>
           <button class="filter-tab" data-type="ag_ordinaire">AG Ord.</button>
           <button class="filter-tab" data-type="ag_extraordinaire">AG Extra.</button>
           <button class="filter-tab" data-type="conseil">Conseil</button>
         </div>
 
-        <!-- Archives List -->
-        <div class="card">
-          <div class="card-header">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="card-title">S&eacute;ances archiv&eacute;es</h3>
-                <p class="card-description">Proc&egrave;s-verbaux fig&eacute;s et exports d'audit</p>
-              </div>
-              <div class="flex gap-2 items-center">
-                <select class="form-input year-select" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
-                  <option value="">Toutes ann&eacute;es</option>
-                </select>
-                <input type="text" class="form-input archive-search-input" id="searchInput"
-                       placeholder="Rechercher...">
-                <div class="view-toggle">
-                  <button class="view-toggle-btn active" data-view="cards" title="Vue cartes" aria-label="Vue cartes"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg></button>
-                  <button class="view-toggle-btn" data-view="list" title="Vue liste" aria-label="Vue liste"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg></button>
-                </div>
-              </div>
+        <!-- Toolbar -->
+        <div class="table-toolbar">
+          <div>
+            <h3 class="card-title">S&eacute;ances archiv&eacute;es</h3>
+            <p class="card-description">Proc&egrave;s-verbaux fig&eacute;s et exports d'audit</p>
+          </div>
+          <div class="flex gap-2 items-center">
+            <select class="form-input year-select" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
+              <option value="">Toutes ann&eacute;es</option>
+            </select>
+            <input type="text" class="form-input archive-search-input" id="searchInput"
+                   placeholder="Rechercher...">
+            <div class="view-toggle">
+              <button class="view-toggle-btn active" data-view="cards" title="Vue cartes" aria-label="Vue cartes"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg></button>
+              <button class="view-toggle-btn" data-view="list" title="Vue liste" aria-label="Vue liste"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg></button>
             </div>
           </div>
-          <div class="card-body">
+        </div>
+
+        <!-- Archives list card -->
+        <div class="table-card">
+          <div class="table-wrapper">
             <!-- Summary stats -->
-            <div class="archive-stats" id="archiveStats">
+            <div class="archive-stats" id="archiveStats" style="padding: var(--space-4) var(--space-card);">
               <div class="archive-stat">
                 <div class="archive-stat-value" id="statTotal">—</div>
                 <div class="archive-stat-label">Total archivées</div>
@@ -133,17 +133,19 @@
                 <div class="archive-stat-label">Bulletins</div>
               </div>
             </div>
-            <div id="archivesList">
+            <div id="archivesList" style="padding: 0 var(--space-card);">
               <div class="text-center p-6">
                 <div class="spinner"></div>
               </div>
             </div>
-            <!-- Pagination -->
-            <div class="archives-pagination" id="archivesPagination">
-              <ag-pagination id="archivesPager" per-page="5"></ag-pagination>
-            </div>
           </div>
         </div>
+
+        <!-- Pagination -->
+        <div class="table-pagination" id="archivesPagination">
+          <ag-pagination id="archivesPager" per-page="5"></ag-pagination>
+        </div>
+
       </div>
     </main>
     <footer class="app-footer" role="contentinfo">
