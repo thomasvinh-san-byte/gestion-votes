@@ -28,11 +28,25 @@
   margin: 0 auto;
 }
 
+/* ─── Centered content constraint ─── */
+.postsession-main .container,
+.postsession-main .page-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--space-card);
+}
+
 /* ─── Segmented bar stepper (wireframe pattern) ─── */
 .ps-stepper {
   display: flex;
   gap: 4px;
-  margin-bottom: 18px;
+  margin-bottom: var(--space-card);
+  position: sticky;
+  top: 80px;
+  z-index: 10;
+  background: var(--color-bg);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
 }
 
 .ps-seg {
@@ -74,6 +88,10 @@
 /* ─── Panels ─── */
 .ps-panel {
   animation: fadeIn var(--duration-slow) var(--ease-out);
+}
+
+.ps-panel + .ps-panel {
+  margin-top: var(--space-section);
 }
 
 .ps-panel-title {
@@ -137,11 +155,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 14px;
+  padding: var(--space-4);
   background: var(--color-success-subtle);
   border: 1px solid var(--color-success);
   border-radius: var(--radius-lg);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .ps-complete-banner h3 {
@@ -208,11 +226,11 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  padding: 14px;
+  padding: var(--space-4);
   background: var(--color-warning-subtle);
   border: 1px solid var(--color-warning);
   border-radius: var(--radius);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .ps-irreversible-warning svg {
@@ -237,7 +255,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-3);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .ps-validation-kpi {
