@@ -163,9 +163,9 @@ class AgToast extends HTMLElement {
         }
         :host([type="warning"]) .toast-icon { background: var(--color-warning-subtle, #f5eddf); color: var(--color-warning, #b8860b); }
         :host([type="info"]) .toast {
-          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-primary, #1650E0);
+          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-info, #1650E0);
         }
-        :host([type="info"]) .toast-icon { background: var(--color-primary-subtle, #e8edfa); color: var(--color-primary, #1650E0); }
+        :host([type="info"]) .toast-icon { background: var(--color-info-subtle, #EBF0FF); color: var(--color-info, #1650E0); }
 
         @keyframes toastIn {
           from { opacity: 0; transform: translateX(20px) scale(.96); }
