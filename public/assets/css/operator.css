@@ -10,32 +10,56 @@
    OPERATOR PAGE GRID LAYOUT
    ============================================================================= */
 
-/* Override grid for operator page - add meeting bar and tabs nav rows */
+/* Fix: design-system.css sets .app-shell { display: flex } — grid-template-*
+   properties on a flex container are silently ignored. Explicit display: grid
+   is required for the nested grid to work. */
 [data-page-role="operator"] .app-shell {
-  grid-template-rows: auto auto auto 1fr;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 1fr;
   grid-template-areas:
-    "sidebar meetingbar"
-    "sidebar meetingbar-actions"
-    "sidebar tabs"
-    "sidebar main";
+    "statusbar"
+    "tabnav"
+    "main";
+  height: 100vh;
+  overflow: hidden;
 }
 
 [data-page-role="operator"] .meeting-bar {
-  grid-area: meetingbar / meetingbar / meetingbar-actions / meetingbar-actions;
+  grid-area: statusbar;
+  background: var(--color-surface-raised);
 }
 
 [data-page-role="operator"] .tabs-nav {
-  grid-area: tabs;
+  grid-area: tabnav;
+}
+
+[data-page-role="operator"] .app-main {
+  grid-area: main;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  padding: 0;
+  overflow: hidden;
+}
+
+[data-page-role="operator"] .op-agenda {
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+
+[data-page-role="operator"] .op-main-content {
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-card);
 }
 
 @media (max-width: 768px) {
-  [data-page-role="operator"] .app-shell {
+  [data-page-role="operator"] .app-main {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "meetingbar"
-      "meetingbar-actions"
-      "tabs"
-      "main";
+  }
+  [data-page-role="operator"] .op-agenda {
+    display: none; /* off-canvas handled by JS toggle if needed */
   }
 }
 

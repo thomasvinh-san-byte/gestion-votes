@@ -163,6 +163,16 @@
     </nav>
 
     <main class="app-main" id="main-content" role="main">
+      <!-- Agenda sidebar (280px) -->
+      <aside class="op-agenda" aria-label="Ordre du jour">
+        <h3 class="section-title">Ordre du jour</h3>
+        <p class="text-muted text-sm" id="opAgendaEmpty">Aucune r&eacute;solution</p>
+        <ol id="opAgendaList" class="op-agenda-list" hidden aria-label="Liste des r&eacute;solutions"></ol>
+      </aside>
+
+      <!-- Main content area (fluid) -->
+      <div class="op-main-content">
+
       <!-- SR announcements -->
       <div class="sr-only" id="srAnnounce" aria-live="polite"></div>
 
@@ -958,6 +968,8 @@
           <p class="op-quorum-risk-note text-xs text-muted" id="opQuorumRiskNote" hidden>Attention : continuer sans quorum expose les decisions a un risque de contestation.</p>
         </div>
       </div>
+
+      </div><!-- /.op-main-content -->
 
     </main>
     <footer class="app-footer" role="contentinfo">
