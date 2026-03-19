@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Phase 31 context gathered
-last_updated: "2026-03-19T05:39:35.545Z"
+stopped_at: Completed 31-component-refresh/31-01-PLAN.md
+last_updated: "2026-03-19T06:05:04.040Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
   completed_phases: 6
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 24
+  completed_plans: 23
 ---
 
 # AG-VOTE — Project State
@@ -65,6 +65,9 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 30]: --text-base flipped to 0.875rem (14px); reading-text contexts use --text-md (1rem) for 16px; body line-height updated to --leading-base
 - [Phase 30]: color-mix(in srgb, var(--token) N%, transparent) used for opacity variants to avoid bloating design-system.css
 - [Phase 30]: --radius-badge and --radius-tooltip now 4px via updated --radius-sm; --type-* tokens moved to COMPONENT ALIASES layer; --space-section/card/field kept in SEMANTIC (layout-role aliases, not component)
+- [Phase 31-component-refresh]: Stepper connector-line pattern chosen over card-box — matches ag-stepper.js production rendering and industry standard
+- [Phase 31-component-refresh]: Button hover uses shadow-md deepening instead of translateY(-1px) lift — lift reserved for clickable cards only
+- [Phase 31-component-refresh]: Toast accent uses inset box-shadow instead of border-left — inset respects border-radius corners
 
 ### Pending Todos
 
@@ -76,7 +79,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:39:35.542Z
-Stopped at: Phase 31 context gathered
-Resume file: .planning/phases/31-component-refresh/31-CONTEXT.md
+Last session: 2026-03-19T06:05:04.037Z
+Stopped at: Completed 31-component-refresh/31-01-PLAN.md
+Resume file: None
 Next action: `/gsd:plan-phase 30`

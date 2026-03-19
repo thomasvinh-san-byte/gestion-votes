@@ -190,7 +190,7 @@ Plans:
   3. A table row at 48px height with a sticky 40px header shows right-aligned numeric columns in JetBrains Mono with a hover highlight — the data density matches the Linear/Jira reference
   4. A form input at 36px height shows a double-ring focus state (2px surface gap + 4px primary ring) and a red border on validation error — the focus and error states are unambiguous
   5. Toast notifications stack with 8px gap, display a 3px left-border accent stripe in the semantic status color, and slide in from the correct edge — Sonner-pattern behavior is complete
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
 - [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
@@ -252,7 +252,7 @@ Plans:
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
-| 31. Component Refresh | 0/2 | Not started | - |
+| 31. Component Refresh | 1/2 | In Progress|  |
 | 32. Page Layouts — Core Pages | 0/? | Not started | - |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |

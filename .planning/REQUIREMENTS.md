@@ -18,14 +18,14 @@
 
 ### Component Refresh (CMP)
 
-- [ ] **CMP-01**: Buttons — 36px default height, consistent padding/radius/weight across primary/secondary/ghost/danger variants
-- [ ] **CMP-02**: Cards — 24px padding minimum, shadow-sm default, shadow-md on hover with subtle lift, border-radius-lg
-- [ ] **CMP-03**: Tables — 48px row height, sticky 40px header, right-aligned numbers in monospace, hover state
-- [ ] **CMP-04**: Form inputs — consistent height (36px), proper focus ring, error state with border-color change, label at 14px/600
-- [ ] **CMP-05**: Modals — centered with shadow-xl, proper backdrop opacity, header/content/footer sections, close button
-- [ ] **CMP-06**: Toasts — left-border accent via inset box-shadow, 356px width, slide-in animation
-- [ ] **CMP-07**: Badges — pill shape (rounded-full), semantic color variants (success/warning/danger/info), 12px font
-- [ ] **CMP-08**: Steppers — proper circle size, connector lines, active/done/pending states with color differentiation
+- [x] **CMP-01**: Buttons — 36px default height, consistent padding/radius/weight across primary/secondary/ghost/danger variants
+- [x] **CMP-02**: Cards — 24px padding minimum, shadow-sm default, shadow-md on hover with subtle lift, border-radius-lg
+- [x] **CMP-03**: Tables — 48px row height, sticky 40px header, right-aligned numbers in monospace, hover state
+- [x] **CMP-04**: Form inputs — consistent height (36px), proper focus ring, error state with border-color change, label at 14px/600
+- [x] **CMP-05**: Modals — centered with shadow-xl, proper backdrop opacity, header/content/footer sections, close button
+- [x] **CMP-06**: Toasts — left-border accent via inset box-shadow, 356px width, slide-in animation
+- [x] **CMP-07**: Badges — pill shape (rounded-full), semantic color variants (success/warning/danger/info), 12px font
+- [x] **CMP-08**: Steppers — proper circle size, connector lines, active/done/pending states with color differentiation
 
 ### Page Layout (LAY)
 
