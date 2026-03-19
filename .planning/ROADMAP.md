@@ -252,7 +252,7 @@ Plans:
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
-| 31. Component Refresh | 3/3 | Complete   | 2026-03-19 |
+| 31. Component Refresh | 3/3 | Complete    | 2026-03-19 |
 | 32. Page Layouts — Core Pages | 0/? | Not started | - |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |
