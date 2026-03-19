@@ -35,8 +35,8 @@
 - [x] **LAY-04**: Data tables (audit, archives, members, users) — proper column alignment, sticky header, toolbar + pagination bars
 - [x] **LAY-05**: Settings/Admin — 220px left sidenav, 720px content column, section cards with per-section save
 - [x] **LAY-06**: Mobile voter — 100dvh, 72px vote buttons, safe-area padding, clamp() fluid typography
-- [ ] **LAY-07**: Hub — sidebar stepper + main content, quorum bar prominent, checklist with proper spacing
-- [ ] **LAY-08**: Post-session — stepper with checkmarks, collapsible result cards, proper section spacing
+- [x] **LAY-07**: Hub — sidebar stepper + main content, quorum bar prominent, checklist with proper spacing
+- [x] **LAY-08**: Post-session — stepper with checkmarks, collapsible result cards, proper section spacing
 - [ ] **LAY-09**: Analytics/Statistics — chart area + KPI cards, proper responsive grid
 - [ ] **LAY-10**: Help/FAQ — accordion with proper padding, search if applicable
 - [ ] **LAY-11**: Email templates — editor layout with preview panel

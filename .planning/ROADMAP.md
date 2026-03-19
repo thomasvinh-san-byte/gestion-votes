@@ -70,7 +70,7 @@
 - [x] **Phase 30: Token Foundation** — Reduce 265+ tokens to ~100 semantic tokens; establish primitive→semantic→component hierarchy, shadow scale, spacing aliases, radius scale, dark mode derivation, zero hardcoded hex (completed 2026-03-19) (completed 2026-03-19)
 - [x] **Phase 31: Component Refresh** — Buttons, cards, tables, form inputs, modals, toasts, badges, steppers rebuilt to exact shadcn/Sonner/Polaris specs with correct heights, radii, transitions, and dark parity (completed 2026-03-19)
 - [x] **Phase 32: Page Layouts — Core Pages** — Dashboard, wizard, operator console, data tables, settings/admin, mobile voter rebuilt to FEATURES.md grid/flex specs with the three-depth background model (completed 2026-03-19)
-- [ ] **Phase 33: Page Layouts — Secondary Pages** — Hub, post-session, analytics, help/FAQ, email templates, meetings list rebuilt with consistent layout language and correct density
+- [x] **Phase 33: Page Layouts — Secondary Pages** — Hub, post-session, analytics, help/FAQ, email templates, meetings list rebuilt with consistent layout language and correct density (completed 2026-03-19)
 - [ ] **Phase 34: Quality Assurance Final Audit** — Every page verified against the 6 AI anti-patterns checklist, background layering, Fraunces usage, dark mode parity, and transitions/focus/inline-style standards
 
 ---
@@ -221,7 +221,7 @@ Plans:
   3. The analytics page renders chart areas and KPI cards in a responsive grid — the layout does not produce a single-column stack at 1024px viewport width
   4. The help/FAQ page uses accordion components with correct padding (not raw details/summary defaults) — expanding an item does not cause layout shift on surrounding items
   5. The meetings list page applies the same card-or-table density pattern as the dashboard sessions list, with status badges using the semantic badge component from Phase 31
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 33-01-PLAN.md — Hub CSS Grid layout + post-session centered max-width, sticky stepper, section spacing (LAY-07, LAY-08)
 - [ ] 33-02-PLAN.md — Analytics 2-column grid floor + help/FAQ accordion tokenization (LAY-09, LAY-10)
@@ -256,7 +256,7 @@ Plans:
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
 | 31. Component Refresh | 3/3 | Complete    | 2026-03-19 |
 | 32. Page Layouts — Core Pages | 3/3 | Complete    | 2026-03-19 |
-| 33. Page Layouts — Secondary Pages | 0/3 | Not started | - |
+| 33. Page Layouts — Secondary Pages | 3/3 | Complete   | 2026-03-19 |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |
 
 ---

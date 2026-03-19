@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Phase 33 context gathered
-last_updated: "2026-03-19T07:59:24.003Z"
+stopped_at: Completed 33-01-PLAN.md (hub + post-session layouts)
+last_updated: "2026-03-19T08:59:09.764Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
-  completed_phases: 8
-  total_plans: 28
-  completed_plans: 28
+  completed_phases: 9
+  total_plans: 31
+  completed_plans: 31
 ---
 
 # AG-VOTE — Project State
@@ -78,6 +78,8 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 32-page-layouts-core-pages]: Settings CSS Grid 220px+1fr layout: sidenav sticky at top:80px, content max-width:720px, collapses to horizontal scroll at 768px
 - [Phase 32-page-layouts-core-pages]: Mobile voter: clamp() fluid typography, position:fixed bottom nav with env(safe-area-inset-bottom), 72px min touch targets
 - [Phase 32]: Dashboard aside sticky top 80px matches app-header height; table-page max-width 1400px wider than dashboard 1200px; members page wraps only members-layout in table-page to preserve full-bleed stats bar
+- [Phase 33-page-layouts-secondary-pages]: Hub sidebar column: 220px matching Phase 32 settings/operator patterns for consistent sidebar width across stepper pages
+- [Phase 33-page-layouts-secondary-pages]: Post-session sticky stepper uses background:var(--color-bg) to prevent content bleed-through on scroll
 
 ### Pending Todos
 
@@ -89,7 +91,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:59:24.000Z
-Stopped at: Phase 33 context gathered
-Resume file: .planning/phases/33-page-layouts-secondary-pages/33-CONTEXT.md
+Last session: 2026-03-19T08:58:26.760Z
+Stopped at: Completed 33-01-PLAN.md (hub + post-session layouts)
+Resume file: None
 Next action: `/gsd:plan-phase 30`
