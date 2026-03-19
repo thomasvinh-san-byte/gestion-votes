@@ -884,7 +884,7 @@ body.projection-body {
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: clamp(0.6rem, 1.2vw, 0.75rem);
   font-weight: 600;
   white-space: nowrap;

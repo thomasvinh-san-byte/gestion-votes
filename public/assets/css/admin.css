@@ -303,7 +303,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 0.65rem;
   font-weight: 600;
   white-space: nowrap;

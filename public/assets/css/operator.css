@@ -3491,7 +3491,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.2rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;

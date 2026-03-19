@@ -197,7 +197,7 @@
 
 .severity-pill {
   padding: 0.375rem 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: 500;
   cursor: pointer;
@@ -300,7 +300,7 @@
 
 .audit-chip {
   padding: 0.375rem 0.875rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: 600;
   cursor: pointer;
