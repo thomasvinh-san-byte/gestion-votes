@@ -13,7 +13,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-primary-subtle) 0%, transparent 60%),
+    var(--color-bg);
   padding: var(--space-4);
 }
 
@@ -23,12 +25,21 @@
 
 .login-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   background: var(--color-surface-raised); /* QA-02: single elevated form card above login page background */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
   box-shadow: var(--shadow-lg);
+  transition: opacity var(--duration-deliberate, 400ms) var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1)),
+              transform var(--duration-deliberate, 400ms) var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
+}
+
+@starting-style {
+  .login-card {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 /* =============================================================================
@@ -40,9 +51,22 @@
   margin-bottom: var(--space-8);
 }
 
+.login-brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+}
+
 .login-brand h1 {
-  font-size: var(--text-2xl);
+  font-family: var(--font-display);  /* Fraunces — key change from inherited Bricolage */
+  font-size: var(--text-3xl);        /* 30px — from 24px */
   font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
   color: var(--color-text);
   margin: 0 0 var(--space-2);
 }
@@ -65,20 +89,21 @@
 
 .login-form label {
   font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text);
+  font-weight: var(--font-semibold);  /* 600 — from 500 */
+  color: var(--color-text-dark, var(--color-text));
   display: block;
   margin-bottom: var(--space-1);
 }
 
+.login-form input[type="email"],
 .login-form input[type="password"],
-.login-form input[type="text"],
-.login-form input[type="email"] {
+.login-form input[type="text"] {
   width: 100%;
-  padding: var(--space-3);
+  min-height: 44px;    /* WCAG touch target */
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-base);
+  font-size: var(--text-md);  /* 16px — prevents iOS zoom */
   background: var(--color-bg);
   color: var(--color-text);
   transition: border-color var(--duration-fast);
@@ -97,19 +122,29 @@
 
 .login-btn {
   width: 100%;
-  padding: var(--space-3);
-  background: var(--color-primary);
+  min-height: 44px;
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: var(--color-primary-text);
   border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--text-base);
+  border-radius: var(--radius-lg);  /* 8px — from 6px */
+  font-size: var(--text-md);
   font-weight: var(--font-semibold);
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: opacity var(--duration-fast);
+  transition: var(--transition-ui), transform var(--duration-moderate) var(--ease-standard);
 }
 
-.login-btn:hover {
-  opacity: 0.9;
+.login-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary-active, var(--color-primary-hover)) 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  opacity: 1;  /* override existing opacity: 0.9 hover */
+}
+
+.login-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .login-btn:disabled {
@@ -209,6 +244,78 @@
 .login-footer a {
   color: var(--color-primary);
   text-decoration: none;
+}
+
+/* =============================================================================
+   TRUST SIGNAL
+   ============================================================================= */
+
+.login-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.login-trust svg {
+  width: 12px;
+  height: 12px;
+  color: var(--color-success);
+}
+
+/* =============================================================================
+   FIELD-LEVEL ERROR STATES
+   ============================================================================= */
+
+.login-form .field-error input {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-subtle, rgba(220, 38, 38, 0.15));
+}
+
+.login-form .field-error-msg {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  margin-top: var(--space-1);
+  display: none;
+}
+
+.login-form .field-error .field-error-msg {
+  display: block;
+}
+
+/* =============================================================================
+   DARK MODE POLISH
+   ============================================================================= */
+
+[data-theme="dark"] .login-page {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-primary-muted, rgba(30, 60, 120, 0.3)) 0%, transparent 60%),
+    var(--color-bg);
+}
+
+[data-theme="dark"] .login-card {
+  border-color: var(--color-border-subtle);
+}
+
+[data-theme="dark"] .login-form input {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .login-form input:focus {
+  background: var(--color-surface-raised);
+}
+
+/* Dark mode button — solid color to avoid odd light-lighter gradient */
+[data-theme="dark"] .login-btn {
+  background: var(--color-primary);
+}
+
+[data-theme="dark"] .login-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
 }
 
 /* =============================================================================
