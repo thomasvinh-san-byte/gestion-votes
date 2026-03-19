@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Completed 30-02-PLAN.md
-last_updated: "2026-03-19T04:51:20.462Z"
+stopped_at: Completed 30-03-PLAN.md
+last_updated: "2026-03-19T04:52:26.294Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # AG-VOTE — Project State
@@ -63,6 +63,7 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 30]: --text-base stays at 1rem (16px) in plan 30-01; 14px migration done in plan 30-02 sweep
 - [Phase 30]: Shadow-color variable pattern: single dark override drives all 8 shadow levels automatically
 - [Phase 30]: --text-base flipped to 0.875rem (14px); reading-text contexts use --text-md (1rem) for 16px; body line-height updated to --leading-base
+- [Phase 30]: color-mix(in srgb, var(--token) N%, transparent) used for opacity variants to avoid bloating design-system.css
 
 ### Pending Todos
 
@@ -74,7 +75,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:51:20.459Z
-Stopped at: Completed 30-02-PLAN.md
+Last session: 2026-03-19T04:52:26.291Z
+Stopped at: Completed 30-03-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 30`

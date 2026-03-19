@@ -14,7 +14,7 @@
 - [x] **TKN-05**: Spacing scale uses 8px base with semantic aliases (--space-section: 48px, --space-card: 24px, --space-field: 16px)
 - [x] **TKN-06**: Border-radius semantic tokens (--radius-sm: 4px for badges, --radius: 8px for inputs, --radius-lg: 12px for cards, --radius-xl: 16px for modals)
 - [x] **TKN-07**: Dark mode tokens derive from light via color-mix() or oklch — not hand-coded hex duplicates
-- [ ] **TKN-08**: Zero hardcoded hex/rgb values in any page CSS file — all reference design-system tokens
+- [x] **TKN-08**: Zero hardcoded hex/rgb values in any page CSS file — all reference design-system tokens
 
 ### Component Refresh (CMP)
 
