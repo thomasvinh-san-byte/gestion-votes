@@ -87,102 +87,199 @@ table {
   /* lg:  1024px   — desktop              */
   /* Content-specific exceptions allowed: 600, 640, 900, 981px */
 
-  /* ─── Fonts ─── */
-  --font-sans: 'Bricolage Grotesque', system-ui, sans-serif;
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMITIVES — Color Palettes
+     Raw values. NEVER reference these in component CSS.
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Stone/Parchment palette */
+  --stone-50:  #FAFAF7;  --stone-50:  oklch(0.969 0.006 95);
+  --stone-100: #F2F0EB;  --stone-100: oklch(0.950 0.009 95);
+  --stone-200: #EDECE6;  --stone-200: oklch(0.922 0.013 95);
+  --stone-300: #E5E3D8;  --stone-300: oklch(0.893 0.017 90);
+  --stone-400: #CDC9BB;  --stone-400: oklch(0.833 0.022 88);
+  --stone-500: #BCB7A5;  --stone-500: oklch(0.760 0.028 85);
+  --stone-600: #857F72;  --stone-600: oklch(0.648 0.030 82);
+  --stone-700: #52504A;  --stone-700: oklch(0.530 0.025 80);
+  --stone-800: #2A2720;  --stone-800: oklch(0.350 0.018 78);
+  --stone-900: #151510;  --stone-900: oklch(0.180 0.012 75);
+
+  /* Blue/Indigo palette */
+  --blue-50:  #EBF0FF;  --blue-50:  oklch(0.960 0.018 265);
+  --blue-100: #D6E3FF;  --blue-100: oklch(0.920 0.035 265);
+  --blue-200: #B3CCFF;  --blue-200: oklch(0.850 0.060 265);
+  --blue-400: #5C96FA;  --blue-400: oklch(0.680 0.130 265);
+  --blue-500: #3D7EF8;  --blue-500: oklch(0.600 0.165 265);
+  --blue-600: #1650E0;  --blue-600: oklch(0.520 0.195 265);
+  --blue-700: #1140C0;  --blue-700: oklch(0.440 0.190 265);
+  --blue-800: #0C30A0;  --blue-800: oklch(0.360 0.180 265);
+
+  /* Green palette */
+  --green-50:  #EDFAF2;  --green-50:  oklch(0.968 0.020 155);
+  --green-500: #2DC87A;  --green-500: oklch(0.580 0.155 155);
+  --green-600: #0B7A40;  --green-600: oklch(0.500 0.135 155);
+
+  /* Amber palette */
+  --amber-50:  #FFF7E8;  --amber-50:  oklch(0.978 0.022 90);
+  --amber-400: #EDA030;  --amber-400: oklch(0.740 0.130 68);
+  --amber-600: #B56700;  --amber-600: oklch(0.590 0.115 60);
+
+  /* Red palette */
+  --red-50:  #FEF1F0;  --red-50:  oklch(0.975 0.015 25);
+  --red-500: #E85454;  --red-500: oklch(0.600 0.185 25);
+  --red-600: #C42828;  --red-600: oklch(0.510 0.175 25);
+
+  /* Purple palette */
+  --purple-50:  #EEEAFF;  --purple-50:  oklch(0.965 0.022 298);
+  --purple-500: #8C72F8;  --purple-500: oklch(0.580 0.175 298);
+  --purple-600: #5038C0;  --purple-600: oklch(0.490 0.170 298);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMITIVES — Fonts
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --font-sans:    'Bricolage Grotesque', system-ui, sans-serif;
   --font-display: 'Fraunces', Georgia, serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 
-  /* ─── Font Sizes (CDC: ≥16px) ─── */
-  --text-xs: 0.75rem;    /* 12px */
-  --text-sm: 0.875rem;   /* 14px */
-  --text-base: 1rem;     /* 16px - minimum CDC */
-  --text-lg: 1.125rem;   /* 18px */
-  --text-xl: 1.25rem;    /* 20px */
-  --text-2xl: 1.5rem;    /* 24px */
-  --text-3xl: 1.875rem;  /* 30px */
-  --text-4xl: 2.25rem;   /* 36px */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMITIVES — Font Sizes
+     ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* ─── Line Heights ─── */
-  --leading-none: 1;
-  --leading-tight: 1.25;
-  --leading-snug: 1.375;
-  --leading-normal: 1.5;
+  --text-2xs:  0.6875rem;  /* 11px */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.8125rem;  /* 13px */
+  --text-base: 1rem;       /* 16px — kept at 16px during migration */
+  --text-md:   1rem;       /* 16px — explicit name for body reading text */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+  --text-5xl:  3rem;       /* 48px */
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMITIVES — Line Heights
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --leading-none:    1;
+  --leading-2xs:     1.5;
+  --leading-xs:      1.5;
+  --leading-sm:      1.55;
+  --leading-base:    1.571;  /* 14px -> 22px golden ratio */
+  --leading-md:      1.5;    /* 16px -> 24px */
+  --leading-tight:   1.25;
+  --leading-snug:    1.375;
+  --leading-normal:  1.5;
   --leading-relaxed: 1.625;
+  --leading-lg:      1.4;
+  --leading-xl:      1.35;
+  --leading-2xl:     1.3;
+  --leading-3xl:     1.2;
+  --leading-4xl:     1.1;
 
-  /* ─── Font Weights ─── */
-  --font-normal: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMITIVES — Font Weights
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --font-normal:    400;  /* Kept for backward compat */
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
   --font-extrabold: 800;
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
 
-  /* ─── Spacing (grille 8px CDC) ─── */
-  --space-0: 0;
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
-  --space-10: 2.5rem;   /* 40px */
-  --space-12: 3rem;     /* 48px */
-  --space-16: 4rem;     /* 64px */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PRIMITIVES — Letter Spacing
+     ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* Semantic spacing aliases */
+  --tracking-tight:   -0.025em;
+  --tracking-snug:    -0.015em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.025em;
+  --tracking-wider:    0.05em;
+  --tracking-widest:   0.1em;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Spacing (4px base, 8px grid)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --space-0:   0;
+  --space-0-5: 0.125rem;  /* 2px */
+  --space-1:   0.25rem;   /* 4px */
+  --space-1-5: 0.375rem;  /* 6px */
+  --space-2:   0.5rem;    /* 8px */
+  --space-2-5: 0.625rem;  /* 10px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-7:   1.75rem;   /* 28px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+  --space-14:  3.5rem;    /* 56px */
+  --space-16:  4rem;      /* 64px */
+  --space-20:  5rem;      /* 80px */
+  --space-24:  6rem;      /* 96px */
+
+  /* Semantic gap aliases */
+  --gap-xs: var(--space-1);    /* 4px */
+  --gap-sm: var(--space-2);    /* 8px */
+  --gap-md: var(--space-4);    /* 16px */
+  --gap-lg: var(--space-6);    /* 24px */
+  --gap-xl: var(--space-8);    /* 32px */
+
+  /* Semantic padding aliases */
+  --pad-xs:  var(--space-2);   /* 8px */
+  --pad-sm:  var(--space-3);   /* 12px */
+  --pad-md:  var(--space-4);   /* 16px */
+  --pad-lg:  var(--space-6);   /* 24px */
+  --pad-xl:  var(--space-8);   /* 32px */
+  --pad-2xl: var(--space-12);  /* 48px */
+
+  /* Legacy aliases (backward compat) */
   --space-md: var(--space-5);  /* 20px */
   --space-lg: var(--space-6);  /* 24px */
 
-  /* ─── Border Radius ─── */
-  /* Scale: 6px / 8px / 10px / 999px — matches wireframe v3.19.2 */
-  --radius-sm: 0.375rem;  /* 6px */
-  --radius: 0.5rem;       /* 8px */
-  --radius-lg: 0.625rem;  /* 10px */
-  --radius-full: 999px;
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Border Radius
+     ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* ─── Layout ─── */
-  --header-height: 56px;
-  --sidebar-width: 58px;
-  --sidebar-rail: 58px;
-  --sidebar-expanded: 252px;
-  --drawer-width: 400px;
-  --content-max: 1440px;
-  --content-narrow: 720px;
+  --radius-none: 0;
+  --radius-xs:   0.1875rem;  /* 3px */
+  --radius-sm:   0.3125rem;  /* 5px */
+  --radius-md:   0.375rem;   /* 6px */
+  --radius-lg:   0.5rem;     /* 8px */
+  --radius-xl:   0.75rem;    /* 12px */
+  --radius-2xl:  1rem;       /* 16px */
+  --radius-full: 9999px;
 
-  /* ─── Z-Index ─── */
-  --z-base: 1;
-  --z-sidebar-pin: 10;
-  --z-sidebar: 55;
-  --z-header: 90;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-fixed: 300;
-  --z-modal-backdrop: 400;
-  --z-modal: 500;
-  --z-popover: 600;
-  --z-tooltip: 700;
-  --z-toast: 800;
-  --z-overlay: 900;
-  --z-search: 9500;
-  --z-session-timeout: 9970;
-  --z-cmd-palette: 9980;
-  --z-tour-overlay: 9990;
-  --z-tour-spotlight: 9991;
-  --z-tour-bubble: 9992;
-  --z-skip: 10000;
+  /* Legacy: --radius kept for backward compat (maps to --radius-lg = 8px) */
+  --radius: var(--radius-lg);
 
-  /* ─── Transitions ─── */
-  --duration-fast: 100ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
-  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Wireframe alias: --tr shorthand */
-  --transition: 150ms ease;
+  /* Semantic radius aliases */
+  --radius-btn:     var(--radius-md);   /* 6px */
+  --radius-input:   var(--radius-md);   /* 6px */
+  --radius-badge:   var(--radius-sm);   /* 5px */
+  --radius-chip:    var(--radius-full);
+  --radius-card:    var(--radius-lg);   /* 8px */
+  --radius-panel:   var(--radius-lg);   /* 8px */
+  --radius-modal:   var(--radius-xl);   /* 12px */
+  --radius-toast:   var(--radius-lg);   /* 8px */
+  --radius-tooltip: var(--radius-sm);   /* 5px */
+  --radius-avatar:  var(--radius-full);
+  --radius-tag:     var(--radius-xs);   /* 3px */
 
-  /* ─── Colors - Light Theme « Acte Officiel » ─── */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Colors (Light Theme « Acte Officiel »)
+     Hex primary, oklch not used here for max browser compat.
+     ═══════════════════════════════════════════════════════════════════════════ */
+
   --color-bg: #EDECE6;
   --color-bg-subtle: #E5E3D8;
   --color-surface-alt: #E5E3D8;  /* Wireframe --surface-alt: one step below surface */
@@ -197,16 +294,19 @@ table {
   --color-text-muted: #857F72;
   --color-text-light: #B5B0A0;
   --color-text-inverse: #ffffff;
+  --color-text-disabled: #C4C0B5;
 
   --color-border: #CDC9BB;
   --color-border-subtle: #DEDAD0;
   --color-border-strong: #BCB7A5;
   --color-border-dash: #BCB7A5;
+  --color-border-focus: rgba(22, 80, 224, 0.50);
 
   --color-primary: #1650E0;
   --color-primary-hover: #1140C0;
   --color-primary-active: #0C30A0;
   --color-primary-subtle: #EBF0FF;
+  --color-primary-muted: rgba(22, 80, 224, 0.12);
   --color-primary-glow: rgba(22, 80, 224, 0.12);
   --color-primary-text: #ffffff;
 
@@ -238,12 +338,16 @@ table {
   --color-purple-border: #C4B8F8;
   --color-accent: #5038C0;
   --color-accent-subtle: #EEEAFF;
+  --color-accent-border: #C4B8F8;
   --color-accent-text: #5038C0;
 
   --color-neutral: #857F72;
   --color-neutral-hover: #6B6860;
   --color-neutral-subtle: #E5E3D8;
   --color-neutral-text: #52504A;
+
+  --color-backdrop: rgba(0, 0, 0, 0.5);
+  --color-overlay-tint: rgba(0, 0, 0, 0.04);
 
   /* ─── Sidebar ─── */
   --sidebar-bg: #0C1018;
@@ -257,23 +361,17 @@ table {
   --tag-bg: #E5E3D8;
   --tag-text: #6B6860;
 
-  /* ─── Backdrop ─── */
-  --color-backdrop: rgba(0, 0, 0, 0.5);
-
-  /* ─── Shadows (Acte Officiel) ─── */
-  --shadow-xs: 0 1px 1px rgba(21, 21, 16, 0.03);
-  --shadow-sm: 0 1px 3px rgba(21, 21, 16, 0.05), 0 1px 2px rgba(21, 21, 16, 0.03);
-  --shadow: 0 3px 6px rgba(21, 21, 16, 0.06), 0 1px 3px rgba(21, 21, 16, 0.04);
-  --shadow-md: 0 3px 10px rgba(21, 21, 16, 0.07), 0 1px 3px rgba(21, 21, 16, 0.04);
-  --shadow-lg: 0 8px 24px rgba(21, 21, 16, 0.1), 0 2px 6px rgba(21, 21, 16, 0.05);
-  --shadow-xl: 0 25px 50px -12px rgba(21, 21, 16, 0.15);
-  --shadow-inner: inset 0 2px 4px 0 rgba(21, 21, 16, 0.04);
-  --shadow-focus: 0 0 0 2px #fff, 0 0 0 4px rgba(22, 80, 224, 0.4);
-
-  /* ─── Focus Ring ─── */
-  --ring-width: 3px;
-  --ring-color: rgba(22, 80, 224, 0.35);
-  --ring-offset: 2px;
+  /* VIS-04: color-mix derived tokens */
+  --color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, white);
+  --color-primary-tint-5: color-mix(in srgb, var(--color-primary) 5%, white);
+  --color-success-tint-10: color-mix(in srgb, var(--color-success) 10%, white);
+  --color-success-tint-5: color-mix(in srgb, var(--color-success) 5%, white);
+  --color-danger-tint-10: color-mix(in srgb, var(--color-danger) 10%, white);
+  --color-danger-tint-5: color-mix(in srgb, var(--color-danger) 5%, white);
+  --color-warning-tint-10: color-mix(in srgb, var(--color-warning) 10%, white);
+  --color-warning-tint-5: color-mix(in srgb, var(--color-warning) 5%, white);
+  --color-primary-shade-10: color-mix(in srgb, var(--color-primary) 90%, black);
+  --color-surface-elevated: color-mix(in srgb, var(--color-surface) 97%, var(--color-primary));
 
   /* ─── Persona Accent Colors ───
      Each persona gets a distinct accent hue used for sidebar indicator,
@@ -308,17 +406,167 @@ table {
   --persona-admin-subtle: #f1f5f9;
   --persona-admin-text: #0f172a;
 
-  /* VIS-04: color-mix derived tokens */
-  --color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, white);
-  --color-primary-tint-5: color-mix(in srgb, var(--color-primary) 5%, white);
-  --color-success-tint-10: color-mix(in srgb, var(--color-success) 10%, white);
-  --color-success-tint-5: color-mix(in srgb, var(--color-success) 5%, white);
-  --color-danger-tint-10: color-mix(in srgb, var(--color-danger) 10%, white);
-  --color-danger-tint-5: color-mix(in srgb, var(--color-danger) 5%, white);
-  --color-warning-tint-10: color-mix(in srgb, var(--color-warning) 10%, white);
-  --color-warning-tint-5: color-mix(in srgb, var(--color-warning) 5%, white);
-  --color-primary-shade-10: color-mix(in srgb, var(--color-primary) 90%, black);
-  --color-surface-elevated: color-mix(in srgb, var(--color-surface) 97%, var(--color-primary));
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Shadows
+     Uses --shadow-color for theme-aware warm/dark shadow tinting.
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --shadow-color: 21 21 16;  /* warm black — rgb channels */
+
+  --shadow-2xs: 0 1px 0 rgb(var(--shadow-color) / 0.04);
+  --shadow-xs:  0 1px 2px rgb(var(--shadow-color) / 0.06),
+                0 1px 1px rgb(var(--shadow-color) / 0.03);
+  --shadow-sm:  0 1px 3px rgb(var(--shadow-color) / 0.08),
+                0 1px 2px rgb(var(--shadow-color) / 0.04);
+  --shadow:     0 2px 6px rgb(var(--shadow-color) / 0.08),
+                0 1px 3px rgb(var(--shadow-color) / 0.05);
+  --shadow-md:  0 4px 12px rgb(var(--shadow-color) / 0.10),
+                0 2px 4px rgb(var(--shadow-color) / 0.06);
+  --shadow-lg:  0 8px 24px rgb(var(--shadow-color) / 0.12),
+                0 3px 8px rgb(var(--shadow-color) / 0.06);
+  --shadow-xl:  0 16px 40px rgb(var(--shadow-color) / 0.14),
+                0 6px 16px rgb(var(--shadow-color) / 0.07);
+  --shadow-2xl: 0 24px 64px rgb(var(--shadow-color) / 0.18),
+                0 8px 24px rgb(var(--shadow-color) / 0.08);
+
+  --shadow-inner:    inset 0 2px 4px rgb(var(--shadow-color) / 0.05);
+  --shadow-inset-sm: inset 0 1px 2px rgb(var(--shadow-color) / 0.08);
+  --shadow-focus: 0 0 0 2px var(--color-surface-raised),
+                  0 0 0 4px var(--color-border-focus);
+  --shadow-focus-danger: 0 0 0 2px var(--color-surface-raised),
+                          0 0 0 4px rgba(196, 40, 40, 0.35);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Layout
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --header-height: 56px;
+  --sidebar-width: 58px;
+  --sidebar-rail: 58px;
+  --sidebar-expanded: 252px;
+  --drawer-width: 400px;
+  --content-max: 1440px;
+  --content-narrow: 720px;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Z-Index
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --z-base: 1;
+  --z-sidebar-pin: 10;
+  --z-sidebar: 55;
+  --z-header: 90;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  --z-overlay: 900;
+  --z-search: 9500;
+  --z-session-timeout: 9970;
+  --z-cmd-palette: 9980;
+  --z-tour-overlay: 9990;
+  --z-tour-spotlight: 9991;
+  --z-tour-bubble: 9992;
+  --z-skip: 10000;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Transitions
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --duration-instant:    50ms;
+  --duration-fast:       100ms;
+  --duration-normal:     150ms;
+  --duration-moderate:   200ms;
+  --duration-slow:       250ms;
+  --duration-deliberate: 300ms;
+  --duration-elaborate:  400ms;
+  --duration-dramatic:   500ms;
+
+  --ease-standard:       cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized:     cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  --ease-emphasized-out: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --ease-linear:         linear;
+  --ease-spring:         cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-overshoot:      cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  /* Legacy aliases */
+  --ease-default: var(--ease-standard);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce:  var(--ease-spring);
+  --transition:   150ms ease;
+
+  /* Named transitions */
+  --transition-color:     color var(--duration-normal) var(--ease-standard),
+                          background-color var(--duration-normal) var(--ease-standard),
+                          border-color var(--duration-normal) var(--ease-standard);
+  --transition-shadow:    box-shadow var(--duration-moderate) var(--ease-standard);
+  --transition-transform: transform var(--duration-moderate) var(--ease-standard);
+  --transition-opacity:   opacity var(--duration-normal) var(--ease-linear);
+  --transition-ui:        color var(--duration-normal) var(--ease-standard),
+                          background-color var(--duration-normal) var(--ease-standard),
+                          border-color var(--duration-normal) var(--ease-standard),
+                          box-shadow var(--duration-moderate) var(--ease-standard),
+                          opacity var(--duration-normal) var(--ease-linear);
+  --transition-enter:     transform var(--duration-deliberate) var(--ease-emphasized),
+                          opacity var(--duration-deliberate) var(--ease-linear);
+  --transition-exit:      transform var(--duration-moderate) var(--ease-emphasized-out),
+                          opacity var(--duration-moderate) var(--ease-linear);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Typography Roles
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --type-page-title-size:   var(--text-3xl);
+  --type-page-title-weight: var(--weight-bold);
+  --type-page-title-lead:   var(--leading-3xl);
+  --type-page-title-track:  var(--tracking-tight);
+  --type-page-title-font:   var(--font-display);
+
+  --type-section-title-size:   var(--text-2xl);
+  --type-section-title-weight: var(--weight-bold);
+  --type-section-title-lead:   var(--leading-2xl);
+  --type-section-title-track:  var(--tracking-snug);
+
+  --type-card-title-size:   var(--text-xl);
+  --type-card-title-weight: var(--weight-semibold);
+  --type-card-title-lead:   var(--leading-xl);
+
+  --type-body-size:   var(--text-base);
+  --type-body-weight: var(--weight-regular);
+  --type-body-lead:   var(--leading-base);
+
+  --type-body-md-size:   var(--text-md);
+  --type-body-md-weight: var(--weight-regular);
+  --type-body-md-lead:   var(--leading-md);
+
+  --type-label-size:   var(--text-sm);
+  --type-label-weight: var(--weight-medium);
+  --type-label-lead:   var(--leading-sm);
+
+  --type-caption-size:   var(--text-xs);
+  --type-caption-weight: var(--weight-regular);
+  --type-caption-lead:   var(--leading-xs);
+
+  --type-badge-size:   var(--text-2xs);
+  --type-badge-weight: var(--weight-medium);
+  --type-badge-track:  var(--tracking-wide);
+
+  --type-mono-size:   var(--text-sm);
+  --type-mono-lead:   var(--leading-sm);
+  --type-mono-font:   var(--font-mono);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEMANTIC — Focus Ring
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  --ring-width: 3px;
+  --ring-color: rgba(22, 80, 224, 0.35);
+  --ring-offset: 2px;
 }
 
 /* ─── Dark Theme « Acte Officiel » ─── */
@@ -337,16 +585,19 @@ table {
   --color-text-muted: #50596C;
   --color-text-light: #38404E;
   --color-text-inverse: #0B0F1A;
+  --color-text-disabled: #384050;
 
   --color-border: #252C3C;
   --color-border-subtle: #1E2434;
   --color-border-strong: #2E3850;
   --color-border-dash: #2E3850;
+  --color-border-focus: rgba(61, 126, 248, 0.50);
 
   --color-primary: #3D7EF8;
   --color-primary-hover: #5C96FA;
   --color-primary-active: #96BDFB;
   --color-primary-subtle: rgba(61, 126, 248, 0.12);
+  --color-primary-muted: rgba(61, 126, 248, 0.12);
   --color-primary-glow: rgba(61, 126, 248, 0.16);
   --color-primary-text: #0B0F1A;
 
@@ -378,12 +629,16 @@ table {
   --color-purple-border: rgba(140, 114, 248, 0.3);
   --color-accent: #8C72F8;
   --color-accent-subtle: rgba(140, 114, 248, 0.1);
+  --color-accent-border: rgba(140, 114, 248, 0.3);
   --color-accent-text: #8C72F8;
 
   --color-neutral: #50596C;
   --color-neutral-hover: #7A8499;
   --color-neutral-subtle: rgba(100, 116, 139, 0.15);
   --color-neutral-text: #7A8499;
+
+  --color-backdrop: rgba(0, 0, 0, 0.7);
+  --color-overlay-tint: rgba(255, 255, 255, 0.03);
 
   /* ─── Sidebar dark ─── */
   --sidebar-bg: #080B10;
@@ -397,7 +652,6 @@ table {
   --tag-bg: rgba(255, 255, 255, 0.07);
   --tag-text: rgba(255, 255, 255, 0.5);
 
-  --color-backdrop: rgba(0, 0, 0, 0.7);
   --ring-color: rgba(61, 126, 248, 0.4);
 
   --persona-preparateur: #818cf8;
@@ -422,11 +676,27 @@ table {
   --persona-admin-subtle: rgba(148, 163, 184, 0.15);
   --persona-admin-text: #e2e8f0;
 
-  --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.16);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.16);
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(0, 0, 0, 0.18);
-  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.36), 0 2px 6px rgba(0, 0, 0, 0.22);
+  /* Shadow color override — pure black for dark mode visibility */
+  --shadow-color: 0 0 0;
+
+  /* Shadow level overrides for dark visibility */
+  --shadow-2xs: 0 1px 0 rgb(var(--shadow-color) / 0.12);
+  --shadow-xs:  0 1px 2px rgb(var(--shadow-color) / 0.20),
+                0 1px 1px rgb(var(--shadow-color) / 0.12);
+  --shadow-sm:  0 1px 3px rgb(var(--shadow-color) / 0.24),
+                0 1px 2px rgb(var(--shadow-color) / 0.16);
+  --shadow:     0 2px 6px rgb(var(--shadow-color) / 0.30),
+                0 1px 3px rgb(var(--shadow-color) / 0.18);
+  --shadow-md:  0 4px 12px rgb(var(--shadow-color) / 0.34),
+                0 2px 4px rgb(var(--shadow-color) / 0.20);
+  --shadow-lg:  0 8px 24px rgb(var(--shadow-color) / 0.40),
+                0 3px 8px rgb(var(--shadow-color) / 0.22);
+  --shadow-xl:  0 16px 40px rgb(var(--shadow-color) / 0.50),
+                0 6px 16px rgb(var(--shadow-color) / 0.26);
+  --shadow-2xl: 0 24px 64px rgb(var(--shadow-color) / 0.60),
+                0 8px 24px rgb(var(--shadow-color) / 0.30);
+  --shadow-inner:    inset 0 2px 4px rgb(var(--shadow-color) / 0.20);
+  --shadow-inset-sm: inset 0 1px 2px rgb(var(--shadow-color) / 0.25);
 
   /* VIS-07: dark mode color-mix parity */
   --color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
