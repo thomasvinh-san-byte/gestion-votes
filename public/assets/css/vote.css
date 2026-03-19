@@ -70,6 +70,7 @@
   height: 100vh;
   height: 100dvh; /* dynamic viewport height — accounts for mobile browser chrome */
   background: var(--color-bg);
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
 }
 
 /* =============================================================================
@@ -532,7 +533,7 @@
 }
 
 .motion-title {
-  font-size: clamp(1.125rem, 2.6vw, 1.5rem);
+  font-size: clamp(1.125rem, 3.5vw, 1.5rem);
   font-weight: 800;
   letter-spacing: -0.01em;
   margin: 0;
@@ -683,7 +684,7 @@
   transition: transform var(--duration-fast), box-shadow var(--duration-fast);
   position: relative;
   overflow: hidden;
-  min-height: 120px;
+  min-height: 72px;
   height: 100%;
   box-sizing: border-box;
 }
@@ -1022,15 +1023,25 @@
   align-items: stretch;
   justify-content: space-around;
   background: var(--color-surface);
-  border-top: 2px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
   flex-shrink: 0;
   padding: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
 @media (max-width: 768px) {
   .vote-bottom-nav {
     display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed, 100);
+  }
+
+  /* Add padding to scrollable main content to clear fixed bottom nav */
+  .vote-main {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px));
   }
 
   /* Hide old footer on mobile when bottom nav is shown */
