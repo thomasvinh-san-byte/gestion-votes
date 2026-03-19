@@ -1170,20 +1170,30 @@
    DASHBOARD — Shortcut Cards (prominent action launcher)
    ============================================================================= */
 
+/* Shortcut card redesign — Phase 35 */
 .shortcut-card {
-  padding: 14px;
+  padding: var(--space-4);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
   flex-wrap: nowrap;
-  transition: transform var(--duration-fast, 100ms), box-shadow var(--duration-fast, 100ms);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  transition: var(--transition-ui);
 }
 
 .shortcut-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.1));
+  transform: none;
+  box-shadow: none;
+  background: var(--color-bg-subtle, var(--color-bg));
+  border-color: var(--color-border);
+}
+
+.shortcut-card-title {
+  font-size: var(--text-md, 1rem);
+  font-weight: var(--font-semibold);
 }
 
 .shortcut-card-icon {

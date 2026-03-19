@@ -172,33 +172,39 @@
           <!-- Aside: Acc&egrave;s rapides -->
           <aside class="dashboard-aside" data-tour="card-raccourcis">
             <div class="card-title dashboard-shortcuts-title">Acc&egrave;s rapides</div>
-            <a href="/wizard.htmx.html" class="card shortcut-card">
-              <div class="shortcut-card-icon accent">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-              </div>
-              <div class="shortcut-card-text">
-                <div class="shortcut-card-title">Cr&eacute;er une s&eacute;ance</div>
-                <div class="shortcut-card-sub">Assistant en 4 &eacute;tapes</div>
-              </div>
-            </a>
-            <a href="/operator.htmx.html" class="card shortcut-card">
-              <div class="shortcut-card-icon danger">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-              </div>
-              <div class="shortcut-card-text">
-                <div class="shortcut-card-title">Piloter un vote</div>
-                <div class="shortcut-card-sub">S&eacute;ance en direct</div>
-              </div>
-            </a>
-            <a href="/trust.htmx.html" class="card shortcut-card">
-              <div class="shortcut-card-icon muted">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
-              </div>
-              <div class="shortcut-card-text">
-                <div class="shortcut-card-title">Consulter le suivi</div>
-                <div class="shortcut-card-sub">Journal de tra&ccedil;abilit&eacute;</div>
-              </div>
-            </a>
+            <ag-tooltip text="Creer une nouvelle session en 4 etapes" position="left">
+              <a href="/wizard.htmx.html" class="card shortcut-card">
+                <div class="shortcut-card-icon accent">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                </div>
+                <div class="shortcut-card-text">
+                  <div class="shortcut-card-title">Cr&eacute;er une s&eacute;ance</div>
+                  <div class="shortcut-card-sub">Assistant en 4 &eacute;tapes</div>
+                </div>
+              </a>
+            </ag-tooltip>
+            <ag-tooltip text="Acceder a la console operateur pour piloter un vote en direct" position="left">
+              <a href="/operator.htmx.html" class="card shortcut-card">
+                <div class="shortcut-card-icon danger">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </div>
+                <div class="shortcut-card-text">
+                  <div class="shortcut-card-title">Piloter un vote</div>
+                  <div class="shortcut-card-sub">S&eacute;ance en direct</div>
+                </div>
+              </a>
+            </ag-tooltip>
+            <ag-tooltip text="Voir le journal de tracabilite et l'historique des actions" position="left">
+              <a href="/trust.htmx.html" class="card shortcut-card">
+                <div class="shortcut-card-icon muted">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                </div>
+                <div class="shortcut-card-text">
+                  <div class="shortcut-card-title">Consulter le suivi</div>
+                  <div class="shortcut-card-sub">Journal de tra&ccedil;abilit&eacute;</div>
+                </div>
+              </a>
+            </ag-tooltip>
           </aside>
 
         </div><!-- .dashboard-body -->

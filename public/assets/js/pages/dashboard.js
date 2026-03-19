@@ -49,20 +49,37 @@
     var href = cta.href ? cta.href + '?meeting_id=' + encodeURIComponent(s.id) : null;
     var isLive = cta.live;
     var isMuted = s.status === 'archived';
-    var color = STATUS_COLORS[s.status] || 'var(--color-text-muted)';
     var dateStr = s.date_time || s.scheduled_at || '';
     if (dateStr) {
       try { dateStr = new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }); }
       catch (e) { /* keep raw */ }
     }
 
+    // Map session status to ag-badge variant
+    var badgeVariant = { draft: 'draft', scheduled: 'primary', frozen: 'info',
+                         live: 'live', paused: 'live', closed: 'success',
+                         validated: 'primary', archived: 'draft' }[s.status] || 'draft';
+    var badgePulse = (s.status === 'live' || s.status === 'paused') ? ' pulse' : '';
+
+    var statusLabel = {
+      draft: 'Brouillon', scheduled: 'Planifi\u00e9e', frozen: 'Gel\u00e9e',
+      live: 'En cours', paused: 'En pause', closed: 'Cl\u00f4tur\u00e9e',
+      validated: 'Valid\u00e9e', archived: 'Archiv\u00e9e'
+    };
+
     var h = '<div class="session-card' + (isLive ? ' session-card--live' : '') + (isMuted ? ' session-card--muted' : '') + '"';
     if (href && !isMuted) h += ' onclick="location.href=\'' + escapeHtml(href) + '\'"';
     h += '>';
-    h += '<div class="session-card-status-dot" style="background:' + color + '"></div>';
+    h += '<ag-badge variant="' + badgeVariant + '"' + badgePulse + '>' + escapeHtml(statusLabel[s.status] || s.status) + '</ag-badge>';
     h += '<div class="session-card-info">';
     h += '<div class="session-card-title">' + escapeHtml(s.title || 'S\u00e9ance') + '</div>';
-    h += '<div class="session-card-meta">' + escapeHtml(dateStr) + ' \u2014 ' + (s.participant_count || 0) + ' membres \u2014 ' + (s.motion_count || 0) + ' r\u00e9solutions</div>';
+    h += '<div class="session-card-meta">';
+    h += '<span class="session-card-date">' + escapeHtml(dateStr) + '</span>';
+    h += '<span class="session-card-meta-sep">\u00B7</span>';
+    h += '<span>' + (s.participant_count || 0) + ' membres</span>';
+    h += '<span class="session-card-meta-sep">\u00B7</span>';
+    h += '<span>' + (s.motion_count || 0) + ' r\u00e9solutions</span>';
+    h += '</div>';
     h += '</div>';
     if (cta.label && href) {
       h += '<a class="btn btn-sm btn-secondary session-card-cta' + (isLive ? ' btn-success' : '') + '" href="' + escapeHtml(href) + '" onclick="event.stopPropagation()">';

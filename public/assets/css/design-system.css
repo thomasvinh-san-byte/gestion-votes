@@ -4957,22 +4957,58 @@ ag-pdf-viewer[mode="panel"] {
 }
 
 /* ── Session Cards (Dashboard) ──────────────────────────── */
+
+/* Session card redesign — Phase 35 */
 .session-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: var(--radius-md, 0.5rem);
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
   background: var(--color-surface, #FAFAF7);
   border: 1px solid var(--color-border-subtle, #e8e7e2);
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: var(--transition-ui);
   cursor: pointer;
+  position: relative;
 }
 .session-card:hover {
-  border-color: var(--color-border, #d5dbd2);
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.06));
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface-raised);
 }
 .session-card + .session-card { margin-top: 8px; }
+
+/* Hover-reveal CTA */
+.session-card .session-card-cta {
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity var(--duration-normal) var(--ease-standard),
+              transform var(--duration-normal) var(--ease-standard);
+}
+.session-card:hover .session-card-cta {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Touch devices: always show CTA */
+@media (hover: none) {
+  .session-card .session-card-cta {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Date prominence in meta */
+.session-card-date {
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+
+/* Dot separator between meta items */
+.session-card-meta-sep {
+  color: var(--color-border-strong);
+  margin: 0 4px;
+}
 .session-card--live {
   border-left: 3px solid var(--color-success, #16a34a);
   background: color-mix(in srgb, var(--color-success) 4%, var(--color-surface));
@@ -4985,12 +5021,7 @@ ag-pdf-viewer[mode="panel"] {
   border-color: var(--color-border-subtle, #e8e7e2);
   box-shadow: none;
 }
-.session-card-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+/* .session-card-status-dot removed — replaced by ag-badge (Phase 35) */
 .session-card-info { flex: 1; min-width: 0; }
 .session-card-title {
   font-weight: 600;
