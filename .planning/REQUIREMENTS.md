@@ -7,13 +7,13 @@
 
 ### Token Foundation (TKN)
 
-- [ ] **TKN-01**: design-system.css :root block reduced from 265+ to ~100 semantic tokens organized as primitive → semantic → component
-- [ ] **TKN-02**: Shadow system with 5+ named levels (xs/sm/md/lg/xl) applied semantically — cards use sm, modals use lg, tooltips use md
+- [x] **TKN-01**: design-system.css :root block reduced from 265+ to ~100 semantic tokens organized as primitive → semantic → component
+- [x] **TKN-02**: Shadow system with 5+ named levels (xs/sm/md/lg/xl) applied semantically — cards use sm, modals use lg, tooltips use md
 - [ ] **TKN-03**: Base UI font size changed from 16px to 14px for labels/chrome; body reading text stays 16px
-- [ ] **TKN-04**: Typography weight hierarchy enforced — headings at 700, section titles at 600, body at 400, no 500-vs-400 ambiguity
-- [ ] **TKN-05**: Spacing scale uses 8px base with semantic aliases (--space-section: 48px, --space-card: 24px, --space-field: 16px)
-- [ ] **TKN-06**: Border-radius semantic tokens (--radius-sm: 4px for badges, --radius: 8px for inputs, --radius-lg: 12px for cards, --radius-xl: 16px for modals)
-- [ ] **TKN-07**: Dark mode tokens derive from light via color-mix() or oklch — not hand-coded hex duplicates
+- [x] **TKN-04**: Typography weight hierarchy enforced — headings at 700, section titles at 600, body at 400, no 500-vs-400 ambiguity
+- [x] **TKN-05**: Spacing scale uses 8px base with semantic aliases (--space-section: 48px, --space-card: 24px, --space-field: 16px)
+- [x] **TKN-06**: Border-radius semantic tokens (--radius-sm: 4px for badges, --radius: 8px for inputs, --radius-lg: 12px for cards, --radius-xl: 16px for modals)
+- [x] **TKN-07**: Dark mode tokens derive from light via color-mix() or oklch — not hand-coded hex duplicates
 - [ ] **TKN-08**: Zero hardcoded hex/rgb values in any page CSS file — all reference design-system tokens
 
 ### Component Refresh (CMP)

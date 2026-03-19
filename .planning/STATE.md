@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
-status: active
-stopped_at: null
-last_updated: "2026-03-19T00:00:00.000Z"
-last_activity: 2026-03-19 — Roadmap defined, Phase 30 ready to plan
+status: planning
+stopped_at: Completed 30-01-PLAN.md
+last_updated: "2026-03-19T04:40:45.030Z"
+last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 10
+  completed_phases: 5
+  total_plans: 21
+  completed_plans: 19
 ---
 
 # AG-VOTE — Project State
@@ -61,6 +60,8 @@ Phase 34 [ ] Quality Assurance Final Audit
 - **14px base for chrome** — UI labels/chrome drop from 16px to 14px; body reading text stays 16px; two-stage migration required (add --text-14 alias first, sweep, then rename)
 - **Phase 32 dashboard validation** — light validation of 1200px max-width in browser context before committing; not a full research phase
 - **Purple accent boundary** — purple only for voter-persona contexts; general UI uses blue/indigo only; boundary documented during Phase 32-33 ballot/session pages
+- [Phase 30]: --text-base stays at 1rem (16px) in plan 30-01; 14px migration done in plan 30-02 sweep
+- [Phase 30]: Shadow-color variable pattern: single dark override drives all 8 shadow levels automatically
 
 ### Pending Todos
 
@@ -72,7 +73,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19
-Stopped at: Roadmap written, awaiting phase planning
+Last session: 2026-03-19T04:40:45.027Z
+Stopped at: Completed 30-01-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 30`
