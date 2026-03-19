@@ -11,7 +11,7 @@
 .help-header {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-4);
 }
 
 .help-header h1 {
@@ -31,9 +31,9 @@
    ============================================================================= */
 
 .help-content {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 14px;
+  padding: var(--space-card);
 }
 
 /* Help page main content — keep sidebar offset */
@@ -93,7 +93,7 @@
    ============================================================================= */
 
 .faq-section {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .faq-section-title {
@@ -114,8 +114,8 @@
 .faq-item {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
+  border-radius: var(--radius);
+  margin-bottom: var(--space-3);
   overflow: hidden;
 }
 
@@ -123,9 +123,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: var(--space-4) var(--space-card);
   cursor: pointer;
-  font-weight: 500;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
   transition: background var(--duration-fast);
 }
 
@@ -145,7 +146,7 @@
 
 .faq-answer {
   display: none;
-  padding: 0 1rem 1rem 1rem;
+  padding: 0 var(--space-card) var(--space-card);
   font-size: 0.9rem;
   color: var(--color-text-secondary);
   line-height: 1.6;
@@ -153,6 +154,12 @@
 
 .faq-item.open .faq-answer {
   display: block;
+  animation: faqReveal 150ms ease-out;
+}
+
+@keyframes faqReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .faq-answer code {
@@ -180,17 +187,17 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .quick-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
+  padding: var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--color-text);
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
@@ -228,8 +235,8 @@
 .doc-links {
   background: var(--color-bg-subtle);
   border-radius: 8px;
-  padding: 14px;
-  margin-top: 14px;
+  padding: var(--space-4);
+  margin-top: var(--space-4);
 }
 
 .doc-links h3 {
@@ -292,7 +299,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.75rem;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .tour-card {
@@ -396,8 +403,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 14px;
-  padding: 14px;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
   background: var(--color-primary-subtle);
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-lg, 12px);
