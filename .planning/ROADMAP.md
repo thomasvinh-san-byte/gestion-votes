@@ -42,7 +42,7 @@ See MILESTONES.md for full history.
   3. Every complex dashboard element (KPI delta, quorum indicator, session status badge) has a tooltip that explains itself on hover — no guided tour needed
   4. A developer opening the dashboard side-by-side with the pre-v4.2 screenshot can immediately point to 5 visual improvements without prompting
   5. Dark mode on both pages is visually equivalent in quality to light mode — no washed-out tokens or broken contrast
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 35-01-PLAN.md — Dashboard visual redesign (KPI cards, session cards, aside shortcuts, tooltips)
 - [ ] 35-02-PLAN.md — Login page visual redesign (background, branding, button, trust signal, errors)
@@ -126,7 +126,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 35. Entry Points | 1/3 | In Progress|  |
+| 35. Entry Points | 2/3 | In Progress|  |
 | 36. Session Creation Flow | 0/TBD | Not started | - |
 | 37. Live Session Conduct | 0/TBD | Not started | - |
 | 38. Results & History | 0/TBD | Not started | - |

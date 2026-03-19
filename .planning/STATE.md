@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: planning
-stopped_at: Completed 35-02-PLAN.md (Login page visual redesign)
-last_updated: "2026-03-19T12:19:38.463Z"
+stopped_at: Completed 35-01-PLAN.md
+last_updated: "2026-03-19T12:20:41.193Z"
 last_activity: 2026-03-19 — Roadmap created, 7 phases defined (35-41), 22 requirements mapped
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - **Lesson from v4.1**: CSS infrastructure ≠ visual design; visible before/after contrast is the success metric
 - [Phase 35-entry-points]: Dark mode login button uses solid color (not gradient) to avoid light-lighter gradient artifacts on dark surfaces
 - [Phase 35-entry-points]: field-error class on parent wrapper div enables future .field-error-msg child elements without additional JS
+- [Phase 35]: Used .kpi-card--N positional modifier classes instead of :nth-child to handle ag-tooltip grid wrapper incompatibility
 
 ### Pending Todos
 
@@ -63,7 +64,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-19T12:19:38.460Z
-Stopped at: Completed 35-02-PLAN.md (Login page visual redesign)
+Last session: 2026-03-19T12:20:41.191Z
+Stopped at: Completed 35-01-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 35

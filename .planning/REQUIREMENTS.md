@@ -7,12 +7,12 @@
 
 ### UX Transversal (UX)
 
-- [ ] **UX-01**: Every page is self-explanatory — tooltips on complex elements, contextual help via hover, no guided tours needed
+- [x] **UX-01**: Every page is self-explanatory — tooltips on complex elements, contextual help via hover, no guided tours needed
 - [x] **UX-02**: Every page achieves top 1% design quality — composition, typography, whitespace, visual hierarchy, micro-interactions all feel premium and intentional, not AI-generated
 
 ### Core Pages (CORE)
 
-- [ ] **CORE-01**: Dashboard — redesign visuel complet (composition KPI, session list, aside, densité, typographie, guidance tooltips)
+- [x] **CORE-01**: Dashboard — redesign visuel complet (composition KPI, session list, aside, densité, typographie, guidance tooltips)
 - [ ] **CORE-02**: Wizard — redesign visuel (stepper, formulaire centré, progression, espacement, micro-interactions, field-level tooltips)
 - [ ] **CORE-03**: Operator console — redesign visuel (sidebar agenda, status bar, tabs, live panel, densité opérationnelle, action tooltips)
 - [ ] **CORE-04**: Hub — redesign visuel (stepper sidebar, quorum bar, checklist, états de session, step guidance tooltips)
@@ -61,9 +61,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UX-01 | Phase 35 | Pending |
+| UX-01 | Phase 35 | Complete |
 | UX-02 | Phase 35 | Complete |
-| CORE-01 | Phase 35 | Pending |
+| CORE-01 | Phase 35 | Complete |
 | SEC-01 | Phase 35 | Complete |
 | CORE-02 | Phase 36 | Pending |
 | CORE-04 | Phase 36 | Pending |
