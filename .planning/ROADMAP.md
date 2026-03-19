@@ -67,7 +67,7 @@
 
 ### v4.1 Design Excellence (Phases 30-34) — ACTIVE
 
-- [x] **Phase 30: Token Foundation** — Reduce 265+ tokens to ~100 semantic tokens; establish primitive→semantic→component hierarchy, shadow scale, spacing aliases, radius scale, dark mode derivation, zero hardcoded hex (completed 2026-03-19)
+- [ ] **Phase 30: Token Foundation** — Reduce 265+ tokens to ~100 semantic tokens; establish primitive→semantic→component hierarchy, shadow scale, spacing aliases, radius scale, dark mode derivation, zero hardcoded hex (completed 2026-03-19)
 - [ ] **Phase 31: Component Refresh** — Buttons, cards, tables, form inputs, modals, toasts, badges, steppers rebuilt to exact shadcn/Sonner/Polaris specs with correct heights, radii, transitions, and dark parity
 - [ ] **Phase 32: Page Layouts — Core Pages** — Dashboard, wizard, operator console, data tables, settings/admin, mobile voter rebuilt to FEATURES.md grid/flex specs with the three-depth background model
 - [ ] **Phase 33: Page Layouts — Secondary Pages** — Hub, post-session, analytics, help/FAQ, email templates, meetings list rebuilt with consistent layout language and correct density
@@ -87,7 +87,7 @@
   3. PDF.js version is >= 4.2.67 (CVE-2024-4367 closed); isEvalSupported: false is set; serve endpoint sends X-Content-Type-Options: nosniff and Cache-Control: private, no-store
   4. The wizard step 3 FilePond upload enforces PDF-only and 10 MB max with inline error messages before submission
   5. Hub shows "Document joint" / "Aucun document" status per motion; clicking the indicator opens the inline ag-pdf-viewer
-**Plans:** 3/3 plans complete
+**Plans:** 4 plans (3 complete + 1 gap closure)
 Plans:
 - [x] 25-01-PLAN.md — Backend foundation: DB migration, controller, repository, serve endpoint, storage env var, Docker volume
 - [x] 25-02-PLAN.md — Frontend components: ag-pdf-viewer Web Component, FilePond upload in wizard step 3
@@ -103,7 +103,7 @@ Plans:
   3. Every locked button displays a tooltip explaining why it is disabled (e.g., "Disponible apres ajout des resolutions")
   4. Each session card on the dashboard shows exactly one next-action CTA reflecting its current lifecycle state (draft / live / closed)
   5. Technical terms (majorite absolue, quorum, scrutin secret) have (?) click popovers with clear definitions
-**Plans:** 3/3 plans complete
+**Plans:** 4 plans (3 complete + 1 gap closure)
 Plans:
 - [ ] 26-01-PLAN.md — ag-empty-state Web Component + empty state migration (meetings, archives, settings, members, users)
 - [ ] 26-02-PLAN.md — Dashboard status-aware session cards with lifecycle CTAs
@@ -134,7 +134,7 @@ Plans:
   4. Step 2's advanced voting settings are hidden behind a toggle ("Parametres de vote avances") and only appear when the toggle is activated
   5. The session hub pre-meeting checklist shows which items are blocked and why ("Disponible apres: resolutions ajoutees") with a quorum progress bar that animates from amber to green once quorum is reached
   6. Each motion in the hub displays "Document joint" or "Aucun document" as its document status
-**Plans:** 3/3 plans complete
+**Plans:** 4 plans (3 complete + 1 gap closure)
 Plans:
 - [ ] 28-01-PLAN.md — Wizard functional overhaul: named stepper, optional steps, review card, templates, progressive disclosure
 - [ ] 28-02-PLAN.md — Hub enhancements: checklist blocked reasons, quorum bar, motions doc badges, convocation flow
@@ -173,11 +173,12 @@ Plans:
   3. Every page CSS file passes a grep for hardcoded hex/rgb/hsl values and returns zero matches — all color references use design-system tokens
   4. Setting `--text-base` to 14px in one place causes all UI chrome labels to shrink correctly while body reading text stays at 16px — the typography scale is semantically layered
   5. Named shadow levels (xs through xl) visually differentiate cards from modals from tooltips — a developer can identify component type by shadow alone without inspecting the element
-**Plans:** 3/3 plans complete
+**Plans:** 4 plans (3 complete + 1 gap closure)
 Plans:
 - [ ] 30-01-PLAN.md — Core token restructuring: primitives, semantic colors, shadows, spacing, radius, typography, transitions
 - [ ] 30-02-PLAN.md — Typography 14px migration: audit text-base usage, protect reading text, flip base size
 - [ ] 30-03-PLAN.md — Hardcoded hex sweep: replace all standalone color values in page CSS with tokens
+- [ ] 30-04-PLAN.md — Gap closure: fix section-title weight, add spacing aliases, fix radius values, add component aliases layer
 
 ### Phase 31: Component Refresh
 **Goal**: Every shared UI component renders with intentional, differentiated visual specs — no two component types share the same radius, shadow, or spacing values, and all components use Phase 30 tokens exclusively
