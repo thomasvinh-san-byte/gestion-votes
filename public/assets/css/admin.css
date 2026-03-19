@@ -701,7 +701,7 @@
   background: var(--color-surface);
   color: var(--color-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .settings-panel {
@@ -980,14 +980,14 @@
 
 /* ─── High contrast mode overrides ─── */
 [data-high-contrast="true"] {
-  --color-text-dark: #000;
-  --color-text-muted: #333;
-  --color-border: #666;
+  --color-text-dark: oklch(0 0 0);
+  --color-text-muted: oklch(0.2 0 0);
+  --color-border: oklch(0.4 0 0);
 }
 [data-theme="dark"][data-high-contrast="true"] {
-  --color-text-dark: #fff;
-  --color-text-muted: #ccc;
-  --color-border: #888;
+  --color-text-dark: oklch(1 0 0);
+  --color-text-muted: oklch(0.8 0 0);
+  --color-border: oklch(0.53 0 0);
 }
 
 /* ─── Text size classes on :root ─── */

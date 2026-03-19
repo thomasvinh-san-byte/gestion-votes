@@ -467,12 +467,12 @@
    ============================================================================= */
 
 [data-theme="dark"] .prose pre {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-surface-alt);
   border-color: var(--color-border);
 }
 
 [data-theme="dark"] .prose blockquote {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--color-surface-alt);
 }
 
 /* =============================================================================

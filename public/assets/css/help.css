@@ -349,7 +349,7 @@
 }
 .tour-card:hover .tour-launch {
   background: var(--color-primary, #1650E0);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 /* =============================================================================

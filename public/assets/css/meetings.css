@@ -59,7 +59,7 @@
 }
 
 .filter-pill.active .filter-pill-count {
-  background: rgba(255, 255, 255, 0.25);
+  background: color-mix(in srgb, var(--color-text-inverse) 25%, transparent);
 }
 
 /* =============================================================================

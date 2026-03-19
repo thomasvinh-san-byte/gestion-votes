@@ -39,7 +39,7 @@
   height: 52px;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: #fff;
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,7 +48,7 @@
 }
 
 .hub-identity-icon svg {
-  stroke: #fff;
+  stroke: var(--color-text-inverse);
 }
 
 .hub-identity-info {
@@ -125,7 +125,7 @@
 .hub-bar-segment.active {
   height: 12px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow);
 }
 
 .hub-bar-segment.done {
@@ -291,7 +291,7 @@
   background: var(--color-success);
   border-color: var(--color-success);
   color: var(--color-text-inverse);
-  box-shadow: 0 2px 6px rgba(11, 122, 64, 0.2);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-success) 20%, transparent);
 }
 
 .hub-step-num.active {
@@ -322,7 +322,7 @@
   background: var(--color-success);
   border-color: var(--color-success);
   color: var(--color-text-inverse);
-  box-shadow: 0 2px 6px rgba(11, 122, 64, 0.2);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-success) 20%, transparent);
 }
 
 .hub-step.active .hub-step-dot {
@@ -565,7 +565,7 @@
   background: var(--color-success);
   border-color: var(--color-success);
   color: var(--color-text-inverse);
-  box-shadow: 0 2px 4px rgba(11, 122, 64, 0.15);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--color-success) 15%, transparent);
 }
 
 .hub-check-label {
