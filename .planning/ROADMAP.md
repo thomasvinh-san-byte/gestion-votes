@@ -68,7 +68,7 @@
 ### v4.1 Design Excellence (Phases 30-34) — ACTIVE
 
 - [x] **Phase 30: Token Foundation** — Reduce 265+ tokens to ~100 semantic tokens; establish primitive→semantic→component hierarchy, shadow scale, spacing aliases, radius scale, dark mode derivation, zero hardcoded hex (completed 2026-03-19) (completed 2026-03-19)
-- [ ] **Phase 31: Component Refresh** — Buttons, cards, tables, form inputs, modals, toasts, badges, steppers rebuilt to exact shadcn/Sonner/Polaris specs with correct heights, radii, transitions, and dark parity
+- [x] **Phase 31: Component Refresh** — Buttons, cards, tables, form inputs, modals, toasts, badges, steppers rebuilt to exact shadcn/Sonner/Polaris specs with correct heights, radii, transitions, and dark parity (completed 2026-03-19)
 - [ ] **Phase 32: Page Layouts — Core Pages** — Dashboard, wizard, operator console, data tables, settings/admin, mobile voter rebuilt to FEATURES.md grid/flex specs with the three-depth background model
 - [ ] **Phase 33: Page Layouts — Secondary Pages** — Hub, post-session, analytics, help/FAQ, email templates, meetings list rebuilt with consistent layout language and correct density
 - [ ] **Phase 34: Quality Assurance Final Audit** — Every page verified against the 6 AI anti-patterns checklist, background layering, Fraunces usage, dark mode parity, and transitions/focus/inline-style standards
@@ -190,7 +190,7 @@ Plans:
   3. A table row at 48px height with a sticky 40px header shows right-aligned numeric columns in JetBrains Mono with a hover highlight — the data density matches the Linear/Jira reference
   4. A form input at 36px height shows a double-ring focus state (2px surface gap + 4px primary ring) and a red border on validation error — the focus and error states are unambiguous
   5. Toast notifications stack with 8px gap, display a 3px left-border accent stripe in the semantic status color, and slide in from the correct edge — Sonner-pattern behavior is complete
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
 - [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
@@ -252,7 +252,7 @@ Plans:
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
-| 31. Component Refresh | 1/2 | In Progress|  |
+| 31. Component Refresh | 2/2 | Complete   | 2026-03-19 |
 | 32. Page Layouts — Core Pages | 0/? | Not started | - |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |

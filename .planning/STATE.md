@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Completed 31-component-refresh/31-01-PLAN.md
-last_updated: "2026-03-19T06:05:04.040Z"
+stopped_at: Completed 31-component-refresh/31-02-PLAN.md
+last_updated: "2026-03-19T06:11:05.590Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # AG-VOTE — Project State
@@ -68,6 +68,8 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 31-component-refresh]: Stepper connector-line pattern chosen over card-box — matches ag-stepper.js production rendering and industry standard
 - [Phase 31-component-refresh]: Button hover uses shadow-md deepening instead of translateY(-1px) lift — lift reserved for clickable cards only
 - [Phase 31-component-refresh]: Toast accent uses inset box-shadow instead of border-left — inset respects border-radius corners
+- [Phase 31-component-refresh]: Toast accent uses inset box-shadow combined with shadow-lg in each type variant — CSS box-shadow does not auto-merge across selectors
+- [Phase 31-component-refresh]: Icon intrinsic sizes (12px-22px SVGs) left as literals — no design tokens exist for SVG icon dimensions; only visual design properties tokenized
 
 ### Pending Todos
 
@@ -79,7 +81,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:05:04.037Z
-Stopped at: Completed 31-component-refresh/31-01-PLAN.md
+Last session: 2026-03-19T06:11:05.588Z
+Stopped at: Completed 31-component-refresh/31-02-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 30`
