@@ -1,580 +1,1334 @@
-# Architecture Patterns — v4.0 "Clarity & Flow"
+# Component Design Architecture — v4.1 Design Excellence
 
 **Project:** AG-VOTE
 **Researched:** 2026-03-18
-**Scope:** v4.0 integration architecture — PDF upload, inline viewer, guided UX, copro transformation, design system evolution. SSE/API wiring already shipped in v3.0 and is NOT covered here.
+**Scope:** Exact CSS specifications for every component type — premium, top 1% quality
+**Stack:** Vanilla JS Web Components + CSS custom properties, light-first
+**Supersedes:** v4.0 integration architecture (retained in milestone archive)
+
+## Methodology
+
+Sources used in priority order:
+1. shadcn/ui source (new-york registry) — industry reference for 2025/2026 design systems
+2. Sonner CSS source (`emilkowalski/sonner`) — canonical toast reference, values extracted from raw CSS
+3. Shopify Polaris token library — enterprise-grade, all values publicly documented
+4. ishadeed.com stepper article — authoritative CSS implementation with exact values
+5. AG-VOTE `design-system.css` — ground truth for existing tokens (verified by direct Read)
+
+All Tailwind values have been converted to exact px/rem. All specs reference AG-VOTE tokens where they exist.
+
+Confidence: HIGH for shadcn/Sonner/Polaris values. HIGH for AG-VOTE existing tokens. MEDIUM for synthesis decisions.
 
 ---
 
-## 1. PDF File Upload & Storage
+## Existing AG-VOTE Token Reference
 
-### What Already Exists
+These tokens exist in `public/assets/css/design-system.css` and MUST be used — not reinvented.
 
-The codebase already has a complete meeting-level attachment system:
-
-- **Controller:** `app/Controller/MeetingAttachmentController.php` — upload, list, delete
-- **Repository:** `app/Repository/MeetingAttachmentRepository.php` — CRUD
-- **DB table:** `meeting_attachments` (migration 20260219)
-- **Routes:** `GET/POST/DELETE /api/v1/meeting_attachments` (operator role)
-- **Validation:** 10 MB limit, `application/pdf` only via `finfo`, `.pdf` extension check
-- **Audit log:** `meeting_attachment_uploaded` and `meeting_attachment_deleted`
-
-What is MISSING for v4.0:
-
-- **Resolution-level documents.** The current table attaches PDFs to meetings, not to individual motions/resolutions. v4.0 needs `resolution_documents` at the motion level.
-- **Secure serve endpoint.** Files are stored at `/tmp/ag-vote/uploads/meetings/{meeting_id}/{uuid}.pdf` but there is no PHP endpoint to serve them back. Only upload/delete exist. Voters cannot currently view attached PDFs.
-- **Storage persistence.** `/tmp/` is ephemeral on restart (Docker, Render). Production must move to a persistent volume or object storage path.
-
-### Proposed DB Schema: `resolution_documents`
-
-```sql
--- Migration: resolution_documents
--- Attaches PDF documents to individual motions/resolutions
--- Voters can consult these before casting their ballot
-
-CREATE TABLE IF NOT EXISTS resolution_documents (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    meeting_id uuid NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-    motion_id uuid NOT NULL REFERENCES motions(id) ON DELETE CASCADE,
-    original_name text NOT NULL,
-    stored_name text NOT NULL,       -- UUID-based, no user-controlled name on disk
-    mime_type text NOT NULL DEFAULT 'application/pdf',
-    file_size bigint NOT NULL DEFAULT 0,
-    display_order integer NOT NULL DEFAULT 0,
-    uploaded_by uuid REFERENCES users(id) ON DELETE SET NULL,
-    created_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_resolution_docs_motion
-    ON resolution_documents(motion_id);
-CREATE INDEX IF NOT EXISTS idx_resolution_docs_meeting
-    ON resolution_documents(meeting_id);
-CREATE INDEX IF NOT EXISTS idx_resolution_docs_tenant
-    ON resolution_documents(tenant_id);
-
-COMMENT ON TABLE resolution_documents IS
-    'PDF documents attached to individual motions for voter consultation';
 ```
+Spacing        --space-1:0.25rem(4px) --space-2:0.5rem(8px) --space-3:0.75rem(12px)
+               --space-4:1rem(16px)   --space-5:1.25rem(20px) --space-6:1.5rem(24px)
+               --space-8:2rem(32px)
 
-The `meeting_id` redundancy on `resolution_documents` avoids a JOIN when listing all docs for a meeting and simplifies access control (tenant_id + meeting_id is the standard isolation pair in this codebase).
+Border radius  --radius-sm:0.375rem(6px)  --radius:0.5rem(8px)  --radius-lg:0.625rem(10px)
+               --radius-full:999px
 
-### Storage Path Decision
+Shadows        --shadow-xs:  0 1px 1px rgba(21,21,16,0.03)
+               --shadow-sm:  0 1px 3px rgba(21,21,16,0.05), 0 1px 2px rgba(21,21,16,0.03)
+               --shadow:     0 3px 6px rgba(21,21,16,0.06), 0 1px 3px rgba(21,21,16,0.04)
+               --shadow-md:  0 3px 10px rgba(21,21,16,0.07), 0 1px 3px rgba(21,21,16,0.04)
+               --shadow-lg:  0 8px 24px rgba(21,21,16,0.1), 0 2px 6px rgba(21,21,16,0.05)
+               --shadow-xl:  0 25px 50px -12px rgba(21,21,16,0.15)
+               --shadow-focus: 0 0 0 2px #fff, 0 0 0 4px rgba(22,80,224,0.4)
 
-**Current (meeting_attachments):** `/tmp/ag-vote/uploads/meetings/{meeting_id}/{uuid}.pdf`
+Transitions    --duration-fast:100ms  --duration-normal:200ms  --duration-slow:300ms
+               --ease-default: cubic-bezier(0.4,0,0.2,1)
+               --ease-out:     cubic-bezier(0,0,0.2,1)
+               --ease-bounce:  cubic-bezier(0.34,1.56,0.64,1)
 
-**Problem:** `/tmp/` is wiped on container restart. This is acceptable for the current development state but is a production blocker.
-
-**v4.0 decision:** Move to a configurable persistent path.
-
-Recommended storage layout:
+Key colors     --color-primary:#1650E0  --color-primary-hover:#1140C0
+               --color-primary-active:#0C30A0  --color-primary-subtle:#EBF0FF
+               --color-surface:#FAFAF7  --color-surface-raised:#FFFFFF
+               --color-bg:#EDECE6  --color-bg-subtle:#E5E3D8
+               --color-border:#CDC9BB  --color-border-subtle:#DEDAD0
+               --color-border-strong:#BCB7A5
+               --color-text:#52504A  --color-text-muted:#857F72
+               --color-text-light:#B5B0A0  --color-text-dark:#151510
+               --color-backdrop:rgba(0,0,0,0.5)
+               --color-success:#0B7A40  --color-success-subtle:#EDFAF2
+               --color-warning:#B56700  --color-warning-subtle:#FFF7E8
+               --color-danger:#C42828   --color-danger-subtle:#FEF1F0
+               --color-accent:#5038C0  --color-accent-subtle:#EEEAFF
 ```
-/var/agvote/uploads/           <- mounted Docker volume or bind mount
-  meetings/{meeting_id}/       <- meeting-level attachments (existing)
-  resolutions/{motion_id}/     <- resolution-level documents (new)
-```
-
-Configure via environment variable `AGVOTE_UPLOAD_DIR` (defaulting to `/var/agvote/uploads`). The controller reads this variable; the Dockerfile mounts a volume at that path.
-
-```php
-// In MeetingAttachmentController and new ResolutionDocumentController
-$uploadBase = rtrim((string) getenv('AGVOTE_UPLOAD_DIR') ?: '/var/agvote/uploads', '/');
-$uploadDir  = $uploadBase . '/resolutions/' . $motionId;
-```
-
-### Secure Serve Endpoint
-
-Files must NOT be web-accessible directly (no nginx `location /uploads/`). They must be served through PHP which enforces auth.
-
-**New route:** `GET /api/v1/resolution_document_serve`
-
-```php
-// ResolutionDocumentController::serve()
-// 1. Verify session (api_current_user_id() or valid vote_token)
-// 2. Check meeting access — operator/admin: any meeting; voter: only current meeting
-// 3. Verify tenant_id matches document
-// 4. readfile($path) with correct headers
-```
-
-Headers to emit:
-```
-Content-Type: application/pdf
-Content-Disposition: inline; filename="{original_name}"
-Content-Length: {file_size}
-X-Content-Type-Options: nosniff
-Cache-Control: private, no-store
-```
-
-Note: `Content-Disposition: inline` (not `attachment`) is intentional — it opens in the browser PDF viewer rather than forcing a download.
-
-**Nginx:** No changes needed. The `/api/` location block already routes to PHP. Do NOT add a direct nginx `location /uploads/` block — that would bypass auth.
-
-### File Constraints & Validation
-
-Existing pattern in `MeetingAttachmentController` is correct. For resolution documents:
-
-| Constraint | Value | Rationale |
-|------------|-------|-----------|
-| Max size | 10 MB | Consistent with meeting attachments |
-| MIME check | `finfo(FILEINFO_MIME_TYPE)` | Server-side magic byte check, not Content-Type header |
-| Extension | `.pdf` only | Belt-and-suspenders |
-| Stored name | `{uuid}.pdf` | Prevents directory traversal, no user-controlled filename on disk |
-
-Virus scanning is out of scope for v4.0. If added later, integrate ClamAV via `exec('clamscan ...')` after `move_uploaded_file` and before DB insert.
-
-### New Files Needed
-
-| File | Type | Purpose |
-|------|------|---------|
-| `app/Controller/ResolutionDocumentController.php` | PHP | Upload, list, delete, serve |
-| `app/Repository/ResolutionDocumentRepository.php` | PHP | CRUD for resolution_documents |
-| `database/migrations/YYYYMMDD_resolution_documents.sql` | SQL | New table |
-| Routes in `app/routes.php` | PHP | `resolution_documents` GET/POST/DELETE, `resolution_document_serve` GET |
-
-**Files modified:**
-- `app/Core/Providers/RepositoryFactory.php` — register `resolutionDocument()` accessor
-- `app/routes.php` — add 4 new routes
-- `app/Controller/MeetingAttachmentController.php` — migrate storage path from `/tmp` to `AGVOTE_UPLOAD_DIR`
-- `deploy/docker-compose.yml` — add volume mount for `AGVOTE_UPLOAD_DIR`
-- `Dockerfile` — `mkdir -p /var/agvote/uploads` in build layer
-
-**Risk:** LOW. Pattern is identical to `MeetingAttachmentController`. The serve endpoint is the only new pattern.
 
 ---
 
-## 2. Inline PDF Viewer Integration
+## 1. BUTTONS
 
-### Component Decision
+### Research Basis
 
-**Verdict:** Build `ag-pdf-viewer` as a new Web Component.
+shadcn/ui new-york registry (verified from taxonomy repo source). Tailwind conversions:
+- `h-10` = 40px, `h-9` = 36px, `h-11` = 44px
+- `px-4` = 16px, `py-2` = 8px, `text-sm` = 14px
+- `rounded-md` in new-york = 6px, `font-medium` = 500
+- Focus ring: `ring-2 ring-offset-2` = 2px ring + 2px gap = matches `--shadow-focus`
 
-Rationale:
-- The existing component set (ag-modal, ag-popover) follows the Custom Elements pattern — a new component is idiomatic
-- The viewer needs shared behavior (loading state, error state, mobile bottom sheet) across at least 3 pages: wizard, hub, vote.htmx.html
-- Native browser PDF rendering via `<iframe src="..." type="application/pdf">` works in all modern browsers without a JS library
+Base classes confirmed: `inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none`
 
-Do NOT add a third-party PDF library (pdf.js etc.) in v4.0. The serve endpoint returns a real PDF file; the browser's native PDF viewer handles rendering. This keeps dependencies at zero.
+Sizes confirmed: default `h-10 py-2 px-4`, sm `h-9 px-3`, lg `h-11 px-8`, icon `h-10 w-10`.
 
-### Component API
+### What Separates Top 1% From Generic
 
-```javascript
-// Usage in HTML
-<ag-pdf-viewer
-  src="/api/v1/resolution_document_serve?id={uuid}"
-  filename="deliberation-1.pdf"
-  loading-text="Chargement..."
-></ag-pdf-viewer>
-```
+1. **36px default height** (not 40px) — 40px is Bootstrap legacy. Dense governance UIs use 36px.
+2. **`font-weight: 500` not 600** — 600 reads as urgent/aggressive. 500 is confident, not shouting.
+3. **Active `scale(0.97)` transform** — 100ms, barely perceptible, but deeply tactile.
+4. **Box-shadow focus ring, not `outline`** — 2px white gap + 4px colored ring, keyboard-nav only.
+5. **Named transitions** — not `transition: all`, list exactly `background-color, color, border-color, box-shadow, transform`.
 
-Internal structure (Shadow DOM):
-```
-ag-pdf-viewer
-  +-- .viewer-toolbar  (filename, close button, fullscreen toggle)
-  +-- .viewer-iframe   (<iframe> with src bound to attr)
-  +-- .viewer-error    (shown if iframe fails to load)
-```
+### Exact CSS Specifications
 
-The component listens for attribute changes via `attributeChangedCallback` and updates the iframe src.
-
-### Mobile Integration (Vote Screen)
-
-The voter view (`vote.htmx.html`) is the primary mobile context (phone in-room voting).
-
-Pattern: **bottom sheet slide-up panel**, not a full-screen modal. The existing `ag-modal` uses `position: fixed; inset: 0` — too heavy for mobile document preview.
-
-`ag-pdf-viewer` should support a `mode` attribute:
-- `mode="inline"` — embedded in page flow (desktop, hub, wizard)
-- `mode="sheet"` — bottom sheet slide-up (default on mobile, vote page)
-
-Bottom sheet CSS (to add to `design-system.css`):
 ```css
-ag-pdf-viewer[mode="sheet"] {
-  position: fixed;
-  inset: auto 0 0 0;
-  height: 80dvh;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  z-index: var(--z-modal);
-  transform: translateY(100%);
-  transition: transform var(--duration-slow) var(--ease-out);
+/* ── BASE BUTTON ─────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;                       /* 6px */
+  padding: 0 0.875rem;                 /* 0 14px */
+  height: 2.25rem;                     /* 36px — compact premium default */
+  border-radius: var(--radius-sm);     /* 6px */
+  font-family: var(--font-sans);
+  font-size: 0.875rem;                 /* 14px */
+  font-weight: var(--font-medium);     /* 500 */
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    color            var(--duration-fast) var(--ease-default),
+    border-color     var(--duration-fast) var(--ease-default),
+    box-shadow       var(--duration-fast) var(--ease-default),
+    transform        var(--duration-fast) var(--ease-default);
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-ag-pdf-viewer[mode="sheet"][open] {
+.btn:focus-visible {
+  box-shadow: var(--shadow-focus); /* 0 0 0 2px #fff, 0 0 0 4px rgba(22,80,224,0.4) */
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ── SIZE VARIANTS ───────────────────────────────────────── */
+.btn-sm {
+  height: 1.875rem;                    /* 30px */
+  padding: 0 0.625rem;                 /* 0 10px */
+  font-size: 0.8125rem;                /* 13px */
+  border-radius: 0.3125rem;            /* 5px */
+  gap: 0.25rem;
+}
+
+.btn-lg {
+  height: 2.75rem;                     /* 44px */
+  padding: 0 1.25rem;                  /* 0 20px */
+  font-size: 0.9375rem;                /* 15px */
+  border-radius: var(--radius);        /* 8px */
+}
+
+.btn-icon {
+  width: 2.25rem;                      /* 36px × 36px */
+  height: 2.25rem;
+  padding: 0;
+  flex-shrink: 0;
+}
+.btn-icon.btn-sm { width: 1.875rem; height: 1.875rem; }
+.btn-icon.btn-lg { width: 2.75rem;  height: 2.75rem; }
+
+/* ── PRIMARY ─────────────────────────────────────────────── */
+.btn-primary {
+  background-color: var(--color-primary);     /* #1650E0 */
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: var(--shadow-xs);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover); /* #1140C0 */
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:active:not(:disabled) {
+  background-color: var(--color-primary-active); /* #0C30A0 */
+  box-shadow: none;
+}
+
+/* ── SECONDARY ───────────────────────────────────────────── */
+.btn-secondary {
+  background-color: var(--color-surface-raised); /* #FFFFFF */
+  color: var(--color-text);
+  border-color: var(--color-border);             /* #CDC9BB */
+  box-shadow: var(--shadow-xs);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-bg);             /* #EDECE6 */
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:active:not(:disabled) {
+  background-color: var(--color-bg-subtle);      /* #E5E3D8 */
+  box-shadow: none;
+}
+
+/* ── GHOST ───────────────────────────────────────────────── */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: transparent;
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-bg-subtle);      /* #E5E3D8 */
+}
+.btn-ghost:active:not(:disabled) {
+  background-color: var(--color-border-subtle);  /* #DEDAD0 */
+}
+
+/* ── DANGER ──────────────────────────────────────────────── */
+.btn-danger {
+  background-color: var(--color-danger);         /* #C42828 */
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: var(--shadow-xs);
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);   /* #A82222 */
+}
+.btn-danger:active:not(:disabled) {
+  background-color: #8C1B1B;
+  box-shadow: none;
+}
+
+/* ── DANGER-GHOST (secondary destructive) ────────────────── */
+.btn-danger-ghost {
+  background-color: transparent;
+  color: var(--color-danger);
+  border-color: transparent;
+}
+.btn-danger-ghost:hover:not(:disabled) {
+  background-color: var(--color-danger-subtle);  /* #FEF1F0 */
+  border-color: var(--color-danger-border);
+}
+
+/* ── OUTLINE (primary-colored border) ───────────────────── */
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--color-primary-subtle); /* #EBF0FF */
+}
+```
+
+### Anti-Patterns to Avoid
+
+- `border-radius` above 8px on default buttons — becomes "rounded" not "precise"
+- `font-weight: 600` or `700` on buttons — 500 is premium, bolder feels alarming in governance UI
+- Shadows on ghost buttons — ghost implies floating, shadow anchors it wrongly
+- `transition: all` — enumerate specific properties only
+
+---
+
+## 2. CARDS
+
+### Research Basis
+
+Stripe dashboard, Linear issue cards, and Notion blocks all use the pattern: **white surface + 1px border + warm-off-white page background**. AG-VOTE already has this with `--color-surface-raised: #FFFFFF` on `--color-bg: #EDECE6`. The gap is in precise padding rhythm and header treatment.
+
+Premium card rule: **border for light mode, shadow only for modals and raised surfaces**. Not both on the same element.
+
+### Exact CSS Specifications
+
+```css
+/* ── BASE CARD ───────────────────────────────────────────── */
+.card {
+  background-color: var(--color-surface-raised); /* #FFFFFF */
+  border: 1px solid var(--color-border);         /* #CDC9BB */
+  border-radius: var(--radius-lg);               /* 10px */
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+/* ── CARD HEADER ─────────────────────────────────────────── */
+.card-header {
+  padding: 1rem 1.25rem;                         /* 16px 20px */
+  border-bottom: 1px solid var(--color-border-subtle); /* #DEDAD0 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);                           /* 12px */
+  min-height: 3rem;                              /* 48px — consistent header height */
+}
+
+.card-header-title {
+  font-size: 0.9375rem;                          /* 15px */
+  font-weight: var(--font-semibold);             /* 600 */
+  color: var(--color-text-dark);                 /* #151510 */
+  line-height: 1.3;
+}
+
+.card-header-subtitle {
+  font-size: 0.8125rem;                          /* 13px */
+  color: var(--color-text-muted);                /* #857F72 */
+  margin-top: 0.125rem;                          /* 2px */
+  line-height: 1.4;
+}
+
+/* ── CARD BODY ───────────────────────────────────────────── */
+.card-body {
+  padding: 1.25rem;                              /* 20px */
+}
+
+.card-body-spacious {
+  padding: 1.5rem;                               /* 24px — for forms, settings panels */
+}
+
+.card-body-compact {
+  padding: 0.875rem 1.25rem;                     /* 14px 20px — for dense data lists */
+}
+
+/* ── CARD FOOTER ─────────────────────────────────────────── */
+.card-footer {
+  padding: 0.875rem 1.25rem;                     /* 14px 20px */
+  border-top: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg);             /* #EDECE6 — recessed footer */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);                           /* 8px */
+}
+
+/* ── INTERACTIVE CARD (clickable sessions, resolutions) ──── */
+.card-interactive {
+  cursor: pointer;
+  transition:
+    transform     var(--duration-normal) var(--ease-out),
+    box-shadow    var(--duration-normal) var(--ease-out),
+    border-color  var(--duration-normal) var(--ease-out);
+}
+.card-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+.card-interactive:active {
   transform: translateY(0);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ── CARD VARIANTS ───────────────────────────────────────── */
+.card-flat {
+  box-shadow: none;
+  border-color: var(--color-border-subtle);
+}
+
+.card-raised {
+  box-shadow: var(--shadow-md);
+  border-color: transparent;
+}
+
+/* Left accent border for status cards */
+.card-accent-primary  { border-left: 3px solid var(--color-primary); }
+.card-accent-success  { border-left: 3px solid var(--color-success); }
+.card-accent-warning  { border-left: 3px solid var(--color-warning); }
+.card-accent-danger   { border-left: 3px solid var(--color-danger); }
+.card-accent-accent   { border-left: 3px solid var(--color-accent); }
+```
+
+### Anti-Patterns to Avoid
+
+- `border-radius: 12px` or above — loses the "official document" feel AG-VOTE targets
+- Box-shadow only (no border) on light bg — borders give crisp definition on warm beige
+- Hover lift above `translateY(-2px)` — becomes distracting in dense list views
+- Padding above 24px in card bodies — creates empty space that reads as unfinished
+
+---
+
+## 3. TABLES
+
+### Research Basis
+
+Shopify Polaris: `--table-cell-padding: var(--p-space-150)` = 6px vertical, 16px horizontal. Carbon Design System: 48px rows (default density), 36px (compact).
+Key finding: **uppercase 12px headers with `letter-spacing: 0.05em` are the universal premium signal** for data tables. Every top-tier product uses this pattern (Stripe, Linear, Airtable, Notion databases).
+
+### Exact CSS Specifications
+
+```css
+/* ── TABLE WRAPPER ───────────────────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);               /* 10px */
+  background: var(--color-surface-raised);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── TABLE BASE ──────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;                           /* 14px */
+  color: var(--color-text);
+}
+
+/* ── HEADER ──────────────────────────────────────────────── */
+.data-table thead tr {
+  background-color: var(--color-bg);             /* #EDECE6 — slightly recessed */
+  border-bottom: 1px solid var(--color-border);  /* #CDC9BB */
+}
+
+.data-table thead th {
+  padding: 0 1rem;
+  height: 2.5rem;                                /* 40px */
+  font-size: 0.75rem;                            /* 12px */
+  font-weight: var(--font-semibold);             /* 600 */
+  color: var(--color-text-muted);                /* #857F72 */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;                        /* 0.6px at 12px */
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Sortable header */
+.data-table thead th[data-sortable] {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--duration-fast);
+}
+.data-table thead th[data-sortable]:hover {
+  color: var(--color-text);
+}
+
+/* Sort arrows — Unicode fallback, replace with SVG in production */
+.data-table thead th[aria-sort="ascending"]::after  { content: " ↑"; color: var(--color-primary); }
+.data-table thead th[aria-sort="descending"]::after { content: " ↓"; color: var(--color-primary); }
+.data-table thead th[data-sortable]:not([aria-sort])::after {
+  content: " ↕";
+  opacity: 0.3;
+}
+
+/* ── BODY ROWS ───────────────────────────────────────────── */
+.data-table tbody tr {
+  height: 2.75rem;                               /* 44px */
+  border-bottom: 1px solid var(--color-border-subtle); /* #DEDAD0 */
+  transition: background-color var(--duration-fast) var(--ease-default);
+}
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+.data-table tbody tr:hover {
+  background-color: var(--color-bg-subtle);      /* #E5E3D8 */
+}
+.data-table tbody tr.selected {
+  background-color: var(--color-primary-subtle); /* #EBF0FF */
+}
+
+/* ── CELLS ───────────────────────────────────────────────── */
+.data-table td {
+  padding: 0 1rem;
+  vertical-align: middle;
+}
+
+/* First and last column inset */
+.data-table td:first-child,
+.data-table th:first-child { padding-left: 1.25rem; }  /* 20px */
+.data-table td:last-child,
+.data-table th:last-child  { padding-right: 1.25rem; }
+
+/* ── COMPACT VARIANT ─────────────────────────────────────── */
+.data-table.compact tbody tr { height: 2.25rem; }      /* 36px */
+.data-table.compact thead th { height: 2rem; }          /* 32px */
+
+/* ── STICKY HEADER ───────────────────────────────────────── */
+.table-wrapper.sticky { overflow-y: auto; max-height: 70vh; }
+.data-table.sticky-header thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--color-bg);
+}
+/* Hard separator line that stays visible during scroll */
+.data-table.sticky-header thead tr::after {
+  content: '';
+  display: block;
+  position: sticky;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ── NUMERIC CELL (right-aligned data) ───────────────────── */
+.data-table td.num,
+.data-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;                          /* 13px */
 }
 ```
 
-### Integration Points by Page
+### Anti-Patterns to Avoid
 
-| Page | How PDF is triggered | Mode |
-|------|---------------------|------|
-| `wizard.htmx.html` | Preview button on resolution card | `inline` in panel |
-| `hub.htmx.html` | "Voir document" on motion detail | `inline` in sidebar |
-| `vote.htmx.html` | "Consulter le document" button | `sheet` (bottom slide-up) |
-| `operator.htmx.html` | Document panel in motion details | `inline` |
-
-### New Files
-
-| File | Type | Purpose |
-|------|------|---------|
-| `public/assets/js/components/ag-pdf-viewer.js` | JS WC | The component |
-| (CSS additions to `design-system.css`) | CSS | Bottom sheet, viewer toolbar styles |
-
-**Files modified:**
-- `public/assets/js/components/index.js` — register `ag-pdf-viewer`
-- `public/vote.htmx.html` — add document button on motion card
-- `public/wizard.htmx.html` — add document upload + preview on resolution step
-- `public/assets/js/pages/vote.js` — trigger sheet open on button click
-- `public/assets/js/pages/wizard.js` — document upload + preview wiring
-
-**Risk:** LOW. Browser native PDF viewer is reliable. The bottom sheet is pure CSS. The component has no library dependencies.
+- Striped rows — hover is sufficient; stripes create visual noise at high density
+- Vertical cell borders — horizontal-only rules reduce visual noise by ~60%
+- Uppercase headers above 13px — at 14px+ uppercase is visually aggressive
+- Row height below 36px — too cramped for click targets and text legibility
 
 ---
 
-## 3. Guided UX System Architecture
+## 4. FORMS & INPUTS
 
-### What Already Exists
+### Research Basis
 
-The design system already has the CSS infrastructure for guided tours:
+shadcn/ui new-york input (verified): `h-10 px-3 py-2 text-sm rounded-md` = 40px, 12px horizontal, 14px text, 6px radius.
+Stripe Elements: recommends `fontSizeBase` minimum 16px for mobile (prevents iOS zoom).
+Focus ring: `ring-2 ring-offset-2` = `box-shadow: 0 0 0 2px #fff, 0 0 0 4px {brand}` — matches `--shadow-focus`.
 
-- `design-system.css` lines 3741-3940: complete `.tour-overlay`, `.tour-spotlight-ring`, `.tour-bubble`, `.tour-progress`, `.tour-progress-dots` styles
-- Z-index tokens already defined: `--z-tour-overlay: 9990`, `--z-tour-spotlight: 9991`, `--z-tour-bubble: 9992`
-- `meetings.js` has an onboarding banner pattern with `localStorage` dismissal (`ag_meetings_ob_dismissed`)
-- `page-components.js` has `CollapsibleSection` for expandable/collapsible sections
-- `shared.js` has `emptyState()` helper for empty state rendering with SVG icons for meetings/members/votes/archives
+AG-VOTE desktop-first decision: use 36px default, 40px for standalone forms where finger-touch matters.
 
-What is MISSING: there is no `ag-guide` Web Component or `GuidedTour` JS class. The CSS exists but has no JS driver.
-
-### Architecture Decision: Central Registry + Lazy JS Driver
-
-**Approach:** One `ag-guide` Web Component that reads a JSON step config, injected per-page as a `<script>` block. This avoids rewriting the 29 existing page modules.
-
-Integration pattern for an existing page module:
-```html
-<!-- Added to any .htmx.html page, no changes to existing JS -->
-<script>
-  window.AG_GUIDE_STEPS = [
-    {
-      target: '#btnCreateMeeting',
-      title: 'Creer une seance',
-      body: 'Commencez ici pour configurer votre assemblee generale.',
-      position: 'bottom'
-    },
-    {
-      target: '.sessions-table',
-      title: 'Vos seances',
-      body: 'Toutes vos seances apparaissent ici, avec leur statut en temps reel.',
-      position: 'top'
-    }
-  ];
-</script>
-<ag-guide steps-var="AG_GUIDE_STEPS" storage-key="ag_guide_meetings_v1"></ag-guide>
-```
-
-The `storage-key` is written to `localStorage` with value `"done"` when the user completes or skips the tour. The component checks this on mount and silently does nothing if already dismissed.
-
-### ag-guide Web Component API
-
-```javascript
-// Attributes
-// steps-var: global JS variable name containing the steps array
-// storage-key: localStorage key for dismissal state
-// trigger: 'auto' (on page load, first visit only) | 'manual' (only via startTour())
-
-// Public methods (callable from page module if needed)
-document.querySelector('ag-guide').startTour();
-document.querySelector('ag-guide').stopTour();
-
-// Custom events
-// guided-tour-complete -- fired when user finishes or skips
-// guided-tour-step    -- fired on each step advance, detail: { step, total }
-```
-
-### ag-hint Web Component (Contextual Hints)
-
-Simpler than `ag-guide` — a persistent but dismissible inline hint bubble for contextual help on specific fields/sections:
-
-```html
-<ag-hint storage-key="ag_hint_proxy_deadline_v1">
-  Les procurations doivent etre deposees avant la date limite fixee dans les statuts.
-</ag-hint>
-```
-
-CSS: renders as a small callout card with an "x" dismiss button. Dismissal persists in `localStorage`.
-
-### Progressive Disclosure (Collapsible Advanced Sections)
-
-`page-components.js` already has `CollapsibleSection`. The pattern is simply to wrap "advanced" form fields in a `<details>`-like element:
-
-```html
-<div class="advanced-section" data-collapsible>
-  <button class="advanced-toggle" aria-expanded="false">
-    Parametres avances
-    <svg class="chevron">...</svg>
-  </button>
-  <div class="advanced-body" hidden>
-    <!-- advanced fields -->
-  </div>
-</div>
-```
-
-`CollapsibleSection.initAll('.advanced-section')` is called from the page module after render. No new component needed. This is a CSS + existing JS pattern.
-
-**Primary targets:** operator console, wizard step 2 (vote policy configuration), settings page vote/quorum policies. The basic happy path is exposed; edge cases are hidden behind "Parametres avances".
-
-### ag-empty-state Web Component
-
-The current `emptyState()` function in `shared.js` returns raw HTML strings. v4.0 benefit: convert to a Web Component with an action slot:
-
-```html
-<ag-empty-state icon="meetings" title="Aucune seance" description="Creez votre premiere assemblee generale.">
-  <button slot="action" class="btn btn-primary" id="btnCreateMeeting">Nouvelle seance</button>
-</ag-empty-state>
-```
-
-Backward compatible: existing `emptyState()` function stays. Pages migrate to the component progressively.
-
-### Interaction with Existing Web Components
-
-| Interaction | Resolution |
-|-------------|-----------|
-| Tour bubble overlaps ag-modal | `ag-guide` deactivates tour when a modal opens (listen for `ag-modal-open` custom event) |
-| ag-toast during tour | No conflict — toast z-index (--z-toast: 800) is below tour z-indices (9990+) |
-| ag-popover during tour | Popover closes on outside click; tour overlay blocks clicks, so popovers auto-close correctly |
-| Tour target scrolled out of view | `ag-guide` calls `target.scrollIntoView({ behavior: 'smooth', block: 'center' })` before positioning bubble |
-
-### New Files
-
-| File | Type | Purpose |
-|------|------|---------|
-| `public/assets/js/components/ag-guide.js` | JS WC | Tour driver |
-| `public/assets/js/components/ag-hint.js` | JS WC | Inline contextual hint |
-| `public/assets/js/components/ag-empty-state.js` | JS WC | Stateful empty state |
-
-**Files modified:**
-- `public/assets/js/components/index.js` — register 3 new components
-- Each `.htmx.html` page — add `<script>window.AG_GUIDE_STEPS = [...]</script>` + `<ag-guide>` element (no changes to existing page `.js` modules required)
-- `public/assets/css/design-system.css` — add `ag-hint` and `ag-empty-state` base styles
-
-**Risk:** MEDIUM. The tour spotlight clip-path approach requires accurate `getBoundingClientRect()` across all layouts. Test with sidebar-pinned vs collapsed, sticky headers, and scrolled views.
-
----
-
-## 4. Copropriete Code Transformation
-
-### Quantified Scope
-
-Total copropriete-related references found across the entire codebase: **10 unique matching lines** across **9 distinct file locations** (pattern: `tantièmes|millièmes|copropriété|copropriete|tantieme|millieme|quote.part|pondéré|weighted`).
-
-This is a very small footprint — far smaller than anticipated. The terminology was largely normalized to generic `voting_power` / "poids de vote" in earlier milestones.
-
-### Specific Locations and Actions
-
-| File | Line | Content | Action |
-|------|------|---------|--------|
-| `app/Services/ImportService.php` | 237 | Column alias map: `'tantiemes', 'tantièmes'` accepted as import column names | **Keep** — backward-compat import alias for existing CSV files |
-| `app/Repository/AggregateReportRepository.php` | 99 | Comment: "evolution des tantiemes" | **Rename comment** only — no behavior change |
-| `app/Services/OfficialResultsService.php` | 62 | Comment: "weighted vote totals" | **Keep** — neutral English, not copro-specific |
-| `public/settings.htmx.html` | 104 | `<option value="tantiemes">Par tantièmes</option>` | **Rename display text** to "Par poids de vote" — keep `value="tantiemes"` for API compat |
-| `public/settings.htmx.html` | 158 | Card: "Definit la ponderation des voix par lot" | **Reword** to "Definit le poids de vote de chaque membre" |
-| `public/admin.htmx.html` | 634 | "Cles de repartition / ponderation des voix par lot" | **Reword** to "Ponderations des voix" |
-| `public/help.htmx.html` | 194 | "reunions de copropriete" in app description | **Reword** to "assemblees generales" |
-| `public/help.htmx.html` | 299, 432 | "tantiemes" in quorum help; data-search attribute | **Reword** display text, keep `data-search` alias |
-| `public/assets/js/core/shell.js` | 683 | Sidebar: "Annuaire des copropriétaires" | **Rename** to "Annuaire des membres" |
-| `public/assets/js/pages/settings.js` | 419 | JS-rendered option: "Tantièmes" | **Rename** to "Poids de vote" |
-| `public/assets/js/pages/wizard.js` | 301, 342, 390, 392 | `m.lot`, `lot: r[1]`, `window.prompt('Numero de lot')` | **Remove lot field** from wizard member input |
-| `public/index.html` | 291 | Feature block: "Pondération (tantièmes)" | **Reword** to "Poids de vote (ponderation)" |
-
-### What Is Already Generic (No Changes Needed)
-
-The following are already properly abstracted and need no v4.0 changes:
-
-- `members.voting_power` column — generic, works for any organization
-- `quorum_policies.denominator = 'eligible_weight'` — generic "eligible weight" terminology
-- `BallotsService`, `VoteEngine`, `QuorumEngine` — use `weight` and `voting_power` throughout, no copro terms
-- `attendances.effective_power` — generic override column
-- Import column alias `ponderation`, `poids` — useful for any weighted-vote organization
-
-### What to Transform vs Remove
-
-The concept of **weighted voting** (`voting_power != 1.0`) is a genuine AG-standard feature (used for weighted voting by share capital, member categories, etc.). It must be kept and presented as generic.
-
-The `lot` concept (copropriete property number) is the only genuinely copro-specific item in the codebase. It appears only in `wizard.js` as an optional prompt and display field.
-
-**Action on `lot`:** Remove. Members can use `external_ref` for any organizational reference number.
-
-Files affected for `lot` removal:
-- `public/assets/js/pages/wizard.js` — 4 lines (remove prompt, column from CSV parser, display in member chip)
-- `public/assets/css/wizard.css` — `.member-lot` class (remove)
-
-### Total Effort Estimate
-
-12 files, approximately 25 lines changed. This is NOT a major refactor. It is a vocabulary and display cleanup with zero backend logic changes.
-
----
-
-## 5. Design System Evolution
-
-### Current Token Inventory
-
-Actual count of CSS custom properties in `design-system.css (:root)`: **255 properties** (the 64-token figure in `PROJECT.md` is stale — 64 was the v2.0 initial count before expansion).
-
-### Token Categories Breakdown
-
-| Category | Approx Count | Examples |
-|----------|-------------|---------|
-| Typography (fonts, sizes, weights, leading) | 17 | `--font-sans`, `--text-xs` through `--text-4xl`, `--leading-*`, `--font-*` |
-| Spacing | 12 | `--space-0` through `--space-16`, `--space-md`, `--space-lg` |
-| Border radius | 4 | `--radius-sm`, `--radius`, `--radius-lg`, `--radius-full` |
-| Layout constants | 7 | `--header-height`, `--sidebar-width`, `--sidebar-rail`, `--drawer-width`, `--content-max` |
-| Z-index scale | 18 | `--z-base` through `--z-skip`, 3 tour z-indices |
-| Animation | 8 | `--duration-fast/normal/slow`, `--ease-*`, `--transition` |
-| Colors (surfaces, text, borders) | 20 | `--color-bg`, `--color-surface`, `--color-text`, `--color-border` and variants |
-| Colors (semantic states) | 24 | Primary, success, warning, danger, info with hover/subtle/border/text variants |
-| Colors (accent, neutral, sidebar, misc) | 19 | Purple, accent, neutral, sidebar-*, tag-*, backdrop |
-| Shadows | 8 | `--shadow-xs` through `--shadow-inner`, `--shadow-focus` |
-| Focus ring | 3 | `--ring-width`, `--ring-color`, `--ring-offset` |
-| Persona colors | 18 | 6 personas × 3 (base, subtle, text) |
-
-The dark theme is a second `[data-theme="dark"]` block at line 310 that overrides color tokens only. Structural/spacing/z-index tokens are not overridden.
-
-### v4.0 Token Strategy: Incremental Evolution
-
-**Decision: Incremental addition, no big-bang replacement.**
-
-29 page CSS files reference existing tokens. A big-bang renaming causes cascading breakage across all pages simultaneously. Incremental addition is zero-risk.
-
-**Rule 1: Add, Don't Rename.** New tokens are added to `:root`. Old tokens are never removed in v4.0.
-
-New tokens needed for v4.0 features:
+### Exact CSS Specifications
 
 ```css
-:root {
-  /* PDF Viewer */
-  --viewer-toolbar-height: 48px;
-  --viewer-bg: #1a1a1a;
-  --viewer-toolbar-bg: var(--color-surface-raised);
+/* ── FORM GROUP ──────────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;                                 /* 6px — label to input */
+}
 
-  /* Guided hints */
-  --hint-bg: var(--color-primary-subtle);
-  --hint-border: var(--color-primary);
-  --hint-text: var(--color-primary-active);
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);                           /* 16px */
+}
 
-  /* Bottom sheet (mobile PDF viewer) */
-  --sheet-max-height: 90dvh;
-  --sheet-handle-color: var(--color-border-strong);
+/* ── LABEL ───────────────────────────────────────────────── */
+.form-label {
+  font-size: 0.875rem;                           /* 14px */
+  font-weight: var(--font-medium);               /* 500 */
+  color: var(--color-text);                      /* #52504A */
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.form-label .required {
+  color: var(--color-danger);                    /* #C42828 */
+  font-size: 0.75rem;                            /* 12px */
+}
 
-  /* PC-first layout */
-  --content-max-wide: 1600px;
-  --panel-sidebar-width: 320px;
+/* ── INPUT BASE ──────────────────────────────────────────── */
+.input {
+  display: block;
+  width: 100%;
+  height: 2.25rem;                               /* 36px */
+  padding: 0 0.75rem;                            /* 0 12px */
+  font-family: var(--font-sans);
+  font-size: 0.875rem;                           /* 14px */
+  font-weight: var(--font-normal);               /* 400 */
+  color: var(--color-text);
+  background-color: var(--color-surface-raised); /* #FFFFFF */
+  border: 1px solid var(--color-border);         /* #CDC9BB */
+  border-radius: var(--radius-sm);               /* 6px */
+  outline: none;
+  transition:
+    border-color     var(--duration-fast) var(--ease-default),
+    box-shadow       var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-light);                /* #B5B0A0 */
+}
+
+.input:hover:not(:focus):not(:disabled) {
+  border-color: var(--color-border-strong);      /* #BCB7A5 */
+}
+
+.input:focus {
+  border-color: var(--color-primary);            /* #1650E0 */
+  box-shadow: var(--shadow-focus);
+}
+
+.input:disabled {
+  background-color: var(--color-bg);             /* #EDECE6 */
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ── STANDARD (40px) variant for standalone forms ────────── */
+.input-md {
+  height: 2.5rem;                                /* 40px */
+  font-size: 1rem;                               /* 16px — prevents iOS zoom */
+}
+
+/* ── TEXTAREA ────────────────────────────────────────────── */
+textarea.input {
+  height: auto;
+  min-height: 5rem;                              /* 80px */
+  padding: 0.5rem 0.75rem;                       /* 8px 12px */
+  resize: vertical;
+  line-height: var(--leading-normal);            /* 1.5 */
+}
+
+/* ── SELECT ──────────────────────────────────────────────── */
+select.input {
+  padding-right: 2rem;                           /* 32px — room for caret */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23857F72' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;      /* 8px from right */
+  background-size: 1.25rem;                      /* 20px */
+  cursor: pointer;
+}
+
+/* ── INPUT WITH LEADING ICON ─────────────────────────────── */
+.input-wrapper {
+  position: relative;
+}
+.input-wrapper .input-icon {
+  position: absolute;
+  left: 0.625rem;                                /* 10px */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem; height: 1rem;                     /* 16px */
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.input-wrapper .input { padding-left: 2.125rem; } /* 34px = icon(16) + gap(10) + pad(8) */
+
+/* ── ERROR STATE ─────────────────────────────────────────── */
+.input.is-invalid,
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);             /* #C42828 */
+  background-color: var(--color-danger-subtle);  /* #FEF1F0 — tinted, not fully red */
+}
+.input.is-invalid:focus,
+.input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(196, 40, 40, 0.35);
+}
+
+/* ── HELPER TEXT ─────────────────────────────────────────── */
+.form-hint {
+  font-size: 0.8125rem;                          /* 13px */
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+.form-error {
+  font-size: 0.8125rem;
+  color: var(--color-danger);
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ── CHECKBOX & RADIO ────────────────────────────────────── */
+.checkbox-group,
+.radio-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;                                   /* 8px */
+  cursor: pointer;
+}
+.checkbox-group input[type="checkbox"],
+.radio-group input[type="radio"] {
+  width: 1rem; height: 1rem;                     /* 16px */
+  flex-shrink: 0;
+  margin-top: 0.125rem;                          /* 2px optical alignment */
+  accent-color: var(--color-primary);
+  cursor: pointer;
 }
 ```
 
-**Rule 2: CSS @layer for New vs Old.** Introduce CSS `@layer` for all new v4.0 component styles. This separates new additions from the v3.x base without breaking specificity.
+### Anti-Patterns to Avoid
+
+- Placeholder-only labels — disappear on focus, inaccessible
+- Full red background on error (not subtle tint) — too aggressive for governance context
+- `outline` as focus indicator — replace with `box-shadow` for custom rings
+- Input height below 32px — too small for click targets (WCAG 2.5.8)
+
+---
+
+## 5. MODALS & DIALOGS
+
+### Research Basis
+
+Radix Dialog / shadcn/ui Dialog. Native `<dialog>` element is the correct approach: built-in keyboard trap, `::backdrop`, `close` event, `ESC` key handling.
+
+Animation: scale from 96% + fade, 200ms, `--ease-out`. shadcn/ui uses `animate-in fade-in-0 zoom-in-95` = `opacity: 0 → 1` + `scale(0.95) → scale(1)`.
+
+### Exact CSS Specifications
 
 ```css
-/* At top of design-system.css, after existing content */
-@layer base, components, v4;
+/* ── NATIVE DIALOG RESET ─────────────────────────────────── */
+dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: none;
+  background: transparent;
+  padding: 0;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
 
-/* New component styles live in @layer v4 */
+/* ── BACKDROP ────────────────────────────────────────────── */
+dialog::backdrop {
+  background-color: var(--color-backdrop);       /* rgba(0,0,0,0.5) */
+  animation: backdrop-in var(--duration-normal) var(--ease-out) both;
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── MODAL PANEL ─────────────────────────────────────────── */
+.modal-panel {
+  background-color: var(--color-surface-raised); /* #FFFFFF */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);               /* 10px */
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 35rem;                              /* 560px default */
+  max-height: calc(100dvh - 4rem);               /* viewport - 64px breathing room */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modal-in var(--duration-normal) var(--ease-out) both;
+}
+
+.modal-panel.modal-wide   { max-width: 45rem; }  /* 720px — for tables, forms */
+.modal-panel.modal-narrow { max-width: 25rem; }  /* 400px — for confirms, alerts */
+.modal-panel.modal-full   { max-width: calc(100% - 3rem); max-height: calc(100dvh - 3rem); }
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── MODAL HEADER ────────────────────────────────────────── */
+.modal-header {
+  padding: 1.25rem 1.25rem 1rem;                 /* 20px 20px 16px */
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 1rem;                               /* 16px */
+  font-weight: var(--font-semibold);             /* 600 */
+  color: var(--color-text-dark);
+  line-height: 1.3;
+}
+.modal-description {
+  font-size: 0.875rem;                           /* 14px */
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+/* ── CLOSE BUTTON (top-right) ────────────────────────────── */
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem; height: 2rem;                     /* 32px */
+  border-radius: var(--radius-sm);               /* 6px */
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: -0.25rem;                          /* optical alignment to title */
+  transition:
+    background-color var(--duration-fast),
+    color            var(--duration-fast);
+}
+.modal-close:hover {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+/* ── MODAL BODY ──────────────────────────────────────────── */
+.modal-body {
+  padding: 1.25rem;                              /* 20px */
+  overflow-y: auto;
+  flex: 1;
+  overscroll-behavior: contain;
+}
+
+/* ── MODAL FOOTER ────────────────────────────────────────── */
+.modal-footer {
+  padding: 1rem 1.25rem;                         /* 16px 20px */
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);                           /* 8px between buttons */
+  flex-shrink: 0;
+  background-color: var(--color-bg);             /* recessed footer */
+}
+
+/* ── CONFIRM DIALOG variant (danger action) ──────────────── */
+.modal-panel.modal-confirm .modal-footer {
+  justify-content: space-between;                /* Cancel left, Confirm right */
+}
+```
+
+### Anti-Patterns to Avoid
+
+- `transition: all` on the panel — specify `opacity, transform` only
+- `border-radius` above 12px — phone-app feel, wrong for desktop governance
+- `overflow: hidden` on the dialog wrapper — body needs to scroll independently
+- `padding` inside `dialog` itself — put it on `.modal-panel` child
+
+---
+
+## 6. TOASTS & NOTIFICATIONS
+
+### Research Basis
+
+Sonner CSS source (raw file verified). Key extracted values:
+- Width: 356px (`--width` variable, rendered fixed)
+- Padding: 16px outer, internal gap 8px between icon and text
+- Border-radius: 8px toast, 4px for progress indicator
+- Font-size: 13px body, 12px description
+- Border: `1px solid rgba(0,0,0,0.08)` light mode
+- Animation: 400ms `ease`, transform from `translateY(0.5rem) scale(0.96)` to rest
+- Auto-dismiss: 4000ms, paused when tab inactive
+
+### Exact CSS Specifications
+
+```css
+/* ── TOAST CONTAINER ─────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;                                /* 24px */
+  right: 1.5rem;
+  z-index: var(--z-toast);                       /* 800 */
+  display: flex;
+  flex-direction: column-reverse;                /* newest on top */
+  gap: 0.5rem;                                   /* 8px */
+  pointer-events: none;
+  width: 22.25rem;                               /* 356px — Sonner canonical */
+  max-width: calc(100vw - 3rem);
+}
+
+/* ── TOAST BASE ──────────────────────────────────────────── */
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;                                   /* 8px */
+  padding: 0.875rem 1rem;                        /* 14px 16px */
+  background-color: var(--color-surface-raised); /* #FFFFFF */
+  border: 1px solid rgba(21, 21, 16, 0.08);
+  border-radius: var(--radius);                  /* 8px */
+  box-shadow: var(--shadow-lg);
+  pointer-events: all;
+  width: 100%;
+  animation: toast-in var(--duration-slow) var(--ease-out) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); max-height: 10rem; }
+  to   { opacity: 0; transform: translateY(-0.25rem) scale(0.96); max-height: 0; }
+}
+
+.toast.is-removing {
+  animation: toast-out var(--duration-normal) var(--ease-default) both;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ── TOAST ICON ──────────────────────────────────────────── */
+.toast-icon {
+  width: 1.125rem; height: 1.125rem;             /* 18px */
+  flex-shrink: 0;
+  margin-top: 0.0625rem;                         /* 1px optical alignment */
+}
+
+/* ── TOAST CONTENT ───────────────────────────────────────── */
+.toast-body { flex: 1; min-width: 0; }
+
+.toast-title {
+  font-size: 0.875rem;                           /* 14px */
+  font-weight: var(--font-medium);               /* 500 */
+  color: var(--color-text-dark);
+  line-height: 1.3;
+}
+.toast-message {
+  font-size: 0.8125rem;                          /* 13px */
+  color: var(--color-text-muted);
+  margin-top: 0.125rem;                          /* 2px */
+  line-height: 1.4;
+}
+
+/* ── DISMISS BUTTON ──────────────────────────────────────── */
+.toast-dismiss {
+  position: absolute;
+  top: 0.5rem; right: 0.5rem;                   /* 8px */
+  width: 1.5rem; height: 1.5rem;                 /* 24px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 0.25rem;                        /* 4px */
+  opacity: 0;
+  transition: opacity var(--duration-fast), background-color var(--duration-fast);
+}
+.toast:hover .toast-dismiss { opacity: 1; }
+.toast-dismiss:hover { background-color: var(--color-bg-subtle); }
+
+/* ── SEMANTIC VARIANTS (left-border accent via inset shadow) */
+/* Technique: inset box-shadow for border-left avoids layout shift */
+.toast-success {
+  box-shadow: inset 3px 0 0 var(--color-success), var(--shadow-lg);
+}
+.toast-success .toast-icon { color: var(--color-success); }
+
+.toast-error {
+  box-shadow: inset 3px 0 0 var(--color-danger), var(--shadow-lg);
+}
+.toast-error .toast-icon { color: var(--color-danger); }
+
+.toast-warning {
+  box-shadow: inset 3px 0 0 var(--color-warning), var(--shadow-lg);
+}
+.toast-warning .toast-icon { color: var(--color-warning); }
+
+.toast-info {
+  box-shadow: inset 3px 0 0 var(--color-primary), var(--shadow-lg);
+}
+.toast-info .toast-icon { color: var(--color-primary); }
+```
+
+### Anti-Patterns to Avoid
+
+- Full-color toast backgrounds (green success, red error) — harsh in a governance UI
+- Width above 400px — becomes a banner, not a toast
+- Auto-dismiss below 3000ms — long messages cannot be read in time
+- Right-padding tight enough that text collides with dismiss button — add `padding-right: 2rem`
+
+---
+
+## 7. BADGES & STATUS INDICATORS
+
+### Research Basis
+
+shadcn/ui badge (verified from source): `px-2.5 py-0.5 text-xs font-semibold rounded-full` = 10px/2px padding, 12px, 600 weight, pill shape.
+
+Key distinction: Linear uses `border-radius: 4px` (not pill) for project status labels, pill only for user/tag labels. GitHub uses pill (`border-radius: 2em`) for all labels.
+
+**AG-VOTE rule:** pill for boolean states (present/absent, pass/fail), 6px radius for multi-part status badges with dots.
+
+### Exact CSS Specifications
+
+```css
+/* ── BASE BADGE ──────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;                                /* 5px */
+  padding: 0.1875rem 0.5rem;                     /* 3px 8px */
+  font-size: 0.75rem;                            /* 12px */
+  font-weight: var(--font-semibold);             /* 600 */
+  line-height: 1.3;
+  white-space: nowrap;
+  border-radius: var(--radius-full);             /* pill — default */
+  border: 1px solid transparent;
+  letter-spacing: 0;
+}
+
+/* ── SEMANTIC VARIANTS ───────────────────────────────────── */
+.badge-default {
+  background-color: var(--color-neutral-subtle); /* #E5E3D8 */
+  color: var(--color-neutral-text);              /* #52504A */
+  border-color: var(--color-border-subtle);
+}
+.badge-primary {
+  background-color: var(--color-primary-subtle); /* #EBF0FF */
+  color: var(--color-primary);                   /* #1650E0 */
+  border-color: rgba(22, 80, 224, 0.2);
+}
+.badge-success {
+  background-color: var(--color-success-subtle); /* #EDFAF2 */
+  color: var(--color-success);                   /* #0B7A40 */
+  border-color: var(--color-success-border);     /* #A3E8C1 */
+}
+.badge-warning {
+  background-color: var(--color-warning-subtle); /* #FFF7E8 */
+  color: var(--color-warning);                   /* #B56700 */
+  border-color: var(--color-warning-border);     /* #F5D490 */
+}
+.badge-danger {
+  background-color: var(--color-danger-subtle);  /* #FEF1F0 */
+  color: var(--color-danger);                    /* #C42828 */
+  border-color: var(--color-danger-border);      /* #F4BFBF */
+}
+.badge-accent {
+  background-color: var(--color-accent-subtle);  /* #EEEAFF */
+  color: var(--color-accent);                    /* #5038C0 */
+  border-color: var(--color-purple-border);      /* #C4B8F8 */
+}
+
+/* ── SOLID (high-emphasis, e.g. adopted/rejected resolution) */
+.badge-solid-primary { background: var(--color-primary); color: #fff; }
+.badge-solid-success { background: var(--color-success); color: #fff; }
+.badge-solid-danger  { background: var(--color-danger);  color: #fff; }
+
+/* ── STATUS BADGE (dot + label, 6px radius not pill) ─────── */
+.badge-status {
+  border-radius: var(--radius-sm);               /* 6px */
+  padding-left: 0.4375rem;                       /* 7px — tighter left for dot */
+}
+.badge-dot {
+  width: 0.5rem; height: 0.5rem;                 /* 8px */
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: currentColor;
+}
+.badge-dot-pulse {
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ── SIZE VARIANTS ───────────────────────────────────────── */
+.badge-sm {
+  padding: 0.125rem 0.375rem;                    /* 2px 6px */
+  font-size: 0.6875rem;                          /* 11px */
+  gap: 0.25rem;
+}
+.badge-lg {
+  padding: 0.25rem 0.75rem;                      /* 4px 12px */
+  font-size: 0.8125rem;                          /* 13px */
+  gap: 0.375rem;
+}
+
+/* ── COUNTER BADGE (numeric, e.g. delta counts) ──────────── */
+.badge-count {
+  min-width: 1.25rem;                            /* 20px */
+  height: 1.25rem;
+  padding: 0 0.3125rem;                          /* 0 5px */
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;                          /* 11px */
+  font-weight: var(--font-bold);                 /* 700 */
+  font-variant-numeric: tabular-nums;
+  justify-content: center;
+}
+```
+
+### AG-VOTE Status Color Matrix
+
+| State | Class | Notes |
+|-------|-------|-------|
+| `ouvert` (live vote) | `badge-success badge-status` + pulse dot | Active voting in progress |
+| `en cours` (session live) | `badge-primary badge-status` + pulse dot | Meeting active |
+| `clos` / `terminé` | `badge-default` | Neutral, completed |
+| `adopté` | `badge-solid-success` | High emphasis — result |
+| `rejeté` | `badge-solid-danger` | High emphasis — result |
+| `en attente` | `badge-warning badge-status` | Needs action |
+| `suspendu` | `badge-accent` | Edge case |
+| `présent` | `badge-success badge-sm` | Member attendance row |
+| `absent` | `badge-default badge-sm` | Member attendance row |
+| `procuration` | `badge-accent badge-sm` | Proxy delegation |
+| `quorum atteint` | `badge-success` | Quorum bar context |
+| `quorum non atteint` | `badge-danger` | Quorum bar context |
+
+---
+
+## 8. STEPPERS & PROGRESS
+
+### Research Basis
+
+ishadeed.com stepper: `--size: 3rem` (48px) default circle, 2px connector. Stripe payment flow: 32px circle, connector above. Material Design: 40px, 2dp connector.
+
+AG-VOTE decision: **32px circle** — compact for a named wizard header. Stripe-style. Connector is 1.5px (premium thinness at this size).
+
+### Exact CSS Specifications
+
+```css
+/* ── STEPPER CONTAINER ───────────────────────────────────── */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  counter-reset: step;
+}
+
+/* ── STEPPER ITEM ────────────────────────────────────────── */
+.stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  text-align: center;
+}
+
+/* Connector line between circles */
+.stepper-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 1rem;                                     /* half of 32px = 16px */
+  left: calc(50% + 1.25rem);                     /* center + half-circle + 4px gap */
+  right: calc(-50% + 1.25rem);
+  height: 1.5px;
+  background-color: var(--color-border);         /* #CDC9BB pending */
+  z-index: 0;
+  transition: background-color var(--duration-slow) var(--ease-default);
+}
+
+/* Completed step connector becomes primary */
+.stepper-item.is-done:not(:last-child)::after {
+  background-color: var(--color-primary);        /* #1650E0 */
+}
+
+/* ── STEP CIRCLE ─────────────────────────────────────────── */
+.stepper-circle {
+  width: 2rem; height: 2rem;                     /* 32px */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;                          /* 13px */
+  font-weight: var(--font-semibold);             /* 600 */
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  border: 1.5px solid var(--color-border);       /* pending: border only */
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--duration-normal) var(--ease-default),
+    border-color     var(--duration-normal) var(--ease-default),
+    color            var(--duration-normal) var(--ease-default),
+    box-shadow       var(--duration-normal) var(--ease-default);
+}
+
+/* ── STEP STATES ─────────────────────────────────────────── */
+
+/* Active — current step */
+.stepper-item.is-active .stepper-circle {
+  background-color: var(--color-primary);        /* #1650E0 */
+  border-color: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 0 0 3px var(--color-primary-subtle); /* #EBF0FF — halo */
+}
+
+/* Done — completed step */
+.stepper-item.is-done .stepper-circle {
+  background-color: var(--color-success);        /* #0B7A40 */
+  border-color: var(--color-success);
+  color: transparent;                            /* hide number, show checkmark */
+}
+/* Checkmark via CSS for done steps */
+.stepper-item.is-done .stepper-circle::before,
+.stepper-item.is-done .stepper-circle::after {
+  content: '';
+  position: absolute;
+  background-color: #ffffff;
+  border-radius: 1px;
+}
+.stepper-item.is-done .stepper-circle::before {
+  width: 5px; height: 1.5px;
+  transform: rotate(45deg) translate(1px, 2px);
+}
+.stepper-item.is-done .stepper-circle::after {
+  width: 9px; height: 1.5px;
+  transform: rotate(-45deg) translate(-1px, 2px);
+}
+
+/* Pending — future step */
+.stepper-item.is-pending .stepper-circle {
+  background-color: var(--color-surface-raised);
+  border-color: var(--color-border);
+  color: var(--color-text-light);               /* #B5B0A0 */
+}
+
+/* Error state */
+.stepper-item.is-error .stepper-circle {
+  background-color: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* ── STEP LABEL ──────────────────────────────────────────── */
+.stepper-label {
+  margin-top: 0.5rem;                            /* 8px */
+  font-size: 0.75rem;                            /* 12px */
+  font-weight: var(--font-medium);               /* 500 */
+  color: var(--color-text-muted);
+  line-height: 1.3;
+  max-width: 5rem;                               /* 80px — prevents wrapping */
+}
+.stepper-item.is-active .stepper-label {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+.stepper-item.is-done .stepper-label {
+  color: var(--color-text);
+}
+.stepper-item.is-pending .stepper-label {
+  color: var(--color-text-light);
+}
+
+/* ── COMPACT STEPPER (header bar use) ───────────────────── */
+.stepper.stepper-compact .stepper-circle {
+  width: 1.5rem; height: 1.5rem;                 /* 24px */
+  font-size: 0.6875rem;                          /* 11px */
+}
+.stepper.stepper-compact .stepper-item:not(:last-child)::after {
+  top: 0.75rem;                                  /* 12px */
+  left: calc(50% + 0.875rem);
+  right: calc(-50% + 0.875rem);
+}
+.stepper.stepper-compact .stepper-label {
+  font-size: 0.6875rem;                          /* 11px */
+  margin-top: 0.25rem;
+}
+
+/* ── LINEAR PROGRESS BAR ─────────────────────────────────── */
+.progress-bar {
+  height: 0.375rem;                              /* 6px */
+  background-color: var(--color-border-subtle);  /* #DEDAD0 */
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+.progress-fill.success { background-color: var(--color-success); }
+.progress-fill.warning { background-color: var(--color-warning); }
+.progress-fill.danger  { background-color: var(--color-danger); }
+
+/* Quorum-specific progress (AG-VOTE: shows quorum threshold) */
+.progress-bar.with-threshold {
+  position: relative;
+}
+.progress-threshold {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background-color: var(--color-text-dark);      /* #151510 */
+  border-radius: 1px;
+  /* left: set via inline style = threshold% */
+}
+```
+
+### Anti-Patterns to Avoid
+
+- Circles above 40px in desktop wizard headers — dominates the header, mobile-app feel
+- Showing step numbers after completion — replace with checkmark icon, numbers imply ordering not status
+- Connector lines that never change color — progress perception requires visual feedback
+- Labels longer than 3 words — `max-width: 5rem` enforces this, keep label text tight
+
+---
+
+## New Tokens to Add to design-system.css (@layer v4)
+
+These fill gaps exposed by component research. All are additive — no existing tokens renamed.
+
+```css
 @layer v4 {
-  ag-pdf-viewer { ... }
-  ag-guide { ... }
-  ag-hint { ... }
-  ag-empty-state { ... }
+  :root {
+    /* ── Component dimension tokens ── */
+    --btn-height-sm:       1.875rem;   /* 30px */
+    --btn-height:          2.25rem;    /* 36px — compact desktop default */
+    --btn-height-lg:       2.75rem;    /* 44px */
+
+    --input-height:        2.25rem;    /* 36px */
+    --input-height-md:     2.5rem;     /* 40px — standalone forms */
+
+    --table-row-height:    2.75rem;    /* 44px */
+    --table-row-compact:   2.25rem;    /* 36px */
+    --table-header-height: 2.5rem;     /* 40px */
+
+    --stepper-circle:      2rem;       /* 32px */
+    --stepper-circle-sm:   1.5rem;     /* 24px */
+    --stepper-connector:   1.5px;
+
+    --toast-width:         22.25rem;   /* 356px */
+
+    --modal-width:         35rem;      /* 560px */
+    --modal-width-wide:    45rem;      /* 720px */
+    --modal-width-narrow:  25rem;      /* 400px */
+
+    --card-padding:        1.25rem;    /* 20px */
+    --card-padding-lg:     1.5rem;     /* 24px */
+  }
 }
 ```
 
-The `v4` layer has lower cascade priority than unlayered styles (existing pages), meaning existing page-specific CSS still wins over the new component defaults. This is correct behavior — components provide defaults, pages override.
-
-CSS `@layer` is supported in all modern browsers (Chrome 99+, Firefox 97+, Safari 15.4+). The existing codebase already uses `color-mix()` which requires the same browser versions.
-
-**Rule 3: No per-page CSS for new components.** New Web Components define their styles in `design-system.css` under `@layer v4`. They do not get individual page CSS files.
-
-**Rule 4: PC-first breakpoint strategy.** v4.0 shifts to PC-first (1024px+). New layout rules for non-voter screens assume desktop; media queries reduce for smaller screens. Only the voter screen (`vote.htmx.html`) is mobile-first.
-
-```css
-/* PC baseline — no media query, it IS the default for operator/admin screens */
-
-/* Adaptive for smaller laptops if needed */
-@media (max-width: 1023px) { ... }
-
-/* Voter screen only — mobile first */
-@media (max-width: 767px) { ... }
-```
-
-### Design System Files Affected
-
-| File | Change |
-|------|--------|
-| `public/assets/css/design-system.css` | Add ~15 new tokens; add `@layer v4` block with new component styles |
-| Existing page CSS files | No changes required for v4.0 |
-
-**Risk:** LOW. Incremental addition preserves all existing pages. `@layer` is additive and does not change existing specificity.
-
 ---
 
-## Component Dependency Order
+## Application to AG-VOTE Web Components
 
-```
-1. DB migration: resolution_documents table
-      |
-      v
-2. ResolutionDocumentRepository + Controller + routes
-      |
-      v
-3. ag-pdf-viewer Web Component (depends on serve endpoint)
-      |
-      v
-4. Wire PDF upload to wizard + vote page
-      |
-      +-- ag-hint Web Component (independent, no backend)
-      |
-      +-- ag-empty-state Web Component (independent, no backend)
-      |
-      v
-5. ag-guide Web Component (benefits from stable page targets)
-      |
-6. Copro rename pass (independent, can run in parallel with 4-5)
-      |
-7. Design system token additions (should precede component styling)
-```
+| Component | Key Spec Deltas (vs current) |
+|-----------|------------------------------|
+| `ag-modal` | Add `modal-in` animation; footer bg → `--color-bg`; close btn 32px not full X |
+| `ag-toast` | Width 356px; `inset` box-shadow for left accent; `toast-in` scale+fade animation |
+| `ag-confirm` | Use `modal-narrow` (400px); two-button footer with `space-between` |
+| `ag-popover` | No changes needed from this research |
+| `ag-searchable-select` | Apply `.input` specs to trigger; dropdown items use table-row hover pattern |
+| `ag-pdf-viewer` | Outside scope of this research (v4.0 architecture doc) |
 
----
-
-## Risk Matrix
-
-| Integration Point | Files Affected | New Files | Risk | Notes |
-|-------------------|---------------|-----------|------|-------|
-| resolution_documents DB + controller | 4 PHP + 1 SQL + routes.php + RepositoryFactory | 2 PHP, 1 SQL | LOW | Identical pattern to meeting_attachments |
-| Secure serve endpoint | ResolutionDocumentController | — | LOW | readfile() with auth check, no new pattern |
-| Storage path fix (/tmp to persistent) | Dockerfile, docker-compose.yml, both upload controllers | — | MEDIUM | Needs volume mount in all deploy configs |
-| ag-pdf-viewer | 1 JS component + design-system.css | 1 JS | LOW | Native iframe, no library |
-| Vote page PDF bottom sheet | vote.htmx.html, vote.js | — | MEDIUM | Mobile layout testing required |
-| ag-guide tour driver | 1 JS component + all .htmx.html | 1 JS | MEDIUM | Clip-path positioning across layout states requires testing |
-| ag-hint | 1 JS component | 1 JS | LOW | Static inline display, no positioning logic |
-| ag-empty-state | 1 JS component | 1 JS | LOW | Slot-based, replaces emptyState() helper gradually |
-| Copro label rename | 12 files, ~25 lines | 0 | LOW | No logic changes, vocabulary only |
-| Wizard lot field removal | wizard.js (4 lines), wizard.css | 0 | LOW | UI-only change |
-| Design system @layer | design-system.css | — | LOW | Additive, no existing specificity affected |
-| New CSS tokens | design-system.css | — | LOW | Additive |
+All 23 Web Components should source their colors exclusively from the design token set above. No hardcoded hex values inside component shadow DOM.
 
 ---
 
 ## Sources
 
-All findings are HIGH confidence based on direct codebase inspection (no training-data assumptions):
-
-- `app/Controller/MeetingAttachmentController.php` — existing upload/delete pattern
-- `app/Repository/MeetingAttachmentRepository.php` — repository pattern
-- `database/schema-master.sql` — full DB schema including meeting_attachments, motions, members
-- `database/migrations/20260219_meeting_attachments.sql` — migration pattern
-- `deploy/nginx.conf` — file serving constraints, security headers, location blocks
-- `public/assets/css/design-system.css` — full token inventory (255 properties), existing tour CSS (lines 3741-3940)
-- `public/assets/js/components/` — all 20 Web Components enumerated
-- `public/assets/js/core/shared.js` — emptyState() helper, localStorage patterns
-- `public/assets/js/core/page-components.js` — CollapsibleSection class
-- Grep across all PHP, JS, CSS, HTML for copropriete/tantieme — 10 matching lines total, 9 files
-- `app/routes.php` — route table and middleware patterns
-- `app/Services/ImportService.php` — column alias map
-- `public/assets/js/pages/meetings.js` — onboarding banner + localStorage dismissal pattern
-- `public/assets/js/core/shell.js` — sidebar navigation including copro label
+- shadcn/ui button.tsx taxonomy repo: [github.com/shadcn-ui/taxonomy](https://github.com/shadcn-ui/taxonomy/blob/main/components/ui/button.tsx) — HIGH confidence
+- Sonner CSS raw source: [github.com/emilkowalski/sonner](https://github.com/emilkowalski/sonner) — HIGH confidence (raw file fetched)
+- Shopify Polaris design tokens: [polaris-react.shopify.com/tokens](https://polaris-react.shopify.com/tokens/all-tokens) — HIGH confidence (page fetched, exact values)
+- ishadeed stepper article: [ishadeed.com/article/stepper-component](https://ishadeed.com/article/stepper-component-html-css/) — HIGH confidence
+- Emil Kowalski toast breakdown: [emilkowal.ski/ui/building-a-toast-component](https://emilkowal.ski/ui/building-a-toast-component) — MEDIUM (article prose, not source code)
+- AG-VOTE design-system.css: `/home/user/gestion_votes_php/public/assets/css/design-system.css` — HIGH (direct file read, lines 83-319)

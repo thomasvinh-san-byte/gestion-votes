@@ -1,701 +1,1594 @@
-# Feature & UX Pattern Research
+# Page Layout Specifications — v4.1 Design Excellence
 
-**Domain:** General Assembly voting platform — Guided UX & self-explanatory flows (v4.0)
-**Researched:** 2026-03-18
-**Confidence:** HIGH (verified across multiple current sources)
-
----
-
-## Context
-
-This is UX research, not feature gap research. v3.0 shipped a fully wired session lifecycle.
-v4.0 goal: transform AG-VOTE into a self-explanatory, visually impressive application where no
-user ever needs external help to run a complete assembly.
-
-AG-VOTE screens requiring v4.0 UX treatment:
-1. **Dashboard** — overview of all sessions, KPIs, "what to do next"
-2. **Session creation wizard** — 4-step creation flow
-3. **Session hub** — pre-meeting checklist and staging area
-4. **Operator console** — live meeting control panel (PC-first)
-5. **Voter view** — in-room voting on mobile
-6. **Room display** — projected results screen
-7. **Post-session stepper** — results → consolidation → PV → archival
-8. **Archives / Records** — completed session library
+**Domain:** AG-VOTE — General Assembly voting platform
+**Researched:** 2026-03-19
+**Scope:** Gold-standard layout for every page type — CSS grid/flex specs, ASCII diagrams, breakpoints
+**Confidence:** HIGH (cross-verified against multiple sources and existing codebase tokens)
 
 ---
 
-## Platform Analysis: What the Competition Gets Right and Wrong
+## Context and Constraints
 
-### Loomio — Collaborative Decision-Making
+AG-VOTE already has a solid design system (`@layer base, components, v4`) with 265+ CSS custom properties, an 8px spacing grid, and a fixed sidebar rail (58px collapsed, 252px expanded). v4.1 is a **refonte** — every page layout gets rebuilt to a research-driven gold standard while preserving the existing design tokens and vanilla CSS approach.
 
-**What it gets right:**
-- Structured discussion-to-proposal flow: every thread moves through a defined lifecycle
-  (raise → propose → decide → record), so users always know what phase they're in
-- Timeline-based visualisation of where a proposal is in its deliberation arc
-- "Proposal" cards are visually distinct from discussion — decision context is never lost
-
-**What it gets wrong:**
-- Text-heavy to the point of anxiety for first-time administrators
-- No "start here" pathway — you land on a cluttered group dashboard with no clear entry point
-- Configuration depth hidden in settings menus; new users don't discover key features (voting
-  methods, deadline enforcement) until they stumble on them
-
-**AG-VOTE application:**
-- Session hub: adopt Loomio's "proposal card" concept — each AG motion has a card showing
-  its current state (draft / open / closed / adopted), not just a table row
-- Post-session: visualise the stepper lifecycle the same way Loomio shows deliberation arc
+**Fixed constraints from PROJECT.md:**
+- `--sidebar-rail: 58px` (collapsed) / `--sidebar-expanded: 252px` (expanded/pinned)
+- `--header-height: 56px`
+- `--content-max: 1440px` / `--content-narrow: 720px`
+- Breakpoints: `480px` (sm) / `768px` (md) / `1024px` (lg)
+- Fonts: Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data)
+- Light-first, dark mode parity maintained
+- `@layer base, components, v4` structure preserved
 
 ---
 
-### Decidim — Participatory Democracy Platform
+## PAGE TYPE 1 — DASHBOARD (KPI cards + session list)
 
-**What it gets right (2025 direction):**
-- Budgeting pipeline component guides users through a voting process step by step with a
-  persistent sidebar checklist that shows overall completion
-- Active UX research programme (workshops, focus groups) that feeds the design system —
-  evidence-based iteration
-- Component-based architecture means every section feels consistent
+### Reference: Stripe Dashboard, Linear dashboard pattern
 
-**What it gets wrong:**
-- Administration dashboards are dense and assume expert knowledge of participatory democracy
-  vocabulary
-- Lack of "what's wrong" feedback when a process is misconfigured — errors appear at vote time
+**Used on:** `dashboard.htmx.html`
 
-**AG-VOTE application:**
-- Wizard: adopt Decidim's persistent sidebar checklist during session creation — always show
-  overall progress, not just "step 2 of 4"
-- Hub checklist: each item must show WHY it is required, not just whether it is checked
+### Layout Philosophy
+The dashboard is the "mission control" entry point. Primary purpose: answer "what needs my attention right now?" in under 3 seconds. The layout uses a top KPI row (scannable in one line), then an urgent action banner if applicable, then the sessions list as the main content. No card grid for sessions — a vertical list with strong row design beats a grid for data that has status, dates, and action CTAs.
 
----
-
-### OpaVote — Online Vote Management
-
-**What it gets right:**
-- Comprehensive voting method selection (ranked-choice, multiple-winner, etc.)
-- Clean minimal ballot design — one question at a time, nothing else visible
-
-**What it gets wrong:**
-- "Requires some familiarisation" — classified as technically competent but unfriendly
-- Method terminology exposed to admins without explanation ("Meek STV" — what?)
-- Setup flow is a flat form, not a guided wizard; everything at once
-- Low confidence for accessibility and trust signals
-
-**AG-VOTE application:**
-- Anti-pattern to avoid: exposing technical meeting-law terminology without inline
-  explanation tooltips (e.g., "majorité absolue" should have a "(?) learn more" affordance)
-- Voter ballot: adopt OpaVote's "one question, nothing else" principle for the vote.htmx screen
-
----
-
-### ElectionBuddy — Election Management
-
-**What it gets right (HIGH confidence — Capterra data):**
-- Rated "simple and easy-to-understand" by administrators across 92 verified reviews
-- Step-by-step setup guides with templates; users don't start from scratch
-- Strong mobile optimisation for voters
-- "Stylish ballot" — aesthetics matter for trust
-
-**What it gets wrong:**
-- Still primarily a polling tool, not an AG orchestrator — lacks operator console concept
-
-**AG-VOTE application:**
-- Template approach: provide preset motion templates for common AG resolutions
-  (budget approval, rule change, board election) — reduces blank-slate anxiety in wizard step 3
-- Mobile ballot: adopt "stylish ballot" principle — the voter screen is a trust artefact,
-  it should look authoritative and considered
-
----
-
-### Slido — Live Audience Interaction
-
-**What it gets right:**
-- Entry friction eliminated: participants join via QR code / URL code, no account needed
-- Single-purpose screens: the voter sees ONLY the active question, nothing else
-- Real-time visual feedback: results animate in as votes arrive, word clouds grow dynamically
-- Present mode: full-screen results projected on room display, separate from operator view
-- Facilitator / participant screens are completely separate contexts with no feature bleed
-
-**What it gets wrong:**
-- No concept of "meeting lifecycle" — just individual polls, no session arc
-- Results display can feel "gamey" (excitement-first) which undermines formal AG gravity
-
-**AG-VOTE application:**
-- Voter view: adopt Slido's "single question only" principle — hide all navigation, header,
-  sidebar when a motion is open; full-screen vote card
-- Room display: adopt Slido's Present mode concept — a dedicated results page optimised
-  for projection, not for interaction
-- Operator console: adopt the strict facilitator/participant context separation — the operator
-  should never feel like they're "on the same page" as voters
-
----
-
-### Mentimeter — Presentation Polling
-
-**What it gets right:**
-- Visual diversity in results: bar charts, word clouds, ranking displays — results are made
-  readable, not just accurate
-- Presentation integration: slides and polls live in one flow
-- "Build and go" creation: you can set up a session in minutes without documentation
-
-**What it gets wrong:**
-- Too creative/informal for legal AG contexts — word clouds feel fun, not official
-- Format diversity actually adds cognitive load for AG use — operators don't need 12 poll types
-
-**AG-VOTE application:**
-- Post-session results display: adopt Mentimeter's commitment to making data beautiful —
-  vote counts should be presented with bar charts and percentages alongside numbers
-- Anti-pattern: never offer "fun" result formats; stick to the official tally format
-
----
-
-### BoardEffect / Diligent Boards — Board Meeting Portals
-
-**What they get right:**
-- Centralised hub: agendas, minutes, documents, and board books all accessible from one place
-  before the meeting
-- AI-assisted minutes generation (Diligent) — reduces post-meeting admin burden
-- Customisable dashboards: administrators see only what is relevant to their role
-- Accessibility across all devices; consistent experience on mobile and desktop
-
-**What they get wrong (relative to AG-VOTE goals):**
-- Enterprise-weight software — complex onboarding, assumes IT support
-- Feature parity marketed as UX quality; deep feature sets ≠ clarity
-- Governance vocabulary still unexplained ("board book", "fiduciary duty" — no tooltips)
-
-**AG-VOTE application:**
-- Session hub: adopt BoardEffect's "document + agenda + attendance in one pre-meeting hub"
-  concept — the hub page is the single source of truth before the session goes live
-- Dashboard: adopt the "role-aware" panel concept — operator dashboard ≠ admin dashboard
-
----
-
-## Guided Workflow Patterns (Gold Standard Sources)
-
-### Pattern 1: The Staged Wizard (Stripe Checkout, Habstash Fintech)
-
-**What it is:**
-A linear multi-step form where each screen handles one coherent theme. Progress is visible
-at all times. Users cannot see step 5 data until they complete step 3.
-
-**How Stripe does it:**
-- One primary action per screen (never two CTA buttons competing for attention)
-- Inline validation: errors appear on blur, not on submit
-- Progress indicator is persistent but never the focal point (sidebar or top bar)
-- "Save and continue later" available for long flows
-- Final review screen before irrevocable commit
-
-**How it applies to AG-VOTE:**
-
-| Screen | Pattern |
-|--------|---------|
-| Session wizard (4 steps) | Horizontal stepper with named steps: "Informations → Membres → Résolutions → Révision" |
-| Each wizard step | One form theme per step, max 5 fields visible; conditional fields revealed on toggle |
-| Wizard step 4 (review) | Summary card showing all inputs before "Créer la séance" commit |
-| Post-session stepper | Same horizontal stepper: "Résultats → Validation → PV → Archivage" |
-
-**Concrete rules:**
-- Disable Next if required fields are empty (show why in inline hint, not a modal)
-- Always show "Étape X sur Y" as a number alongside the visual stepper
-- Back navigation never loses data (autosave on step exit)
-- Limit wizard to max 7 steps; current 4-step structure is correct
-
----
-
-### Pattern 2: Progressive Disclosure (Notion, Intercom)
-
-**What it is:**
-Reveal information as users need it. Hide complexity behind "learn more", "advanced options",
-and collapsible sections. Show the essential; offer the rest.
-
-**How Notion does it:**
-- First-time empty state shows a sample document with ghosted placeholder text
-- Onboarding checklist appears in sidebar: 5 items, each one unlocks the next
-- Tooltips triggered on first interaction with any unfamiliar control
-- Settings categorised as "basic" vs "advanced" — advanced is behind a toggle
-
-**How Intercom does it:**
-- First session: "quick win" guided task (launch Messenger) before any feature overview
-- Progress ring in sidebar shows percentage complete
-- Contextual help appears in-context, not in a separate help panel
-
-**How it applies to AG-VOTE:**
-
-| Screen | Progressive Disclosure Opportunity |
-|--------|-----------------------------------|
-| Dashboard (first visit) | Onboarding checklist card appears if no sessions exist |
-| Wizard step 3 (résolutions) | Show 2 fields by default; "Ajouter des options de vote avancées" reveals weight/quorum fields |
-| Operator console | Tabs collapsed to "Présents | Résolutions | Vote en cours" — advanced tabs (Appareils, Audit) revealed on demand |
-| Session hub checklist | Each item shows estimated time to complete; blocked items explain what must happen first |
-
----
-
-### Pattern 3: Status-Aware Dashboards (Linear, Asana)
-
-**What it is:**
-The dashboard reads the current state and surfaces the ONE most important next action.
-The UI changes based on where you are in the workflow — it is not static.
-
-**How Linear does it:**
-- Inbox surfaces only items that require your attention
-- Issue cards show status as colour + icon, not just text
-- "Start" button appears contextually on unstarted issues, "Done" on in-progress — the action
-  offered matches the item's state
-
-**How Asana does it:**
-- Dashboard has a "Your work" section that shows only tasks due soon / blocked
-- Project overview shows a visual timeline of completion percentage
-- Empty states explicitly say "When [X] happens, [Y] will appear here"
-
-**How it applies to AG-VOTE:**
-
-| State | Dashboard Should Show |
-|-------|----------------------|
-| No sessions exist | "Créer votre première séance" call to action with illustration |
-| Session in draft | "Séance en préparation — Compléter les résolutions [→]" |
-| Session frozen (waiting) | "Séance prête — Ouvrir la console opérateur [→]" |
-| Session live | "Séance en cours — [live indicator] Rejoindre la console [→]" |
-| Session closed | "Séance terminée — Générer le PV [→]" |
-| Session archived | Card in muted style, no action CTA |
-
-**Operator console status bar:**
-- Quorum indicator: green tick / amber warning / red cross (not just a number)
-- Motion status: prominent badge "AUCUN VOTE EN COURS" → "VOTE OUVERT: [Motion title]"
-- Time elapsed indicator for open votes (creates urgency awareness)
-
----
-
-### Pattern 4: The "What to Do Next" Empty State (Cloudscape, Notion, Stripe)
-
-**What it is:**
-When a container has no data, never show just an empty table. Always explain the state AND
-provide a primary action to resolve it.
-
-**Anatomy (Cloudscape design system):**
-1. Heading: "Aucune résolution" (state in plain language)
-2. Description (optional): "Les résolutions définissent les sujets soumis au vote pendant la séance."
-3. Action: Secondary button "Ajouter une résolution"
-
-**Critical rule:** The action must be a secondary button (not primary), because the empty
-state itself is not the main goal of the page — it's a helper.
-
-**How it applies to AG-VOTE — every empty state must have this anatomy:**
-
-| Empty state | Heading | Description | Action |
-|-------------|---------|-------------|--------|
-| No sessions on dashboard | Aucune séance | Créez votre première séance pour gérer vos votes | Nouvelle séance |
-| No motions in wizard step 3 | Aucune résolution | Les résolutions définissent ce qui sera soumis au vote | Ajouter une résolution |
-| No members in wizard step 2 | Aucun membre | Importez ou ajoutez les membres qui pourront voter | Importer des membres |
-| No results in post-session step 1 | Résultats non disponibles | La séance n'a pas encore été clôturée | — (no action; explain only) |
-| No sessions in archives | Aucune séance archivée | Les séances terminées et validées apparaissent ici | — (no action) |
-
----
-
-### Pattern 5: Contextual Inline Help (Stripe, Intercom, PatternFly)
-
-**What it is:**
-Explanatory text lives next to the control that needs it, not in a separate help panel.
-Users should never leave the page to understand a field.
-
-**Specific patterns:**
-
-- **Field description:** Under the label, in muted text, one sentence. E.g., "Seuil de quorum —
-  Le pourcentage minimum de membres présents pour que les votes soient valables."
-- **Tooltip (?) icon:** For optional advanced context. Click to reveal a sentence in a popover.
-  Never use hover-only for required information (mobile incompatible).
-- **Inline warning:** When a value triggers a business rule, show the implication immediately.
-  E.g., entering "50" for quorum threshold triggers: "⚠ Une séance avec ce seuil pourrait
-  être annulée si moins de la moitié des membres est présente."
-- **Disabled state explanation:** When a button is disabled, show WHY. E.g., "Figer la séance
-  — disponible après enregistrement des présences (0/42 membres enregistrés)."
-
-**Anti-pattern:** Modal dialogs for explanations. They interrupt flow and are dismissed without
-reading. Reserve modals for destructive action confirmation only.
-
----
-
-## Live Meeting Operator Console UX
-
-### Pattern 6: The Control Room (Real-Time Dashboards — Smashing Magazine 2025)
-
-**Core principle:** Real-time dashboards are decision assistants, not passive displays.
-The interface must shorten time-to-decision under pressure.
-
-**Five design rules for the operator console:**
-
-1. **Maximum 5 data points visible at a time** — quorum status, attendance count, active
-   motion name, vote count, time elapsed. Everything else is available but not prominent.
-
-2. **Delta indicators over absolute numbers** — showing "+3 votes in last 30s" is more
-   actionable than showing "47 votes". Combine both: "47 votes (+3 ▲)".
-
-3. **Micro-animations 200–400ms** — when vote counts change, use a subtle count-up animation.
-   Do not flash or blink. Motion creates attention without panic.
-
-4. **Status via colour + symbol, never colour alone** — "QUORUM ATTEINT ✓" in green is better
-   than green indicator only (colourblind users exist; WCAG AA requires non-colour distinction).
-
-5. **Connectivity feedback is trust-critical** — the operator must always know if SSE is live.
-   Show: "● En direct" (green pulse) / "⚠ Reconnexion..." (amber) / "✕ Hors ligne" (red).
-   Auto-retry with exponential backoff; never silently fail.
-
-**Operator console layout for AG-VOTE (PC-first, 1024px+):**
-```
-┌─────────────────────────────────────────────────────┐
-│  [STATUS BAR] Séance: [Name] | Quorum: ✓ | ● En direct │
-├─────────────────────────────────────────────────────┤
-│  [LEFT PANEL]          │  [MAIN PANEL]              │
-│  Présents (32/42)      │  Résolution active:        │
-│  Procurations (4)      │  ┌───────────────────────┐ │
-│  ────────────          │  │ VOTE OUVERT           │ │
-│  Résolutions           │  │ Approbation budget    │ │
-│  ● Résolution 1 ✓      │  │ POUR: 18 | CONTRE: 7  │ │
-│  ● Résolution 2 ✓      │  │ ABSTENTION: 3         │ │
-│  → Résolution 3 ⏵      │  │ EN ATTENTE: 4         │ │
-│  ○ Résolution 4        │  └───────────────────────┘ │
-│  ○ Résolution 5        │  [Clôturer le vote] [▼]    │
-└────────────────────────┴────────────────────────────┘
-```
-
----
-
-## Voter View UX (Mobile-First)
-
-### Pattern 7: Single-Focus Voting Interface
-
-**Research finding:** The most effective mobile voting UIs eliminate all navigation and
-contextual information from view. The voter sees only: what is being voted on, their options.
-
-**Touch target requirements (HIGH confidence — MIT Touch Lab + WCAG 2.5.5):**
-- Minimum 44×44px per WCAG AA
-- Recommended 48×48px for AG context (includes users with reduced dexterity, formal setting)
-- Vote option buttons: full-width cards, minimum 72px height
-- At least 8px spacing between options to prevent mis-tap
-
-**Voting card anatomy for AG-VOTE voter view:**
-```
-┌─────────────────────────────────┐
-│  Résolution 3 / 8               │  ← progress context only
-│  ─────────────────              │
-│  Approbation du budget 2026     │  ← motion title, large
-│  (30 000 € pour travaux)        │  ← subtitle if needed, muted
-│  ─────────────────              │
-│  ┌─────────────────────────┐    │
-│  │  ✓  POUR                │    │  ← 72px height min
-│  └─────────────────────────┘    │
-│  ┌─────────────────────────┐    │
-│  │  ✗  CONTRE              │    │  ← 72px height min
-│  └─────────────────────────┘    │
-│  ┌─────────────────────────┐    │
-│  │  —  ABSTENTION          │    │  ← 72px height min
-│  └─────────────────────────┘    │
-│                                 │
-│  ○ Je n'ai pas encore voté      │  ← confirmation state
-└─────────────────────────────────┘
-```
-
-**Instant feedback rules:**
-- On tap: button fills to selected state INSTANTLY (< 50ms — no network round-trip)
-- Optimistic UI: show selection immediately, submit in background
-- On server confirmation: subtle pulse animation + checkmark replacement
-- On server error: roll back selection + show inline error "Vote non enregistré — réessayez"
-- Never block the voter UI waiting for server confirmation
-
-**Cognitive load rules:**
-- When no vote is open: show "En attente d'un vote" — one line, no other content
-- When a vote is open: show ONLY the vote card — no header, no nav, no unrelated info
-- When a vote closes: show "Vote enregistré ✓" confirmation for 3 seconds, then return to waiting state
-- Never show results to voters during the active vote (breaks secret ballot; also: Slido learned this)
-
----
-
-## Results Display UX
-
-### Pattern 8: Trustworthy Result Presentation
-
-**What makes results feel trustworthy (Centre for Civic Design + Electpoll research):**
-- Show absolute numbers AND percentages together — "18 POUR (56%)" not just one or the other
-- Show the total votes cast prominently — "28 votes sur 32 membres présents"
-- Show which threshold was required — "Majorité absolue (50% +1): ✓ ADOPTÉ"
-- Never animate results into question — smooth counter animations are fine, but no fake drama
-- Typographic hierarchy: result (ADOPTÉ / REJETÉ) is the largest element, not the vote counts
-
-**Visual hierarchy for result cards:**
+### ASCII Diagram
 
 ```
-┌──────────────────────────────────────────────┐
-│  Résolution 3                                │
-│  Approbation du budget 2026                  │
-│  ─────────────────────────────               │
-│                                              │
-│         ✓ ADOPTÉ                            │  ← H1, green, large
-│    Majorité absolue atteinte                │  ← caption, muted
-│                                              │
-│  POUR      CONTRE    ABSTENTION   N'A PAS   │
-│  18 (56%)  7 (22%)   3 (9%)       4 (13%)   │
-│  ████████  ████      ██           ███        │  ← bar charts
-│                                              │
-│  28 votes exprimés · 32 membres présents     │  ← footer context
-└──────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│ [sidebar rail 58px]  [header 56px — title + CTA]        │
+├─────────────────────────────────────────────────────────┤
+│                 CONTENT (max-width: 1200px, mx auto)     │
+│                                                         │
+│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐               │
+│  │ KPI  │  │ KPI  │  │ KPI  │  │ KPI  │  ← 4-col grid │
+│  │  28px│  │  28px│  │  28px│  │  28px│    gap: 16px   │
+│  └──────┘  └──────┘  └──────┘  └──────┘               │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ URGENT ACTION CARD (full width, conditionally)  │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  ┌───────────────────────────────┐  ┌───────────────┐  │
+│  │ SESSIONS LIST                 │  │ QUICK ACTIONS │  │
+│  │ (upcoming + draft)            │  │ (secondary)   │  │
+│  │                               │  │               │  │
+│  │ row: 72px min-height          │  │               │  │
+│  │ ─────────────────────────     │  │               │  │
+│  │ row                           │  └───────────────┘  │
+│  │ ─────────────────────────     │                     │
+│  │ row                           │                     │
+│  └───────────────────────────────┘                     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-**Post-session results page specific rules:**
-- Each motion result card is collapsible (default: show adopted/rejected headline; expand for full tally)
-- Sort order: by agenda order (not by result)
-- Export button at page level: "Exporter tous les résultats (CSV / PDF)"
-- Invalid/abstained votes shown separately from "did not vote" — these are legally distinct
+### CSS Grid Specifications
+
+```css
+@layer v4 {
+
+/* ── Dashboard content wrapper ── */
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── KPI Row — 4 columns, equal width ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+/* KPI card anatomy */
+.kpi-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);   /* 10px */
+  padding: 20px 24px;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kpi-card__value {
+  font-size: var(--text-3xl);        /* 30px */
+  font-weight: var(--font-extrabold);
+  font-family: var(--font-display);  /* Fraunces */
+  line-height: 1;
+  color: var(--color-text-dark);
+}
+
+.kpi-card__label {
+  font-size: var(--text-sm);         /* 14px */
+  color: var(--color-text-muted);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-card__delta {
+  font-size: var(--text-xs);         /* 12px */
+  font-family: var(--font-mono);
+  margin-top: auto;
+}
+
+/* ── Urgent action banner — full width ── */
+.urgent-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: background var(--duration-fast);
+}
+
+/* ── Main body — sessions list + sidebar ── */
+.dashboard-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── Session list rows ── */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.session-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  min-height: 72px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background var(--duration-fast);
+}
+
+.session-row:last-child { border-bottom: none; }
+.session-row:hover { background: var(--color-bg-subtle); }
+
+/* ── Quick actions sidebar ── */
+.dashboard-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-body {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-aside {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 0 16px;
+    gap: 16px;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .kpi-card {
+    padding: 14px 16px;
+    min-height: 80px;
+  }
+  .kpi-card__value {
+    font-size: var(--text-2xl);
+  }
+}
+
+} /* @layer v4 */
+```
+
+### Spacing Rationale
+- **Max-width 1200px**: Stripe, Linear, and most SaaS dashboards use 1200–1280px. At 1440px (our global max) with a 58px sidebar, the content feels too sparse. 1200px keeps card proportions healthy.
+- **KPI 4-column gap 16px**: Tight enough that the row reads as a single unit, not four separate items.
+- **Session row 72px min-height**: Large enough to be scannable, matches the voter card height convention from v4.0.
+- **Quick-actions aside 280px**: Standard sidebar secondary column — matches Notion sidebar, Linear detail panel.
 
 ---
 
-## Quorum Indicator Patterns
+## PAGE TYPE 2 — WIZARD (4-step session creation)
 
-### Pattern 9: Live Quorum Visualisation
+### Reference: Stripe Checkout, Notion database creation flow
 
-**Finding:** No off-the-shelf quorum UX pattern exists in the researched platforms — this is
-an AG-specific concept. Pattern derived from voting platform analysis + general progress UI.
+**Used on:** `wizard.htmx.html`
 
-**Quorum indicator anatomy (operator console + hub):**
+### Layout Philosophy
+A wizard is a focused task. Remove all noise. The sidebar and its navigation context actively fight the user's concentration — they suggest escape routes. The gold-standard approach (Stripe Checkout) is a **centered single-column form**, max 640px wide, on a neutral page background. The stepper goes above the form card, not inside it, so it signals progress without competing with the form fields. Primary action is always at bottom-right, secondary (back) at bottom-left.
 
-Status: one of three states, always shown as colour + icon + label + number:
-- **Not reached:** "Quorum non atteint — 24/42 présents (57%, seuil: 60%)" — amber/warning
-- **Reached:** "Quorum atteint ✓ — 28/42 présents (67%)" — green/success
-- **With margin context:** Show how many more members needed, or how many could leave
-
-**Progress bar design:**
-- Show current attendance as filled bar
-- Mark the threshold with a vertical tick at the correct position on the bar
-- Fill colour: amber until threshold, green after threshold
-- Animate: when a member is marked present, the bar fills incrementally
+### ASCII Diagram
 
 ```
-Présents: 28/42  ──────────────────────|─────────────
-                 [██████████████████   |             ]
-                                       ↑ seuil: 60% = 25 membres
-                                   ✓ Quorum atteint
+┌──────────────────────────────────────────────────────────────┐
+│ [header: back link left, step label right]                   │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│          ┌─────────────────────────────────┐                │
+│          │  STEPPER PROGRESS BAR           │  ← max 680px   │
+│          │  [1] [──] [2] [──] [3] [──] [4] │                │
+│          └─────────────────────────────────┘                │
+│                                                              │
+│          ┌─────────────────────────────────┐                │
+│          │  STEP CARD                      │                │
+│          │                                 │  ← max 640px   │
+│          │  [Step title]                   │    centered    │
+│          │                                 │                │
+│          │  Field label                    │                │
+│          │  [────────────────────────────] │                │
+│          │                                 │                │
+│          │  Field label                    │                │
+│          │  [────────────────────────────] │                │
+│          │                                 │                │
+│          │  ─────────────────────────────  │  ← divider     │
+│          │  [← Précédent]    [Suivant →]  │  ← sticky bar  │
+│          └─────────────────────────────────┘                │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**Proxy impact display:**
-- Show "(+4 procurations)" alongside the direct presence count
-- Tooltip: "Les votes par procuration comptent dans le quorum"
-- If quorum is only reached WITH proxies, show: "Quorum atteint avec procurations"
+### CSS Grid / Flex Specifications
+
+```css
+@layer v4 {
+
+/* ── Wizard page shell — no sidebar ── */
+/* The wizard page uses .app-shell.no-sidebar */
+[data-page-role="wizard"] .app-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px 80px; /* bottom clearance for sticky bar */
+  background: var(--color-bg);
+}
+
+/* ── Wizard track — constrained column ── */
+.wizard-track {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Stepper bar ── */
+.wiz-progress-wrap {
+  /* Existing styles maintained — pill stepper */
+  /* Tokens: padding 4px, gap 4px, radius-lg */
+  /* Step items: flex 1, padding 14px 18px */
+  /* Active: background primary-subtle, color primary */
+  /* Done: background success-subtle, color success */
+}
+
+/* On narrow screens, collapse stepper to icon+number only */
+@media (max-width: 640px) {
+  .wiz-step-label {
+    display: none;
+  }
+  .wiz-step-item {
+    flex: 0 0 auto;
+    padding: 12px 14px;
+  }
+}
+
+/* ── Step form card ── */
+.step-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.step-card__header {
+  padding: 24px 28px 0;
+}
+
+.step-card__title {
+  font-size: var(--text-xl);           /* 20px */
+  font-weight: var(--font-bold);
+  font-family: var(--font-display);
+  line-height: var(--leading-tight);
+}
+
+.step-card__body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;                           /* 20px between field groups */
+}
+
+/* ── Field group ── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: var(--text-sm);           /* 14px */
+  font-weight: var(--font-semibold);
+  color: var(--color-text-dark);
+}
+
+.field-hint {
+  font-size: var(--text-xs);           /* 12px */
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* Fields never 100% by default — max 480px for inputs */
+/* Exception: textarea, description fields = 100% */
+.field-input {
+  max-width: 480px;
+  width: 100%;
+}
+
+.field-input--full {
+  max-width: none;
+}
+
+/* ── Two-column field row (e.g., date + time) ── */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Step navigation bar — sticky at card bottom ── */
+.step-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+}
+
+/* Both buttons minimum 120px wide, 40px tall */
+.step-card__footer .btn {
+  min-width: 120px;
+  height: 40px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  [data-page-role="wizard"] .app-main {
+    padding: 16px 16px 80px;
+  }
+  .wizard-track {
+    max-width: 100%;
+  }
+  .step-card__header,
+  .step-card__body,
+  .step-card__footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+} /* @layer v4 */
+```
+
+### Spacing Rationale
+- **Max-width 680px for track, 640px for inner form area**: Stripe Checkout uses ~600px. GitHub's new issue form uses ~640px. The wider 680px accommodates the stepper bar which includes step labels.
+- **Field gap 20px**: Enough breathing room that each field is a distinct decision, not a form wall.
+- **Footer sticky bottom**: The navigation buttons must always be visible. Long forms (step 2: resolution list) make non-sticky footers unusable.
+- **Button space-between**: Universal pattern for wizards — back on left (escape), forward on right (goal). Never center both buttons.
 
 ---
 
-## Session Creation Wizard UX
+## PAGE TYPE 3 — SPLIT-PANEL (Operator Console)
 
-### Pattern 10: Named-Step Wizard with Persistent Context
+### Reference: Slack/Discord channel layout, Bloomberg terminal philosophy
 
-**Research synthesis from: PatternFly, Eleken, Stripe, Decidim:**
+**Used on:** `operator.htmx.html`
 
-**Step structure for AG-VOTE session creation wizard:**
+### Layout Philosophy
+The operator console is a **power tool for live sessions**. It must display maximum information density without cognitive overload. The gold-standard split-panel (Slack, Discord, VS Code) uses: a narrow left panel for navigation/list context, a dominant main panel for primary work, and an optional right drawer for details. For AG-VOTE specifically: left = agenda/navigation, main = active vote or current question, status bar = persistent session state at top.
+
+The critical insight from Slack/Discord: **the left panel is always visible and never collapses on desktop** (1024px+). On tablet (768–1024px), the left panel overlays. On mobile, it's a bottom sheet.
+
+### ASCII Diagram
 
 ```
-[Informations] → [Membres] → [Résolutions] → [Révision]
-     ●               ○           ○              ○
-  Step 1/4                                   Review
+┌────────────────────────────────────────────────────────────────┐
+│ [sidebar rail 58px] │  STATUS BAR — 52px — session state, live │
+│                     ├──────────────────────────────────────────┤
+│                     │  TAB NAR — 44px — Ordre du jour / Live   │
+│                     ├──────────┬───────────────────────────────┤
+│                     │          │                               │
+│                     │  AGENDA  │   MAIN PANEL                  │
+│                     │  PANEL   │                               │
+│                     │  280px   │   Current question/vote       │
+│                     │          │   Result chart                │
+│                     │  Agenda  │   Actions                     │
+│                     │  items   │                               │
+│                     │  list    │                               │
+│                     │          │   ─────────────────────────   │
+│                     │          │   QUORUM / ATTENDEES ROW      │
+│                     │          │   (sticky at panel bottom)    │
+│                     └──────────┴───────────────────────────────┘
+└────────────────────────────────────────────────────────────────┘
 ```
 
-**Step 1 — Informations:**
-- Fields: Nom, Date, Heure début/fin, Lieu, Type (ordinaire / extraordinaire)
-- Progressive: "Ajouter une convocation" toggle reveals email template fields
-- Inline hint on date: "La convocation doit être envoyée au moins 15 jours avant la séance"
+### CSS Grid Specifications
 
-**Step 2 — Membres:**
-- Empty state: "Aucun membre — Importez une liste ou ajoutez des membres un par un"
-- Import CSV: drag-and-drop zone, preview table before confirming
-- Manual add: simple inline form below table
-- Progressive: "Paramètres de vote avancés" toggle reveals voting power fields
+```css
+@layer v4 {
 
-**Step 3 — Résolutions:**
-- Empty state: "Aucune résolution — Ajoutez les sujets qui seront soumis au vote"
-- Template picker: 3 common templates (Approbation de comptes, Élection au conseil, Modification de règlement)
-- Each resolution: title + description + vote type (simple/qualified majority)
-- Reorder via drag (or up/down arrows for accessibility)
+/* ── Operator page takes over app-main ── */
+[data-page-role="operator"] .app-main {
+  padding: 0;
+  padding-left: var(--sidebar-rail); /* 58px */
+  display: grid;
+  grid-template-rows: 52px 44px 1fr;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "statusbar"
+    "tabnav"
+    "console";
+  height: 100vh;
+  overflow: hidden;
+}
 
-**Step 4 — Révision:**
-- Full summary card: every field from steps 1-3 shown with "Modifier" link per section
-- Prominent warning if anything critical is missing: "⚠ Aucun membre ajouté — les votes ne
-  pourront pas être attribués"
-- Commit button: "Créer la séance →" — primary, single, at bottom right
+/* When sidebar is pinned, shift left */
+[data-page-role="operator"] .app-sidebar.pinned ~ .app-main {
+  padding-left: var(--sidebar-expanded); /* 252px */
+}
 
-**Navigation rules:**
-- Back button always available, never loses data
-- Steps 1-3 are individually saveable (autosave on field blur)
-- Cannot reach step 4 if step 1 has validation errors
-- Steps 2 and 3 are optional (can create with 0 members, 0 resolutions, and add later from hub)
+/* ── Status bar ── */
+.op-status-bar {
+  grid-area: statusbar;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  border-top: 3px solid var(--persona-operateur, var(--color-primary));
+  overflow: hidden;
+}
+
+/* ── Tab navigation ── */
+.op-tab-nav {
+  grid-area: tabnav;
+  height: 44px;
+  display: flex;
+  align-items: stretch;
+  padding: 0 20px;
+  gap: 4px;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+/* ── Console body — split horizontal ── */
+.op-console {
+  grid-area: console;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;
+}
+
+/* ── Agenda panel — left, scrollable ── */
+.op-agenda-panel {
+  width: 280px;
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.op-agenda-panel__header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  flex-shrink: 0;
+}
+
+.op-agenda-panel__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+/* Agenda item row */
+.agenda-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 16px;
+  min-height: 52px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+}
+
+.agenda-item:hover { background: var(--color-bg-subtle); }
+.agenda-item.active {
+  background: var(--color-primary-subtle);
+  border-left-color: var(--color-primary);
+}
+.agenda-item.done { opacity: 0.6; }
+
+/* ── Main panel — right, scrollable ── */
+.op-main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.op-main-panel__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ── Quorum bar — sticky at panel bottom ── */
+.op-quorum-bar {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 24px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+/* ── Responsive: collapse agenda panel ── */
+@media (max-width: 1024px) {
+  .op-console {
+    grid-template-columns: 1fr;
+  }
+  .op-agenda-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 52px + 44px);
+    left: calc(var(--sidebar-rail));
+    width: 280px;
+    height: calc(100vh - var(--header-height) - 52px - 44px);
+    z-index: var(--z-fixed);
+    transform: translateX(-100%);
+    transition: transform var(--duration-normal) var(--ease-out);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  }
+  .op-agenda-panel.open {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  [data-page-role="operator"] .app-main {
+    grid-template-rows: 52px 44px 1fr;
+  }
+  .op-status-bar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .op-main-panel__content {
+    padding: 16px;
+  }
+}
+
+} /* @layer v4 */
+```
+
+### Spacing Rationale
+- **Agenda panel 280px**: Matches Slack's channel list (220–240px) but needs more width for AG resolution titles which can be long French text. 280px is the practical minimum for a truncated two-line title + status badge.
+- **Status bar 52px**: Slightly taller than header (56px) to stand out as a different component type. Contains: session name, status badge, timer, live participant count. Must all fit in one row.
+- **Tab nav 44px**: Compact enough that the console area maximizes space. Two tabs: "Ordre du jour" (setup mode) / "En séance" (live mode).
+- **Quorum bar 52px at bottom**: Permanently visible during live voting — operators must never scroll to find quorum data.
 
 ---
 
-## Anti-Features: UX Patterns to Explicitly Avoid
+## PAGE TYPE 4 — DATA TABLES (Audit, Archives, Members, Users)
 
-| Anti-Pattern | Why It Fails | AG-VOTE Specific Risk |
-|-------------|--------------|----------------------|
-| Modal for explanations | Interrupts flow, dismissed without reading | AG terminology (majorité qualifiée etc.) needs inline help |
-| Silent loading without skeleton | Operators cannot tell if data is loading or broken | Operator console live during a meeting — any perceived freeze = panic |
-| Error message in console only | Users never see it; they think the app is broken | PHP exceptions that surface as blank screens |
-| Disabled button with no explanation | User frustration, support tickets | "Figer la séance" disabled but no tooltip saying why |
-| Long-running action without progress | User clicks twice, creating duplicates | PV PDF generation (Dompdf can take 2-5 seconds) |
-| Optimistic UI without rollback | Voter thinks they voted; server rejected it | Ballot cast endpoint — must show error if server rejects |
-| Global navigation visible during vote | Voter gets distracted, navigates away | Full-screen voter view must hide all non-vote chrome |
-| Results revealed during open vote | Secret ballot broken; chilling effect | Voter view must never show partial tallies |
-| "Are you sure?" modal chains | Death by confirmation dialogs | Reserve for destructive actions only (delete session) |
-| Forcing account creation to vote | Adds friction at the worst moment | Voter authentication via token link is correct; maintain it |
-| Showing all features at once | Overwhelm, "I don't know where to start" | Dashboard must start simple and reveal complexity progressively |
-| Status via colour alone | WCAG AA failure; colourblind users | Every status indicator: colour + icon + label |
+### Reference: Linear issue list, GitHub PR list, Airtable grid view
+
+**Used on:** `audit.htmx.html`, `archives.htmx.html`, `members.htmx.html`, `admin.htmx.html`
+
+### Layout Philosophy
+Data tables must maximize information density while remaining scannable. The gold standard (Linear, Airtable) uses:
+1. A toolbar row (search + filters) pinned above the table
+2. A sticky header row that shows column names while scrolling
+3. Consistent row heights (48px for dense data, 56px for comfortable)
+4. No zebra striping — a clean hover highlight is sufficient and more modern
+5. Right-aligned numbers (quantities, votes, percentages) — never centered
+
+### ASCII Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ PAGE HEADER — title, description, count badge               │
+├─────────────────────────────────────────────────────────────┤
+│ TOOLBAR — [🔍 Search...] [Filter ▾] [Export] [+ Add]  ↕    │
+│                                     ← 48px height ─────────  │
+├─────────────────────────────────────────────────────────────┤
+│ TABLE (scroll container, overflow-y: auto)                  │
+│ ┌──┬─────────────────┬──────────┬───────┬───────────────┐  │
+│ │☐ │ Name ↕          │ Status   │ Date  │ Actions       │  │
+│ ├──┼─────────────────┼──────────┼───────┼───────────────┤  │
+│ │☐ │ Item row        │ [badge]  │ date  │ [···]         │  │
+│ ├──┼─────────────────┼──────────┼───────┼───────────────┤  │
+│ │☐ │ Item row        │ [badge]  │ date  │ [···]         │  │
+│ ├──┼─────────────────┼──────────┼───────┼───────────────┤  │
+│ │☐ │ Item row        │ [badge]  │ date  │ [···]         │  │
+│ └──┴─────────────────┴──────────┴───────┴───────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│ PAGINATION — [←] 1 2 3 ... [→]   Showing 1-25 of 142 items │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### CSS Specifications
+
+```css
+@layer v4 {
+
+/* ── Table page content — no extra padding, full width ── */
+.table-page-main {
+  padding: 0;
+  padding-left: calc(var(--sidebar-rail) + 0px);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Page header strip ── */
+.table-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+/* ── Toolbar strip ── */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  height: 52px;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.table-toolbar__search {
+  flex: 0 0 280px;        /* fixed width search, never grows to fill all space */
+  max-width: 320px;
+  height: 32px;
+}
+
+.table-toolbar__filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.table-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ── Table scroll container ── */
+.table-scroll {
+  flex: 1;
+  overflow: auto;        /* both axes */
+  position: relative;
+}
+
+/* ── Table ── */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;   /* prevents column width jitter on data load */
+}
+
+/* ── Sticky header ── */
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-border);
+  padding: 0 16px;
+  height: 40px;              /* header row: 40px */
+  font-size: var(--text-xs); /* 12px */
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-align: left;
+  user-select: none;
+}
+
+/* Sortable header */
+.data-table th.sortable {
+  cursor: pointer;
+}
+.data-table th.sortable:hover {
+  color: var(--color-text);
+  background: var(--color-bg-subtle);
+}
+
+/* Right-align numeric columns */
+.data-table th.col-number,
+.data-table td.col-number {
+  text-align: right;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+/* ── Table rows ── */
+.data-table tbody tr {
+  height: 48px;              /* standard row: 48px */
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background var(--duration-fast);
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-bg-subtle);
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.data-table tbody td {
+  padding: 0 16px;
+  font-size: var(--text-sm);  /* 14px */
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* First column — always left, slightly bolder */
+.data-table tbody td:first-child {
+  font-weight: var(--font-medium);
+  color: var(--color-text-dark);
+}
+
+/* Checkbox column */
+.data-table .col-check {
+  width: 44px;
+  padding: 0 12px;
+  text-align: center;
+}
+
+/* Actions column — right-aligned, never truncated */
+.data-table .col-actions {
+  width: 80px;
+  text-align: right;
+  padding-right: 12px;
+  overflow: visible;     /* action menus must escape the cell */
+}
+
+/* ── Pagination bar ── */
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  height: 52px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.table-pagination__info {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.table-pagination__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast), border-color var(--duration-fast);
+}
+.pagination-btn:hover { background: var(--color-bg-subtle); }
+.pagination-btn.active {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .table-toolbar__search {
+    flex-basis: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-page-header,
+  .table-toolbar,
+  .table-pagination {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .table-toolbar {
+    height: auto;
+    min-height: 52px;
+    flex-wrap: wrap;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .table-toolbar__search {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+  /* Horizontal scroll on mobile — do not reflow columns */
+  .table-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Hide lower-priority columns on mobile via class */
+  .data-table .col-hide-mobile {
+    display: none;
+  }
+}
+
+} /* @layer v4 */
+```
+
+### Column Width Conventions
+
+| Column Type | Width | Alignment | Font |
+|-------------|-------|-----------|------|
+| Checkbox | 44px | Center | — |
+| Status badge | 120px | Left | sans |
+| Name / Title | auto (1fr) | Left | medium weight |
+| Date | 140px | Left | mono |
+| Number / Count | 100px | Right | mono |
+| Percentage | 80px | Right | mono |
+| Actions menu | 80px | Right | — |
 
 ---
 
-## Contextual Next-Action Guidance: Screen-by-Screen Specification
+## PAGE TYPE 5 — SETTINGS/ADMIN (Tabbed forms)
 
-### Dashboard (Admin/Operator first view)
+### Reference: GitHub Settings, Linear workspace settings, Stripe account settings
 
-**If zero sessions exist:**
+**Used on:** `settings.htmx.html`, `admin.htmx.html`, `email-templates.htmx.html`
+
+### Layout Philosophy
+Settings pages are for infrequent, deliberate configuration. The gold-standard (GitHub Settings) uses:
+1. **Left vertical nav** (not top tabs) for sections — gives more room than a tab bar, works better with many sections
+2. A **constrained content column** (max 720px) — wide enough for forms, narrow enough to feel focused
+3. **Section-divided cards** — each logical group is its own card with a heading
+4. **Fields never 100% width** — a full-width input inside a 720px card feels like an overwhelmingly long form. Constrain inputs to their semantic width.
+5. **Save button at section level**, not page level — one save per form section prevents lost-changes anxiety
+
+### ASCII Diagram
+
 ```
-┌─────────────────────────────────────────────┐
-│  [Illustration: empty meeting room]          │
-│                                             │
-│  Votre première séance                      │
-│  Créez une séance pour commencer à gérer    │
-│  vos assemblées générales.                  │
-│                                             │
-│          [Nouvelle séance →]               │
-└─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ [sidebar rail 58px]  PAGE HEADER — Settings                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────┐  ┌────────────────────────────────────┐   │
+│  │ SIDE NAV    │  │ CONTENT COLUMN (max-width: 720px)  │   │
+│  │ 220px       │  │                                    │   │
+│  │             │  │  ┌──────────────────────────────┐  │   │
+│  │ > Section 1 │  │  │ SECTION CARD                 │  │   │
+│  │   Section 2 │  │  │ ─────────────────────────    │  │   │
+│  │   Section 3 │  │  │ Heading  [sub-description]   │  │   │
+│  │   Section 4 │  │  │                              │  │   │
+│  │             │  │  │ Label                        │  │   │
+│  │             │  │  │ [Input ── 480px max ───────] │  │   │
+│  │             │  │  │ hint text                    │  │   │
+│  │             │  │  │                              │  │   │
+│  │             │  │  │ Label                        │  │   │
+│  │             │  │  │ [Input ── 360px max ───────] │  │   │
+│  │             │  │  │                              │  │   │
+│  │             │  │  │ ───────────────── [Save]     │  │   │
+│  │             │  │  └──────────────────────────────┘  │   │
+│  │             │  │                                    │   │
+│  │             │  │  ┌──────────────────────────────┐  │   │
+│  │             │  │  │ SECTION CARD 2               │  │   │
+│  │             │  │  └──────────────────────────────┘  │   │
+│  └─────────────┘  └────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-**If sessions exist, each session card shows the NEXT expected action:**
-- draft → "Compléter la configuration"
-- scheduled → "Enregistrer les présences"
-- frozen → "Ouvrir la console opérateur"
-- live → "● En cours — Rejoindre"  (pulse animation on dot)
-- closed → "Générer le PV"
-- validated → "Archiver la séance"
-- archived → [no action; card muted]
+### CSS Specifications
 
-### Session Hub (Pre-meeting staging)
+```css
+@layer v4 {
 
-**Checklist items with blocked-reason display:**
+/* ── Settings main layout ── */
+.settings-main {
+  padding: 24px;
+  padding-left: calc(var(--sidebar-rail) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Settings body — sidenav + content ── */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: flex-start;
+  max-width: 1040px;   /* 220 + 32 + 720 + breathing room */
+}
+
+/* ── Left nav ── */
+.settings-sidenav {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+}
+
+.settings-sidenav__group-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  padding: 12px 12px 4px;
+}
+
+.settings-sidenav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius);     /* 8px */
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.settings-sidenav-item:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.settings-sidenav-item.active {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+/* ── Content column ── */
+.settings-content {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Section card ── */
+.settings-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.settings-section__header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.settings-section__title {
+  font-size: var(--text-base);     /* 16px */
+  font-weight: var(--font-semibold);
+  color: var(--color-text-dark);
+}
+
+.settings-section__description {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.settings-section__body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Form field inside settings ── */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Input width semantics — NEVER 100% for standard inputs */
+.settings-field input[type="text"],
+.settings-field input[type="email"],
+.settings-field input[type="url"],
+.settings-field input[type="number"] {
+  max-width: 480px;
+}
+
+.settings-field input[type="color"] {
+  width: 48px;
+  height: 32px;
+}
+
+.settings-field select {
+  max-width: 320px;
+}
+
+.settings-field textarea {
+  max-width: 100%;    /* Exception: textareas span full section width */
+  min-height: 100px;
+}
+
+/* ── Section footer — save button row ── */
+.settings-section__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--color-bg-subtle);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Danger zone — visually separated ── */
+.settings-section--danger {
+  border-color: var(--color-danger-border);
+}
+.settings-section--danger .settings-section__header {
+  background: var(--color-danger-subtle);
+}
+.settings-section--danger .settings-section__title {
+  color: var(--color-danger);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .settings-layout {
+    grid-template-columns: 180px 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-main {
+    padding: 16px;
+    padding-left: 16px;
+  }
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+  .settings-sidenav {
+    position: static;
+    width: 100%;
+    /* Collapse to horizontal scrolling tab bar on mobile */
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    gap: 4px;
+  }
+  .settings-sidenav__group-label {
+    display: none;
+  }
+  .settings-sidenav-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+} /* @layer v4 */
 ```
-✓ Informations de séance          Complètes
-✓ Membres (42)                    Importés
-⚠ Résolutions (0)                 [Ajouter des résolutions →]
-○ Figer la séance                 Disponible après: résolutions ajoutées
-```
 
-**Blocked action tooltip (hover/tap on locked item):**
-"La séance ne peut pas être figée tant qu'aucune résolution n'est configurée.
- [Ajouter des résolutions →]"
+### Field Width Conventions
 
-### Operator Console (Live session)
-
-**Before any vote is opened:**
-"Aucun vote en cours — Sélectionnez une résolution et ouvrez le vote."
-→ Highlight the résolutions tab in the sidebar
-
-**When a vote is closed:**
-"Vote clôturé — Résultats disponibles. Ouvrez le prochain vote ou clôturez la séance."
-→ Show two action buttons: "Vote suivant" | "Clôturer la séance"
-
-**End of agenda:**
-"Toutes les résolutions ont été traitées — Clôturer la séance pour passer au procès-verbal."
-→ "Clôturer la séance →" button in prominent position
-
-### Post-Session Stepper
-
-State-aware step labels:
-- Step 1 (Résultats): shows ✓ when all motions have outcomes
-- Step 2 (Validation): shows ✓ when meeting transitions to `validated`
-- Step 3 (PV): shows ✓ when PDF generated
-- Step 4 (Archivage): shows ✓ when archived
-
-Cannot advance to step 2 until step 1 is confirmed.
-Cannot advance to step 3 until validation signature entered.
-Each step shows estimated time: "Environ 2 minutes"
+| Field Type | Max-width | Rationale |
+|------------|-----------|-----------|
+| Short text (name, title) | 480px | One concept, not a sentence |
+| URL, email | 480px | URLs can be long but not infinite |
+| Select / dropdown | 320px | Options are fixed-length |
+| Short number | 160px | Port, count, year |
+| Color picker | 48px | The swatch IS the width |
+| Textarea / description | 100% of section | Multi-line content needs space |
+| Toggle / checkbox | Natural (no width) | Don't stretch boolean inputs |
 
 ---
 
-## PDF Resolution Attachments UX (v4.0 New Feature)
+## PAGE TYPE 6 — MOBILE VOTER (Full-screen ballot)
 
-**Pattern: Progressive document attachment (Notion, Google Drive integration)**
+### Reference: Slido live polling, Apple Pay sheet, native polling apps
 
-During wizard step 3 (résolutions):
-- Each resolution card has a paperclip icon "Joindre un document"
-- On click: file picker (PDF only, max 10MB)
-- After upload: thumbnail + filename shown on the resolution card
-- Inline preview button: opens PDF in a modal slide-over (not new tab)
+**Used on:** `vote.htmx.html` (mobile-first, 100dvh)
 
-During session hub:
-- Document attachment status shown on each resolution: "Document joint ✓" or "Aucun document"
-- Bulk download: "Télécharger tous les documents (ZIP)"
+### Layout Philosophy
+The voter view is the **only** page explicitly mobile-first in AG-VOTE. A physical assembly room member pulls out their phone and votes on a resolution. The stakes are high (legally binding votes), the time window is short (60–90 seconds), and the environment is noisy (crowded room, hand-raised speakers, projector glare).
 
-Voter view (when document attached):
-- "Consulter le document" link above the vote options
-- Opens as a bottom sheet on mobile (slide-up panel) — voter stays in context
-- Document is read-only; cannot be downloaded from voter view (legal protection)
+Gold standard requirements:
+1. **Full viewport height** — `100dvh` (dynamic viewport height handles iOS Safari chrome)
+2. **One question, one decision per screen** — no scrolling to find the vote buttons
+3. **Vote buttons: minimum 72px tall, spanning ≥60% viewport width** — cannot be fat-fingered
+4. **Confirmation state is instant** — optimistic feedback, color the selected button immediately
+5. **Status header fixed top** — session name + resolution title never scroll away
+6. **Zero ambiguity** — "Pour" (green), "Contre" (red), "Abstention" (grey), "Blanc" (neutral) — color + text + icon, never just color
+
+### ASCII Diagram
+
+```
+┌────────────────────────────────────┐  ← 100dvh
+│  HEADER BAR (56px)                 │
+│  [Session name]     [Status badge] │
+├────────────────────────────────────┤
+│                                    │
+│  RESOLUTION CARD                   │  ← flex: 1, scrollable
+│                                    │     if title is very long
+│  [N° de résolution]                │
+│  ─────────────────────────────     │
+│  Titre de la résolution             │
+│  (font-display, 20–24px)           │
+│                                    │
+│  [Résumé / context if needed]      │
+│  (font-sm, text-muted)             │
+│                                    │
+│  [PDF icon - see doc]              │
+│                                    │
+├────────────────────────────────────┤
+│                                    │
+│  VOTE BUTTONS AREA                 │  ← flex-shrink: 0
+│  (padding: 20px, gap: 12px)        │     always visible
+│                                    │
+│  ┌──────────────────────────────┐  │
+│  │  POUR         ✓  [72px tall] │  │  ← success color
+│  └──────────────────────────────┘  │
+│  ┌──────────────────────────────┐  │
+│  │  CONTRE       ✗  [72px tall] │  │  ← danger color
+│  └──────────────────────────────┘  │
+│  ┌────────────┐  ┌───────────┐    │
+│  │ ABSTENTION │  │  BLANC    │    │  ← 2-col, 56px tall
+│  └────────────┘  └───────────┘    │
+│                                    │
+│  [env safe-area-inset-bottom]      │
+└────────────────────────────────────┘
+```
+
+### CSS Specifications
+
+```css
+@layer v4 {
+
+/* ── Voter shell — full height, no scroll ── */
+.vote-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;       /* iOS Safari dynamic viewport */
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+/* ── Vote header ── */
+.vote-header {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.vote-header__session {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+/* ── Resolution card — scrollable middle ── */
+.vote-resolution-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vote-resolution-number {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+}
+
+.vote-resolution-title {
+  font-family: var(--font-display);   /* Fraunces */
+  font-size: clamp(1.125rem, 4vw, 1.5rem);  /* 18–24px fluid */
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-snug);
+  color: var(--color-text-dark);
+}
+
+.vote-resolution-body {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+/* ── Vote buttons area — never scrolls away ── */
+.vote-actions {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)); /* iOS safe area */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Primary vote buttons — POUR + CONTRE */
+.vote-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 72px;                   /* MINIMUM — do not reduce */
+  border-radius: var(--radius-lg);
+  font-size: var(--text-lg);          /* 18px */
+  font-weight: var(--font-bold);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    transform 80ms var(--ease-bounce),
+    box-shadow var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.vote-btn:active {
+  transform: scale(0.97);
+}
+
+/* POUR — green */
+.vote-btn--pour {
+  background: var(--color-success);
+  color: #fff;
+}
+.vote-btn--pour:hover { background: var(--color-success-hover); }
+.vote-btn--pour.selected {
+  box-shadow: 0 8px 32px rgba(11, 122, 64, 0.35);
+  transform: scale(1.01);
+}
+
+/* CONTRE — red */
+.vote-btn--contre {
+  background: var(--color-danger);
+  color: #fff;
+}
+.vote-btn--contre:hover { background: var(--color-danger-hover); }
+.vote-btn--contre.selected {
+  box-shadow: 0 8px 32px rgba(196, 40, 40, 0.35);
+  transform: scale(1.01);
+}
+
+/* Secondary buttons row — ABSTENTION + BLANC (2-column) */
+.vote-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.vote-btn--secondary {
+  min-height: 56px;                   /* Secondary: 56px — still large but not dominant */
+  font-size: var(--text-base);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+.vote-btn--secondary:hover {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
+}
+
+/* ABSTENTION — muted neutral */
+.vote-btn--abstention.selected {
+  background: var(--color-neutral-subtle);
+  border-color: var(--color-neutral);
+  color: var(--color-neutral-text);
+}
+
+/* BLANC — very neutral */
+.vote-btn--blanc.selected {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
+}
+
+/* ── Confirmation overlay ── */
+.vote-confirmed-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: var(--z-overlay);
+  /* background tinted by vote choice via JS data attribute */
+}
+
+.vote-confirmed-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vote-confirmed-label {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  text-align: center;
+}
+
+/* ── Waiting state ── */
+.vote-waiting {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.vote-waiting__spinner {
+  /* Use existing ag-spinner component or CSS animation */
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Responsive override for tablet ── */
+/* On tablets (768px+), keep same pattern but allow slightly larger typography */
+@media (min-width: 768px) {
+  .vote-btn {
+    min-height: 80px;
+    font-size: var(--text-xl);
+  }
+  .vote-btn--secondary {
+    min-height: 64px;
+  }
+  .vote-resolution-area {
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .vote-actions {
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+} /* @layer v4 */
+```
+
+### Touch Target Compliance
+
+| Element | Min Height | Width | WCAG 2.5.5 |
+|---------|-----------|-------|------------|
+| POUR button | 72px | 100% | Pass (>44px) |
+| CONTRE button | 72px | 100% | Pass |
+| ABSTENTION | 56px | ~50% | Pass |
+| BLANC | 56px | ~50% | Pass |
+| Header icons | 44px | 44px | Pass (minimum) |
+
+The 72px primary button height comes from: WCAG AA minimum 44px, but given the high-stakes real-time context (crowded room, hurried vote) and Slido/Mentimeter patterns, 72px provides substantial tap comfort and reduces error anxiety.
 
 ---
 
-## Feature Landscape Summary for v4.0
+## Cross-Cutting Layout Patterns
 
-### Table Stakes (Must Have for v4.0)
+### App Shell Structure (all authenticated pages)
 
-| Feature | Why Expected | Complexity | Applies To |
-|---------|--------------|------------|------------|
-| Status-aware session cards on dashboard | Users need to know what to do for each session | LOW | Dashboard |
-| Contextual empty states with actions | "What to do next" on every empty container | LOW | All pages |
-| Disabled button explanations | Users must understand WHY they can't proceed | LOW | Hub, wizard, operator |
-| Progress stepper with completion states | Post-session flow is opaque without it | MEDIUM | Post-session, wizard |
-| Live SSE connectivity indicator | Operators need to trust the live data | LOW | Operator console |
-| Quorum progress bar with threshold marker | Quorum is the key pre-vote gate | MEDIUM | Hub, operator |
-| Mobile full-screen voter view | In-room voting needs zero distraction | MEDIUM | Voter view |
-| Instant optimistic feedback on vote cast | < 50ms response creates trust | MEDIUM | Voter view |
-| Trustworthy result cards with all fields | Legal context requires complete result info | MEDIUM | Post-session, room display |
+The current app shell (`flex-column + fixed sidebar`) is sound. v4.1 refinements:
 
-### Differentiators (Set AG-VOTE Apart)
+```css
+@layer v4 {
 
-| Feature | Value Proposition | Complexity | Applies To |
-|---------|-------------------|------------|------------|
-| PDF resolution attachments + inline viewer | Voters can read the full resolution before voting | HIGH | Wizard, voter view |
-| Motion template library | Reduces blank-slate anxiety in setup | MEDIUM | Wizard step 3 |
-| Session hub as pre-meeting control centre | Single pane: docs + attendance + quorum + agenda | MEDIUM | Hub |
-| "Briefing view" before meeting goes live | Operator sees agenda + member list in readable format | MEDIUM | Hub → operator handoff |
-| Contextual regulation hints | "La loi du 10 juillet 1965 exige..." inline in the wizard | HIGH | Wizard |
-| Role-aware dashboard | Operator sees session cards; admin sees stats + user management | MEDIUM | Dashboard |
+/* ── App main scroll container — prevent double scrollbar ── */
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;           /* critical for flex children scroll */
+  /* padding from design-system.css preserved */
+}
 
-### Anti-Features (Do Not Build)
+/* ── Page content inner wrapper ── */
+/* Used by dashboard, meetings, archives, etc. */
+.page-content-wrap {
+  max-width: var(--content-max);    /* 1440px */
+  margin: 0 auto;
+  padding: 24px;
+  /* Use page-content-wrap--narrow for wizard/settings */
+}
 
-| Anti-Feature | Why Avoid | Alternative |
-|-------------|-----------|-------------|
-| Help modal / tour overlay | Interrupts, dismissed, forgotten | Persistent contextual hints in UI |
-| Separate "help" page only | Users never go there | Inline explanation everywhere |
-| Fun result formats (word clouds, rankings) | Undermines legal gravity of AG | Official tally cards only |
-| Voter results visible during vote | Breaks secret ballot principle | Lock results until vote closed |
-| Polling-based SSE status check | Already have push; don't add pull | Maintain SSE with reconnect |
-| Step validation via submit-only | Forces users to complete form before seeing errors | Inline validation on blur |
+.page-content-wrap--narrow {
+  max-width: 860px;
+}
+
+} /* @layer v4 */
+```
+
+### Sidebar Rail + Content Offset Pattern
+
+The 58px sidebar rail creates a layout offset for all non-operator pages:
+
+```
+Content left edge = 58px (rail) + 22px (inner padding) = 80px
+Content right edge = 22px
+```
+
+When sidebar is pinned (252px):
+```
+Content left edge = 252px (expanded) + 22px = 274px
+```
+
+This is currently implemented with `padding-left: calc(var(--sidebar-rail) + 22px)` and the JS class `.pinned` override. The v4.1 refonte preserves this.
+
+### Page Header Anatomy (all pages)
+
+Every page header follows this exact structure:
+
+```css
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  /* margin-bottom: 14px — set in app.css, do not override */
+}
+
+/* Left: breadcrumb + h1 + sub */
+/* Right: CTAs (max 2 buttons + 1 icon action) */
+```
+
+**Never put more than 2 primary buttons in the page header.** If more actions are needed, use a dropdown trigger (kebab, "Actions ▾").
+
+---
+
+## Implementation Phasing for v4.1
+
+| Page | Layout Type | Effort | Priority |
+|------|-------------|--------|----------|
+| `dashboard.htmx.html` | DASHBOARD | Medium | High — entry point |
+| `wizard.htmx.html` | WIZARD | Low | High — creation flow |
+| `operator.htmx.html` | SPLIT-PANEL | High | High — live meeting |
+| `vote.htmx.html` | MOBILE VOTER | Low | High — voter UX |
+| `members.htmx.html` | DATA TABLE | Medium | High — most-used admin |
+| `audit.htmx.html` | DATA TABLE | Low | Medium |
+| `archives.htmx.html` | DATA TABLE | Low | Medium |
+| `settings.htmx.html` | SETTINGS | Medium | Medium |
+| `admin.htmx.html` | SETTINGS | Medium | Medium |
+| `hub.htmx.html` | HYBRID (cards) | Medium | High — pre-meeting staging |
+| `postsession.htmx.html` | WIZARD-like | Low | Medium |
+| `meetings.htmx.html` | DATA TABLE | Low | Medium |
+| `analytics.htmx.html` | DASHBOARD-like | Medium | Low |
+| `report.htmx.html` | READ-ONLY | Low | Low |
+| `public.htmx.html` | READ-ONLY | Low | Low |
 
 ---
 
 ## Sources
 
-- [Loomio collaborative decision-making](https://www.loomio.com/)
-- [Decidim 2025 roadmap — UX research](https://meta.decidim.org/processes/news/f/1719/posts/366)
-- [OpaVote vs ElectionBuddy comparison — Nemovote 2025](https://blog.nemovote.com/online-voting-software-comparison-2025)
-- [ElectionBuddy reviews — Capterra 2025](https://www.capterra.com/p/235336/ElectionBuddy/reviews/)
-- [Slido live polling guide](https://blog.slido.com/how-to-use-live-polling-in-a-presentation/)
-- [PatternFly wizard design guidelines](https://www.patternfly.org/components/wizard/design-guidelines/)
-- [Eleken wizard UI pattern explained](https://www.eleken.co/blog-posts/wizard-ui-pattern-explained)
-- [Eleken stepper UI examples](https://www.eleken.co/blog-posts/stepper-ui-examples)
-- [Cloudscape empty state patterns — AWS](https://cloudscape.design/patterns/general/empty-states/)
-- [Progressive disclosure — Nielsen Norman Group](https://www.nngroup.com/articles/progressive-disclosure/)
-- [Userpilot progressive onboarding](https://userpilot.com/blog/progressive-onboarding/)
-- [Smashing Magazine: UX strategies for real-time dashboards (2025)](https://smashingmagazine.com/2025/09/ux-strategies-real-time-dashboards/)
-- [Mobile UX touch targets — OpenReplay](https://blog.openreplay.com/improving-tap-targets-mobile-ux/)
-- [Haptics and mobile feedback — Saropa Medium (2025)](https://saropa-contacts.medium.com/2025-guide-to-haptics-enhancing-mobile-ux-with-tactile-feedback-676dd5937774)
-- [Centre for Civic Design — voting system design](https://civicdesign.org/topics/roadmap/)
-- [vCast assemblée générale digitale guide (2025)](https://www.vcast.vote/assemblee-generale-digitale-guide-2025/)
-- [Voxaly digitalisation vote AG 2025](https://www.voxaly.com/blog/assemblee-generale/la-digitalisation-du-vote-des-resolutions-en-assemblee-generale-en-2025/)
-- [BoardEffect vs Diligent Boards comparison — board-room.org](https://board-room.org/blog/compare-diligent-boards-and-boardeffect/)
-- [Multi-step form best practices — Webstacks](https://www.webstacks.com/blog/multi-step-form)
-- [Voting mobile UX case study — Votera / Gideon Oladimeji](https://medium.com/gideon-case-studies/votera-a-voting-app-case-study-2ae65173b9de)
+Research sources (all verified March 2026):
 
----
-*Feature & UX research for: AG-VOTE v4.0 "Clarity & Flow"*
-*Researched: 2026-03-18*
+- [CSS Grid Admin Dashboard — Max Böck](https://mxb.dev/blog/css-grid-admin-dashboard/) — 4-column pattern, 2rem gap, responsive switching
+- [Responsive Dashboard Layout with CSS Grid — Compile7](https://compile7.org/decompile/build-a-responsive-dashboard-layout-with-css-grid) — sidebar 240px, gap 24px, 4-col KPI
+- [Dashboard Design Best Practices — Brand.dev](https://www.brand.dev/blog/dashboard-design-best-practices) — KPI placement conventions
+- [CSS Sidebar — Every Layout](https://every-layout.dev/layouts/sidebar/) — flex-basis sizing, min-inline-size 50% breakpoint
+- [Stripe Dashboard Design Patterns — Stripe Docs](https://docs.stripe.com/stripe-apps/patterns) — design token approach, card anatomy
+- [CSS Grid Guide — CSS-Tricks](https://css-tricks.com/complete-guide-css-grid-layout/) — authoritative grid reference
+- [Position Sticky and Table Headers — CSS-Tricks](https://css-tricks.com/position-sticky-and-table-headers/) — sticky header implementation
+- Existing AG-VOTE design-system.css — confirmed token values, spacing scale, breakpoints

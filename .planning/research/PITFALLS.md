@@ -1,555 +1,937 @@
-# Domain Pitfalls — AG-VOTE v4.0 "Clarity & Flow"
+# CSS Architecture & Token System — AG-VOTE v4.1 "Design Excellence"
 
-**Domain:** UX overhaul + PDF upload/viewer + copropriété transformation + design system migration on PHP + vanilla JS voting platform
+**Domain:** CSS design token system architecture — primitive → semantic → component hierarchy
 **Researched:** 2026-03-18
-**Overall confidence:** HIGH (direct codebase inspection combined with verified external sources for PDF security, performance, UX patterns)
+**Overall confidence:** HIGH (Radix Colors official docs, Tailwind v4 theme.css, shadcn/ui theming docs, MDN color-mix/oklch, Material Design 3 motion specs — all verified via current sources)
 
 ---
 
-## Risk Matrix Overview
+## What This File Contains
 
-| Risk | Severity | Likelihood | Priority |
-|------|----------|------------|----------|
-| PDF.js CVE-2024-4367 (arbitrary JS execution) | CRITICAL | HIGH (if unpatched) | P0 |
-| No file serving endpoint — uploaded PDFs inaccessible | CRITICAL | HIGH (confirmed gap) | P0 |
-| "Top 1% UI" scope creep — no objective done criteria | HIGH | HIGH | P1 |
-| Copropriété transformation over-deletes voting_power logic | HIGH | MEDIUM | P1 |
-| Tour triggers exist in HTML but have zero JS implementation | HIGH | HIGH (confirmed stub) | P1 |
-| UX overhaul feature parity gaps — actions removed in redesign | HIGH | MEDIUM | P1 |
-| CSS token dark mode regression — silent, no type system | HIGH | MEDIUM | P1 |
-| STORAGE_PATH env var defined but controller hardcodes /tmp path | MEDIUM | HIGH (confirmed) | P2 |
-| PDF.js bundle weight — loaded globally instead of lazily | MEDIUM | HIGH | P2 |
-| PC-first design shift breaking voter screen via shared components | MEDIUM | LOW-MEDIUM | P2 |
-| CSS animation performance on lower-end hardware | MEDIUM | MEDIUM | P2 |
-| Guided tour library license trap (Shepherd.js commercial) | MEDIUM | MEDIUM | P2 |
-| WCAG regression during redesign — focus rings / ARIA lost | MEDIUM | MEDIUM | P2 |
+Complete, copy-pasteable CSS custom property definitions for a top 1% design token system. Each section answers a specific research question with concrete values ready to drop into `design-system.css`.
+
+The current AG-VOTE system has 265+ variables, a "objectivement médiocre" visual result, and ad-hoc color derivations. This research provides the architectural upgrade path.
 
 ---
 
-## Critical Pitfalls
-
-### Pitfall 1: PDF.js CVE-2024-4367 — Arbitrary JavaScript Execution via Malicious PDF
-
-**Severity:** CRITICAL
-**Likelihood:** HIGH if unpatched
-**Phase to address:** First phase introducing the PDF viewer. Cannot be deferred.
-
-**What goes wrong:**
-CVE-2024-4367 allows an attacker to execute arbitrary JavaScript in the browser the moment a malicious PDF is opened in PDF.js. The bug is a missing type check in the font rendering code — a crafted PDF can inject a script string that PDF.js evaluates as JavaScript. A proof-of-concept is publicly available and exploits are indexed on Exploit-DB.
-
-In AG-VOTE's context: if an operator uploads a malicious PDF attachment (via `MeetingAttachmentController::upload()`), and a voter or another operator views it inline using the PDF.js viewer, the attacker's JS executes in the victim's authenticated browser session. This enables session token theft, vote manipulation, or full account takeover. It is a stored XSS attack path delivered through a PDF.
-
-**Why it happens:**
-PDF.js < 4.2.67 does not sanitize font type values in the PDF spec's font rendering pipeline. The missing check was a simple `typeof` guard that was overlooked.
-
-**Mitigation:**
-1. Pin `pdfjs-dist` to version >= 4.2.67. The current version as of March 2026 is 5.5.207 (HIGH confidence: confirmed from npm registry). Load from CDN with a pinned version in the URL — never `@latest`.
-2. Set `isEvalSupported: false` in the PDF.js `getDocument()` options. This disables font compilation via `eval()`, eliminating the attack surface for CVE-2024-4367 and related font-injection bugs.
-3. Add a `sandbox` attribute to any `<iframe>` used to host the PDF viewer: `sandbox="allow-scripts allow-same-origin"` limits what injected JS can do.
-4. Enforce `Content-Security-Policy: script-src 'self'` on the viewer page — verify the existing nginx CSP applies to the viewer route.
-
-**Detection (warning signs):**
-- PDF viewer loads from CDN without a pinned version number in the URL
-- `isEvalSupported` is not set to `false` in the `getDocument()` call
-- Any `<iframe>` displaying PDFs is missing the `sandbox` attribute
-
-**Sources:**
-- [CVE-2024-4367 — Arbitrary JavaScript execution in PDF.js (Codean Labs)](https://codeanlabs.com/blog/research/cve-2024-4367-arbitrary-js-execution-in-pdf-js/) — HIGH confidence
-- [GitHub Advisory GHSA-wgrm-67xf-hhpq](https://github.com/advisories/GHSA-wgrm-67xf-hhpq) — HIGH confidence
-- [Snyk — pdfjs-dist CVE-2024-4367](https://security.snyk.io/vuln/SNYK-JS-PDFJSDIST-6810403) — HIGH confidence
-
----
-
-### Pitfall 2: No File Serving Endpoint — Uploaded PDFs Are Inaccessible to Voters
-
-**Severity:** CRITICAL
-**Likelihood:** HIGH (confirmed gap in codebase)
-**Phase to address:** PDF infrastructure phase, before any viewer UI work.
-
-**What goes wrong:**
-`MeetingAttachmentController` stores uploaded PDFs at `/tmp/ag-vote/uploads/meetings/{meeting_id}/{uuid}.pdf`. There is currently no PHP endpoint that reads these files and serves them to authenticated clients. There is no nginx `location` block serving `/tmp/ag-vote/uploads/` (nor should there be). The `meeting_attachments` API only supports `GET` (list metadata), `POST` (upload), and `DELETE` — confirmed by direct inspection of `public/api/v1/meeting_attachments.php`.
-
-If v4.0 adds a PDF inline viewer (PDF.js), the viewer needs an authenticated URL to load the file from. Without a dedicated secure serving endpoint, the only workaround would be storing PDFs inside `public/` — which is a serious security risk (unauthenticated direct URL access to any uploaded file).
-
-**Why it happens:**
-The `meeting_attachments` migration and controller were built in a prior milestone as a data layer. The serving layer was explicitly deferred. v4.0 is the first milestone that actually displays PDFs to users, so this gap becomes a blocker.
-
-**Consequences if ignored:**
-- All PDF attachment metadata exists in the DB but the files are never viewable
-- A developer might store files in `public/uploads/` to unblock themselves — creating an unauthenticated access and path traversal risk
-
-**Mitigation:**
-1. Build a dedicated `GET /api/v1/meeting_attachment_serve.php?id={uuid}` endpoint that:
-   - Validates the attachment UUID
-   - Verifies the requesting user's tenant matches the attachment's tenant
-   - Verifies the meeting's access rules (operator or voter role for the specific meeting)
-   - Reads the file from the storage path using `readfile()`
-   - Outputs `Content-Type: application/pdf`, `Content-Disposition: inline`, `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store`
-2. Apply the existing rate limit zone (`limit_req zone=api`) to this endpoint.
-3. PDF.js `getDocument()` then points to this authenticated URL — not a public static path.
-
-**Detection:**
-- `grep -r "readfile\|fpassthru" public/api/v1/` returns no results → serving endpoint does not exist
-
----
-
-## High Severity Pitfalls
-
-### Pitfall 3: "Top 1% UI" Scope Creep — No Objective Done Criteria
-
-**Severity:** HIGH
-**Likelihood:** HIGH
-**Phase to address:** Before the first v4.0 design phase starts. This is a process risk, not a technical one.
-
-**What goes wrong:**
-"Top 1% UI" is aspirational language, not a specification. Without concrete, measurable done criteria, v4.0 phases never close. Every component can always be polished further. Animation can always be tweaked. Typography can always be refined. The milestone drags on indefinitely because "good enough" has no definition.
-
-This is the highest-likelihood risk in v4.0. It has also been the source of scope inflation in past design milestones: v2.0 and v3.0 both generated sub-phases (20.1 through 20.4 in v3.0) because visual polish work kept expanding.
-
-**Why it happens:**
-"Top 1% UI" is a quality statement, not a functional requirement. The disconnect between "this looks great" (subjective) and "this is done" (binary) means every phase is at risk of definition inflation.
-
-**Consequences:**
-- Milestone timeline extends indefinitely
-- Individual phases split into sub-phases (the v3.0 pattern)
-- Demoralization: the milestone feels like it never ships
-
-**Mitigation:**
-1. Define "top 1% UI" with concrete, measurable criteria before the first phase starts. Suggested objective criteria:
-   - All interactive states have transitions <= 200ms (measured with DevTools Performance panel)
-   - Focus rings visible at 3:1 contrast ratio minimum on all interactive elements (`:focus-visible` always has a `box-shadow` ring)
-   - No layout shift on page load (CLS = 0, verified with Lighthouse)
-   - All new components have a documented loading, empty, and error state
-   - Zero inline `style=""` attributes in production HTML (all styling via design tokens)
-   - Dark mode parity: all new components pass visual dark mode review in same commit
-2. For each phase, define done as: "the phase plan's checklist is complete AND the criteria above are met" — not "it looks perfect."
-3. Cap visual polish work per phase: if a phase is functionally complete but has polish items, log them as a separate future phase rather than blocking the current one from closing.
-4. Add a design reference screenshot per screen that serves as the primary acceptance criterion — "matches the design reference" is more objective than "looks great."
-
----
-
-### Pitfall 4: Guided Tour Triggers Are HTML Stubs With Zero JS Implementation
-
-**Severity:** HIGH
-**Likelihood:** HIGH (confirmed by codebase inspection)
-**Phase to address:** First phase that commits to delivering guided UX — must decide: implement or remove.
-
-**What goes wrong:**
-Three pages already have guided tour infrastructure in HTML that is completely unwired:
-- `wizard.htmx.html`: `<button id="btnTour" class="tour-trigger-btn">` exists, `data-tour="wizard-step1"` attributes on steps
-- `postsession.htmx.html`: `<button id="btnTour" class="tour-trigger-btn">` exists, `data-tour="postsession-stepper"` on elements
-- `members.htmx.html`: `<div class="members-onboarding">` with onboarding steps markup
-
-None of these trigger any JS logic. `grep -rn "btnTour\|tour-trigger-btn" public/assets/js/pages/` returns no results. The buttons are visible in the UI but do nothing when clicked.
-
-**Why it happens:**
-The tour infrastructure was scaffolded as placeholders during v2.0/v3.0 design work, with the intention of implementing tours in a future milestone. v4.0 is that milestone.
-
-**Consequences:**
-- v4.0's "guided UX overhaul" requires a decision on every stubbed tour: implement with a real tour library, or replace with a different guided UX pattern (inline hints, empty states, contextual popovers)
-- If stubbed buttons remain unimplemented and ship in v4.0, they are visible UX defects (buttons that do nothing)
-- If a tour library is chosen without license/size research, it may introduce a commercial licensing requirement or unacceptable bundle weight
-
-**Mitigation:**
-1. Decide tour strategy before building: full step-by-step library tour, contextual hints using the existing `ag-popover` Web Component, or inline empty-state guidance. Not all three simultaneously.
-2. If using a library: use Driver.js (`driver.js` on npm). It is MIT licensed, actively maintained, framework-agnostic, smallest bundle among serious contenders, works with vanilla JS. Do NOT use Shepherd.js v12+ (commercial license required for non-open-source use; verify carefully for AG-VOTE's case).
-3. Load Driver.js only on pages that use it — not in the shell/layout.
-4. The existing `ag-popover` Web Component is already in the codebase and zero additional weight — use it for single-element contextual hints instead of a full tour library.
-5. Any stubbed tour button that will NOT be implemented in v4.0 must be removed from the HTML before shipping.
-
-**Detection:**
-- Click `btnTour` on wizard, postsession, or members — nothing happens → stub is unimplemented
-
----
-
-### Pitfall 5: Copropriété Transformation — "tantièmes" Is voting_power, Not a Separate Feature
-
-**Severity:** HIGH
-**Likelihood:** MEDIUM
-**Phase to address:** Copropriété transformation phase, before any deletion begins.
-
-**What goes wrong:**
-The "copropriété transformation" task sounds like deleting isolated dead code, but the actual codebase footprint reveals it is terminology layered over generic voting weight logic:
-
-- `ImportService.php` line 237: `'voting_power' => ['voting_power', 'ponderation', 'tantièmes', ...]` — `tantièmes` is a CSV column alias, not a separate feature
-- `settings.js` line 419: a "distribution key" modal uses `tantiemes` as a selector option — this is the only true copropriété-specific UI
-- `AggregateReportRepository.php` line 99: a comment mentioning "evolution des tantiemes" — a documentation label only
-- `shell.js` line 683: navigation label "Annuaire des copropriétaires" — a string in the members menu item
-
-The schema: `members.voting_power` is a generic numeric column used for ALL weighted voting scenarios. It is referenced in 14+ locations across `BallotsService`, `AttendancesService`, `ExportService`, `MeetingReportService`, `BallotRepository`, `MemberRepository`, `MemberGroupRepository`, `ProxyRepository`, `ExportTemplateRepository`. The `attendances.effective_power` column overrides it per-meeting for proxy scenarios.
-
-The risk: developers conflate "removing copropriété" with "removing voting_power weighting," which would break all weighted vote sessions.
-
-**Why it happens:**
-The term "tantièmes" appears alongside `voting_power`, suggesting the feature was originally built for copropriétés. Without an explicit definition of "what counts as copropriété code," developers may over-delete.
-
-**Consequences:**
-- Removing `voting_power` calculation from ballot tallying breaks all weighted vote sessions silently — tallies become 1:1 instead of proportional
-- Removing `tantièmes` from `ImportService.php` breaks CSV import for any installation using weighted votes — import succeeds but all weights default to 1.0
-- The settings distribution key modal (`openKeyModal`) is a stub (its `onConfirm` only calls `AgToast.show(...)`, no API call) — but deletion requires confirming no backend endpoint exists for it
-
-**Mitigation:**
-1. Before any deletion, define scope explicitly: "copropriété transformation = rename/remove terminology, NOT removal of voting_power mechanics."
-2. The complete deletion list is small and safe:
-   - `shell.js` line 683: rename "Annuaire des copropriétaires" → "Annuaire des membres"
-   - `settings.js`: remove the `openKeyModal` / distribution key UI (confirm no API endpoint matches first — confirmed: no `distribution_keys.php` exists in `public/api/v1/`)
-   - `AggregateReportRepository.php` line 99: update comment to remove tantièmes reference
-3. Keep `'tantiemes'` and `'tantièmes'` as accepted CSV import aliases in `ImportService.php` indefinitely — backward compatibility, no user impact, no downside.
-4. Write a PHPUnit test asserting that weighted votes (voting_power != 1.0) still tally correctly after the transformation phase. This test should cover the `BallotsService::weight` path.
-
-**Detection:**
-- `grep -r "voting_power" app/` returning zero results after the phase = over-deletion
-- E2E test: create two members with voting_power 2.0 and 1.0, cast votes, verify tally weights correctly
-
----
-
-### Pitfall 6: UX Overhaul — Feature Parity Gaps During "Guided Experience" Redesign
-
-**Severity:** HIGH
-**Likelihood:** MEDIUM
-**Phase to address:** Must be addressed before redesigning each screen — inventory first, design second.
-
-**What goes wrong:**
-v4.0 redesigns all screens for guided experience, starting from scratch with no wireframe constraint. The risk is that redesigned screens omit functionality that existed in v3.0 but was not prominent enough to be noticed during redesign. Common examples:
-- A bulk action button accessible via a toolbar in v3.0 hidden in the new guided flow
-- An advanced filter visible in the dense table layout removed in the simplified card layout
-- Keyboard shortcuts or power-user paths interrupted by the guided overlay
-
-This is distinct from bugs — the new design genuinely removes the feature because it was not noticed.
-
-**Why it happens:**
-When designing from scratch, you design what you plan to build, not what already exists. Features that are secondary flows, admin edge cases, or advanced operator options are easy to omit because they are not prominent in the current UI.
-
-**Consequences:**
-- Operators who relied on specific v3.0 interface actions find them gone after upgrade
-- Features have to be re-added mid-milestone, disrupting design consistency and causing scope creep
-
-**Mitigation:**
-1. Before redesigning each screen, generate a "feature inventory" of every user action available on that screen in v3.0. Include: all buttons and their API calls, all form fields and their persistence, all modal paths, keyboard navigation.
-2. The feature inventory becomes the feature parity checklist for the v4.0 design. No item from the inventory can be removed without an explicit product decision logged in the phase plan.
-3. Regression test: for each redesigned page, the existing Playwright E2E specs from v3.0 should still pass — they encode the existing feature contracts. If they fail after redesign, something was removed.
-4. The guided overlay must be dismissible and must not block access to existing advanced functionality.
-
-**Detection:**
-- v3.0 E2E test passes before redesign, fails after → feature was removed
-- Manual audit: compare interactive elements (buttons, form fields, modals) between v3.0 HTML and v4.0 HTML for each redesigned page
-
----
-
-### Pitfall 7: CSS Token Migration — Dark Mode Contrast Regression Is Silent
-
-**Severity:** HIGH
-**Likelihood:** MEDIUM
-**Phase to address:** Any phase that introduces new CSS tokens. Enforce as a commit discipline.
-
-**What goes wrong:**
-AG-VOTE has 64+ CSS tokens split across a light (`:root {}`) block and a single dark (`[data-theme="dark"] {}`) block in `design-system.css` (4,576 lines). When v4.0 introduces new tokens for guided disclosure layouts, new surface elevations, or new interactive states, the dark theme override block must be updated in parallel.
-
-The common failure mode: a new `--color-surface-card` token is added to `:root`, used in 3 new components, but never added to `[data-theme="dark"]`. Dark mode falls back to the light value — often invisible text on a dark background. No error is thrown; the browser silently uses the fallback.
-
-Existing pattern: `outline: none` on `.btn:focus-visible` is correctly replaced with a `box-shadow` focus ring using `--ring-color` and `--ring-offset` tokens. New components must follow this exact pattern — never suppress `outline` without providing an equivalent `box-shadow` ring.
-
-**Why it happens:**
-CSS custom properties have no type system. A missing dark override fails silently. Manual visual inspection is the only detection method unless a contrast checker is wired into CI.
-
-**Consequences:**
-- Components built during v4.0 look broken or unreadable in dark mode on first user report
-- WCAG AA failures in dark mode are invisible to automated HTML validators (they parse structure, not rendered color)
-
-**Mitigation:**
-1. Two-token rule: every new CSS token added to `:root` MUST have a companion entry in `[data-theme="dark"]` in the same commit. No exceptions.
-2. Use the browser's Accessibility DevTools (Chrome Accessibility tab, Firefox Accessibility panel) to spot-check contrast in dark mode for every new component before marking a task done.
-3. Add `axe-core` or `Pa11y` to the Playwright E2E suite to catch contrast failures in CI — run on both light and dark themes.
-4. Treat dark mode parity as a per-phase deliverable, not a final audit concern.
-5. Follow the existing persona token pattern (`--persona-admin-*`, `--persona-operator-*`) for new token families — each already has explicit dark overrides, making the pattern clear.
-
-**Detection:**
-- New CSS token appears in `:root` but not in `[data-theme="dark"]` block
-- Visual: text invisible or low-contrast when toggling dark mode on any new component
-- Playwright E2E: `page.evaluate(() => document.body.setAttribute('data-theme', 'dark'))` before visual assertions
-
----
-
-## Medium Severity Pitfalls
-
-### Pitfall 8: STORAGE_PATH Env Var Defined but Controller Hardcodes /tmp Path
-
-**Severity:** MEDIUM
-**Likelihood:** HIGH (confirmed by codebase inspection)
-**Phase to address:** PDF infrastructure phase.
-
-**What goes wrong:**
-`.env` defines `STORAGE_PATH=/tmp/ag-vote` and `docker-compose.yml` mounts a named volume `app-storage` at `/tmp/ag-vote` — so the data loss risk from container restarts is already mitigated in the Docker deployment. However, `MeetingAttachmentController.php` hardcodes `/tmp/ag-vote/uploads/meetings/` directly (lines 63 and 118) instead of reading `STORAGE_PATH` from the environment.
-
-This means:
-1. Changing the storage path for a non-Docker deployment (Render, bare metal, different hosting) requires modifying PHP source code rather than an env var
-2. The delete endpoint (`line 118`) and upload endpoint (`line 63`) are not in sync with the env-configured path if someone overrides `STORAGE_PATH`
-3. The `meeting_generate_report_pdf.php` endpoint and other services use the same pattern — the storage path is scattered across multiple PHP files rather than centralized
-
-**Why it matters:**
-Self-hosted deployment is a core value proposition of AG-VOTE. Operators on non-Docker hosting who set `STORAGE_PATH` to their actual persistent disk path get no benefit — the PHP code ignores it.
-
-**Mitigation:**
-1. Add a PHP constant or config function that reads `STORAGE_PATH` from the environment with a default fallback:
-   ```php
-   define('AG_STORAGE_PATH', rtrim(getenv('STORAGE_PATH') ?: '/tmp/ag-vote', '/'));
-   ```
-2. Replace all hardcoded `/tmp/ag-vote/` strings in PHP controllers with `AG_STORAGE_PATH . '/'`.
-3. Do this in the PDF infrastructure phase, before adding the file serving endpoint (which would otherwise also hardcode the path).
-
-**Detection:**
-- `grep -rn "tmp/ag-vote" app/` returns results → paths are hardcoded, not env-driven
-
----
-
-### Pitfall 9: PDF.js Bundle Weight — Loaded on Every Page vs. Lazy Loading
-
-**Severity:** MEDIUM
-**Likelihood:** HIGH
-
-**What goes wrong:**
-`pdfjs-dist` at version 5.5.207 is a significant bundle (exact minified+gzipped size unconfirmed but substantial — v3 was ~262 kB minified). On a vanilla JS project with no bundler (AG-VOTE uses per-page JS files, no webpack/vite), including PDF.js in a `<script>` tag at the shell or layout level loads the entire library even on pages where no PDF will be shown.
-
-The PDF viewer is only needed on: the voter view (to show resolution documents during voting), the wizard/hub (to preview uploaded attachments before sessions). Loading it on the dashboard, settings, users, admin, and archives pages is pure waste.
-
-**Mitigation:**
-1. Do NOT add PDF.js to the shell or any shared layout. Load it only in the `<head>` of specific pages that use it (`vote.htmx.html`, `hub.htmx.html`, wizard).
-2. Use `defer` attribute on the script tag to avoid blocking page render: `<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.min.mjs" type="module" defer></script>`.
-3. Set `workerSrc` to a matching CDN-pinned version for the worker to avoid a second uncached network request.
-4. Initialize PDF.js only when the "view PDF" action is triggered — not on page load. The CDN script loads in the background while the user reads the page.
-5. Measure: run Lighthouse on the voter view before and after adding PDF.js. Target: no regression in Total Blocking Time or Largest Contentful Paint.
-
-**Confidence:** MEDIUM — exact v5.x gzipped size not confirmed; pattern recommendation is well-established.
-
-**Detection:**
-- PDF.js `<script>` appears in shell.js, layout template, or any page that does not show PDFs
-- Lighthouse TBT regression vs. v3.0 baseline on non-PDF pages
-
----
-
-### Pitfall 10: Malicious PDF Serving — Missing Security Headers for the Serve Endpoint
-
-**Severity:** MEDIUM
-**Likelihood:** MEDIUM
-**Phase to address:** PDF infrastructure phase, alongside building the serve endpoint.
-
-**What goes wrong:**
-When building `meeting_attachment_serve.php` (see Pitfall 2), the response headers matter as much as the content. If the serve endpoint does not explicitly set the correct headers, browsers may attempt to re-sniff the content type or execute embedded scripts. Additionally:
-- If the Content Security Policy on the viewer page allows `object-src: 'self'`, a `<object>` or `<embed>` tag showing the PDF bypasses PDF.js entirely and uses the browser's built-in renderer — which may not honour `isEvalSupported: false`
-- The nginx `add_header` inheritance rule may cause PHP-set headers to be overridden or vice versa — must be verified with `curl -I`
-
-**Mitigation:**
-The serve endpoint must set these headers in PHP before calling `readfile()`:
-```php
-header('Content-Type: application/pdf');
-header('X-Content-Type-Options: nosniff');
-header('Content-Disposition: inline; filename="' . $safeFilename . '"');
-header('Cache-Control: private, no-store, no-cache');
-header('X-Frame-Options: SAMEORIGIN');
+## 1. TOKEN HIERARCHY: Primitive → Semantic → Component
+
+### The Three-Layer Model (HIGH confidence — industry consensus)
+
+**Layer 1 — Primitives (raw values, no context):**
+Named after what they ARE, not what they do. Never referenced directly in components.
+
+```css
+/* Raw color palette — primitives */
+--blue-50: oklch(0.97 0.013 254);
+--blue-100: oklch(0.93 0.032 254);
+--blue-500: oklch(0.55 0.18 254);
+--blue-600: oklch(0.49 0.20 254);
+
+/* Raw spacing — primitives */
+--space-px-1: 4px;
+--space-px-2: 8px;
+
+/* Raw type scale — primitives */
+--type-12: 0.75rem;
+--type-14: 0.875rem;
 ```
-The filename in `Content-Disposition` must be sanitized: strip path separators, non-printable chars. Never use the raw `original_name` from the database directly in a header value.
 
-Do not use `<object>` or `<embed>` to display PDFs — use PDF.js rendering into a `<canvas>`. This ensures all PDF rendering goes through the patched library.
+**Layer 2 — Semantic tokens (context-aware, theme-switchable):**
+Named after what they DO, not what they are. These are the tokens used in component CSS.
 
-Verify final headers with `curl -I https://app/api/v1/meeting_attachment_serve.php?id=test` before closing the phase.
+```css
+:root {
+  --color-bg: var(--stone-50);
+  --color-surface: var(--white);
+  --color-text: var(--stone-700);
+  --color-primary: var(--blue-600);
+}
 
----
+[data-theme="dark"] {
+  --color-bg: var(--gray-950);
+  --color-surface: var(--gray-900);
+  --color-text: var(--gray-200);
+  --color-primary: var(--blue-400);
+}
+```
 
-### Pitfall 11: Guided Tour Library — Shepherd.js Requires Commercial License for v12+
+**Layer 3 — Component tokens (scoped overrides):**
+Named after the component they serve. Optional, used for complex components only.
 
-**Severity:** MEDIUM
-**Likelihood:** MEDIUM
-**Phase to address:** When implementing the guided tour feature.
+```css
+.btn {
+  --btn-bg: var(--color-primary);
+  --btn-fg: var(--color-primary-text);
+  --btn-radius: var(--radius-md);
+  background: var(--btn-bg);
+}
+```
 
-**What goes wrong:**
-If v4.0's guided tour is implemented using Shepherd.js (the most common vanilla JS tour library in search results), Shepherd.js v12+ changed its license model. Commercial use requires a paid license. AG-VOTE is open-source, but the license terms must be verified for the specific usage type before committing to it.
+### How Many of Each?
 
-**Recommendation:**
-Use Driver.js (`driver.js` on npm). It is:
-- MIT licensed (confirmed from GitHub repository)
-- Zero external dependencies
-- Smallest bundle among serious contenders (confirmed from 2026 comparison research)
-- Written in TypeScript with vanilla JS output
-- Actively maintained with regular 2026 updates
-- Supports spotlight highlighting, step-based tours, contextual overlay
+Based on Radix Colors (12-step scale), Tailwind v4 (12 shadow variants, 9 font sizes, dynamic spacing), and shadcn/ui (20 semantic tokens):
 
-For single-element contextual hints (tooltips that appear without a full tour), use the existing `ag-popover` Web Component already in the codebase — zero additional bundle weight.
+| Category | Primitives | Semantic | Component |
+|----------|-----------|---------|-----------|
+| Colors | ~60 (5 palettes × 12 steps) | ~30 | Per component |
+| Spacing | ~15 (0–64) | 6–8 named | Per layout |
+| Typography | 9 sizes | 5–6 named | Per component |
+| Shadows | 7 levels | 5 named | Rarely |
+| Radius | 6 sizes | 4–5 named | Rarely |
 
-Load Driver.js only on pages that use guided tours (same lazy-loading discipline as PDF.js).
-
-**Confidence:** MEDIUM — Shepherd.js license change confirmed for v12+, Driver.js MIT status confirmed from GitHub.
-
-**Sources:**
-- [driver.js — driverjs.com](https://driverjs.com) — MIT, actively maintained
-- [Shepherd.js comparison](https://userorbit.com/blog/best-open-source-product-tour-libraries) — MEDIUM confidence
-
----
-
-### Pitfall 12: CSS Animation Performance on Lower-End Devices
-
-**Severity:** MEDIUM
-**Likelihood:** MEDIUM
-**Phase to address:** Any phase introducing new animations, transitions, or guided tour spotlights.
-
-**What goes wrong:**
-v4.0 targets "top 1% UI," which typically means more animation: entrance transitions, staggered list reveals, micro-interactions, guided tour spotlight animations. On developer machines, these run at 60fps. On lower-end devices — and the voter screen, which must work on phones — excessive CSS animations cause jank, battery drain, and GPU memory issues.
-
-**Current state:** `design-system.css` already has a global `prefers-reduced-motion: reduce` media query at line 2491 that sets `animation-duration: 0.01ms` and `transition-duration: 0.01ms` on `*`, `*::before`, `*::after`. This is the correct foundation. The risk is new animations added in v4.0 that bypass this or create GPU layer bloat via `will-change`.
-
-**Why it happens:**
-CSS `will-change: transform` used indiscriminately — every animated element gets its own GPU compositor layer. Overuse floods GPU memory. Each `transform` or `opacity` animation creates a stacking context.
-
-**Mitigation:**
-1. The existing `prefers-reduced-motion` block is correct — do not modify it. New animations added in v4.0 will automatically be suppressed for users with that preference.
-2. Restrict `will-change` to elements that are actively transitioning. Apply via JavaScript immediately before animation starts and remove it immediately after. Never apply it in CSS to elements that are always in the DOM.
-3. For guided tour spotlights, use CSS `clip-path` or `box-shadow` expansion — these properties are cheaper on the compositor than scaling elements.
-4. Test the voter screen (mobile-priority per PROJECT.md) on Chrome DevTools CPU throttling (6x slowdown) before each phase ships.
-5. Performance budget: no animation should cause >3 dropped frames on 6x CPU throttle in DevTools Performance panel.
-
-**Sources:**
-- [GPU Animation — Smashing Magazine](https://www.smashingmagazine.com/2016/12/gpu-animation-doing-it-right/) — well-established rendering behavior, HIGH confidence
+**Verdict for AG-VOTE:** The current 265+ variables are bloated because they skip the primitive layer and mix semantic + ad-hoc values. Target: ~80 semantic tokens, backed by ~60 well-named primitives.
 
 ---
 
-### Pitfall 13: PC-First Design Shift Breaking the Voter Screen
+## 2. SPACING SCALE
 
-**Severity:** MEDIUM
-**Likelihood:** LOW-MEDIUM
-**Phase to address:** Any phase that modifies shared Web Components or `design-system.css`.
+### Research Findings (HIGH confidence — Tailwind v4 source verified)
 
-**What goes wrong:**
-v4.0 shifts to PC-first design (1024px+). The voter screen (`vote.htmx.html`) is explicitly "mobile only for voter screen (in-room voting on phone)" per PROJECT.md. This creates a bifurcation risk: developers working in PC-first mode add fixed-width containers, large padding, multi-column layouts, and desktop-only interactive patterns — and one of these changes lands on a shared Web Component (`ag-modal`, `ag-toast`, `ag-confirm`, `ag-popover`) that breaks at 375px without anyone noticing during PC-first development.
+Tailwind v4 uses 0.25rem (4px) base with dynamic generation. Open Props uses a non-linear scale. The industry standard for desktop apps is **4px base, 8px grid**, with named steps up to 80–96px.
 
-**Mitigation:**
-1. Explicitly document the voter screen as a mobile-only exception in every phase plan that touches shared components.
-2. The existing `mobile-viewport.spec.js` E2E test covers a 375x812 viewport vote page test — verify it runs on every phase that modifies shared components.
-3. In CSS, comment any shared component that gets PC-first changes: `/* VOTER SCREEN: verify at 375px */`.
-4. The voter screen's CSS (`vote.css`) should maintain a `max-width: 480px` layout boundary that is explicitly tested.
+### Recommended Scale for AG-VOTE
 
-**Detection:**
-- Voter screen visually breaks at 375px viewport after any phase that touched shared components
+The current scale (`--space-1` through `--space-16`) is solid but has gaps at the high end (48px → 64px jump) and lacks a few commonly needed values. Recommended complete scale:
 
----
+```css
+/* ─── SPACING SCALE (4px base, 8px grid rhythm) ─── */
+/* Drop-in replacement for existing --space-* variables */
 
-## Minor Pitfalls
+:root {
+  /* Micro spacing — icon gaps, border offsets */
+  --space-0: 0;
+  --space-0-5: 0.125rem;  /* 2px  — fine-grained only */
+  --space-1: 0.25rem;     /* 4px  — tight gaps */
+  --space-1-5: 0.375rem;  /* 6px  — icon-to-label */
+  --space-2: 0.5rem;      /* 8px  — base grid unit */
+  --space-2-5: 0.625rem;  /* 10px — compact UI */
+  --space-3: 0.75rem;     /* 12px — small padding */
+  --space-4: 1rem;        /* 16px — standard padding */
+  --space-5: 1.25rem;     /* 20px — medium padding */
+  --space-6: 1.5rem;      /* 24px — card padding */
+  --space-7: 1.75rem;     /* 28px — comfortable spacing */
+  --space-8: 2rem;        /* 32px — section gap */
+  --space-10: 2.5rem;     /* 40px — large gap */
+  --space-12: 3rem;       /* 48px — section break */
+  --space-14: 3.5rem;     /* 56px — nav height */
+  --space-16: 4rem;       /* 64px — major section */
+  --space-20: 5rem;       /* 80px — page-level spacing */
+  --space-24: 6rem;       /* 96px — hero spacing */
 
-### Pitfall 14: WCAG Regression During Redesign — Focus Rings and ARIA Landmark Loss
+  /* ─── SEMANTIC SPACING ALIASES ─── */
+  /* Used in component CSS — never raw --space-* directly */
+  --gap-xs: var(--space-1);     /* 4px  — tight icon gaps */
+  --gap-sm: var(--space-2);     /* 8px  — inline gaps */
+  --gap-md: var(--space-4);     /* 16px — standard gap */
+  --gap-lg: var(--space-6);     /* 24px — card/section gap */
+  --gap-xl: var(--space-8);     /* 32px — page section gap */
 
-**What goes wrong:**
-v3.0 achieved WCAG AA compliance (per PROJECT.md: skip links, ARIA landmarks, focus indicators). When pages are fully redesigned from scratch, skip links can be accidentally omitted, ARIA roles on new layouts may be wrong or missing, and focus rings can be lost when new component CSS conflicts with the existing pattern.
+  --pad-xs: var(--space-2);     /* 8px  — chip/badge padding */
+  --pad-sm: var(--space-3);     /* 12px — compact button */
+  --pad-md: var(--space-4);     /* 16px — standard button/input */
+  --pad-lg: var(--space-6);     /* 24px — card padding */
+  --pad-xl: var(--space-8);     /* 32px — panel padding */
+  --pad-2xl: var(--space-12);   /* 48px — page content padding */
+}
+```
 
-**Current state confirmed:** The existing `.btn:focus-visible` pattern correctly sets `outline: none` and replaces it with a `box-shadow` focus ring using `--ring-color` and `--ring-offset` tokens. New components in v4.0 must follow this exact pattern.
+**Why 0.5 steps matter:** Icon-to-label gaps (6px), input padding harmony with border width, and table cell padding all need values between 4px and 8px. The current scale jumps from 4px to 8px with nothing in between — this causes layout compromise.
 
-**Prevention:**
-- Treat WCAG compliance as a per-phase deliverable. Every redesigned page must have: `<a href="#main-content">` skip link, `<main>`, `<nav>`, `<header>`, `<footer>` landmarks, `:focus-visible` ring on all interactive elements.
-- Run `axe-core` via Playwright on each completed page before marking the phase done.
-- Never suppress `outline` on focusable elements without replacing it with an equivalent `box-shadow` focus indicator.
-
----
-
-### Pitfall 15: Import CSV Backward Compatibility for voting_power Column Aliases
-
-**What goes wrong:**
-If copropriété transformation removes `'tantiemes'` from the column alias list in `ImportService.php` line 237, any tenant importing member CSVs with a "Tantièmes" column header will silently lose their voting weight data after the upgrade. The import succeeds (no error), but `voting_power` defaults to 1.0 for all members.
-
-**Prevention:**
-Keep `'tantiemes'` and `'tantièmes'` as accepted aliases in `ImportService.php` indefinitely. The alias is internal to import parsing, completely invisible to users. Only the UI label needs to change.
-
----
-
-### Pitfall 16: The Settings "Distribution Key" Modal Is a Stub — Safe to Delete But Requires Verification First
-
-**What goes wrong:**
-`settings.js` line 407 defines `openKeyModal()`, which renders a "Clé de répartition" modal with a tantièmes/lots selector. The `onConfirm` callback only calls `AgToast.show(...)` — it does not call any API. This is UI scaffolding that was never backed by a real endpoint.
-
-Before deleting it, the discovery must be confirmed. Direct inspection of `public/api/v1/` shows no `distribution_keys.php`, `admin_distribution_keys.php`, or similar endpoint. The modal is confirmed as a complete stub — safe to remove as part of copropriété transformation.
-
-**Prevention:**
-Run `ls public/api/v1/ | grep -i "distribution\|key\|copro"` before deleting the modal. If the result is empty (as confirmed today), the modal is safe to remove.
-
----
-
-## Security Checklist
-
-| Item | Risk If Missed | Current Status |
-|------|---------------|----------------|
-| pdfjs-dist >= 4.2.67 | Arbitrary JS execution in any browser viewing a malicious PDF | Not yet installed (PDF feature not built) |
-| `isEvalSupported: false` in PDF.js getDocument() | Exploit path for CVE-2024-4367 and related font bugs | Not yet configured |
-| Authenticated file serve endpoint | Direct URL access to uploaded PDFs by unauthenticated users | Endpoint does not exist yet |
-| `Content-Type: application/pdf` on serve endpoint | MIME sniffing attack — browser tries to execute embedded content | Not yet built |
-| `Content-Disposition` filename sanitized in response header | Path traversal or header injection via crafted filename | Not yet built |
-| STORAGE_PATH env var read by PHP controller | Hardcoded path ignores env var; breaks non-Docker deployment | Not done — controller hardcodes `/tmp/ag-vote` |
-| Rate limiting on serve endpoint | Bulk PDF download by unauthorized parties via enumeration | Not yet done |
-| Do not use `<object>` or `<embed>` for PDF display | Bypasses PDF.js, uses browser native renderer (may not honour isEvalSupported) | Not yet built |
-| PDF filename in DB `original_name` is sanitized on upload | SQL injection or filename injection | Already done: `basename($file['name'])` in controller |
-| MIME type checked via `finfo` not file extension | Content type forgery via `.pdf` extension on non-PDF file | Already done: `finfo(FILEINFO_MIME_TYPE)` check in controller |
-| File extension double-checked | `.php.pdf` or similar polyglot bypass | Already done: extension check + MIME check combined |
-| File size limit enforced | Server disk exhaustion via large PDF upload | Already done: 10 MB limit in controller |
-| Tenant isolation on serve endpoint | Tenant A viewing Tenant B's meeting attachments | Not yet built — must be enforced in the serve endpoint |
+**Sweet spot for AG-VOTE:** 18 raw steps + 10 semantic aliases = 28 spacing tokens. Far fewer than the current bloated set.
 
 ---
 
-## Performance Traps
+## 3. COLOR SYSTEM
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| PDF.js in shell/layout | 500+ kB loaded on dashboard, settings, admin pages | Load only on pages that use it, with `defer` | First deploy with PDF.js in a shared script |
-| `will-change: transform` on many elements simultaneously | GPU layer explosion, browser memory spike, jank on mobile | Apply only immediately before animation, remove after | When guided tour highlights >5 elements with animation at once |
-| PDF canvas rendering + CSS animations simultaneously | Voter screen drops frames while PDF loads | Use `prefers-reduced-motion`, stagger animations, load PDF async | When voter views a resolution PDF while a vote opens |
-| Guided tour library bundled globally | Extra weight on first load for users who never see the tour | Lazy-import on first tour trigger, or use ag-popover for simple hints | If Driver.js is in the page `<head>` unconditionally |
-| No phase performance baseline | Cannot detect regressions | Run Lighthouse on voter view and wizard before any v4.0 phase begins | Entire milestone |
+### Radix Colors 12-Step Scale — Semantic Mapping (HIGH confidence — official docs)
+
+Each step has a defined purpose. This is the industry's most principled color scale:
+
+| Step | Use Case | AG-VOTE Example |
+|------|----------|-----------------|
+| 1 | App background | `--color-bg` |
+| 2 | Subtle background | `--color-bg-subtle` |
+| 3 | UI element background (rest) | hover bg on ghost button |
+| 4 | Hovered UI element background | active bg on ghost button |
+| 5 | Active/selected UI element bg | selected row, active tab |
+| 6 | Subtle borders and separators | `--color-border-subtle` |
+| 7 | UI element border + focus ring | `--color-border` |
+| 8 | Hovered UI element border | border on input hover |
+| 9 | Solid background (highest chroma) | `--color-primary` button fill |
+| 10 | Hovered solid background | `--color-primary-hover` |
+| 11 | Low-contrast text | `--color-text-muted` |
+| 12 | High-contrast text | `--color-text-dark` |
+
+### AG-VOTE Color Primitives — OKLCH (recommended)
+
+AG-VOTE's "Acte Officiel" identity uses warm stone/parchment backgrounds with indigo-blue primary. The current hex values translated to OKLCH for derivation power:
+
+```css
+/* ─── COLOR PRIMITIVES ─── */
+/* These are reference values. The SEMANTIC tokens below are what components use. */
+
+:root {
+  /* Stone/Parchment palette (warm neutral — "Acte Officiel") */
+  --stone-50:  oklch(0.969 0.006 95);   /* #FAFAF7 — surface */
+  --stone-100: oklch(0.950 0.009 95);   /* #F2F0EB — near-white */
+  --stone-200: oklch(0.922 0.013 95);   /* #EDECE6 — bg (current --color-bg) */
+  --stone-300: oklch(0.893 0.017 90);   /* #E5E3D8 — bg-subtle */
+  --stone-400: oklch(0.833 0.022 88);   /* #CDC9BB — border */
+  --stone-500: oklch(0.760 0.028 85);   /* #BCB7A5 — border-strong */
+  --stone-600: oklch(0.648 0.030 82);   /* #857F72 — text-muted */
+  --stone-700: oklch(0.530 0.025 80);   /* #52504A — text */
+  --stone-800: oklch(0.350 0.018 78);   /* #2A2720 — text-secondary */
+  --stone-900: oklch(0.180 0.012 75);   /* #151510 — text-dark */
+
+  /* Blue/Indigo palette (primary brand) */
+  --blue-50:  oklch(0.960 0.018 265);   /* #EBF0FF */
+  --blue-100: oklch(0.920 0.035 265);   /* #D6E3FF */
+  --blue-200: oklch(0.850 0.060 265);   /* #B3CCFF */
+  --blue-400: oklch(0.680 0.130 265);   /* #5C96FA — dark mode primary */
+  --blue-500: oklch(0.600 0.165 265);   /* #3D7EF8 — mid */
+  --blue-600: oklch(0.520 0.195 265);   /* #1650E0 — current --color-primary */
+  --blue-700: oklch(0.440 0.190 265);   /* #1140C0 */
+  --blue-800: oklch(0.360 0.180 265);   /* #0C30A0 */
+
+  /* Success/Green */
+  --green-50:  oklch(0.968 0.020 155);  /* #EDFAF2 */
+  --green-600: oklch(0.500 0.135 155);  /* #0B7A40 — current --color-success */
+  --green-500: oklch(0.580 0.155 155);  /* #2DC87A — dark mode success */
+
+  /* Warning/Amber */
+  --amber-50:  oklch(0.978 0.022 90);   /* #FFF7E8 */
+  --amber-600: oklch(0.590 0.115 60);   /* #B56700 — current --color-warning */
+  --amber-400: oklch(0.740 0.130 68);   /* #EDA030 — dark mode warning */
+
+  /* Danger/Red */
+  --red-50:   oklch(0.975 0.015 25);    /* #FEF1F0 */
+  --red-600:  oklch(0.510 0.175 25);    /* #C42828 — current --color-danger */
+  --red-500:  oklch(0.600 0.185 25);    /* #E85454 — dark mode danger */
+
+  /* Purple (accent / post-session) */
+  --purple-50:  oklch(0.965 0.022 298); /* #EEEAFF */
+  --purple-600: oklch(0.490 0.170 298); /* #5038C0 — current --color-accent */
+  --purple-500: oklch(0.580 0.175 298); /* #8C72F8 — dark mode accent */
+}
+```
+
+### Semantic Color Tokens — COMPLETE LIGHT + DARK
+
+```css
+/* ─── SEMANTIC COLOR TOKENS — LIGHT THEME ─── */
+:root {
+  /* --- Backgrounds (Radix steps 1–2) --- */
+  --color-bg:          oklch(0.922 0.013 95);    /* #EDECE6 warm parchment */
+  --color-bg-subtle:   oklch(0.893 0.017 90);    /* #E5E3D8 slightly darker */
+
+  /* --- Surfaces (elevation steps 3–5) --- */
+  --color-surface:         oklch(0.969 0.006 95); /* #FAFAF7 near-white warm */
+  --color-surface-raised:  oklch(1.000 0.000 0);  /* #FFFFFF pure white cards */
+  --color-surface-overlay: oklch(0.969 0.006 95 / 95%); /* modal bg */
+  --color-surface-alt:     oklch(0.893 0.017 90); /* recessed areas */
+
+  /* --- Text (Radix steps 11–12) --- */
+  --color-text:          oklch(0.530 0.025 80);  /* #52504A body text */
+  --color-text-dark:     oklch(0.180 0.012 75);  /* #151510 headings */
+  --color-text-secondary: oklch(0.180 0.012 75); /* strong labels */
+  --color-text-muted:    oklch(0.648 0.030 82);  /* #857F72 secondary info */
+  --color-text-light:    oklch(0.750 0.018 88);  /* #B5B0A0 placeholder */
+  --color-text-inverse:  oklch(1.000 0.000 0);   /* white on dark bg */
+  --color-text-disabled: oklch(0.780 0.014 88);  /* #C4C0B5 disabled */
+
+  /* --- Borders (Radix steps 6–8) --- */
+  --color-border:        oklch(0.833 0.022 88);  /* #CDC9BB standard */
+  --color-border-subtle: oklch(0.872 0.018 89);  /* #DEDAD0 light dividers */
+  --color-border-strong: oklch(0.800 0.026 87);  /* #BCB7A5 prominent */
+  --color-border-focus:  oklch(0.520 0.195 265 / 50%); /* primary 50% */
+
+  /* --- Primary / Brand (Radix steps 9–10) --- */
+  --color-primary:       oklch(0.520 0.195 265); /* #1650E0 */
+  --color-primary-hover: oklch(0.440 0.190 265); /* #1140C0 */
+  --color-primary-active:oklch(0.360 0.180 265); /* #0C30A0 */
+  --color-primary-subtle:oklch(0.960 0.018 265); /* #EBF0FF */
+  --color-primary-muted: oklch(0.520 0.195 265 / 12%); /* transparent fill */
+  --color-primary-text:  oklch(1.000 0.000 0);   /* white on primary */
+
+  /* --- Derived with color-mix (no oklch math needed) --- */
+  --color-primary-tint-5:  color-mix(in oklch, var(--color-primary) 5%, white);
+  --color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, white);
+  --color-primary-tint-15: color-mix(in oklch, var(--color-primary) 15%, white);
+  --color-primary-shade-10: color-mix(in oklch, var(--color-primary) 90%, black);
+
+  /* --- Semantic states --- */
+  --color-success:        oklch(0.500 0.135 155); /* #0B7A40 */
+  --color-success-hover:  oklch(0.440 0.125 155); /* darker */
+  --color-success-subtle: oklch(0.968 0.020 155); /* #EDFAF2 */
+  --color-success-border: oklch(0.820 0.060 155); /* #A3E8C1 */
+  --color-success-text:   oklch(0.500 0.135 155);
+
+  --color-warning:        oklch(0.590 0.115 60);  /* #B56700 */
+  --color-warning-hover:  oklch(0.520 0.108 60);
+  --color-warning-subtle: oklch(0.978 0.022 90);  /* #FFF7E8 */
+  --color-warning-border: oklch(0.870 0.070 75);  /* #F5D490 */
+  --color-warning-text:   oklch(0.590 0.115 60);
+
+  --color-danger:         oklch(0.510 0.175 25);  /* #C42828 */
+  --color-danger-hover:   oklch(0.450 0.168 25);
+  --color-danger-subtle:  oklch(0.975 0.015 25);  /* #FEF1F0 */
+  --color-danger-border:  oklch(0.840 0.065 25);  /* #F4BFBF */
+  --color-danger-text:    oklch(0.510 0.175 25);
+
+  --color-accent:         oklch(0.490 0.170 298); /* #5038C0 purple */
+  --color-accent-subtle:  oklch(0.965 0.022 298); /* #EEEAFF */
+  --color-accent-border:  oklch(0.780 0.080 298); /* #C4B8F8 */
+  --color-accent-text:    oklch(0.490 0.170 298);
+
+  --color-neutral:        oklch(0.648 0.030 82);  /* #857F72 */
+  --color-neutral-hover:  oklch(0.570 0.025 82);
+  --color-neutral-subtle: oklch(0.893 0.017 90);  /* #E5E3D8 */
+  --color-neutral-text:   oklch(0.530 0.025 80);
+
+  /* --- Misc --- */
+  --color-backdrop:       oklch(0 0 0 / 50%);
+  --color-overlay-tint:   oklch(0 0 0 / 4%);    /* hover tint on surfaces */
+}
+
+/* ─── SEMANTIC COLOR TOKENS — DARK THEME ─── */
+[data-theme="dark"] {
+  /* --- Backgrounds --- */
+  --color-bg:          oklch(0.130 0.012 265);   /* #0B0F1A deep navy */
+  --color-bg-subtle:   oklch(0.180 0.018 265);   /* #1B2030 */
+
+  /* --- Surfaces (light sources — higher = lighter in dark mode) --- */
+  --color-surface:         oklch(0.155 0.016 265); /* #141820 */
+  --color-surface-raised:  oklch(0.190 0.020 265); /* #1E2438 */
+  --color-surface-overlay: oklch(0.155 0.016 265 / 96%);
+  --color-surface-alt:     oklch(0.180 0.018 265); /* #1B2030 */
+
+  /* --- Text --- */
+  --color-text:          oklch(0.620 0.020 248);  /* #7A8499 */
+  --color-text-dark:     oklch(0.940 0.012 252);  /* #ECF0FA */
+  --color-text-secondary: oklch(0.940 0.012 252);
+  --color-text-muted:    oklch(0.460 0.018 250);  /* #50596C */
+  --color-text-light:    oklch(0.320 0.015 248);  /* #38404E */
+  --color-text-inverse:  oklch(0.130 0.012 265);  /* dark bg */
+  --color-text-disabled: oklch(0.380 0.015 248);
+
+  /* --- Borders --- */
+  --color-border:        oklch(0.230 0.020 265);  /* #252C3C */
+  --color-border-subtle: oklch(0.200 0.018 265);  /* #1E2434 */
+  --color-border-strong: oklch(0.270 0.024 265);  /* #2E3850 */
+  --color-border-focus:  oklch(0.620 0.170 265 / 50%);
+
+  /* --- Primary --- */
+  --color-primary:       oklch(0.630 0.170 265);  /* #3D7EF8 */
+  --color-primary-hover: oklch(0.700 0.155 265);  /* #5C96FA */
+  --color-primary-active:oklch(0.770 0.120 265);  /* #96BDFB */
+  --color-primary-subtle:oklch(0.630 0.170 265 / 12%);
+  --color-primary-muted: oklch(0.630 0.170 265 / 12%);
+  --color-primary-text:  oklch(0.130 0.012 265);
+
+  --color-primary-tint-5:  color-mix(in oklch, var(--color-primary) 5%, var(--color-surface));
+  --color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, var(--color-surface));
+  --color-primary-tint-15: color-mix(in oklch, var(--color-primary) 15%, var(--color-surface));
+  --color-primary-shade-10: color-mix(in oklch, var(--color-primary) 90%, var(--color-surface));
+
+  /* --- Semantic states --- */
+  --color-success:        oklch(0.680 0.155 155); /* #2DC87A */
+  --color-success-hover:  oklch(0.740 0.160 155);
+  --color-success-subtle: oklch(0.680 0.155 155 / 8%);
+  --color-success-border: oklch(0.680 0.155 155 / 28%);
+  --color-success-text:   oklch(0.680 0.155 155);
+
+  --color-warning:        oklch(0.760 0.130 68);  /* #EDA030 */
+  --color-warning-hover:  oklch(0.810 0.130 68);
+  --color-warning-subtle: oklch(0.760 0.130 68 / 8%);
+  --color-warning-border: oklch(0.760 0.130 68 / 28%);
+  --color-warning-text:   oklch(0.760 0.130 68);
+
+  --color-danger:         oklch(0.650 0.185 25);  /* #E85454 */
+  --color-danger-hover:   oklch(0.710 0.180 25);
+  --color-danger-subtle:  oklch(0.650 0.185 25 / 9%);
+  --color-danger-border:  oklch(0.650 0.185 25 / 28%);
+  --color-danger-text:    oklch(0.650 0.185 25);
+
+  --color-accent:         oklch(0.650 0.175 298); /* #8C72F8 */
+  --color-accent-subtle:  oklch(0.650 0.175 298 / 10%);
+  --color-accent-border:  oklch(0.650 0.175 298 / 30%);
+  --color-accent-text:    oklch(0.650 0.175 298);
+
+  --color-neutral:        oklch(0.460 0.018 250);
+  --color-neutral-hover:  oklch(0.620 0.020 248);
+  --color-neutral-subtle: oklch(0.620 0.020 248 / 15%);
+  --color-neutral-text:   oklch(0.620 0.020 248);
+
+  --color-backdrop:       oklch(0 0 0 / 70%);
+  --color-overlay-tint:   oklch(1 0 0 / 3%);
+}
+```
+
+### oklch Color Derivation Formulas (MEDIUM confidence — MDN + Evil Martians verified)
+
+For use within component CSS when you need one-off variants without adding new tokens:
+
+```css
+/* Hover state — lighten by ~10% lightness */
+.btn:hover {
+  background: oklch(from var(--color-primary) calc(l + 0.06) c h);
+}
+
+/* Active state — darken by ~10% lightness */
+.btn:active {
+  background: oklch(from var(--color-primary) calc(l - 0.06) c h);
+}
+
+/* Subtle fill — desaturate + lighten heavily */
+.badge-subtle {
+  background: oklch(from var(--color-primary) calc(l + 0.35) calc(c * 0.15) h);
+}
+
+/* Tinted border — same hue, very low chroma */
+.card-primary {
+  border-color: oklch(from var(--color-primary) calc(l + 0.25) calc(c * 0.30) h);
+}
+
+/* color-mix pattern (wider browser support, more predictable) */
+.icon-bg {
+  background: color-mix(in oklch, var(--color-primary) 12%, var(--color-surface));
+}
+```
+
+**Browser support note:** `oklch(from ...)` relative color syntax requires Chrome 119+, Firefox 128+, Safari 16.4+. `color-mix(in oklch, ...)` has slightly wider support (Chrome 111+). Both are safe for 2026 targets.
 
 ---
 
-## Phase-Specific Warnings
+## 4. SHADOW SYSTEM
+
+### Research Findings (HIGH confidence — Tailwind v4 theme.css source)
+
+Top systems use 5–7 shadow levels. Tailwind v4 uses 7 (2xs → 2xl). The key insight from premium apps (Linear, Vercel, Stripe): **shadows in light mode should be warm-tinted, not cold black** — use the darkest text color as shadow base.
+
+AG-VOTE's existing shadows use `rgba(21, 21, 16, N)` which is already correct (warm dark). The problem is the values themselves are too weak for a "top 1%" result.
+
+### Complete Shadow Scale
+
+```css
+:root {
+  /* ─── SHADOW SCALE ─── */
+  /* Base color: --shadow-color is the warm dark tone of the page */
+  /* Light mode: warm near-black. Dark mode: pure black (more visible). */
+  --shadow-color: 21 21 16;        /* rgb channels — warm black */
+
+  /* 7 levels from surface lift to floating panel */
+  --shadow-2xs: 0 1px 0 rgb(var(--shadow-color) / 0.04);
+  --shadow-xs:  0 1px 2px rgb(var(--shadow-color) / 0.06),
+                0 1px 1px rgb(var(--shadow-color) / 0.03);
+  --shadow-sm:  0 1px 3px rgb(var(--shadow-color) / 0.08),
+                0 1px 2px rgb(var(--shadow-color) / 0.04);
+  --shadow:     0 2px 6px rgb(var(--shadow-color) / 0.08),
+                0 1px 3px rgb(var(--shadow-color) / 0.05);
+  --shadow-md:  0 4px 12px rgb(var(--shadow-color) / 0.10),
+                0 2px 4px rgb(var(--shadow-color) / 0.06);
+  --shadow-lg:  0 8px 24px rgb(var(--shadow-color) / 0.12),
+                0 3px 8px rgb(var(--shadow-color) / 0.06);
+  --shadow-xl:  0 16px 40px rgb(var(--shadow-color) / 0.14),
+                0 6px 16px rgb(var(--shadow-color) / 0.07);
+  --shadow-2xl: 0 24px 64px rgb(var(--shadow-color) / 0.18),
+                0 8px 24px rgb(var(--shadow-color) / 0.08);
+
+  /* Special purpose */
+  --shadow-inner: inset 0 2px 4px rgb(var(--shadow-color) / 0.05);
+  --shadow-inset-sm: inset 0 1px 2px rgb(var(--shadow-color) / 0.08);
+  --shadow-focus: 0 0 0 2px var(--color-surface-raised),
+                  0 0 0 4px var(--color-border-focus);
+  --shadow-focus-danger: 0 0 0 2px var(--color-surface-raised),
+                          0 0 0 4px oklch(0.510 0.175 25 / 35%);
+}
+
+[data-theme="dark"] {
+  --shadow-color: 0 0 0;     /* pure black — needed for visibility on dark bg */
+
+  --shadow-2xs: 0 1px 0 rgb(var(--shadow-color) / 0.12);
+  --shadow-xs:  0 1px 2px rgb(var(--shadow-color) / 0.20),
+                0 1px 1px rgb(var(--shadow-color) / 0.12);
+  --shadow-sm:  0 1px 3px rgb(var(--shadow-color) / 0.24),
+                0 1px 2px rgb(var(--shadow-color) / 0.16);
+  --shadow:     0 2px 6px rgb(var(--shadow-color) / 0.30),
+                0 1px 3px rgb(var(--shadow-color) / 0.18);
+  --shadow-md:  0 4px 12px rgb(var(--shadow-color) / 0.34),
+                0 2px 4px rgb(var(--shadow-color) / 0.20);
+  --shadow-lg:  0 8px 24px rgb(var(--shadow-color) / 0.40),
+                0 3px 8px rgb(var(--shadow-color) / 0.22);
+  --shadow-xl:  0 16px 40px rgb(var(--shadow-color) / 0.50),
+                0 6px 16px rgb(var(--shadow-color) / 0.26);
+  --shadow-2xl: 0 24px 64px rgb(var(--shadow-color) / 0.60),
+                0 8px 24px rgb(var(--shadow-color) / 0.30);
+
+  --shadow-inner: inset 0 2px 4px rgb(var(--shadow-color) / 0.20);
+  --shadow-inset-sm: inset 0 1px 2px rgb(var(--shadow-color) / 0.25);
+}
+```
+
+### Shadow Usage Guide
+
+| Component | Shadow Level | Rationale |
+|-----------|-------------|-----------|
+| Table row | `--shadow-2xs` | Barely lifted, data density |
+| Card (default) | `--shadow-sm` | Light surface |
+| Card (hover) | `--shadow-md` | Lifted on hover |
+| Modal dialog | `--shadow-xl` | Floating layer |
+| Dropdown/popover | `--shadow-lg` | Above content |
+| Tooltip | `--shadow-md` | Small floating |
+| Button (active) | `--shadow-inner` | Pressed state |
+| Input (focus) | `--shadow-focus` | Accessibility ring |
+
+---
+
+## 5. TYPOGRAPHY SCALE
+
+### Research Findings (MEDIUM confidence — LearnUI.design + industry consensus)
+
+For data-heavy desktop apps (Linear, Notion, AG-VOTE): body text 14–16px, headings 24–36px, labels/captions 11–13px. The key insight: **line-height should decrease as font-size increases** — headlines at 1.1–1.2, body at 1.5–1.6, captions at 1.4.
+
+AG-VOTE uses Bricolage Grotesque (body), Fraunces (display/headings), JetBrains Mono (data). This is an excellent combination. The problem is in the scale steps and line-height assignments.
+
+```css
+:root {
+  /* ─── FONT FAMILIES (unchanged — strong identity) ─── */
+  --font-sans:    'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* ─── FONT SIZE SCALE ─── */
+  /* 9 steps — covers every use case in AG-VOTE */
+  --text-2xs:  0.6875rem;  /* 11px — badges, legal fine print */
+  --text-xs:   0.75rem;    /* 12px — table meta, timestamps */
+  --text-sm:   0.8125rem;  /* 13px — compact UI, secondary labels */
+  --text-base: 0.875rem;   /* 14px — PRIMARY body text (data-dense app) */
+  --text-md:   1rem;       /* 16px — emphasized body, form labels */
+  --text-lg:   1.125rem;   /* 18px — section subtitles, lead text */
+  --text-xl:   1.25rem;    /* 20px — page sub-headers */
+  --text-2xl:  1.5rem;     /* 24px — h3 / card titles */
+  --text-3xl:  1.875rem;   /* 30px — h2 / page titles */
+  --text-4xl:  2.25rem;    /* 36px — h1 / hero (display font) */
+  --text-5xl:  3rem;       /* 48px — landing/marketing only */
+
+  /* ─── LINE HEIGHTS (per-size — not generic) ─── */
+  /* Smaller text needs more breathing room. Large text needs tighter tracking. */
+  --leading-2xs:  1.5;    /* 11px → 16.5px */
+  --leading-xs:   1.5;    /* 12px → 18px */
+  --leading-sm:   1.55;   /* 13px → ~20px */
+  --leading-base: 1.571;  /* 14px → 22px — golden for data tables */
+  --leading-md:   1.5;    /* 16px → 24px */
+  --leading-lg:   1.4;    /* 18px → 25.2px */
+  --leading-xl:   1.35;   /* 20px → 27px */
+  --leading-2xl:  1.3;    /* 24px → 31.2px */
+  --leading-3xl:  1.2;    /* 30px → 36px */
+  --leading-4xl:  1.1;    /* 36px → 39.6px */
+
+  /* ─── FONT WEIGHTS ─── */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+
+  /* ─── LETTER SPACING ─── */
+  --tracking-tight:   -0.025em;  /* large headings */
+  --tracking-snug:    -0.015em;  /* h2/h3 */
+  --tracking-normal:   0em;      /* body text */
+  --tracking-wide:     0.025em;  /* all-caps labels, badges */
+  --tracking-wider:    0.05em;   /* very tight UPPERCASE */
+  --tracking-widest:   0.1em;    /* micro labels */
+
+  /* ─── SEMANTIC TYPOGRAPHY ALIASES ─── */
+  /* Used in component CSS for consistency */
+  --type-page-title-size:   var(--text-3xl);
+  --type-page-title-weight: var(--weight-bold);
+  --type-page-title-lead:   var(--leading-3xl);
+  --type-page-title-track:  var(--tracking-tight);
+  --type-page-title-font:   var(--font-display);
+
+  --type-section-title-size:   var(--text-2xl);
+  --type-section-title-weight: var(--weight-bold);
+  --type-section-title-lead:   var(--leading-2xl);
+  --type-section-title-track:  var(--tracking-snug);
+
+  --type-card-title-size:   var(--text-xl);
+  --type-card-title-weight: var(--weight-semibold);
+  --type-card-title-lead:   var(--leading-xl);
+
+  --type-body-size:   var(--text-base);  /* 14px */
+  --type-body-weight: var(--weight-regular);
+  --type-body-lead:   var(--leading-base);
+
+  --type-body-md-size:   var(--text-md);  /* 16px — for prose/help */
+  --type-body-md-weight: var(--weight-regular);
+  --type-body-md-lead:   var(--leading-md);
+
+  --type-label-size:   var(--text-sm);
+  --type-label-weight: var(--weight-medium);
+  --type-label-lead:   var(--leading-sm);
+
+  --type-caption-size:   var(--text-xs);
+  --type-caption-weight: var(--weight-regular);
+  --type-caption-lead:   var(--leading-xs);
+
+  --type-badge-size:   var(--text-2xs);
+  --type-badge-weight: var(--weight-medium);
+  --type-badge-track:  var(--tracking-wide);
+
+  --type-mono-size:   var(--text-sm);   /* 13px for data/code */
+  --type-mono-lead:   var(--leading-sm);
+  --type-mono-font:   var(--font-mono);
+}
+```
+
+**Key change from v4.0:** Base body size drops from 16px to 14px. AG-VOTE is a data-dense governance app — operators see vote tallies, proxy tables, member lists. 14px is what Linear, Notion, Jira, and GitHub use for their dense data tables. 16px is for marketing sites and text-heavy reads. This single change immediately makes the UI feel more professional and data-native.
+
+---
+
+## 6. DARK MODE STRATEGY
+
+### Background Layering Model (HIGH confidence — Atlassian + Radix verified)
+
+**The core principle:** In dark mode, elevation = lightness. A higher surface (closer to the user) is lighter. This is the opposite of light mode where elevation is expressed via shadows.
+
+**5-layer background model:**
+
+```
+Layer 0: Page background (darkest)  →  --color-bg
+Layer 1: Surface (cards, panels)    →  --color-surface      (+3-4% lightness)
+Layer 2: Raised (selected, hover)   →  --color-surface-raised (+4-5% more)
+Layer 3: Overlay (modals, drawers)  →  --color-surface-overlay (same as raised + blur)
+Layer 4: Tooltip/popover            →  --color-surface-raised + higher shadow
+```
+
+In the AG-VOTE dark token definitions above, these follow oklch lightness values:
+- `--color-bg`: L=0.130
+- `--color-surface`: L=0.155  (+0.025)
+- `--color-surface-raised`: L=0.190  (+0.035)
+
+**The gap between layers must be at least 3 lightness points in oklch** for the layering to be visible to human perception.
+
+### Dark Mode Contrast Rules
+
+```css
+/* ─── CONTRAST REQUIREMENTS — WCAG AA ─── */
+/*
+  Text on bg:          body text vs surface → ≥ 4.5:1
+  Large text on bg:    headings vs bg → ≥ 3:1
+  Border visibility:   border vs surface → ≥ 1.5:1 (perceptible)
+
+  AG-VOTE dark mode measurements:
+  --color-text (L=0.62) on --color-surface (L=0.155) → ~6.2:1 ✓
+  --color-text-dark (L=0.94) on --color-bg (L=0.13) → ~12:1 ✓
+  --color-text-muted (L=0.46) on --color-surface (L=0.155) → ~3.8:1 ✗ (borderline)
+
+  Fix for muted text in dark mode:
+  Muted text needs L ≥ 0.50 on the dark surfaces used.
+*/
+
+/* Dark mode text legibility rules */
+[data-theme="dark"] {
+  /* Minimum muted text — bumped to pass 4.5:1 */
+  --color-text-muted:  oklch(0.520 0.018 250);  /* was 0.460 — too dim */
+
+  /* Don't use --color-text-light for anything except decorative/disabled */
+  /* It fails WCAG AA on dark surfaces */
+}
+```
+
+### Sidebar Dark Override Pattern
+
+```css
+/* ─── SIDEBAR (always dark, regardless of theme) ─── */
+/* Sidebar has its own independent token set */
+:root {
+  --sidebar-bg:           oklch(0.110 0.015 265); /* #0C1018 */
+  --sidebar-bg-hover:     oklch(1 0 0 / 10%);     /* white 10% overlay */
+  --sidebar-bg-active:    oklch(0.520 0.195 265 / 30%); /* primary 30% */
+  --sidebar-border:       oklch(1 0 0 / 8%);
+  --sidebar-text:         oklch(1 0 0 / 85%);
+  --sidebar-text-active:  oklch(1 0 0 / 100%);
+  --sidebar-text-muted:   oklch(1 0 0 / 50%);
+  --sidebar-icon:         oklch(1 0 0 / 60%);
+  --sidebar-icon-active:  oklch(0.680 0.170 265); /* primary color */
+}
+/* Sidebar stays the same in dark mode — already dark */
+[data-theme="dark"] {
+  --sidebar-bg: oklch(0.080 0.010 265); /* slightly deeper in dark mode */
+}
+```
+
+### What Top Dark Modes Do Differently
+
+1. **No pure black (#000000) anywhere** — pure black has infinite contrast and feels harsh. Use deeply saturated dark grays with a slight blue/purple hue.
+
+2. **Borders are opacity-based, not hex-based** — `oklch(1 0 0 / 8%)` instead of `#252C3C`. This adapts automatically when background lightness changes.
+
+3. **Colored shadows are invisible on dark** — replace shadows with `border: 1px solid var(--color-border)` on dark surfaces. Only floating elements (modals, popovers) need shadows.
+
+4. **Interactive states use background tint, not border** — on dark, `background: oklch(1 0 0 / 5%)` for hover is more legible than changing border color.
+
+---
+
+## 7. BORDER-RADIUS SCALE
+
+### Research Findings (MEDIUM confidence — visual analysis of Vercel/Linear/Stripe)
+
+| App | Default button | Cards | Inputs | Modals |
+|-----|---------------|-------|--------|--------|
+| Vercel | 6px | 8px | 6px | 12px |
+| Linear | 6px | 8px | 6px | 12px |
+| Stripe | 6px | 12px | 6px | 16px |
+| GitHub | 6px | 8px | 6px | 12px |
+
+**Pattern:** 6px for interactive elements (buttons, inputs, chips), 8px for containers (cards), 12px for modals/drawers. "Premium" feel comes from **consistent application**, not specific numbers.
+
+**What makes radius look cheap:**
+- Using the same radius everywhere (no hierarchy)
+- Radius too large for small elements (8px on a 24px badge looks like a pill)
+- Mixing px and rem values across components
+
+```css
+:root {
+  /* ─── BORDER RADIUS SCALE ─── */
+  --radius-none: 0;
+  --radius-xs:   0.1875rem; /* 3px  — table cell indicators, hairline */
+  --radius-sm:   0.3125rem; /* 5px  — tags, badges, inline chips */
+  --radius-md:   0.375rem;  /* 6px  — buttons, inputs, selects */
+  --radius-lg:   0.5rem;    /* 8px  — cards, panels, dropdowns */
+  --radius-xl:   0.75rem;   /* 12px — modals, drawers, toasts */
+  --radius-2xl:  1rem;      /* 16px — sidesheets, featured cards */
+  --radius-full: 9999px;    /* pill — status badges, avatar */
+
+  /* ─── SEMANTIC RADIUS ALIASES ─── */
+  --radius-btn:     var(--radius-md);   /* 6px — all buttons */
+  --radius-input:   var(--radius-md);   /* 6px — inputs, selects */
+  --radius-badge:   var(--radius-sm);   /* 5px — status badges */
+  --radius-chip:    var(--radius-full); /* pill — filter chips */
+  --radius-card:    var(--radius-lg);   /* 8px — content cards */
+  --radius-panel:   var(--radius-lg);   /* 8px — sidebar panels */
+  --radius-modal:   var(--radius-xl);   /* 12px — dialog boxes */
+  --radius-toast:   var(--radius-lg);   /* 8px — notifications */
+  --radius-tooltip: var(--radius-sm);   /* 5px — tooltips */
+  --radius-avatar:  var(--radius-full); /* circle — avatars */
+  --radius-tag:     var(--radius-xs);   /* 3px — table tags (tight) */
+}
+```
+
+**AG-VOTE specific note:** The current scale (6px / 8px / 10px) is close but `--radius-lg: 10px` should become `--radius-lg: 8px` to align with industry standard. The 10px value is an awkward in-between.
+
+---
+
+## 8. TRANSITION SYSTEM
+
+### Research Findings (HIGH confidence — Material Design 3 motion specs + MDN verified)
+
+Material Design 3 defines: **Standard (default)** for most UI changes, **Emphasized** for large/dramatic changes, **Decelerate** for elements entering screen, **Accelerate** for elements leaving.
+
+Framer Motion defaults: spring-based with damping 20, stiffness 300 for most interactions. For CSS-only (no Framer), the equivalent feel uses `cubic-bezier(0.34, 1.56, 0.64, 1)` for a subtle spring bounce.
+
+```css
+:root {
+  /* ─── DURATION SCALE ─── */
+  --duration-instant:  50ms;   /* state-only changes (color on hover) */
+  --duration-fast:     100ms;  /* micro interactions (button press) */
+  --duration-normal:   150ms;  /* standard UI (most hover states) */
+  --duration-moderate: 200ms;  /* slightly more complex (dropdowns) */
+  --duration-slow:     250ms;  /* deliberate feedback (form validation) */
+  --duration-deliberate: 300ms;/* enter/exit animations */
+  --duration-elaborate: 400ms; /* page transitions, modals */
+  --duration-dramatic: 500ms;  /* hero animations, first load */
+
+  /* ─── EASING FUNCTIONS ─── */
+  /* Named after intent, not mathematical description */
+
+  /* Standard — functional state changes (hover, focus, active) */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Emphasized — enter screen or expand (decelerates into rest) */
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1.0);
+
+  /* Emphasized out — exit screen or collapse (accelerates away) */
+  --ease-emphasized-out: cubic-bezier(0.3, 0, 0.8, 0.15);
+
+  /* Linear — opacity fades, where easing looks wrong */
+  --ease-linear: linear;
+
+  /* Spring — delightful micro bounce (not for enter/exit, only for interactive response) */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Overshoot — badges, count changes — slightly overshoots target */
+  --ease-overshoot: cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  /* Legacy aliases (backwards compat with existing code) */
+  --ease-default: var(--ease-standard);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce:  var(--ease-spring);
+
+  /* ─── NAMED TRANSITIONS ─── */
+  /* Pre-composed transitions for common use cases */
+  --transition-color:     color var(--duration-normal) var(--ease-standard),
+                          background-color var(--duration-normal) var(--ease-standard),
+                          border-color var(--duration-normal) var(--ease-standard);
+
+  --transition-shadow:    box-shadow var(--duration-moderate) var(--ease-standard);
+
+  --transition-transform: transform var(--duration-moderate) var(--ease-standard);
+
+  --transition-opacity:   opacity var(--duration-normal) var(--ease-linear);
+
+  --transition-ui:        color var(--duration-normal) var(--ease-standard),
+                          background-color var(--duration-normal) var(--ease-standard),
+                          border-color var(--duration-normal) var(--ease-standard),
+                          box-shadow var(--duration-moderate) var(--ease-standard),
+                          opacity var(--duration-normal) var(--ease-linear);
+
+  --transition-enter:     transform var(--duration-deliberate) var(--ease-emphasized),
+                          opacity var(--duration-deliberate) var(--ease-linear);
+
+  --transition-exit:      transform var(--duration-moderate) var(--ease-emphasized-out),
+                          opacity var(--duration-moderate) var(--ease-linear);
+
+  /* Legacy shorthand (keep for existing code) */
+  --transition: var(--duration-normal) var(--ease-standard);
+}
+```
+
+**Why `--transition-ui` matters:** Instead of writing `transition: all 200ms ease` (which re-computes layout on every frame), enumerate exactly what changes. `all` triggers reflows. Individual property transitions only composite what's needed.
+
+**Duration guide for AG-VOTE:**
+- Button hover color: `--duration-normal` (150ms) + `--ease-standard`
+- Dropdown open: `--duration-deliberate` (300ms) + `--ease-emphasized`
+- Modal enter: `--duration-elaborate` (400ms) + `--ease-emphasized`
+- Live vote badge count: `--duration-fast` (100ms) + `--ease-overshoot`
+- SSE delta badges: `--duration-fast` (100ms) + `--ease-spring`
+
+---
+
+## Critical Pitfalls for v4.1
+
+### Pitfall 1: oklch Browser Support — Gradual Rollout Risk
+
+**What goes wrong:** OKLCH primitive values in `:root` are not parsed by Safari < 15.4 or any IE. The fallback hex values disappear entirely — component backgrounds become transparent.
+
+**Prevention:** For primitives layer, keep them as comments/reference only. Semantic tokens should use hex or `rgb()` as primary values, with `color-mix(in oklch, ...)` used only for derived values. OR add @supports guard:
+
+```css
+/* Safe pattern */
+:root {
+  --color-primary: #1650E0;  /* fallback first */
+  --color-primary: oklch(0.520 0.195 265);  /* enhances if supported */
+}
+```
+
+**Detection:** Test in Safari 15.3 or use @supports(color: oklch(0 0 0)) gate.
+
+### Pitfall 2: color-mix() In Cascaded Variables — Reference Loop
+
+**What goes wrong:** `--color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, var(--color-surface))` in `:root` is fine. But if a component does `--color-primary: color-mix(in oklch, var(--color-primary) 80%, black)` — this is a circular reference and resolves to `transparent`.
+
+**Prevention:** Never redefine a token using itself. Use component-scoped tokens:
+
+```css
+/* BAD */
+.btn { --color-primary: color-mix(in oklch, var(--color-primary) 80%, black); }
+
+/* GOOD */
+.btn { --btn-bg: color-mix(in oklch, var(--color-primary) 80%, black); }
+```
+
+### Pitfall 3: Token Proliferation — The 265+ Variable Trap
+
+**What went wrong in v4.0:** Each page CSS file added its own one-off tokens (`--quorum-bar-bg`, `--delta-badge-color`) without checking if a semantic token already existed. Result: 265+ variables with massive overlap.
+
+**Prevention for v4.1:** Enforce a naming convention:
+- Primitive: `--[palette]-[step]` (e.g., `--blue-600`)
+- Semantic: `--color-[role]` (e.g., `--color-primary`)
+- Component: `--[component]-[property]` (e.g., `--badge-bg`)
+
+If you reach for `--color-vote-status-approved-bg`, that's a code smell. Use `--color-success-subtle`.
+
+**Maximum target:** 80–100 tokens in `:root`, 20–30 in `[data-theme="dark"]`, component tokens scoped to their component.
+
+### Pitfall 4: Shadow Strength Mismatch Between Themes
+
+**What goes wrong:** Shadows tuned for light mode (subtle, warm) are nearly invisible in dark mode. The current `--shadow-lg` is 0.10 alpha on light and 0.36 alpha on dark — a 3.6× multiplier. If you forget to add the dark override, shadowed elements look flat.
+
+**Prevention:** Always define the `--shadow-color` variable separately and override it in dark mode:
+
+```css
+:root { --shadow-color: 21 21 16; }     /* warm dark */
+[data-theme="dark"] { --shadow-color: 0 0 0; }  /* pure black */
+/* Then all --shadow-* values automatically adapt */
+```
+
+**Detection:** Screenshot the same component in both modes side-by-side at the same scale.
+
+### Pitfall 5: Typography Base Size Regression
+
+**What goes wrong:** Changing `--text-base` from 16px to 14px breaks every existing component that uses `font-size: var(--text-base)` — form labels, body text, table cells. They all shrink at once.
+
+**Prevention:** Add the new `--text-base: 0.875rem` (14px) and rename the old 16px to `--text-md`. Then sweep through page CSS files to update references. Do this in one atomic phase, not spread across multiple.
+
+**Migration path:**
+```css
+/* Phase 1: Add new value, keep old name */
+--text-base: 1rem;       /* still 16px during transition */
+--text-14: 0.875rem;     /* new 14px anchor */
+
+/* Phase 2: After all components updated */
+--text-base: 0.875rem;   /* 14px */
+--text-md: 1rem;         /* 16px */
+```
+
+### Pitfall 6: @layer Specificity vs New Token Cascade
+
+**What goes wrong:** If new tokens are defined in `@layer base` but a component in `@layer v4` uses `color: oklch(...)` directly (inline), the layer wins over the token. Adding `!important` to a token doesn't work — it applies to the fallback, not the variable.
+
+**Prevention:** Never put raw color values in `@layer v4` component rules. Always go through a token. The rule: `@layer v4` may override token assignments but must never bypass the token system.
+
+### Pitfall 7: Transition `all` Performance
+
+**What goes wrong:** `transition: all 150ms ease` triggers composite reflow on properties that don't change (width, height, font-size). On tables with 50+ rows, hover states stutter.
+
+**Prevention:** Use `--transition-color` or `--transition-ui` (explicit properties). Never `transition: all`.
+
+```css
+/* BAD — existing pattern in AG-VOTE */
+.table-row { transition: all 150ms ease; }
+
+/* GOOD */
+.table-row { transition: var(--transition-color), var(--transition-shadow); }
+```
+
+---
+
+## Phase-Specific Warnings for v4.1
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| PDF infrastructure | No serve endpoint — viewer has no authenticated source URL | Build `meeting_attachment_serve.php` before building any viewer UI |
-| PDF infrastructure | pdfjs-dist version not pinned | Pin to >= 4.2.67 (latest: 5.5.207) in initial install |
-| PDF infrastructure | STORAGE_PATH env var not read by PHP | Replace hardcoded `/tmp/ag-vote` with env-driven constant in same phase |
-| PDF infrastructure | Missing tenant isolation on serve endpoint | Verify tenant_id match before serving file |
-| PDF infrastructure | `<object>` or `<embed>` used for PDF display | Use PDF.js canvas rendering exclusively |
-| Guided UX implementation | Tour buttons are HTML stubs — zero JS wiring | Decide: implement with Driver.js or replace with ag-popover hints |
-| Guided UX implementation | Tour library license (Shepherd.js v12+) | Use Driver.js (MIT) instead |
-| Guided UX implementation | Tour library loaded on all pages | Lazy-import only on pages with guided tours |
-| Copropriété transformation | Over-deletion of voting_power logic | Feature inventory before deletion, PHPUnit test for weighted vote tally |
-| Copropriété transformation | Remove tantiemes CSV alias breaks import backward compat | Keep alias in ImportService.php permanently |
-| Design system tokens | Dark mode token missing for new components | Two-token rule: every `:root` token gets `[data-theme="dark"]` companion |
-| PC-first redesign | Voter screen mobile breakage via shared components | Run mobile-viewport.spec.js after every phase touching shared components |
-| "Top 1% UI" | No objective done criteria | Define measurable criteria (contrast, CLS, transition timing, token purity) before first phase |
-| Any full page redesign | Feature parity gaps (actions removed in new design) | Feature inventory from v3.0 as parity checklist before designing |
-| Any CSS rewrite | WCAG regression (focus rings, ARIA landmarks) | axe-core Playwright check per page before phase closes |
-| Any CSS rewrite | outline:none without box-shadow replacement | Follow existing .btn:focus-visible pattern — outline:none + box-shadow ring |
+| Token audit | Missing dark-mode parity for new tokens | Run both themes in parallel during development |
+| oklch migration | Browser fallback gaps | Keep hex fallbacks as first declaration |
+| Typography refactor | base-size change breaks all page CSS | Atomic sweep, staged naming migration |
+| Shadow audit | Dark mode shadows invisible | Use --shadow-color variable pattern |
+| Component spacing | Inconsistent pad-md vs space-6 usage | Enforce semantic alias usage only |
+| Transition cleanup | `transition: all` in 15+ page files | Search/replace with specific property list |
+| Color-mix circular refs | Component overrides looping | Lint for var(--color-*) inside color-mix redef |
 
 ---
 
 ## Sources
 
-- Direct codebase inspection: `app/Controller/MeetingAttachmentController.php` — upload handler with finfo MIME check, 10 MB limit, hardcoded /tmp/ag-vote storage path (HIGH confidence)
-- Direct codebase inspection: `public/api/v1/meeting_attachments.php` — GET/POST/DELETE only, no serve endpoint (HIGH confidence)
-- Direct codebase inspection: `public/assets/css/design-system.css` lines 2491-2500 — prefers-reduced-motion already globally implemented (HIGH confidence)
-- Direct codebase inspection: `public/assets/css/design-system.css` lines 1102-1106 — outline:none correctly replaced with box-shadow focus ring (HIGH confidence)
-- Direct codebase inspection: `public/assets/css/design-system.css` lines 309-364 — dark theme token block (HIGH confidence)
-- Direct codebase inspection: `wizard.htmx.html`, `postsession.htmx.html`, `members.htmx.html` — btnTour/data-tour HTML stubs with zero JS wiring (HIGH confidence)
-- Direct codebase inspection: `app/Services/ImportService.php` line 237 — tantièmes is CSV alias, not separate feature (HIGH confidence)
-- Direct codebase inspection: `public/assets/js/pages/settings.js` line 407-419 — openKeyModal is a stub, no API call (HIGH confidence)
-- Direct codebase inspection: `public/assets/js/core/shell.js` line 683 — only UI string using "copropriétaires" (HIGH confidence)
-- Direct codebase inspection: `.env` line 61, `docker-compose.yml` line 48 — STORAGE_PATH defined, named volume mounted, but PHP hardcodes path (HIGH confidence)
-- Direct codebase inspection: `database/migrations/20260219_meeting_attachments.sql` — schema has tenant_id, meeting_id, stored_name columns (HIGH confidence)
-- [CVE-2024-4367 — Arbitrary JavaScript execution in PDF.js (Codean Labs)](https://codeanlabs.com/blog/research/cve-2024-4367-arbitrary-js-execution-in-pdf-js/) — HIGH confidence
-- [GitHub Advisory GHSA-wgrm-67xf-hhpq](https://github.com/advisories/GHSA-wgrm-67xf-hhpq) — HIGH confidence
-- [Snyk — pdfjs-dist vulnerabilities](https://security.snyk.io/package/npm/pdfjs-dist) — pdfjs-dist 5.5.207 current as of March 2026, HIGH confidence
-- [pdfjs-dist npm page](https://www.npmjs.com/package/pdfjs-dist) — version 5.5.207 confirmed, MEDIUM confidence (exact gzipped size not confirmed)
-- [driver.js — driverjs.com](https://driverjs.com) — MIT licensed, actively maintained, zero dependencies, MEDIUM confidence
-- [Best Open-Source Product Tour Libraries — Userorbit](https://userorbit.com/blog/best-open-source-product-tour-libraries) — Driver.js vs Shepherd.js comparison, MEDIUM confidence
-- [Progressive Disclosure — Nielsen Norman Group](https://www.nngroup.com/articles/progressive-disclosure/) — canonical UX reference, HIGH confidence
-- [GPU Animation — Smashing Magazine](https://www.smashingmagazine.com/2016/12/gpu-animation-doing-it-right/) — will-change overuse causes GPU layer explosion, HIGH confidence
-- [WCAG color contrast guidance](https://www.allaccessible.org/blog/color-contrast-accessibility-wcag-guide-2025/) — 4.5:1 for normal text, 3:1 for large text, HIGH confidence
-- [OWASP Unrestricted File Upload](https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload) — MIME + extension check pattern confirmed as already implemented correctly, HIGH confidence
-
----
-
-*Pitfalls research for: AG-VOTE v4.0 "Clarity & Flow" — UX overhaul + PDF upload/viewer + copropriété transformation + design system migration*
-*Researched: 2026-03-18*
-*Previous PITFALLS.md content was v4.0-focused but has been updated with codebase verification corrections and new findings from direct inspection.*
+- [Radix Colors — Understanding the Scale](https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale) — HIGH confidence
+- [Tailwind CSS v4 theme.css (GitHub)](https://github.com/tailwindlabs/tailwindcss/blob/next/packages/tailwindcss/theme.css) — HIGH confidence
+- [shadcn/ui Theming Documentation](https://ui.shadcn.com/docs/theming) — HIGH confidence
+- [OKLCH in CSS: Why We Moved from RGB and HSL — Evil Martians](https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl) — HIGH confidence
+- [Material Design 3 Easing and Duration](https://m3.material.io/styles/motion/easing-and-duration/tokens-specs) — MEDIUM confidence (page content partially accessible)
+- [Material Design 3 Elevation](https://m3.material.io/styles/elevation/applying-elevation) — MEDIUM confidence
+- [Open Props — Sub-atomic CSS](https://open-props.style/) — HIGH confidence
+- [Better Buttons with color-mix() — A Beautiful Site](https://www.abeautifulsite.net/posts/better-buttons-with-color-mix-and-custom-properties/) — MEDIUM confidence
+- [Relative Color Syntax in CSS — OpenReplay](https://blog.openreplay.com/css-relative-color-syntax/) — MEDIUM confidence
+- [Font Size Guidelines — LearnUI.design](https://www.learnui.design/blog/mobile-desktop-website-font-size-guidelines.html) — MEDIUM confidence
+- [Atlassian Design — Elevation](https://atlassian.design/foundations/elevation/) — HIGH confidence
