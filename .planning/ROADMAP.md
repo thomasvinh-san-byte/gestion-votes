@@ -42,7 +42,11 @@ See MILESTONES.md for full history.
   3. Every complex dashboard element (KPI delta, quorum indicator, session status badge) has a tooltip that explains itself on hover — no guided tour needed
   4. A developer opening the dashboard side-by-side with the pre-v4.2 screenshot can immediately point to 5 visual improvements without prompting
   5. Dark mode on both pages is visually equivalent in quality to light mode — no washed-out tokens or broken contrast
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 35-01-PLAN.md — Dashboard visual redesign (KPI cards, session cards, aside shortcuts, tooltips)
+- [ ] 35-02-PLAN.md — Login page visual redesign (background, branding, button, trust signal, errors)
+- [ ] 35-03-PLAN.md — Visual verification checkpoint (human review of both pages)
 
 ### Phase 36: Session Creation Flow
 **Goal**: Users can create a session and navigate to their hub through pages that feel as polished as Linear's issue creation flow — clear progression, generous whitespace, field-level guidance
@@ -73,7 +77,7 @@ See MILESTONES.md for full history.
 **Depends on**: Phase 37
 **Requirements**: CORE-05, DATA-05, DATA-06
 **Success Criteria** (what must be TRUE):
-  1. The post-session stepper and result cards show vote outcomes with clear visual verdicts (ADOPTÉ/REJETÉ) — readable from across a meeting room at 1080p
+  1. The post-session stepper and result cards show vote outcomes with clear visual verdicts (ADOPTE/REJETE) — readable from across a meeting room at 1080p
   2. The analytics page KPI cards and chart layout are visually balanced — no chart is clipped, truncated, or misaligned at standard viewport widths
   3. Metric tooltips on analytics KPIs explain what each number measures — no jargon left unexplained
   4. The meetings list session cards show status, date, and quorum in a scannable format — an admin can find a specific session in under 3 seconds
@@ -122,7 +126,7 @@ See MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 35. Entry Points | 0/TBD | Not started | - |
+| 35. Entry Points | 0/3 | Planning | - |
 | 36. Session Creation Flow | 0/TBD | Not started | - |
 | 37. Live Session Conduct | 0/TBD | Not started | - |
 | 38. Results & History | 0/TBD | Not started | - |
