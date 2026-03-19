@@ -190,7 +190,10 @@ Plans:
   3. A table row at 48px height with a sticky 40px header shows right-aligned numeric columns in JetBrains Mono with a hover highlight — the data density matches the Linear/Jira reference
   4. A form input at 36px height shows a double-ring focus state (2px surface gap + 4px primary ring) and a red border on validation error — the focus and error states are unambiguous
   5. Toast notifications stack with 8px gap, display a 3px left-border accent stripe in the semantic status color, and slide in from the correct edge — Sonner-pattern behavior is complete
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
+- [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
 
 ### Phase 32: Page Layouts — Core Pages
 **Goal**: The six highest-traffic pages (dashboard, wizard, operator console, data tables, settings, mobile voter) are rebuilt to FEATURES.md grid specs with the three-depth background model and correct density for each page's use case
@@ -202,7 +205,10 @@ Plans:
   3. The operator console displays a 280px agenda sidebar beside a fluid main area with a fixed status bar at top and tab nav below it — the layout is implemented as a 3-row CSS grid
   4. Data table pages (audit, archives, members, users) all share the same toolbar/table/pagination structure with sticky 40px headers and right-aligned numeric columns — visual consistency is immediate
   5. The mobile voter screen fills 100dvh, vote option buttons are minimum 72px tall, and text scales fluidly with clamp() — the layout works without horizontal scrolling at 375px viewport width
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
+- [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
 
 ### Phase 33: Page Layouts — Secondary Pages
 **Goal**: The six supporting pages (hub, post-session, analytics, help, email templates, meetings list) adopt the same layout language established in Phase 32 — coherent density, consistent background layering, and no page feeling like an afterthought
@@ -214,7 +220,10 @@ Plans:
   3. The analytics page renders chart areas and KPI cards in a responsive grid — the layout does not produce a single-column stack at 1024px viewport width
   4. The help/FAQ page uses accordion components with correct padding (not raw details/summary defaults) — expanding an item does not cause layout shift on surrounding items
   5. The meetings list page applies the same card-or-table density pattern as the dashboard sessions list, with status badges using the semantic badge component from Phase 31
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
+- [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
 
 ### Phase 34: Quality Assurance Final Audit
 **Goal**: Every page in the application passes an objective checklist that distinguishes intentional premium design from AI-generated uniformity — the refonte is verifiably complete
@@ -226,7 +235,10 @@ Plans:
   3. The Fraunces display font appears exactly once per page (the page title `<h1>`) and never on section headings, card titles, or subheadings — the font usage log is clean
   4. Switching to dark mode on every page produces an intentionally designed appearance — no pure black backgrounds, no invisible borders, no washed-out text — verified by visual inspection of each page in dark mode
   5. Automated checks confirm: all transitions are 200ms or under, all focus rings meet 3:1 contrast ratio, and zero `style=""` attributes appear in any production-rendered HTML response
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 31-01-PLAN.md — CSS component specs: add tokens, update buttons/cards/tables/forms/modals/toasts/badges/steppers in design-system.css
+- [ ] 31-02-PLAN.md — Web Component reconciliation: tokenize Shadow DOM styles in ag-modal, ag-toast, ag-badge, ag-stepper
 
 ---
 
@@ -240,7 +252,7 @@ Plans:
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
-| 31. Component Refresh | 0/? | Not started | - |
+| 31. Component Refresh | 0/2 | Not started | - |
 | 32. Page Layouts — Core Pages | 0/? | Not started | - |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |
