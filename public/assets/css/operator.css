@@ -864,7 +864,7 @@
 
 .readiness-arrow {
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: var(--text-md);
   opacity: 0.5;
 }
 
@@ -1436,7 +1436,7 @@
   border-radius: 12px;
   padding: 1.75rem;
   margin-bottom: 1.75rem;
-  box-shadow: 0 4px 20px rgb(217 119 6 / 0.1);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-warning) 10%, transparent);
 }
 
 .vote-live-header {
@@ -1464,8 +1464,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgb(217 119 6 / 0.4); }
-  50% { opacity: 0.8; box-shadow: 0 0 0 8px rgb(217 119 6 / 0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-warning) 40%, transparent); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 8px transparent; }
 }
 
 .vote-results-live {
@@ -1655,7 +1655,7 @@
   align-items: center;
   justify-content: center;
   font-size: var(--text-2xl);
-  box-shadow: 0 4px 12px rgb(79 70 229 / 0.25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-purple) 25%, transparent);
 }
 
 /* =============================================================================
@@ -2685,7 +2685,7 @@
   width: 100%;
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-2xl);
 }
 
 .launch-modal .modal-header {
@@ -3504,7 +3504,7 @@
   padding: 10px 16px;
   background: var(--color-surface);
   border-top: 2px solid var(--color-border);
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4px 12px rgb(var(--shadow-color) / 0.06);
 }
 
 .op-action-bar .btn {
@@ -4002,7 +4002,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: color-mix(in srgb, black 60%, transparent);
   backdrop-filter: blur(4px);
 }
 
@@ -4448,7 +4448,7 @@
 }
 
 .op-guidance-text {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   color: var(--color-text-secondary);
   line-height: var(--leading-relaxed, 1.625);
 }

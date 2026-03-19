@@ -13,11 +13,11 @@ body.projection-body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(170deg, #0B0F1A, #111827);
+  background: linear-gradient(170deg, var(--color-bg), var(--color-bg-subtle));
 }
 
 [data-theme="light"] body.projection-body {
-  background: linear-gradient(170deg, #F8FAFC, #EEF2FF);
+  background: linear-gradient(170deg, var(--color-bg), var(--color-bg-subtle));
 }
 
 /* =============================================================================
@@ -26,7 +26,7 @@ body.projection-body {
 
 .projection-header {
   background: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
 .projection-header-top {
@@ -522,7 +522,7 @@ body.projection-body {
   left: 50%;
   transform: translateX(-50%);
   padding: var(--space-3) var(--space-5);
-  background: rgba(245, 158, 11, 0.15);
+  background: var(--color-warning-subtle);
   border: 1px solid var(--color-warning);
   border-radius: var(--radius-full, 999px);
   color: var(--color-warning);
@@ -654,7 +654,7 @@ body.projection-body {
 
 .meeting-picker-sub {
   margin: 0 0 var(--space-6);
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
@@ -837,11 +837,11 @@ body.projection-body {
 }
 
 .quorum-visual-fill.met {
-  background: linear-gradient(90deg, var(--color-success) 0%, color-mix(in srgb, var(--color-success) 80%, #fff) 100%);
+  background: linear-gradient(90deg, var(--color-success) 0%, color-mix(in srgb, var(--color-success) 80%, var(--color-surface-raised)) 100%);
 }
 
 .quorum-visual-fill.unmet {
-  background: linear-gradient(90deg, var(--color-danger) 0%, color-mix(in srgb, var(--color-danger) 80%, #fff) 100%);
+  background: linear-gradient(90deg, var(--color-danger) 0%, color-mix(in srgb, var(--color-danger) 80%, var(--color-surface-raised)) 100%);
 }
 
 /* Threshold marker (seuil line) */

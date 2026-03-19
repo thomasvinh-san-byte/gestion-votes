@@ -588,8 +588,8 @@
 }
 
 @keyframes live-glow {
-  0% { box-shadow: 0 0 0 0 rgba(90, 122, 91, 0.1); }
-  100% { box-shadow: 0 4px 20px rgba(90, 122, 91, 0.2); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 10%, transparent); }
+  100% { box-shadow: 0 4px 20px color-mix(in srgb, var(--color-success) 20%, transparent); }
 }
 
 .meeting-card.is-live::before {
@@ -977,7 +977,7 @@
 }
 
 .urgent-card-title {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 800;
   color: var(--color-text);
   margin: 2px 0;

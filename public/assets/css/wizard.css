@@ -108,13 +108,13 @@
 .wiz-step-item.done .wiz-snum {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 
 .wiz-step-item.active .wiz-snum {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-inverse);
   box-shadow: 0 0 0 4px var(--color-primary-glow);
 }
 
@@ -160,7 +160,7 @@
 
 .wf-step-success {
   background: linear-gradient(135deg, var(--color-success), var(--color-success-hover));
-  color: #fff;
+  color: var(--color-text-inverse);
   padding: 12px 16px;
   border-radius: var(--radius) var(--radius) 0 0;
   margin: -2rem -2.5rem 1.25rem -2.5rem;
@@ -172,7 +172,7 @@
   height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: #fff;
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -291,7 +291,7 @@
 .wiz-step-body .field-input.field-error {
   border-color: var(--color-danger);
   background: var(--color-danger-subtle);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 
 .field-error-msg {
@@ -411,7 +411,7 @@
   top: 3px;
   left: 3px;
   transition: transform 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-sm);
 }
 
 .toggle-label input[type="checkbox"]:checked {
@@ -508,7 +508,7 @@
   font-weight: 800;
   color: var(--color-primary);
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: var(--text-md);
 }
 
 /* =============================================================================
@@ -625,7 +625,7 @@
 
 .reso-drag-handle {
   color: var(--color-text-light);
-  font-size: 16px;
+  font-size: var(--text-md);
   line-height: 1.4;
   flex-shrink: 0;
   cursor: grab;
@@ -934,7 +934,7 @@
   justify-content: center;
   margin: 0 auto 12px;
   border: 2px solid var(--color-success);
-  box-shadow: 0 0 0 6px rgba(11, 122, 64, 0.08);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-success) 8%, transparent);
 }
 
 .wiz-success-title {

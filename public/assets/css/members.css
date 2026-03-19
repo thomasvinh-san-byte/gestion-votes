@@ -692,7 +692,7 @@ dialog.member-detail-dialog {
   border-radius: 14px;
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-xl);
   padding: 0;
   margin: auto;
   position: fixed;
@@ -1021,7 +1021,7 @@ dialog.member-detail-dialog::backdrop {
 
 .onboarding-arrow {
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: var(--text-md);
   opacity: 0.4;
 }
 

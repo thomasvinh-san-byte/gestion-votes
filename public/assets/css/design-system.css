@@ -39,8 +39,8 @@ html {
 body {
   min-height: 100%;
   font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  font-size: var(--text-base);     /* 14px */
+  line-height: var(--leading-base); /* 1.571 — 14px * 1.571 = 22px */
   color: var(--color-text);
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
@@ -149,8 +149,8 @@ table {
   --text-2xs:  0.6875rem;  /* 11px */
   --text-xs:   0.75rem;    /* 12px */
   --text-sm:   0.8125rem;  /* 13px */
-  --text-base: 1rem;       /* 16px — kept at 16px during migration */
-  --text-md:   1rem;       /* 16px — explicit name for body reading text */
+  --text-base: 0.875rem;   /* 14px — primary UI chrome size */
+  --text-md:   1rem;       /* 16px — body reading text */
   --text-lg:   1.125rem;   /* 18px */
   --text-xl:   1.25rem;    /* 20px */
   --text-2xl:  1.5rem;     /* 24px */
@@ -4164,7 +4164,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   background: transparent;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: var(--text-md);
   transition: background var(--duration-fast), color var(--duration-fast);
 }
 
@@ -4388,7 +4388,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
   background: transparent;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: var(--text-md);
 }
 
 .onboarding-banner-dismiss:hover {

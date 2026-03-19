@@ -122,7 +122,7 @@
   display: none;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid color-mix(in srgb, var(--color-text-inverse) 30%, transparent);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: login-spin 0.6s linear infinite;
@@ -300,7 +300,7 @@
   .login-form input[type="password"],
   .login-form input[type="text"],
   .login-form input[type="email"] {
-    font-size: 1rem;   /* Prevent iOS zoom on focus */
+    font-size: var(--text-md);  /* Prevent iOS zoom on focus (must be >= 16px) */
   }
 
   .login-btn {
