@@ -1956,7 +1956,7 @@ h4, .h4 {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.35);
+  background: var(--color-backdrop);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   display: flex;
@@ -2093,26 +2093,27 @@ body:has(.drawer-backdrop.open) {
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-toast);
   box-shadow: var(--shadow-lg);
+  width: var(--toast-width);
   pointer-events: auto;
   animation: slideInRight var(--duration-normal) var(--ease-out);
 }
 
 .toast-success {
-  border-left: 4px solid var(--color-success);
+  box-shadow: var(--shadow-lg), inset var(--toast-accent-width) 0 0 var(--color-success);
 }
 
 .toast-warning {
-  border-left: 4px solid var(--color-warning);
+  box-shadow: var(--shadow-lg), inset var(--toast-accent-width) 0 0 var(--color-warning);
 }
 
 .toast-danger {
-  border-left: 4px solid var(--color-danger);
+  box-shadow: var(--shadow-lg), inset var(--toast-accent-width) 0 0 var(--color-danger);
 }
 
 .toast-info {
-  border-left: 4px solid var(--color-info);
+  box-shadow: var(--shadow-lg), inset var(--toast-accent-width) 0 0 var(--color-info);
 }
 
 .toast-icon {
@@ -2125,15 +2126,15 @@ body:has(.drawer-backdrop.open) {
 }
 
 .toast-title {
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: var(--font-bold);
+  font-size: var(--text-sm);
   color: var(--color-text);
 }
 
 .toast-msg {
-  font-size: 13px;
+  font-size: var(--text-xs);
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  margin-top: var(--space-0-5);
 }
 
 .toast-close {
@@ -2143,9 +2144,9 @@ body:has(.drawer-backdrop.open) {
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  padding: 4px;
+  padding: var(--space-1);
   border-radius: var(--radius-sm);
-  transition: color .15s ease, background .15s ease;
+  transition: color var(--duration-fast) var(--ease-default), background var(--duration-fast) var(--ease-default);
 }
 
 .toast-close:hover {
@@ -2522,39 +2523,45 @@ body:has(.drawer-backdrop.open) {
 /* ─── Stepper ─── */
 .stepper {
   display: flex;
-  gap: var(--space-2);
+  align-items: center;
+  gap: 0;
 }
 
 .stepper-item {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
-  transition: background-color var(--duration-fast), box-shadow var(--duration-fast);
+  transition: color var(--duration-fast) var(--ease-default);
+}
+
+.stepper-item:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: var(--stepper-connector-height);
+  background: var(--color-border);
+  margin: 0 var(--space-2);
+  transition: background var(--duration-fast) var(--ease-default);
 }
 
 .stepper-number {
-  width: 28px;
-  height: 28px;
+  width: var(--stepper-dot-size);
+  height: var(--stepper-dot-size);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-bg-subtle);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
   flex-shrink: 0;
+  transition: background var(--duration-fast) var(--ease-default), color var(--duration-fast) var(--ease-default);
 }
 
 .stepper-item.active {
-  background: var(--color-primary-subtle);
-  border-color: var(--color-primary);
   color: var(--color-primary);
 }
 
@@ -2564,14 +2571,16 @@ body:has(.drawer-backdrop.open) {
 }
 
 .stepper-item.done {
-  background: var(--color-success-subtle);
-  border-color: var(--color-success);
   color: var(--color-success-text);
 }
 
 .stepper-item.done .stepper-number {
   background: var(--color-success);
   color: var(--color-text-inverse);
+}
+
+.stepper-item.done:not(:last-child)::after {
+  background: var(--color-success);
 }
 
 /* ─── Timeline / Activity ─── */
