@@ -10,7 +10,7 @@
     "commit_docs": true,
     "search_gitignored": false
   },
-  "milestone": "v4.0",
+  "milestone": "v4.1",
   "workflow": {
     "research": true,
     "_auto_chain_active": false

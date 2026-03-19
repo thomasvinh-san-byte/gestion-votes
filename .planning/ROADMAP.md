@@ -6,6 +6,7 @@
 - ✅ **v2.0 UI Redesign (Acte Officiel)** — Phases 4-15 (shipped 2026-03-16)
 - ✅ **v3.0 Session Lifecycle** — Phases 16-24 (shipped 2026-03-18)
 - ✅ **v4.0 Clarity & Flow** — Phases 25-29 (shipped 2026-03-18)
+- 🔄 **v4.1 Design Excellence** — Phases 30-34 (active)
 
 ## Phases
 
@@ -53,13 +54,24 @@
 
 </details>
 
-### v4.0 Clarity & Flow (Phases 25-29) — ACTIVE
+<details>
+<summary>✅ v4.0 Clarity & Flow (Phases 25-29) — SHIPPED 2026-03-18</summary>
 
 - [x] **Phase 25: PDF Infrastructure Foundation** — Secure upload, serve endpoint, storage env var, PDF.js, FilePond, ag-pdf-viewer
 - [x] **Phase 26: Guided UX Components** — ag-empty-state, help panels (no Driver.js), status-aware dashboard cards, disabled-button explanations, term popovers (completed 2026-03-18)
 - [x] **Phase 27: Copropriete Transformation** — Vocabulary cleanup, lot field removal, openKeyModal removal, weighted-vote regression test (completed 2026-03-18)
 - [x] **Phase 28: Wizard & Session Hub UX Overhaul** — Named-step wizard, autosave, review card, template picker, hub checklist, quorum bar (completed 2026-03-18)
 - [x] **Phase 29: Operator Console, Voter View & Visual Polish** — Console layout, voter ballot card, result cards, CSS @layer, animations, PC-first validation (completed 2026-03-18)
+
+</details>
+
+### v4.1 Design Excellence (Phases 30-34) — ACTIVE
+
+- [ ] **Phase 30: Token Foundation** — Reduce 265+ tokens to ~100 semantic tokens; establish primitive→semantic→component hierarchy, shadow scale, spacing aliases, radius scale, dark mode derivation, zero hardcoded hex
+- [ ] **Phase 31: Component Refresh** — Buttons, cards, tables, form inputs, modals, toasts, badges, steppers rebuilt to exact shadcn/Sonner/Polaris specs with correct heights, radii, transitions, and dark parity
+- [ ] **Phase 32: Page Layouts — Core Pages** — Dashboard, wizard, operator console, data tables, settings/admin, mobile voter rebuilt to FEATURES.md grid/flex specs with the three-depth background model
+- [ ] **Phase 33: Page Layouts — Secondary Pages** — Hub, post-session, analytics, help/FAQ, email templates, meetings list rebuilt with consistent layout language and correct density
+- [ ] **Phase 34: Quality Assurance Final Audit** — Every page verified against the 6 AI anti-patterns checklist, background layering, Fraunces usage, dark mode parity, and transitions/focus/inline-style standards
 
 ---
 
@@ -151,6 +163,68 @@ Plans:
 
 ---
 
+### Phase 30: Token Foundation
+**Goal**: Every CSS token in the system is purposeful, named semantically, and derives dark mode automatically — giving all subsequent phases a trustworthy foundation to build on
+**Depends on**: Nothing (first v4.1 phase)
+**Requirements**: TKN-01, TKN-02, TKN-03, TKN-04, TKN-05, TKN-06, TKN-07, TKN-08
+**Success Criteria** (what must be TRUE):
+  1. The design-system.css :root block contains ~100 tokens or fewer, organized in three visible layers (primitive → semantic → component aliases), with every primitive prefixed to distinguish it from semantic tokens
+  2. Applying `data-theme="dark"` switches the visual appearance via ~20-30 overrides only — no page CSS file requires a duplicate dark block because semantic tokens derive dark values automatically
+  3. Every page CSS file passes a grep for hardcoded hex/rgb/hsl values and returns zero matches — all color references use design-system tokens
+  4. Setting `--text-base` to 14px in one place causes all UI chrome labels to shrink correctly while body reading text stays at 16px — the typography scale is semantically layered
+  5. Named shadow levels (xs through xl) visually differentiate cards from modals from tooltips — a developer can identify component type by shadow alone without inspecting the element
+**Plans**: TBD
+
+### Phase 31: Component Refresh
+**Goal**: Every shared UI component renders with intentional, differentiated visual specs — no two component types share the same radius, shadow, or spacing values, and all components use Phase 30 tokens exclusively
+**Depends on**: Phase 30 (token system must be correct before component specs are applied)
+**Requirements**: CMP-01, CMP-02, CMP-03, CMP-04, CMP-05, CMP-06, CMP-07, CMP-08
+**Success Criteria** (what must be TRUE):
+  1. A button, a card, a badge, and a modal placed side by side each display a visually distinct border-radius — no two of the four share the same value
+  2. A card at rest shows a subtle shadow + border; on hover it lifts 1px with a stronger shadow and a lighter border — the elevation model is perceptible without color change
+  3. A table row at 48px height with a sticky 40px header shows right-aligned numeric columns in JetBrains Mono with a hover highlight — the data density matches the Linear/Jira reference
+  4. A form input at 36px height shows a double-ring focus state (2px surface gap + 4px primary ring) and a red border on validation error — the focus and error states are unambiguous
+  5. Toast notifications stack with 8px gap, display a 3px left-border accent stripe in the semantic status color, and slide in from the correct edge — Sonner-pattern behavior is complete
+**Plans**: TBD
+
+### Phase 32: Page Layouts — Core Pages
+**Goal**: The six highest-traffic pages (dashboard, wizard, operator console, data tables, settings, mobile voter) are rebuilt to FEATURES.md grid specs with the three-depth background model and correct density for each page's use case
+**Depends on**: Phase 31 (components must be refreshed before pages are composed)
+**Requirements**: LAY-01, LAY-02, LAY-03, LAY-04, LAY-05, LAY-06
+**Success Criteria** (what must be TRUE):
+  1. The dashboard shows a 4-column KPI row at the top, sessions as a vertical list below, and a sticky 280px aside on the right — the three-depth background (body/surface/raised) is visible as three distinct tonal layers
+  2. The wizard centers its form track at 680px with fields capped at 480px wide, a stepper above the form card, and a sticky footer with back/next controls — no sidebar competes for attention
+  3. The operator console displays a 280px agenda sidebar beside a fluid main area with a fixed status bar at top and tab nav below it — the layout is implemented as a 3-row CSS grid
+  4. Data table pages (audit, archives, members, users) all share the same toolbar/table/pagination structure with sticky 40px headers and right-aligned numeric columns — visual consistency is immediate
+  5. The mobile voter screen fills 100dvh, vote option buttons are minimum 72px tall, and text scales fluidly with clamp() — the layout works without horizontal scrolling at 375px viewport width
+**Plans**: TBD
+
+### Phase 33: Page Layouts — Secondary Pages
+**Goal**: The six supporting pages (hub, post-session, analytics, help, email templates, meetings list) adopt the same layout language established in Phase 32 — coherent density, consistent background layering, and no page feeling like an afterthought
+**Depends on**: Phase 32 (core page layout patterns established as reference)
+**Requirements**: LAY-07, LAY-08, LAY-09, LAY-10, LAY-11, LAY-12
+**Success Criteria** (what must be TRUE):
+  1. The hub page shows a sidebar stepper on the left and the meeting checklist as the main content — the quorum progress bar is the most visually prominent element on the page, not buried below the fold
+  2. The post-session page shows the four-step stepper (Resultats/Validation/PV/Archivage) with checkmarks on completed steps and result cards that are collapsible with consistent inter-section spacing
+  3. The analytics page renders chart areas and KPI cards in a responsive grid — the layout does not produce a single-column stack at 1024px viewport width
+  4. The help/FAQ page uses accordion components with correct padding (not raw details/summary defaults) — expanding an item does not cause layout shift on surrounding items
+  5. The meetings list page applies the same card-or-table density pattern as the dashboard sessions list, with status badges using the semantic badge component from Phase 31
+**Plans**: TBD
+
+### Phase 34: Quality Assurance Final Audit
+**Goal**: Every page in the application passes an objective checklist that distinguishes intentional premium design from AI-generated uniformity — the refonte is verifiably complete
+**Depends on**: Phase 33 (all page layouts must be complete before auditing)
+**Requirements**: QA-01, QA-02, QA-03, QA-04, QA-05
+**Success Criteria** (what must be TRUE):
+  1. Running the 6 AI anti-patterns checklist against every page finds zero violations — no uniform shadows, no uniform radii, spatial hierarchy present on all pages, color used for signal not decoration, weight contrast visible between heading levels, hover states use transform not color alone
+  2. Every page shows exactly three tonal background levels (body/surface/raised) — a screenshot with eyedropper confirms three distinct values, not two or one
+  3. The Fraunces display font appears exactly once per page (the page title `<h1>`) and never on section headings, card titles, or subheadings — the font usage log is clean
+  4. Switching to dark mode on every page produces an intentionally designed appearance — no pure black backgrounds, no invisible borders, no washed-out text — verified by visual inspection of each page in dark mode
+  5. Automated checks confirm: all transitions are 200ms or under, all focus rings meet 3:1 contrast ratio, and zero `style=""` attributes appear in any production-rendered HTML response
+**Plans**: TBD
+
+---
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
@@ -160,6 +234,11 @@ Plans:
 | 27. Copropriete Transformation | 2/2 | Complete    | 2026-03-18 |
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
+| 30. Token Foundation | 0/? | Not started | - |
+| 31. Component Refresh | 0/? | Not started | - |
+| 32. Page Layouts — Core Pages | 0/? | Not started | - |
+| 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
+| 34. Quality Assurance Final Audit | 0/? | Not started | - |
 
 ---
 
