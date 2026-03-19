@@ -242,6 +242,11 @@ table {
   --pad-xl:  var(--space-8);   /* 32px */
   --pad-2xl: var(--space-12);  /* 48px */
 
+  /* Semantic layout spacing aliases */
+  --space-section: var(--space-12);  /* 48px — between major page sections */
+  --space-card:    var(--space-6);   /* 24px — card internal padding */
+  --space-field:   var(--space-4);   /* 16px — between form fields */
+
   /* Legacy aliases (backward compat) */
   --space-md: var(--space-5);  /* 20px */
   --space-lg: var(--space-6);  /* 24px */
@@ -252,7 +257,7 @@ table {
 
   --radius-none: 0;
   --radius-xs:   0.1875rem;  /* 3px */
-  --radius-sm:   0.3125rem;  /* 5px */
+  --radius-sm:   0.25rem;    /* 4px */
   --radius-md:   0.375rem;   /* 6px */
   --radius-lg:   0.5rem;     /* 8px */
   --radius-xl:   0.75rem;    /* 12px */
@@ -261,19 +266,6 @@ table {
 
   /* Legacy: --radius kept for backward compat (maps to --radius-lg = 8px) */
   --radius: var(--radius-lg);
-
-  /* Semantic radius aliases */
-  --radius-btn:     var(--radius-md);   /* 6px */
-  --radius-input:   var(--radius-md);   /* 6px */
-  --radius-badge:   var(--radius-sm);   /* 5px */
-  --radius-chip:    var(--radius-full);
-  --radius-card:    var(--radius-lg);   /* 8px */
-  --radius-panel:   var(--radius-lg);   /* 8px */
-  --radius-modal:   var(--radius-xl);   /* 12px */
-  --radius-toast:   var(--radius-lg);   /* 8px */
-  --radius-tooltip: var(--radius-sm);   /* 5px */
-  --radius-avatar:  var(--radius-full);
-  --radius-tag:     var(--radius-xs);   /* 3px */
 
   /* ═══════════════════════════════════════════════════════════════════════════
      SEMANTIC — Colors (Light Theme « Acte Officiel »)
@@ -518,9 +510,32 @@ table {
                           opacity var(--duration-moderate) var(--ease-linear);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SEMANTIC — Typography Roles
+     SEMANTIC — Focus Ring
      ═══════════════════════════════════════════════════════════════════════════ */
 
+  --ring-width: 3px;
+  --ring-color: rgba(22, 80, 224, 0.35);
+  --ring-offset: 2px;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     COMPONENT ALIASES — Tokens tied to specific UI components
+     Composed from SEMANTIC values. Use these in component CSS, not raw values.
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Component radius aliases */
+  --radius-btn:     var(--radius-md);   /* 6px */
+  --radius-input:   var(--radius-md);   /* 6px */
+  --radius-badge:   var(--radius-sm);   /* 4px */
+  --radius-chip:    var(--radius-full);
+  --radius-card:    var(--radius-xl);   /* 12px */
+  --radius-panel:   var(--radius-lg);   /* 8px */
+  --radius-modal:   var(--radius-xl);   /* 12px */
+  --radius-toast:   var(--radius-lg);   /* 8px */
+  --radius-tooltip: var(--radius-sm);   /* 4px */
+  --radius-avatar:  var(--radius-full);
+  --radius-tag:     var(--radius-xs);   /* 3px */
+
+  /* Typography role aliases */
   --type-page-title-size:   var(--text-3xl);
   --type-page-title-weight: var(--weight-bold);
   --type-page-title-lead:   var(--leading-3xl);
@@ -528,7 +543,7 @@ table {
   --type-page-title-font:   var(--font-display);
 
   --type-section-title-size:   var(--text-2xl);
-  --type-section-title-weight: var(--weight-bold);
+  --type-section-title-weight: var(--weight-semibold);
   --type-section-title-lead:   var(--leading-2xl);
   --type-section-title-track:  var(--tracking-snug);
 
@@ -559,14 +574,6 @@ table {
   --type-mono-size:   var(--text-sm);
   --type-mono-lead:   var(--leading-sm);
   --type-mono-font:   var(--font-mono);
-
-  /* ═══════════════════════════════════════════════════════════════════════════
-     SEMANTIC — Focus Ring
-     ═══════════════════════════════════════════════════════════════════════════ */
-
-  --ring-width: 3px;
-  --ring-color: rgba(22, 80, 224, 0.35);
-  --ring-offset: 2px;
 }
 
 /* ─── Dark Theme « Acte Officiel » ─── */
