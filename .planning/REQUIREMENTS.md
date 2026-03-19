@@ -8,7 +8,7 @@
 ### UX Transversal (UX)
 
 - [ ] **UX-01**: Every page is self-explanatory — tooltips on complex elements, contextual help via hover, no guided tours needed
-- [ ] **UX-02**: Every page achieves top 1% design quality — composition, typography, whitespace, visual hierarchy, micro-interactions all feel premium and intentional, not AI-generated
+- [x] **UX-02**: Every page achieves top 1% design quality — composition, typography, whitespace, visual hierarchy, micro-interactions all feel premium and intentional, not AI-generated
 
 ### Core Pages (CORE)
 
@@ -30,7 +30,7 @@
 
 ### Secondary Pages (SEC)
 
-- [ ] **SEC-01**: Login — redesign visuel (card centré, branding, champs, CTA)
+- [x] **SEC-01**: Login — redesign visuel (card centré, branding, champs, CTA)
 - [ ] **SEC-02**: Landing — redesign visuel (hero, features, trust signals, CTA)
 - [ ] **SEC-03**: Help/FAQ — redesign visuel (accordion, catégories, search)
 - [ ] **SEC-04**: Email templates — redesign visuel (editor + preview grid)
@@ -62,9 +62,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | UX-01 | Phase 35 | Pending |
-| UX-02 | Phase 35 | Pending |
+| UX-02 | Phase 35 | Complete |
 | CORE-01 | Phase 35 | Pending |
-| SEC-01 | Phase 35 | Pending |
+| SEC-01 | Phase 35 | Complete |
 | CORE-02 | Phase 36 | Pending |
 | CORE-04 | Phase 36 | Pending |
 | CORE-03 | Phase 37 | Pending |
