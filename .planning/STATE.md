@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Completed 33-01-PLAN.md (hub + post-session layouts)
-last_updated: "2026-03-19T08:59:09.764Z"
+stopped_at: Completed 33-03 — email templates grid fix and meetings density alignment
+last_updated: "2026-03-19T09:00:19.436Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
@@ -80,6 +80,9 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 32]: Dashboard aside sticky top 80px matches app-header height; table-page max-width 1400px wider than dashboard 1200px; members page wraps only members-layout in table-page to preserve full-bleed stats bar
 - [Phase 33-page-layouts-secondary-pages]: Hub sidebar column: 220px matching Phase 32 settings/operator patterns for consistent sidebar width across stepper pages
 - [Phase 33-page-layouts-secondary-pages]: Post-session sticky stepper uses background:var(--color-bg) to prevent content bleed-through on scroll
+- [Phase 33-page-layouts-secondary-pages]: Analytics charts-grid uses repeat(2, minmax(0,1fr)) at min-width:768px to guarantee 2-col floor at tablet viewports
+- [Phase 33-page-layouts-secondary-pages]: Email templates preview panel fixed at 400px (asymmetric editor grid 1fr+400px) — preview needs only phone-viewport width
+- [Phase 33-page-layouts-secondary-pages]: Meetings sessions-list density: container gap var(--space-3) replaces per-item margin-bottom — canonical flex spacing pattern
 
 ### Pending Todos
 
@@ -91,7 +94,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T08:58:26.760Z
-Stopped at: Completed 33-01-PLAN.md (hub + post-session layouts)
+Last session: 2026-03-19T09:00:00.554Z
+Stopped at: Completed 33-03 — email templates grid fix and meetings density alignment
 Resume file: None
 Next action: `/gsd:plan-phase 30`
