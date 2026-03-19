@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Completed 31-component-refresh/31-02-PLAN.md
-last_updated: "2026-03-19T06:11:05.590Z"
+stopped_at: Completed 31-component-refresh/31-03-PLAN.md
+last_updated: "2026-03-19T06:54:40.756Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 24
-  completed_plans: 24
+  total_plans: 25
+  completed_plans: 25
 ---
 
 # AG-VOTE — Project State
@@ -70,6 +70,8 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 31-component-refresh]: Toast accent uses inset box-shadow instead of border-left — inset respects border-radius corners
 - [Phase 31-component-refresh]: Toast accent uses inset box-shadow combined with shadow-lg in each type variant — CSS box-shadow does not auto-merge across selectors
 - [Phase 31-component-refresh]: Icon intrinsic sizes (12px-22px SVGs) left as literals — no design tokens exist for SVG icon dimensions; only visual design properties tokenized
+- [Phase 31-component-refresh]: Use --space-card (semantic alias = 24px) in .card-body, not --space-5 (20px) — closes CMP-02 gap
+- [Phase 31-component-refresh]: ag-toast [type=info] uses var(--color-info) not var(--color-primary) — semantic token alignment with canonical .toast-info CSS class
 
 ### Pending Todos
 
@@ -81,7 +83,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:11:05.588Z
-Stopped at: Completed 31-component-refresh/31-02-PLAN.md
+Last session: 2026-03-19T06:54:31.553Z
+Stopped at: Completed 31-component-refresh/31-03-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 30`
