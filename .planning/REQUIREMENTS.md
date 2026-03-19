@@ -33,8 +33,8 @@
 - [x] **LAY-02**: Wizard — centered 680px track, sticky footer nav with space-between, fields max-width 480px
 - [x] **LAY-03**: Operator console — 280px agenda sidebar + fluid main, fixed status bar + tab nav, CSS grid 3-row layout
 - [ ] **LAY-04**: Data tables (audit, archives, members, users) — proper column alignment, sticky header, toolbar + pagination bars
-- [ ] **LAY-05**: Settings/Admin — 220px left sidenav, 720px content column, section cards with per-section save
-- [ ] **LAY-06**: Mobile voter — 100dvh, 72px vote buttons, safe-area padding, clamp() fluid typography
+- [x] **LAY-05**: Settings/Admin — 220px left sidenav, 720px content column, section cards with per-section save
+- [x] **LAY-06**: Mobile voter — 100dvh, 72px vote buttons, safe-area padding, clamp() fluid typography
 - [ ] **LAY-07**: Hub — sidebar stepper + main content, quorum bar prominent, checklist with proper spacing
 - [ ] **LAY-08**: Post-session — stepper with checkmarks, collapsible result cards, proper section spacing
 - [ ] **LAY-09**: Analytics/Statistics — chart area + KPI cards, proper responsive grid
