@@ -61,7 +61,15 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-(No active milestone — ready for next)
+**Current Milestone: v4.2 "Visual Redesign"**
+
+**Goal:** Page-by-page visual redesign with concrete references — every page must look professionally designed, not AI-generated. Start from visual references (Linear, Notion, Clerk, Stripe), redesign each page's composition, typography, whitespace, and visual hierarchy.
+
+**Target:**
+- Page-by-page visual redesign (not CSS infrastructure)
+- Concrete before/after visual improvements on each page
+- Reference-driven design from top SaaS/governance apps
+- Visible "wow" impact in the browser — the user must SEE the difference
 
 ### Out of Scope
 
@@ -113,4 +121,4 @@ Deferred ideas:
 | PC-first approach | Optimize for 1024px+, mobile only for voter screen | ✓ Good — matches use case |
 
 ---
-*Last updated: 2026-03-19 after v4.1 milestone complete*
+*Last updated: 2026-03-19 after v4.2 milestone started*
