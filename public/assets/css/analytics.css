@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -50,7 +50,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
    ============================================================================= */
 
 .analytics-content {
-  padding: 14px;
+  padding: var(--space-4);
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -135,15 +135,16 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: var(--space-card);
+  margin-bottom: var(--space-card);
 }
 
 .overview-card {
-  background: var(--color-surface);
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 14px;
+  padding: var(--space-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .overview-card-label {
@@ -235,9 +236,15 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-card);
+  margin-bottom: var(--space-section);
+}
+
+@media (min-width: 768px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -250,12 +257,12 @@ body:has(.analytics-main) .page-header .page-header-actions {
   position: relative;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .chart-card-header {
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -269,7 +276,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .chart-card-body {
-  padding: 14px;
+  padding: var(--space-4);
 }
 
 .chart-export-btn {
