@@ -27,50 +27,52 @@ class AgStepper extends HTMLElement {
         :host { display: block; }
         .stepper {
           display: flex; align-items: flex-start; gap: 0;
-          margin-bottom: 14px; max-width: 100%;
+          margin-bottom: var(--space-4, 16px); max-width: 100%;
         }
         .step {
-          flex: 1; display: flex; align-items: center; gap: 6px;
-          position: relative; padding: 0 4px;
+          flex: 1; display: flex; align-items: center; gap: var(--space-2, 8px);
+          position: relative; padding: 0 var(--space-1, 4px);
         }
         .step::after {
           content: '';
-          flex: 1; height: 2px;
+          flex: 1; height: var(--stepper-connector-height, 2px);
           background: var(--color-border, #d5dbd2);
-          margin-left: 6px;
+          margin-left: var(--space-2, 8px);
         }
         .step:last-child::after { display: none; }
-        .step.done::after { background: var(--color-success, #0b7a40); }
+        .step.done::after { background: var(--color-success, #16a34a); }
         .step.active::after { background: var(--color-primary, #1650E0); }
         .dot {
-          width: 20px; height: 20px; border-radius: 50%;
+          width: var(--stepper-dot-size, 28px);
+          height: var(--stepper-dot-size, 28px);
+          border-radius: 50%;
           border: 2px solid var(--color-border, #d5dbd2);
           background: var(--color-surface, #fff);
           display: flex; align-items: center; justify-content: center;
           font-family: var(--font-mono, monospace);
-          font-size: 11px; font-weight: 700;
+          font-size: var(--text-xs, 0.75rem); font-weight: var(--font-semibold, 600);
           color: var(--color-text-muted, #95a3a4);
           flex-shrink: 0;
-          transition: background .15s ease, border-color .15s ease, color .15s ease;
+          transition: background var(--duration-fast, 150ms) var(--ease-default, ease), border-color var(--duration-fast, 150ms) var(--ease-default, ease), color var(--duration-fast, 150ms) var(--ease-default, ease);
         }
         .done .dot {
-          background: var(--color-success, #0b7a40);
-          border-color: var(--color-success, #0b7a40);
-          color: #fff;
+          background: var(--color-success, #16a34a);
+          border-color: var(--color-success, #16a34a);
+          color: var(--color-text-inverse, #fff);
         }
         .active .dot {
           background: var(--color-primary, #1650E0);
           border-color: var(--color-primary, #1650E0);
-          color: #fff;
+          color: var(--color-primary-text, #fff);
           box-shadow: 0 0 0 3px var(--color-primary-glow, rgba(22,80,224,.18));
         }
         .step-label {
-          font-size: 11px; font-weight: 600;
+          font-size: var(--text-xs, 0.75rem); font-weight: var(--font-semibold, 600);
           color: var(--color-text-muted, #95a3a4);
           white-space: nowrap;
         }
-        .done .step-label { color: var(--color-success, #0b7a40); }
-        .active .step-label { color: var(--color-primary, #1650E0); font-weight: 700; }
+        .done .step-label { color: var(--color-success, #16a34a); }
+        .active .step-label { color: var(--color-primary, #1650E0); font-weight: var(--font-bold, 700); }
       </style>
       <div class="stepper" role="list" aria-label="Étapes">
         ${steps.map((label, i) => {
