@@ -473,6 +473,9 @@
   flex-direction: column;
   gap: 4px;
 }
+.field-action {
+  align-self: flex-end;
+}
 
 /* =============================================================================
    MEMBER LIST

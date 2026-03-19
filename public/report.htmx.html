@@ -99,16 +99,16 @@
             </div>
           </div>
           <div class="card-body p-0">
-            <div class="pv-preview" style="position:relative;min-height:200px;">
-              <div class="pv-empty-state" id="pvEmptyState" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;color:var(--color-text-muted,#95a3a4);text-align:center;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.5;margin-bottom:1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                <div style="font-weight:600;font-size:14px;">Aucun PV g&eacute;n&eacute;r&eacute;</div>
-                <div style="font-size:13px;margin-top:4px;">S&eacute;lectionnez une s&eacute;ance termin&eacute;e puis cliquez sur &laquo;&nbsp;G&eacute;n&eacute;rer le PV&nbsp;&raquo;</div>
+            <div class="pv-preview">
+              <div class="pv-empty-state" id="pvEmptyState">
+                <svg class="pv-empty-state-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <div class="pv-empty-state-title">Aucun PV g&eacute;n&eacute;r&eacute;</div>
+                <div class="pv-empty-state-desc">S&eacute;lectionnez une s&eacute;ance termin&eacute;e puis cliquez sur &laquo;&nbsp;G&eacute;n&eacute;rer le PV&nbsp;&raquo;</div>
               </div>
               <div id="pvFrameLoading" class="text-center p-6" hidden>
-                <div class="skeleton skeleton-text skeleton-w-80" style="margin:0 auto 0.5rem"></div>
-                <div class="skeleton skeleton-text skeleton-w-60" style="margin:0 auto 0.5rem"></div>
-                <div class="skeleton skeleton-text skeleton-w-40" style="margin:0 auto"></div>
+                <div class="skeleton skeleton-text skeleton-w-80"></div>
+                <div class="skeleton skeleton-text skeleton-w-60"></div>
+                <div class="skeleton skeleton-text skeleton-w-40"></div>
               </div>
               <iframe id="pvFrame" src="about:blank" style="display:none;"></iframe>
             </div>
@@ -195,17 +195,17 @@
         </div>
       </div>
     </main>
-    <footer class="app-footer" role="contentinfo">
-      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
-        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+    <footer class="app-footer mobile-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
+        <span class="logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
         AG-VOTE
       </a>
       <span class="text-muted">v3.19</span>
-      <span style="flex:1"></span>
-      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <span class="mobile-footer-spacer"></span>
+      <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
     </footer>
   </div>
 

@@ -63,7 +63,7 @@
           </button>
           <div slot="content">
             <strong>Statistiques &mdash; Comment &ccedil;a marche</strong>
-            <ul style="margin:.5rem 0 0;padding-left:1.25rem;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6">
+            <ul class="onboarding-tips">
               <li>Les statistiques sont calcul&eacute;es sur les s&eacute;ances cl&ocirc;tur&eacute;es</li>
               <li>Exportez en CSV pour vos archives</li>
               <li>Filtrez par p&eacute;riode pour comparer les s&eacute;ances</li>
@@ -336,17 +336,17 @@
         </div>
       </div>
     </main>
-    <footer class="app-footer" role="contentinfo">
-      <a href="/dashboard.htmx.html" class="logo" style="font-size:12px;gap:6px;" aria-label="AG-VOTE">
-        <span class="logo-mark" style="width:18px;height:18px;border-radius:3px;font-size:8px;">
+    <footer class="app-footer mobile-footer" role="contentinfo">
+      <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
+        <span class="logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
         AG-VOTE
       </a>
       <span class="text-muted">v3.19</span>
-      <span style="flex:1"></span>
-      <a href="/help.htmx.html" class="text-muted" style="text-decoration:none;">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted" style="text-decoration:none;">Accessibilite</a>
+      <span class="mobile-footer-spacer"></span>
+      <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
     </footer>
   </div>
 

@@ -4418,6 +4418,7 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
    ============================================================================= */
 
 .onboarding-banner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1rem;
