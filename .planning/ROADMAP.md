@@ -205,7 +205,7 @@ Plans:
   3. The operator console displays a 280px agenda sidebar beside a fluid main area with a fixed status bar at top and tab nav below it — the layout is implemented as a 3-row CSS grid
   4. Data table pages (audit, archives, members, users) all share the same toolbar/table/pagination structure with sticky 40px headers and right-aligned numeric columns — visual consistency is immediate
   5. The mobile voter screen fills 100dvh, vote option buttons are minimum 72px tall, and text scales fluidly with clamp() — the layout works without horizontal scrolling at 375px viewport width
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 32-01-PLAN.md — Dashboard layout + shared table-page structure + data tables (LAY-01, LAY-04)
 - [ ] 32-02-PLAN.md — Wizard centered track + operator console CSS Grid fix (LAY-02, LAY-03)
@@ -254,7 +254,7 @@ Plans:
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
 | 31. Component Refresh | 3/3 | Complete    | 2026-03-19 |
-| 32. Page Layouts — Core Pages | 0/3 | Not started | - |
+| 32. Page Layouts — Core Pages | 2/3 | In Progress|  |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |
 
