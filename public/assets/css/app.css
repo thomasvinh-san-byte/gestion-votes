@@ -212,7 +212,7 @@
 .vote-result-item {
   text-align: center;
   padding: var(--space-4);
-  background: var(--color-surface);
+  background: var(--color-surface-raised); /* QA-02: elevated result sub-card above motion-card surface */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }

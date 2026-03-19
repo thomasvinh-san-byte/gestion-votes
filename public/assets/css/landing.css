@@ -132,7 +132,7 @@
 .login-card {
   width: 380px;
   flex-shrink: 0;
-  background: var(--color-surface);
+  background: var(--color-surface-raised); /* QA-02: elevated login card above landing page background */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl, 16px);
   padding: var(--space-8);

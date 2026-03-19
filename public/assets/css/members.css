@@ -569,6 +569,7 @@ input[type="color"] {
   border-radius: 8px;
   overflow: hidden;
   font-size: var(--text-sm);
+  background: var(--color-surface-raised); /* QA-02: elevated import result panel above members page surface */
 }
 
 .import-summary {

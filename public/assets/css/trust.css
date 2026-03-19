@@ -508,7 +508,7 @@
 }
 
 .audit-modal {
-  background: var(--color-surface);
+  background: var(--color-surface-raised); /* QA-02: elevated modal panel above page surface and backdrop */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   width: 90%;

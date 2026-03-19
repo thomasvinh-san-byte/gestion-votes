@@ -60,6 +60,7 @@
 .pv-preview {
   position: relative;
   min-height: 200px;
+  background: var(--color-surface-raised); /* QA-02: elevated preview panel above surrounding card surface */
 }
 .pv-empty-state {
   display: flex;

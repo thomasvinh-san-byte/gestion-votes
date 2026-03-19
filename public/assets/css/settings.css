@@ -32,7 +32,7 @@
 }
 
 .settings-tab.active {
-  background: var(--color-surface);
+  background: var(--color-surface-raised); /* QA-02: elevated active tab above settings-tabs bg-subtle container */
   color: var(--color-primary);
   font-weight: 600;
   box-shadow: var(--shadow-sm);

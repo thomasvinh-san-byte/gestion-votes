@@ -255,7 +255,7 @@
 
 .audit-detail-item {
   padding: var(--space-3);
-  background: var(--color-bg-subtle);
+  background: var(--color-surface-raised); /* QA-02: elevated detail field above modal surface */
   border-radius: var(--radius, 8px);
 }
 

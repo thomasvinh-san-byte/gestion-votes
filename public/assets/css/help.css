@@ -150,6 +150,7 @@
   font-size: 0.9rem;
   color: var(--color-text-secondary);
   line-height: 1.6;
+  background: var(--color-surface-raised); /* QA-02: elevated answer panel that opens above the faq-item surface */
 }
 
 .faq-item.open .faq-answer {
