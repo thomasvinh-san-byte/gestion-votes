@@ -40,15 +40,18 @@
 
 /* ─── Settings sidebar nav layout ─── */
 .settings-layout {
-  display: flex;
-  gap: 14px;
-  min-height: 0;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--space-card);
+  align-items: start;
 }
 
 .settings-sidenav {
-  width: 200px;
-  flex-shrink: 0;
+  width: 220px;
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  flex-shrink: 0; /* keep for safety */
 }
 
 .settings-sidenav-item {
@@ -83,6 +86,7 @@
 .settings-content {
   flex: 1;
   min-width: 0;
+  max-width: 720px;
 }
 
 /* ─── Settings panel ─── */
@@ -364,22 +368,22 @@
     font-size: var(--text-xs);
   }
   .settings-layout {
-    flex-direction: column;
-    gap: 0;
+    grid-template-columns: 1fr;
   }
   .settings-sidenav {
+    position: static;
     width: 100%;
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 12px;
+    overflow-x: auto;
+    gap: var(--space-2);
+    padding-bottom: var(--space-2);
   }
   .settings-sidenav-item {
-    flex: 1;
-    min-width: 80px;
-    justify-content: center;
-    text-align: center;
-    margin-bottom: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .settings-content {
+    max-width: 100%;
   }
   .settings-cnil-levels {
     grid-template-columns: 1fr;
