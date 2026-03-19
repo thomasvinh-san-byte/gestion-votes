@@ -99,11 +99,11 @@ class AgModal extends HTMLElement {
           display: none;
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,.45);
+          background: var(--color-backdrop, rgba(0,0,0,0.5));
           align-items: center;
           justify-content: center;
-          z-index: 100;
-          padding: 16px;
+          z-index: var(--z-modal, 100);
+          padding: var(--space-4, 16px);
           backdrop-filter: blur(3px);
           opacity: 0;
           transition: opacity var(--duration-fast, 150ms) ease;
@@ -113,8 +113,8 @@ class AgModal extends HTMLElement {
           width: min(${maxW}, 100%);
           background: var(--color-surface-raised, #fff);
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-lg, 16px);
-          box-shadow: var(--shadow-lg);
+          border-radius: var(--radius-modal, 12px);
+          box-shadow: var(--shadow-xl, var(--shadow-lg));
           overflow: hidden;
           animation: modalIn var(--duration-fast, 150ms) cubic-bezier(.34,1.2,.64,1);
         }
@@ -123,33 +123,37 @@ class AgModal extends HTMLElement {
           to { opacity: 1; transform: none; }
         }
         .modal-h {
-          padding: 14px 20px;
+          padding: var(--space-4, 16px) var(--space-5, 20px);
           border-bottom: 1px solid var(--color-border-subtle, #e8e7e2);
           display: flex;
           align-items: center;
           justify-content: space-between;
         }
         .modal-h .t {
-          font-size: 13px;
-          font-weight: 700;
+          font-size: var(--text-sm, 0.875rem);
+          font-weight: var(--font-semibold, 600);
           color: var(--color-text-dark, #1a1a1a);
         }
         .modal-close {
           width: 28px; height: 28px;
           display: flex; align-items: center; justify-content: center;
-          border: none; background: none; border-radius: var(--radius-sm, 0.375rem);
+          border: none; background: none; border-radius: var(--radius-sm, 4px);
           cursor: pointer; color: var(--color-text-muted, #95a3a4);
           transition: background var(--duration-fast, 150ms) ease;
         }
         .modal-close:hover { background: var(--color-bg-subtle, #e8e7e2); }
+        .modal-close:focus-visible {
+          outline: none;
+          box-shadow: var(--shadow-focus, 0 0 0 2px var(--color-surface-raised, #fff), 0 0 0 4px rgba(22,80,224,0.35));
+        }
         .modal-close svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
-        .modal-b { padding: 18px 20px; }
+        .modal-b { padding: var(--space-5, 20px); }
         .modal-f {
-          padding: 14px 20px;
+          padding: var(--space-4, 16px) var(--space-5, 20px);
           border-top: 1px solid var(--color-border-subtle, #e8e7e2);
           display: flex;
           justify-content: flex-end;
-          gap: 6px;
+          gap: var(--space-2, 8px);
         }
       </style>
       <div class="overlay-backdrop" role="dialog" aria-modal="true" aria-label="${this.escapeAttr(title)}">

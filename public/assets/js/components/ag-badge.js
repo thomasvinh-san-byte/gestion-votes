@@ -52,12 +52,12 @@ class AgBadge extends HTMLElement {
         .badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.375rem;
-          padding: 3px 10px;
-          font-size: 12px;
-          font-weight: 700;
+          gap: var(--space-1, 4px);
+          padding: var(--space-1, 4px) var(--space-2, 8px);
+          font-size: var(--text-xs, 0.75rem);
+          font-weight: var(--font-medium, 500);
           line-height: 1;
-          border-radius: var(--radius-full, 999px);
+          border-radius: var(--radius-badge, 9999px);
           white-space: nowrap;
           background: var(--color-bg-subtle, #e8e7e2);
           color: var(--color-text-muted, #95a3a4);
@@ -79,8 +79,8 @@ class AgBadge extends HTMLElement {
 
         /* Size variants */
         :host([size="sm"]) .badge {
-          padding: 2px 7px;
-          font-size: 10px;
+          padding: 2px var(--space-1-5, 6px);
+          font-size: var(--text-2xs, 0.625rem);
         }
         :host([size="sm"]) .badge-icon {
           width: 0.75rem;
