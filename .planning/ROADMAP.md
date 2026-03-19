@@ -173,7 +173,11 @@ Plans:
   3. Every page CSS file passes a grep for hardcoded hex/rgb/hsl values and returns zero matches — all color references use design-system tokens
   4. Setting `--text-base` to 14px in one place causes all UI chrome labels to shrink correctly while body reading text stays at 16px — the typography scale is semantically layered
   5. Named shadow levels (xs through xl) visually differentiate cards from modals from tooltips — a developer can identify component type by shadow alone without inspecting the element
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 30-01-PLAN.md — Core token restructuring: primitives, semantic colors, shadows, spacing, radius, typography, transitions
+- [ ] 30-02-PLAN.md — Typography 14px migration: audit text-base usage, protect reading text, flip base size
+- [ ] 30-03-PLAN.md — Hardcoded hex sweep: replace all standalone color values in page CSS with tokens
 
 ### Phase 31: Component Refresh
 **Goal**: Every shared UI component renders with intentional, differentiated visual specs — no two component types share the same radius, shadow, or spacing values, and all components use Phase 30 tokens exclusively
@@ -234,7 +238,7 @@ Plans:
 | 27. Copropriete Transformation | 2/2 | Complete    | 2026-03-18 |
 | 28. Wizard & Session Hub UX Overhaul | 3/3 | Complete    | 2026-03-18 |
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
-| 30. Token Foundation | 0/? | Not started | - |
+| 30. Token Foundation | 0/3 | Planning complete | - |
 | 31. Component Refresh | 0/? | Not started | - |
 | 32. Page Layouts — Core Pages | 0/? | Not started | - |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
