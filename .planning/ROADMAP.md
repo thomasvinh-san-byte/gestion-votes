@@ -69,7 +69,7 @@
 
 - [x] **Phase 30: Token Foundation** — Reduce 265+ tokens to ~100 semantic tokens; establish primitive→semantic→component hierarchy, shadow scale, spacing aliases, radius scale, dark mode derivation, zero hardcoded hex (completed 2026-03-19) (completed 2026-03-19)
 - [x] **Phase 31: Component Refresh** — Buttons, cards, tables, form inputs, modals, toasts, badges, steppers rebuilt to exact shadcn/Sonner/Polaris specs with correct heights, radii, transitions, and dark parity (completed 2026-03-19)
-- [ ] **Phase 32: Page Layouts — Core Pages** — Dashboard, wizard, operator console, data tables, settings/admin, mobile voter rebuilt to FEATURES.md grid/flex specs with the three-depth background model
+- [x] **Phase 32: Page Layouts — Core Pages** — Dashboard, wizard, operator console, data tables, settings/admin, mobile voter rebuilt to FEATURES.md grid/flex specs with the three-depth background model (completed 2026-03-19)
 - [ ] **Phase 33: Page Layouts — Secondary Pages** — Hub, post-session, analytics, help/FAQ, email templates, meetings list rebuilt with consistent layout language and correct density
 - [ ] **Phase 34: Quality Assurance Final Audit** — Every page verified against the 6 AI anti-patterns checklist, background layering, Fraunces usage, dark mode parity, and transitions/focus/inline-style standards
 
@@ -205,7 +205,7 @@ Plans:
   3. The operator console displays a 280px agenda sidebar beside a fluid main area with a fixed status bar at top and tab nav below it — the layout is implemented as a 3-row CSS grid
   4. Data table pages (audit, archives, members, users) all share the same toolbar/table/pagination structure with sticky 40px headers and right-aligned numeric columns — visual consistency is immediate
   5. The mobile voter screen fills 100dvh, vote option buttons are minimum 72px tall, and text scales fluidly with clamp() — the layout works without horizontal scrolling at 375px viewport width
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 32-01-PLAN.md — Dashboard layout + shared table-page structure + data tables (LAY-01, LAY-04)
 - [ ] 32-02-PLAN.md — Wizard centered track + operator console CSS Grid fix (LAY-02, LAY-03)
@@ -254,7 +254,7 @@ Plans:
 | 29. Operator Console, Voter View & Visual Polish | 7/7 | Complete    | 2026-03-18 |
 | 30. Token Foundation | 4/4 | Complete   | 2026-03-19 |
 | 31. Component Refresh | 3/3 | Complete    | 2026-03-19 |
-| 32. Page Layouts — Core Pages | 2/3 | In Progress|  |
+| 32. Page Layouts — Core Pages | 3/3 | Complete   | 2026-03-19 |
 | 33. Page Layouts — Secondary Pages | 0/? | Not started | - |
 | 34. Quality Assurance Final Audit | 0/? | Not started | - |
 

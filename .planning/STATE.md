@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Design Excellence
 status: planning
-stopped_at: Completed 32-page-layouts-core-pages/32-03-PLAN.md
-last_updated: "2026-03-19T07:43:31.111Z"
+stopped_at: Completed 32-01-PLAN.md
+last_updated: "2026-03-19T07:46:42.079Z"
 last_activity: 2026-03-19 — Roadmap for v4.1 (phases 30-34) written
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 28
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # AG-VOTE — Project State
@@ -77,6 +77,7 @@ Phase 34 [ ] Quality Assurance Final Audit
 - [Phase 32-page-layouts-core-pages]: Bug fix: always add explicit display:grid when overriding display:flex from design-system; grid-template-* on a flex container is silently ignored
 - [Phase 32-page-layouts-core-pages]: Settings CSS Grid 220px+1fr layout: sidenav sticky at top:80px, content max-width:720px, collapses to horizontal scroll at 768px
 - [Phase 32-page-layouts-core-pages]: Mobile voter: clamp() fluid typography, position:fixed bottom nav with env(safe-area-inset-bottom), 72px min touch targets
+- [Phase 32]: Dashboard aside sticky top 80px matches app-header height; table-page max-width 1400px wider than dashboard 1200px; members page wraps only members-layout in table-page to preserve full-bleed stats bar
 
 ### Pending Todos
 
@@ -88,7 +89,7 @@ None at roadmap stage. Research complete, all specs available.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:43:31.109Z
-Stopped at: Completed 32-page-layouts-core-pages/32-03-PLAN.md
+Last session: 2026-03-19T07:46:42.077Z
+Stopped at: Completed 32-01-PLAN.md
 Resume file: None
 Next action: `/gsd:plan-phase 30`

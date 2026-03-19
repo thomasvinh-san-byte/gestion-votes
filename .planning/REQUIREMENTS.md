@@ -29,10 +29,10 @@
 
 ### Page Layout (LAY)
 
-- [ ] **LAY-01**: Dashboard — 4-column KPI grid, session cards as list, max-width 1200px content, quick-actions aside
+- [x] **LAY-01**: Dashboard — 4-column KPI grid, session cards as list, max-width 1200px content, quick-actions aside
 - [x] **LAY-02**: Wizard — centered 680px track, sticky footer nav with space-between, fields max-width 480px
 - [x] **LAY-03**: Operator console — 280px agenda sidebar + fluid main, fixed status bar + tab nav, CSS grid 3-row layout
-- [ ] **LAY-04**: Data tables (audit, archives, members, users) — proper column alignment, sticky header, toolbar + pagination bars
+- [x] **LAY-04**: Data tables (audit, archives, members, users) — proper column alignment, sticky header, toolbar + pagination bars
 - [x] **LAY-05**: Settings/Admin — 220px left sidenav, 720px content column, section cards with per-section save
 - [x] **LAY-06**: Mobile voter — 100dvh, 72px vote buttons, safe-area padding, clamp() fluid typography
 - [ ] **LAY-07**: Hub — sidebar stepper + main content, quorum bar prominent, checklist with proper spacing
