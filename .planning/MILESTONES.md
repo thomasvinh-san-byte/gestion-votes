@@ -1,5 +1,14 @@
 # Milestones
 
+## v4.1 Design Excellence (Shipped: 2026-03-19)
+
+**Phases completed:** 10 phases, 34 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v4.0 Clarity & Flow (Shipped: 2026-03-18)
 
 **Scope:** Transform AG-VOTE into a self-explanatory, visually impressive application — zero training, officiel et confiance design language

@@ -31,11 +31,13 @@ A **self-hosted, open-source** alternative to commercial voting platforms for or
 AG-VOTE is a **brownfield project** with a self-explanatory UX and full session lifecycle:
 - 38 PHP controllers, 30+ repositories, 18 services
 - 23 custom Web Components (ag-pdf-viewer, ag-empty-state, + 21 originals), 29 page JS modules
-- Design system with 265+ CSS custom properties, @layer (base/components/v4), color-mix() tokens, dark/light parity
+- Design system with structured CSS token hierarchy (primitive → semantic → component aliases), @layer (base/components/v4), three-depth background model (bg/surface/raised), dark/light parity
 - ~95,000 LOC (30k JS, 30k PHP, 35k CSS)
 - PHPUnit test suite (20+ test files), E2E suite (21 specs, ~230+ tests)
 - "Officiel et confiance" visual identity — bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono
 - Dompdf ^3.1 for PV PDF, FilePond for document upload, native iframe PDF viewer
+
+**Shipped v4.1 Design Excellence** (2026-03-19): CSS token restructuring (primitive→semantic→component hierarchy, shadow system, spacing/radius aliases), component refresh (8 component types tokenized, 4 Web Components reconciled), page layout rebuilds (12 pages with CSS Grid/flex specs, three-depth background, max-width constraints, responsive breakpoints), QA audit (Fraunces discipline, inline style removal, transition/focus/hover standards). Infrastructure-level CSS work — visual identity foundation established but page-by-page visual redesign still needed.
 
 **Shipped v4.0 Clarity & Flow** (2026-03-18): PDF resolution attachments (upload, serve, viewer), guided UX layer (empty states, status cards, help panels, disabled tooltips), copropriété→AG vocabulary transformation, wizard overhaul (named stepper, templates, review card, progressive disclosure), hub enhancements (quorum bar, blocked reasons, convocations), operator console live indicators (SSE, delta badges, guidance), voter full-screen ballot (optimistic feedback, 72px cards), collapsible result cards, all-page CSS polish with @layer and color-mix().
 
@@ -54,21 +56,12 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 - v1.5: E2E coverage expansion (21 specs, ~230+ tests), version 1.5.0
 - v2.0: Design system alignment (64 tokens, dark/light), navigation & layout, dashboard & sessions, wizard & hub, operator console, room display & voter view, post-session & records, statistics & users, settings & help, component library
 - v3.0: Session creation wizard (atomic persistence), hub/dashboard real data, SSE multi-consumer infrastructure, operator console API wiring, live vote flow (open/cast/close/tally via SSE), post-session stepper (results/consolidation/PV PDF/archival), zero demo constants, loading/error/empty states on all pages, hub→operator meeting_id propagation, frozen→live transition with motionOpened SSE
-
 - v4.0: PDF resolution documents (upload/serve/view), guided UX (empty states, status cards, help panels, disabled tooltips), copropriété→AG transformation, wizard overhaul (named stepper, templates, review card, progressive disclosure), hub enhancements (quorum bar, blocked reasons, convocations), operator live indicators (SSE, delta, guidance), voter full-screen ballot (optimistic, 72px), result cards (collapsible, bar charts), CSS @layer + color-mix(), all-page visual polish, "officiel et confiance" design
+- v4.1: CSS token hierarchy (primitive→semantic→component, shadow system, spacing/radius aliases, dark mode derivation, zero hardcoded hex), component refresh (8 types tokenized, 4 Web Components reconciled), page layouts (12 pages with grid specs, three-depth background, max-width, responsive), QA audit (font discipline, inline style removal, transitions, focus rings)
 
 ### Active
 
-**Current Milestone: v4.1 "Design Excellence"**
-
-**Goal:** Achieve top 1% visual quality across every page — complete HTML+CSS+JS refonte with research-driven layout, composition, typography, spacing, and visual hierarchy. Light-first design inspired by the best governance/voting platforms.
-
-**Target:**
-- Full visual refonte of every page (HTML + CSS + JS restructuring)
-- Coherent design language applied uniformly — no more per-page inconsistencies
-- Research-driven layouts from top governance/assembly/SaaS apps
-- Light-first design, dark mode parity maintained
-- Every page must look professionally designed, not AI-generated
+(No active milestone — ready for next)
 
 ### Out of Scope
 
@@ -77,27 +70,27 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 - Mobile native app — PWA approach maintained
 - Multi-database support — PostgreSQL only
 - Electronic signature upload/validation (deferred to later)
-- Copropriété as separate module — tantièmes/millièmes logic to be transformed for AG-standard use, not maintained as copro-specific
 
 ## Context
 
-The wireframe files (`ag_vote_wireframe.html`, `docs/wireframe/ag_vote_v3_19_2.html`) on the main branch defined the target UI for v2.0. All pages match the wireframe v3.19.2 specification. The codebase uses Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data) typography.
+The codebase uses Bricolage Grotesque (body), Fraunces (display, h1 only), JetBrains Mono (data) typography. Design system has structured token hierarchy with three-depth background model.
 
 Known technical debt:
 - admin.js KPI load failure catch is silent (non-blocking, admin-only page)
-- PST-01-04 verified manually + by integration checker (no E2E specs for postsession stepper)
-- Phase 20.4 VERIFICATION.md has human_needed visual items pending review
+- v4.1 delivered CSS infrastructure but not the "top 1%" visual redesign — page-by-page visual design work is the next priority
+- Dark mode visual parity needs browser-level verification on all pages
 
-Deferred ideas from v3.0:
-- Retrait copropriété — remove all copropriete-related code from codebase
-- PDFs résolutions — attach PDF documents to resolutions, with voter consultation access
-- Suivi budget & documents PDF pour votants
-- Votes pour collectivités territoriales (syndicats, communes, départements)
+Deferred ideas:
+- AI-assisted PV minutes generation
+- ClamAV virus scanning for uploaded PDFs
+- Per-tenant motion templates in database
+- Electronic signature upload/validation
+- Votes pour collectivités territoriales
 
 ## Constraints
 
 - **Tech stack**: No-framework PHP + vanilla JS + Web Components — no change
-- **Design reference**: v4.0 designs from scratch (wireframe v3.19.2 retired as reference)
+- **Design approach**: Page-by-page visual redesign with concrete references (Linear, Notion, Clerk, Stripe)
 - **Backward compatibility**: Existing functionality preserved
 - **Accessibility**: WCAG AA compliance maintained (skip links, ARIA landmarks, focus indicators)
 
@@ -114,13 +107,10 @@ Deferred ideas from v3.0:
 | One CSS per page | Each page gets dedicated CSS file (wizard.css, hub.css, etc.) | ✓ Good — clean separation |
 | Web Components for shared UI | ag-modal, ag-toast, ag-confirm, ag-popover, ag-searchable-select | ✓ Good — reusable across pages |
 | Redis SSE fan-out | Per-consumer Redis lists for multi-consumer SSE delivery | ✓ Good — scales without Redis Pub/Sub blocking |
-| LOAD_SEED_DATA rename | LOAD_DEMO_DATA renamed for production clarity | ✓ Good — zero demo references in codebase |
-| Frozen→live via operator_open_vote | Atomic status transition + SSE broadcast when opening first vote | ✓ Good — clean state machine path |
 | Gap closure phases 23-24 | Address integration wiring gaps found by milestone audit | ✓ Good — caught hub→operator handoff and frozen→live SSE gaps |
-
-| v4.0 major version | Complete UX/UI overhaul + new features (PDF, copro transform) | — Pending |
-| Design from scratch | Retire wireframe v3.19.2, research-driven design for top 1% UX | — Pending |
-| PC-first approach | Optimize for 1024px+, mobile only for voter screen | — Pending |
+| v4.0 major version | Complete UX/UI overhaul + new features (PDF, copro transform) | ✓ Good — shipped comprehensive feature set |
+| v4.1 CSS infrastructure first | Token hierarchy + component specs + layout grids before visual redesign | ⚠️ Revisit — infrastructure delivered but no visible visual impact; page-by-page redesign needed |
+| PC-first approach | Optimize for 1024px+, mobile only for voter screen | ✓ Good — matches use case |
 
 ---
-*Last updated: 2026-03-18 after v4.1 milestone started*
+*Last updated: 2026-03-19 after v4.1 milestone complete*
