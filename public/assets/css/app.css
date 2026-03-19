@@ -295,12 +295,13 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
+  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
 }
 
 .quick-action:hover {
   background: var(--color-bg-subtle);
   color: var(--color-text);
+  transform: translateY(-1px);
 }
 
 /* ─── Workflow State Indicator ─── */
@@ -743,3 +744,66 @@
     min-width: calc(50% - var(--space-2));
   }
 }
+
+/* ── Mobile footer overrides ── */
+.mobile-footer .logo {
+  font-size: 12px;
+  gap: 6px;
+}
+.mobile-footer .logo-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-size: 8px;
+}
+.mobile-footer-spacer {
+  flex: 1;
+}
+.mobile-footer-link {
+  text-decoration: none;
+}
+
+/* ── Onboarding tip list ── */
+.onboarding-tips {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* ── Sidebar brand ── */
+.nav-brand {
+  height: 48px;
+  padding: 0 8px 0 14px;
+  margin-bottom: 4px;
+}
+.nav-brand .logo-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.nav-brand-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #fff;
+}
+
+/* ── Dashboard panel / shortcut margins ── */
+.dashboard-panel {
+  margin-bottom: var(--space-card);
+}
+.dashboard-shortcuts-title {
+  margin-bottom: var(--space-card);
+}
+.shortcut-card {
+  margin-bottom: var(--space-3);
+}
+
+/* ── Skeleton width modifiers (additional widths) ── */
+.skeleton-w-30 { width: 30%; }
+.skeleton-w-35 { width: 35%; }
+.skeleton-w-40 { width: 40%; }

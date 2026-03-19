@@ -993,3 +993,33 @@
 /* ─── Text size classes on :root ─── */
 html.text-size-large { font-size: 112.5%; }
 html.text-size-xlarge { font-size: 125%; }
+
+/* ── KPI icon color variants ── */
+.dash-kpi-icon.kpi-primary {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+.dash-kpi-icon.kpi-danger {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+.dash-kpi-icon.kpi-warning {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+.dash-kpi-icon.kpi-success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+/* ── Alert inline layout ── */
+.alert-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Skeleton line secondary rows ── */
+.skeleton-line + .skeleton-line {
+  margin-top: 4px;
+}

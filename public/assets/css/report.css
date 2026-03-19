@@ -19,7 +19,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: border-color var(--duration-fast), background-color var(--duration-fast);
+  transition: border-color var(--duration-fast), background-color var(--duration-fast), transform var(--duration-fast);
   text-decoration: none;
   color: var(--color-text);
 }
@@ -27,6 +27,7 @@
 .export-btn:hover {
   border-color: var(--color-primary);
   background: var(--color-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .export-btn-icon {
@@ -53,4 +54,37 @@
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+/* ── PV Preview panel ── */
+.pv-preview {
+  position: relative;
+  min-height: 200px;
+}
+.pv-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+.pv-empty-state-icon {
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+.pv-empty-state-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.pv-empty-state-desc {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.pv-empty-state .skeleton {
+  margin: 0 auto 0.5rem;
+}
+.pv-empty-state .skeleton:last-child {
+  margin-bottom: 0;
 }
