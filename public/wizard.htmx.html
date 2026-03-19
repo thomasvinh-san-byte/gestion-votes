@@ -74,7 +74,7 @@
 
     <main class="app-main" id="main-content" role="main">
 
-      <!-- Stepper progress -->
+      <!-- Stepper progress (sticky at top) -->
       <div class="wiz-progress-wrap" id="wizStepper" aria-label="Progression" role="navigation">
         <div class="wiz-step-item active" data-step="0">
           <div class="wiz-snum">1</div><span>Informations</span>
@@ -89,6 +89,9 @@
           <div class="wiz-snum">4</div><span>R&eacute;vision</span>
         </div>
       </div>
+
+      <!-- Step panels — centered 680px track -->
+      <div class="wiz-content">
 
       <!-- Step 1: Infos générales -->
       <div class="card wiz-step" id="step0" data-tour="wizard-step1">
@@ -414,6 +417,8 @@
           </button>
         </div>
       </div>
+
+      </div><!-- /.wiz-content -->
 
     </main>
     <footer class="app-footer" role="contentinfo">
