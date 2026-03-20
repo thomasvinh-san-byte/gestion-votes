@@ -52,10 +52,22 @@
 
         <!-- Sidebar nav -->
         <nav class="settings-sidenav" role="tablist" aria-label="Onglets param&egrave;tres">
-          <button class="settings-sidenav-item active" data-stab="regles" role="tab" aria-selected="true" aria-controls="stab-regles" id="tab-regles">R&egrave;gles</button>
-          <button class="settings-sidenav-item" data-stab="communication" role="tab" aria-selected="false" aria-controls="stab-communication" id="tab-communication">Communication</button>
-          <button class="settings-sidenav-item" data-stab="securite" role="tab" aria-selected="false" aria-controls="stab-securite" id="tab-securite">S&eacute;curit&eacute;</button>
-          <button class="settings-sidenav-item" data-stab="accessibilite" role="tab" aria-selected="false" aria-controls="stab-accessibilite" id="tab-accessibilite">Accessibilit&eacute;</button>
+          <button class="settings-sidenav-item active" data-stab="regles" role="tab" aria-selected="true" aria-controls="stab-regles" id="tab-regles">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            R&egrave;gles
+          </button>
+          <button class="settings-sidenav-item" data-stab="communication" role="tab" aria-selected="false" aria-controls="stab-communication" id="tab-communication">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Communication
+          </button>
+          <button class="settings-sidenav-item" data-stab="securite" role="tab" aria-selected="false" aria-controls="stab-securite" id="tab-securite">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            S&eacute;curit&eacute;
+          </button>
+          <button class="settings-sidenav-item" data-stab="accessibilite" role="tab" aria-selected="false" aria-controls="stab-accessibilite" id="tab-accessibilite">
+            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Accessibilit&eacute;
+          </button>
         </nav>
 
         <div class="settings-content">
@@ -73,19 +85,39 @@
             </div>
             <div class="card-body">
               <div class="settings-toggle-row">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settDoubleAuth">
-                  Double authentification obligatoire
-                </label>
-                <p class="text-sm text-muted">Exige une v&eacute;rification en deux &eacute;tapes pour tous les votes. Renforce la s&eacute;curit&eacute; au d&eacute;triment de la fluidit&eacute;.</p>
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settDoubleAuth">
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Double authentification obligatoire</span>
+                    <ag-tooltip text="Force une v&eacute;rification en deux &eacute;tapes pour chaque vote. Renforce la s&eacute;curit&eacute; mais ralentit le processus de vote." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Exige une v&eacute;rification en deux &eacute;tapes pour tous les votes. Renforce la s&eacute;curit&eacute; au d&eacute;triment de la fluidit&eacute;.</p>
               </div>
-              <div class="settings-toggle-row mt-3">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settDoubleApproval">
-                  Double approbation requise
-                </label>
-                <p class="text-sm text-muted">N&eacute;cessite une confirmation explicite avant validation d'un vote. R&eacute;duit les erreurs de manipulation.</p>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settDoubleApproval">
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Double approbation requise</span>
+                    <ag-tooltip text="N&eacute;cessite une confirmation explicite avant validation d'un vote. R&eacute;duit les erreurs de manipulation accidentelle." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">N&eacute;cessite une confirmation explicite avant validation d'un vote. R&eacute;duit les erreurs de manipulation.</p>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="vote-securite">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -98,17 +130,31 @@
             <div class="card-body">
               <div class="settings-form-grid">
                 <div class="form-group">
-                  <label class="form-label" for="settQuorumBase">Base de calcul</label>
+                  <label class="form-label" for="settQuorumBase">
+                    Base de calcul
+                    <ag-tooltip text="D&eacute;termine si le quorum est calcul&eacute; sur le nombre de personnes pr&eacute;sentes ou sur leur poids de vote (tanti&egrave;mes). Impacte la validit&eacute; des d&eacute;cisions." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <select class="form-input" id="settQuorumBase">
                     <option value="persons">Par personnes</option>
                     <option value="tantiemes">Par poids de vote</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="settQuorumThreshold">Seuil (%)</label>
+                  <label class="form-label" for="settQuorumThreshold">
+                    Seuil (%)
+                    <ag-tooltip text="Pourcentage minimum de membres pr&eacute;sents ou repr&eacute;sent&eacute;s requis pour que la s&eacute;ance soit valide. En-dessous de ce seuil, aucun vote ne peut &ecirc;tre ouvert." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settQuorumThreshold" value="33" min="0" max="100">
                 </div>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="quorum">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -122,27 +168,52 @@
               <div class="settings-majority-grid" id="majorityTypes">
                 <div class="settings-majority-card">
                   <div class="settings-majority-article">Art. 24</div>
-                  <div class="settings-majority-title">Majorit&eacute; simple</div>
+                  <div class="settings-majority-title">
+                    Majorit&eacute; simple
+                    <ag-tooltip text="Article 24 de la loi du 10 juillet 1965 — majorit&eacute; des voix des copropri&eacute;taires pr&eacute;sents, repr&eacute;sent&eacute;s ou ayant vot&eacute; par correspondance." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
                   <div class="settings-majority-desc">Majorit&eacute; des voix exprim&eacute;es des pr&eacute;sents et repr&eacute;sent&eacute;s</div>
                 </div>
                 <div class="settings-majority-card">
                   <div class="settings-majority-article">Art. 25</div>
-                  <div class="settings-majority-title">Majorit&eacute; absolue</div>
+                  <div class="settings-majority-title">
+                    Majorit&eacute; absolue
+                    <ag-tooltip text="Article 25 de la loi du 10 juillet 1965 — majorit&eacute; de tous les copropri&eacute;taires. Requise pour les travaux importants et d&eacute;cisions structurantes." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
                   <div class="settings-majority-desc">Majorit&eacute; des voix de tous les membres</div>
                 </div>
                 <div class="settings-majority-card">
                   <div class="settings-majority-article">Art. 25-1</div>
-                  <div class="settings-majority-title">Passerelle</div>
+                  <div class="settings-majority-title">
+                    Passerelle
+                    <ag-tooltip text="Article 25-1 — si une r&eacute;solution obtient plus du tiers des voix sans atteindre la majorit&eacute; absolue, un second vote &agrave; la majorit&eacute; art. 24 peut &ecirc;tre imm&eacute;diatement tenu." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
                   <div class="settings-majority-desc">Si 1/3 atteint &agrave; l'art. 25, revote &agrave; l'art. 24</div>
                 </div>
                 <div class="settings-majority-card">
                   <div class="settings-majority-article">Art. 26</div>
-                  <div class="settings-majority-title">Double majorit&eacute;</div>
+                  <div class="settings-majority-title">
+                    Double majorit&eacute;
+                    <ag-tooltip text="Article 26 de la loi du 10 juillet 1965 — majorit&eacute; des membres repr&eacute;sentant au moins les deux tiers des voix. Requise pour les d&eacute;cisions les plus importantes." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
                   <div class="settings-majority-desc">2/3 des voix de tous les membres</div>
                 </div>
                 <div class="settings-majority-card">
                   <div class="settings-majority-article">Art. 26-1</div>
-                  <div class="settings-majority-title">Unanimit&eacute;</div>
+                  <div class="settings-majority-title">
+                    Unanimit&eacute;
+                    <ag-tooltip text="Article 26-1 — unanimit&eacute; de tous les copropri&eacute;taires requise. R&eacute;serv&eacute; aux d&eacute;cisions touchant aux droits privatifs de tous les membres." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
                   <div class="settings-majority-desc">Tous les membres doivent voter pour</div>
                 </div>
               </div>
@@ -181,11 +252,21 @@
             <div class="card-body">
               <div class="settings-form-grid">
                 <div class="form-group">
-                  <label class="form-label" for="settSupportEmail">Email support</label>
+                  <label class="form-label" for="settSupportEmail">
+                    Email support
+                    <ag-tooltip text="Adresse email affich&eacute;e aux membres pour contacter le support du syndic. Re&ccedil;oit &eacute;galement les copies des notifications syst&egrave;me." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="email" id="settSupportEmail" placeholder="support@syndic.fr">
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="settTimezone">Fuseau horaire</label>
+                  <label class="form-label" for="settTimezone">
+                    Fuseau horaire
+                    <ag-tooltip text="Fuseau horaire utilis&eacute; pour l'affichage des dates et heures des s&eacute;ances et convocations. Affecte tous les utilisateurs du tenant." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <select class="form-input" id="settTimezone">
                     <option value="Europe/Paris" selected>Europe/Paris (UTC+1)</option>
                     <option value="Europe/Brussels">Europe/Brussels (UTC+1)</option>
@@ -195,6 +276,10 @@
                   </select>
                 </div>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="contact">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -207,11 +292,21 @@
             <div class="card-body">
               <div class="settings-form-grid">
                 <div class="form-group">
-                  <label class="form-label">Serveur SMTP</label>
+                  <label class="form-label">
+                    Serveur SMTP
+                    <ag-tooltip text="Adresse du serveur de messagerie sortant. Ex&nbsp;: smtp.gmail.com, smtp.sendgrid.net. Requis pour l'envoi de convocations et notifications." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="text" id="settSmtpHost" placeholder="smtp.exemple.fr">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Port</label>
+                  <label class="form-label">
+                    Port
+                    <ag-tooltip text="Port de connexion SMTP. 587 (STARTTLS) est recommand&eacute;. Utilisez 465 pour SSL/TLS ou 25 pour les connexions non chiffr&eacute;es (d&eacute;conseill&eacute;)." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settSmtpPort" value="587">
                 </div>
                 <div class="form-group">
@@ -226,6 +321,10 @@
               <div class="mt-3">
                 <button class="btn btn-secondary btn-sm" id="btnTestSmtp">Tester la connexion</button>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="smtp">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -339,26 +438,54 @@
             </div>
             <div class="card-body">
               <div class="settings-toggle-row">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settNotifEmail" checked>
-                  Notifications par email
-                </label>
-                <p class="text-sm text-muted">Envoie les notifications et convocations par email aux membres.</p>
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settNotifEmail" checked>
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Notifications par email</span>
+                    <ag-tooltip text="Active l'envoi de convocations, rappels et r&eacute;sultats de vote par email aux membres. D&eacute;sactiver bloque tous les emails sortants du syst&egrave;me." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Envoie les notifications et convocations par email aux membres.</p>
               </div>
-              <div class="settings-toggle-row mt-3">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settNotifPush">
-                  Notifications push
-                </label>
-                <p class="text-sm text-muted">Envoie des notifications push aux navigateurs qui ont donn&eacute; leur accord.</p>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settNotifPush">
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Notifications push</span>
+                    <ag-tooltip text="Envoie des notifications push aux navigateurs des membres ayant explicitement accord&eacute; l'autorisation. Ne fonctionne qu'en HTTPS." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Envoie des notifications push aux navigateurs qui ont donn&eacute; leur accord.</p>
               </div>
-              <div class="settings-toggle-row mt-3">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settNotifWeekly">
-                  R&eacute;sum&eacute; hebdomadaire
-                </label>
-                <p class="text-sm text-muted">Envoie un r&eacute;sum&eacute; hebdomadaire des activit&eacute;s aux administrateurs.</p>
+              <div class="settings-toggle-row">
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settNotifWeekly">
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">R&eacute;sum&eacute; hebdomadaire</span>
+                    <ag-tooltip text="Envoie chaque lundi matin un r&eacute;sum&eacute; des activit&eacute;s de la semaine aux administrateurs&nbsp;: s&eacute;ances &agrave; venir, votes en attente, alertes syst&egrave;me." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Envoie un r&eacute;sum&eacute; hebdomadaire des activit&eacute;s aux administrateurs.</p>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="notifications">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -370,9 +497,14 @@
         <div class="settings-panel" id="stab-securite" role="tabpanel" aria-labelledby="tab-securite" hidden>
 
           <!-- Card : Niveau CNIL -->
-          <div class="card mb-4">
+          <div class="card mb-4 settings-cnil-card">
             <div class="card-header">
-              <h3 class="card-title">Niveau de protection CNIL</h3>
+              <h3 class="card-title">
+                Niveau de protection CNIL
+                <ag-tooltip text="Choisissez le niveau de conformit&eacute; CNIL applicable &agrave; votre syndicat. Niveau 1 est conforme pour la majorit&eacute; des cas. Niveaux 2 et 3 activent des mesures techniques suppl&eacute;mentaires." position="top">
+                  <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                </ag-tooltip>
+              </h3>
               <p class="card-description">Choisissez le niveau de protection des donn&eacute;es personnelles</p>
             </div>
             <div class="card-body">
@@ -397,21 +529,37 @@
                 </label>
               </div>
             </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="cnil">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
+            </div>
           </div>
 
           <!-- Card : Authentification à deux facteurs -->
-          <div class="card mb-4">
+          <div class="card mb-4 settings-security-card">
             <div class="card-header">
               <h3 class="card-title">Authentification &agrave; deux facteurs</h3>
             </div>
             <div class="card-body">
               <div class="settings-toggle-row">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="sett2FA">
-                  Activer 2FA pour tous les utilisateurs
-                </label>
-                <p class="text-sm text-muted">Force la double authentification pour tous les comptes du tenant. Les utilisateurs devront configurer leur application d'authentification.</p>
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="sett2FA">
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Activer 2FA pour tous les utilisateurs</span>
+                    <ag-tooltip text="Force l'authentification &agrave; deux facteurs pour tous les comptes du tenant. Les utilisateurs devront configurer une application d'authentification (TOTP) lors de leur prochaine connexion." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Force la double authentification pour tous les comptes du tenant. Les utilisateurs devront configurer leur application d'authentification.</p>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="2fa">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -423,10 +571,19 @@
             <div class="card-body">
               <div class="settings-form-grid">
                 <div class="form-group">
-                  <label class="form-label" for="settSessionTimeout">D&eacute;lai d'expiration (minutes)</label>
+                  <label class="form-label" for="settSessionTimeout">
+                    D&eacute;lai d'expiration (minutes)
+                    <ag-tooltip text="Dur&eacute;e d'inactivit&eacute; apr&egrave;s laquelle la session de l'utilisateur est automatiquement termin&eacute;e. Une valeur plus faible renforce la s&eacute;curit&eacute; mais peut g&ecirc;ner les op&eacute;rateurs en s&eacute;ance." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settSessionTimeout" value="30" min="5" max="480">
                 </div>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="session">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -438,36 +595,78 @@
             <div class="card-body">
               <div class="settings-form-grid">
                 <div class="form-group">
-                  <label class="form-label">Plafond procurations</label>
+                  <label class="form-label">
+                    Plafond procurations
+                    <ag-tooltip text="Nombre maximum de procurations qu'un membre peut d&eacute;tenir lors d'une assembl&eacute;e. La loi autorise jusqu'&agrave; 3 procurations selon l'art. 22 de la loi de 1965." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settMaxProxies" value="3" min="1" max="10">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">D&eacute;lai contestation (jours)</label>
+                  <label class="form-label">
+                    D&eacute;lai contestation (jours)
+                    <ag-tooltip text="Nombre de jours apr&egrave;s la tenue de l'assembl&eacute;e pendant lesquels les d&eacute;cisions peuvent &ecirc;tre contest&eacute;es. D&eacute;lai l&eacute;gal&nbsp;: 2 mois (60 jours)." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settContestDelay" value="60" min="1">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">2e convocation (jours apr&egrave;s 1re)</label>
+                  <label class="form-label">
+                    2e convocation (jours apr&egrave;s 1re)
+                    <ag-tooltip text="D&eacute;lai minimal entre la 1re et la 2e convocation en cas de quorum non atteint. La loi exige au minimum 6 jours entre les deux convocations." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settSecondConv" value="7" min="1">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Dur&eacute;e lien de vote (heures)</label>
+                  <label class="form-label">
+                    Dur&eacute;e lien de vote (heures)
+                    <ag-tooltip text="Dur&eacute;e de validit&eacute; du lien de vote unique envoy&eacute; &agrave; chaque membre. Apr&egrave;s expiration, le membre doit demander un nouveau lien." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </label>
                   <input class="form-input" type="number" id="settVoteLinkDuration" value="48" min="1">
                 </div>
               </div>
-              <div class="settings-form-grid mt-3">
-                <div class="form-group">
-                  <label class="form-label form-label-toggle">
-                    <input type="checkbox" id="settSeparation" checked>
-                    S&eacute;paration identit&eacute;/bulletin
-                  </label>
+              <div class="mt-4">
+                <div class="settings-toggle-row">
+                  <div class="settings-toggle-header">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="settSeparation" checked>
+                      <span class="toggle-track"></span>
+                    </label>
+                    <div class="settings-toggle-label-group">
+                      <span class="settings-toggle-label">S&eacute;paration identit&eacute;/bulletin</span>
+                      <ag-tooltip text="S&eacute;pare cryptographiquement l'identit&eacute; du votant du contenu de son bulletin. Garantit l'anonymat du vote conforme aux recommandations CNIL niveau 1." position="top">
+                        <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      </ag-tooltip>
+                    </div>
+                  </div>
+                  <p class="settings-toggle-desc">S&eacute;paration cryptographique de l'identit&eacute; du votant et du contenu du bulletin.</p>
                 </div>
-                <div class="form-group">
-                  <label class="form-label form-label-toggle">
-                    <input type="checkbox" id="settDoubleVote">
-                    Bloquer double vote
-                  </label>
+                <div class="settings-toggle-row">
+                  <div class="settings-toggle-header">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="settDoubleVote">
+                      <span class="toggle-track"></span>
+                    </label>
+                    <div class="settings-toggle-label-group">
+                      <span class="settings-toggle-label">Bloquer double vote</span>
+                      <ag-tooltip text="Emp&ecirc;che un membre de voter deux fois sur le m&ecirc;me scrutin, m&ecirc;me via des canaux diff&eacute;rents. Fortement recommand&eacute; pour la validit&eacute; juridique des votes." position="top">
+                        <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      </ag-tooltip>
+                    </div>
+                  </div>
+                  <p class="settings-toggle-desc">Emp&ecirc;che un membre de voter deux fois sur le m&ecirc;me scrutin.</p>
                 </div>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="securite-params">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -512,12 +711,24 @@
             </div>
             <div class="card-body">
               <div class="settings-toggle-row">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settHighContrast">
-                  Activer le mode contraste &eacute;lev&eacute;
-                </label>
-                <p class="text-sm text-muted">Augmente le contraste des couleurs pour am&eacute;liorer la lisibilit&eacute; pour les utilisateurs malvoyants.</p>
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settHighContrast">
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Activer le mode contraste &eacute;lev&eacute;</span>
+                    <ag-tooltip text="Augmente le rapport de contraste des couleurs pour am&eacute;liorer la lisibilit&eacute; pour les utilisateurs malvoyants. Requis pour la conformit&eacute; RGAA niveau AA." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Augmente le contraste des couleurs pour am&eacute;liorer la lisibilit&eacute; pour les utilisateurs malvoyants.</p>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="contraste">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 
@@ -528,12 +739,24 @@
             </div>
             <div class="card-body">
               <div class="settings-toggle-row">
-                <label class="form-label form-label-toggle">
-                  <input type="checkbox" id="settFocusIndicators" checked>
-                  Afficher les indicateurs de focus visibles
-                </label>
-                <p class="text-sm text-muted">Affiche des contours de focus bien visibles lors de la navigation au clavier. Recommand&eacute; pour l'accessibilit&eacute; RGAA.</p>
+                <div class="settings-toggle-header">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="settFocusIndicators" checked>
+                    <span class="toggle-track"></span>
+                  </label>
+                  <div class="settings-toggle-label-group">
+                    <span class="settings-toggle-label">Afficher les indicateurs de focus visibles</span>
+                    <ag-tooltip text="Affiche des contours de focus bien visibles lors de la navigation au clavier. Fortement recommand&eacute; pour la conformit&eacute; RGAA — crit&egrave;re 10.7." position="top">
+                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </ag-tooltip>
+                  </div>
+                </div>
+                <p class="settings-toggle-desc">Affiche des contours de focus bien visibles lors de la navigation au clavier. Recommand&eacute; pour l'accessibilit&eacute; RGAA.</p>
               </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary btn-sm btn-save-section" data-section="focus">Enregistrer</button>
+              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
             </div>
           </div>
 

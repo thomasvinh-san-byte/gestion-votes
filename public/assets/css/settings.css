@@ -63,13 +63,21 @@
   margin-bottom: 4px;
   border-radius: 8px;
   border: none;
+  border-left: 3px solid transparent; /* reserve space — no layout shift on active switch */
   background: transparent;
   color: var(--color-text-muted);
   font-weight: 600;
   font-size: var(--text-sm);
   cursor: pointer;
   text-align: left;
-  transition: background var(--duration-fast), color var(--duration-fast);
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.settings-sidenav-item .icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
 }
 
 .settings-sidenav-item:hover {
@@ -81,6 +89,12 @@
   background: var(--color-primary-subtle);
   color: var(--color-primary);
   font-weight: 700;
+  border-left: 3px solid var(--color-primary);
+  padding-left: 9px; /* 12px - 3px border = same visual offset */
+}
+
+.settings-sidenav-item.active .icon {
+  color: var(--color-primary);
 }
 
 .settings-content {
@@ -99,15 +113,131 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── CSS-only toggle switch ─── */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: 10px;
+  transition: background var(--duration-normal);
+  cursor: pointer;
+}
+
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-normal);
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: var(--color-primary);
+}
+
+.toggle-switch input:checked + .toggle-track::after {
+  transform: translateX(16px);
+}
+
 /* ─── Toggle row ─── */
 .settings-toggle-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: var(--space-3) 0;
+}
+
+.settings-toggle-row + .settings-toggle-row {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.settings-toggle-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-toggle-label-group {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.settings-toggle-label {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.settings-toggle-desc {
+  margin: 0.25rem 0 0 calc(36px + 0.75rem);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
 }
 
 .settings-toggle-row .form-label-toggle {
   font-weight: 500;
+}
+
+/* ─── Card footer with per-section save ─── */
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: var(--space-3) var(--space-card);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+}
+
+.unsaved-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-warning);
+}
+
+.unsaved-dot[hidden] { display: none; }
+
+/* ─── Info icon for ag-tooltip ─── */
+.icon-info-xs {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  cursor: help;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+
+/* ─── CNIL and security card accents ─── */
+.settings-security-card {
+  border-left: 4px solid var(--color-info);
+  background: var(--color-info-subtle);
+}
+
+.settings-cnil-card {
+  border-left: 4px solid var(--color-warning);
+  background: var(--color-warning-subtle);
 }
 
 /* ─── Majority type cards ─── */

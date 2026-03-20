@@ -556,10 +556,64 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // SECTION SAVE BUTTONS + UNSAVED-DOT TRACKING
+  // ═══════════════════════════════════════════════════════
+  function saveSection(card, section) {
+    // Gather all inputs within the card that have IDs and trigger saves
+    var inputs = card.querySelectorAll('input[id], select[id], textarea[id]');
+    var savePromises = [];
+    inputs.forEach(function(ctrl) {
+      // Skip template editor fields — handled separately
+      if (ctrl.closest('#templateEditor')) return;
+      var key = ctrl.id;
+      var value = ctrl.type === 'checkbox' ? ctrl.checked : ctrl.value;
+      savePromises.push(
+        api('/api/v1/admin_settings.php', { action: 'update', key: key, value: value })
+          .then(function(r) {
+            if (r.body && r.body.ok) {
+              _prevValues.set(key, value);
+            }
+          })
+          .catch(function() {})
+      );
+    });
+    Promise.all(savePromises).then(function() {
+      AgToast.show('Section enregistr\u00e9e', 'success');
+      // Hide unsaved dot
+      var dot = card.querySelector('.unsaved-dot');
+      if (dot) dot.hidden = true;
+    });
+  }
+
+  function initSectionSave() {
+    // Section save buttons
+    document.querySelectorAll('.btn-save-section').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var card = btn.closest('.card');
+        if (!card) return;
+        saveSection(card, btn.dataset.section);
+      });
+    });
+
+    // Unsaved-dot tracking — show dot when any field in a card changes
+    document.querySelectorAll('.card').forEach(function(card) {
+      var dot = card.querySelector('.unsaved-dot');
+      if (!dot) return;
+      card.querySelectorAll('input, select, textarea').forEach(function(field) {
+        // Skip template editor fields
+        if (field.closest('#templateEditor')) return;
+        field.addEventListener('change', function() { dot.hidden = false; });
+        field.addEventListener('input', function() { dot.hidden = false; });
+      });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
   // INIT
   // ═══════════════════════════════════════════════════════
   initTabs();
   initAutoSave();
+  initSectionSave();
   initQuorumPolicies();
   initEmailTemplates();
   initSmtpTest();
