@@ -183,10 +183,11 @@ Plans:
 
 ### Phase 41.3: Horizontal-First Layout Redesign (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Remove narrow max-width constraints (wizard 680px, settings 720px), add .form-grid-3 utility, and restructure wizard/hub layouts to exploit horizontal screen space with multi-column grids
+**Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.2
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 41.3 to break down)
+- [ ] 41.3-01-PLAN.md — CSS foundation: .form-grid-3 utility + remove wizard 680px/480px and settings 720px width constraints
+- [ ] 41.3-02-PLAN.md — HTML restructuring: wizard step 1 3-col grid, step 4 2-col recap, hub quorum+motions side-by-side, reso panel pairing + visual checkpoint
