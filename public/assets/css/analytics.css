@@ -530,10 +530,11 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .analytics-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0;
   border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
+  margin-bottom: var(--space-6);
+  padding: 0;
+  position: relative;
 }
 
 .analytics-tab {
@@ -541,21 +542,61 @@ body:has(.analytics-main) .page-header .page-header-actions {
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
   color: var(--color-text-muted);
-  border-radius: 6px 6px 0 0;
-  transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast), box-shadow var(--duration-fast);
+  border-radius: 0;
+  position: relative;
+  transition: color var(--duration-fast);
+}
+
+.analytics-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform var(--duration-fast) ease;
 }
 
 .analytics-tab:hover {
   color: var(--color-text);
-  background: var(--color-bg-subtle);
+  background: transparent;
 }
 
 .analytics-tab.active {
   color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  background: transparent;
   font-weight: 600;
+}
+
+.analytics-tab.active::after {
+  transform: scaleX(1);
+}
+
+/* Tab badge */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: var(--space-2);
+  vertical-align: middle;
+}
+
+.tab-badge:empty {
+  display: none;
 }
 
 /* =============================================================================

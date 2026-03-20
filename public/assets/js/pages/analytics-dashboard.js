@@ -568,6 +568,15 @@
           'Votes tr\u00e8s courts (&lt;30s)', (indicators.very_short_votes_count || 0) + ' vote(s)') +
         '</div>';
 
+      var badgeEl = document.getElementById('tabBadgeAnomalies');
+      var issueCount = (indicators.low_participation_count > 0 ? 1 : 0) +
+        (indicators.quorum_issues_count > 0 ? 1 : 0) +
+        (indicators.incomplete_votes_count > 0 ? 1 : 0) +
+        (indicators.high_proxy_concentration > 0 ? 1 : 0) +
+        (indicators.abstention_rate > 20 ? 1 : 0) +
+        (indicators.very_short_votes_count > 0 ? 1 : 0);
+      if (badgeEl) badgeEl.textContent = issueCount > 0 ? issueCount : '';
+
       // S\u00e9ances \u00e0 v\u00e9rifier
       if (meetings.length === 0) {
         meetingsContainer.innerHTML = '<p class="text-muted text-center p-4">Aucune anomalie d\u00e9tect\u00e9e</p>';
