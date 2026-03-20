@@ -180,3 +180,13 @@ Plans:
 Plans:
 - [ ] 41.2-01-PLAN.md — Wizard viewport compaction (CSS spacing reduction, form-grid-2 grids, details/summary for Regles de vote, reso panel collapse, ctx-panel removal, smart defaults)
 - [ ] 41.2-02-PLAN.md — Visual verification checkpoint (1080p viewport fit confirmation)
+
+### Phase 41.3: Horizontal-First Layout Redesign (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 41.2
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 41.3 to break down)
