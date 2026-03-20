@@ -13,9 +13,9 @@
 ### Core Pages (CORE)
 
 - [x] **CORE-01**: Dashboard — redesign visuel complet (composition KPI, session list, aside, densité, typographie, guidance tooltips)
-- [ ] **CORE-02**: Wizard — redesign visuel (stepper, formulaire centré, progression, espacement, micro-interactions, field-level tooltips)
+- [x] **CORE-02**: Wizard — redesign visuel (stepper, formulaire centré, progression, espacement, micro-interactions, field-level tooltips)
 - [ ] **CORE-03**: Operator console — redesign visuel (sidebar agenda, status bar, tabs, live panel, densité opérationnelle, action tooltips)
-- [ ] **CORE-04**: Hub — redesign visuel (stepper sidebar, quorum bar, checklist, états de session, step guidance tooltips)
+- [x] **CORE-04**: Hub — redesign visuel (stepper sidebar, quorum bar, checklist, états de session, step guidance tooltips)
 - [ ] **CORE-05**: Post-session — redesign visuel (stepper, result cards, progression archivage, espacement sections, status tooltips)
 - [ ] **CORE-06**: Settings/Admin — redesign visuel (sidenav, formulaires, KPI admin, section cards, setting explanation tooltips)
 
@@ -65,8 +65,8 @@
 | UX-02 | Phase 35 | Complete |
 | CORE-01 | Phase 35 | Complete |
 | SEC-01 | Phase 35 | Complete |
-| CORE-02 | Phase 36 | Pending |
-| CORE-04 | Phase 36 | Pending |
+| CORE-02 | Phase 36 | Complete |
+| CORE-04 | Phase 36 | Complete |
 | CORE-03 | Phase 37 | Pending |
 | SEC-05 | Phase 37 | Pending |
 | CORE-05 | Phase 38 | Pending |
