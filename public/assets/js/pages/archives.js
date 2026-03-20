@@ -11,6 +11,7 @@
   var currentYear = '';
   var currentPage = 1;
   var perPage = 5;
+  var currentStatusFilter = '';
 
   // Meeting type labels
   var TYPE_LABELS = {
@@ -35,15 +36,38 @@
     }
   }
 
+  // Reset all filters
+  function resetFilters() {
+    searchInput.value = '';
+    yearFilter.value = '';
+    currentYear = '';
+    // Reset type filter
+    document.querySelectorAll('#archiveTypeFilter .filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    var allTypeTab = document.querySelector('#archiveTypeFilter .filter-tab[data-type=""]');
+    if (allTypeTab) allTypeTab.classList.add('active');
+    currentType = '';
+    // Reset status filter
+    document.querySelectorAll('#archiveStatusFilter .filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    var allStatusTab = document.querySelector('#archiveStatusFilter .filter-tab[data-status=""]');
+    if (allStatusTab) allStatusTab.classList.add('active');
+    currentStatusFilter = '';
+    currentPage = 1;
+    applyFilters();
+  }
+
+  // Expose resetFilters globally for inline onclick
+  window.resetFilters = resetFilters;
+
   // Render archives (paginated)
   function render(items) {
     var paginationEl = document.getElementById('archivesPagination');
     if (!items || items.length === 0) {
       var query = searchInput.value.trim();
-      if (query) {
-        archivesList.innerHTML = '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" description="Aucune archive ne correspond \u00e0 \u00ab ' + escapeHtml(query) + ' \u00bb"></ag-empty-state>';
+      var hasActiveFilters = query || currentYear || currentType || currentStatusFilter;
+      if (hasActiveFilters) {
+        archivesList.innerHTML = '<ag-empty-state icon="archive" title="Aucune s\u00e9ance trouv\u00e9e" description="Aucun r\u00e9sultat ne correspond aux filtres s\u00e9lectionn\u00e9s."><button class="btn btn-secondary btn-sm" onclick="resetFilters()">Effacer les filtres</button></ag-empty-state>';
       } else {
-        archivesList.innerHTML = '<ag-empty-state icon="archives" title="Aucune s\u00e9ance archiv\u00e9e" description="' + (currentYear ? 'Aucune archive pour ' + currentYear : 'Les s\u00e9ances valid\u00e9es et archiv\u00e9es apparaissent ici.') + '"></ag-empty-state>';
+        archivesList.innerHTML = '<ag-empty-state icon="archive" title="Aucune s\u00e9ance archiv\u00e9e" description="' + (currentYear ? 'Aucune archive pour ' + currentYear : 'Les s\u00e9ances valid\u00e9es et archiv\u00e9es apparaissent ici.') + '"></ag-empty-state>';
       }
       if (paginationEl) paginationEl.innerHTML = '';
       return;
@@ -111,18 +135,19 @@
       var ballotsCount = m.ballots_count || m.total_ballots || '—';
       var meetingType = escapeHtml(TYPE_LABELS[m.meeting_type] || m.meeting_type || '—');
       var resolutionSummary = escapeHtml(m.resolution_summary || (motionsCount !== '—' ? motionsCount + ' résolution(s)' : '—'));
+      var status = escapeHtml(m.status || 'archived');
 
       var pvUrl = '/api/v1/meeting_report.php?meeting_id=' + encodeURIComponent(id);
       var auditUrl = '/api/v1/audit_export.php?meeting_id=' + encodeURIComponent(id);
 
-      return '<div class="archive-card-enhanced">' +
+      return '<div class="archive-card-enhanced" data-status="' + status + '">' +
           '<div class="archive-card-header">' +
             '<div>' +
               '<div class="font-semibold text-lg">' + title + '</div>' +
               '<div class="text-sm text-muted mt-1">' +
                 '<span>' + icon('gavel', 'icon-sm icon-muted') + ' ' + president + '</span>' +
                 '<span class="mx-2">•</span>' +
-                '<span>' + icon('calendar', 'icon-sm icon-muted') + ' ' + archived + '</span>' +
+                '<span>' + icon('calendar', 'icon-sm icon-muted') + ' <span class="archive-date">' + archived + '</span></span>' +
                 '<span class="mx-2">•</span>' +
                 '<span class="tag tag-ghost">' + meetingType + '</span>' +
               '</div>' +
@@ -131,14 +156,14 @@
               (hasReport
                 ? '<span class="archive-badge has-pv">' + icon('check-circle', 'icon-sm icon-success') + ' PV</span>'
                 : '<span class="archive-badge no-pv">' + icon('clock', 'icon-sm') + ' PV en attente</span>') +
-              '<span class="badge badge-success">Archivée</span>' +
+              '<span class="badge badge-success">Archiv\u00e9e</span>' +
             '</div>' +
           '</div>' +
           '<div class="archive-card-body">' +
             '<div class="archive-info-grid">' +
               '<div class="archive-info-item">' +
                 '<div class="archive-info-value">' + escapeHtml(String(motionsCount)) + '</div>' +
-                '<div class="archive-info-label">Résolutions</div>' +
+                '<div class="archive-info-label">R\u00e9solutions</div>' +
               '</div>' +
               '<div class="archive-info-item">' +
                 '<div class="archive-info-value">' + escapeHtml(String(ballotsCount)) + '</div>' +
@@ -146,7 +171,7 @@
               '</div>' +
               '<div class="archive-info-item">' +
                 '<div class="archive-info-value">' + escapeHtml(String(m.present_count || '—')) + '</div>' +
-                '<div class="archive-info-label">Présents</div>' +
+                '<div class="archive-info-label">Pr\u00e9sents</div>' +
               '</div>' +
               '<div class="archive-info-item">' +
                 '<div class="archive-info-value">' + escapeHtml(String(m.proxy_count || '0')) + '</div>' +
@@ -159,12 +184,12 @@
           '</div>' +
           '<div class="archive-card-footer">' +
             '<div class="text-xs text-muted">' +
-              (hasReport ? 'SHA: <code>' + escapeHtml(sha) + '</code>' : 'Intégrité non vérifiée') +
+              (hasReport ? 'SHA: <span class="archive-sha">' + escapeHtml(sha) + '</span>' : 'Int\u00e9grit\u00e9 non v\u00e9rifi\u00e9e') +
             '</div>' +
-            '<div class="flex gap-2">' +
+            '<div class="archive-card-actions flex gap-2">' +
               (hasReport ? '<a class="btn btn-primary btn-sm" href="' + pvUrl + '" target="_blank">' + icon('file-text', 'icon-sm icon-text') + 'PV</a>' : '') +
               '<a class="btn btn-secondary btn-sm" href="' + auditUrl + '" target="_blank">' + icon('shield-check', 'icon-sm icon-text') + 'Audit</a>' +
-              '<button class="btn btn-ghost btn-sm btn-view-details" data-id="' + escapeHtml(id) + '">Détails</button>' +
+              '<button class="btn btn-ghost btn-sm btn-view-details" data-id="' + escapeHtml(id) + '">D\u00e9tails</button>' +
             '</div>' +
           '</div>' +
         '</div>';
@@ -174,16 +199,16 @@
   // List view rendering
   function renderListView(items) {
     archivesList.innerHTML = `
-        <table class="table" style="width:100%">
+        <table class="table archive-list-table">
           <thead>
             <tr>
-              <th>Titre</th>
-              <th>Président</th>
-              <th>Date d'archive</th>
-              <th>Résolutions</th>
-              <th>Bulletins</th>
-              <th>PV</th>
-              <th>Actions</th>
+              <th><ag-tooltip text="Titre de la seance archivee" position="bottom">Titre</ag-tooltip></th>
+              <th><ag-tooltip text="Nom du president de seance" position="bottom">Pr\u00e9sident</ag-tooltip></th>
+              <th><ag-tooltip text="Date d'archivage ou de validation de la seance" position="bottom">Date d'archive</ag-tooltip></th>
+              <th><ag-tooltip text="Nombre de r\u00e9solutions vot\u00e9es" position="bottom">R\u00e9solutions</ag-tooltip></th>
+              <th><ag-tooltip text="Nombre de bulletins de vote enregistr\u00e9s" position="bottom">Bulletins</ag-tooltip></th>
+              <th><ag-tooltip text="Proc\u00e8s-verbal disponible" position="bottom">PV</ag-tooltip></th>
+              <th><ag-tooltip text="Actions disponibles pour cette s\u00e9ance" position="bottom">Actions</ag-tooltip></th>
             </tr>
           </thead>
           <tbody>
@@ -203,7 +228,7 @@
                 <tr>
                   <td class="font-medium">${title}</td>
                   <td>${president}</td>
-                  <td class="text-sm">${archived}</td>
+                  <td><span class="archive-date">${archived}</span></td>
                   <td class="text-center">${motionsCount}</td>
                   <td class="text-center">${ballotsCount}</td>
                   <td class="text-center">
@@ -227,10 +252,25 @@
 
   // Reset KPIs to placeholder
   function resetKPIs() {
-    ['kpiTotal', 'kpiWithPV', 'kpiThisYear', 'kpiAvgParticipation', 'kpiDateRange',
-      'statTotal', 'statWithPV', 'statMotions', 'statBallots'].forEach(function (id) {
+    ['kpiTotal', 'kpiWithPV', 'kpiThisYear', 'kpiAvgParticipation', 'kpiDateRange'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.textContent = '—';
+    });
+  }
+
+  // Update type filter count badges
+  function updateTypeFilterCounts(archives) {
+    var counts = { '': archives.length };
+    archives.forEach(function(a) {
+      var t = (a.meeting_type || '').toLowerCase();
+      if (counts[t] === undefined) counts[t] = 0;
+      counts[t]++;
+    });
+    document.querySelectorAll('#archiveTypeFilter .filter-tab').forEach(function(btn) {
+      var type = btn.dataset.type;
+      var span = btn.querySelector('.count');
+      if (!span) { span = document.createElement('span'); span.className = 'count'; btn.appendChild(span); }
+      span.textContent = counts[type !== undefined ? type : ''] || 0;
     });
   }
 
@@ -290,17 +330,11 @@
             document.getElementById('kpiDateRange').textContent = '—';
           }
 
-          // Calculate aggregate stats
-          const totalMotions = allArchives.reduce((sum, a) => sum + (parseInt(a.motions_count) || parseInt(a.total_motions) || 0), 0);
-          const totalBallots = allArchives.reduce((sum, a) => sum + (parseInt(a.ballots_count) || parseInt(a.total_ballots) || 0), 0);
-
-          document.getElementById('statTotal').textContent = total;
-          document.getElementById('statWithPV').textContent = withPV;
-          document.getElementById('statMotions').textContent = totalMotions || '—';
-          document.getElementById('statBallots').textContent = totalBallots || '—';
-
           // Populate year filter
           populateYearFilter();
+
+          // Update type filter count badges
+          updateTypeFilterCounts(allArchives);
 
           // Populate export select
           const exportSelect = document.getElementById('exportMeetingSelect');
@@ -355,6 +389,13 @@
       });
     }
 
+    // Status filter
+    if (currentStatusFilter) {
+      filtered = filtered.filter(function(a) {
+        return (a.status || '') === currentStatusFilter;
+      });
+    }
+
     // Year filter
     if (currentYear) {
       filtered = filtered.filter(function(a) {
@@ -378,11 +419,22 @@
 
   // Type filter tabs
   let currentType = '';
-  document.querySelectorAll('.filter-tab[data-type]').forEach(tab => {
+  document.querySelectorAll('#archiveTypeFilter .filter-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.filter-tab[data-type]').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#archiveTypeFilter .filter-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       currentType = tab.dataset.type || '';
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  // Status filter tabs
+  document.querySelectorAll('#archiveStatusFilter .filter-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelector('#archiveStatusFilter .filter-tab.active').classList.remove('active');
+      btn.classList.add('active');
+      currentStatusFilter = btn.dataset.status || '';
       currentPage = 1;
       applyFilters();
     });

@@ -63,24 +63,29 @@
         <!-- Stats -->
         <div class="kpi-grid">
           <div class="kpi-card">
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
             <div class="kpi-value primary" id="kpiTotal">—</div>
-            <div class="kpi-label">Séances archivées</div>
+            <div class="kpi-label"><ag-tooltip text="Nombre total de seances validees ou archivees" position="top">S&eacute;ances archiv&eacute;es</ag-tooltip></div>
           </div>
           <div class="kpi-card">
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
             <div class="kpi-value success" id="kpiWithPV">—</div>
-            <div class="kpi-label">Avec PV</div>
+            <div class="kpi-label"><ag-tooltip text="Seances ayant un proces-verbal genere" position="top">Avec PV</ag-tooltip></div>
           </div>
           <div class="kpi-card">
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
             <div class="kpi-value" id="kpiThisYear">—</div>
-            <div class="kpi-label">Cette année</div>
+            <div class="kpi-label"><ag-tooltip text="Seances archivees depuis le 1er janvier de l'annee en cours" position="top">Cette ann&eacute;e</ag-tooltip></div>
           </div>
           <div class="kpi-card">
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
             <span class="kpi-value success" id="kpiAvgParticipation">—</span>
-            <span class="kpi-label">Participation moy.</span>
+            <span class="kpi-label"><ag-tooltip text="Taux moyen de participation aux votes sur l'ensemble des seances" position="top">Participation moy.</ag-tooltip></span>
           </div>
           <div class="kpi-card">
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
             <span class="kpi-value" id="kpiDateRange">—</span>
-            <span class="kpi-label">Période</span>
+            <span class="kpi-label"><ag-tooltip text="Plage de dates couverte par les seances archivees" position="top">P&eacute;riode</ag-tooltip></span>
           </div>
         </div>
 
@@ -90,6 +95,14 @@
           <button class="filter-tab" data-type="ag_ordinaire">AG Ord.</button>
           <button class="filter-tab" data-type="ag_extraordinaire">AG Extra.</button>
           <button class="filter-tab" data-type="conseil">Conseil</button>
+        </div>
+
+        <!-- Status filter chips -->
+        <div class="filter-tabs" id="archiveStatusFilter">
+          <button class="filter-tab active" data-status="">Tous statuts</button>
+          <button class="filter-tab" data-status="validated">Valid&eacute;e</button>
+          <button class="filter-tab" data-status="archived">Archiv&eacute;e</button>
+          <button class="filter-tab" data-status="pv_sent">PV envoy&eacute;</button>
         </div>
 
         <!-- Toolbar -->
@@ -114,25 +127,6 @@
         <!-- Archives list card -->
         <div class="table-card">
           <div class="table-wrapper">
-            <!-- Summary stats -->
-            <div class="archive-stats" id="archiveStats">
-              <div class="archive-stat">
-                <div class="archive-stat-value" id="statTotal">—</div>
-                <div class="archive-stat-label">Total archivées</div>
-              </div>
-              <div class="archive-stat">
-                <div class="archive-stat-value" id="statWithPV">—</div>
-                <div class="archive-stat-label">Avec PV</div>
-              </div>
-              <div class="archive-stat">
-                <div class="archive-stat-value" id="statMotions">—</div>
-                <div class="archive-stat-label">Résolutions</div>
-              </div>
-              <div class="archive-stat">
-                <div class="archive-stat-value" id="statBallots">—</div>
-                <div class="archive-stat-label">Bulletins</div>
-              </div>
-            </div>
             <div id="archivesList">
               <div class="text-center p-6">
                 <div class="spinner"></div>

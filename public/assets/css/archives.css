@@ -87,37 +87,11 @@
 }
 
 /* =============================================================================
-   ARCHIVE STATS
+   ARCHIVE STATS (removed — duplicate stats section deleted from HTML)
    ============================================================================= */
-
-.archive-stats {
-  display: flex;
-  gap: var(--space-6);
-  flex-wrap: wrap;
-  padding: var(--space-4) var(--space-card);
-  background: var(--color-bg-subtle);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-4);
-}
 
 #archivesList {
   padding: 0 var(--space-card);
-}
-
-.archive-stat {
-  text-align: center;
-}
-
-.archive-stat-value {
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-primary);
-}
-
-.archive-stat-label {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 
 /* =============================================================================
@@ -129,14 +103,41 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: border-color var(--duration-normal), box-shadow var(--duration-normal), transform var(--duration-normal);
+  transition: border-color var(--duration-normal), box-shadow var(--duration-normal), background var(--duration-normal);
   margin-bottom: var(--space-4);
 }
 
 .archive-card-enhanced:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--color-primary);
-  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-raised);
+}
+
+/* Status left-border accent */
+.archive-card-enhanced[data-status="validated"] {
+  border-left: 3px solid var(--color-primary);
+}
+
+.archive-card-enhanced[data-status="archived"] {
+  border-left: 3px solid var(--color-success);
+}
+
+.archive-card-enhanced[data-status="pv_sent"] {
+  border-left: 3px solid var(--color-warning);
+}
+
+/* Hover-reveal card actions */
+.archive-card-actions {
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.archive-card-enhanced:hover .archive-card-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .archive-card-actions { opacity: 1; }
 }
 
 .archive-card-header {
@@ -218,6 +219,17 @@
 /* Archive search input width (replaces inline style) */
 .archive-search-input { width: 180px; }
 
+/* Archive date mono font */
+.archive-date {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+/* Archive list table */
+.archive-list-table {
+  width: 100%;
+}
+
 /* =============================================================================
    PAGINATION
    ============================================================================= */
@@ -233,39 +245,14 @@
 
 /* =============================================================================
    KPI GRID
+   (Local .kpi-grid/.kpi-card/.kpi-value/.kpi-label overrides removed — design-system.css definitions used instead)
    ============================================================================= */
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--space-4);
-}
-
-.kpi-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  text-align: center;
-}
-
-.kpi-value {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  line-height: 1;
-}
-
-.kpi-value.primary { color: var(--color-primary); }
-.kpi-value.success { color: var(--color-success); }
-
-.kpi-label {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: var(--font-semibold);
+/* KPI icon sizing */
+.kpi-card .kpi-icon {
+  width: 20px;
+  height: 20px;
   color: var(--color-text-muted);
-  margin-top: var(--space-1);
 }
 
 /* =============================================================================
@@ -273,10 +260,6 @@
    ============================================================================= */
 
 @media (max-width: 1024px) {
-  .kpi-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  }
-
   .archive-info-grid {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
@@ -287,41 +270,10 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
-  /* KPI cards stack vertically on mobile */
-  .kpi-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
-  }
-
-  .kpi-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    text-align: left;
-    padding: var(--space-3) var(--space-4);
-  }
-
-  .kpi-label {
-    margin-top: 0;
-  }
-
   /* Archive info grid stacks on mobile */
   .archive-info-grid {
     grid-template-columns: 1fr 1fr;
     gap: var(--space-3);
-  }
-
-  /* Archive stats stack vertically */
-  .archive-stats {
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .archive-stat {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
   }
 
   /* Archive card header stacks */
@@ -423,10 +375,6 @@
 
   .archive-title {
     font-size: var(--text-base);
-  }
-
-  .kpi-value {
-    font-size: var(--text-xl);
   }
 
   .view-toggle-btn {
