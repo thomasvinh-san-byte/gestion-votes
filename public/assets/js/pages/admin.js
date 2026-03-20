@@ -186,8 +186,8 @@
       }
     } catch (e) {
       setNotif('error', 'Erreur chargement utilisateurs');
-      var c = document.getElementById('usersTableBody');
-      if (c) c.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Erreur de chargement</td></tr>';
+      var c = document.getElementById('usersListContainer');
+      if (c) c.innerHTML = '<div class="p-6 text-center text-muted">Erreur de chargement</div>';
     }
   }
 
@@ -225,10 +225,10 @@
   }
 
   function renderUsersTable(users, page) {
-    var container = document.getElementById('usersTableBody');
+    var container = document.getElementById('usersListContainer');
     if (!container) return;
     if (!users.length) {
-      container.innerHTML = '<tr><td colspan="7">' + Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' }) + '</td></tr>';
+      container.innerHTML = '<div class="p-6">' + Shared.emptyState({ icon: 'members', title: 'Aucun utilisateur trouvé', description: 'Créez un compte depuis le formulaire ci-dessus.' }) + '</div>';
       updateUsersPagination(0, 0, 0);
       return;
     }
@@ -251,17 +251,30 @@
       var roleLabel = escapeHtml(roleLabelsSystem[u.role] || u.role);
       var variant = roleTagVariant[u.role] || '';
       var roleTagClass = variant ? 'tag tag-' + variant : 'tag';
-      var statusClass = u.is_active ? 'user-status-active' : 'user-status-inactive';
-      var statusLabel = u.is_active ? 'Actif' : 'Inactif';
-      return '<tr data-user-id="' + escapeHtml(u.id) + '">' +
-        '<td><div class="user-avatar-initials" style="background:' + avatarColor + '">' + escapeHtml(initials) + '</div></td>' +
-        '<td class="font-semibold">' + escapeHtml(u.name || '') + '</td>' +
-        '<td class="text-sm text-muted">' + escapeHtml(u.email || '') + '</td>' +
-        '<td><span class="' + roleTagClass + '">' + roleLabel + '</span></td>' +
-        '<td><span class="' + statusClass + '">' + statusLabel + '</span></td>' +
-        '<td class="text-sm text-muted">' + formatLastLogin(u.last_login) + '</td>' +
-        '<td><button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + escapeHtml(u.id) + '">Modifier</button></td>' +
-      '</tr>';
+      var activeClass = u.is_active !== false ? ' is-active' : ' is-inactive';
+      var statusLabel = u.is_active !== false ? 'Actif' : 'Inactif';
+      var statusBadgeClass = u.is_active !== false ? 'user-status-badge active' : 'user-status-badge';
+      var isActiveVal = u.is_active !== false ? '1' : '0';
+      var toggleLabel = u.is_active !== false ? 'D\u00e9sactiver' : 'Activer';
+      return '<div class="user-row' + activeClass + '" data-user-id="' + escapeHtml(u.id) + '">' +
+        '<div class="user-avatar" style="background:' + avatarColor + ';border-color:' + avatarColor + ';color:#fff">' + escapeHtml(initials) + '</div>' +
+        '<div class="user-row-body">' +
+          '<div class="user-row-main">' +
+            '<span class="user-row-name">' + escapeHtml(u.name || '') + '</span>' +
+            '<span class="user-row-email">' + escapeHtml(u.email || '') + '</span>' +
+          '</div>' +
+          '<div class="user-row-meta">' +
+            '<span class="' + roleTagClass + '">' + roleLabel + '</span>' +
+            '<span class="' + statusBadgeClass + '">' + statusLabel + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="user-row-actions">' +
+          '<ag-tooltip text="Modifier"><button class="btn btn-ghost btn-icon btn-xs btn-edit-user" data-id="' + escapeHtml(u.id) + '"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></ag-tooltip>' +
+          '<ag-tooltip text="Mot de passe"><button class="btn btn-ghost btn-icon btn-xs btn-password-user" data-id="' + escapeHtml(u.id) + '" data-name="' + escapeHtml(u.name || '') + '"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button></ag-tooltip>' +
+          '<ag-tooltip text="' + toggleLabel + '"><button class="btn btn-ghost btn-icon btn-xs btn-toggle-user" data-id="' + escapeHtml(u.id) + '" data-active="' + isActiveVal + '"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button></ag-tooltip>' +
+          '<ag-tooltip text="Supprimer"><button class="btn btn-ghost btn-icon btn-xs btn-danger-text btn-delete-user" data-id="' + escapeHtml(u.id) + '" data-name="' + escapeHtml(u.name || '') + '"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></ag-tooltip>' +
+        '</div>' +
+      '</div>';
     }).join('');
 
     updateUsersPagination(currentPage, totalPages, users.length, start, end);
@@ -412,8 +425,8 @@
     finally { Shared.btnLoading(btn, false); }
   });
 
-  // Delegated clicks on users table
-  document.getElementById('usersTableBody').addEventListener('click', async function(e) {
+  // Delegated clicks on users list
+  document.getElementById('usersListContainer').addEventListener('click', async function(e) {
     let btn;
 
     // Toggle active

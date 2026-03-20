@@ -395,12 +395,19 @@
   color: var(--color-primary);
 }
 
-/* Actions: always visible */
+/* Actions: hidden by default, revealed on row hover */
 
 .user-row-actions {
   display: flex;
   gap: 0.375rem;
   flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.user-row:hover .user-row-actions,
+.user-row:focus-within .user-row-actions {
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
@@ -422,41 +429,12 @@
   }
 }
 
-/* =============================================================================
-   TABLE COLUMN WIDTHS (legacy)
-   ============================================================================= */
-
-.table-col-actions {
-  width: 200px;
-}
-
-.table-col-actions-sm {
-  width: 100px;
-}
+/* Removed in 41.4: users-table/user-avatar-initials patterns — migrated to user-row flex */
+/* .table-col-actions, .table-col-actions-sm, .table-col-avatar, .user-avatar-initials, .user-status-active, .user-status-inactive removed */
 
 /* =============================================================================
-   USERS TABLE — AVATAR INITIALS, STATUS, PAGINATION
+   USERS TABLE — PAGINATION
    ============================================================================= */
-
-/* Avatar initials circle */
-.user-avatar-initials {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--color-text-inverse);
-  flex-shrink: 0;
-}
-
-.table-col-avatar { width: 52px; }
-
-/* Status badges */
-.user-status-active { color: var(--color-success); }
-.user-status-inactive { color: var(--color-text-muted); }
 
 /* Pagination */
 .users-pagination {
@@ -469,10 +447,10 @@
 .pagination-controls { display: flex; align-items: center; gap: 0.5rem; }
 .pagination-pages { display: flex; gap: 0.25rem; }
 .pagination-page {
-  width: 28px; height: 28px;
+  width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: var(--text-sm);
   cursor: pointer;
   border: none; background: none;
   color: var(--color-text-dark);
