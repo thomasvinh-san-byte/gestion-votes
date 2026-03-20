@@ -89,3 +89,110 @@
 .pv-empty-state .skeleton:last-child {
   margin-bottom: 0;
 }
+
+/* =============================================================================
+   PV STATUS TIMELINE
+   ============================================================================= */
+
+.pv-timeline {
+  display: flex;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.pv-timeline-step {
+  text-align: center;
+  flex: 1;
+}
+
+.pv-step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-border);
+  margin: 0 auto var(--space-2);
+  transition: background var(--duration-normal), box-shadow var(--duration-normal);
+}
+
+.pv-timeline-step.done .pv-step-dot {
+  background: var(--color-success);
+}
+
+.pv-timeline-step.active .pv-step-dot {
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-subtle);
+}
+
+.pv-step-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-medium);
+}
+
+.pv-timeline-step.done .pv-step-label {
+  color: var(--color-success);
+}
+
+.pv-timeline-step.active .pv-step-label {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.pv-timeline-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  margin-bottom: 20px;
+}
+
+/* =============================================================================
+   DOWNLOAD CTA
+   ============================================================================= */
+
+.pv-download-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+  text-decoration: none;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
+.pv-download-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  color: var(--color-primary-text);
+}
+
+.pv-file-meta {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 400;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+/* =============================================================================
+   EXPORT BUTTON UPGRADES
+   ============================================================================= */
+
+.export-btn {
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
+
+.export-btn .export-label {
+  font-size: var(--text-md);
+}

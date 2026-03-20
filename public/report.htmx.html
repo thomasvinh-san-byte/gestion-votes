@@ -115,6 +115,29 @@
           </div>
         </div>
 
+        <!-- PV Status Timeline -->
+        <div class="pv-timeline" role="group" aria-label="Statut du proc&egrave;s-verbal">
+          <div class="pv-timeline-step done" data-step="generated">
+            <div class="pv-step-dot"></div>
+            <span class="pv-step-label">G&eacute;n&eacute;r&eacute;</span>
+          </div>
+          <div class="pv-timeline-connector"></div>
+          <div class="pv-timeline-step" data-step="validated">
+            <div class="pv-step-dot"></div>
+            <span class="pv-step-label">Valid&eacute;</span>
+          </div>
+          <div class="pv-timeline-connector"></div>
+          <div class="pv-timeline-step" data-step="sent">
+            <div class="pv-step-dot"></div>
+            <span class="pv-step-label">Envoy&eacute;</span>
+          </div>
+          <div class="pv-timeline-connector"></div>
+          <div class="pv-timeline-step" data-step="archived">
+            <div class="pv-step-dot"></div>
+            <span class="pv-step-label">Archiv&eacute;</span>
+          </div>
+        </div>
+
         <!-- Export complet Excel -->
         <div class="card mb-6">
           <div class="card-header">
@@ -141,6 +164,11 @@
             <p class="card-description">Disponibles après validation de la séance</p>
           </div>
           <div class="card-body">
+            <a class="pv-download-cta" href="#" id="pvDownloadCta">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>T&eacute;l&eacute;charger le PV</span>
+              <span class="pv-file-meta">PDF</span>
+            </a>
             <h4 class="text-sm font-semibold text-secondary mb-3">Format Excel (.xlsx)</h4>
             <div class="export-grid mb-6">
               <a class="export-btn" id="exportAttendanceXlsx" href="#" target="_blank">
