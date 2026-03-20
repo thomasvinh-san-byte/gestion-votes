@@ -122,7 +122,11 @@ Plans:
   3. The email template editor and preview panels are laid out in a clear two-pane grid — the user sees the effect of their edits without switching views
   4. The Help/FAQ accordion and category navigation are visually organized — a user can find an answer without scrolling through unrelated content
   5. All three pages feel part of the same visual system — section cards, typography, and spacing are consistent across settings, email editor, and help
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 40-01-PLAN.md — Settings + Email templates redesign (sidenav icons/accent, toggle switches, ag-tooltip on fields, card footers with save, CNIL accents, two-pane template editor, variable tags)
+- [ ] 40-02-PLAN.md — Admin + Help/FAQ redesign (KPI tooltips, tab icons, users KPI strip, state node tooltips, filter-tab pills, section title accents, search upgrade, support card)
+- [ ] 40-03-PLAN.md — Visual verification checkpoint (human review of all three pages)
 
 ### Phase 41: Public & Utility Pages
 **Goal**: Public-facing pages (Landing, Projector display, Report/PV, utilities) make a strong first impression on external users and close off every remaining visual gap in the app
@@ -147,5 +151,5 @@ Plans:
 | 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
 | 38. Results & History | 3/3 | Complete    | 2026-03-20 |
 | 39. Admin Data Tables | 3/3 | Complete    | 2026-03-20 |
-| 40. Configuration Cluster | 0/TBD | Not started | - |
+| 40. Configuration Cluster | 0/3 | Not started | - |
 | 41. Public & Utility Pages | 0/TBD | Not started | - |
