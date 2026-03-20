@@ -266,8 +266,8 @@
           var rate = parseFloat(m.rate) || 0;
           return '<tr>' +
             '<td>' + escapeHtml((m.title || 'S\u00e9ance').substring(0, 30)) + '</td>' +
-            '<td>' + (parseInt(m.present) || 0) + ' / ' + (parseInt(m.eligible) || 0) + '</td>' +
-            '<td>' + (parseInt(m.proxy) || 0) + '</td>' +
+            '<td class="col-numeric">' + (parseInt(m.present) || 0) + ' / ' + (parseInt(m.eligible) || 0) + '</td>' +
+            '<td class="col-numeric">' + (parseInt(m.proxy) || 0) + '</td>' +
             '<td><div class="table-progress-cell">' +
               '<div class="progress-bar table-progress-bar">' +
                 '<div class="progress-bar-fill ' + (rate >= 50 ? 'success' : 'warning') + '" style="width:' + Math.round(rate) + '%"></div>' +
@@ -588,7 +588,7 @@
           return '<tr>' +
             '<td>' + escapeHtml((m.title || 'S\u00e9ance').substring(0, 25)) + '</td>' +
             '<td>' + (m.date ? new Date(m.date).toLocaleDateString('fr-FR') : '-') + '</td>' +
-            '<td>' + Math.round(parseFloat(m.participation_rate) || 0) + '%</td>' +
+            '<td class="col-numeric">' + Math.round(parseFloat(m.participation_rate) || 0) + '%</td>' +
             '<td>' + flags + '</td>' +
             '</tr>';
         }).join('');
