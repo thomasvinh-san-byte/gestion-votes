@@ -90,20 +90,28 @@
           </div>
         </div>
 
-        <!-- Stepper progress bar (segmented bar) -->
+        <!-- Stepper progress bar (pill-shaped steps) -->
         <div class="ps-stepper" id="stepper" role="navigation" aria-label="&Eacute;tapes de cl&ocirc;ture" data-tour="postsession-stepper">
-          <div class="ps-seg active" data-step="1" aria-current="step">
-            <span class="ps-seg-num">1.</span> V&eacute;rification
-          </div>
-          <div class="ps-seg" data-step="2">
-            <span class="ps-seg-num">2.</span> Validation
-          </div>
-          <div class="ps-seg" data-step="3">
-            <span class="ps-seg-num">3.</span> Proc&egrave;s-verbal
-          </div>
-          <div class="ps-seg" data-step="4">
-            <span class="ps-seg-num">4.</span> Envoi &amp; Archivage
-          </div>
+          <ag-tooltip text="V&eacute;rifiez que tous les votes sont enregistr&eacute;s et les r&eacute;sultats coh&eacute;rents avant de continuer" position="bottom">
+            <div class="ps-seg active" data-step="1" aria-current="step">
+              <span class="ps-seg-num">1.</span> V&eacute;rification
+            </div>
+          </ag-tooltip>
+          <ag-tooltip text="Le pr&eacute;sident valide officiellement les r&eacute;sultats &mdash; action irr&eacute;versible" position="bottom">
+            <div class="ps-seg" data-step="2">
+              <span class="ps-seg-num">2.</span> Validation
+            </div>
+          </ag-tooltip>
+          <ag-tooltip text="G&eacute;n&eacute;rez et v&eacute;rifiez le proc&egrave;s-verbal. Le hash garantit l&rsquo;int&eacute;grit&eacute; du document" position="bottom">
+            <div class="ps-seg" data-step="3">
+              <span class="ps-seg-num">3.</span> Proc&egrave;s-verbal
+            </div>
+          </ag-tooltip>
+          <ag-tooltip text="Envoyez le PV aux participants et archivez d&eacute;finitivement la s&eacute;ance" position="bottom">
+            <div class="ps-seg" data-step="4">
+              <span class="ps-seg-num">4.</span> Envoi &amp; Archivage
+            </div>
+          </ag-tooltip>
         </div>
 
         <!-- ============================================================

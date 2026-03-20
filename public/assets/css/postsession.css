@@ -36,10 +36,10 @@
   padding: 0 var(--space-card);
 }
 
-/* ─── Segmented bar stepper (wireframe pattern) ─── */
+/* ─── Pill stepper (upgraded from flat segments) ─── */
 .ps-stepper {
   display: flex;
-  gap: 4px;
+  gap: var(--space-2);
   margin-bottom: var(--space-card);
   position: sticky;
   top: 80px;
@@ -49,17 +49,26 @@
   padding-bottom: var(--space-3);
 }
 
+/* ag-tooltip inside flex stepper must not break layout */
+.ps-stepper ag-tooltip {
+  display: contents;
+}
+
 .ps-seg {
   flex: 1;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm, 6px);
-  background: var(--color-bg-subtle);
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text-muted);
+  font-size: 0.8125rem;
   font-weight: 600;
-  font-size: 15px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   cursor: default;
-  transition: background 0.2s, color 0.2s;
+  transition: all var(--duration-normal) var(--ease-standard);
   user-select: none;
 }
 
@@ -67,22 +76,25 @@
   font-weight: 800;
 }
 
-/* Active step */
+/* Active step — primary glow ring */
 .ps-seg.active {
   background: var(--color-primary);
-  color: var(--color-text-inverse);
-  font-weight: 800;
+  color: var(--color-primary-text, #fff);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  font-weight: 700;
 }
 
-/* Done step — clickable */
+/* Done step — green success pill, clickable */
 .ps-seg.done {
-  background: var(--color-success);
-  color: var(--color-text-inverse);
+  background: var(--color-success-subtle);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
   cursor: pointer;
 }
 
 .ps-seg.done:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.05);
 }
 
 /* ─── Panels ─── */
@@ -495,12 +507,13 @@
 
 /* ─── RES-03: Enhanced stepper checkmarks ─── */
 .ps-seg.step-complete {
-  background: var(--color-success);
-  color: var(--color-text-inverse);
+  background: var(--color-success-subtle);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
 }
 
 .ps-seg.step-complete:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.05);
 }
 
 .step-complete-icon {
