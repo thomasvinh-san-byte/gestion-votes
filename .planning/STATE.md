@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 38-results-and-history 38-01-PLAN.md
-last_updated: "2026-03-20T06:06:51.259Z"
+stopped_at: Completed 38-02-PLAN.md
+last_updated: "2026-03-20T06:10:22.931Z"
 last_activity: 2026-03-20 — Phase 37 visual verification checkpoint approved (CORE-03, SEC-05)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 32
 ---
 
@@ -65,6 +65,9 @@ Progress: [███░░░░░░░] 32%
 - [Phase 37-live-session-conduct]: Confirmation state visibility controlled by data-vote-state CSS selectors only — removed hidden attribute from voteConfirmedState to enable entrance animation
 - [Phase 38-results-and-history]: ps-seg.done uses success-subtle background (not solid green) for readability — aligns with Phase 36 lesson
 - [Phase 38-results-and-history]: data-verdict attribute on JS-rendered details elements enables CSS left-border color coding without extra classes
+- [Phase 38-02]: Keep .overview-card-trend CSS rules even after HTML migration to kpi-card — JS references these for trend arrow coloring
+- [Phase 38-02]: meetings.js renderSessionItem() migrated to session-card pattern — CSS and JS changed in same wave to avoid mismatch (Pitfall 4)
+- [Phase 38-02]: getCtaLabel/getCtaHref helpers: Ouvrir for draft/scheduled, Reprendre for live/paused, Voir resultats for closed/validated/archived/pv_sent
 
 ### Pending Todos
 
@@ -76,7 +79,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T06:06:51.256Z
-Stopped at: Completed 38-results-and-history 38-01-PLAN.md
+Last session: 2026-03-20T06:10:22.928Z
+Stopped at: Completed 38-02-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 38
