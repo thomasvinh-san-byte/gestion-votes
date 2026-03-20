@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: executing
-stopped_at: Completed 43-02-PLAN.md
-last_updated: "2026-03-20T11:40:17.705Z"
+stopped_at: Completed 44-01-PLAN.md
+last_updated: "2026-03-20T12:10:07.333Z"
 last_activity: 2026-03-20 — Completed 43-01 dashboard ground-up rewrite HTML+CSS (f61d636)
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 28
 ---
 
@@ -54,6 +54,9 @@ Progress: [██░░░░░░░░] ~28%
 - **Stabilization first** — FIX-01/02 regressions cleared in Phase 42 before any rebuild work begins
 - [Phase 43-dashboard-rebuild]: Urgent banner hidden-by-default: HTML hidden attr, JS sets hidden=false on live meeting reveal
 - [Phase 43-dashboard-rebuild]: Live meeting banner href targets specific meeting (operator.htmx.html?meeting_id=...)
+- [Phase 44]: Password floating label uses JS-assisted .has-value on .field-group (label sibling of .field-input-wrap, not input)
+- [Phase 44]: Trust signal and footer moved outside .login-card into <main> — card focus-within glow stays clean
+- [Phase 44]: #demoPanel is static hidden div — Plan 02 will removeAttribute('hidden') instead of card.appendChild()
 
 ### Pending Todos
 
@@ -65,7 +68,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-20T11:39:37.001Z
-Stopped at: Completed 43-02-PLAN.md
+Last session: 2026-03-20T12:10:07.331Z
+Stopped at: Completed 44-01-PLAN.md
 Resume file: None
 Next action: /gsd:execute-phase 43 (plan 02 — dashboard JS wire-up)
