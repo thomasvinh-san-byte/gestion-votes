@@ -812,6 +812,11 @@
   gap: 1rem;
 }
 
+/* ─── Number input constraint ─── */
+.settings-form-grid input[type="number"] {
+  max-width: 120px;
+}
+
 .form-label-toggle {
   display: flex;
   align-items: center;

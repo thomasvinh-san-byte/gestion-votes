@@ -289,31 +289,33 @@
               </div>
             </div>
             <div class="card-body">
-              <div class="inline-form" id="createUserForm">
-                <div class="form-group">
-                  <label class="form-label" for="newName">Nom *</label>
-                  <input class="form-input" type="text" id="newName" placeholder="Jean Dupont" required maxlength="255">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="newEmail">Email *</label>
-                  <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com" required maxlength="320">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="newPassword">Mot de passe *</label>
-                  <input class="form-input" type="password" id="newPassword" placeholder="Min. 8 caractères" autocomplete="new-password" required minlength="8">
-                  <div class="password-strength" id="passwordStrength" hidden>
-                    <div class="password-strength-bar"><div class="password-strength-fill" id="passwordStrengthFill"></div></div>
-                    <span class="password-strength-text" id="passwordStrengthText">—</span>
+              <div id="createUserForm">
+                <div class="form-grid-2 mb-3">
+                  <div class="form-group">
+                    <label class="form-label" for="newName">Nom *</label>
+                    <input class="form-input" type="text" id="newName" placeholder="Jean Dupont" required maxlength="255">
                   </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="newRole">Rôle système</label>
-                  <select class="form-input" id="newRole">
-                    <option value="viewer">Observateur</option>
-                    <option value="operator">Opérateur</option>
-                    <option value="auditor">Auditeur</option>
-                    <option value="admin">Administrateur</option>
-                  </select>
+                  <div class="form-group">
+                    <label class="form-label" for="newEmail">Email *</label>
+                    <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com" required maxlength="320">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="newPassword">Mot de passe *</label>
+                    <input class="form-input" type="password" id="newPassword" placeholder="Min. 8 caractères" autocomplete="new-password" required minlength="8">
+                    <div class="password-strength" id="passwordStrength" hidden>
+                      <div class="password-strength-bar"><div class="password-strength-fill" id="passwordStrengthFill"></div></div>
+                      <span class="password-strength-text" id="passwordStrengthText">—</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="newRole">Rôle système</label>
+                    <select class="form-input" id="newRole">
+                      <option value="viewer">Observateur</option>
+                      <option value="operator">Opérateur</option>
+                      <option value="auditor">Auditeur</option>
+                      <option value="admin">Administrateur</option>
+                    </select>
+                  </div>
                 </div>
                 <button class="btn btn-primary" id="btnCreateUser">Ajouter</button>
               </div>
