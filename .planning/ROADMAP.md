@@ -151,5 +151,5 @@ Plans:
 | 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
 | 38. Results & History | 3/3 | Complete    | 2026-03-20 |
 | 39. Admin Data Tables | 3/3 | Complete    | 2026-03-20 |
-| 40. Configuration Cluster | 3/3 | Complete   | 2026-03-20 |
+| 40. Configuration Cluster | 3/3 | Complete    | 2026-03-20 |
 | 41. Public & Utility Pages | 0/TBD | Not started | - |

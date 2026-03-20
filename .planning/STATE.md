@@ -4,7 +4,7 @@ milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
 stopped_at: Completed 40-03-PLAN.md
-last_updated: "2026-03-20T07:23:49.628Z"
+last_updated: "2026-03-20T07:24:56.240Z"
 last_activity: "2026-03-20 — Phase 40 plan 1: Settings redesign — CSS toggles, ag-tooltip on all fields, card footers, CNIL accents, template two-pane (CORE-06, SEC-04)"
 progress:
   total_phases: 7
