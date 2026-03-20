@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 41.3-01-PLAN.md
-last_updated: "2026-03-20T09:12:08.386Z"
-last_activity: "2026-03-20 — Phase 41.2 plan 2: Visual verification checkpoint auto-approved — wizard viewport fit and UX improvements confirmed"
+stopped_at: Completed 41.3-02-PLAN.md
+last_updated: "2026-03-20T09:18:20.652Z"
+last_activity: "2026-03-20 — Phase 41.3 plan 2: wizard 3-col step 1 grid, 2-col recap, hub quorum+motions side by side"
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 28
-  completed_plans: 27
+  completed_plans: 28
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign complete — Phase 41.2: Wizard UX and General Flow Improvements (all 2 plans complete)
+**Current focus:** v4.2 Visual Redesign — Phase 41.3: Horizontal-First Layout Redesign (plan 2 of 2 complete)
 
 ## Current Position
 
-Phase: 41.2 of 41.2 (Wizard UX and General Flow Improvements — COMPLETE)
-Plan: 2 of 2 (41.2-02 complete — Visual verification checkpoint auto-approved)
+Phase: 41.3 of 41.3 (Horizontal-First Layout Redesign — COMPLETE)
+Plan: 2 of 2 (41.3-02 complete — wizard 3-col step 1, 2-col recap, hub live-pair side by side)
 Status: Milestone v4.2 Visual Redesign fully complete
-Last activity: 2026-03-20 — Phase 41.2 plan 2: Visual verification checkpoint auto-approved — wizard viewport fit and UX improvements confirmed
+Last activity: 2026-03-20 — Phase 41.3 plan 2: wizard 3-col step 1 grid, 2-col recap, hub quorum+motions side by side
 
 Progress: [██████████] 100%
 
@@ -100,6 +100,9 @@ Progress: [██████████] 100%
 - [Phase 41.2-wizard-ux-and-general-flow-improvements]: Visual checkpoint auto-approved — user deferred all visual approvals to milestone review
 - [Phase 41.3-horizontal-first-layout-redesign]: .form-grid-3 collapses to 2 columns at 1024px (intermediate) before 1 column at 768px — avoids 3-to-1 jump
 - [Phase 41.3-horizontal-first-layout-redesign]: Both 680px track cap and 480px field cap removed together — removing only one leaves standalone inputs still capped at 480px
+- [Phase 41.3-02]: .hub-live-pair is layout-only wrapper (no id/style/display:none) — JS controls individual children hubQuorumSection and hubMotionsSection
+- [Phase 41.3-02]: warnings string stays outside .review-grid in wizard recap — spans full width below 2-column layout
+- [Phase 41.3-02]: resoDesc textarea uses form-textarea class (not field-input) — consistent with 41.1 textarea convention
 
 ### Pending Todos
 
@@ -111,7 +114,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T09:12:00.993Z
-Stopped at: Completed 41.3-01-PLAN.md
+Last session: 2026-03-20T09:18:20.649Z
+Stopped at: Completed 41.3-02-PLAN.md
 Resume file: None
 Next action: Milestone v4.2 complete — ready for next milestone
