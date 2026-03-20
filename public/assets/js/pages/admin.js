@@ -1092,7 +1092,7 @@
       document.getElementById('stateFlow').innerHTML = flow.map(function(s, i) {
         const label = statuses[s] || s;
         const icon = stateIcons[s] || '';
-        return (i > 0 ? '<span class="state-arrow-visual">→</span>' : '') +
+        return (i > 0 ? '<span class="state-arrow-visual" aria-hidden="true"></span>' : '') +
           '<span class="state-node-visual ' + escapeHtml(s) + '">' + icon + ' ' + escapeHtml(label) + '</span>';
       }).join('');
 
@@ -1101,8 +1101,8 @@
         const fromIcon = stateIcons[t.from_status] || '';
         const toIcon = stateIcons[t.to_status] || '';
         return '<tr>' +
-          '<td><span class="state-node-visual ' + escapeHtml(t.from_status) + '" style="padding:0.5rem 0.75rem;font-size:0.8rem">' + fromIcon + ' ' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
-          '<td><span class="state-node-visual ' + escapeHtml(t.to_status) + '" style="padding:0.5rem 0.75rem;font-size:0.8rem">' + toIcon + ' ' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
+          '<td><span class="state-node-visual state-node-sm ' + escapeHtml(t.from_status) + '">' + fromIcon + ' ' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
+          '<td><span class="state-node-visual state-node-sm ' + escapeHtml(t.to_status) + '">' + toIcon + ' ' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
           '<td><span class="role-badge ' + escapeHtml(t.required_role) + '">' + escapeHtml(allRoleLabels[t.required_role] || t.required_role) + '</span></td>' +
           '<td class="text-sm">' + escapeHtml(t.description || '') + '</td></tr>';
       }).join('');
