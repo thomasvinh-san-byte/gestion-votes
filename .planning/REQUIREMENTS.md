@@ -31,13 +31,13 @@
 ### Secondary Pages (SEC)
 
 - [x] **SEC-01**: Login — redesign visuel (card centré, branding, champs, CTA)
-- [ ] **SEC-02**: Landing — redesign visuel (hero, features, trust signals, CTA)
+- [x] **SEC-02**: Landing — redesign visuel (hero, features, trust signals, CTA)
 - [x] **SEC-03**: Help/FAQ — redesign visuel (accordion, catégories, search)
-- [ ] **SEC-04**: Email templates — redesign visuel (editor + preview grid)
+- [x] **SEC-04**: Email templates — redesign visuel (editor + preview grid)
 - [x] **SEC-05**: Vote (mobile) — redesign visuel (ballot, boutons, feedback, états, vote confirmation tooltips)
 - [ ] **SEC-06**: Public/Projector — redesign visuel (display temps réel, résultats)
 - [ ] **SEC-07**: Report/PV — redesign visuel (preview, download, timeline)
-- [ ] **SEC-08**: Trust/Validate/Doc — redesign visuel (pages utilitaires, cohérence)
+- [x] **SEC-08**: Trust/Validate/Doc — redesign visuel (pages utilitaires, cohérence)
 
 ## v5+ Requirements (Deferred)
 
@@ -77,12 +77,12 @@
 | DATA-01 | Phase 39 | Complete |
 | DATA-02 | Phase 39 | Complete |
 | CORE-06 | Phase 40 | Complete |
-| SEC-04 | Phase 40 | Pending |
+| SEC-04 | Phase 40 | Complete |
 | SEC-03 | Phase 40 | Complete |
-| SEC-02 | Phase 41 | Pending |
+| SEC-02 | Phase 41 | Complete |
 | SEC-06 | Phase 41 | Pending |
 | SEC-07 | Phase 41 | Pending |
-| SEC-08 | Phase 41 | Pending |
+| SEC-08 | Phase 41 | Complete |
 
 **Coverage:**
 - v4.2 requirements: 22 total (UX:2, CORE:6, DATA:6, SEC:8)

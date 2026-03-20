@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 40-03-PLAN.md
-last_updated: "2026-03-20T07:24:56.240Z"
+stopped_at: Completed 41-01-PLAN.md
+last_updated: "2026-03-20T07:42:33.021Z"
 last_activity: "2026-03-20 — Phase 40 plan 1: Settings redesign — CSS toggles, ag-tooltip on all fields, card footers, CNIL accents, template two-pane (CORE-06, SEC-04)"
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 18
-  completed_plans: 18
+  completed_phases: 7
+  total_plans: 21
+  completed_plans: 21
   percent: 98
 ---
 
@@ -81,6 +81,12 @@ Progress: [██████████] 98%
 - [Phase 40]: Toggle switches: CSS-only via .toggle-switch + .toggle-track::after — no new JS component, all input IDs preserved for auto-save compatibility
 - [Phase 40]: Template editor inline two-pane (1fr+400px) within Communication tab card — not a modal, not a separate page (Pitfall 6 from 40-RESEARCH.md)
 - [Phase 40-configuration-cluster]: [Phase 40-03]: Visual checkpoint deferred — user approved all three configuration cluster pages together at phase completion; CORE-06, SEC-04, SEC-03 confirmed
+- [Phase 41-public-and-utility-pages]: vote_confirm.php uses login-brand pattern (not login-logo/login-title) — matches actual login.html markup
+- [Phase 41-public-and-utility-pages]: Phase 41 plan 03 completes milestone v4.2 Visual Redesign — all public and utility pages now at v4.2 quality
+- [Phase 41-public-and-utility-pages]: Trust strip placed inside .hero-text (after .hero-bullets) so it appears on left side of hero alongside login card
+- [Phase 41-public-and-utility-pages]: [Phase 41-01]: .features-grid changed from auto-fit to repeat(3,1fr) for consistent 3-column desktop layout; login-btn gradient scoped to .login-card .login-btn to avoid interfering with other btn-primary buttons
+- [Phase 41]: CSS :has() used for verdict card coloring — avoids adding JS class to parent, pure CSS selector approach
+- [Phase 41]: PV timeline 4-step dot connector pattern (generated/validated/sent/archived) with .done/.active classes
 
 ### Pending Todos
 
@@ -92,7 +98,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:23:49.625Z
-Stopped at: Completed 40-03-PLAN.md
+Last session: 2026-03-20T07:42:25.691Z
+Stopped at: Completed 41-01-PLAN.md
 Resume file: None
 Next action: Execute 40-03-PLAN.md (Profile page + final polish)
