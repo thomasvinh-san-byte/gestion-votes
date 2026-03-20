@@ -172,10 +172,11 @@ Plans:
 
 ### Phase 41.2: Wizard UX and General Flow Improvements (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Compact each wizard step to fit on a 1080p viewport without scrolling. Apply 4 key interventions: padding reduction, form-grid-2 field pairings, details/summary section collapse, reso-add-panel collapse. Add smart defaults for date/time on fresh visits.
+**Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.1
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 41.2 to break down)
+- [ ] 41.2-01-PLAN.md — Wizard viewport compaction (CSS spacing reduction, form-grid-2 grids, details/summary for Regles de vote, reso panel collapse, ctx-panel removal, smart defaults)
+- [ ] 41.2-02-PLAN.md — Visual verification checkpoint (1080p viewport fit confirmation)
