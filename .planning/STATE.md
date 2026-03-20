@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
-status: planning
-stopped_at: Phase 36 context gathered
-last_updated: "2026-03-19T12:27:08.626Z"
-last_activity: 2026-03-19 — Roadmap created, 7 phases defined (35-41), 22 requirements mapped
+status: completed
+stopped_at: Completed 36-01-PLAN.md
+last_updated: "2026-03-20T04:57:43.122Z"
+last_activity: 2026-03-20 — Hub visual redesign complete (CORE-04)
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 0
+  total_plans: 6
+  completed_plans: 5
+  percent: 14
 ---
 
 # AG-VOTE — Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign — Phase 35: Entry Points (Dashboard + Login)
+**Current focus:** v4.2 Visual Redesign — Phase 36: Session Creation Flow (Hub redesign complete)
 
 ## Current Position
 
-Phase: 35 of 41 (Entry Points — not started)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-19 — Roadmap created, 7 phases defined (35-41), 22 requirements mapped
+Phase: 36 of 41 (Session Creation Flow — Plan 02 of 02 complete)
+Plan: 2 of 2 (Phase 36 complete)
+Status: Phase 36 done — ready for Phase 37
+Last activity: 2026-03-20 — Hub visual redesign complete (CORE-04)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 14%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 5
+- Average duration: ~8 min
+- Total execution time: ~40 min
 
 *Updated after each plan completion*
 
@@ -54,6 +54,11 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 35-entry-points]: field-error class on parent wrapper div enables future .field-error-msg child elements without additional JS
 - [Phase 35]: Used .kpi-card--N positional modifier classes instead of :nth-child to handle ag-tooltip grid wrapper incompatibility
 - [Phase 35-entry-points]: Visual approval deferred to milestone level — user will review all v4.2 pages together once full redesign is complete
+- [Phase 36-02]: Disabled hub-step-row::before pseudo-connector entirely — hub-step-line div rendered by JS is the single source of truth for connector lines
+- [Phase 36-02]: Done checklist items use opacity:1 (not 0.7 fade) — green badge + subtle green background communicate completion without losing readability
+- [Phase 36-02]: Motions title changed from 0.6875rem uppercase label to 1rem bold heading — aligns with card section titles
+- [Phase 36-session-creation-flow]: step-nav-counter uses flex centering instead of absolute positioning for sticky footer compatibility
+- [Phase 36-session-creation-flow]: .wiz-template-btn class kept on card elements for zero-change JS querySelector compatibility
 
 ### Pending Todos
 
@@ -65,7 +70,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-19T12:27:08.624Z
-Stopped at: Phase 36 context gathered
-Resume file: .planning/phases/36-session-creation-flow/36-CONTEXT.md
+Last session: 2026-03-20T04:57:43.119Z
+Stopped at: Completed 36-01-PLAN.md
+Resume file: None
 Next action: /gsd:plan-phase 35
