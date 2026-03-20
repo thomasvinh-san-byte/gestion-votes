@@ -126,17 +126,18 @@
           el = document.getElementById('kpiPV');
           if (el) el.textContent = meetings.filter(function (m) { return m.status === 'closed' || m.status === 'validated'; }).length;
 
-          // Urgent action — show if there's a live meeting
+          // Urgent action — reveal banner if there's a live meeting (banner is hidden by default in HTML)
+          var urgentCard = document.getElementById('actionUrgente');
           var liveMeeting = live.length > 0 ? live[0] : null;
-          if (liveMeeting) {
+          if (liveMeeting && urgentCard) {
+            urgentCard.hidden = false;
+            urgentCard.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(liveMeeting.id);
             var uTitle = document.getElementById('urgentTitle');
             var uSub = document.getElementById('urgentSub');
             if (uTitle) uTitle.textContent = 'S\u00e9ance en cours';
             if (uSub) uSub.textContent = liveMeeting.title || '';
-          } else {
-            var urgentCard = document.getElementById('actionUrgente');
-            if (urgentCard) urgentCard.hidden = true;
           }
+          // If no live meeting, banner stays hidden (HTML default) — no action needed
 
           // S\u00e9ances — all meetings sorted by lifecycle priority
           var prochaines = document.getElementById('prochaines');
