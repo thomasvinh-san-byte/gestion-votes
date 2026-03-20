@@ -194,10 +194,12 @@ Plans:
 
 ### Phase 41.4: Admin Page Deep Redesign (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Deep visual redesign of admin.htmx.html — transform every section to modern dashboard standards: horizontal KPIs with context lines, 20px tab icons with fade animation, CSS arrow state diagram, 3-column policy cards with icons, flex-based user rows with hover-reveal actions, system health mini-card grid with progress bars
+**Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.3
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 41.4 to break down)
+- [ ] 41.4-01-PLAN.md — Dashboard KPIs horizontal layout + context lines + tab navigation polish + system health mini-cards
+- [ ] 41.4-02-PLAN.md — Policy cards 3-column grid with icons + state diagram CSS arrows + meeting roles form-grid + badge/password fixes
+- [ ] 41.4-03-PLAN.md — Users table-to-flex migration with hover-reveal actions + visual checkpoint
