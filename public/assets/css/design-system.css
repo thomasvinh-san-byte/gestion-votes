@@ -1748,12 +1748,16 @@ h4, .h4 {
   gap: var(--space-2);
 }
 
+.form-group + .form-group {
+  margin-top: var(--space-field);
+}
+
 .form-label {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   text-transform: uppercase;
   letter-spacing: .5px;
-  color: var(--color-text);
+  color: var(--color-text-muted);
 }
 
 .form-label-required::after {
@@ -1801,8 +1805,27 @@ h4, .h4 {
 }
 
 .form-input::placeholder,
-.form-textarea::placeholder {
+.form-textarea::placeholder,
+.field-input::placeholder {
   color: var(--color-text-muted);
+  font-style: italic;
+  font-weight: var(--font-normal);
+}
+
+/* Custom select chevron — replaces browser-default arrow */
+select.form-input,
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23857F72' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 36px;
+}
+
+[data-theme="dark"] select.form-input,
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23BCB7A5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 .form-input.is-error,
@@ -1878,6 +1901,32 @@ h4, .h4 {
 .form-textarea {
   min-height: 100px;
   resize: vertical;
+}
+
+textarea.form-input {
+  min-height: 100px;
+  resize: vertical;
+  height: auto;
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-field);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-field) 12px;
+}
+
+.form-grid-2 .form-group-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 480px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
 }
 
 /* ─── Tables ─── */
