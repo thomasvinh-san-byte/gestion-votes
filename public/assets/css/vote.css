@@ -71,6 +71,11 @@
   height: 100dvh; /* dynamic viewport height — accounts for mobile browser chrome */
   background: var(--color-bg);
   font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+  --color-surface: var(--color-surface-alt, #f8f9fa); /* slightly warm/cool surface in light mode */
+}
+
+[data-theme="dark"] .vote-app {
+  --color-surface: var(--color-surface); /* dark mode uses existing dark surface tokens */
 }
 
 /* =============================================================================
@@ -532,6 +537,14 @@
   gap: 0.625rem;
 }
 
+.motion-number {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
 .motion-title {
   font-size: clamp(1.125rem, 3.5vw, 1.5rem);
   font-weight: 800;
@@ -658,39 +671,38 @@
 
 .vote-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr;
   align-items: stretch;
   gap: 10px;
-  max-width: 600px;
+  max-width: 480px;
   margin: 0 auto;
   width: 100%;
 }
 
 .vote-btn {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2rem 1rem;
-  font-size: var(--text-2xl);
+  justify-content: flex-start;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  font-size: var(--text-xl);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   cursor: pointer;
   transition: transform var(--duration-fast), box-shadow var(--duration-fast);
   position: relative;
   overflow: hidden;
-  min-height: 72px;
-  height: 100%;
+  min-height: 88px;
+  width: 100%;
   box-sizing: border-box;
+  text-align: left;
 }
 
 .vote-btn:active:not(:disabled) {
-  transform: scale(0.95);
   transition-duration: 80ms;
 }
 
@@ -734,6 +746,28 @@
 
 .vote-btn-icon {
   font-size: 3rem;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vote-btn-icon .icon,
+.vote-btn-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+@keyframes voteBtnPress {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+.vote-btn:active:not(:disabled) {
+  animation: voteBtnPress 0.15s ease-out;
 }
 
 .vote-btn-for {
@@ -778,15 +812,16 @@
 
 .vote-btn-kbd {
   position: absolute;
-  top: 0.75rem;
+  top: 0.5rem;
   right: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
   border: 2px solid color-mix(in srgb, var(--color-text-inverse) 30%, transparent);
-  font-size: var(--text-xs);
+  font-size: 0.6875rem;
   font-weight: 800;
   color: color-mix(in srgb, var(--color-text-inverse) 60%, transparent);
   background: var(--sidebar-hover);
+  opacity: 0.5;
 }
 
 .vote-btn-hint {
@@ -1290,24 +1325,29 @@
   }
 }
 
-/* Tablet landscape (769px+, landscape) — wider grid */
+/* Tablet landscape (769px+, landscape) — single-column layout maintained, constrained width */
 @media (min-width: 769px) and (orientation: landscape) {
   .vote-buttons {
-    max-width: 680px;
+    grid-template-columns: 1fr;
+    max-width: 480px;
   }
 }
 
 /* Tablet portrait/landscape (768px-1024px) — larger touch targets */
 @media (min-width: 769px) and (max-width: 1024px) {
   .vote-btn {
-    padding: 2.5rem 1.5rem;
-    font-size: 1.75rem;
-    border-radius: 20px;
-    gap: 1rem;
+    padding: 1.5rem 1.75rem;
+    font-size: var(--text-xl);
+    border-radius: 16px;
+    gap: 1.25rem;
+    min-height: 96px;
   }
 
-  .vote-btn-icon {
-    font-size: 3.5rem;
+  .vote-btn-icon,
+  .vote-btn-icon .icon,
+  .vote-btn-icon svg {
+    width: 32px;
+    height: 32px;
   }
 
   .vote-btn.selected::after {
@@ -1680,23 +1720,23 @@
 
 /* Override grid layout in voting state for full-width stacked buttons */
 [data-vote-state="voting"] .vote-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 560px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  max-width: 480px;
 }
 
 [data-vote-state="voting"] .vote-btn {
   width: 100%;
-  min-height: 72px;
-  font-size: var(--text-lg, 1.125rem);
-  font-weight: var(--font-semibold, 600);
-  border-radius: var(--radius-lg, 12px);
-  transition: background 150ms, transform 50ms, box-shadow 150ms;
+  min-height: 88px;
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: var(--font-bold, 800);
+  border-radius: 14px;
+  transition: background 150ms, box-shadow 150ms;
 }
 
-[data-vote-state="voting"] .vote-btn:active {
-  transform: scale(0.98);
+[data-vote-state="voting"] .vote-btn:active:not(:disabled) {
+  animation: voteBtnPress 0.15s ease-out;
 }
 
 /* Selected button ring (applied by JS after tap) */
@@ -1808,6 +1848,6 @@
 
   [data-vote-state="voting"] .vote-btn {
     font-size: var(--text-base, 1rem);
-    min-height: 64px;
+    min-height: 80px;
   }
 }
