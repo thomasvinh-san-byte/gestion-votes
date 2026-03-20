@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 37-live-session-conduct 37-01-PLAN.md
-last_updated: "2026-03-20T05:35:38.854Z"
+stopped_at: Completed 37-02 — Mobile voter ballot visual redesign
+last_updated: "2026-03-20T05:36:55.045Z"
 last_activity: 2026-03-20 — Phase 36 visual verification checkpoint approved at milestone level (CORE-02, CORE-04)
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 29
 ---
 
@@ -61,6 +61,8 @@ Progress: [██░░░░░░░░] 29%
 - [Phase 36-session-creation-flow]: .wiz-template-btn class kept on card elements for zero-change JS querySelector compatibility
 - [Phase 37-live-session-conduct]: Action buttons for operator console are in operator-exec.html partial (not operator.htmx.html) — ag-tooltip wrappers applied there
 - [Phase 37-live-session-conduct]: op-exec-status-bar is a separate element from .meeting-bar (exec mode only, setup mode meeting-bar unchanged)
+- [Phase 37-live-session-conduct]: Vote buttons 1x4 on all viewports including landscape tablet (Apple Wallet simplicity, no viewport exception)
+- [Phase 37-live-session-conduct]: Confirmation state visibility controlled by data-vote-state CSS selectors only — removed hidden attribute from voteConfirmedState to enable entrance animation
 
 ### Pending Todos
 
@@ -72,7 +74,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:35:38.852Z
-Stopped at: Completed 37-live-session-conduct 37-01-PLAN.md
+Last session: 2026-03-20T05:36:55.042Z
+Stopped at: Completed 37-02 — Mobile voter ballot visual redesign
 Resume file: None
 Next action: /gsd:plan-phase 37

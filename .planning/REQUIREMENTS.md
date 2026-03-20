@@ -14,7 +14,7 @@
 
 - [x] **CORE-01**: Dashboard — redesign visuel complet (composition KPI, session list, aside, densité, typographie, guidance tooltips)
 - [x] **CORE-02**: Wizard — redesign visuel (stepper, formulaire centré, progression, espacement, micro-interactions, field-level tooltips)
-- [ ] **CORE-03**: Operator console — redesign visuel (sidebar agenda, status bar, tabs, live panel, densité opérationnelle, action tooltips)
+- [x] **CORE-03**: Operator console — redesign visuel (sidebar agenda, status bar, tabs, live panel, densité opérationnelle, action tooltips)
 - [x] **CORE-04**: Hub — redesign visuel (stepper sidebar, quorum bar, checklist, états de session, step guidance tooltips)
 - [ ] **CORE-05**: Post-session — redesign visuel (stepper, result cards, progression archivage, espacement sections, status tooltips)
 - [ ] **CORE-06**: Settings/Admin — redesign visuel (sidenav, formulaires, KPI admin, section cards, setting explanation tooltips)
@@ -34,7 +34,7 @@
 - [ ] **SEC-02**: Landing — redesign visuel (hero, features, trust signals, CTA)
 - [ ] **SEC-03**: Help/FAQ — redesign visuel (accordion, catégories, search)
 - [ ] **SEC-04**: Email templates — redesign visuel (editor + preview grid)
-- [ ] **SEC-05**: Vote (mobile) — redesign visuel (ballot, boutons, feedback, états, vote confirmation tooltips)
+- [x] **SEC-05**: Vote (mobile) — redesign visuel (ballot, boutons, feedback, états, vote confirmation tooltips)
 - [ ] **SEC-06**: Public/Projector — redesign visuel (display temps réel, résultats)
 - [ ] **SEC-07**: Report/PV — redesign visuel (preview, download, timeline)
 - [ ] **SEC-08**: Trust/Validate/Doc — redesign visuel (pages utilitaires, cohérence)
@@ -67,8 +67,8 @@
 | SEC-01 | Phase 35 | Complete |
 | CORE-02 | Phase 36 | Complete |
 | CORE-04 | Phase 36 | Complete |
-| CORE-03 | Phase 37 | Pending |
-| SEC-05 | Phase 37 | Pending |
+| CORE-03 | Phase 37 | Complete |
+| SEC-05 | Phase 37 | Complete |
 | CORE-05 | Phase 38 | Pending |
 | DATA-05 | Phase 38 | Pending |
 | DATA-06 | Phase 38 | Pending |
