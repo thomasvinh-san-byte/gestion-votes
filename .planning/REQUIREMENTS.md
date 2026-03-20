@@ -7,8 +7,8 @@
 
 ### Stabilization (FIX)
 
-- [ ] **FIX-01**: Fix all v4.2 visual regressions — broken layouts, misaligned elements, missing styles across all pages
-- [ ] **FIX-02**: Fix all v4.2 JS regressions — broken event handlers, DOM selectors, HTMX targets caused by HTML restructuring
+- [x] **FIX-01**: Fix all v4.2 visual regressions — broken layouts, misaligned elements, missing styles across all pages
+- [x] **FIX-02**: Fix all v4.2 JS regressions — broken event handlers, DOM selectors, HTMX targets caused by HTML restructuring
 
 ### Ground-Up Page Rebuilds (REB)
 
@@ -45,8 +45,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 42 — Stabilization | Pending |
-| FIX-02 | Phase 42 — Stabilization | Pending |
+| FIX-01 | Phase 42 — Stabilization | Complete (2026-03-20) |
+| FIX-02 | Phase 42 — Stabilization | Complete (2026-03-20) |
 | REB-01 | Phase 43 — Dashboard Rebuild | Pending |
 | REB-02 | Phase 44 — Login Rebuild | Pending |
 | REB-03 | Phase 45 — Wizard Rebuild | Pending |

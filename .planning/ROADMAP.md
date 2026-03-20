@@ -20,7 +20,7 @@
 
 ## Phases
 
-- [ ] **Phase 42: Stabilization** - Fix all v4.2 regressions before any rebuild work begins
+- [x] **Phase 42: Stabilization** - Fix all v4.2 regressions before any rebuild work begins
 - [ ] **Phase 43: Dashboard Rebuild** - Complete HTML+CSS+JS rewrite, KPIs and session list wired to backend
 - [ ] **Phase 44: Login Rebuild** - Complete HTML+CSS rewrite, auth flow wired, top 1% entry point
 - [ ] **Phase 45: Wizard Rebuild** - Complete HTML+CSS+JS rewrite, all 4 steps wired, form submissions verified
@@ -42,7 +42,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 42-01-PLAN.md — Fix trust page kpiMotions crash and restore missing KPI stat elements
+- [x] 42-01-PLAN.md — Fix trust page kpiMotions crash and restore missing KPI stat elements
 
 ### Phase 43: Dashboard Rebuild
 **Goal**: The dashboard is a fully rebuilt, top 1% page — new HTML structure, new CSS, JS verified, KPIs and session list wired to live backend data
@@ -118,7 +118,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 42. Stabilization | 0/1 | Not started | - |
+| 42. Stabilization | 1/1 | Complete | 2026-03-20 |
 | 43. Dashboard Rebuild | 0/TBD | Not started | - |
 | 44. Login Rebuild | 0/TBD | Not started | - |
 | 45. Wizard Rebuild | 0/TBD | Not started | - |
