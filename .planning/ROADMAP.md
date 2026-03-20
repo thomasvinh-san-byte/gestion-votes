@@ -68,7 +68,11 @@ Plans:
   2. Field validation messages appear inline (empty fields, wrong credentials) without a full page reload
   3. The login page passes visual comparison against Stripe/Clerk reference quality — clean, centered, no legacy artifacts
   4. The page renders correctly with no layout breakage at 1024px+ viewport widths
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 44-01-PLAN.md — Rewrite login HTML+CSS from scratch with floating labels, gradient orb, 420px card
+- [ ] 44-02-PLAN.md — Update login.js selectors for new DOM, add floating label JS support, browser verify
 
 ### Phase 45: Wizard Rebuild
 **Goal**: The session creation wizard is fully rebuilt — all 4 steps fit the viewport, form submissions create real sessions, the stepper is functional, horizontal field layout throughout
@@ -124,7 +128,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 42. Stabilization | 1/1 | Complete    | 2026-03-20 |
 | 43. Dashboard Rebuild | 2/2 | Complete    | 2026-03-20 |
-| 44. Login Rebuild | 0/TBD | Not started | - |
+| 44. Login Rebuild | 0/2 | Not started | - |
 | 45. Wizard Rebuild | 0/TBD | Not started | - |
 | 46. Operator Console Rebuild | 0/TBD | Not started | - |
 | 47. Hub Rebuild | 0/TBD | Not started | - |
