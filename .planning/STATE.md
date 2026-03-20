@@ -11,7 +11,7 @@ progress:
   completed_phases: 7
   total_plans: 21
   completed_plans: 21
-  percent: 98
+  percent: 100
 ---
 
 # AG-VOTE — Project State

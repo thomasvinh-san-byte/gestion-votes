@@ -35,8 +35,8 @@
 - [x] **SEC-03**: Help/FAQ — redesign visuel (accordion, catégories, search)
 - [x] **SEC-04**: Email templates — redesign visuel (editor + preview grid)
 - [x] **SEC-05**: Vote (mobile) — redesign visuel (ballot, boutons, feedback, états, vote confirmation tooltips)
-- [ ] **SEC-06**: Public/Projector — redesign visuel (display temps réel, résultats)
-- [ ] **SEC-07**: Report/PV — redesign visuel (preview, download, timeline)
+- [x] **SEC-06**: Public/Projector — redesign visuel (display temps réel, résultats)
+- [x] **SEC-07**: Report/PV — redesign visuel (preview, download, timeline)
 - [x] **SEC-08**: Trust/Validate/Doc — redesign visuel (pages utilitaires, cohérence)
 
 ## v5+ Requirements (Deferred)
@@ -80,8 +80,8 @@
 | SEC-04 | Phase 40 | Complete |
 | SEC-03 | Phase 40 | Complete |
 | SEC-02 | Phase 41 | Complete |
-| SEC-06 | Phase 41 | Pending |
-| SEC-07 | Phase 41 | Pending |
+| SEC-06 | Phase 41 | Complete |
+| SEC-07 | Phase 41 | Complete |
 | SEC-08 | Phase 41 | Complete |
 
 **Coverage:**
