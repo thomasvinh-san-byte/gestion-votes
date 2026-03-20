@@ -78,6 +78,15 @@
     });
   }
 
+  /* ── Step labels (subtitle + counter) ────────────── */
+
+  var STEP_LABELS = [
+    'Informations g\u00e9n\u00e9rales',
+    'Participants',
+    'R\u00e9solutions',
+    'R\u00e9vision'
+  ];
+
   /* ── Step navigation ─────────────────────────────── */
 
   function showStep(n) {
@@ -87,6 +96,15 @@
       if (el) el.style.display = i === n ? '' : 'none';
     }
     updateStepper();
+
+    // Update step counter (WIZARD-03: "Etape X sur 4")
+    var counter = document.getElementById('stepNavCounter');
+    if (counter) counter.textContent = 'Etape ' + (n + 1) + ' sur 4';
+
+    // Update step subtitle in page header (WIZARD-01)
+    var sub = document.getElementById('wizStepSubtitle');
+    if (sub) sub.textContent = STEP_LABELS[n] || '';
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

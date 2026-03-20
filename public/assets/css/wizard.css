@@ -219,25 +219,61 @@
 }
 
 /* =============================================================================
-   STEP NAVIGATION BUTTONS
+   STEP NAVIGATION BUTTONS (WIZARD-03 redesign)
    ============================================================================= */
 
 .step-nav {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+  align-items: center;
   flex-shrink: 0;
   padding: 1.25rem 2.5rem;
   border-top: 1px solid var(--color-border-subtle);
-  background: var(--color-surface-raised); /* QA-02: elevated sticky nav footer above wizard step surface */
+  background: var(--color-surface-raised);
   border-radius: 0 0 12px 12px;
   position: sticky;
   bottom: 0;
   z-index: var(--z-sticky, 10);
+  /* For absolute positioning of counter */
 }
 
 .step-nav .btn:only-child {
   margin-left: auto;
+}
+
+/* Step counter — centered between back and next buttons */
+.step-nav-counter {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  flex: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Gradient CTA next button */
+.step-nav-next {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  box-shadow: 0 2px 8px var(--color-primary-glow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.step-nav-next:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--color-primary-glow);
+}
+
+/* Ghost back button */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
 }
 
 .step-nav .btn-outline {
@@ -607,9 +643,10 @@
 }
 
 /* =============================================================================
-   MOTION TEMPLATE BUTTONS
+   MOTION TEMPLATE CARDS (WIZARD-04 redesign)
    ============================================================================= */
 
+/* Legacy row (hidden when grid is used) */
 .wiz-templates-row {
   display: flex;
   align-items: center;
@@ -629,7 +666,68 @@
   flex-shrink: 0;
 }
 
-.wiz-template-btn {
+/* Card grid layout */
+.wiz-template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+/* Card style for template buttons */
+.wiz-template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.wiz-template-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  transform: translateY(-1px);
+}
+
+.wiz-template-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: var(--color-primary-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.wiz-template-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wiz-template-card-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  line-height: 1.2;
+}
+
+.wiz-template-card-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+/* Legacy inline button style (kept for non-grid context) */
+.wiz-template-btn:not(.wiz-template-card) {
   padding: 6px 14px;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -642,7 +740,7 @@
   box-shadow: var(--shadow-xs);
 }
 
-.wiz-template-btn:hover {
+.wiz-template-btn:not(.wiz-template-card):hover {
   background: var(--color-primary-subtle);
   color: var(--color-primary);
   border-color: var(--color-primary);
@@ -808,30 +906,32 @@
 }
 
 .review-section-title {
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
+/* Styled pill modifier buttons */
 .review-modifier {
   font-size: 0.75rem;
   font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
   color: var(--color-primary);
-  background: none;
   border: none;
   cursor: pointer;
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .review-modifier:hover {
-  background: var(--color-primary-subtle);
+  background: var(--color-primary);
+  color: white;
 }
 
 .review-row {
@@ -1064,6 +1164,10 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
+  .wiz-template-grid {
+    grid-template-columns: 1fr;
+  }
+
   .wiz-step-body {
     padding: 1.25rem 1rem;
   }

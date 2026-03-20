@@ -215,11 +215,12 @@
         </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
-          <a class="btn" href="/dashboard.htmx.html">
+          <a class="btn btn-ghost" href="/dashboard.htmx.html">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             Retour
           </a>
-          <button class="btn btn-primary" type="button" id="btnNext0">Suivant
+          <span class="step-nav-counter" id="stepNavCounter">Etape 1 sur 4</span>
+          <button class="btn btn-primary step-nav-next" type="button" id="btnNext0">Suivant
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
@@ -304,11 +305,12 @@
         </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
-          <button class="btn" type="button" id="btnPrev1">
+          <button class="btn btn-ghost" type="button" id="btnPrev1">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             Pr&eacute;c&eacute;dent
           </button>
-          <button class="btn btn-primary" type="button" id="btnNext1">Suivant
+          <span class="step-nav-counter">Etape 2 sur 4</span>
+          <button class="btn btn-primary step-nav-next" type="button" id="btnNext1">Suivant
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
@@ -322,12 +324,35 @@
           R&eacute;solutions (ordre du jour)
         </div>
 
-        <!-- Motion template quick-select buttons -->
-        <div class="wiz-templates-row">
-          <span class="wiz-templates-label">Mod&egrave;les rapides :</span>
-          <button class="btn btn-sm btn-ghost wiz-template-btn" type="button" data-template="approbation-comptes">Approbation des comptes</button>
-          <button class="btn btn-sm btn-ghost wiz-template-btn" type="button" data-template="election-conseil">&Eacute;lection au conseil</button>
-          <button class="btn btn-sm btn-ghost wiz-template-btn" type="button" data-template="modification-reglement">Modification du r&egrave;glement</button>
+        <!-- Motion template card grid (WIZARD-04 redesign) -->
+        <div class="wiz-template-grid">
+          <button class="wiz-template-card wiz-template-btn" type="button" data-template="approbation-comptes">
+            <div class="wiz-template-card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <div class="wiz-template-card-body">
+              <div class="wiz-template-card-title">Approbation des comptes</div>
+              <div class="wiz-template-card-desc">Validation des comptes de l'exercice</div>
+            </div>
+          </button>
+          <button class="wiz-template-card wiz-template-btn" type="button" data-template="election-conseil">
+            <div class="wiz-template-card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="wiz-template-card-body">
+              <div class="wiz-template-card-title">&Eacute;lection au conseil</div>
+              <div class="wiz-template-card-desc">&Eacute;lection des membres du conseil</div>
+            </div>
+          </button>
+          <button class="wiz-template-card wiz-template-btn" type="button" data-template="modification-reglement">
+            <div class="wiz-template-card-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="wiz-template-card-body">
+              <div class="wiz-template-card-title">Modification du r&egrave;glement</div>
+              <div class="wiz-template-card-desc">Modification du r&egrave;glement int&eacute;rieur</div>
+            </div>
+          </button>
         </div>
 
         <!-- Add resolution form -->
@@ -398,11 +423,12 @@
         </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
-          <button class="btn" type="button" id="btnPrev2">
+          <button class="btn btn-ghost" type="button" id="btnPrev2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             Pr&eacute;c&eacute;dent
           </button>
-          <button class="btn btn-primary" type="button" id="btnNext2">Suivant
+          <span class="step-nav-counter">Etape 3 sur 4</span>
+          <button class="btn btn-primary step-nav-next" type="button" id="btnNext2">Suivant
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
@@ -432,11 +458,12 @@
         </div><!-- /.wiz-step-body -->
 
         <div class="step-nav">
-          <button class="btn" type="button" id="btnPrev3">
+          <button class="btn btn-ghost" type="button" id="btnPrev3">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
             Pr&eacute;c&eacute;dent
           </button>
-          <button class="btn btn-primary" type="button" id="btnCreate">
+          <span class="step-nav-counter">Etape 4 sur 4</span>
+          <button class="btn btn-primary step-nav-next" type="button" id="btnCreate">
             Cr&eacute;er la s&eacute;ance &rarr;
           </button>
         </div>
