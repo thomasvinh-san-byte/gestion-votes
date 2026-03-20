@@ -158,6 +158,47 @@
   gap: var(--space-3);
 }
 
+/* ─── Session card density override ─── */
+/* design-system.css .session-card uses gap: 14px — override for meetings page density */
+.sessions-list .session-card {
+  gap: var(--space-3);
+}
+
+/* ─── Type badge ─── */
+.meeting-type-badge {
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-subtle, var(--color-bg-subtle));
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ─── Date in mono ─── */
+.sessions-list .session-card-date {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/* ─── State-based left border accents ─── */
+.sessions-list .session-card[data-status="live"],
+.sessions-list .session-card[data-status="paused"] {
+  border-left: 3px solid var(--color-danger);
+}
+
+.sessions-list .session-card[data-status="closed"],
+.sessions-list .session-card[data-status="validated"],
+.sessions-list .session-card[data-status="archived"],
+.sessions-list .session-card[data-status="pv_sent"] {
+  border-left: 3px solid var(--color-success);
+}
+
+/* ─── Legacy session-item (kept for backward compat, JS now emits session-card) ─── */
 .session-item {
   display: flex;
   align-items: center;
@@ -176,7 +217,7 @@
   background: var(--color-bg-subtle);
 }
 
-/* ─── Status dot ─── */
+/* ─── Status dot (legacy) ─── */
 .session-dot {
   width: 10px;
   height: 10px;
@@ -194,7 +235,7 @@
   50% { opacity: 0.4; }
 }
 
-/* ─── Session info ─── */
+/* ─── Session info (legacy) ─── */
 .session-info {
   flex: 1;
   min-width: 0;
@@ -224,7 +265,7 @@
   gap: 4px;
 }
 
-/* ─── Session actions ─── */
+/* ─── Session actions (legacy) ─── */
 .session-actions {
   flex-shrink: 0;
   display: flex;
@@ -528,9 +569,14 @@
   .session-meta-item.resolutions {
     display: none;
   }
+
+  /* For .session-card: hide type badge on small tablets */
+  .sessions-list .meeting-type-badge {
+    display: none;
+  }
 }
 
-/* Mobile: minimal display — dot, title, date, status tag */
+/* Mobile: minimal display — title, date, status tag */
 @media (max-width: 640px) {
   .session-meta-item {
     display: none;
@@ -538,5 +584,11 @@
 
   .session-meta-item.date {
     display: inline-flex;
+  }
+
+  /* Mobile: always show CTA (hover not reliable on touch) */
+  .sessions-list .session-card-cta {
+    opacity: 1;
+    transform: none;
   }
 }

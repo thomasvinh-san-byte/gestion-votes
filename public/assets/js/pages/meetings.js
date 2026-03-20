@@ -55,6 +55,14 @@
     pv_sent: 'muted'
   };
 
+  var TYPE_LABELS = {
+    ag_ordinaire: 'AG ordinaire',
+    ag_extraordinaire: 'AG extra.',
+    conseil: 'Conseil',
+    bureau: 'Bureau',
+    autre: 'Autre'
+  };
+
   var STATUS_LABELS = {
     draft: 'Brouillon',
     scheduled: 'Planifi&eacute;e',
@@ -239,32 +247,45 @@
   function renderSessionItem(m) {
     var id = m.id || m.meeting_id;
     var status = m.status || 'draft';
-    var dotClass = DOT_CLASS_MAP[status] || 'draft';
-    var tagVariant = TAG_VARIANT_MAP[status] || 'muted';
     var statusLabel = STATUS_LABELS[status] || status;
-    var quorumText = formatQuorum(m);
+    var typeLabel = TYPE_LABELS[m.meeting_type] || 'S\u00e9ance';
+    var ctaLabel = getCtaLabel(status);
+    var ctaHref = getCtaHref(status, id);
 
-    return '<div class="session-item" data-id="' + id + '" onclick="location.href=\'/hub.htmx.html?meeting_id=' + id + '\'">' +
-      '<span class="session-dot ' + dotClass + '"></span>' +
-      '<div class="session-info">' +
-        '<div class="session-title">' + Utils.escapeHtml(m.title || '') + '</div>' +
-        '<div class="session-meta">' +
-          '<span class="session-meta-item date">' + Utils.formatDate(m.scheduled_at) + '</span>' +
+    return '<div class="session-card" data-id="' + id + '" data-status="' + status + '">' +
+      '<div class="session-card-info">' +
+        '<div class="session-card-title">' + Utils.escapeHtml(m.title || '') + '</div>' +
+        '<div class="session-card-meta">' +
+          '<span class="session-card-date">' + Utils.formatDate(m.scheduled_at) + '</span>' +
+          '<span class="session-card-meta-sep">\u00b7</span>' +
           '<span class="session-meta-item participants">' + (m.participant_count || 0) + ' participants</span>' +
+          '<span class="session-card-meta-sep session-meta-item resolutions">\u00b7</span>' +
           '<span class="session-meta-item resolutions">' + (m.motions_count || 0) + ' r\u00e9solutions</span>' +
-          '<span class="session-meta-item quorum">' + Utils.escapeHtml(quorumText) + '</span>' +
         '</div>' +
       '</div>' +
+      '<span class="meeting-type-badge">' + Utils.escapeHtml(typeLabel) + '</span>' +
       '<span class="meeting-card-status ' + status + '">' +
         '<span class="status-dot"></span>' +
         statusLabel +
       '</span>' +
-      '<div class="session-actions">' +
-        '<button class="btn btn-ghost btn-icon btn-sm session-menu-btn" data-meeting-id="' + id + '" aria-label="Actions" onclick="event.stopPropagation()">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>' +
-        '</button>' +
-      '</div>' +
+      '<a class="btn btn-sm btn-primary session-card-cta" href="' + ctaHref + '" onclick="event.stopPropagation()">' + ctaLabel + '</a>' +
+      '<button class="btn btn-ghost btn-icon btn-sm session-menu-btn" data-meeting-id="' + id + '" aria-label="Actions" onclick="event.stopPropagation()">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>' +
+      '</button>' +
     '</div>';
+  }
+
+  function getCtaLabel(status) {
+    if (status === 'live' || status === 'paused') return 'Reprendre';
+    if (status === 'closed' || status === 'validated' || status === 'archived' || status === 'pv_sent') return 'Voir r\u00e9sultats';
+    return 'Ouvrir';
+  }
+
+  function getCtaHref(status, id) {
+    if (status === 'closed' || status === 'validated' || status === 'archived' || status === 'pv_sent') {
+      return '/postsession.htmx.html?meeting_id=' + id;
+    }
+    return '/hub.htmx.html?meeting_id=' + id;
   }
 
   function formatQuorum(m) {
