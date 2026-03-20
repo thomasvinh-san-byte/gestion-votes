@@ -424,26 +424,30 @@
    ============================================================================= */
 
 .admin-health-strip {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 14px;
-  padding: 14px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .admin-health-kpi {
-  flex: 1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .admin-health-icon {
-  font-size: var(--text-xl);
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-health-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .admin-health-icon.success { color: var(--color-success); }
@@ -452,25 +456,44 @@
 .admin-health-icon.primary { color: var(--color-primary); }
 
 .admin-health-value {
-  display: block;
-  font-size: 0.95rem;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
 }
 
 .admin-health-label {
   display: block;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
+
+.admin-health-bar {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+
+.admin-health-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--duration-normal);
+}
+
+.admin-health-bar-fill.success { background: var(--color-success); }
+.admin-health-bar-fill.warning { background: var(--color-warning); }
+.admin-health-bar-fill.danger { background: var(--color-danger); }
 
 @media (max-width: 768px) {
   .admin-health-strip {
-    flex-wrap: wrap;
-  }
-  .admin-health-kpi {
-    flex: 1 1 45%;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

@@ -1247,6 +1247,13 @@
             memoryDot.className = 'admin-health-icon danger';
             memoryDot.setAttribute('aria-label', 'Mémoire critique');
           }
+          // Memory progress bar — cap at 256 MB for bar scale
+          var memBar = document.getElementById('healthMemoryBar');
+          if (memBar) {
+            var memoryPercent = Math.min(Math.round((memMB / 256) * 100), 100);
+            memBar.style.width = memoryPercent + '%';
+            memBar.className = 'admin-health-bar-fill ' + (memMB >= 128 ? 'danger' : memMB >= 64 ? 'warning' : 'success');
+          }
         }
 
         // Active meetings count
