@@ -10,12 +10,13 @@
    ============================================================================= */
 
 .doc-page-header {
-  background: var(--color-surface);
+  background: var(--color-surface-raised);
   border-bottom: 1px solid var(--color-border);
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-6);
 }
 
 .doc-page-header h1 {
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: 700;
   margin: 0.5rem 0 0;

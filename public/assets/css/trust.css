@@ -42,10 +42,12 @@
 
 .check-row.pass {
   background: var(--color-success-subtle);
+  border-left: 3px solid var(--color-success);
 }
 
 .check-row.fail {
   background: var(--color-danger-subtle);
+  border-left: 3px solid var(--color-danger);
 }
 
 .check-row .check-icon {
@@ -127,7 +129,8 @@
 }
 
 .integrity-stat-value {
-  font-size: 1.75rem;
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
   font-weight: 700;
 }
 
@@ -162,8 +165,10 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
+  padding-left: var(--space-3);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
   border-radius: 8px;
   margin-top: 1rem;
 }
