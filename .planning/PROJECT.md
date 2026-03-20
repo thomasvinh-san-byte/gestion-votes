@@ -37,6 +37,8 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 - "Officiel et confiance" visual identity — bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono
 - Dompdf ^3.1 for PV PDF, FilePond for document upload, native iframe PDF viewer
 
+**Shipped v4.2 Visual Redesign** (2026-03-20): Page-by-page visual redesign of all 20+ pages — horizontal KPIs, gradient CTAs, ag-tooltip guidance, hover-reveal actions, modern tab navigation, hero chart layouts, form field modernization, horizontal-first layouts. Known issues: some visual regressions from HTML restructuring, some JS interactions broken by DOM changes. Needs stabilization pass (v4.3).
+
 **Shipped v4.1 Design Excellence** (2026-03-19): CSS token restructuring (primitive→semantic→component hierarchy, shadow system, spacing/radius aliases), component refresh (8 component types tokenized, 4 Web Components reconciled), page layout rebuilds (12 pages with CSS Grid/flex specs, three-depth background, max-width constraints, responsive breakpoints), QA audit (Fraunces discipline, inline style removal, transition/focus/hover standards). Infrastructure-level CSS work — visual identity foundation established but page-by-page visual redesign still needed.
 
 **Shipped v4.0 Clarity & Flow** (2026-03-18): PDF resolution attachments (upload, serve, viewer), guided UX layer (empty states, status cards, help panels, disabled tooltips), copropriété→AG vocabulary transformation, wizard overhaul (named stepper, templates, review card, progressive disclosure), hub enhancements (quorum bar, blocked reasons, convocations), operator console live indicators (SSE, delta badges, guidance), voter full-screen ballot (optimistic feedback, 72px cards), collapsible result cards, all-page CSS polish with @layer and color-mix().
@@ -59,17 +61,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 - v4.0: PDF resolution documents (upload/serve/view), guided UX (empty states, status cards, help panels, disabled tooltips), copropriété→AG transformation, wizard overhaul (named stepper, templates, review card, progressive disclosure), hub enhancements (quorum bar, blocked reasons, convocations), operator live indicators (SSE, delta, guidance), voter full-screen ballot (optimistic, 72px), result cards (collapsible, bar charts), CSS @layer + color-mix(), all-page visual polish, "officiel et confiance" design
 - v4.1: CSS token hierarchy (primitive→semantic→component, shadow system, spacing/radius aliases, dark mode derivation, zero hardcoded hex), component refresh (8 types tokenized, 4 Web Components reconciled), page layouts (12 pages with grid specs, three-depth background, max-width, responsive), QA audit (font discipline, inline style removal, transitions, focus rings)
 
+- v4.2: Page-by-page visual redesign (20+ pages), horizontal KPIs, gradient CTAs, tooltips, hover-reveal, modern tabs, hero charts, form modernization, horizontal-first layouts. Known regressions: HTML restructuring broke some JS interactions
+
 ### Active
 
-**Current Milestone: v4.2 "Visual Redesign"**
-
-**Goal:** Page-by-page visual redesign with concrete references — every page must look professionally designed, not AI-generated. Start from visual references (Linear, Notion, Clerk, Stripe), redesign each page's composition, typography, whitespace, and visual hierarchy.
-
-**Target:**
-- Page-by-page visual redesign (not CSS infrastructure)
-- Concrete before/after visual improvements on each page
-- Reference-driven design from top SaaS/governance apps
-- Visible "wow" impact in the browser — the user must SEE the difference
+(No active milestone — ready for next)
 
 ### Out of Scope
 
@@ -85,8 +81,9 @@ The codebase uses Bricolage Grotesque (body), Fraunces (display, h1 only), JetBr
 
 Known technical debt:
 - admin.js KPI load failure catch is silent (non-blocking, admin-only page)
-- v4.1 delivered CSS infrastructure but not the "top 1%" visual redesign — page-by-page visual design work is the next priority
-- Dark mode visual parity needs browser-level verification on all pages
+- v4.2 visual redesign introduced regressions — HTML restructuring broke some JS interactions and some layouts
+- Next milestone must rebuild each page from the ground up (HTML+CSS+JS together) rather than patching existing structure
+- Design is not yet top 1% — incremental CSS edits on old HTML structure cannot achieve this; full page rewrites needed
 
 Deferred ideas:
 - AI-assisted PV minutes generation

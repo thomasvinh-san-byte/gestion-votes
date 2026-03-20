@@ -1,5 +1,14 @@
 # Milestones
 
+## v4.2 Visual Redesign (Shipped: 2026-03-20)
+
+**Phases completed:** 12 phases, 34 plans, 14 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v4.1 Design Excellence (Shipped: 2026-03-19)
 
 **Phases completed:** 10 phases, 34 plans, 0 tasks
