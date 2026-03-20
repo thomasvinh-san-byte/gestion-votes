@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 
 ## Current Position
 
-Phase: 40 of 41 (Configuration Cluster — in progress)
-Plan: 1 of 3 (40-01 complete — Settings page redesigned: toggle switches, tooltips, card footers, two-pane email editor)
-Status: Phase 40 plan 1 done — ready for plan 2
-Last activity: 2026-03-20 — Phase 40 plan 1: Settings redesign — CSS toggles, ag-tooltip on all fields, card footers, CNIL accents, template two-pane (CORE-06, SEC-04)
+Phase: 41 of 41 (Public and Utility Pages — complete)
+Plan: 1 of 3 (41-01 complete — Landing page redesigned: trust strip, feature cards, CTA section, dark mode fix)
+Status: Phase 41 plan 1 done — v4.2 milestone complete
+Last activity: 2026-03-20 — Phase 41 plan 1: Landing page — hero trust strip, feature cards with hover lift, gradient CTA section, hero title dark mode fix (SEC-02)
 
-Progress: [██████████] 98%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
