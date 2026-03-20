@@ -157,3 +157,23 @@ Plans:
 | 39. Admin Data Tables | 3/3 | Complete    | 2026-03-20 |
 | 40. Configuration Cluster | 3/3 | Complete    | 2026-03-20 |
 | 41. Public & Utility Pages | 3/3 | Complete    | 2026-03-20 |
+
+### Phase 41.1: Form Fields Modernization (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 41
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 41.1 to break down)
+
+### Phase 41.2: Wizard UX and General Flow Improvements (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 41.1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 41.2 to break down)
