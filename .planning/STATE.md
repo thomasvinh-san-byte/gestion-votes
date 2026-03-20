@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Phase 38 context gathered
-last_updated: "2026-03-20T05:46:16.168Z"
+stopped_at: Completed 38-results-and-history 38-01-PLAN.md
+last_updated: "2026-03-20T06:06:51.259Z"
 last_activity: 2026-03-20 — Phase 37 visual verification checkpoint approved (CORE-03, SEC-05)
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 32
 ---
 
@@ -63,6 +63,8 @@ Progress: [███░░░░░░░] 32%
 - [Phase 37-live-session-conduct]: op-exec-status-bar is a separate element from .meeting-bar (exec mode only, setup mode meeting-bar unchanged)
 - [Phase 37-live-session-conduct]: Vote buttons 1x4 on all viewports including landscape tablet (Apple Wallet simplicity, no viewport exception)
 - [Phase 37-live-session-conduct]: Confirmation state visibility controlled by data-vote-state CSS selectors only — removed hidden attribute from voteConfirmedState to enable entrance animation
+- [Phase 38-results-and-history]: ps-seg.done uses success-subtle background (not solid green) for readability — aligns with Phase 36 lesson
+- [Phase 38-results-and-history]: data-verdict attribute on JS-rendered details elements enables CSS left-border color coding without extra classes
 
 ### Pending Todos
 
@@ -74,7 +76,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:46:16.165Z
-Stopped at: Phase 38 context gathered
-Resume file: .planning/phases/38-results-and-history/38-CONTEXT.md
+Last session: 2026-03-20T06:06:51.256Z
+Stopped at: Completed 38-results-and-history 38-01-PLAN.md
+Resume file: None
 Next action: /gsd:plan-phase 38

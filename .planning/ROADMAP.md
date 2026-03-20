@@ -90,7 +90,7 @@ Plans:
   3. Metric tooltips on analytics KPIs explain what each number measures — no jargon left unexplained
   4. The meetings list session cards show status, date, and quorum in a scannable format — an admin can find a specific session in under 3 seconds
   5. The post-session archival progression steps communicate completion state — a user knows exactly whether archival is complete or pending
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 38-01-PLAN.md — Post-session redesign (pill stepper with glow, verdict badge prominence, ag-tooltip on steps, section spacing)
 - [ ] 38-02-PLAN.md — Analytics + Meetings redesign (KPI card migration, chart subtitles, period pills, session-card migration, hover-reveal CTAs)
@@ -141,7 +141,7 @@ Plans:
 | 35. Entry Points | 3/3 | Complete    | 2026-03-19 |
 | 36. Session Creation Flow | 3/3 | Complete    | 2026-03-20 |
 | 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
-| 38. Results & History | 0/3 | Not started | - |
+| 38. Results & History | 1/3 | In Progress|  |
 | 39. Admin Data Tables | 0/TBD | Not started | - |
 | 40. Configuration Cluster | 0/TBD | Not started | - |
 | 41. Public & Utility Pages | 0/TBD | Not started | - |

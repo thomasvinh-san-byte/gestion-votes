@@ -16,7 +16,7 @@
 - [x] **CORE-02**: Wizard — redesign visuel (stepper, formulaire centré, progression, espacement, micro-interactions, field-level tooltips)
 - [x] **CORE-03**: Operator console — redesign visuel (sidebar agenda, status bar, tabs, live panel, densité opérationnelle, action tooltips)
 - [x] **CORE-04**: Hub — redesign visuel (stepper sidebar, quorum bar, checklist, états de session, step guidance tooltips)
-- [ ] **CORE-05**: Post-session — redesign visuel (stepper, result cards, progression archivage, espacement sections, status tooltips)
+- [x] **CORE-05**: Post-session — redesign visuel (stepper, result cards, progression archivage, espacement sections, status tooltips)
 - [ ] **CORE-06**: Settings/Admin — redesign visuel (sidenav, formulaires, KPI admin, section cards, setting explanation tooltips)
 
 ### Data Pages (DATA)
@@ -69,7 +69,7 @@
 | CORE-04 | Phase 36 | Complete |
 | CORE-03 | Phase 37 | Complete |
 | SEC-05 | Phase 37 | Complete |
-| CORE-05 | Phase 38 | Pending |
+| CORE-05 | Phase 38 | Complete |
 | DATA-05 | Phase 38 | Pending |
 | DATA-06 | Phase 38 | Pending |
 | DATA-03 | Phase 39 | Pending |
