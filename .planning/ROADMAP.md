@@ -138,7 +138,11 @@ Plans:
   3. The Report/PV page shows a clean preview with a visible download CTA and a timeline of generation steps — a user knows the document status without ambiguity
   4. The Trust/Validate/Doc utility pages are visually consistent with the rest of the app — no page looks like it was forgotten
   5. Every page in the application now meets top 1% visual quality — no page remains with the pre-v4.2 visual debt
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 41-01-PLAN.md — Landing page redesign (hero trust strip, feature cards with hover lift, gradient CTA section, dark mode fix, hero gradient upgrade)
+- [ ] 41-02-PLAN.md — Projector + Report redesign (dramatic verdict typography, waiting state upgrade, watermark footer, PV status timeline, gradient download CTA)
+- [ ] 41-03-PLAN.md — Utility pages rescue + visual checkpoint (vote_confirm.php full rescue, trust/validate/doc typography and accent polish, visual verification)
 
 ## Progress
 
@@ -152,4 +156,4 @@ Plans:
 | 38. Results & History | 3/3 | Complete    | 2026-03-20 |
 | 39. Admin Data Tables | 3/3 | Complete    | 2026-03-20 |
 | 40. Configuration Cluster | 3/3 | Complete    | 2026-03-20 |
-| 41. Public & Utility Pages | 0/TBD | Not started | - |
+| 41. Public & Utility Pages | 0/3 | Not started | - |
