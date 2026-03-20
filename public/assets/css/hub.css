@@ -86,6 +86,46 @@
   opacity: 0.6;
 }
 
+/* Identity title row with badges */
+.hub-identity-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.hub-identity-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Badge variants used in identity banner */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm, 4px);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge--neutral {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.badge--info {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
 .hub-identity-meta-item {
   display: inline-flex;
   align-items: center;
@@ -104,27 +144,32 @@
 
 .hub-status-bar {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 2px;
   margin-bottom: 1.75rem;
   border-radius: var(--radius);
   overflow: hidden;
-  padding: 4px;
+  padding: 6px;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-subtle);
 }
 
 .hub-bar-segment {
   flex: 1;
-  height: 8px;
+  height: 36px;
   border-radius: var(--radius-sm);
-  transition: width var(--duration-moderate) var(--ease-standard),
-              opacity var(--duration-normal) var(--ease-standard);
+  transition: height var(--duration-moderate, 300ms) var(--ease-standard, ease),
+              opacity var(--duration-normal, 200ms) var(--ease-standard, ease);
   position: relative;
   cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .hub-bar-segment.active {
-  height: 12px;
+  height: 40px;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
 }
@@ -134,27 +179,20 @@
 }
 
 .hub-bar-label {
-  font-size: 0;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
+  font-size: 11px !important;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+  padding: 0 4px;
   pointer-events: none;
+  position: relative;
 }
 
-@media (hover: hover) and (min-width: 768px) {
-  .hub-bar-segment:hover .hub-bar-label {
-    font-size: 11px;
-    background: var(--color-surface-raised, var(--color-surface));
-    color: var(--color-text-dark);
-    padding: 4px 10px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-md);
-    z-index: 10;
-    font-weight: 600;
-  }
+.hub-bar-segment:not(.done):not(.active) .hub-bar-label {
+  color: var(--color-text-muted);
 }
 
 /* =============================================================================
@@ -237,36 +275,29 @@
   padding: 0.75rem 0;
 }
 
-/* Vertical connector line between steps */
+/* Disable pseudo-element connector — use only .hub-step-line rendered by JS (no double connector) */
 .hub-step::before,
 .hub-step-row::before {
-  content: '';
-  position: absolute;
-  left: 15px;
-  top: 42px;
-  bottom: -6px;
-  width: 2px;
-  background: var(--color-border);
-  border-radius: 1px;
+  display: none;
 }
 
-.hub-step:last-child::before,
-.hub-step-row:last-of-type::before { display: none; }
-.hub-step.done::before,
-.hub-step-row.done::before { background: var(--color-success); }
-.hub-step.active::before,
-.hub-step-row.active::before { background: var(--color-primary); }
-
+/* Single connector: the .hub-step-line div rendered between each step by JS */
 .hub-step-line {
-  height: 20px;
-  width: 2px;
+  width: 3px;
+  height: 24px;
   background: var(--color-border);
-  margin-left: 15px;
-  border-radius: 1px;
+  margin-left: 14px;
+  border-radius: 2px;
+  transition: background 0.2s ease;
 }
 
 .hub-step-line.done {
   background: var(--color-success);
+}
+
+/* Pending step dimming */
+.hub-step-row:not([aria-current]):not(.done) .hub-step-num {
+  opacity: 0.45;
 }
 
 .hub-step-num {
@@ -368,10 +399,11 @@
 }
 
 .hub-step-here {
-  font-size: 11px;
+  font-size: 0.75rem;
   color: var(--color-primary);
   font-weight: 700;
-  margin-top: 3px;
+  font-style: normal;
+  margin-top: 2px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -598,21 +630,98 @@
 }
 
 /* =============================================================================
-   QUORUM SECTION
+   QUORUM HERO SECTION (HUB-04)
    ============================================================================= */
 
-.hub-quorum-section {
+.hub-quorum-hero {
   margin-bottom: var(--space-card);
-  padding: var(--space-card);
+  padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-primary);
-  background: var(--color-surface-raised);
+  background: var(--color-surface);
+  position: relative;
+  overflow: hidden;
 }
 
-.hub-quorum-section ag-quorum-bar {
+/* Subtle top accent line */
+.hub-quorum-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+}
+
+.hub-quorum-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.hub-quorum-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hub-quorum-hero-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+}
+
+.hub-quorum-info-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+
+.hub-quorum-info-btn:hover {
+  color: var(--color-primary);
+}
+
+/* Large hero percentage number */
+.hub-quorum-hero-pct {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-text-muted);
+  transition: color 0.3s ease;
+}
+
+.hub-quorum-hero-pct.reached {
+  color: var(--color-success);
+}
+
+.hub-quorum-hero-pct.partial {
+  color: var(--color-warning);
+}
+
+.hub-quorum-hero-pct.critical {
+  color: var(--color-danger);
+}
+
+.hub-quorum-hero ag-quorum-bar {
   display: block;
+}
+
+/* Legacy alias so any remaining .hub-quorum-section references still work */
+.hub-quorum-section {
+  margin-bottom: var(--space-card);
 }
 
 /* =============================================================================

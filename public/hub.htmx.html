@@ -86,7 +86,13 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
         </div>
         <div class="hub-identity-info">
-          <div class="hub-identity-date" id="hubTitle">Chargement&hellip;</div>
+          <div class="hub-identity-title-row">
+            <div class="hub-identity-date" id="hubTitle">Chargement&hellip;</div>
+            <div class="hub-identity-badges">
+              <span class="badge badge--neutral" id="hubTypeTag">-</span>
+              <span class="badge badge--info" id="hubStatusTag">En pr&eacute;paration</span>
+            </div>
+          </div>
           <div class="hub-identity-meta" id="hubMeta">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
             <span id="hubDate">&hellip;</span>
@@ -150,8 +156,23 @@
             <div class="skeleton skeleton-text skeleton-w-70"></div>
           </div>
 
-          <!-- Quorum progress bar (WIZ-07) -->
-          <div class="hub-quorum-section" id="hubQuorumSection" style="display:none;">
+          <!-- Quorum progress bar hero (HUB-04) -->
+          <div class="hub-quorum-hero" id="hubQuorumSection" style="display:none;">
+            <div class="hub-quorum-hero-header">
+              <div class="hub-quorum-hero-left">
+                <span class="hub-quorum-hero-label">Quorum</span>
+                <ag-popover trigger="hover" position="right" width="280">
+                  <button slot="trigger" class="hub-quorum-info-btn" aria-label="Explication du quorum">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  </button>
+                  <div slot="content">
+                    <strong>Quorum de pr&eacute;sence</strong>
+                    <p style="margin:6px 0 0;font-size:13px;color:var(--color-text-muted)">Le quorum est le nombre minimum de membres pr&eacute;sents requis pour que les votes soient valides. G&eacute;n&eacute;ralement fix&eacute; &agrave; la moiti&eacute; des membres plus un (50%&nbsp;+&nbsp;1).</p>
+                  </div>
+                </ag-popover>
+              </div>
+              <span class="hub-quorum-hero-pct" id="hubQuorumPct">--%</span>
+            </div>
             <ag-quorum-bar id="hubQuorumBar" current="0" required="0" total="0"></ag-quorum-bar>
           </div>
 

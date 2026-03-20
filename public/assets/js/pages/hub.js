@@ -191,7 +191,7 @@
         '<div class="hub-step-num' + numClass + '">' + numContent + '</div>' +
         '<div class="hub-step-text">' +
           '<div class="hub-step-title' + (isDone ? ' done' : isActive ? ' active' : '') + '">' + escapeHtml(s.titre) + '</div>' +
-          (isActive ? '<div class="hub-step-here">\u2190 Vous \u00eates ici</div>' : '') +
+          (isActive ? '<div class="hub-step-here">\u25b6 \u00c9tape en cours</div>' : '') +
         '</div>' +
       '</button>';
 
@@ -289,11 +289,12 @@
     docs.innerHTML = html;
   }
 
-  /* ── Quorum progress bar (WIZ-07) ───────────────── */
+  /* ── Quorum progress bar / hero (HUB-04) ───────────────── */
 
   function renderQuorumBar(sessionData) {
     var section = document.getElementById('hubQuorumSection');
     var bar = document.getElementById('hubQuorumBar');
+    var pctEl = document.getElementById('hubQuorumPct');
     if (!bar || !section) return;
     var total = sessionData.memberCount || 0;
     var required = sessionData.quorumRequired || 0;
@@ -304,11 +305,26 @@
     bar.setAttribute('required', String(required));
     bar.setAttribute('total', String(total));
     if (required && total) {
-      var pct = Math.round(required / total * 100);
+      var thresholdPct = Math.round(required / total * 100);
       bar.setAttribute('label',
         'Pr\u00e9sents\u202f: ' + current + '/' + total +
-        ' \u2014 Seuil\u202f: ' + pct + '%\u202f=\u202f' + required + ' membres'
+        ' \u2014 Seuil\u202f: ' + thresholdPct + '%\u202f=\u202f' + required + ' membres'
       );
+    }
+    // Update hero percentage display
+    if (pctEl) {
+      var presentPct = total > 0 ? Math.round(current / total * 100) : 0;
+      pctEl.textContent = presentPct + '%';
+      pctEl.className = 'hub-quorum-hero-pct';
+      if (required > 0) {
+        if (current >= required) {
+          pctEl.classList.add('reached');
+        } else if (current >= required * 0.75) {
+          pctEl.classList.add('partial');
+        } else {
+          pctEl.classList.add('critical');
+        }
+      }
     }
   }
 
@@ -455,11 +471,15 @@
     var dateEl = document.getElementById('hubDate');
     var placeEl = document.getElementById('hubPlace');
     var participantsEl = document.getElementById('hubParticipants');
+    var typeTagEl = document.getElementById('hubTypeTag');
+    var statusTagEl = document.getElementById('hubStatusTag');
 
     if (titleEl) titleEl.textContent = sessionData.title || '';
     if (dateEl) dateEl.textContent = sessionData.dateDisplay || '';
     if (placeEl) placeEl.textContent = sessionData.place || '';
     if (participantsEl) participantsEl.textContent = (sessionData.memberCount || 0) + ' participants';
+    if (typeTagEl) typeTagEl.textContent = sessionData.type_label || 'AG';
+    if (statusTagEl) statusTagEl.textContent = sessionData.status_label || sessionData.status || 'En pr\u00e9paration';
   }
 
   function mapApiDataToSession(data) {
