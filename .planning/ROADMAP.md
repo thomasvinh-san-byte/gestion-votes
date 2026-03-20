@@ -24,7 +24,7 @@ See MILESTONES.md for full history.
 
 - [x] **Phase 35: Entry Points** - Dashboard and Login — the two pages every user sees first, setting the visual bar for the entire app (completed 2026-03-19)
 - [x] **Phase 36: Session Creation Flow** - Wizard and Hub — the two connected pages that take a user from intent to a live session (completed 2026-03-20)
-- [ ] **Phase 37: Live Session Conduct** - Operator Console and Voter ballot — real-time operational pages with dense, high-stakes UI
+- [x] **Phase 37: Live Session Conduct** - Operator Console and Voter ballot — real-time operational pages with dense, high-stakes UI (completed 2026-03-20)
 - [ ] **Phase 38: Results & History** - Post-session, Analytics, and Meetings list — read-only pages for reviewing outcomes and trends
 - [ ] **Phase 39: Admin Data Tables** - Members, Users, Audit log, and Archives — the four table-heavy admin pages
 - [ ] **Phase 40: Configuration Cluster** - Settings/Admin, Email templates, and Help/FAQ — grouped by low-frequency but high-trust interactions
@@ -74,11 +74,11 @@ Plans:
   3. The voter ballot on mobile renders with 72px+ touch targets, clear candidate separation, and a visible confirmation state — a first-time voter can cast without hesitation
   4. Live SSE indicators (connectivity dot, delta badge) are visually obvious but do not compete with the primary action area
   5. Both pages look dramatically improved versus the pre-v4.2 version when screenshot side-by-side
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 37-01-PLAN.md — Operator console redesign (compact status bar, agenda card items, tooltips, live panel, guidance panels)
-- [ ] 37-02-PLAN.md — Voter ballot redesign (1x4 stacked buttons, confirmation checkmark, waiting pulse, press feedback)
-- [ ] 37-03-PLAN.md — Visual verification checkpoint (human review of both pages)
+- [x] 37-01-PLAN.md — Operator console redesign (compact status bar, agenda card items, tooltips, live panel, guidance panels)
+- [x] 37-02-PLAN.md — Voter ballot redesign (1x4 stacked buttons, confirmation checkmark, waiting pulse, press feedback)
+- [x] 37-03-PLAN.md — Visual verification checkpoint (human review of both pages)
 
 ### Phase 38: Results & History
 **Goal**: Post-session, analytics, and meeting list pages present data with the clarity and density of Stripe's dashboard — results are readable, trends are scannable, history is navigable
@@ -136,7 +136,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 35. Entry Points | 3/3 | Complete    | 2026-03-19 |
 | 36. Session Creation Flow | 3/3 | Complete    | 2026-03-20 |
-| 37. Live Session Conduct | 2/3 | In Progress|  |
+| 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
 | 38. Results & History | 0/TBD | Not started | - |
 | 39. Admin Data Tables | 0/TBD | Not started | - |
 | 40. Configuration Cluster | 0/TBD | Not started | - |
