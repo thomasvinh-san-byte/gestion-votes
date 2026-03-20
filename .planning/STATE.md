@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
-status: completed
-stopped_at: Completed 41.1-02-PLAN.md
-last_updated: "2026-03-20T08:16:54.974Z"
-last_activity: "2026-03-20 — Phase 41 plan 1: Landing page — hero trust strip, feature cards with hover lift, gradient CTA section, hero title dark mode fix (SEC-02)"
+status: in_progress
+stopped_at: Completed 41.2-01-PLAN.md
+last_updated: "2026-03-20T08:37:41Z"
+last_activity: "2026-03-20 — Phase 41.2 plan 1: Wizard viewport compaction — CSS spacing reductions, details/summary advanced toggle, form-grid-2 layouts, reso-add-panel collapse, smart defaults"
 progress:
-  total_phases: 9
-  completed_phases: 8
-  total_plans: 24
-  completed_plans: 24
-  percent: 100
+  total_phases: 10
+  completed_phases: 9
+  total_plans: 26
+  completed_plans: 25
+  percent: 96
 ---
 
 # AG-VOTE — Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign — Phase 40: Configuration Cluster (plan 1 of 3 complete)
+**Current focus:** v4.2+ Wizard UX — Phase 41.2: Wizard UX and General Flow Improvements (plan 1 of 2 complete)
 
 ## Current Position
 
-Phase: 41 of 41 (Public and Utility Pages — complete)
-Plan: 1 of 3 (41-01 complete — Landing page redesigned: trust strip, feature cards, CTA section, dark mode fix)
-Status: Phase 41 plan 1 done — v4.2 milestone complete
-Last activity: 2026-03-20 — Phase 41 plan 1: Landing page — hero trust strip, feature cards with hover lift, gradient CTA section, hero title dark mode fix (SEC-02)
+Phase: 41.2 of 41.2 (Wizard UX and General Flow Improvements — in progress)
+Plan: 1 of 2 (41.2-01 complete — Wizard compacted to fit 1080p: spacing reductions, details/summary Regles section, form-grid-2 fields, reso panel collapse, smart defaults)
+Status: Phase 41.2 plan 1 done — plan 2 remaining
+Last activity: 2026-03-20 — Phase 41.2 plan 1: Wizard viewport compaction — CSS spacing reductions, details/summary advanced toggle, form-grid-2 layouts, reso-add-panel collapse, smart defaults
 
-Progress: [██████████] 100%
+Progress: [█████████░] 96%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: ~8 min
-- Total execution time: ~112 min
+- Total execution time: ~117 min
 
 *Updated after each plan completion*
 
@@ -93,6 +93,10 @@ Progress: [██████████] 100%
 - [Phase 41.1-form-fields-modernization]: All textarea elements — in static HTML and JS template strings — must use form-textarea, not form-input
 - [Phase 41.1-form-fields-modernization]: Admin user-create inline-form container replaced with plain div + form-grid-2 — flex layout conflicts with 2-column grid intent
 - [Phase 41.1-form-fields-modernization]: Admin number input constraint scoped to .settings-form-grid (not .admin-card which does not exist)
+- [Phase 41.2-wizard-ux]: Regles de vote collapsed behind native details/summary — no JS toggle needed, browser handles open/closed state
+- [Phase 41.2-wizard-ux]: Heure field extracted from form-grid-2 (standalone, max-width 200px) — time-input-wrap markup incompatible with 2-col grid stretch
+- [Phase 41.2-wizard-ux]: Alert-warn moved inside wiz-advanced-body — legal notice visible only when advanced section expanded (expert feature)
+- [Phase 41.2-wizard-ux]: Smart defaults (today date + 18:00) placed inside existing DRAFT_KEY null guard — single code path, no double condition
 
 ### Pending Todos
 
@@ -104,7 +108,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:16:20.433Z
-Stopped at: Completed 41.1-02-PLAN.md
+Last session: 2026-03-20T08:37:41Z
+Stopped at: Completed 41.2-01-PLAN.md
 Resume file: None
-Next action: Execute 40-03-PLAN.md (Profile page + final polish)
+Next action: Execute 41.2-02-PLAN.md (Wizard UX plan 2)
