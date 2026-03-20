@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 41.1-03-PLAN.md
-last_updated: "2026-03-20T08:15:04.667Z"
+stopped_at: Completed 41.1-02-PLAN.md
+last_updated: "2026-03-20T08:16:20.436Z"
 last_activity: "2026-03-20 — Phase 41 plan 1: Landing page — hero trust strip, feature cards with hover lift, gradient CTA section, hero title dark mode fix (SEC-02)"
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
   percent: 100
 ---
 
@@ -91,6 +91,8 @@ Progress: [██████████] 100%
 - [Phase 41.1-form-fields-modernization]: wizard .field-input class name preserved in HTML — token values aligned in wizard.css instead of renaming HTML classes
 - [Phase 41.1-form-fields-modernization]: dark mode select chevron uses [data-theme=dark] override with %23BCB7A5 stroke since CSS data-URIs cannot use CSS custom properties
 - [Phase 41.1-form-fields-modernization]: All textarea elements — in static HTML and JS template strings — must use form-textarea, not form-input
+- [Phase 41.1-form-fields-modernization]: Admin user-create inline-form container replaced with plain div + form-grid-2 — flex layout conflicts with 2-column grid intent
+- [Phase 41.1-form-fields-modernization]: Admin number input constraint scoped to .settings-form-grid (not .admin-card which does not exist)
 
 ### Pending Todos
 
@@ -102,7 +104,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:14:59.217Z
-Stopped at: Completed 41.1-03-PLAN.md
+Last session: 2026-03-20T08:16:20.433Z
+Stopped at: Completed 41.1-02-PLAN.md
 Resume file: None
 Next action: Execute 40-03-PLAN.md (Profile page + final polish)
