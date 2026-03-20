@@ -140,16 +140,8 @@
    ============================================================================= */
 
 .wiz-content {
-  max-width: 680px;
-  margin: 0 auto;
   padding: var(--space-card) var(--space-4);
   padding-bottom: 80px; /* space for sticky footer */
-}
-
-.wiz-content .form-group:not(.form-grid-2 .form-group) input,
-.wiz-content .form-group:not(.form-grid-2 .form-group) select,
-.wiz-content .form-group:not(.form-grid-2 .form-group) textarea {
-  max-width: 480px;
 }
 
 .wiz-footer {

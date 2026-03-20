@@ -100,7 +100,6 @@
 .settings-content {
   flex: 1;
   min-width: 0;
-  max-width: 720px;
 }
 
 /* ─── Settings panel ─── */
@@ -609,9 +608,6 @@
   .settings-sidenav-item {
     flex-shrink: 0;
     white-space: nowrap;
-  }
-  .settings-content {
-    max-width: 100%;
   }
   .settings-cnil-levels {
     grid-template-columns: 1fr;
