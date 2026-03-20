@@ -175,7 +175,7 @@ Plans:
 **Goal:** Compact each wizard step to fit on a 1080p viewport without scrolling. Apply 4 key interventions: padding reduction, form-grid-2 field pairings, details/summary section collapse, reso-add-panel collapse. Add smart defaults for date/time on fresh visits.
 **Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.1
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 41.2-01-PLAN.md — Wizard viewport compaction (CSS spacing reduction, form-grid-2 grids, details/summary for Regles de vote, reso panel collapse, ctx-panel removal, smart defaults)
