@@ -163,7 +163,7 @@ Plans:
 **Goal:** Reconcile the two parallel field-styling systems (wizard .field-input vs design-system .form-input), fill 5 design-system gaps (placeholder italic, label color, select chevron, textarea fix, form-group gap), and apply 2-column grids to paired fields across settings, admin, and wizard pages
 **Requirements**: UX-01, UX-02
 **Depends on:** Phase 41
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 41.1-01-PLAN.md — Design-system global form polish (placeholder italic, label color, select chevron, textarea fix, form-grid-2/form-stack utilities) + wizard field-input reconciliation
