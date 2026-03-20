@@ -113,7 +113,7 @@
             <input class="field-input" id="wizTitle" aria-required="true" placeholder="Ex : AG Ordinaire du 15 mars 2026" maxlength="200" autocomplete="off">
             <div class="field-error-msg" id="errWizTitle">Le titre est obligatoire.</div>
           </div>
-          <div class="form-grid-2">
+          <div class="form-grid-3">
             <div class="field">
               <label class="field-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
               <select class="field-input" id="wizType" aria-required="true">
@@ -127,15 +127,15 @@
               <input class="field-input" id="wizDate" aria-required="true" type="date">
               <div class="field-error-msg" id="errWizDate">La date est obligatoire.</div>
             </div>
-          </div>
-          <div class="field" style="max-width: 200px;">
-            <label class="field-label" for="wizTimeHH">Heure <span class="req">*</span></label>
-            <div class="time-input-wrap">
-              <input class="field-input time-input-hh" id="wizTimeHH" placeholder="HH" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Heures">
-              <span class="time-sep">:</span>
-              <input class="field-input time-input-mm" id="wizTimeMM" placeholder="MM" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes">
+            <div class="field">
+              <label class="field-label" for="wizTimeHH">Heure <span class="req">*</span></label>
+              <div class="time-input-wrap">
+                <input class="field-input time-input-hh" id="wizTimeHH" placeholder="HH" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Heures">
+                <span class="time-sep">:</span>
+                <input class="field-input time-input-mm" id="wizTimeMM" placeholder="MM" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes">
+              </div>
+              <div class="field-error-msg" id="errWizTime">L'heure est obligatoire (HH:MM).</div>
             </div>
-            <div class="field-error-msg" id="errWizTime">L'heure est obligatoire (HH:MM).</div>
           </div>
         </div>
 
@@ -366,15 +366,11 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
             Ajouter une r&eacute;solution
           </div>
-          <div class="field">
-            <label class="field-label" for="resoTitle">Titre <span class="req">*</span></label>
-            <input class="field-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off">
-          </div>
-          <div class="field">
-            <label class="field-label" for="resoDesc">Description</label>
-            <textarea class="field-input" id="resoDesc" placeholder="Texte de la r&eacute;solution soumise au vote" maxlength="2000" rows="2"></textarea>
-          </div>
-          <div class="row">
+          <div class="form-grid-2">
+            <div class="field">
+              <label class="field-label" for="resoTitle">Titre <span class="req">*</span></label>
+              <input class="field-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off">
+            </div>
             <div class="field">
               <label class="field-label" for="resoMaj">Majorit&eacute; <span class="req">*</span></label>
               <select class="field-input" id="resoMaj" aria-required="true">
@@ -384,6 +380,12 @@
                 <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
               </select>
             </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="resoDesc">Description</label>
+            <textarea class="form-textarea" id="resoDesc" placeholder="Texte de la r&eacute;solution soumise au vote" maxlength="2000" rows="2"></textarea>
+          </div>
+          <div class="row">
             <div class="field">
               <label class="field-label">Vote secret <ag-popover title="Scrutin secret" content="Les bulletins de vote sont anonymes. Le r&eacute;sultat individuel n'est pas consultable." position="top" trigger="click"></ag-popover></label>
               <div class="chips-row">
