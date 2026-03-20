@@ -17,7 +17,7 @@
 - [x] **CORE-03**: Operator console — redesign visuel (sidebar agenda, status bar, tabs, live panel, densité opérationnelle, action tooltips)
 - [x] **CORE-04**: Hub — redesign visuel (stepper sidebar, quorum bar, checklist, états de session, step guidance tooltips)
 - [x] **CORE-05**: Post-session — redesign visuel (stepper, result cards, progression archivage, espacement sections, status tooltips)
-- [ ] **CORE-06**: Settings/Admin — redesign visuel (sidenav, formulaires, KPI admin, section cards, setting explanation tooltips)
+- [x] **CORE-06**: Settings/Admin — redesign visuel (sidenav, formulaires, KPI admin, section cards, setting explanation tooltips)
 
 ### Data Pages (DATA)
 
@@ -32,7 +32,7 @@
 
 - [x] **SEC-01**: Login — redesign visuel (card centré, branding, champs, CTA)
 - [ ] **SEC-02**: Landing — redesign visuel (hero, features, trust signals, CTA)
-- [ ] **SEC-03**: Help/FAQ — redesign visuel (accordion, catégories, search)
+- [x] **SEC-03**: Help/FAQ — redesign visuel (accordion, catégories, search)
 - [ ] **SEC-04**: Email templates — redesign visuel (editor + preview grid)
 - [x] **SEC-05**: Vote (mobile) — redesign visuel (ballot, boutons, feedback, états, vote confirmation tooltips)
 - [ ] **SEC-06**: Public/Projector — redesign visuel (display temps réel, résultats)
@@ -76,9 +76,9 @@
 | DATA-04 | Phase 39 | Complete |
 | DATA-01 | Phase 39 | Complete |
 | DATA-02 | Phase 39 | Complete |
-| CORE-06 | Phase 40 | Pending |
+| CORE-06 | Phase 40 | Complete |
 | SEC-04 | Phase 40 | Pending |
-| SEC-03 | Phase 40 | Pending |
+| SEC-03 | Phase 40 | Complete |
 | SEC-02 | Phase 41 | Pending |
 | SEC-06 | Phase 41 | Pending |
 | SEC-07 | Phase 41 | Pending |

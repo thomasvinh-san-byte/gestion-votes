@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 39-03-PLAN.md
-last_updated: "2026-03-20T06:54:14.465Z"
-last_activity: "2026-03-20 — Phase 39 plan 2: Audit/Archives redesign complete (DATA-01, DATA-02)"
+stopped_at: Completed 40-02-PLAN.md
+last_updated: "2026-03-20T07:18:32.061Z"
+last_activity: "2026-03-20 — Phase 40 plan 2: Admin KPI tooltips, tab icons, users strip; Help filter-tab pills, section accents (CORE-06, SEC-03)"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
-  percent: 96
+  total_plans: 18
+  completed_plans: 16
+  percent: 98
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 
 ## Current Position
 
-Phase: 39 of 41 (Admin Data Tables — in progress)
-Plan: 2 of 3 (39-02 complete — Audit + Archives pages redesigned)
-Status: Phase 39 plan 2 done — ready for plan 3
-Last activity: 2026-03-20 — Phase 39 plan 2: Audit/Archives redesign complete (DATA-01, DATA-02)
+Phase: 40 of 41 (Configuration Cluster — in progress)
+Plan: 2 of 3 (40-02 complete — Admin + Help/FAQ pages redesigned)
+Status: Phase 40 plan 2 done — ready for plan 3
+Last activity: 2026-03-20 — Phase 40 plan 2: Admin KPI tooltips, tab icons, users strip; Help filter-tab pills, section accents (CORE-06, SEC-03)
 
-Progress: [██████████] 96%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
@@ -76,6 +76,8 @@ Progress: [██████████] 96%
 - [Phase 39-02]: Type filter selector narrowed to #archiveTypeFilter .filter-tab to avoid conflict with new status filter pills
 - [Phase 39-02]: Archives local kpi-grid/kpi-card/kpi-value/kpi-label overrides removed — design-system.css definitions now used directly
 - [Phase 39]: Visual checkpoint deferred — user approved all four admin data pages together at phase completion (DATA-01 through DATA-04 confirmed)
+- [Phase 40]: [Phase 40-02]: Users KPI strip uses ag-tooltip inside kpi-card wrapping kpi-label only — wrapping the whole card would break the grid
+- [Phase 40]: [Phase 40-02]: Help/FAQ filter-tab pills use CSS-only approach — no JS class name changes needed since only CSS rules changed
 
 ### Pending Todos
 
@@ -87,7 +89,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T06:53:02.234Z
-Stopped at: Completed 39-03-PLAN.md
+Last session: 2026-03-20T07:18:32.058Z
+Stopped at: Completed 40-02-PLAN.md
 Resume file: None
-Next action: Execute 39-03-PLAN.md (Settings/Help/Profile pages)
+Next action: Execute 40-03-PLAN.md (Profile page + final polish)
