@@ -816,37 +816,43 @@
     resolutions.forEach(function(r) { if (r.docs && r.docs.length) docCount += r.docs.length; });
 
     var html =
-      '<div class="review-section">' +
-        '<div class="review-section-header">' +
-          '<span class="review-section-title">Informations</span>' +
-          '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="0">Modifier</button>' +
+      '<div class="review-grid">' +
+        '<div>' +
+          '<div class="review-section">' +
+            '<div class="review-section-header">' +
+              '<span class="review-section-title">Informations</span>' +
+              '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="0">Modifier</button>' +
+            '</div>' +
+            '<div class="review-row"><span class="review-label">Titre</span><span class="review-value">' + escapeHtml(title) + '</span></div>' +
+            '<div class="review-row"><span class="review-label">Type</span><span class="review-value">' + escapeHtml(type) + '</span></div>' +
+            '<div class="review-row"><span class="review-label">Date</span><span class="review-value">' + escapeHtml(dateStr) + '</span></div>' +
+            '<div class="review-row"><span class="review-label">Lieu</span><span class="review-value">' + escapeHtml(lieu) + '</span></div>' +
+          '</div>' +
+          '<div class="review-section">' +
+            '<div class="review-section-header">' +
+              '<span class="review-section-title">Documents</span>' +
+            '</div>' +
+            '<div class="review-row"><span class="review-label">Fichiers</span><span class="review-value">' + docCount + ' document' + (docCount !== 1 ? 's' : '') + ' joint' + (docCount !== 1 ? 's' : '') + '</span></div>' +
+          '</div>' +
         '</div>' +
-        '<div class="review-row"><span class="review-label">Titre</span><span class="review-value">' + escapeHtml(title) + '</span></div>' +
-        '<div class="review-row"><span class="review-label">Type</span><span class="review-value">' + escapeHtml(type) + '</span></div>' +
-        '<div class="review-row"><span class="review-label">Date</span><span class="review-value">' + escapeHtml(dateStr) + '</span></div>' +
-        '<div class="review-row"><span class="review-label">Lieu</span><span class="review-value">' + escapeHtml(lieu) + '</span></div>' +
-      '</div>' +
-      '<div class="review-section">' +
-        '<div class="review-section-header">' +
-          '<span class="review-section-title">Membres</span>' +
-          '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="1">Modifier</button>' +
+        '<div>' +
+          '<div class="review-section">' +
+            '<div class="review-section-header">' +
+              '<span class="review-section-title">Membres</span>' +
+              '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="1">Modifier</button>' +
+            '</div>' +
+            '<div class="review-row"><span class="review-label">Total</span><span class="review-value">' + members.length + ' participant' + (members.length !== 1 ? 's' : '') + '</span></div>' +
+            '<div class="review-row"><span class="review-label">Aper\u00e7u</span><span class="review-value">' + memberPreview + '</span></div>' +
+          '</div>' +
+          '<div class="review-section">' +
+            '<div class="review-section-header">' +
+              '<span class="review-section-title">R\u00e9solutions</span>' +
+              '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="2">Modifier</button>' +
+            '</div>' +
+            '<div class="review-row"><span class="review-label">Total</span><span class="review-value">' + resolutions.length + ' r\u00e9solution' + (resolutions.length !== 1 ? 's' : '') + '</span></div>' +
+            '<div class="review-row review-row-block">' + resoPreview + '</div>' +
+          '</div>' +
         '</div>' +
-        '<div class="review-row"><span class="review-label">Total</span><span class="review-value">' + members.length + ' participant' + (members.length !== 1 ? 's' : '') + '</span></div>' +
-        '<div class="review-row"><span class="review-label">Aper\u00e7u</span><span class="review-value">' + memberPreview + '</span></div>' +
-      '</div>' +
-      '<div class="review-section">' +
-        '<div class="review-section-header">' +
-          '<span class="review-section-title">R\u00e9solutions</span>' +
-          '<button class="btn btn-sm btn-ghost review-modifier" type="button" data-goto="2">Modifier</button>' +
-        '</div>' +
-        '<div class="review-row"><span class="review-label">Total</span><span class="review-value">' + resolutions.length + ' r\u00e9solution' + (resolutions.length !== 1 ? 's' : '') + '</span></div>' +
-        '<div class="review-row review-row-block">' + resoPreview + '</div>' +
-      '</div>' +
-      '<div class="review-section">' +
-        '<div class="review-section-header">' +
-          '<span class="review-section-title">Documents</span>' +
-        '</div>' +
-        '<div class="review-row"><span class="review-label">Fichiers</span><span class="review-value">' + docCount + ' document' + (docCount !== 1 ? 's' : '') + ' joint' + (docCount !== 1 ? 's' : '') + '</span></div>' +
       '</div>' +
       warnings;
 

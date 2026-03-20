@@ -144,6 +144,18 @@
   padding-bottom: 80px; /* space for sticky footer */
 }
 
+/* Step 4 — 2-column recap grid */
+.review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-card);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .review-grid { grid-template-columns: 1fr; }
+}
+
 .wiz-footer {
   position: sticky;
   bottom: 0;
