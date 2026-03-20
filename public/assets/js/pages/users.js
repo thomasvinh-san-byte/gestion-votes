@@ -19,6 +19,7 @@
   var _currentPage = 1;
   var _pageSize = 10;
   var _editingUserId = null;
+  var _currentRoleFilter = '';
 
   // ═══════════════════════════════════════════════════════
   // NOTIFICATION HELPER
@@ -45,14 +46,14 @@
   // LOAD USERS
   // ═══════════════════════════════════════════════════════
   async function loadUsers() {
-    var filterEl = document.getElementById('filterRole');
-    var filter = filterEl ? filterEl.value : '';
+    var filter = _currentRoleFilter;
     var url = '/api/v1/admin_users.php' + (filter ? '?role=' + encodeURIComponent(filter) : '');
     try {
       var r = await api(url);
       if (r.body && r.body.ok && r.body.data) {
         _allUsers = r.body.data.items || [];
         _currentPage = 1;
+        updateRoleCounts(_allUsers);
         filterAndRenderUsers();
       }
     } catch (e) {
@@ -63,6 +64,22 @@
         c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
       }
     }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ROLE COUNTS
+  // ═══════════════════════════════════════════════════════
+  function updateRoleCounts(users) {
+    var counts = { admin: 0, operator: 0, auditor: 0, viewer: 0 };
+    users.forEach(function(u) { if (counts[u.role] !== undefined) counts[u.role]++; });
+    var adminEl = document.getElementById('roleCountAdmin');
+    var operatorEl = document.getElementById('roleCountOperator');
+    var auditorEl = document.getElementById('roleCountAuditor');
+    var viewerEl = document.getElementById('roleCountViewer');
+    if (adminEl) adminEl.textContent = counts.admin;
+    if (operatorEl) operatorEl.textContent = counts.operator;
+    if (auditorEl) auditorEl.textContent = counts.auditor;
+    if (viewerEl) viewerEl.textContent = counts.viewer;
   }
 
   // ═══════════════════════════════════════════════════════
@@ -138,9 +155,21 @@
           '<span class="user-row-lastlogin" title="Derni\u00e8re connexion">' + lastLogin + '</span>' +
         '</div>' +
         '<div class="user-row-actions">' +
-          '<button class="btn btn-ghost btn-xs btn-edit-user" data-id="' + escapeHtml(u.id) + '" type="button">Modifier</button>' +
-          '<button class="btn btn-ghost btn-xs btn-toggle-user" data-id="' + escapeHtml(u.id) + '" data-active="' + (u.is_active ? '1' : '0') + '" type="button">' + (u.is_active ? 'D\u00e9sactiver' : 'Activer') + '</button>' +
-          '<button class="btn btn-ghost btn-xs btn-danger-text btn-delete-user" data-id="' + escapeHtml(u.id) + '" data-name="' + escapeHtml(u.name || '') + '" type="button">Supprimer</button>' +
+          '<ag-tooltip text="Modifier cet utilisateur" position="top">' +
+            '<button class="btn btn-ghost btn-icon btn-sm btn-edit-user" data-id="' + escapeHtml(u.id) + '" type="button" aria-label="Modifier">' +
+              '<svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit-2"></use></svg>' +
+            '</button>' +
+          '</ag-tooltip>' +
+          '<ag-tooltip text="' + (u.is_active ? 'D\u00e9sactiver le compte' : 'Activer le compte') + '" position="top">' +
+            '<button class="btn btn-ghost btn-icon btn-sm btn-toggle-user" data-id="' + escapeHtml(u.id) + '" data-active="' + (u.is_active ? '1' : '0') + '" type="button" aria-label="' + (u.is_active ? 'D\u00e9sactiver' : 'Activer') + '">' +
+              '<svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-' + (u.is_active ? 'toggle-right' : 'toggle-left') + '"></use></svg>' +
+            '</button>' +
+          '</ag-tooltip>' +
+          '<ag-tooltip text="Supprimer d\u00e9finitivement" position="top">' +
+            '<button class="btn btn-ghost btn-icon btn-sm btn-danger-text btn-delete-user" data-id="' + escapeHtml(u.id) + '" data-name="' + escapeHtml(u.name || '') + '" type="button" aria-label="Supprimer">' +
+              '<svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash-2"></use></svg>' +
+            '</button>' +
+          '</ag-tooltip>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -377,11 +406,17 @@
     });
   }
 
-  // Role filter
-  var filterRoleSelect = document.getElementById('filterRole');
-  if (filterRoleSelect) {
-    filterRoleSelect.addEventListener('change', loadUsers);
-  }
+  // Role filter — pill tabs
+  document.querySelectorAll('#roleFilter .filter-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var activeTab = document.querySelector('#roleFilter .filter-tab.active');
+      if (activeTab) activeTab.classList.remove('active');
+      btn.classList.add('active');
+      _currentRoleFilter = btn.dataset.role || '';
+      _currentPage = 1;
+      loadUsers();
+    });
+  });
 
   // Modal save button
   var btnSaveUser = document.getElementById('btnSaveUser');
