@@ -92,6 +92,34 @@
     loadDashboardData();
   })();
 
+  // --- Users KPI strip (dashboard) ---
+  (function initUserKpis() {
+    async function loadUserKpis() {
+      try {
+        var r = await api('/api/v1/admin_users.php');
+        if (r.body && r.body.ok && r.body.data) {
+          var users = r.body.data.items || [];
+          updateAdminUserKpis(users);
+        }
+      } catch(e) { /* user KPI strip is optional, fail silently */ }
+    }
+
+    function updateAdminUserKpis(users) {
+      var total = users.length;
+      var admins = users.filter(function(u) { return u.role === 'admin'; }).length;
+      var operators = users.filter(function(u) { return u.role === 'operator'; }).length;
+      var sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      var active = users.filter(function(u) { return u.last_login && new Date(u.last_login).getTime() > sevenDaysAgo; }).length;
+      var el;
+      el = document.getElementById('adminKpiUsers'); if (el) el.textContent = total;
+      el = document.getElementById('adminKpiAdmins'); if (el) el.textContent = admins;
+      el = document.getElementById('adminKpiOperators'); if (el) el.textContent = operators;
+      el = document.getElementById('adminKpiActive'); if (el) el.textContent = active;
+    }
+
+    loadUserKpis();
+  })();
+
   // --- Tabs (with ARIA support) ---
   document.querySelectorAll('.admin-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {

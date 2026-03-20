@@ -93,28 +93,28 @@
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </div>
             <div class="dash-kpi-value" id="kpiUpcomingVal">&mdash;</div>
-            <div class="dash-kpi-label">AG &agrave; venir</div>
+            <div class="dash-kpi-label"><ag-tooltip text="Nombre de séances programmées dans le futur" position="top">AG à venir</ag-tooltip></div>
           </a>
           <a href="/operator.htmx.html" class="dash-kpi" id="kpiLive">
             <div class="dash-kpi-icon kpi-danger">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             </div>
             <div class="dash-kpi-value" id="kpiLiveVal">&mdash;</div>
-            <div class="dash-kpi-label">En cours</div>
+            <div class="dash-kpi-label"><ag-tooltip text="Séances actuellement en cours de vote" position="top">En cours</ag-tooltip></div>
           </a>
           <a href="/meetings.htmx.html" class="dash-kpi" id="kpiConvocations">
             <div class="dash-kpi-icon kpi-warning">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
             </div>
             <div class="dash-kpi-value" id="kpiConvocationsVal">&mdash;</div>
-            <div class="dash-kpi-label">Convocations</div>
+            <div class="dash-kpi-label"><ag-tooltip text="Convocations en attente d'envoi pour les prochaines séances" position="top">Convocations</ag-tooltip></div>
           </a>
           <a href="/postsession.htmx.html" class="dash-kpi" id="kpiPV">
             <div class="dash-kpi-icon kpi-success">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
             </div>
             <div class="dash-kpi-value" id="kpiPVVal">&mdash;</div>
-            <div class="dash-kpi-label">PV en attente</div>
+            <div class="dash-kpi-label"><ag-tooltip text="Procès-verbaux non encore validés après clôture de séance" position="top">PV en attente</ag-tooltip></div>
           </a>
         </div>
 
@@ -195,26 +195,59 @@
 
         <hr class="mb-6">
 
-        <!-- Compact users summary (replaces users tab) -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">Utilisateurs</div>
-                <div class="text-sm text-muted" id="adminUsersCount">-- utilisateurs</div>
-              </div>
-              <a href="/users.htmx.html" class="btn btn-secondary btn-sm">Gerer les utilisateurs</a>
-            </div>
+        <!-- Users KPI strip -->
+        <div class="kpi-grid" style="margin-bottom: var(--space-4);">
+          <div class="kpi-card">
+            <ag-tooltip text="Nombre total de comptes utilisateurs enregistrés" position="top">
+              <span class="kpi-label">Total utilisateurs</span>
+            </ag-tooltip>
+            <span class="kpi-value" id="adminKpiUsers">--</span>
           </div>
+          <div class="kpi-card">
+            <ag-tooltip text="Utilisateurs avec le rôle Administrateur" position="top">
+              <span class="kpi-label">Admins</span>
+            </ag-tooltip>
+            <span class="kpi-value" id="adminKpiAdmins">--</span>
+          </div>
+          <div class="kpi-card">
+            <ag-tooltip text="Utilisateurs avec le rôle Opérateur de séance" position="top">
+              <span class="kpi-label">Opérateurs</span>
+            </ag-tooltip>
+            <span class="kpi-value" id="adminKpiOperators">--</span>
+          </div>
+          <div class="kpi-card">
+            <ag-tooltip text="Utilisateurs connectés dans les 7 derniers jours" position="top">
+              <span class="kpi-label">Actifs (7j)</span>
+            </ag-tooltip>
+            <span class="kpi-value" id="adminKpiActive">--</span>
+          </div>
+        </div>
+        <div class="mb-4 flex" style="justify-content: flex-end;">
+          <a href="/users.htmx.html" class="btn btn-secondary btn-sm">Gérer les utilisateurs</a>
         </div>
 
         <!-- Tabs -->
         <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
-          <button class="admin-tab active" data-tab="meeting-roles" role="tab" aria-selected="true" aria-controls="panel-meeting-roles" id="tab-meeting-roles">R&ocirc;les de s&eacute;ance</button>
-          <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">Politiques</button>
-          <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">Permissions</button>
-          <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">Machine &agrave; &eacute;tats</button>
-          <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">Syst&egrave;me</button>
+          <button class="admin-tab active" data-tab="meeting-roles" role="tab" aria-selected="true" aria-controls="panel-meeting-roles" id="tab-meeting-roles">
+            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <ag-tooltip text="Définir les rôles attribués aux participants pour chaque séance" position="bottom">Rôles de séance</ag-tooltip>
+          </button>
+          <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">
+            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <ag-tooltip text="Configurer les règles de quorum et de majorité applicables aux séances" position="bottom">Politiques</ag-tooltip>
+          </button>
+          <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">
+            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <ag-tooltip text="Consulter la matrice des permissions par rôle système et de séance" position="bottom">Permissions</ag-tooltip>
+          </button>
+          <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">
+            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" y1="9" x2="6" y2="21"></line></svg>
+            <ag-tooltip text="Visualiser les transitions d'états du cycle de vie d'une séance" position="bottom">Machine à états</ag-tooltip>
+          </button>
+          <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">
+            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <ag-tooltip text="Surveiller la santé du système, base de données et configuration" position="bottom">Système</ag-tooltip>
+          </button>
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
@@ -489,13 +522,13 @@
               <div class="card-header"><h3 class="card-title">Légende des états</h3></div>
               <div class="card-body">
                 <div class="flex flex-wrap gap-2">
-                  <span class="state-node-visual draft">Brouillon</span>
-                  <span class="state-node-visual scheduled">Programmée</span>
-                  <span class="state-node-visual frozen">Verrouillée</span>
-                  <span class="state-node-visual live">En cours</span>
-                  <span class="state-node-visual closed">Clôturée</span>
-                  <span class="state-node-visual validated">Validée</span>
-                  <span class="state-node-visual archived">Archivée</span>
+                  <span class="state-node-visual draft"><ag-tooltip text="Séance en cours de création. Actions : programmer, supprimer" position="top">Brouillon</ag-tooltip></span>
+                  <span class="state-node-visual scheduled"><ag-tooltip text="Séance programmée. Actions : convoquer, verrouiller, annuler, ouvrir" position="top">Programmée</ag-tooltip></span>
+                  <span class="state-node-visual frozen"><ag-tooltip text="Séance verrouillée avant ouverture. Actions : ouvrir, annuler" position="top">Verrouillée</ag-tooltip></span>
+                  <span class="state-node-visual live"><ag-tooltip text="Séance en cours de vote. Actions : clôturer, mettre en pause" position="top">En cours</ag-tooltip></span>
+                  <span class="state-node-visual closed"><ag-tooltip text="Séance clôturée. Actions : valider (président requis)" position="top">Clôturée</ag-tooltip></span>
+                  <span class="state-node-visual validated"><ag-tooltip text="Séance validée et verrouillée. Actions : archiver, générer PV" position="top">Validée</ag-tooltip></span>
+                  <span class="state-node-visual archived"><ag-tooltip text="Séance archivée définitivement. Aucune modification possible" position="top">Archivée</ag-tooltip></span>
                 </div>
               </div>
             </div>
