@@ -53,7 +53,11 @@ Plans:
   2. Session list renders with correct status badges, dates, and action buttons pointing to valid routes
   3. The page layout is horizontal-first, all interactive elements (filters, CTAs) are functional
   4. No JS console errors on page load; all DOM selectors resolve against the new HTML structure
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 43-01-PLAN.md — Rewrite dashboard HTML from scratch and rewrite all dashboard CSS in pages.css
+- [ ] 43-02-PLAN.md — Fix dashboard.js urgent banner logic and browser verification
 
 ### Phase 44: Login Rebuild
 **Goal**: The login page is a fully rebuilt, top 1% entry point — new HTML+CSS, auth flow end-to-end wired, field validation working
@@ -119,7 +123,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 42. Stabilization | 1/1 | Complete    | 2026-03-20 |
-| 43. Dashboard Rebuild | 0/TBD | Not started | - |
+| 43. Dashboard Rebuild | 0/2 | Not started | - |
 | 44. Login Rebuild | 0/TBD | Not started | - |
 | 45. Wizard Rebuild | 0/TBD | Not started | - |
 | 46. Operator Console Rebuild | 0/TBD | Not started | - |
