@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
-status: completed
-stopped_at: Completed 39-01-PLAN.md
-last_updated: "2026-03-20T06:45:28.346Z"
-last_activity: 2026-03-20 — Phase 38 visual verification checkpoint approved (CORE-05, DATA-05, DATA-06)
+status: in_progress
+stopped_at: Completed 39-02-PLAN.md
+last_updated: "2026-03-20T06:46:30.000Z"
+last_activity: 2026-03-20 — Phase 39 plan 2: Audit/Archives redesign complete (DATA-01, DATA-02)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
-  percent: 32
+  completed_plans: 14
+  percent: 93
 ---
 
 # AG-VOTE — Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign — Phase 39: Admin Data Tables (plan 1 of 3 complete)
+**Current focus:** v4.2 Visual Redesign — Phase 39: Admin Data Tables (plan 2 of 3 complete)
 
 ## Current Position
 
 Phase: 39 of 41 (Admin Data Tables — in progress)
-Plan: 1 of 3 (39-01 complete — Members + Users pages redesigned)
-Status: Phase 39 plan 1 done — ready for plan 2
-Last activity: 2026-03-20 — Phase 39 plan 1: Members/Users redesign complete (DATA-03, DATA-04)
+Plan: 2 of 3 (39-02 complete — Audit + Archives pages redesigned)
+Status: Phase 39 plan 2 done — ready for plan 3
+Last activity: 2026-03-20 — Phase 39 plan 2: Audit/Archives redesign complete (DATA-01, DATA-02)
 
 Progress: [██████████] 96%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 14
 - Average duration: ~8 min
-- Total execution time: ~40 min
+- Total execution time: ~112 min
 
 *Updated after each plan completion*
 
@@ -71,6 +71,10 @@ Progress: [██████████] 96%
 - [Phase 38-03]: Visual checkpoint approved — user deferred approval until all Phase 38 pages complete; CORE-05, DATA-05, DATA-06 confirmed
 - [Phase 39-admin-data-tables]: Members stats bar uses surface-raised background to create visible elevation; avatar ring uses box-shadow to avoid border-box sizing issues on circles
 - [Phase 39-admin-data-tables]: Users filterRole select replaced with filter-tab pills; _currentRoleFilter state var used instead of DOM reads in loadUsers()
+- [Phase 39-02]: Audit row click uses inline detail expansion — insertAdjacentHTML after clicked row; second click removes row (toggle); only one open at a time
+- [Phase 39-02]: severity mapped to high/medium/low for CSS data-severity (danger→high, warning→medium, info/success→low)
+- [Phase 39-02]: Type filter selector narrowed to #archiveTypeFilter .filter-tab to avoid conflict with new status filter pills
+- [Phase 39-02]: Archives local kpi-grid/kpi-card/kpi-value/kpi-label overrides removed — design-system.css definitions now used directly
 
 ### Pending Todos
 
@@ -82,7 +86,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T06:45:28.344Z
-Stopped at: Completed 39-01-PLAN.md
+Last session: 2026-03-20T06:46:30.000Z
+Stopped at: Completed 39-02-PLAN.md
 Resume file: None
-Next action: /gsd:plan-phase 39
+Next action: Execute 39-03-PLAN.md (Settings/Help/Profile pages)
