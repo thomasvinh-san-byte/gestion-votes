@@ -160,13 +160,15 @@ Plans:
 
 ### Phase 41.1: Form Fields Modernization (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Reconcile the two parallel field-styling systems (wizard .field-input vs design-system .form-input), fill 5 design-system gaps (placeholder italic, label color, select chevron, textarea fix, form-group gap), and apply 2-column grids to paired fields across settings, admin, and wizard pages
+**Requirements**: UX-01, UX-02
 **Depends on:** Phase 41
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 41.1 to break down)
+- [ ] 41.1-01-PLAN.md — Design-system global form polish (placeholder italic, label color, select chevron, textarea fix, form-grid-2/form-stack utilities) + wizard field-input reconciliation
+- [ ] 41.1-02-PLAN.md — Page-specific field grids (settings SMTP 2-col, admin user-create 2-col, number input constraints, members gap fix)
+- [ ] 41.1-03-PLAN.md — Remaining textarea class fixes + visual verification checkpoint
 
 ### Phase 41.2: Wizard UX and General Flow Improvements (INSERTED)
 
