@@ -25,7 +25,7 @@ See MILESTONES.md for full history.
 - [x] **Phase 35: Entry Points** - Dashboard and Login — the two pages every user sees first, setting the visual bar for the entire app (completed 2026-03-19)
 - [x] **Phase 36: Session Creation Flow** - Wizard and Hub — the two connected pages that take a user from intent to a live session (completed 2026-03-20)
 - [x] **Phase 37: Live Session Conduct** - Operator Console and Voter ballot — real-time operational pages with dense, high-stakes UI (completed 2026-03-20)
-- [ ] **Phase 38: Results & History** - Post-session, Analytics, and Meetings list — read-only pages for reviewing outcomes and trends
+- [x] **Phase 38: Results & History** - Post-session, Analytics, and Meetings list — read-only pages for reviewing outcomes and trends (completed 2026-03-20)
 - [ ] **Phase 39: Admin Data Tables** - Members, Users, Audit log, and Archives — the four table-heavy admin pages
 - [ ] **Phase 40: Configuration Cluster** - Settings/Admin, Email templates, and Help/FAQ — grouped by low-frequency but high-trust interactions
 - [ ] **Phase 41: Public & Utility Pages** - Landing, Public/Projector display, Report/PV, and Trust/Validate/Doc utilities
@@ -90,11 +90,11 @@ Plans:
   3. Metric tooltips on analytics KPIs explain what each number measures — no jargon left unexplained
   4. The meetings list session cards show status, date, and quorum in a scannable format — an admin can find a specific session in under 3 seconds
   5. The post-session archival progression steps communicate completion state — a user knows exactly whether archival is complete or pending
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 38-01-PLAN.md — Post-session redesign (pill stepper with glow, verdict badge prominence, ag-tooltip on steps, section spacing)
-- [ ] 38-02-PLAN.md — Analytics + Meetings redesign (KPI card migration, chart subtitles, period pills, session-card migration, hover-reveal CTAs)
-- [ ] 38-03-PLAN.md — Visual verification checkpoint (human review of all three pages)
+- [x] 38-01-PLAN.md — Post-session redesign (pill stepper with glow, verdict badge prominence, ag-tooltip on steps, section spacing)
+- [x] 38-02-PLAN.md — Analytics + Meetings redesign (KPI card migration, chart subtitles, period pills, session-card migration, hover-reveal CTAs)
+- [x] 38-03-PLAN.md — Visual verification checkpoint (human review of all three pages)
 
 ### Phase 39: Admin Data Tables
 **Goal**: Members, Users, Audit log, and Archives pages handle dense tabular data with the polish of Linear's table views — readable density, actionable rows, visible filters
@@ -141,7 +141,7 @@ Plans:
 | 35. Entry Points | 3/3 | Complete    | 2026-03-19 |
 | 36. Session Creation Flow | 3/3 | Complete    | 2026-03-20 |
 | 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
-| 38. Results & History | 2/3 | In Progress|  |
+| 38. Results & History | 3/3 | Complete    | 2026-03-20 |
 | 39. Admin Data Tables | 0/TBD | Not started | - |
 | 40. Configuration Cluster | 0/TBD | Not started | - |
 | 41. Public & Utility Pages | 0/TBD | Not started | - |
