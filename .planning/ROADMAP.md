@@ -209,7 +209,7 @@ Plans:
 **Goal:** Deep visual redesign of analytics.htmx.html — horizontal KPI cards with icon/body layout, featured hero chart pattern, 240px horizontal donut with legend beside, sticky filter bar with segmented pills, modern sliding tab indicator with badge counts, striped data tables with mono numerics, 2-column anomaly card grid with status icons
 **Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.4
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 41.5-01-PLAN.md — Horizontal KPI cards + sticky filter bar + sliding tab indicator with badge count
