@@ -52,6 +52,15 @@
           if (kpiCo) kpiCo.textContent = upcoming.length;
           if (kpiPv) kpiPv.textContent = closed.length;
 
+          var ctxUp = document.getElementById('kpiUpcomingContext');
+          var ctxLi = document.getElementById('kpiLiveContext');
+          var ctxCo = document.getElementById('kpiConvocationsContext');
+          var ctxPv = document.getElementById('kpiPVContext');
+          if (ctxUp) ctxUp.textContent = upcoming.length === 1 ? 's\u00e9ance programm\u00e9e' : 's\u00e9ances programm\u00e9es';
+          if (ctxLi) ctxLi.textContent = live.length === 1 ? 's\u00e9ance active' : 's\u00e9ances actives';
+          if (ctxCo) ctxCo.textContent = upcoming.length + ' \u00e0 cloturer';
+          if (ctxPv) ctxPv.textContent = closed.length === 1 ? 'PV \u00e0 valider' : 'PV \u00e0 valider';
+
           // Urgent action card
           var urgentCard = document.getElementById('urgentCard');
           if (urgentCard && closed.length > 0) {

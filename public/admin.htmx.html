@@ -92,29 +92,41 @@
             <div class="dash-kpi-icon kpi-primary">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </div>
-            <div class="dash-kpi-value" id="kpiUpcomingVal">&mdash;</div>
-            <div class="dash-kpi-label"><ag-tooltip text="Nombre de séances programmées dans le futur" position="top">AG à venir</ag-tooltip></div>
+            <div class="dash-kpi-body">
+              <div class="dash-kpi-value" id="kpiUpcomingVal">&mdash;</div>
+              <div class="dash-kpi-label"><ag-tooltip text="Nombre de séances programmées dans le futur" position="top">AG à venir</ag-tooltip></div>
+              <div class="dash-kpi-context" id="kpiUpcomingContext"></div>
+            </div>
           </a>
           <a href="/operator.htmx.html" class="dash-kpi" id="kpiLive">
             <div class="dash-kpi-icon kpi-danger">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             </div>
-            <div class="dash-kpi-value" id="kpiLiveVal">&mdash;</div>
-            <div class="dash-kpi-label"><ag-tooltip text="Séances actuellement en cours de vote" position="top">En cours</ag-tooltip></div>
+            <div class="dash-kpi-body">
+              <div class="dash-kpi-value" id="kpiLiveVal">&mdash;</div>
+              <div class="dash-kpi-label"><ag-tooltip text="Séances actuellement en cours de vote" position="top">En cours</ag-tooltip></div>
+              <div class="dash-kpi-context" id="kpiLiveContext"></div>
+            </div>
           </a>
           <a href="/meetings.htmx.html" class="dash-kpi" id="kpiConvocations">
             <div class="dash-kpi-icon kpi-warning">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
             </div>
-            <div class="dash-kpi-value" id="kpiConvocationsVal">&mdash;</div>
-            <div class="dash-kpi-label"><ag-tooltip text="Convocations en attente d'envoi pour les prochaines séances" position="top">Convocations</ag-tooltip></div>
+            <div class="dash-kpi-body">
+              <div class="dash-kpi-value" id="kpiConvocationsVal">&mdash;</div>
+              <div class="dash-kpi-label"><ag-tooltip text="Convocations en attente d'envoi pour les prochaines séances" position="top">Convocations</ag-tooltip></div>
+              <div class="dash-kpi-context" id="kpiConvocationsContext"></div>
+            </div>
           </a>
           <a href="/postsession.htmx.html" class="dash-kpi" id="kpiPV">
             <div class="dash-kpi-icon kpi-success">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
             </div>
-            <div class="dash-kpi-value" id="kpiPVVal">&mdash;</div>
-            <div class="dash-kpi-label"><ag-tooltip text="Procès-verbaux non encore validés après clôture de séance" position="top">PV en attente</ag-tooltip></div>
+            <div class="dash-kpi-body">
+              <div class="dash-kpi-value" id="kpiPVVal">&mdash;</div>
+              <div class="dash-kpi-label"><ag-tooltip text="Procès-verbaux non encore validés après clôture de séance" position="top">PV en attente</ag-tooltip></div>
+              <div class="dash-kpi-context" id="kpiPVContext"></div>
+            </div>
           </a>
         </div>
 
@@ -198,24 +210,36 @@
         <!-- Users KPI strip -->
         <div class="kpi-grid" style="margin-bottom: var(--space-4);">
           <div class="kpi-card">
+            <div class="kpi-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
             <ag-tooltip text="Nombre total de comptes utilisateurs enregistrés" position="top">
               <span class="kpi-label">Total utilisateurs</span>
             </ag-tooltip>
             <span class="kpi-value" id="adminKpiUsers">--</span>
           </div>
           <div class="kpi-card">
+            <div class="kpi-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
             <ag-tooltip text="Utilisateurs avec le rôle Administrateur" position="top">
               <span class="kpi-label">Admins</span>
             </ag-tooltip>
             <span class="kpi-value" id="adminKpiAdmins">--</span>
           </div>
           <div class="kpi-card">
+            <div class="kpi-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </div>
             <ag-tooltip text="Utilisateurs avec le rôle Opérateur de séance" position="top">
               <span class="kpi-label">Opérateurs</span>
             </ag-tooltip>
             <span class="kpi-value" id="adminKpiOperators">--</span>
           </div>
           <div class="kpi-card">
+            <div class="kpi-icon">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
             <ag-tooltip text="Utilisateurs connectés dans les 7 derniers jours" position="top">
               <span class="kpi-label">Actifs (7j)</span>
             </ag-tooltip>
@@ -229,23 +253,23 @@
         <!-- Tabs -->
         <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
           <button class="admin-tab active" data-tab="meeting-roles" role="tab" aria-selected="true" aria-controls="panel-meeting-roles" id="tab-meeting-roles">
-            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <ag-tooltip text="Définir les rôles attribués aux participants pour chaque séance" position="bottom">Rôles de séance</ag-tooltip>
           </button>
           <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">
-            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             <ag-tooltip text="Configurer les règles de quorum et de majorité applicables aux séances" position="bottom">Politiques</ag-tooltip>
           </button>
           <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">
-            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             <ag-tooltip text="Consulter la matrice des permissions par rôle système et de séance" position="bottom">Permissions</ag-tooltip>
           </button>
           <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">
-            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" y1="9" x2="6" y2="21"></line></svg>
+            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" y1="9" x2="6" y2="21"></line></svg>
             <ag-tooltip text="Visualiser les transitions d'états du cycle de vie d'une séance" position="bottom">Machine à états</ag-tooltip>
           </button>
           <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">
-            <svg class="admin-tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
             <ag-tooltip text="Surveiller la santé du système, base de données et configuration" position="bottom">Système</ag-tooltip>
           </button>
         </div>
