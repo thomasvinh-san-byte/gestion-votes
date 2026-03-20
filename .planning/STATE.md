@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 41.2-02-PLAN.md
-last_updated: "2026-03-20T08:42:41.716Z"
+stopped_at: Completed 41.3-01-PLAN.md
+last_updated: "2026-03-20T09:12:08.386Z"
 last_activity: "2026-03-20 — Phase 41.2 plan 2: Visual verification checkpoint auto-approved — wizard viewport fit and UX improvements confirmed"
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 9
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 28
+  completed_plans: 27
   percent: 100
 ---
 
@@ -98,6 +98,8 @@ Progress: [██████████] 100%
 - [Phase 41.2-wizard-ux]: Alert-warn moved inside wiz-advanced-body — legal notice visible only when advanced section expanded (expert feature)
 - [Phase 41.2-wizard-ux]: Smart defaults (today date + 18:00) placed inside existing DRAFT_KEY null guard — single code path, no double condition
 - [Phase 41.2-wizard-ux-and-general-flow-improvements]: Visual checkpoint auto-approved — user deferred all visual approvals to milestone review
+- [Phase 41.3-horizontal-first-layout-redesign]: .form-grid-3 collapses to 2 columns at 1024px (intermediate) before 1 column at 768px — avoids 3-to-1 jump
+- [Phase 41.3-horizontal-first-layout-redesign]: Both 680px track cap and 480px field cap removed together — removing only one leaves standalone inputs still capped at 480px
 
 ### Pending Todos
 
@@ -109,7 +111,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:41:07.580Z
-Stopped at: Completed 41.2-02-PLAN.md
+Last session: 2026-03-20T09:12:00.993Z
+Stopped at: Completed 41.3-01-PLAN.md
 Resume file: None
 Next action: Milestone v4.2 complete — ready for next milestone

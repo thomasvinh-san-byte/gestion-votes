@@ -186,7 +186,7 @@ Plans:
 **Goal:** Remove narrow max-width constraints (wizard 680px, settings 720px), add .form-grid-3 utility, and restructure wizard/hub layouts to exploit horizontal screen space with multi-column grids
 **Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.2
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 41.3-01-PLAN.md — CSS foundation: .form-grid-3 utility + remove wizard 680px/480px and settings 720px width constraints
