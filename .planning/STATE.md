@@ -4,8 +4,8 @@ milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
 stopped_at: Completed 41-01-PLAN.md
-last_updated: "2026-03-20T07:42:33.021Z"
-last_activity: "2026-03-20 — Phase 40 plan 1: Settings redesign — CSS toggles, ag-tooltip on all fields, card footers, CNIL accents, template two-pane (CORE-06, SEC-04)"
+last_updated: "2026-03-20T07:43:44.584Z"
+last_activity: "2026-03-20 — Phase 41 plan 1: Landing page — hero trust strip, feature cards with hover lift, gradient CTA section, hero title dark mode fix (SEC-02)"
 progress:
   total_phases: 7
   completed_phases: 7
