@@ -92,54 +92,62 @@
         <!-- Overview KPI cards -->
         <div class="kpi-grid analytics-kpi-grid" id="overviewCards" data-tour="stats-kpis" aria-live="polite">
           <ag-tooltip text="Nombre total de s&eacute;ances cl&ocirc;tur&eacute;es sur la p&eacute;riode s&eacute;lectionn&eacute;e" position="bottom">
-            <div class="kpi-card kpi-card--1">
-              <div class="kpi-icon">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
+            <div class="kpi-card kpi-card--1 an-kpi">
+              <div class="an-kpi-icon an-kpi-icon--primary">
+                <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
               </div>
-              <div class="kpi-value" id="kpiMeetings">&mdash;</div>
-              <div class="kpi-label">S&eacute;ances</div>
-              <div class="overview-card-trend" id="kpiMeetingsTrend">
-                <span class="trend-arrow"></span>
-                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              <div class="an-kpi-body">
+                <div class="kpi-value an-kpi-value" id="kpiMeetings">&mdash;</div>
+                <div class="kpi-label an-kpi-label">S&eacute;ances</div>
+                <div class="overview-card-trend an-kpi-trend" id="kpiMeetingsTrend">
+                  <span class="trend-arrow"></span>
+                  <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+                </div>
               </div>
             </div>
           </ag-tooltip>
           <ag-tooltip text="Total des votes exprim&eacute;s sur toutes les r&eacute;solutions" position="bottom">
-            <div class="kpi-card kpi-card--2">
-              <div class="kpi-icon">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+            <div class="kpi-card kpi-card--2 an-kpi">
+              <div class="an-kpi-icon an-kpi-icon--success">
+                <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
               </div>
-              <div class="kpi-value" id="kpiResolutions">&mdash;</div>
-              <div class="kpi-label">R&eacute;solutions vot&eacute;es</div>
-              <div class="overview-card-trend" id="kpiResolutionsTrend">
-                <span class="trend-arrow"></span>
-                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              <div class="an-kpi-body">
+                <div class="kpi-value an-kpi-value" id="kpiResolutions">&mdash;</div>
+                <div class="kpi-label an-kpi-label">R&eacute;solutions vot&eacute;es</div>
+                <div class="overview-card-trend an-kpi-trend" id="kpiResolutionsTrend">
+                  <span class="trend-arrow"></span>
+                  <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+                </div>
               </div>
             </div>
           </ag-tooltip>
           <ag-tooltip text="% de r&eacute;solutions adopt&eacute;es parmi toutes les r&eacute;solutions mises au vote" position="bottom">
-            <div class="kpi-card kpi-card--3">
-              <div class="kpi-icon">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-trending-up"></use></svg>
+            <div class="kpi-card kpi-card--3 an-kpi">
+              <div class="an-kpi-icon an-kpi-icon--warning">
+                <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-trending-up"></use></svg>
               </div>
-              <div class="kpi-value" id="kpiAdoptionRate">&mdash;</div>
-              <div class="kpi-label">Taux d&rsquo;adoption</div>
-              <div class="overview-card-trend" id="kpiAdoptionTrend">
-                <span class="trend-arrow"></span>
-                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              <div class="an-kpi-body">
+                <div class="kpi-value an-kpi-value" id="kpiAdoptionRate">&mdash;</div>
+                <div class="kpi-label an-kpi-label">Taux d&rsquo;adoption</div>
+                <div class="overview-card-trend an-kpi-trend" id="kpiAdoptionTrend">
+                  <span class="trend-arrow"></span>
+                  <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+                </div>
               </div>
             </div>
           </ag-tooltip>
           <ag-tooltip text="Taux de participation moyen (membres pr&eacute;sents / membres inscrits)" position="bottom">
-            <div class="kpi-card kpi-card--4">
-              <div class="kpi-icon">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+            <div class="kpi-card kpi-card--4 an-kpi">
+              <div class="an-kpi-icon an-kpi-icon--info">
+                <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
               </div>
-              <div class="kpi-value" id="kpiParticipation">&mdash;</div>
-              <div class="kpi-label">Participation</div>
-              <div class="overview-card-trend" id="kpiParticipationTrend">
-                <span class="trend-arrow"></span>
-                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              <div class="an-kpi-body">
+                <div class="kpi-value an-kpi-value" id="kpiParticipation">&mdash;</div>
+                <div class="kpi-label an-kpi-label">Participation</div>
+                <div class="overview-card-trend an-kpi-trend" id="kpiParticipationTrend">
+                  <span class="trend-arrow"></span>
+                  <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+                </div>
               </div>
             </div>
           </ag-tooltip>
@@ -155,8 +163,9 @@
             <button class="analytics-period-pill" data-period="all">Tout</button>
           </div>
           <div class="analytics-filter-actions">
-            <button class="btn btn-ghost btn-icon btn-sm" id="refreshBtn" title="Actualiser" aria-label="Actualiser">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
+            <button class="btn btn-ghost btn-sm" id="refreshBtn" title="Actualiser" aria-label="Actualiser">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
+              Actualiser
             </button>
           </div>
         </div>
