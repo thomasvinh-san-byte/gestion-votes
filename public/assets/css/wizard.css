@@ -183,7 +183,7 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-  padding: 2rem 2.5rem;
+  padding: 1.25rem 1.5rem;
 }
 
 /* =============================================================================
@@ -199,7 +199,7 @@
   color: var(--color-text-inverse);
   padding: 12px 16px;
   border-radius: var(--radius) var(--radius) 0 0;
-  margin: -2rem -2.5rem 1.25rem -2.5rem;
+  margin: -1.25rem -1.5rem 1rem -1.5rem;
   font-weight: 700;
 }
 
@@ -228,7 +228,7 @@
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  padding: 1.25rem 2.5rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-border-subtle);
   background: var(--color-surface-raised);
   border-radius: 0 0 12px 12px;
@@ -297,7 +297,7 @@
   border: none;
   border-top: 1px solid var(--color-border-subtle);
   border-radius: 0;
-  padding: 1.5rem 0;
+  padding: 0.875rem 0;
   margin-bottom: 0;
 }
 
@@ -309,7 +309,7 @@
   font-size: 0.6875rem;
   font-weight: 800;
   color: var(--color-primary);
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   display: flex;
@@ -324,8 +324,71 @@
   stroke: var(--color-primary);
 }
 
+/* =============================================================================
+   ADVANCED TOGGLE — collapsible section using native details/summary
+   ============================================================================= */
+
+.wiz-advanced-toggle {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.wiz-advanced-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  list-style: none;
+  padding: 0.5rem 0;
+  user-select: none;
+}
+
+.wiz-advanced-summary::-webkit-details-marker { display: none; }
+.wiz-advanced-summary::marker { display: none; content: ''; }
+
+.wiz-advanced-summary svg:first-child {
+  color: var(--color-primary);
+  stroke: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.wiz-advanced-hint {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-left: auto;
+  padding-right: 8px;
+}
+
+.wiz-advanced-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.wiz-advanced-toggle[open] .wiz-advanced-chevron {
+  transform: rotate(180deg);
+}
+
+.wiz-advanced-toggle[open] .wiz-advanced-summary {
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.wiz-advanced-body {
+  animation: wizFadeIn 150ms ease-out;
+}
+
+/* Collapsed resolution add trigger */
+.reso-add-trigger {
+  margin: 12px 0;
+}
+
 .wiz-required-note {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
@@ -504,9 +567,9 @@
    ============================================================================= */
 
 .wiz-toggle-row {
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   border-bottom: 1px solid var(--color-border-subtle);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .toggle-label {
@@ -1042,12 +1105,19 @@
 .upload-zone {
   background: var(--color-bg-subtle);
   border-radius: 10px;
-  padding: 2rem;
-  text-align: center;
+  padding: 10px 14px;
+  text-align: left;
   border: 2px dashed var(--color-border);
   margin-bottom: 14px;
   transition: border-color .2s, background .2s, box-shadow .2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
+
+.upload-zone svg { flex-shrink: 0; }
+.upload-zone .upload-zone-title { font-size: 0.8125rem; }
+.upload-zone .muted { font-size: 0.75rem; margin: 0; }
 
 .upload-zone:hover {
   border-color: var(--color-border-strong);
