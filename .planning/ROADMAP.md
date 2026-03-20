@@ -23,7 +23,7 @@ See MILESTONES.md for full history.
 **Milestone Goal:** Every page looks top 1% — professionally designed, intuitive, self-explanatory. Page-by-page visual redesign with concrete references (Linear, Notion, Clerk, Stripe). Visible before/after impact in the browser on every page.
 
 - [x] **Phase 35: Entry Points** - Dashboard and Login — the two pages every user sees first, setting the visual bar for the entire app (completed 2026-03-19)
-- [ ] **Phase 36: Session Creation Flow** - Wizard and Hub — the two connected pages that take a user from intent to a live session
+- [x] **Phase 36: Session Creation Flow** - Wizard and Hub — the two connected pages that take a user from intent to a live session (completed 2026-03-20)
 - [ ] **Phase 37: Live Session Conduct** - Operator Console and Voter ballot — real-time operational pages with dense, high-stakes UI
 - [ ] **Phase 38: Results & History** - Post-session, Analytics, and Meetings list — read-only pages for reviewing outcomes and trends
 - [ ] **Phase 39: Admin Data Tables** - Members, Users, Audit log, and Archives — the four table-heavy admin pages
@@ -58,11 +58,11 @@ Plans:
   3. The Hub's stepper sidebar, quorum bar, and session checklist are visually hierarchical — the user knows exactly what step they are on and what is blocking them
   4. Micro-interactions on wizard fields (focus ring, autosave indicator) are smooth and feel premium, not jarring
   5. Both pages produce a clear before/after screenshot contrast — whitespace, typography weight, and component spacing are visibly improved
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 36-01-PLAN.md — Wizard visual redesign (stepper hierarchy, form labels, tooltips, sections, micro-interactions)
-- [ ] 36-02-PLAN.md — Hub visual redesign (identity badges, status bar, stepper, quorum hero, checklist, action CTA)
-- [ ] 36-03-PLAN.md — Visual verification checkpoint (human review of both pages)
+- [x] 36-01-PLAN.md — Wizard visual redesign (stepper hierarchy, form labels, tooltips, sections, micro-interactions)
+- [x] 36-02-PLAN.md — Hub visual redesign (identity badges, status bar, stepper, quorum hero, checklist, action CTA)
+- [x] 36-03-PLAN.md — Visual verification checkpoint (human review of both pages)
 
 ### Phase 37: Live Session Conduct
 **Goal**: Operators and voters experience pages optimized for high-stakes, real-time use — dense information for the operator, focused simplicity for the voter
@@ -131,7 +131,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 35. Entry Points | 3/3 | Complete    | 2026-03-19 |
-| 36. Session Creation Flow | 2/3 | In Progress|  |
+| 36. Session Creation Flow | 3/3 | Complete   | 2026-03-20 |
 | 37. Live Session Conduct | 0/TBD | Not started | - |
 | 38. Results & History | 0/TBD | Not started | - |
 | 39. Admin Data Tables | 0/TBD | Not started | - |
