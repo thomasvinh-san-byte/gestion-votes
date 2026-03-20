@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: executing
-stopped_at: Completed 44-01-PLAN.md
-last_updated: "2026-03-20T12:10:07.333Z"
+stopped_at: "Completed 44-02-PLAN.md (Task 1 auto; Task 2 checkpoint:human-verify pending)"
+last_updated: "2026-03-20T12:13:59.701Z"
 last_activity: 2026-03-20 — Completed 43-01 dashboard ground-up rewrite HTML+CSS (f61d636)
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 28
 ---
 
@@ -57,6 +57,8 @@ Progress: [██░░░░░░░░] ~28%
 - [Phase 44]: Password floating label uses JS-assisted .has-value on .field-group (label sibling of .field-input-wrap, not input)
 - [Phase 44]: Trust signal and footer moved outside .login-card into <main> — card focus-within glow stays clean
 - [Phase 44]: #demoPanel is static hidden div — Plan 02 will removeAttribute('hidden') instead of card.appendChild()
+- [Phase Phase 44]: login.js: updateHasValue() applied to both fields for consistency, even though email can use CSS :not(:placeholder-shown) alone
+- [Phase Phase 44]: login.js: showDemoHint() targets #demoPanel via getElementById + removeAttribute('hidden') instead of card.appendChild()
 
 ### Pending Todos
 
@@ -68,7 +70,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-20T12:10:07.331Z
-Stopped at: Completed 44-01-PLAN.md
+Last session: 2026-03-20T12:13:53.858Z
+Stopped at: Completed 44-02-PLAN.md (Task 1 auto; Task 2 checkpoint:human-verify pending)
 Resume file: None
 Next action: /gsd:execute-phase 43 (plan 02 — dashboard JS wire-up)
