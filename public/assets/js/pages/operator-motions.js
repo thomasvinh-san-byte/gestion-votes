@@ -244,7 +244,7 @@
         </div>
         <div class="form-group mb-3">
           <label class="form-label">Description / Texte complet</label>
-          <textarea class="form-input" id="editResolutionDesc" rows="6">${escapeHtml(motion.description || '')}</textarea>
+          <textarea class="form-textarea" id="editResolutionDesc" rows="6">${escapeHtml(motion.description || '')}</textarea>
         </div>
         <div class="form-group mb-3">
           <label class="form-label">

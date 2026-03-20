@@ -173,7 +173,7 @@
         </div>
         <div class="form-group mb-3">
           <label class="form-label">Ou coller le contenu</label>
-          <textarea class="form-input" id="csvTextInput" rows="4" placeholder="name,email,voting_power\nJean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
+          <textarea class="form-textarea" id="csvTextInput" rows="4" placeholder="name,email,voting_power\nJean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
         </div>
         <div id="csvPreviewContainer" style="display:none;" class="mb-4"></div>
         <div class="flex gap-2 justify-end">
@@ -548,7 +548,7 @@
         </div>
         <div class="form-group mb-3">
           <label class="form-label">Ou coller le contenu</label>
-          <textarea class="form-input" id="csvProxyTextInput" rows="4" placeholder="giver_email,receiver_email\nabsent@exemple.com,present@exemple.com"></textarea>
+          <textarea class="form-textarea" id="csvProxyTextInput" rows="4" placeholder="giver_email,receiver_email\nabsent@exemple.com,present@exemple.com"></textarea>
         </div>
         <div id="csvProxyPreviewContainer" style="display:none;" class="mb-4"></div>
         <div class="flex gap-2 justify-end">

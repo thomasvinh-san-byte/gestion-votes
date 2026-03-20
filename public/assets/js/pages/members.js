@@ -357,7 +357,7 @@
         </div>
         <div class="form-group mb-3">
           <label class="form-label">Description</label>
-          <textarea class="form-input" id="editGroupDesc" placeholder="Description optionnelle" rows="2">${escapeHtml(group.description || '')}</textarea>
+          <textarea class="form-textarea" id="editGroupDesc" placeholder="Description optionnelle" rows="2">${escapeHtml(group.description || '')}</textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Couleur</label>
