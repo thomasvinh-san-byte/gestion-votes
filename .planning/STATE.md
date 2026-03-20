@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 40-02-PLAN.md
-last_updated: "2026-03-20T07:18:32.061Z"
+stopped_at: Completed 40-01-PLAN.md
+last_updated: "2026-03-20T07:21:04.293Z"
 last_activity: "2026-03-20 — Phase 40 plan 2: Admin KPI tooltips, tab icons, users strip; Help filter-tab pills, section accents (CORE-06, SEC-03)"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 98
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign — Phase 39: Admin Data Tables (plan 2 of 3 complete)
+**Current focus:** v4.2 Visual Redesign — Phase 40: Configuration Cluster (plan 1 of 3 complete)
 
 ## Current Position
 
 Phase: 40 of 41 (Configuration Cluster — in progress)
-Plan: 2 of 3 (40-02 complete — Admin + Help/FAQ pages redesigned)
-Status: Phase 40 plan 2 done — ready for plan 3
-Last activity: 2026-03-20 — Phase 40 plan 2: Admin KPI tooltips, tab icons, users strip; Help filter-tab pills, section accents (CORE-06, SEC-03)
+Plan: 1 of 3 (40-01 complete — Settings page redesigned: toggle switches, tooltips, card footers, two-pane email editor)
+Status: Phase 40 plan 1 done — ready for plan 2
+Last activity: 2026-03-20 — Phase 40 plan 1: Settings redesign — CSS toggles, ag-tooltip on all fields, card footers, CNIL accents, template two-pane (CORE-06, SEC-04)
 
 Progress: [██████████] 98%
 
@@ -78,6 +78,8 @@ Progress: [██████████] 98%
 - [Phase 39]: Visual checkpoint deferred — user approved all four admin data pages together at phase completion (DATA-01 through DATA-04 confirmed)
 - [Phase 40]: [Phase 40-02]: Users KPI strip uses ag-tooltip inside kpi-card wrapping kpi-label only — wrapping the whole card would break the grid
 - [Phase 40]: [Phase 40-02]: Help/FAQ filter-tab pills use CSS-only approach — no JS class name changes needed since only CSS rules changed
+- [Phase 40]: Toggle switches: CSS-only via .toggle-switch + .toggle-track::after — no new JS component, all input IDs preserved for auto-save compatibility
+- [Phase 40]: Template editor inline two-pane (1fr+400px) within Communication tab card — not a modal, not a separate page (Pitfall 6 from 40-RESEARCH.md)
 
 ### Pending Todos
 
@@ -89,7 +91,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:18:32.058Z
-Stopped at: Completed 40-02-PLAN.md
+Last session: 2026-03-20T07:21:04.291Z
+Stopped at: Completed 40-01-PLAN.md
 Resume file: None
 Next action: Execute 40-03-PLAN.md (Profile page + final polish)
