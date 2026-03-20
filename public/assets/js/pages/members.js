@@ -534,11 +534,33 @@
     paginInfo.textContent = `Page ${currentPage} / ${totalPages}`;
   }
 
+  // Update filter chip count badges
+  function updateFilterChipCounts(members) {
+    var totalCount = members.length;
+    var activeCount = members.filter(function(m) { return m.is_active; }).length;
+    var inactiveCount = totalCount - activeCount;
+    var counts = { all: totalCount, active: activeCount, inactive: inactiveCount };
+
+    filterChips.forEach(function(chip) {
+      var filter = chip.dataset.filter;
+      var count = counts[filter];
+      if (count === undefined) return;
+      var countSpan = chip.querySelector('.count');
+      if (!countSpan) {
+        countSpan = document.createElement('span');
+        countSpan.className = 'count';
+        chip.appendChild(countSpan);
+      }
+      countSpan.textContent = count;
+    });
+  }
+
   function renderMembers(members) {
     const search = searchInput.value.trim();
     const filtered = sortMembers(filterMembers(members, currentFilter, search, currentGroupFilter));
     const n = filtered.length;
     membersCount.textContent = `${n} membre${n > 1 ? 's' : ''}`;
+    updateFilterChipCounts(members);
 
     updatePagination(n);
 
@@ -595,12 +617,16 @@
             </div>
           </div>
           <div class="member-card-actions">
-            <button class="member-action-icon" data-action="edit-member" data-id="${escapeHtml(m.id)}" title="Modifier" aria-label="Modifier ${escapeHtml(name)}">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
-            </button>
-            <button class="member-action-icon danger" data-action="delete-member" data-id="${escapeHtml(m.id)}" title="Supprimer" aria-label="Supprimer ${escapeHtml(name)}">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-            </button>
+            <ag-tooltip text="Modifier ce membre" position="top">
+              <button class="member-action-icon" data-action="edit-member" data-id="${escapeHtml(m.id)}" aria-label="Modifier ${escapeHtml(name)}">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-edit"></use></svg>
+              </button>
+            </ag-tooltip>
+            <ag-tooltip text="Supprimer ce membre" position="top">
+              <button class="member-action-icon danger" data-action="delete-member" data-id="${escapeHtml(m.id)}" aria-label="Supprimer ${escapeHtml(name)}">
+                <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+              </button>
+            </ag-tooltip>
           </div>
         </article>
       `;

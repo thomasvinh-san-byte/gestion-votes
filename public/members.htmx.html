@@ -66,28 +66,34 @@
       <!-- Stats bar -->
       <div class="stats-bar" aria-live="polite">
         <div class="stat-item total">
+          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
           <div class="stat-value" id="kpiTotal">&mdash;</div>
-          <div class="stat-label">Total</div>
+          <div class="stat-label"><ag-tooltip text="Nombre total de membres enregistres" position="top">Total</ag-tooltip></div>
         </div>
         <div class="stat-item active">
+          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
           <div class="stat-value" id="kpiActive">&mdash;</div>
-          <div class="stat-label">Actifs</div>
+          <div class="stat-label"><ag-tooltip text="Membres actifs pouvant voter" position="top">Actifs</ag-tooltip></div>
         </div>
         <div class="stat-item inactive">
+          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-x-circle"></use></svg>
           <div class="stat-value" id="kpiInactive">&mdash;</div>
-          <div class="stat-label">Inactifs</div>
+          <div class="stat-label"><ag-tooltip text="Membres desactives, exclus du quorum" position="top">Inactifs</ag-tooltip></div>
         </div>
         <div class="stat-item">
+          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart-2"></use></svg>
           <div class="stat-value" id="kpiPower">&mdash;</div>
-          <div class="stat-label">Voix totales</div>
+          <div class="stat-label"><ag-tooltip text="Somme des ponderations de tous les membres actifs" position="top">Voix totales</ag-tooltip></div>
         </div>
         <div class="stat-item">
+          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trending-up"></use></svg>
           <span class="stat-value" id="kpiAvgPower">—</span>
-          <span class="stat-label">Pouvoir moyen</span>
+          <span class="stat-label"><ag-tooltip text="Ponderation moyenne par membre actif" position="top">Pouvoir moyen</ag-tooltip></span>
         </div>
         <div class="stat-item">
+          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
           <span class="stat-value" id="kpiEmailCoverage">—</span>
-          <span class="stat-label">Couv. email</span>
+          <span class="stat-label"><ag-tooltip text="Pourcentage de membres avec adresse email renseignee" position="top">Couv. email</ag-tooltip></span>
         </div>
       </div>
 
