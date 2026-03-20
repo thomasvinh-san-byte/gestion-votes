@@ -56,7 +56,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 43-01-PLAN.md — Rewrite dashboard HTML from scratch and rewrite all dashboard CSS in pages.css
+- [x] 43-01-PLAN.md — Rewrite dashboard HTML from scratch and rewrite all dashboard CSS in pages.css
 - [ ] 43-02-PLAN.md — Fix dashboard.js urgent banner logic and browser verification
 
 ### Phase 44: Login Rebuild
@@ -123,7 +123,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 42. Stabilization | 1/1 | Complete    | 2026-03-20 |
-| 43. Dashboard Rebuild | 0/2 | Not started | - |
+| 43. Dashboard Rebuild | 1/2 | In progress | - |
 | 44. Login Rebuild | 0/TBD | Not started | - |
 | 45. Wizard Rebuild | 0/TBD | Not started | - |
 | 46. Operator Console Rebuild | 0/TBD | Not started | - |
