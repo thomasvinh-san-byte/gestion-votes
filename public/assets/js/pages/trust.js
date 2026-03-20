@@ -267,7 +267,7 @@
         }
 
         // Update integrity checks class based on pass rate
-        const integrityChecksEl = document.getElementById('integrityChecks');
+        const integrityChecksEl = document.getElementById('integrityStatus');
         if (integrityChecksEl) {
           integrityChecksEl.className = 'integrity-stat ' + (percentage === 100 ? 'success' : percentage >= 70 ? 'warning' : 'danger');
         }
@@ -313,7 +313,7 @@
 
       if (body && body.ok && body.data && Array.isArray(body.data.items)) {
         const motions = body.data.items;
-        kpi.textContent = motions.length;
+        if (kpi) kpi.textContent = motions.length;
 
         if (motions.length === 0) {
           tbody.innerHTML = `
