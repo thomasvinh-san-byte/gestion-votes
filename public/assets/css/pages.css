@@ -932,32 +932,28 @@
 
 
 /* =============================================================================
-   DASHBOARD — Urgent Action Card
+   DASHBOARD — Urgent Banner
    ============================================================================= */
 
-.urgent-card {
-  margin-bottom: 14px;
-  border: 2px solid var(--color-danger);
-  padding: 14px;
-  cursor: pointer;
-  display: block;
-  text-decoration: none;
-  transition: box-shadow 150ms, transform 150ms;
-}
-
-.urgent-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.urgent-card-body {
+.dashboard-urgent {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: nowrap;
+  padding: 14px 20px;
+  margin-bottom: var(--space-card, 24px);
+  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow 150ms, transform 150ms;
 }
-
-.urgent-card-icon {
+.dashboard-urgent:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.dashboard-urgent__icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
@@ -967,152 +963,74 @@
   justify-content: center;
   flex-shrink: 0;
 }
-
-.urgent-card-label {
-  font-size: 12px;
+.dashboard-urgent__body {
+  flex: 1;
+  min-width: 0;
+}
+.dashboard-urgent__eyebrow {
+  font-size: 11px;
   font-weight: 700;
   color: var(--color-danger);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-
-.urgent-card-title {
+.dashboard-urgent__title {
   font-size: var(--text-md);
   font-weight: 800;
   color: var(--color-text);
   margin: 2px 0;
 }
-
-.urgent-card-sub {
+.dashboard-urgent__sub {
   font-size: 13px;
   color: var(--color-text-muted);
 }
-
-.urgent-card-chevron {
+.dashboard-urgent__arrow {
   flex-shrink: 0;
+  color: var(--color-danger);
 }
 
 /* =============================================================================
-   DASHBOARD — Page subtitle reduced weight
+   DASHBOARD — Page subtitle
    ============================================================================= */
 
-/* .page-sub on dashboard: minimal weight, secondary info only */
-.app-main ~ * .page-sub,
 .app-header .page-sub {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
 /* =============================================================================
-   DASHBOARD — Grid & Panel Layout (LAY-01)
+   DASHBOARD — Layout
    ============================================================================= */
 
-/* Centered content wrapper at 1200px */
 .dashboard-content {
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-4) 0;
 }
 
-/* KPI grid: 4-column with design token gap */
-.kpi-grid {
+/* KPI grid: 4-column */
+.dashboard-kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-card);
-  margin-bottom: var(--space-card);
+  gap: var(--space-card, 24px);
+  margin-bottom: var(--space-card, 24px);
 }
-
-/* ag-tooltip wrappers must fill grid cells */
-.kpi-grid ag-tooltip {
+.dashboard-kpis ag-tooltip {
   display: contents;
 }
 
-/* KPI cards use raised surface for three-depth model */
-.kpi-grid .kpi-card {
-  background: var(--color-surface-raised);
-}
-
-/* Body grid: session list + sticky aside */
+/* Body: sessions + aside */
 .dashboard-body {
   display: grid;
   grid-template-columns: 1fr 280px;
-  gap: var(--space-card);
+  gap: var(--space-card, 24px);
   align-items: start;
 }
 
-/* Sticky aside for quick-actions */
-.dashboard-aside {
-  position: sticky;
-  top: 80px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-card);
-}
-
-/* Responsive: 1024px breakpoint */
-@media (max-width: 1024px) {
-  .dashboard-body {
-    grid-template-columns: 1fr;
-  }
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .dashboard-aside {
-    position: static;
-  }
-}
-
-/* Keep legacy grid utilities for other potential uses */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-/* Dashboard panels: Phase 35 — 24px padding with header/content separation */
-.dashboard-panel {
-  padding: var(--space-card, 24px);
-}
-
-.dashboard-panel .flex-between {
-  margin-bottom: var(--space-4, 16px);
-  padding-bottom: var(--space-3, 12px);
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.dashboard-panel .card-title {
-  margin: 0;
-}
-
-.skeleton-session {
-  height: 60px;
-  margin-bottom: 8px;
-}
-
-.skeleton-session:last-child {
-  margin-bottom: 0;
-}
-
-.skeleton-task {
-  height: 48px;
-  margin-bottom: 6px;
-}
-
-.skeleton-task:last-child {
-  margin-bottom: 0;
-}
-
 /* =============================================================================
-   DASHBOARD — KPI Cards (Phase 35 Redesign)
+   DASHBOARD — KPI Cards
    ============================================================================= */
 
-/* KPI Card Redesign — Phase 35 */
 .kpi-card {
   text-align: left;
   padding: var(--space-6);
@@ -1124,14 +1042,13 @@
   border-radius: var(--radius-xl);
   transition: var(--transition-shadow), transform var(--duration-moderate) var(--ease-standard);
   text-decoration: none;
+  color: inherit;
 }
 .kpi-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
   border-color: var(--color-border-strong);
 }
-
-/* Icon container with per-card color differentiation */
 .kpi-card .kpi-icon {
   width: 36px;
   height: 36px;
@@ -1146,7 +1063,6 @@
 .kpi-card--3 .kpi-icon { background: var(--color-warning-subtle); color: var(--color-warning); }
 .kpi-card--4 .kpi-icon { background: var(--color-accent-subtle, var(--color-primary-subtle)); color: var(--color-accent, var(--color-primary)); }
 
-/* KPI numbers — JetBrains Mono for scannable data */
 .kpi-card .kpi-value {
   font-family: var(--font-mono);
   font-size: var(--text-4xl);
@@ -1154,10 +1070,8 @@
   line-height: 1;
   letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
-  min-width: 0;
+  color: var(--color-text);
 }
-
-/* KPI labels — uppercase small caps */
 .kpi-card .kpi-label {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -1167,35 +1081,84 @@
 }
 
 /* =============================================================================
-   DASHBOARD — Shortcut Cards (prominent action launcher)
+   DASHBOARD — Sessions Panel
    ============================================================================= */
 
-/* Shortcut card redesign — Phase 35 */
+.dashboard-sessions {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+  padding: var(--space-card, 24px);
+}
+.dashboard-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4, 16px);
+  padding-bottom: var(--space-3, 12px);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.dashboard-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Skeleton loading placeholders */
+.skeleton-session {
+  height: 60px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-md, 8px);
+}
+.skeleton-session:last-child {
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+   DASHBOARD — Aside (Quick Actions)
+   ============================================================================= */
+
+.dashboard-aside {
+  position: sticky;
+  top: 80px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-subtle);
+  padding: var(--space-card, 24px);
+}
+.dashboard-aside__title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  margin: 0 0 var(--space-3, 12px) 0;
+}
+.dashboard-aside ag-tooltip {
+  display: block;
+}
+
+/* Shortcut cards */
 .shortcut-card {
-  padding: var(--space-4);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  flex-wrap: nowrap;
+  color: inherit;
   border-radius: var(--radius-lg);
   border: 1px solid transparent;
   transition: var(--transition-ui);
 }
-
 .shortcut-card:hover {
-  transform: none;
-  box-shadow: none;
   background: var(--color-bg-subtle, var(--color-bg));
   border-color: var(--color-border);
 }
-
-.shortcut-card-title {
-  font-size: var(--text-md, 1rem);
-  font-weight: var(--font-semibold);
-}
-
 .shortcut-card-icon {
   width: 40px;
   height: 40px;
@@ -1205,29 +1168,17 @@
   justify-content: center;
   flex-shrink: 0;
 }
-
-.shortcut-card-icon.accent {
-  background: var(--color-primary);
-}
-
-.shortcut-card-icon.danger {
-  background: var(--color-danger);
-}
-
-.shortcut-card-icon.muted {
-  background: var(--color-text-muted);
-}
-
+.shortcut-card-icon.accent { background: var(--color-primary); }
+.shortcut-card-icon.danger { background: var(--color-danger); }
+.shortcut-card-icon.muted  { background: var(--color-text-muted); }
 .shortcut-card-text {
   min-width: 0;
 }
-
 .shortcut-card-title {
   font-weight: 700;
   color: var(--color-text);
   font-size: var(--text-base, 1rem);
 }
-
 .shortcut-card-sub {
   color: var(--color-text-muted);
   font-size: var(--text-sm, 0.875rem);
@@ -1235,112 +1186,20 @@
 }
 
 /* =============================================================================
-   DASHBOARD — Session & Task Rows (JS-rendered)
+   DASHBOARD — Responsive
    ============================================================================= */
 
-.session-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 4px;
-  cursor: pointer;
-  flex-wrap: nowrap;
-}
-
-.session-row:not(:last-child) {
-  border-bottom: 1px solid var(--color-border-soft);
-}
-
-.session-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.session-row-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.session-row-title {
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.session-row-meta {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.task-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 4px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-
-.task-row:not(:last-child) {
-  border-bottom: 1px solid var(--color-border-soft);
-}
-
-.task-row-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-row-title {
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: 13px;
-}
-
-.task-row-sub {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.task-row[data-priority="urgent"] {
-  border-left: 3px solid var(--color-danger);
-}
-
-.task-row[data-priority="high"] {
-  border-left: 3px solid var(--color-warning);
-}
-
-.task-row[data-priority="normal"] {
-  border-left: 3px solid var(--color-primary);
-}
-
-.session-row.empty-state,
-.task-row.empty-state {
-  justify-content: center;
-}
-
-/* =============================================================================
-   DASHBOARD — Responsive Grids
-   ============================================================================= */
-
-/* Shortcut cards stack to single column on mobile */
-@media (max-width: 640px) {
-  .grid-3 {
+@media (max-width: 1024px) {
+  .dashboard-body {
     grid-template-columns: 1fr;
   }
-
-  /* KPI grid: 2x2 on small screens */
-  .kpi-grid.dashboard-grid {
+  .dashboard-aside {
+    position: static;
+  }
+}
+@media (max-width: 768px) {
+  .dashboard-kpis {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  /* Panels stack on mobile */
-  .grid-2 {
-    grid-template-columns: 1fr;
   }
 }
 
