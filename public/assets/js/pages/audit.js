@@ -79,7 +79,15 @@
     if (kpiEvents) kpiEvents.textContent = _allEvents.length;
 
     var anomalies = _allEvents.filter(function(e) { return e.severity === 'danger'; }).length;
-    if (kpiAnomalies) kpiAnomalies.textContent = anomalies;
+    if (kpiAnomalies) {
+      kpiAnomalies.textContent = anomalies;
+      // Red indicator when anomalies > 0
+      if (anomalies > 0) {
+        kpiAnomalies.setAttribute('data-anomaly', 'true');
+      } else {
+        kpiAnomalies.removeAttribute('data-anomaly');
+      }
+    }
 
     if (kpiLastSession) {
       var sorted = _allEvents.slice().sort(function(a, b) {
@@ -87,6 +95,53 @@
       });
       kpiLastSession.textContent = sorted.length > 0 ? formatDateShort(sorted[0].timestamp) : '—';
     }
+  }
+
+  /* ── Filter count badges ── */
+  function updateFilterCounts(events) {
+    var cats = { '': events.length, votes: 0, presences: 0, securite: 0, systeme: 0 };
+    events.forEach(function(e) {
+      var cat = (e.category || e.type || '').toLowerCase();
+      if (cats[cat] !== undefined) cats[cat]++;
+    });
+    document.querySelectorAll('#auditTypeFilter .filter-tab').forEach(function(btn) {
+      var type = btn.dataset.type;
+      var span = btn.querySelector('.count');
+      if (!span) { span = document.createElement('span'); span.className = 'count'; btn.appendChild(span); }
+      span.textContent = cats[type !== undefined ? type : ''] || 0;
+    });
+  }
+
+  /* ── Build user cell with initials avatar ── */
+  function buildUserCell(username) {
+    var name = username || '??';
+    var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+    return '<span class="audit-user-cell"><span class="audit-user-avatar">' + esc(initials) + '</span><span>' + esc(name) + '</span></span>';
+  }
+
+  /* ── Build inline detail panel HTML ── */
+  function buildDetailPanelHtml(evt) {
+    var catLabel = esc(CATEGORY_LABELS[evt.category] || evt.category || '—');
+    return '<tr class="audit-detail-inline"><td colspan="6"><div class="audit-detail-panel">' +
+      '<div class="audit-detail-item">' +
+        '<div class="audit-detail-label">Horodatage</div>' +
+        '<div class="audit-detail-value">' + esc(formatTimestamp(evt.timestamp)) + '</div>' +
+      '</div>' +
+      '<div class="audit-detail-item">' +
+        '<div class="audit-detail-label">Cat&eacute;gorie</div>' +
+        '<div class="audit-detail-value"><span class="tag tag-ghost">' + catLabel + '</span></div>' +
+      '</div>' +
+      '<div class="audit-detail-item">' +
+        '<div class="audit-detail-label">Utilisateur</div>' +
+        '<div class="audit-detail-value">' + esc(evt.user || '—') + '</div>' +
+      '</div>' +
+      '<div class="audit-detail-item">' +
+        '<div class="audit-detail-label">S&eacute;v&eacute;rit&eacute;</div>' +
+        '<div class="audit-detail-value"><span class="audit-severity-dot ' + esc(evt.severity) + '"></span> ' + esc(evt.severity || '—') + '</div>' +
+      '</div>' +
+      '<div class="audit-detail-description">' + esc(evt.description || '—') + '</div>' +
+      '<div class="audit-detail-hash">SHA-256: ' + esc(evt.hash || '—') + '</div>' +
+    '</div></td></tr>';
   }
 
   /* ── Render table ── */
@@ -117,21 +172,43 @@
             esc(evt.event) +
           '</div>' +
         '</td>' +
-        '<td class="audit-col-user"><span class="tag tag-accent">' + esc(evt.user) + '</span></td>' +
+        '<td class="audit-col-user">' + buildUserCell(evt.user) + '</td>' +
         '<td class="audit-col-hash">' +
           '<span class="audit-hash-cell" title="' + esc(evt.hash) + '">' + esc(evt.hash.substring(0, 12)) + '...</span>' +
         '</td>' +
       '</tr>';
     }).join('');
 
-    // Bind row click handlers (skip checkbox column)
+    // Bind row click handlers — inline expansion (replaces modal)
     var rows = _tableBody.querySelectorAll('tr.audit-table-row');
     for (var i = 0; i < rows.length; i++) {
       (function(row) {
         row.addEventListener('click', function(e) {
           if (e.target.type === 'checkbox' || e.target.closest('[onclick]')) return;
           var eventId = row.dataset.eventId;
-          if (eventId) openDetailModal(eventId);
+          if (!eventId) return;
+
+          // Check if this row already has an open detail row after it
+          var nextRow = row.nextElementSibling;
+          if (nextRow && nextRow.classList.contains('audit-detail-inline')) {
+            // Collapse: remove existing inline row
+            nextRow.remove();
+            return;
+          }
+
+          // Remove any other open inline detail rows first
+          var openDetails = _tableBody.querySelectorAll('tr.audit-detail-inline');
+          for (var d = 0; d < openDetails.length; d++) openDetails[d].remove();
+
+          // Find event data
+          var evt = null;
+          for (var j = 0; j < _allEvents.length; j++) {
+            if (_allEvents[j].id === eventId) { evt = _allEvents[j]; break; }
+          }
+          if (!evt) return;
+
+          // Insert inline detail row after the clicked row
+          row.insertAdjacentHTML('afterend', buildDetailPanelHtml(evt));
         });
       })(rows[i]);
     }
@@ -168,7 +245,10 @@
 
     _timeline.innerHTML = events.map(function(evt) {
       var catLabel = esc(CATEGORY_LABELS[evt.category] || evt.category);
-      return '<div class="audit-timeline-item" data-event-id="' + esc(evt.id) + '">' +
+      // Map severity to high/medium/low for CSS data-severity border coloring
+      var severityMap = { danger: 'high', warning: 'medium', info: 'low', success: 'low' };
+      var severityLevel = severityMap[evt.severity] || 'low';
+      return '<div class="audit-timeline-item" data-event-id="' + esc(evt.id) + '" data-severity="' + esc(severityLevel) + '">' +
         '<span class="audit-timeline-dot ' + esc(evt.severity) + '"></span>' +
         '<div class="audit-timeline-content">' +
           '<div class="audit-timeline-header">' +
@@ -265,6 +345,9 @@
       }
       return matchCategory && matchSearch;
     });
+
+    // Update filter count badges based on all events (not filtered)
+    updateFilterCounts(_allEvents);
 
     _currentPage = 1;
     renderCurrentView();

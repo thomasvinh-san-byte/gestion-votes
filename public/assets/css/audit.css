@@ -88,13 +88,14 @@
   gap: var(--space-2);
 }
 
-/* Severity dot */
+/* Severity dot — upgraded to 8px with box-shadow ring */
 .audit-severity-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--color-surface);
 }
 
 .audit-severity-dot.info {
@@ -122,6 +123,93 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* KPI icon sizing */
+.kpi-card .kpi-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* KPI anomalies red indicator when count > 0 */
+.kpi-card .kpi-value[data-anomaly="true"] {
+  color: var(--color-danger);
+}
+
+/* User cell with initials avatar */
+.audit-user-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.audit-user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Inline detail row (replaces modal interaction) */
+.audit-detail-inline td {
+  padding: 0 !important;
+  background: var(--color-bg-subtle);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.audit-detail-panel {
+  padding: var(--space-4) var(--space-5);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  animation: audit-slide-down 150ms var(--ease-standard, ease);
+}
+
+@keyframes audit-slide-down {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.audit-detail-panel .audit-detail-item {
+  padding: var(--space-2);
+}
+
+.audit-detail-panel .audit-detail-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.audit-detail-panel .audit-detail-value {
+  font-size: 0.875rem;
+}
+
+.audit-detail-panel .audit-detail-description {
+  grid-column: 1 / -1;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.audit-detail-panel .audit-detail-hash {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  word-break: break-all;
+  padding: var(--space-2);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
 }
 
 /* Search and sort inputs */
@@ -162,10 +250,11 @@
   position: absolute;
   left: -22px;
   top: calc(var(--space-4) + 8px);
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 2px var(--color-border);
   z-index: 1;
 }
 
@@ -188,9 +277,46 @@
 .audit-timeline-content {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
   padding: var(--space-3) var(--space-4);
   position: relative;
+  transition: box-shadow var(--duration-fast), border-color var(--duration-fast);
+}
+
+.audit-timeline-content:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border-strong);
+}
+
+/* Severity-specific timeline left-border colors */
+.audit-timeline-item[data-severity="high"] .audit-timeline-content {
+  border-left-color: var(--color-danger);
+}
+
+.audit-timeline-item[data-severity="high"] .audit-timeline-dot {
+  box-shadow: 0 0 0 2px var(--color-danger);
+}
+
+.audit-timeline-item[data-severity="medium"] .audit-timeline-content {
+  border-left-color: var(--color-warning);
+}
+
+.audit-timeline-item[data-severity="low"] .audit-timeline-content {
+  border-left-color: var(--color-success);
+}
+
+/* Keep severity border on hover (override generic hover border-color) */
+.audit-timeline-item[data-severity="high"] .audit-timeline-content:hover {
+  border-left-color: var(--color-danger);
+}
+
+.audit-timeline-item[data-severity="medium"] .audit-timeline-content:hover {
+  border-left-color: var(--color-warning);
+}
+
+.audit-timeline-item[data-severity="low"] .audit-timeline-content:hover {
+  border-left-color: var(--color-success);
 }
 
 .audit-timeline-header {

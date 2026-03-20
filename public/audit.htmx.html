@@ -60,24 +60,24 @@
         <!-- KPI Cards -->
         <div class="kpi-grid">
           <div class="kpi-card">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
             <div class="kpi-value" id="kpiIntegrity">—</div>
-            <div class="kpi-label">Int&eacute;grit&eacute;</div>
+            <div class="kpi-label"><ag-tooltip text="Pourcentage d'evenements avec hash SHA-256 valide" position="top">Int&eacute;grit&eacute;</ag-tooltip></div>
           </div>
           <div class="kpi-card">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg>
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg>
             <div class="kpi-value" id="kpiEvents">—</div>
-            <div class="kpi-label">&Eacute;v&eacute;nements</div>
+            <div class="kpi-label"><ag-tooltip text="Nombre total d'evenements enregistres dans le journal" position="top">&Eacute;v&eacute;nements</ag-tooltip></div>
           </div>
           <div class="kpi-card">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
             <div class="kpi-value" id="kpiAnomalies">—</div>
-            <div class="kpi-label">Anomalies</div>
+            <div class="kpi-label"><ag-tooltip text="Nombre d'evenements avec hash invalide ou manquant" position="top">Anomalies</ag-tooltip></div>
           </div>
           <div class="kpi-card">
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
             <div class="kpi-value" id="kpiLastSession">—</div>
-            <div class="kpi-label">Derni&egrave;re s&eacute;ance</div>
+            <div class="kpi-label"><ag-tooltip text="Date de la derniere seance ayant genere des evenements" position="top">Derni&egrave;re s&eacute;ance</ag-tooltip></div>
           </div>
         </div>
 
@@ -123,11 +123,11 @@
                     <th class="audit-col-check">
                       <input type="checkbox" id="selectAll" aria-label="S&eacute;lectionner tout">
                     </th>
-                    <th class="audit-col-num">#</th>
-                    <th class="audit-col-timestamp">Horodatage</th>
-                    <th class="audit-col-event">&Eacute;v&eacute;nement</th>
-                    <th class="audit-col-user">Utilisateur</th>
-                    <th class="audit-col-hash">Empreinte</th>
+                    <th class="audit-col-num"><ag-tooltip text="Numero sequentiel de l'evenement" position="bottom">#</ag-tooltip></th>
+                    <th class="audit-col-timestamp"><ag-tooltip text="Date et heure precise de l'evenement (UTC)" position="bottom">Horodatage</ag-tooltip></th>
+                    <th class="audit-col-event"><ag-tooltip text="Type et description de l'action enregistree" position="bottom">&Eacute;v&eacute;nement</ag-tooltip></th>
+                    <th class="audit-col-user"><ag-tooltip text="Compte utilisateur a l'origine de l'action" position="bottom">Utilisateur</ag-tooltip></th>
+                    <th class="audit-col-hash"><ag-tooltip text="Hash SHA-256 garantissant l'integrite de l'entree" position="bottom">Empreinte</ag-tooltip></th>
                   </tr>
                 </thead>
                 <tbody id="auditTableBody">
@@ -181,9 +181,9 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <!-- Event Detail Modal -->
-  <div class="modal-backdrop" id="auditDetailBackdrop" style="display: none;"></div>
-  <div class="modal" id="auditDetailModal" role="dialog" aria-modal="true" aria-labelledby="auditDetailModalTitle" aria-hidden="true" style="display: none;">
+  <!-- Event Detail Modal (legacy — replaced by inline row expansion) -->
+  <div class="modal-backdrop" id="auditDetailBackdrop" style="display: none;" data-legacy="true"></div>
+  <div class="modal" id="auditDetailModal" role="dialog" aria-modal="true" aria-labelledby="auditDetailModalTitle" aria-hidden="true" style="display: none;" data-legacy="true">
     <div class="modal-header">
       <h3 class="modal-title" id="auditDetailModalTitle">
         <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
