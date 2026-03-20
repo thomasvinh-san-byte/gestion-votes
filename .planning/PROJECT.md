@@ -65,7 +65,16 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-(No active milestone — ready for next)
+**Current Milestone: v4.3 "Ground-Up Rebuild"**
+
+**Goal:** Rebuild every page from the ground up — complete HTML+CSS+JS rewrite per page, fix all v4.2 regressions, wire backend properly, achieve genuine top 1% design quality.
+
+**Approach:**
+- Each page rebuilt from scratch: new HTML structure, new CSS, JS verified/updated in the same commit
+- No more incremental patches on old structure — full rewrites
+- Backend wiring verified for every page (API calls, HTMX targets, SSE connections)
+- Every page tested in browser before marking complete
+- Design quality verified against Stripe/Linear/Clerk references
 
 ### Out of Scope
 
