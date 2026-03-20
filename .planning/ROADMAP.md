@@ -39,7 +39,10 @@
   2. All JavaScript event handlers (modals, tabs, dropdowns, HTMX triggers) that were broken by v4.2 HTML restructuring fire correctly
   3. No console errors caused by missing DOM targets or changed selectors on any page
   4. A developer can navigate the full session lifecycle (dashboard → hub → operator → voter) without hitting a JS exception
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 42-01-PLAN.md — Fix trust page kpiMotions crash and restore missing KPI stat elements
 
 ### Phase 43: Dashboard Rebuild
 **Goal**: The dashboard is a fully rebuilt, top 1% page — new HTML structure, new CSS, JS verified, KPIs and session list wired to live backend data
@@ -115,7 +118,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 42. Stabilization | 0/TBD | Not started | - |
+| 42. Stabilization | 0/1 | Not started | - |
 | 43. Dashboard Rebuild | 0/TBD | Not started | - |
 | 44. Login Rebuild | 0/TBD | Not started | - |
 | 45. Wizard Rebuild | 0/TBD | Not started | - |
