@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: executing
-stopped_at: "Completed 44-02-PLAN.md (Task 1 auto; Task 2 checkpoint:human-verify pending)"
-last_updated: "2026-03-20T12:13:59.701Z"
+stopped_at: Completed 44-02-PLAN.md — checkpoint approved, Phase 44 done
+last_updated: "2026-03-20T12:16:42.451Z"
 last_activity: 2026-03-20 — Completed 43-01 dashboard ground-up rewrite HTML+CSS (f61d636)
 progress:
   total_phases: 7
@@ -59,6 +59,7 @@ Progress: [██░░░░░░░░] ~28%
 - [Phase 44]: #demoPanel is static hidden div — Plan 02 will removeAttribute('hidden') instead of card.appendChild()
 - [Phase Phase 44]: login.js: updateHasValue() applied to both fields for consistency, even though email can use CSS :not(:placeholder-shown) alone
 - [Phase Phase 44]: login.js: showDemoHint() targets #demoPanel via getElementById + removeAttribute('hidden') instead of card.appendChild()
+- [Phase 44-login-rebuild]: Checkpoint approved: login page fully verified in browser — floating labels, auth flow, dark mode, demo panel all working
 
 ### Pending Todos
 
@@ -70,7 +71,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-20T12:13:53.858Z
-Stopped at: Completed 44-02-PLAN.md (Task 1 auto; Task 2 checkpoint:human-verify pending)
+Last session: 2026-03-20T12:16:36.054Z
+Stopped at: Completed 44-02-PLAN.md — checkpoint approved, Phase 44 done
 Resume file: None
 Next action: /gsd:execute-phase 43 (plan 02 — dashboard JS wire-up)
