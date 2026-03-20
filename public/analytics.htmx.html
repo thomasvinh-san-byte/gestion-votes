@@ -90,52 +90,75 @@
         </div>
 
         <!-- Overview KPI cards -->
-        <div class="overview-grid" id="overviewCards" data-tour="stats-kpis" aria-live="polite">
-          <div class="overview-card">
-            <div class="overview-card-label">S&eacute;ances</div>
-            <div class="overview-card-value primary" id="kpiMeetings">&mdash;</div>
-            <div class="overview-card-trend" id="kpiMeetingsTrend">
-              <span class="trend-arrow"></span>
-              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+        <div class="kpi-grid analytics-kpi-grid" id="overviewCards" data-tour="stats-kpis" aria-live="polite">
+          <ag-tooltip text="Nombre total de s&eacute;ances cl&ocirc;tur&eacute;es sur la p&eacute;riode s&eacute;lectionn&eacute;e" position="bottom">
+            <div class="kpi-card kpi-card--1">
+              <div class="kpi-icon">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
+              </div>
+              <div class="kpi-value" id="kpiMeetings">&mdash;</div>
+              <div class="kpi-label">S&eacute;ances</div>
+              <div class="overview-card-trend" id="kpiMeetingsTrend">
+                <span class="trend-arrow"></span>
+                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              </div>
             </div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">R&eacute;solutions vot&eacute;es</div>
-            <div class="overview-card-value" id="kpiResolutions">&mdash;</div>
-            <div class="overview-card-trend" id="kpiResolutionsTrend">
-              <span class="trend-arrow"></span>
-              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+          </ag-tooltip>
+          <ag-tooltip text="Total des votes exprim&eacute;s sur toutes les r&eacute;solutions" position="bottom">
+            <div class="kpi-card kpi-card--2">
+              <div class="kpi-icon">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+              </div>
+              <div class="kpi-value" id="kpiResolutions">&mdash;</div>
+              <div class="kpi-label">R&eacute;solutions vot&eacute;es</div>
+              <div class="overview-card-trend" id="kpiResolutionsTrend">
+                <span class="trend-arrow"></span>
+                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              </div>
             </div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Taux d'adoption</div>
-            <div class="overview-card-value success" id="kpiAdoptionRate">&mdash;</div>
-            <div class="overview-card-trend" id="kpiAdoptionTrend">
-              <span class="trend-arrow"></span>
-              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+          </ag-tooltip>
+          <ag-tooltip text="% de r&eacute;solutions adopt&eacute;es parmi toutes les r&eacute;solutions mises au vote" position="bottom">
+            <div class="kpi-card kpi-card--3">
+              <div class="kpi-icon">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-trending-up"></use></svg>
+              </div>
+              <div class="kpi-value" id="kpiAdoptionRate">&mdash;</div>
+              <div class="kpi-label">Taux d&rsquo;adoption</div>
+              <div class="overview-card-trend" id="kpiAdoptionTrend">
+                <span class="trend-arrow"></span>
+                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              </div>
             </div>
-          </div>
-          <div class="overview-card">
-            <div class="overview-card-label">Participation</div>
-            <div class="overview-card-value success" id="kpiParticipation">&mdash;</div>
-            <div class="overview-card-trend" id="kpiParticipationTrend">
-              <span class="trend-arrow"></span>
-              <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+          </ag-tooltip>
+          <ag-tooltip text="Taux de participation moyen (membres pr&eacute;sents / membres inscrits)" position="bottom">
+            <div class="kpi-card kpi-card--4">
+              <div class="kpi-icon">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+              </div>
+              <div class="kpi-value" id="kpiParticipation">&mdash;</div>
+              <div class="kpi-label">Participation</div>
+              <div class="overview-card-trend" id="kpiParticipationTrend">
+                <span class="trend-arrow"></span>
+                <span class="trend-text">vs ann&eacute;e pr&eacute;c.</span>
+              </div>
             </div>
-          </div>
+          </ag-tooltip>
         </div>
 
         <!-- Charts controls -->
-        <div class="charts-controls" data-tour="stats-charts">
-          <div class="period-selector">
-            <button class="period-btn" data-period="month">Mois</button>
-            <button class="period-btn" data-period="quarter">Trimestre</button>
-            <button class="period-btn active" data-period="year">Année</button>
-            <button class="period-btn" data-period="all">Tout</button>
+        <div class="analytics-filter-bar" data-tour="stats-charts" role="toolbar" aria-label="Filtres analytics">
+          <div class="analytics-period-pills" role="group" aria-label="P&eacute;riode">
+            <button class="analytics-period-pill" data-period="7j">7j</button>
+            <button class="analytics-period-pill" data-period="30j">30j</button>
+            <button class="analytics-period-pill" data-period="90j">90j</button>
+            <button class="analytics-period-pill active" data-period="1an">1 an</button>
+            <button class="analytics-period-pill" data-period="all">Tout</button>
           </div>
-          <button class="btn btn-ghost btn-icon" id="refreshBtn" title="Actualiser" aria-label="Actualiser">
-            <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
-          </button>
+          <div class="analytics-filter-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" id="refreshBtn" title="Actualiser" aria-label="Actualiser">
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
+            </button>
+          </div>
         </div>
 
         <!-- Tabs -->
@@ -151,7 +174,15 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Taux de participation par s&eacute;ance</h3>
+                <div>
+                  <h3 class="chart-card-title">Taux de participation par s&eacute;ance</h3>
+                  <p class="chart-card-subtitle">% membres pr&eacute;sents / membres inscrits</p>
+                </div>
+                <ag-tooltip text="Rapport entre membres pr&eacute;sents et membres inscrits pour chaque s&eacute;ance" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="participationChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -164,7 +195,15 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">S&eacute;ances par mois</h3>
+                <div>
+                  <h3 class="chart-card-title">S&eacute;ances par mois</h3>
+                  <p class="chart-card-subtitle">Nombre de s&eacute;ances organis&eacute;es chaque mois</p>
+                </div>
+                <ag-tooltip text="Distribution mensuelle du nombre de s&eacute;ances sur la p&eacute;riode s&eacute;lectionn&eacute;e" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="sessionsByMonthChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -177,7 +216,10 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">D&eacute;tail des pr&eacute;sences</h3>
+                <div>
+                  <h3 class="chart-card-title">D&eacute;tail des pr&eacute;sences</h3>
+                  <p class="chart-card-subtitle">Pr&eacute;sents, procurations et taux par s&eacute;ance</p>
+                </div>
               </div>
               <div class="chart-card-body">
                 <div id="participationTable"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
@@ -228,7 +270,15 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">R&eacute;solutions adopt&eacute;es vs rejet&eacute;es</h3>
+                <div>
+                  <h3 class="chart-card-title">R&eacute;solutions adopt&eacute;es vs rejet&eacute;es</h3>
+                  <p class="chart-card-subtitle">R&eacute;partition adopt&eacute;es / rejet&eacute;es / en attente</p>
+                </div>
+                <ag-tooltip text="Proportion de r&eacute;solutions adopt&eacute;es, rejet&eacute;es et en attente sur la p&eacute;riode" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="motionsChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -241,7 +291,15 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">R&eacute;solutions par majorit&eacute;</h3>
+                <div>
+                  <h3 class="chart-card-title">R&eacute;solutions par majorit&eacute;</h3>
+                  <p class="chart-card-subtitle">Type de majorit&eacute; requise par r&eacute;solution</p>
+                </div>
+                <ag-tooltip text="D&eacute;tail des types de majorit&eacute; (simple, deux tiers, unanimit&eacute;) pour chaque r&eacute;solution" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="majorityChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -254,7 +312,15 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">&Eacute;volution par s&eacute;ance</h3>
+                <div>
+                  <h3 class="chart-card-title">&Eacute;volution par s&eacute;ance</h3>
+                  <p class="chart-card-subtitle">Adopt&eacute;es et rejet&eacute;es s&eacute;ance par s&eacute;ance</p>
+                </div>
+                <ag-tooltip text="Tendance du nombre de r&eacute;solutions adopt&eacute;es et rejet&eacute;es pour chaque s&eacute;ance" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="motionsTrendChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -273,7 +339,15 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Dur&eacute;e des votes</h3>
+                <div>
+                  <h3 class="chart-card-title">Dur&eacute;e des votes</h3>
+                  <p class="chart-card-subtitle">Distribution du temps de vote par r&eacute;solution</p>
+                </div>
+                <ag-tooltip text="R&eacute;partition du temps &eacute;coul&eacute; entre l&rsquo;ouverture et la cl&ocirc;ture de chaque vote" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="durationChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -286,7 +360,15 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Dur&eacute;e moyenne par type</h3>
+                <div>
+                  <h3 class="chart-card-title">Dur&eacute;e moyenne par type</h3>
+                  <p class="chart-card-subtitle">Temps moyen en secondes selon le type de r&eacute;solution</p>
+                </div>
+                <ag-tooltip text="Comparaison de la dur&eacute;e moyenne des votes selon leur type (ordinaire, extraordinaire, etc.)" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="avgDurationChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -299,7 +381,15 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Temps de r&eacute;ponse des votants</h3>
+                <div>
+                  <h3 class="chart-card-title">Temps de r&eacute;ponse des votants</h3>
+                  <p class="chart-card-subtitle">D&eacute;lai entre ouverture du vote et r&eacute;ponse des participants</p>
+                </div>
+                <ag-tooltip text="Distribution du d&eacute;lai entre l&rsquo;ouverture d&rsquo;un vote et le moment o&ugrave; chaque participant a vot&eacute;" position="bottom">
+                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                  </button>
+                </ag-tooltip>
               </div>
               <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="responseTimeChart">
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
@@ -318,7 +408,10 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Indicateurs de qualité</h3>
+                <div>
+                  <h3 class="chart-card-title">Indicateurs de qualit&eacute;</h3>
+                  <p class="chart-card-subtitle">Signaux d&rsquo;alerte sur la conformit&eacute; des s&eacute;ances</p>
+                </div>
               </div>
               <div class="chart-card-body">
                 <div id="anomaliesOverview"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
@@ -326,7 +419,10 @@
             </div>
             <div class="chart-card">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">Séances à vérifier</h3>
+                <div>
+                  <h3 class="chart-card-title">S&eacute;ances &agrave; v&eacute;rifier</h3>
+                  <p class="chart-card-subtitle">S&eacute;ances pr&eacute;sentant au moins une anomalie d&eacute;tect&eacute;e</p>
+                </div>
               </div>
               <div class="chart-card-body">
                 <div id="anomaliesMeetings"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>

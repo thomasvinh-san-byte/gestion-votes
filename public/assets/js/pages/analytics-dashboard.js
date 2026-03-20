@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  var currentPeriod = 'year';
+  var currentPeriod = '1an';
   var charts = {};
 
   // Chart.js default options
@@ -44,10 +44,10 @@
   );
   window.addEventListener('pagehide', function() { _themeMO.disconnect(); }, { once: true });
 
-  // Period buttons
-  document.querySelectorAll('.period-btn').forEach(function(btn) {
+  // Period pills (new analytics-period-pill class)
+  document.querySelectorAll('.analytics-period-pill').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.period-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.analytics-period-pill').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       currentPeriod = btn.dataset.period;
       loadAllData();

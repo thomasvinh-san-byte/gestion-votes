@@ -62,9 +62,10 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 /* =============================================================================
-   PERIOD SELECTOR
+   PERIOD SELECTOR (legacy — kept for print media query reference)
    ============================================================================= */
 
+/* Legacy .period-selector / .period-btn kept for backward compatibility */
 .period-selector {
   display: flex;
   gap: 0.25rem;
@@ -94,19 +95,102 @@ body:has(.analytics-main) .page-header .page-header-actions {
   box-shadow: var(--shadow-sm);
 }
 
+/* =============================================================================
+   ANALYTICS FILTER BAR (new pill design)
+   ============================================================================= */
+
+.analytics-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-card);
+  flex-wrap: wrap;
+}
+
+.analytics-period-pills {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--color-bg-subtle);
+  padding: 3px;
+  border-radius: var(--radius-full);
+}
+
+.analytics-period-pill {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: all var(--duration-fast);
+}
+
+.analytics-period-pill:hover {
+  color: var(--color-text);
+}
+
+.analytics-period-pill.active {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.analytics-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* =============================================================================
+   ANALYTICS KPI GRID MODIFIER
+   ============================================================================= */
+
+.analytics-kpi-grid {
+  margin-bottom: var(--space-section);
+}
+
+/* Prevent ag-tooltip from breaking kpi-grid flex layout */
+.analytics-kpi-grid ag-tooltip {
+  display: contents;
+}
+
+/* =============================================================================
+   CHART CARD SUBTITLE
+   ============================================================================= */
+
+.chart-card-subtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 2px 0 0;
+  font-weight: 400;
+}
+
+.chart-card-header .chart-info-btn {
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity var(--duration-fast);
+}
+
+.chart-card:hover .chart-card-header .chart-info-btn {
+  opacity: 1;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .app-main.analytics-main {
     padding-left: 0;
   }
 
-  .period-selector {
+  .analytics-period-pills {
     flex-wrap: wrap;
     justify-content: center;
   }
 
-  .period-btn {
-    padding: 0.375rem 0.75rem;
+  .analytics-period-pill {
+    padding: 5px 10px;
     font-size: 0.8rem;
   }
 }
@@ -117,14 +201,14 @@ body:has(.analytics-main) .page-header .page-header-actions {
     justify-content: center;
   }
 
-  .period-selector {
-    width: 100%;
+  .analytics-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .period-btn {
-    flex: 1;
-    text-align: center;
-    min-width: 0;
+  .analytics-period-pills {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -686,8 +770,8 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 @media print {
   .app-sidebar, .app-header, .app-footer,
-  .analytics-tabs, .charts-controls, .period-selector,
-  .privacy-notice, .chart-export-btn,
+  .analytics-tabs, .charts-controls, .period-selector, .analytics-filter-bar,
+  .privacy-notice, .chart-export-btn, .chart-info-btn,
   #btnExportPdf, #btnTour, [data-drawer], .drawer, .drawer-backdrop,
   .mobile-bnav { display: none !important; }
 
