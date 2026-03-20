@@ -259,6 +259,13 @@
         } catch(e) { /* sessionStorage unavailable */ }
       }
 
+      // Set confirmed choice display (Task 2: confirmation state with colored choice)
+      var confirmedChoice = document.getElementById('confirmedChoice');
+      if (confirmedChoice) {
+        confirmedChoice.textContent = choiceInfo[votingChoice].label;
+        confirmedChoice.style.color = choiceInfo[votingChoice].color;
+      }
+
       closeConfirm();
       setNotif('success', `Vote ${choiceInfo[votingChoice].label} enregistr\u00e9`);
 

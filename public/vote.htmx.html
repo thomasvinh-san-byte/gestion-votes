@@ -98,12 +98,19 @@
     <main class="vote-main" id="main-content" role="main">
       <!-- Waiting state (shown when no vote is open) -->
       <div class="vote-waiting-state" id="voteWaitingState">
-        <p class="vote-waiting-text">En attente d'un vote</p>
+        <div class="vote-waiting-pulse" aria-hidden="true"></div>
+        <p class="vote-waiting-text">En attente du prochain vote</p>
+        <p class="vote-waiting-sub">La s&eacute;ance est en cours</p>
       </div>
 
       <!-- Confirmed state (shown for 3s after vote registered) -->
-      <div class="vote-confirmed-state" id="voteConfirmedState" hidden>
-        <p class="vote-confirmed-text">Vote enregistr&#233; &#x2713;</p>
+      <div class="vote-confirmed-state" id="voteConfirmedState">
+        <div class="vote-confirmed-icon" aria-hidden="true">
+          <svg class="icon icon-xl"><use href="/assets/icons.svg#icon-check"></use></svg>
+        </div>
+        <p class="vote-confirmed-choice" id="confirmedChoice"></p>
+        <p class="vote-confirmed-text">Vote enregistr&#233;</p>
+        <p class="vote-confirmed-irreversible">Ce vote est d&eacute;finitif et irr&eacute;versible.</p>
       </div>
 
       <!-- Loading indicator (replaced by vote.js on data load) -->
