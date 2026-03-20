@@ -206,10 +206,12 @@ Plans:
 
 ### Phase 41.5: Analytics Page Deep Redesign (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Deep visual redesign of analytics.htmx.html — horizontal KPI cards with icon/body layout, featured hero chart pattern, 240px horizontal donut with legend beside, sticky filter bar with segmented pills, modern sliding tab indicator with badge counts, striped data tables with mono numerics, 2-column anomaly card grid with status icons
+**Requirements**: UX-01, UX-02
 **Depends on:** Phase 41.4
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 41.5 to break down)
+- [ ] 41.5-01-PLAN.md — Horizontal KPI cards + sticky filter bar + sliding tab indicator with badge count
+- [ ] 41.5-02-PLAN.md — Hero chart layout + 240px horizontal donut + striped data tables + anomaly card grid
+- [ ] 41.5-03-PLAN.md — Visual verification checkpoint (all 7 redesign patterns)
