@@ -180,28 +180,28 @@
 
         <!-- Tab: Participation -->
         <div class="tab-content active" id="tab-participation" data-print-title="Participation">
-          <div class="charts-grid">
-            <div class="chart-card">
-              <div class="chart-card-header">
-                <div>
-                  <h3 class="chart-card-title">Taux de participation par s&eacute;ance</h3>
-                  <p class="chart-card-subtitle">% membres pr&eacute;sents / membres inscrits</p>
-                </div>
-                <ag-tooltip text="Rapport entre membres pr&eacute;sents et membres inscrits pour chaque s&eacute;ance" position="bottom">
-                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
-                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
-                  </button>
-                </ag-tooltip>
+          <div class="chart-card chart-card--hero">
+            <div class="chart-card-header">
+              <div>
+                <h3 class="chart-card-title">Taux de participation par s&eacute;ance</h3>
+                <p class="chart-card-subtitle">% membres pr&eacute;sents / membres inscrits</p>
               </div>
-              <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="participationChart">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-              </button>
-              <div class="chart-card-body">
-                <div class="chart-container">
-                  <canvas id="participationChart"></canvas>
-                </div>
+              <ag-tooltip text="Rapport entre membres pr&eacute;sents et membres inscrits pour chaque s&eacute;ance" position="bottom">
+                <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                  <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                </button>
+              </ag-tooltip>
+            </div>
+            <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="participationChart">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+            </button>
+            <div class="chart-card-body">
+              <div class="chart-container">
+                <canvas id="participationChart"></canvas>
               </div>
             </div>
+          </div>
+          <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
                 <div>
@@ -240,35 +240,38 @@
         <!-- Tab: Motions -->
         <div class="tab-content" id="tab-motions" data-print-title="Résolutions">
           <!-- Donut SVG: répartition Pour/Contre/Abstention -->
-          <div class="donut-section" id="donutSection">
-            <div class="donut-card">
-              <h3 class="donut-card-title">R&eacute;partition des votes</h3>
-              <div class="donut-wrapper">
-                <svg class="donut-svg" viewBox="0 0 120 120" aria-label="Graphique donut des votes">
-                  <!-- Background circle -->
-                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="16"/>
-                  <!-- Pour segment (placeholder — animated by JS) -->
-                  <circle class="donut-segment donut-for" cx="60" cy="60" r="50" fill="none"
-                    stroke="var(--color-success)" stroke-width="16"
-                    stroke-dasharray="0 314" stroke-dashoffset="78.5"
-                    id="donutFor"/>
-                  <!-- Contre segment -->
-                  <circle class="donut-segment donut-against" cx="60" cy="60" r="50" fill="none"
-                    stroke="var(--color-danger)" stroke-width="16"
-                    stroke-dasharray="0 314" stroke-dashoffset="78.5"
-                    id="donutAgainst"/>
-                  <!-- Abstention segment -->
-                  <circle class="donut-segment donut-abstain" cx="60" cy="60" r="50" fill="none"
-                    stroke="var(--color-text-muted)" stroke-width="16"
-                    stroke-dasharray="0 314" stroke-dashoffset="78.5"
-                    id="donutAbstain"/>
-                </svg>
-                <div class="donut-center">
-                  <span class="donut-center-value" id="donutTotal">&mdash;</span>
-                  <span class="donut-center-label">votes</span>
+          <div class="donut-section donut-section--hero" id="donutSection">
+            <div class="donut-card donut-card--horizontal">
+              <div class="donut-card-main">
+                <h3 class="donut-card-title">R&eacute;partition des votes</h3>
+                <p class="chart-card-subtitle">Pour / Contre / Abstention</p>
+                <div class="donut-wrapper">
+                  <svg class="donut-svg" viewBox="0 0 120 120" aria-label="Graphique donut des votes">
+                    <!-- Background circle -->
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="16"/>
+                    <!-- Pour segment (placeholder — animated by JS) -->
+                    <circle class="donut-segment donut-for" cx="60" cy="60" r="50" fill="none"
+                      stroke="var(--color-success)" stroke-width="16"
+                      stroke-dasharray="0 314" stroke-dashoffset="78.5"
+                      id="donutFor"/>
+                    <!-- Contre segment -->
+                    <circle class="donut-segment donut-against" cx="60" cy="60" r="50" fill="none"
+                      stroke="var(--color-danger)" stroke-width="16"
+                      stroke-dasharray="0 314" stroke-dashoffset="78.5"
+                      id="donutAgainst"/>
+                    <!-- Abstention segment -->
+                    <circle class="donut-segment donut-abstain" cx="60" cy="60" r="50" fill="none"
+                      stroke="var(--color-text-muted)" stroke-width="16"
+                      stroke-dasharray="0 314" stroke-dashoffset="78.5"
+                      id="donutAbstain"/>
+                  </svg>
+                  <div class="donut-center">
+                    <span class="donut-center-value" id="donutTotal">&mdash;</span>
+                    <span class="donut-center-label">votes</span>
+                  </div>
                 </div>
               </div>
-              <div class="donut-legend">
+              <div class="donut-legend donut-legend--vertical">
                 <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-success)"></span> Pour <strong id="donutForPct">&mdash;</strong></div>
                 <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-danger)"></span> Contre <strong id="donutAgainstPct">&mdash;</strong></div>
                 <div class="donut-legend-item"><span class="donut-legend-dot" style="background:var(--color-text-muted)"></span> Abstention <strong id="donutAbstainPct">&mdash;</strong></div>
@@ -276,7 +279,7 @@
             </div>
           </div>
 
-          <div class="charts-grid">
+          <div class="charts-grid charts-grid--3col">
             <div class="chart-card">
               <div class="chart-card-header">
                 <div>
@@ -345,28 +348,28 @@
 
         <!-- Tab: Timing -->
         <div class="tab-content" id="tab-timing" data-print-title="Temps de vote">
-          <div class="charts-grid">
-            <div class="chart-card">
-              <div class="chart-card-header">
-                <div>
-                  <h3 class="chart-card-title">Dur&eacute;e des votes</h3>
-                  <p class="chart-card-subtitle">Distribution du temps de vote par r&eacute;solution</p>
-                </div>
-                <ag-tooltip text="R&eacute;partition du temps &eacute;coul&eacute; entre l&rsquo;ouverture et la cl&ocirc;ture de chaque vote" position="bottom">
-                  <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
-                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
-                  </button>
-                </ag-tooltip>
+          <div class="chart-card chart-card--hero">
+            <div class="chart-card-header">
+              <div>
+                <h3 class="chart-card-title">Dur&eacute;e des votes</h3>
+                <p class="chart-card-subtitle">Distribution du temps de vote par r&eacute;solution</p>
               </div>
-              <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="durationChart">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-              </button>
-              <div class="chart-card-body">
-                <div class="chart-container">
-                  <canvas id="durationChart"></canvas>
-                </div>
+              <ag-tooltip text="R&eacute;partition du temps &eacute;coul&eacute; entre l&rsquo;ouverture et la cl&ocirc;ture de chaque vote" position="bottom">
+                <button class="btn btn-xs btn-ghost chart-info-btn" aria-label="Information sur ce graphique">
+                  <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
+                </button>
+              </ag-tooltip>
+            </div>
+            <button class="btn btn-xs btn-ghost chart-export-btn" title="Exporter le graphique" data-chart-id="durationChart">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+            </button>
+            <div class="chart-card-body">
+              <div class="chart-container">
+                <canvas id="durationChart"></canvas>
               </div>
             </div>
+          </div>
+          <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-card-header">
                 <div>

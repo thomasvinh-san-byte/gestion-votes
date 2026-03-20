@@ -474,6 +474,22 @@ body:has(.analytics-main) .page-header .page-header-actions {
   to { transform: rotate(360deg); }
 }
 
+/* Hero chart card — full-width featured chart per tab */
+.chart-card--hero {
+  margin-bottom: var(--space-card);
+}
+
+.chart-card--hero .chart-container {
+  height: 360px;
+}
+
+/* 3-column grid at wide viewports */
+@media (min-width: 1400px) {
+  .charts-grid--3col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 /* =============================================================================
    DATA TABLES
    ============================================================================= */
@@ -778,6 +794,11 @@ body:has(.analytics-main) .page-header .page-header-actions {
   margin-bottom: 14px;
 }
 
+.donut-section--hero {
+  display: block;
+  margin-bottom: var(--space-card);
+}
+
 .donut-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -786,6 +807,21 @@ body:has(.analytics-main) .page-header .page-header-actions {
   text-align: center;
   max-width: 360px;
   width: 100%;
+}
+
+.donut-card--horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  max-width: none;
+  text-align: left;
+}
+
+.donut-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .donut-card-title {
@@ -801,6 +837,12 @@ body:has(.analytics-main) .page-header .page-header-actions {
   margin: 0 auto 1rem;
 }
 
+.donut-card--horizontal .donut-wrapper {
+  width: 240px;
+  height: 240px;
+  margin: 0;
+}
+
 .donut-svg {
   width: 100%;
   height: 100%;
@@ -809,6 +851,10 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .donut-segment {
   transition: stroke-dasharray 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donut-segment:hover {
+  stroke-width: 20px;
 }
 
 .donut-center {
@@ -860,6 +906,24 @@ body:has(.analytics-main) .page-header .page-header-actions {
   color: var(--color-text);
 }
 
+.donut-legend--vertical {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+  justify-content: center;
+}
+
+.donut-legend--vertical .donut-legend-item {
+  font-size: var(--text-base);
+  gap: var(--space-3);
+}
+
+.donut-legend--vertical .donut-legend-item strong {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+}
+
 /* =============================================================================
    RESPONSIVE DONUT & YEAR FILTER
    ============================================================================= */
@@ -874,6 +938,29 @@ body:has(.analytics-main) .page-header .page-header-actions {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .donut-card--horizontal {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .donut-card--horizontal .donut-card-main {
+    align-items: center;
+  }
+
+  .donut-legend--vertical {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .donut-card--horizontal .donut-wrapper {
+    width: 180px;
+    height: 180px;
   }
 }
 
