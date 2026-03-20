@@ -710,6 +710,20 @@
     var btn = document.getElementById('btnAddReso');
     if (!btn) return;
 
+    var addPanel = document.querySelector('.reso-add-panel');
+    var triggerDiv = document.getElementById('resoAddTrigger');
+
+    // Wire "Ajouter une resolution" trigger button to show/hide panel
+    var triggerBtn = document.getElementById('btnShowResoPanel');
+    if (triggerBtn && addPanel && triggerDiv) {
+      triggerBtn.addEventListener('click', function() {
+        addPanel.style.display = '';
+        triggerDiv.style.display = 'none';
+        var titleEl = document.getElementById('resoTitle');
+        if (titleEl) titleEl.focus();
+      });
+    }
+
     btn.addEventListener('click', function() {
       var titleEl = document.getElementById('resoTitle');
       var descEl  = document.getElementById('resoDesc');
@@ -742,6 +756,10 @@
 
       saveDraft();
       renderResoList();
+
+      // Collapse add panel after successful add
+      if (addPanel) addPanel.style.display = 'none';
+      if (triggerDiv) triggerDiv.style.display = '';
 
       // Clear resolution count error if it was showing
       var errReso = document.getElementById('errStep2Reso');
@@ -988,6 +1006,19 @@
     // Initial render — only show step 0 if no draft was restored
     // restoreDraft() calls showStep() if a draft exists; else show step 0
     if (localStorage.getItem(DRAFT_KEY) === null) {
+      // Smart defaults — pre-fill date and time on fresh visits only
+      var dateEl = document.getElementById('wizDate');
+      if (dateEl && !dateEl.value) {
+        var today = new Date();
+        var y = today.getFullYear();
+        var m = String(today.getMonth() + 1).padStart(2, '0');
+        var d = String(today.getDate()).padStart(2, '0');
+        dateEl.value = y + '-' + m + '-' + d;
+      }
+      var hhEl = document.getElementById('wizTimeHH');
+      var mmEl = document.getElementById('wizTimeMM');
+      if (hhEl && !hhEl.value) hhEl.value = '18';
+      if (mmEl && !mmEl.value) mmEl.value = '00';
       showStep(0);
     }
   }
