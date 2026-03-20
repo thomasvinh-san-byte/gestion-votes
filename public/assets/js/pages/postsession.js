@@ -198,7 +198,7 @@
       var num = i + 1;
       var titleText = esc(m.title || m.label || m.motion_title || '');
 
-      html += '<details class="result-card">'
+      html += '<details class="result-card" data-verdict="' + (adopted ? 'adopted' : 'rejected') + '">'
         + '<summary class="result-card-summary">'
         +   '<span class="result-card-num">R\u00e9solution ' + num + '</span>'
         +   '<span class="result-card-title">' + titleText + '</span>'
