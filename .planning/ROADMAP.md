@@ -203,3 +203,13 @@ Plans:
 - [ ] 41.4-01-PLAN.md — Dashboard KPIs horizontal layout + context lines + tab navigation polish + system health mini-cards
 - [ ] 41.4-02-PLAN.md — Policy cards 3-column grid with icons + state diagram CSS arrows + meeting roles form-grid + badge/password fixes
 - [ ] 41.4-03-PLAN.md — Users table-to-flex migration with hover-reveal actions + visual checkpoint
+
+### Phase 41.5: Analytics Page Deep Redesign (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 41.4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 41.5 to break down)
