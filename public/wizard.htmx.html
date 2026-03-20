@@ -47,7 +47,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
             Cr&eacute;er une s&eacute;ance
           </h1>
-          <p class="page-sub">Assistant en 4 &eacute;tapes</p>
+          <p class="page-sub wiz-step-subtitle" id="wizStepSubtitle">Informations g&eacute;n&eacute;rales</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -164,7 +164,18 @@
             R&egrave;gles de vote
           </div>
           <div class="field">
-            <label class="field-label" for="wizQuorum">Politique de quorum</label>
+            <label class="field-label" for="wizQuorum">
+              Politique de quorum
+              <ag-popover trigger="click" position="top" width="300">
+                <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur le quorum">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                </button>
+                <div slot="content">
+                  <strong>Quorum l&eacute;gal</strong>
+                  <p>Nombre minimum de membres pr&eacute;sents pour que les votes soient valides (art. 22 de la loi de 1965).</p>
+                </div>
+              </ag-popover>
+            </label>
             <select class="field-input" id="wizQuorum">
               <option>50% des pr&eacute;sents + 1 (d&eacute;faut)</option>
               <option>50% des voix</option>
@@ -172,15 +183,28 @@
               <option>Aucun quorum (conseil/bureau)</option>
               <option>Personnalis&eacute; (configurable dans Param&egrave;tres)</option>
             </select>
+            <div class="field-hint">R&egrave;gle l&eacute;gale d&eacute;terminant la validit&eacute; de l'assembl&eacute;e.</div>
           </div>
           <div class="field">
-            <label class="field-label" for="wizDefaultMaj">Majorit&eacute; par d&eacute;faut pour les r&eacute;solutions</label>
+            <label class="field-label" for="wizDefaultMaj">
+              Majorit&eacute; par d&eacute;faut pour les r&eacute;solutions
+              <ag-popover trigger="click" position="top" width="300">
+                <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur la majorit&eacute;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                </button>
+                <div slot="content">
+                  <strong>Type de majorit&eacute;</strong>
+                  <p>Art. 24 : majorit&eacute; des pr&eacute;sents. Art. 25 : majorit&eacute; de tous les membres. Art. 26 : double majorit&eacute; (2/3 des voix de tous).</p>
+                </div>
+              </ag-popover>
+            </label>
             <select class="field-input" id="wizDefaultMaj">
               <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
               <option value="art25">Majorit&eacute; absolue (art. 25)</option>
               <option value="art26">Double majorit&eacute; (art. 26)</option>
               <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
             </select>
+            <div class="field-hint">S'applique par d&eacute;faut &agrave; toutes les r&eacute;solutions. Modifiable r&eacute;solution par r&eacute;solution.</div>
           </div>
         </div>
 

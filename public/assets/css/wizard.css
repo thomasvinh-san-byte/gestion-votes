@@ -92,6 +92,17 @@
   border-radius: 2px;
 }
 
+/* Pending steps — dimmed to clearly show progression (WIZARD-01) */
+.wiz-step-item:not(.active):not(.done) {
+  opacity: 0.6;
+}
+
+/* Connector line between steps — uses box-shadow to avoid pseudo conflict (WIZARD-01) */
+.wiz-step-item:not(:last-child) {
+  box-shadow: inset -1px 0 0 var(--color-border);
+  margin-right: 0;
+}
+
 /* Step number circle */
 .wiz-snum {
   width: 26px;
@@ -115,6 +126,9 @@
 }
 
 .wiz-step-item.active .wiz-snum {
+  width: 32px;
+  height: 32px;
+  font-size: 0.8125rem;
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-text-inverse);
@@ -173,20 +187,11 @@
 }
 
 /* =============================================================================
-   STEP PANEL HEADER
+   STEP PANEL HEADER — hidden (stepper above makes it redundant, saves ~80px)
    ============================================================================= */
 
 .wf-step {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 1.375rem;
-  color: var(--color-text-dark);
-  padding-bottom: 1.25rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid var(--color-primary-subtle);
+  display: none;
 }
 
 .wf-step-success {
@@ -250,19 +255,25 @@
    FORM LAYOUT
    ============================================================================= */
 
+/* Sections use divider lines instead of nested card backgrounds (WIZARD-02 redesign) */
 .wiz-section {
-  margin-bottom: 1.75rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--color-bg-subtle);
-  border-radius: 10px;
-  border: 1px solid var(--color-border-subtle);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  padding: 1.5rem 0;
+  margin-bottom: 0;
+}
+
+.wiz-section:first-of-type {
+  border-top: none;
 }
 
 .wiz-section-title {
   font-size: 0.6875rem;
   font-weight: 800;
   color: var(--color-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   display: flex;
@@ -289,15 +300,55 @@
   font-weight: 700;
 }
 
-/* Scoped field label */
+/* Scoped field label — 14px semibold, no uppercase (WIZARD-02 redesign) */
 .wiz-step-body .field-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  text-transform: none;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* Subtle required indicator — not red (WIZARD-02 redesign) */
+.wiz-step-body .field-label .req,
+.wiz-required-note .req {
   color: var(--color-text-muted);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* Helper text below complex fields */
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Info button trigger for tooltips */
+.field-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.field-info-btn:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
 }
 
 /* Scoped field input */
@@ -319,13 +370,20 @@
 .wiz-step-body .field-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow), var(--shadow-sm);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .wiz-step-body .field-input.field-error {
   border-color: var(--color-danger);
   background: var(--color-danger-subtle);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 8%, transparent);
+  transition: border-color 0.3s ease;
+}
+
+/* Increased row gap for wizard form fields */
+.wiz-step-body .row {
+  gap: var(--space-4, 16px);
 }
 
 .field-error-msg {
