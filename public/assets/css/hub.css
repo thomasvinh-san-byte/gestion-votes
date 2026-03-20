@@ -490,13 +490,20 @@
   font-weight: 700;
 }
 
+.hub-action {
+  border: 1.5px solid var(--color-primary-subtle);
+  box-shadow: var(--shadow-md);
+}
+
 .hub-action .btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   box-shadow: 0 2px 8px var(--color-primary-glow);
+  transition: all 0.2s ease;
 }
 
 .hub-action .btn-primary:hover {
-  box-shadow: 0 4px 16px var(--color-primary-glow);
   transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--color-primary-glow);
 }
 
 .hub-action .btn {
@@ -538,11 +545,11 @@
 }
 
 .hub-checklist-bar {
-  height: 8px;
+  height: 12px;
   background: var(--color-border-subtle);
   border-radius: var(--radius-full);
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .hub-checklist-bar-fill {
@@ -557,23 +564,28 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 12px 10px;
+  border-radius: var(--radius);
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-bottom: none;
   font-size: 0.875rem;
-  transition: background .15s ease;
-  border-radius: var(--radius-sm);
+  transition: background .15s ease, border-color .15s ease;
 }
 
 .hub-check-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .hub-check-item:hover {
+  border-color: var(--color-border-subtle);
   background: var(--color-bg-subtle);
 }
 
 .hub-check-item.done {
-  opacity: 0.7;
+  opacity: 1;
+  background: rgba(34, 197, 94, 0.06);
+  border-color: rgba(34, 197, 94, 0.2);
 }
 
 .hub-check-icon {
@@ -593,6 +605,8 @@
 }
 
 .hub-check-item.done .hub-check-icon {
+  width: 24px;
+  height: 24px;
   background: var(--color-success);
   border-color: var(--color-success);
   color: var(--color-text-inverse);
@@ -611,12 +625,24 @@
 }
 
 .hub-check-todo {
-  font-size: 11px;
+  font-size: 0.75rem;
   color: var(--color-warning);
-  font-weight: 600;
-  padding: 2px 8px;
+  font-weight: 700;
+  padding: 3px 10px;
   background: var(--color-warning-subtle);
   border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+/* "Fait" badge for completed checklist items */
+.hub-check-done-badge {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  background: rgba(34, 197, 94, 0.06);
+  color: var(--color-success);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 /* Blocked reason */
@@ -745,29 +771,29 @@
 }
 
 .hub-motions-title {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
 }
 
 .hub-motion-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
+  padding: 12px 10px;
+  border-radius: var(--radius);
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .hub-motion-item:hover {
+  border-color: var(--color-border-subtle);
   background: var(--color-bg-subtle);
 }
 
 .hub-motion-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .hub-motion-num {
@@ -776,9 +802,9 @@
   color: var(--color-primary);
   font-weight: 700;
   flex-shrink: 0;
-  min-width: 28px;
-  width: 28px;
-  height: 28px;
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1213,6 +1239,14 @@
 
   .hub-stepper-col {
     position: static;
+  }
+
+  .hub-stepper {
+    position: static;
+  }
+
+  .hub-quorum-hero-pct {
+    font-size: 1.5rem;
   }
 
   .hub-identity {

@@ -151,7 +151,7 @@
         '<div class="hub-check-icon">' + (checked ? svgIcon('check', 12, '#fff') : '') + '</div>' +
         '<span class="hub-check-label">' + escapeHtml(item.label) + '</span>' +
         (function() {
-          if (checked) return '';
+          if (checked) return '<span class="hub-check-done-badge">Fait</span>';
           var reason = item.blockedReason ? item.blockedReason(sessionData) : null;
           if (reason) return '<span class="hub-check-blocked">' + escapeHtml(reason) + '</span>';
           return '<span class="hub-check-todo">\u00c0 faire</span>';
