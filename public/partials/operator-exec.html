@@ -1,3 +1,14 @@
+        <!-- Compact status bar (exec mode: 40px strip) -->
+        <div class="op-exec-status-bar" id="opExecStatusBar">
+          <span class="op-status-title" id="opStatusTitle">Séance en cours</span>
+          <span class="op-sse-indicator" id="opSseIndicatorBar" data-sse-state="offline">
+            <span class="op-sse-dot"></span>
+          </span>
+          <ag-badge variant="live" pulse>En direct</ag-badge>
+          <span class="op-status-members" id="opStatusMembers">— connectés</span>
+          <span class="op-status-elapsed" id="opStatusElapsed">00:00:00</span>
+        </div>
+
         <!-- KPI strip (compact, monospace values, uppercase labels) -->
         <div class="op-kpi-strip operator-kpi-strip" id="opKpiStrip">
           <div class="op-kpi-item">
@@ -110,6 +121,7 @@
                   <button class="btn btn-primary" id="opBtnEndSession">Cl&ocirc;turer la s&eacute;ance</button>
                 </div>
                 <div id="execActiveVote" hidden>
+                  <ag-badge variant="live" pulse class="exec-live-badge">VOTE EN COURS</ag-badge>
                   <div class="exec-vote-title" id="execVoteTitle">&mdash;</div>
                   <!-- Animated vote bars -->
                   <div class="op-vote-bars" id="opVoteBars">

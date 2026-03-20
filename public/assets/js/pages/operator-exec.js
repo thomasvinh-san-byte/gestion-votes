@@ -313,8 +313,9 @@
     list.innerHTML = O.motionsCache.map(function(m, i) {
       var status = m.closed_at ? 'voted' : (O.currentOpenMotion && O.currentOpenMotion.id === m.id ? 'current' : 'pending');
       return '<div class="op-agenda-item ' + status + '" data-motion-id="' + escapeHtml(m.id) + '" role="button" tabindex="0">' +
-        '<span class="op-agenda-circle"></span>' +
-        '<span class="op-agenda-title">' + (i + 1) + '. ' + escapeHtml(m.title || '') + '</span>' +
+        '<span class="op-agenda-num">' + (i + 1) + '</span>' +
+        '<span class="op-agenda-title">' + escapeHtml(m.title || '') + '</span>' +
+        '<span class="op-agenda-status-dot"></span>' +
       '</div>';
     }).join('');
 

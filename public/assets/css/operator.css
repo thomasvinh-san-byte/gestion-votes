@@ -4483,3 +4483,197 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
+/* =============================================================================
+   PHASE 37-01: OPERATOR CONSOLE — MISSION CONTROL DENSITY
+   Status bar, agenda card items, guidance panels, live vote panel, tooltips
+   ============================================================================= */
+
+/* ─── Exec mode density: 13px base font ─── */
+[data-page-role="operator"] .app-main {
+  font-size: 0.8125rem;
+}
+
+/* ─── Compact status bar (exec mode only) — 40px strip ─── */
+.op-exec-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  height: 40px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  border-top: 3px solid var(--persona-operateur);
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+}
+
+.op-exec-status-bar .op-status-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.op-exec-status-bar .op-status-members {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.op-exec-status-bar .op-status-elapsed {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* Dark mode: status bar */
+[data-theme="dark"] .op-exec-status-bar {
+  background: var(--color-surface);
+  border-bottom-color: var(--color-border);
+  border-top-color: var(--persona-operateur);
+}
+
+/* ─── Agenda items: card style with number badge + status dot ─── */
+
+/* Number badge — positional number in rounded square */
+.op-agenda-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  background: var(--color-surface-alt, var(--color-bg-subtle));
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.op-agenda-item.current .op-agenda-num {
+  background: var(--color-primary);
+  color: var(--color-text-inverse, #fff);
+}
+
+.op-agenda-item.voted .op-agenda-num {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+/* Status dot — coloured dot at far right */
+.op-agenda-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.op-agenda-item.pending .op-agenda-status-dot {
+  background: var(--color-border);
+}
+
+.op-agenda-item.current .op-agenda-status-dot {
+  background: var(--color-primary);
+  animation: ssePulse 2s ease-in-out infinite;
+}
+
+.op-agenda-item.voted .op-agenda-status-dot {
+  background: var(--color-success);
+}
+
+/* Refine agenda item layout for badge + dot pattern */
+.op-agenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+/* Dark mode: agenda num badge */
+[data-theme="dark"] .op-agenda-num {
+  background: var(--color-surface-alt, rgba(255,255,255,0.08));
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .op-agenda-item.current .op-agenda-num {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+[data-theme="dark"] .op-agenda-item.voted .op-agenda-num {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+/* Dark mode: status dot */
+[data-theme="dark"] .op-agenda-item.pending .op-agenda-status-dot {
+  background: var(--color-border);
+}
+
+[data-theme="dark"] .op-agenda-item.current .op-agenda-status-dot {
+  background: var(--color-primary);
+}
+
+[data-theme="dark"] .op-agenda-item.voted .op-agenda-status-dot {
+  background: var(--color-success);
+}
+
+/* ─── KPI strip: increase label weight, keep mono values ─── */
+.op-kpi-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  /* Remove uppercase if inherited — let token handle */
+}
+
+.op-kpi-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Guidance panels: info card style (not alert/toast) ─── */
+.op-guidance {
+  background: var(--color-info-subtle, var(--color-surface-alt, var(--color-bg-subtle)));
+  border: 1px solid var(--color-info, var(--color-border));
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0;
+  animation: none; /* Remove pulsing — calm info card */
+}
+
+/* ─── Live vote panel badge ─── */
+.exec-live-badge {
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ─── Vote title: more prominent ─── */
+.exec-vote-title {
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+/* ─── Tally KPI values: JetBrains Mono, large, tabular ─── */
+.exec-kpi-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-2xl, 1.5rem);
+}
+
+/* ─── Tight split gap ─── */
+.op-split {
+  gap: var(--space-3, 0.75rem);
+}
