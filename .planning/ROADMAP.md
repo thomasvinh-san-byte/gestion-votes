@@ -27,7 +27,7 @@ See MILESTONES.md for full history.
 - [x] **Phase 37: Live Session Conduct** - Operator Console and Voter ballot — real-time operational pages with dense, high-stakes UI (completed 2026-03-20)
 - [x] **Phase 38: Results & History** - Post-session, Analytics, and Meetings list — read-only pages for reviewing outcomes and trends (completed 2026-03-20)
 - [x] **Phase 39: Admin Data Tables** - Members, Users, Audit log, and Archives — the four table-heavy admin pages (completed 2026-03-20)
-- [ ] **Phase 40: Configuration Cluster** - Settings/Admin, Email templates, and Help/FAQ — grouped by low-frequency but high-trust interactions
+- [x] **Phase 40: Configuration Cluster** - Settings/Admin, Email templates, and Help/FAQ — grouped by low-frequency but high-trust interactions (completed 2026-03-20)
 - [ ] **Phase 41: Public & Utility Pages** - Landing, Public/Projector display, Report/PV, and Trust/Validate/Doc utilities
 
 ## Phase Details
@@ -122,7 +122,7 @@ Plans:
   3. The email template editor and preview panels are laid out in a clear two-pane grid — the user sees the effect of their edits without switching views
   4. The Help/FAQ accordion and category navigation are visually organized — a user can find an answer without scrolling through unrelated content
   5. All three pages feel part of the same visual system — section cards, typography, and spacing are consistent across settings, email editor, and help
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 40-01-PLAN.md — Settings + Email templates redesign (sidenav icons/accent, toggle switches, ag-tooltip on fields, card footers with save, CNIL accents, two-pane template editor, variable tags)
 - [ ] 40-02-PLAN.md — Admin + Help/FAQ redesign (KPI tooltips, tab icons, users KPI strip, state node tooltips, filter-tab pills, section title accents, search upgrade, support card)
@@ -151,5 +151,5 @@ Plans:
 | 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
 | 38. Results & History | 3/3 | Complete    | 2026-03-20 |
 | 39. Admin Data Tables | 3/3 | Complete    | 2026-03-20 |
-| 40. Configuration Cluster | 2/3 | In Progress|  |
+| 40. Configuration Cluster | 3/3 | Complete   | 2026-03-20 |
 | 41. Public & Utility Pages | 0/TBD | Not started | - |
