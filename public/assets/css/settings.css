@@ -488,6 +488,99 @@
   color: var(--color-text-muted);
 }
 
+/* ─── Template editor two-pane layout ─── */
+.template-editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: var(--space-4);
+  min-height: 400px;
+}
+
+@media (max-width: 960px) {
+  .template-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.template-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.template-editor-preview {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.template-editor-preview-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.template-preview-render {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  flex: 1;
+}
+
+/* ─── Variable tag buttons ─── */
+.variable-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.variable-tag:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.variable-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: var(--space-2) 0;
+}
+
+.variable-tags-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+/* ─── Template list item upgrade ─── */
+.settings-template-item.active {
+  background: var(--color-primary-subtle);
+  border-left: 3px solid var(--color-primary);
+}
+
+.settings-template-item.active .settings-template-icon {
+  color: var(--color-primary);
+}
+
 /* ─── Responsive settings ─── */
 @media (max-width: 768px) {
   .settings-tabs {

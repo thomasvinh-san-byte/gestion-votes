@@ -404,28 +404,54 @@
               <h3 class="card-title" id="templateEditorTitle">&Eacute;diter le template</h3>
             </div>
             <div class="card-body">
-              <div class="form-group mb-3">
-                <label class="form-label">Objet</label>
-                <input class="form-input" type="text" id="templateSubject" placeholder="Objet de l'email...">
-              </div>
-              <div class="form-group mb-3">
-                <label class="form-label">Corps</label>
-                <textarea class="form-input" id="templateBody" rows="10" placeholder="Contenu HTML du template..."></textarea>
-              </div>
-              <div class="form-group mb-3">
-                <label class="form-label">Variables disponibles</label>
-                <div class="flex flex-wrap gap-1">
-                  <code class="text-xs">&#123;&#123;nom&#125;&#125;</code>
-                  <code class="text-xs">&#123;&#123;date&#125;&#125;</code>
-                  <code class="text-xs">&#123;&#123;heure&#125;&#125;</code>
-                  <code class="text-xs">&#123;&#123;lieu&#125;&#125;</code>
-                  <code class="text-xs">&#123;&#123;syndic&#125;&#125;</code>
-                  <code class="text-xs">&#123;&#123;lien_vote&#125;&#125;</code>
+              <div class="template-editor-grid">
+                <div class="template-editor-form">
+                  <div class="form-group">
+                    <label class="form-label" for="templateSubject">Objet du mail</label>
+                    <input class="form-input" type="text" id="templateSubject" placeholder="Objet de l'email...">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="templateBody">Corps du message</label>
+                    <textarea class="form-input" id="templateBody" rows="12" placeholder="Contenu du template..."></textarea>
+                  </div>
+                  <div>
+                    <div class="variable-tags-label">Variables disponibles</div>
+                    <div class="variable-tags-row">
+                      <ag-tooltip text="Nom complet du destinataire, tel que saisi dans la fiche membre" position="top">
+                        <button class="variable-tag" type="button" data-var="&#123;&#123;nom&#125;&#125;">&#123;&#123;nom&#125;&#125;</button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Date de la s&eacute;ance au format JJ/MM/AAAA" position="top">
+                        <button class="variable-tag" type="button" data-var="&#123;&#123;date&#125;&#125;">&#123;&#123;date&#125;&#125;</button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Heure de d&eacute;but de la s&eacute;ance (format 24h)" position="top">
+                        <button class="variable-tag" type="button" data-var="&#123;&#123;heure&#125;&#125;">&#123;&#123;heure&#125;&#125;</button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Lieu ou adresse o&ugrave; se tient la s&eacute;ance" position="top">
+                        <button class="variable-tag" type="button" data-var="&#123;&#123;lieu&#125;&#125;">&#123;&#123;lieu&#125;&#125;</button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Nom du syndic ou de la soci&eacute;t&eacute; de gestion" position="top">
+                        <button class="variable-tag" type="button" data-var="&#123;&#123;syndic&#125;&#125;">&#123;&#123;syndic&#125;&#125;</button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Lien unique de vote pour ce membre — &agrave; utiliser uniquement dans les templates de convocation et de vote" position="top">
+                        <button class="variable-tag" type="button" data-var="&#123;&#123;lien_vote&#125;&#125;">&#123;&#123;lien_vote&#125;&#125;</button>
+                      </ag-tooltip>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="btn btn-primary" id="btnSaveTemplate">Enregistrer</button>
+                    <button class="btn btn-secondary" id="btnCancelTemplate">Annuler</button>
+                  </div>
                 </div>
-              </div>
-              <div class="flex gap-2">
-                <button class="btn btn-primary" id="btnSaveTemplate">Enregistrer</button>
-                <button class="btn btn-secondary" id="btnCancelTemplate">Annuler</button>
+                <div class="template-editor-preview">
+                  <div class="template-editor-preview-label">Aper&ccedil;u</div>
+                  <div class="template-preview-render" id="templatePreviewRender">
+                    <span style="color: var(--color-text-muted); font-style: italic; font-family: var(--font-sans);">Commencez &agrave; saisir le corps du message pour voir l'aper&ccedil;u ici.</span>
+                  </div>
+                  <button class="btn btn-ghost btn-sm" id="btnTestEmail" type="button" style="margin-top: var(--space-3)">
+                    <svg class="icon icon-text" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Envoyer un test
+                  </button>
+                </div>
               </div>
             </div>
           </div>

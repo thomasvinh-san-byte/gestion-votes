@@ -556,6 +556,80 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // TEMPLATE PREVIEW + VARIABLE TAG INSERTION
+  // ═══════════════════════════════════════════════════════
+  function updateTemplatePreview() {
+    var body = document.getElementById('templateBody');
+    var preview = document.getElementById('templatePreviewRender');
+    if (!body || !preview) return;
+    var text = body.value || '';
+    if (!text.trim()) {
+      preview.innerHTML = '<span style="color: var(--color-text-muted); font-style: italic; font-family: var(--font-sans);">Commencez \u00e0 saisir le corps du message pour voir l\'aper\u00e7u ici.</span>';
+      return;
+    }
+    // Replace variables with sample values for preview
+    var samples = {
+      '{{nom}}': 'Jean Dupont',
+      '{{date}}': '15/04/2026',
+      '{{heure}}': '14h00',
+      '{{lieu}}': 'Salle du Conseil',
+      '{{syndic}}': 'Syndic Exemple SARL',
+      '{{lien_vote}}': 'https://vote.example.com/abc123'
+    };
+    Object.keys(samples).forEach(function(k) {
+      text = text.split(k).join('<strong>' + samples[k] + '</strong>');
+    });
+    preview.innerHTML = text.replace(/\n/g, '<br>');
+  }
+
+  function initTemplatePreview() {
+    // Attach live preview to textarea and subject
+    var bodyEl = document.getElementById('templateBody');
+    var subjectEl = document.getElementById('templateSubject');
+    if (bodyEl) bodyEl.addEventListener('input', updateTemplatePreview);
+    if (subjectEl) subjectEl.addEventListener('input', updateTemplatePreview);
+
+    // Variable tag click-to-insert handler
+    document.addEventListener('click', function(e) {
+      var tag = e.target.closest('.variable-tag');
+      if (!tag) return;
+      e.preventDefault();
+      var varText = tag.dataset.var;
+      var textarea = document.getElementById('templateBody');
+      if (!textarea) return;
+      var start = textarea.selectionStart;
+      var end = textarea.selectionEnd;
+      var text = textarea.value;
+      textarea.value = text.substring(0, start) + varText + text.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + varText.length;
+      textarea.focus();
+      updateTemplatePreview();
+    });
+
+    // Test email button
+    var btnTest = document.getElementById('btnTestEmail');
+    if (btnTest) {
+      btnTest.addEventListener('click', function() {
+        AgToast.show('Envoi d\'un email de test...', 'info');
+        api('/api/v1/admin_settings.php', {
+          action: 'test_template',
+          key: _currentTemplate,
+          subject: (document.getElementById('templateSubject') || {}).value || '',
+          body: (document.getElementById('templateBody') || {}).value || ''
+        })
+          .then(function(r) {
+            if (r.body && r.body.ok) {
+              AgToast.show('Email de test envoy\u00e9', 'success');
+            } else {
+              AgToast.show('Erreur d\'envoi', 'error');
+            }
+          })
+          .catch(function() { AgToast.show('Erreur d\'envoi', 'error'); });
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
   // SECTION SAVE BUTTONS + UNSAVED-DOT TRACKING
   // ═══════════════════════════════════════════════════════
   function saveSection(card, section) {
@@ -614,6 +688,7 @@
   initTabs();
   initAutoSave();
   initSectionSave();
+  initTemplatePreview();
   initQuorumPolicies();
   initEmailTemplates();
   initSmtpTest();
