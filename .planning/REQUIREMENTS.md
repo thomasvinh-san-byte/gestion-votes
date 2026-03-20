@@ -23,10 +23,10 @@
 
 - [ ] **DATA-01**: Audit log — redesign visuel (toolbar, table density, filtres, timeline view, column header tooltips)
 - [ ] **DATA-02**: Archives — redesign visuel (card/table view, filtres, pagination, états session)
-- [ ] **DATA-03**: Members — redesign visuel (stats bar, member cards/table, import, rôles, action tooltips)
-- [ ] **DATA-04**: Users — redesign visuel (role panel, avatar table, pagination)
-- [ ] **DATA-05**: Analytics — redesign visuel (KPI cards, chart layout, responsive grid, metric tooltips)
-- [ ] **DATA-06**: Meetings list — redesign visuel (session cards, status badges, actions)
+- [x] **DATA-03**: Members — redesign visuel (stats bar, member cards/table, import, rôles, action tooltips)
+- [x] **DATA-04**: Users — redesign visuel (role panel, avatar table, pagination)
+- [x] **DATA-05**: Analytics — redesign visuel (KPI cards, chart layout, responsive grid, metric tooltips)
+- [x] **DATA-06**: Meetings list — redesign visuel (session cards, status badges, actions)
 
 ### Secondary Pages (SEC)
 
@@ -70,10 +70,10 @@
 | CORE-03 | Phase 37 | Complete |
 | SEC-05 | Phase 37 | Complete |
 | CORE-05 | Phase 38 | Complete |
-| DATA-05 | Phase 38 | Pending |
-| DATA-06 | Phase 38 | Pending |
-| DATA-03 | Phase 39 | Pending |
-| DATA-04 | Phase 39 | Pending |
+| DATA-05 | Phase 38 | Complete |
+| DATA-06 | Phase 38 | Complete |
+| DATA-03 | Phase 39 | Complete |
+| DATA-04 | Phase 39 | Complete |
 | DATA-01 | Phase 39 | Pending |
 | DATA-02 | Phase 39 | Pending |
 | CORE-06 | Phase 40 | Pending |

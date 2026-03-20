@@ -106,7 +106,7 @@ Plans:
   3. The audit log toolbar (filters, search, date range) is visible and usable without instructions — timeline and table views are switchable with a single clear control
   4. The archives page card/table view with pagination lets an admin locate a specific past session with filters alone — no manual scrolling through many pages
   5. All four pages maintain visual consistency with each other — they share the same table density, header style, and action pattern
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 39-01-PLAN.md — Members + Users redesign (stats bar elevation, circular avatars, role panel, pill filters, hover-reveal actions, column headers)
 - [ ] 39-02-PLAN.md — Audit + Archives redesign (inline detail expansion, ag-tooltip headers, filter counts, KPI cleanup, status filters, hover-reveal cards)
@@ -146,6 +146,6 @@ Plans:
 | 36. Session Creation Flow | 3/3 | Complete    | 2026-03-20 |
 | 37. Live Session Conduct | 3/3 | Complete    | 2026-03-20 |
 | 38. Results & History | 3/3 | Complete    | 2026-03-20 |
-| 39. Admin Data Tables | 0/3 | Not started | - |
+| 39. Admin Data Tables | 1/3 | In Progress|  |
 | 40. Configuration Cluster | 0/TBD | Not started | - |
 | 41. Public & Utility Pages | 0/TBD | Not started | - |

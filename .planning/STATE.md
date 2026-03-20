@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Visual Redesign
 status: completed
-stopped_at: Completed 38-03-PLAN.md
-last_updated: "2026-03-20T06:15:02.485Z"
+stopped_at: Completed 39-01-PLAN.md
+last_updated: "2026-03-20T06:45:28.346Z"
 last_activity: 2026-03-20 — Phase 38 visual verification checkpoint approved (CORE-05, DATA-05, DATA-06)
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 15
+  completed_plans: 13
   percent: 32
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.2 Visual Redesign — Phase 38: Results & History (fully complete)
+**Current focus:** v4.2 Visual Redesign — Phase 39: Admin Data Tables (plan 1 of 3 complete)
 
 ## Current Position
 
-Phase: 38 of 41 (Results & History — complete)
-Plan: 3 of 3 (Phase 38 fully complete)
-Status: Phase 38 done — ready for Phase 39
-Last activity: 2026-03-20 — Phase 38 visual verification checkpoint approved (CORE-05, DATA-05, DATA-06)
+Phase: 39 of 41 (Admin Data Tables — in progress)
+Plan: 1 of 3 (39-01 complete — Members + Users pages redesigned)
+Status: Phase 39 plan 1 done — ready for plan 2
+Last activity: 2026-03-20 — Phase 39 plan 1: Members/Users redesign complete (DATA-03, DATA-04)
 
-Progress: [███░░░░░░░] 32%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -69,6 +69,8 @@ Progress: [███░░░░░░░] 32%
 - [Phase 38-02]: meetings.js renderSessionItem() migrated to session-card pattern — CSS and JS changed in same wave to avoid mismatch (Pitfall 4)
 - [Phase 38-02]: getCtaLabel/getCtaHref helpers: Ouvrir for draft/scheduled, Reprendre for live/paused, Voir resultats for closed/validated/archived/pv_sent
 - [Phase 38-03]: Visual checkpoint approved — user deferred approval until all Phase 38 pages complete; CORE-05, DATA-05, DATA-06 confirmed
+- [Phase 39-admin-data-tables]: Members stats bar uses surface-raised background to create visible elevation; avatar ring uses box-shadow to avoid border-box sizing issues on circles
+- [Phase 39-admin-data-tables]: Users filterRole select replaced with filter-tab pills; _currentRoleFilter state var used instead of DOM reads in loadUsers()
 
 ### Pending Todos
 
@@ -80,7 +82,7 @@ None at roadmap creation.
 
 ## Session Continuity
 
-Last session: 2026-03-20T06:11:00.000Z
-Stopped at: Completed 38-03-PLAN.md
+Last session: 2026-03-20T06:45:28.344Z
+Stopped at: Completed 39-01-PLAN.md
 Resume file: None
 Next action: /gsd:plan-phase 39
