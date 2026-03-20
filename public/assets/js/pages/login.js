@@ -9,9 +9,35 @@
   const spinner = document.getElementById('loginSpinner');
   const btnText = submitBtn.querySelector('.login-btn-text');
 
-  // Clear field-level error when user starts re-typing
-  emailInput.addEventListener('input', function() { setFieldError(emailInput, false); });
-  passwordInput.addEventListener('input', function() { setFieldError(passwordInput, false); });
+  // Floating label support: toggle .has-value on .field-group when input has content.
+  // Email field can rely on CSS :not(:placeholder-shown) for the direct-sibling case,
+  // but password needs JS because its label is a sibling of .field-input-wrap (not input).
+  // We apply updateHasValue to both fields for consistency.
+  function updateHasValue(input) {
+    var group = input.closest('.field-group');
+    if (!group) return;
+    if (input.value.length > 0) {
+      group.classList.add('has-value');
+    } else {
+      group.classList.remove('has-value');
+    }
+  }
+
+  // Clear field-level error and update floating label when user starts re-typing
+  emailInput.addEventListener('input', function() {
+    setFieldError(emailInput, false);
+    updateHasValue(emailInput);
+  });
+  passwordInput.addEventListener('input', function() {
+    setFieldError(passwordInput, false);
+    updateHasValue(passwordInput);
+  });
+
+  // Handle browser autofill: check on page load after a short delay
+  setTimeout(function() {
+    updateHasValue(emailInput);
+    updateHasValue(passwordInput);
+  }, 100);
 
   // Toggle password visibility (eye icon)
   toggleBtn.addEventListener('click', function() {
@@ -32,15 +58,17 @@
     }
   });
 
-  // Field-level error state: add/remove .field-error class on the input's parent wrapper
+  // Field-level error state: add/remove .field-error class on .field-group wrapper.
+  // Uses closest('.field-group') — works for both email (direct child) and password
+  // (input is inside .field-input-wrap which is inside .field-group).
   function setFieldError(field, hasError) {
-    if (!field || !field.parentElement) return;
-    // For password inside .field-wrap, go one level up to the outer div
-    var wrapper = field.closest('.field-wrap') ? field.closest('.field-wrap').parentElement : field.parentElement;
+    if (!field) return;
+    var group = field.closest('.field-group');
+    if (!group) return;
     if (hasError) {
-      wrapper.classList.add('field-error');
+      group.classList.add('field-error');
     } else {
-      wrapper.classList.remove('field-error');
+      group.classList.remove('field-error');
     }
   }
 
@@ -190,20 +218,17 @@
     msg.classList.add('visible');
   });
 
-  // Show demo credentials hint
+  // Show demo credentials hint — populates and unhides #demoPanel (static div in HTML)
   function showDemoHint() {
-    var card = document.querySelector('.login-card');
-    if (!card || document.getElementById('demoHint')) return;
-    var hint = document.createElement('div');
-    hint.id = 'demoHint';
-    hint.style.cssText = 'margin-top:16px;padding:12px 16px;background:var(--color-bg-subtle,#f5f3ee);border:1px solid var(--color-border,#d5dbd2);border-radius:8px;font-size:13px;line-height:1.5;';
+    var panel = document.getElementById('demoPanel');
+    if (!panel) return;
     var accounts = [
       { role: 'Admin', email: 'admin@ag-vote.local', pass: 'Admin2026!' },
-      { role: 'Opérateur', email: 'operator@ag-vote.local', pass: 'Operator2026!' },
+      { role: 'Operateur', email: 'operator@ag-vote.local', pass: 'Operator2026!' },
       { role: 'Auditeur', email: 'auditor@ag-vote.local', pass: 'Auditor2026!' },
       { role: 'Votant', email: 'votant@ag-vote.local', pass: 'Votant2026!' }
     ];
-    hint.innerHTML = '<div style="font-weight:600;margin-bottom:8px;">Comptes de démonstration</div>' +
+    panel.innerHTML = '<div style="font-weight:600;margin-bottom:8px;">Comptes de demonstration</div>' +
       accounts.map(function(a) {
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">' +
           '<span><strong>' + a.role + '</strong> — <code style="font-size:12px;">' + a.email + '</code></span>' +
@@ -211,12 +236,14 @@
           'style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid var(--color-border,#d5dbd2);background:var(--color-surface,#fff);cursor:pointer;">Utiliser</button>' +
           '</div>';
       }).join('');
-    card.appendChild(hint);
-    hint.addEventListener('click', function(e) {
+    panel.removeAttribute('hidden');
+    panel.addEventListener('click', function(e) {
       var btn = e.target.closest('.demo-fill-btn');
       if (!btn) return;
       emailInput.value = btn.getAttribute('data-email');
       passwordInput.value = btn.getAttribute('data-pass');
+      updateHasValue(emailInput);
+      updateHasValue(passwordInput);
       emailInput.focus();
     });
   }
