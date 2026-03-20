@@ -1,0 +1,124 @@
+# Roadmap: AG-VOTE v4.3 "Ground-Up Rebuild"
+
+## Milestones
+
+- ✅ **v1.x Foundations** - Phases 1-3 (shipped)
+- ✅ **v2.0 UI Redesign** - Phases 4-15 (shipped 2026-03-16)
+- ✅ **v3.0 Session Lifecycle** - Phases 16-24 (shipped 2026-03-18)
+- ✅ **v4.0 Clarity & Flow** - Phases 25-29 (shipped 2026-03-18)
+- ✅ **v4.1 Design Excellence** - Phases 30-34 (shipped 2026-03-19)
+- ✅ **v4.2 Visual Redesign** - Phases 35-41.5 (shipped 2026-03-20)
+- 🚧 **v4.3 Ground-Up Rebuild** - Phases 42-48 (in progress)
+
+---
+
+## 🚧 v4.3 Ground-Up Rebuild (In Progress)
+
+**Milestone Goal:** Rebuild every critical page from scratch — HTML+CSS+JS together in one commit, fix all v4.2 regressions, wire backend properly, achieve genuine top 1% design quality.
+
+**Approach:** Read existing JS before touching HTML. Rewrite HTML+CSS. Update JS if DOM changes. Verify backend connections. Test in browser before marking done. No broken intermediate states.
+
+## Phases
+
+- [ ] **Phase 42: Stabilization** - Fix all v4.2 regressions before any rebuild work begins
+- [ ] **Phase 43: Dashboard Rebuild** - Complete HTML+CSS+JS rewrite, KPIs and session list wired to backend
+- [ ] **Phase 44: Login Rebuild** - Complete HTML+CSS rewrite, auth flow wired, top 1% entry point
+- [ ] **Phase 45: Wizard Rebuild** - Complete HTML+CSS+JS rewrite, all 4 steps wired, form submissions verified
+- [ ] **Phase 46: Operator Console Rebuild** - Complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional
+- [ ] **Phase 47: Hub Rebuild** - Complete HTML+CSS+JS rewrite, session lifecycle wired, quorum bar functional
+- [ ] **Phase 48: Settings/Admin Rebuild** - Complete HTML+CSS+JS rewrite, all settings save, admin KPIs wired
+
+## Phase Details
+
+### Phase 42: Stabilization
+**Goal**: All v4.2 regressions are eliminated so subsequent rebuilds start from a working baseline
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: FIX-01, FIX-02
+**Success Criteria** (what must be TRUE):
+  1. Every page renders without broken layouts or misaligned elements that were introduced in v4.2
+  2. All JavaScript event handlers (modals, tabs, dropdowns, HTMX triggers) that were broken by v4.2 HTML restructuring fire correctly
+  3. No console errors caused by missing DOM targets or changed selectors on any page
+  4. A developer can navigate the full session lifecycle (dashboard → hub → operator → voter) without hitting a JS exception
+**Plans**: TBD
+
+### Phase 43: Dashboard Rebuild
+**Goal**: The dashboard is a fully rebuilt, top 1% page — new HTML structure, new CSS, JS verified, KPIs and session list wired to live backend data
+**Depends on**: Phase 42
+**Requirements**: REB-01, WIRE-01
+**Success Criteria** (what must be TRUE):
+  1. Dashboard KPI cards display live counts (sessions, members, votes) fetched from the real API — no mock data
+  2. Session list renders with correct status badges, dates, and action buttons pointing to valid routes
+  3. The page layout is horizontal-first, all interactive elements (filters, CTAs) are functional
+  4. No JS console errors on page load; all DOM selectors resolve against the new HTML structure
+**Plans**: TBD
+
+### Phase 44: Login Rebuild
+**Goal**: The login page is a fully rebuilt, top 1% entry point — new HTML+CSS, auth flow end-to-end wired, field validation working
+**Depends on**: Phase 42
+**Requirements**: REB-02, WIRE-01
+**Success Criteria** (what must be TRUE):
+  1. A user can enter email and password, submit the form, and land on the dashboard with a valid session — no broken redirects
+  2. Field validation messages appear inline (empty fields, wrong credentials) without a full page reload
+  3. The login page passes visual comparison against Stripe/Clerk reference quality — clean, centered, no legacy artifacts
+  4. The page renders correctly with no layout breakage at 1024px+ viewport widths
+**Plans**: TBD
+
+### Phase 45: Wizard Rebuild
+**Goal**: The session creation wizard is fully rebuilt — all 4 steps fit the viewport, form submissions create real sessions, the stepper is functional, horizontal field layout throughout
+**Depends on**: Phase 42
+**Requirements**: REB-03, WIRE-01, WIRE-03
+**Success Criteria** (what must be TRUE):
+  1. A user can complete all 4 wizard steps and create a real session — the new session appears in the database and on the dashboard
+  2. The stepper (named steps, active/complete/pending states) renders correctly and navigates between steps without page reload
+  3. Each wizard step fits within the viewport at 1024px without vertical overflow — no scrolling required to reach the next button
+  4. All form fields use horizontal layout where applicable; validation errors appear inline next to the relevant field
+  5. Form submission failures (network error, validation) display a user-visible error message without losing entered data
+**Plans**: TBD
+
+### Phase 46: Operator Console Rebuild
+**Goal**: The operator console is fully rebuilt — SSE connection live, vote panel functional, agenda sidebar operational, all action buttons wired with tooltips
+**Depends on**: Phase 42
+**Requirements**: REB-04, WIRE-01, WIRE-02
+**Success Criteria** (what must be TRUE):
+  1. The SSE connection establishes on page load and the live indicator shows "connected" — vote events update the display in real time without manual refresh
+  2. An operator can open a vote, observe live vote counts update via SSE, and close the vote — the result is recorded correctly
+  3. The agenda sidebar lists all motions; clicking a motion loads it into the main panel
+  4. All action buttons (open vote, close vote, end session) show tooltips explaining their state when disabled
+  5. The delta badge increments correctly when new votes arrive over SSE
+**Plans**: TBD
+
+### Phase 47: Hub Rebuild
+**Goal**: The session hub is fully rebuilt — session lifecycle actions wired to real data, quorum bar showing live attendance, checklist reflecting actual state
+**Depends on**: Phase 42
+**Requirements**: REB-05, WIRE-01
+**Success Criteria** (what must be TRUE):
+  1. The quorum bar displays the current attendance count and threshold from the real API — it updates when attendance changes
+  2. The session checklist items (convocation sent, quorum reached, agenda locked) reflect the actual session state from the database
+  3. Lifecycle action buttons (send convocation, open session, navigate to operator) trigger the correct backend operations and update the UI on success
+  4. The hub displays the correct blocked reasons when a lifecycle step cannot proceed
+**Plans**: TBD
+
+### Phase 48: Settings/Admin Rebuild
+**Goal**: The settings and admin pages are fully rebuilt — all settings persist correctly, admin KPIs load from real data, user management CRUD is functional
+**Depends on**: Phase 42
+**Requirements**: REB-06, WIRE-01
+**Success Criteria** (what must be TRUE):
+  1. All settings tabs (rules, communication, security, accessibility) save their values and the changes persist after page reload
+  2. Admin KPI cards display real counts (total members, sessions, votes) from the backend — no silent failures
+  3. User management table loads, and an admin can create, edit, and deactivate users — changes reflect immediately
+  4. No JS console errors on any settings or admin page load
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:** 42 → 43 → 44 → 45 → 46 → 47 → 48
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 42. Stabilization | 0/TBD | Not started | - |
+| 43. Dashboard Rebuild | 0/TBD | Not started | - |
+| 44. Login Rebuild | 0/TBD | Not started | - |
+| 45. Wizard Rebuild | 0/TBD | Not started | - |
+| 46. Operator Console Rebuild | 0/TBD | Not started | - |
+| 47. Hub Rebuild | 0/TBD | Not started | - |
+| 48. Settings/Admin Rebuild | 0/TBD | Not started | - |

@@ -45,14 +45,23 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01, FIX-02 | TBD | Pending |
-| REB-01 through REB-06 | TBD | Pending |
-| WIRE-01 through WIRE-03 | TBD | Pending |
+| FIX-01 | Phase 42 — Stabilization | Pending |
+| FIX-02 | Phase 42 — Stabilization | Pending |
+| REB-01 | Phase 43 — Dashboard Rebuild | Pending |
+| REB-02 | Phase 44 — Login Rebuild | Pending |
+| REB-03 | Phase 45 — Wizard Rebuild | Pending |
+| REB-04 | Phase 46 — Operator Console Rebuild | Pending |
+| REB-05 | Phase 47 — Hub Rebuild | Pending |
+| REB-06 | Phase 48 — Settings/Admin Rebuild | Pending |
+| WIRE-01 | Phases 43–48 (distributed across all rebuilds) | Pending |
+| WIRE-02 | Phase 46 — Operator Console Rebuild | Pending |
+| WIRE-03 | Phase 45 — Wizard Rebuild | Pending |
 
 **Coverage:**
 - v4.3 requirements: 11 total (FIX:2, REB:6, WIRE:3)
-- Mapped to phases: 0
-- Unmapped: 11
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
+*Traceability updated: 2026-03-20*
