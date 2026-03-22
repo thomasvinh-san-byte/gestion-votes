@@ -12,7 +12,7 @@
 
 ### Ground-Up Page Rebuilds (REB)
 
-- [ ] **REB-01**: Dashboard — complete HTML+CSS rewrite, KPIs wired to backend, session list with live data, horizontal-first layout, JS verified
+- [x] **REB-01**: Dashboard — complete HTML+CSS rewrite, KPIs wired to backend, session list with live data, horizontal-first layout, JS verified
 - [x] **REB-02**: Login — complete HTML+CSS rewrite, auth flow wired, field validation, top 1% entry point
 - [x] **REB-03**: Wizard — complete HTML+CSS+JS rewrite, all 4 steps fit viewport, form submissions wired, stepper functional, horizontal fields
 - [x] **REB-04**: Operator console — complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional, agenda sidebar, tooltips on all actions

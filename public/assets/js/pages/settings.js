@@ -391,38 +391,30 @@
   // ═══════════════════════════════════════════════════════
   var _currentTemplate = null;
 
-  function initEmailTemplates() {
-    var templateList = document.getElementById('emailTemplateList');
-    var templateEditor = document.getElementById('templateEditor');
-    var btnSave = document.getElementById('btnSaveTemplate');
-    var btnCancel = document.getElementById('btnCancelTemplate');
-    var btnReset = document.getElementById('btnResetEmailTemplates');
-
-    if (templateList) {
-      templateList.addEventListener('click', function(e) {
-        var btn = e.target.closest('.btn-edit-template');
-        if (btn) {
-          _currentTemplate = btn.dataset.template;
-          var item = btn.closest('.settings-template-item');
-          var name = item ? item.querySelector('.settings-template-name').textContent : _currentTemplate;
-          var titleEl = document.getElementById('templateEditorTitle');
-          if (titleEl) titleEl.textContent = '\u00c9diter\u00a0: ' + name;
-
-          // Load template content from API
-          api('/api/v1/admin_settings.php', { action: 'get_template', key: _currentTemplate })
-            .then(function(r) {
-              if (r.body && r.body.ok && r.body.data) {
-                var subjectEl = document.getElementById('templateSubject');
-                var bodyEl = document.getElementById('templateBody');
-                if (subjectEl) subjectEl.value = r.body.data.subject || '';
-                if (bodyEl) bodyEl.value = r.body.data.body || '';
-              }
-            })
-            .catch(function() { console.warn('Template load failed'); });
-
-          if (templateEditor) templateEditor.hidden = false;
-          templateEditor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function loadTemplate(key) {
+    _currentTemplate = key;
+    api('/api/v1/admin_settings.php', { action: 'get_template', key: key })
+      .then(function(r) {
+        if (r.body && r.body.ok && r.body.data) {
+          var subjectEl = document.getElementById('templateSubject');
+          var bodyEl = document.getElementById('templateBody');
+          if (subjectEl) subjectEl.value = r.body.data.subject || '';
+          if (bodyEl) bodyEl.value = r.body.data.body || '';
         }
+      })
+      .catch(function() { console.warn('Template load failed'); });
+  }
+
+  function initEmailTemplates() {
+    var templateSelect = document.getElementById('templateSelect');
+    var btnSave = document.getElementById('btnSaveTemplate');
+    var btnReset = document.getElementById('btnResetTemplates');
+
+    // Load initial template on first visit
+    if (templateSelect) {
+      loadTemplate(templateSelect.value);
+      templateSelect.addEventListener('change', function() {
+        loadTemplate(templateSelect.value);
       });
     }
 
@@ -439,19 +431,11 @@
           .then(function(r) {
             if (r.body && r.body.ok) {
               AgToast.show('Template enregistr\u00e9', 'success');
-              if (templateEditor) templateEditor.hidden = true;
             } else {
               AgToast.show('Erreur de sauvegarde', 'error');
             }
           })
           .catch(function() { AgToast.show('Erreur de sauvegarde', 'error'); });
-      });
-    }
-
-    if (btnCancel) {
-      btnCancel.addEventListener('click', function() {
-        if (templateEditor) templateEditor.hidden = true;
-        _currentTemplate = null;
       });
     }
 
