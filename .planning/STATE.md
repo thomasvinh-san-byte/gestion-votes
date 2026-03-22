@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: executing
-stopped_at: Completed 45-01-PLAN.md — wizard HTML+CSS rewrite
-last_updated: "2026-03-22T14:36:56.488Z"
-last_activity: 2026-03-20 — Completed 43-01 dashboard ground-up rewrite HTML+CSS (f61d636)
+stopped_at: Completed 45-02-PLAN.md — wizard JS wire-up and browser verification
+last_updated: "2026-03-22T15:00:00Z"
+last_activity: 2026-03-22 — Completed 45-02 wizard JS slide transitions + error banners + browser verification (0e78c1c)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 28
+  completed_plans: 7
+  percent: 32
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.3 Ground-Up Rebuild — Phase 43: Dashboard Rebuild
+**Current focus:** v4.3 Ground-Up Rebuild — Phase 45: Wizard Rebuild (complete)
 
 ## Current Position
 
-Phase: 43 of 48 (Dashboard Rebuild)
-Plan: 01 of 01 complete
+Phase: 45 of 48 (Wizard Rebuild)
+Plan: 02 of 02 complete
 Status: In progress
-Last activity: 2026-03-20 — Completed 43-01 dashboard ground-up rewrite HTML+CSS (f61d636)
+Last activity: 2026-03-22 — Completed 45-02 wizard JS wire-up and browser verification (0e78c1c)
 
-Progress: [██░░░░░░░░] ~28%
+Progress: [███░░░░░░░] ~32%
 
 ## Performance Metrics
 
@@ -62,6 +62,9 @@ Progress: [██░░░░░░░░] ~28%
 - [Phase 44-login-rebuild]: Checkpoint approved: login page fully verified in browser — floating labels, auth flow, dark mode, demo panel all working
 - [Phase 45-wizard-rebuild]: wizard.htmx.html: all DOM IDs preserved, step0 active class, no inline display:none on steps, wiz-member-add-row for horizontal member form
 - [Phase 45-wizard-rebuild]: wizard.css: wizSlideIn/wizSlideOut translateX keyframes, no overflow-y:auto anywhere, tokens only for dark mode parity
+- [Phase 45-wizard-rebuild]: showStep() uses skipAnimation=true on init and draft restore to prevent slide flash
+- [Phase 45-wizard-rebuild]: Error banners cleared on every showStep() navigation; populated from errors[] array in each step's validation function
+- [Phase 45-wizard-rebuild]: Checkpoint approved — full wizard flow browser-verified: slide transitions, error banners, session creation, dark mode, draft persistence
 
 ### Pending Todos
 
@@ -73,7 +76,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-22T14:36:56.484Z
-Stopped at: Completed 45-01-PLAN.md — wizard HTML+CSS rewrite
+Last session: 2026-03-22T15:00:00Z
+Stopped at: Completed 45-02-PLAN.md — wizard JS wire-up and browser verification
 Resume file: None
-Next action: /gsd:execute-phase 43 (plan 02 — dashboard JS wire-up)
+Next action: /gsd:execute-phase 46 (hub rebuild — next phase)
