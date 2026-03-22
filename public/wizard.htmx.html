@@ -90,383 +90,400 @@
         </div>
       </div>
 
-      <!-- Step panels — centered 680px track -->
+      <!-- Step panels — 900px content track -->
       <div class="wiz-content">
 
-      <!-- Step 1: Infos générales -->
-      <div class="card wiz-step" id="step0" data-tour="wizard-step1">
-        <div class="wiz-step-body">
-        <div class="wf-step">
-          <div class="wf-step-num">1</div>
-          Informations g&eacute;n&eacute;rales
-        </div>
-        <div class="wiz-required-note muted"><span class="req">*</span> Champ obligatoire</div>
+        <!-- Step 0: Informations générales -->
+        <div class="wiz-step active" id="step0" data-tour="wizard-step1">
 
-        <!-- Identité -->
-        <div class="wiz-section">
-          <div class="wiz-section-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-            Identit&eacute; de la s&eacute;ance
+          <!-- Error banner -->
+          <div class="wiz-error-banner" id="errBannerStep0" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            <span id="errBannerStep0Text"></span>
           </div>
-          <div class="field">
-            <label class="field-label" for="wizTitle">Titre de la s&eacute;ance <span class="req">*</span></label>
-            <input class="field-input" id="wizTitle" aria-required="true" placeholder="Ex : AG Ordinaire du 15 mars 2026" maxlength="200" autocomplete="off">
-            <div class="field-error-msg" id="errWizTitle">Le titre est obligatoire.</div>
-          </div>
-          <div class="form-grid-3">
-            <div class="field">
-              <label class="field-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
-              <select class="field-input" id="wizType" aria-required="true">
-                <option>AG Ordinaire</option>
-                <option>AG Extraordinaire</option>
-                <option>Conseil syndical</option>
-              </select>
-            </div>
-            <div class="field">
-              <label class="field-label" for="wizDate">Date <span class="req">*</span></label>
-              <input class="field-input" id="wizDate" aria-required="true" type="date">
-              <div class="field-error-msg" id="errWizDate">La date est obligatoire.</div>
-            </div>
-            <div class="field">
-              <label class="field-label" for="wizTimeHH">Heure <span class="req">*</span></label>
-              <div class="time-input-wrap">
-                <input class="field-input time-input-hh" id="wizTimeHH" placeholder="HH" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Heures">
-                <span class="time-sep">:</span>
-                <input class="field-input time-input-mm" id="wizTimeMM" placeholder="MM" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes">
-              </div>
-              <div class="field-error-msg" id="errWizTime">L'heure est obligatoire (HH:MM).</div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Lieu -->
-        <div class="wiz-section">
-          <div class="wiz-section-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-            Lieu
-          </div>
-          <div class="form-grid-2">
-            <div class="field">
-              <label class="field-label" for="wizPlace">Nom du lieu</label>
-              <input class="field-input" id="wizPlace" placeholder="Ex : Salle polyvalente" maxlength="100" autocomplete="off">
+          <div class="wiz-step-body">
+            <div class="wf-step">
+              <div class="wf-step-num">1</div>
+              Informations g&eacute;n&eacute;rales
             </div>
-            <div class="field">
-              <label class="field-label" for="wizAddr">Adresse</label>
-              <input class="field-input" id="wizAddr" placeholder="Ex : 10 avenue de la R&eacute;publique" maxlength="200" autocomplete="off">
-            </div>
-          </div>
-        </div>
+            <div class="wiz-required-note muted"><span class="req">*</span> Champ obligatoire</div>
 
-        <!-- Règles de vote — collapsed by default -->
-        <details class="wiz-advanced-toggle">
-          <summary class="wiz-advanced-summary">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
-            R&egrave;gles de vote
-            <span class="wiz-advanced-hint">Quorum &middot; Majorit&eacute; par d&eacute;faut</span>
-            <svg class="wiz-advanced-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-          </summary>
-          <div class="wiz-advanced-body">
-            <div class="form-grid-2">
-              <div class="field">
-                <label class="field-label" for="wizQuorum">
-                  Politique de quorum
-                  <ag-popover trigger="click" position="top" width="300">
-                    <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur le quorum">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                    </button>
-                    <div slot="content">
-                      <strong>Quorum l&eacute;gal</strong>
-                      <p>Nombre minimum de membres pr&eacute;sents pour que les votes soient valides (art. 22 de la loi de 1965).</p>
-                    </div>
-                  </ag-popover>
-                </label>
-                <select class="field-input" id="wizQuorum">
-                  <option>50% des pr&eacute;sents + 1 (d&eacute;faut)</option>
-                  <option>50% des voix</option>
-                  <option>33% des pr&eacute;sents (2e convocation)</option>
-                  <option>Aucun quorum (conseil/bureau)</option>
-                  <option>Personnalis&eacute; (configurable dans Param&egrave;tres)</option>
-                </select>
-                <div class="field-hint">R&egrave;gle l&eacute;gale d&eacute;terminant la validit&eacute; de l'assembl&eacute;e.</div>
+            <!-- Identité de la séance -->
+            <div class="wiz-section">
+              <div class="wiz-section-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                Identit&eacute; de la s&eacute;ance
               </div>
               <div class="field">
-                <label class="field-label" for="wizDefaultMaj">
-                  Majorit&eacute; par d&eacute;faut
-                  <ag-popover trigger="click" position="top" width="300">
-                    <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur la majorit&eacute;">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                    </button>
-                    <div slot="content">
-                      <strong>Type de majorit&eacute;</strong>
-                      <p>Art. 24 : majorit&eacute; des pr&eacute;sents. Art. 25 : majorit&eacute; de tous les membres. Art. 26 : double majorit&eacute; (2/3 des voix de tous).</p>
-                    </div>
-                  </ag-popover>
-                </label>
-                <select class="field-input" id="wizDefaultMaj">
-                  <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
-                  <option value="art25">Majorit&eacute; absolue (art. 25)</option>
-                  <option value="art26">Double majorit&eacute; (art. 26)</option>
-                  <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
-                </select>
-                <div class="field-hint">S'applique par d&eacute;faut &agrave; toutes les r&eacute;solutions.</div>
+                <label class="field-label" for="wizTitle">Titre de la s&eacute;ance <span class="req">*</span></label>
+                <input class="field-input" id="wizTitle" aria-required="true" placeholder="Ex : AG Ordinaire du 15 mars 2026" maxlength="200" autocomplete="off">
+                <div class="field-error-msg" id="errWizTitle">Le titre est obligatoire.</div>
+              </div>
+              <div class="form-grid-3">
+                <div class="field">
+                  <label class="field-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
+                  <select class="field-input" id="wizType" aria-required="true">
+                    <option>AG Ordinaire</option>
+                    <option>AG Extraordinaire</option>
+                    <option>Conseil syndical</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="wizDate">Date <span class="req">*</span></label>
+                  <input class="field-input" id="wizDate" aria-required="true" type="date">
+                  <div class="field-error-msg" id="errWizDate">La date est obligatoire.</div>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="wizTimeHH">Heure <span class="req">*</span></label>
+                  <div class="time-input-wrap">
+                    <input class="field-input time-input-hh" id="wizTimeHH" placeholder="HH" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Heures">
+                    <span class="time-sep">:</span>
+                    <input class="field-input time-input-mm" id="wizTimeMM" placeholder="MM" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes">
+                  </div>
+                  <div class="field-error-msg" id="errWizTime">L'heure est obligatoire (HH:MM).</div>
+                </div>
               </div>
             </div>
-            <div class="alert alert-warn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-              <strong>Date limite d'envoi des convocations</strong> &mdash; calcul&eacute;e automatiquement (21 jours avant &mdash; art. 9 d&eacute;cret du 17 mars 1967)
-            </div>
-          </div>
-        </details>
-        </div><!-- /.wiz-step-body -->
 
-        <div class="step-nav">
-          <a class="btn btn-ghost" href="/dashboard.htmx.html">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            Retour
-          </a>
-          <span class="step-nav-counter" id="stepNavCounter">Etape 1 sur 4</span>
-          <button class="btn btn-primary step-nav-next" type="button" id="btnNext0">Suivant
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 2: Participants -->
-      <div class="card wiz-step" id="step1" style="display:none;">
-        <div class="wiz-step-body">
-        <div class="wf-step">
-          <div class="wf-step-num">2</div>
-          Participants
-        </div>
-
-        <div class="members-action-row">
-          <button class="btn btn-primary btn-sm" type="button" id="btnImportCSV">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-            Importer (.csv)
-          </button>
-        </div>
-        <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
-
-        <!-- Drop zone -->
-        <div class="upload-zone" id="csvDropZone">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-          <div class="upload-zone-title">Glissez votre fichier</div>
-          <div class="muted">Colonnes attendues : Nom, Courriel, Poids de vote</div>
-        </div>
-
-        <!-- Voting power toggle -->
-        <div class="wiz-toggle-row">
-          <label class="toggle-label" for="wizVotingPowerToggle">
-            <input type="checkbox" id="wizVotingPowerToggle" role="switch">
-            Activer la pond&eacute;ration des voix
-          </label>
-        </div>
-
-        <!-- Inline member add form -->
-        <div class="wiz-member-add-form" id="wizMemberAddForm">
-          <div class="row">
-            <div class="field">
-              <label class="field-label" for="wizMemberName">Nom <span class="req">*</span></label>
-              <input class="field-input" id="wizMemberName" placeholder="Nom du participant" maxlength="100" autocomplete="off">
-            </div>
-            <div class="field">
-              <label class="field-label" for="wizMemberEmail">Courriel</label>
-              <input class="field-input" id="wizMemberEmail" type="email" placeholder="adresse@exemple.fr" maxlength="200" autocomplete="off">
-            </div>
-            <div class="field member-votes-field" id="wizMemberVpField" style="display:none;">
-              <label class="field-label" for="wizMemberVp">Poids de vote</label>
-              <input class="field-input" id="wizMemberVp" type="number" min="1" value="1" autocomplete="off">
-            </div>
-            <div class="field field-action">
-              <button class="btn btn-primary btn-sm" type="button" id="btnAddMemberInline">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Ajouter
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Members list -->
-        <div id="wizMembersList">
-          <!-- Populated by JS -->
-        </div>
-
-        <div class="members-total-row">
-          <div class="flex-between">
-            <span class="members-total-label">Total : <span id="wizMemberCount">0</span> participants</span>
-            <span class="members-total-votes"><span id="wizVoixTotal">0</span> voix</span>
-          </div>
-        </div>
-
-        <div id="errStep1Members" class="field-error-msg">Veuillez ajouter au moins un participant avant de continuer.</div>
-        </div><!-- /.wiz-step-body -->
-
-        <div class="step-nav">
-          <button class="btn btn-ghost" type="button" id="btnPrev1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            Pr&eacute;c&eacute;dent
-          </button>
-          <span class="step-nav-counter">Etape 2 sur 4</span>
-          <button class="btn btn-primary step-nav-next" type="button" id="btnNext1">Suivant
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 3: Résolutions (ordre du jour) -->
-      <div class="card wiz-step" id="step2" style="display:none;">
-        <div class="wiz-step-body">
-        <div class="wf-step">
-          <div class="wf-step-num">3</div>
-          R&eacute;solutions (ordre du jour)
-        </div>
-
-        <!-- Motion template card grid (WIZARD-04 redesign) -->
-        <div class="wiz-template-grid">
-          <button class="wiz-template-card wiz-template-btn" type="button" data-template="approbation-comptes">
-            <div class="wiz-template-card-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            </div>
-            <div class="wiz-template-card-body">
-              <div class="wiz-template-card-title">Approbation des comptes</div>
-              <div class="wiz-template-card-desc">Validation des comptes de l'exercice</div>
-            </div>
-          </button>
-          <button class="wiz-template-card wiz-template-btn" type="button" data-template="election-conseil">
-            <div class="wiz-template-card-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <div class="wiz-template-card-body">
-              <div class="wiz-template-card-title">&Eacute;lection au conseil</div>
-              <div class="wiz-template-card-desc">&Eacute;lection des membres du conseil</div>
-            </div>
-          </button>
-          <button class="wiz-template-card wiz-template-btn" type="button" data-template="modification-reglement">
-            <div class="wiz-template-card-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </div>
-            <div class="wiz-template-card-body">
-              <div class="wiz-template-card-title">Modification du r&egrave;glement</div>
-              <div class="wiz-template-card-desc">Modification du r&egrave;glement int&eacute;rieur</div>
-            </div>
-          </button>
-        </div>
-
-        <!-- Add resolution trigger button — collapsed by default -->
-        <div class="reso-add-trigger" id="resoAddTrigger">
-          <button class="btn btn-sm btn-primary" type="button" id="btnShowResoPanel">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-            Ajouter une r&eacute;solution
-          </button>
-        </div>
-
-        <!-- Add resolution form -->
-        <div class="reso-add-panel" style="display:none;">
-          <div class="reso-add-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-            Ajouter une r&eacute;solution
-          </div>
-          <div class="form-grid-2">
-            <div class="field">
-              <label class="field-label" for="resoTitle">Titre <span class="req">*</span></label>
-              <input class="field-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off">
-            </div>
-            <div class="field">
-              <label class="field-label" for="resoMaj">Majorit&eacute; <span class="req">*</span></label>
-              <select class="field-input" id="resoMaj" aria-required="true">
-                <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
-                <option value="art25">Majorit&eacute; absolue (art. 25)</option>
-                <option value="art26">Double majorit&eacute; (art. 26)</option>
-                <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
-              </select>
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label" for="resoDesc">Description</label>
-            <textarea class="form-textarea" id="resoDesc" placeholder="Texte de la r&eacute;solution soumise au vote" maxlength="2000" rows="2"></textarea>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label class="field-label">Vote secret <ag-popover title="Scrutin secret" content="Les bulletins de vote sont anonymes. Le r&eacute;sultat individuel n'est pas consultable." position="top" trigger="click"></ag-popover></label>
-              <div class="chips-row">
-                <span class="chip active" id="chipNonSecret">Non (d&eacute;faut)</span>
-                <span class="chip" id="chipSecret">Oui</span>
+            <!-- Lieu -->
+            <div class="wiz-section">
+              <div class="wiz-section-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                Lieu
+              </div>
+              <div class="form-grid-2">
+                <div class="field">
+                  <label class="field-label" for="wizPlace">Nom du lieu</label>
+                  <input class="field-input" id="wizPlace" placeholder="Ex : Salle polyvalente" maxlength="100" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label class="field-label" for="wizAddr">Adresse</label>
+                  <input class="field-input" id="wizAddr" placeholder="Ex : 10 avenue de la R&eacute;publique" maxlength="200" autocomplete="off">
+                </div>
               </div>
             </div>
-          </div>
-          <div class="reso-add-footer">
-            <button class="btn btn-primary btn-sm" type="button" id="btnAddReso">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-              Ajouter
+
+            <!-- Règles de vote — collapsed by default -->
+            <details class="wiz-advanced-toggle">
+              <summary class="wiz-advanced-summary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                R&egrave;gles de vote
+                <span class="wiz-advanced-hint">Quorum &middot; Majorit&eacute; par d&eacute;faut</span>
+                <svg class="wiz-advanced-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </summary>
+              <div class="wiz-advanced-body">
+                <div class="form-grid-2">
+                  <div class="field">
+                    <label class="field-label" for="wizQuorum">
+                      Politique de quorum
+                      <ag-popover trigger="click" position="top" width="300">
+                        <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur le quorum">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        </button>
+                        <div slot="content">
+                          <strong>Quorum l&eacute;gal</strong>
+                          <p>Nombre minimum de membres pr&eacute;sents pour que les votes soient valides (art. 22 de la loi de 1965).</p>
+                        </div>
+                      </ag-popover>
+                    </label>
+                    <select class="field-input" id="wizQuorum">
+                      <option>50% des pr&eacute;sents + 1 (d&eacute;faut)</option>
+                      <option>50% des voix</option>
+                      <option>33% des pr&eacute;sents (2e convocation)</option>
+                      <option>Aucun quorum (conseil/bureau)</option>
+                      <option>Personnalis&eacute; (configurable dans Param&egrave;tres)</option>
+                    </select>
+                    <div class="field-hint">R&egrave;gle l&eacute;gale d&eacute;terminant la validit&eacute; de l'assembl&eacute;e.</div>
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="wizDefaultMaj">
+                      Majorit&eacute; par d&eacute;faut
+                      <ag-popover trigger="click" position="top" width="300">
+                        <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur la majorit&eacute;">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        </button>
+                        <div slot="content">
+                          <strong>Type de majorit&eacute;</strong>
+                          <p>Art. 24 : majorit&eacute; des pr&eacute;sents. Art. 25 : majorit&eacute; de tous les membres. Art. 26 : double majorit&eacute; (2/3 des voix de tous).</p>
+                        </div>
+                      </ag-popover>
+                    </label>
+                    <select class="field-input" id="wizDefaultMaj">
+                      <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
+                      <option value="art25">Majorit&eacute; absolue (art. 25)</option>
+                      <option value="art26">Double majorit&eacute; (art. 26)</option>
+                      <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
+                    </select>
+                    <div class="field-hint">S'applique par d&eacute;faut &agrave; toutes les r&eacute;solutions.</div>
+                  </div>
+                </div>
+                <div class="alert alert-warn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  <strong>Date limite d'envoi des convocations</strong> &mdash; calcul&eacute;e automatiquement (21 jours avant &mdash; art. 9 d&eacute;cret du 17 mars 1967)
+                </div>
+              </div>
+            </details>
+          </div><!-- /.wiz-step-body -->
+
+          <div class="step-nav">
+            <a class="btn btn-ghost" href="/dashboard.htmx.html">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Retour
+            </a>
+            <span class="step-nav-counter" id="stepNavCounter">Etape 1 sur 4</span>
+            <button class="btn btn-primary step-nav-next" type="button" id="btnNext0">Suivant
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
             </button>
           </div>
-        </div>
+        </div><!-- /#step0 -->
 
-        <!-- Resolutions list -->
-        <div id="wizResoList">
-          <!-- Populated by JS -->
-        </div>
+        <!-- Step 1: Participants -->
+        <div class="wiz-step" id="step1">
 
-        <!-- Document card styles (inline to avoid extra CSS file) -->
-        <style>
-          .resolution-documents { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border-subtle, #e8e7e2); }
-          .resolution-documents h4 { font-size: 12px; font-weight: 600; color: var(--color-text-muted, #6b7280); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
-          .doc-list { margin-bottom: 8px; }
-          .doc-card { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--color-border, #e5e7eb); border-radius: var(--radius, 6px); margin-bottom: 4px; background: var(--color-surface, #fff); }
-          .doc-card__icon { font-size: 20px; flex-shrink: 0; }
-          .doc-card__name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-          .doc-card__size { font-size: 12px; color: var(--color-muted, #6b7280); flex-shrink: 0; }
-        </style>
+          <!-- Error banner -->
+          <div class="wiz-error-banner" id="errBannerStep1" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            <span id="errBannerStep1Text"></span>
+          </div>
 
-        <div id="errStep2Reso" class="field-error-msg">Veuillez ajouter au moins une r&eacute;solution avant de continuer.</div>
-        </div><!-- /.wiz-step-body -->
+          <div class="wiz-step-body">
+            <div class="wf-step">
+              <div class="wf-step-num">2</div>
+              Participants
+            </div>
 
-        <div class="step-nav">
-          <button class="btn btn-ghost" type="button" id="btnPrev2">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            Pr&eacute;c&eacute;dent
-          </button>
-          <span class="step-nav-counter">Etape 3 sur 4</span>
-          <button class="btn btn-primary step-nav-next" type="button" id="btnNext2">Suivant
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-        </div>
-      </div>
+            <!-- CSV import row -->
+            <div class="members-action-row">
+              <button class="btn btn-primary btn-sm" type="button" id="btnImportCSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                Importer (.csv)
+              </button>
+            </div>
+            <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
 
-      <!-- Step 4: Récapitulatif -->
-      <div class="card wiz-step" id="step3" style="display:none;">
-        <div class="wiz-step-body">
-        <div class="wf-step">
-          <div class="wf-step-num">4</div>
-          R&eacute;vision
-        </div>
+            <!-- Drop zone -->
+            <div class="upload-zone" id="csvDropZone">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+              <div>
+                <div class="upload-zone-title">Glissez votre fichier</div>
+                <div class="muted">Colonnes attendues : Nom, Courriel, Poids de vote</div>
+              </div>
+            </div>
 
-        <div class="alert alert-success">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          <strong>Pr&ecirc;t &agrave; cr&eacute;er.</strong> V&eacute;rifiez les informations ci-dessous.
-        </div>
+            <!-- Voting power toggle -->
+            <div class="wiz-toggle-row">
+              <label class="toggle-label" for="wizVotingPowerToggle">
+                <input type="checkbox" id="wizVotingPowerToggle" role="switch">
+                Activer la pond&eacute;ration des voix
+              </label>
+            </div>
 
-        <div id="wizRecap">
-          <!-- Summary rows populated by JS -->
-        </div>
+            <!-- Member add form — single horizontal row -->
+            <div class="wiz-member-add-row" id="wizMemberAddForm">
+              <div class="field field--flex">
+                <label class="field-label" for="wizMemberName">Nom <span class="req">*</span></label>
+                <input class="field-input" id="wizMemberName" placeholder="Nom du participant" maxlength="100" autocomplete="off">
+              </div>
+              <div class="field field--flex">
+                <label class="field-label" for="wizMemberEmail">Courriel</label>
+                <input class="field-input" id="wizMemberEmail" type="email" placeholder="adresse@exemple.fr" maxlength="200" autocomplete="off">
+              </div>
+              <div class="field field--w-narrow" id="wizMemberVpField" style="display:none;">
+                <label class="field-label" for="wizMemberVp">Poids</label>
+                <input class="field-input" id="wizMemberVp" type="number" min="1" value="1" autocomplete="off">
+              </div>
+              <button class="btn btn-primary btn-sm wiz-member-add-btn" type="button" id="btnAddMemberInline">
+                + Ajouter
+              </button>
+            </div>
 
-        <div class="alert alert-warn alert-warn-recap">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-          La cr&eacute;ation ne lance pas le vote. Vous pourrez lancer la s&eacute;ance depuis l'espace op&eacute;rateur.
-        </div>
-        </div><!-- /.wiz-step-body -->
+            <!-- Members list -->
+            <div id="wizMembersList">
+              <!-- Populated by JS -->
+            </div>
 
-        <div class="step-nav">
-          <button class="btn btn-ghost" type="button" id="btnPrev3">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            Pr&eacute;c&eacute;dent
-          </button>
-          <span class="step-nav-counter">Etape 4 sur 4</span>
-          <button class="btn btn-primary step-nav-next" type="button" id="btnCreate">
-            Cr&eacute;er la s&eacute;ance &rarr;
-          </button>
-        </div>
-      </div>
+            <div class="members-total-row">
+              <div class="flex-between">
+                <span class="members-total-label">Total : <span id="wizMemberCount">0</span> participants</span>
+                <span class="members-total-votes"><span id="wizVoixTotal">0</span> voix</span>
+              </div>
+            </div>
+
+            <div id="errStep1Members" class="field-error-msg">Veuillez ajouter au moins un participant avant de continuer.</div>
+          </div><!-- /.wiz-step-body -->
+
+          <div class="step-nav">
+            <button class="btn btn-ghost" type="button" id="btnPrev1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Pr&eacute;c&eacute;dent
+            </button>
+            <span class="step-nav-counter">Etape 2 sur 4</span>
+            <button class="btn btn-primary step-nav-next" type="button" id="btnNext1">Suivant
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div><!-- /#step1 -->
+
+        <!-- Step 2: Résolutions (ordre du jour) -->
+        <div class="wiz-step" id="step2">
+
+          <!-- Error banner -->
+          <div class="wiz-error-banner" id="errBannerStep2" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            <span id="errBannerStep2Text"></span>
+          </div>
+
+          <div class="wiz-step-body">
+            <div class="wf-step">
+              <div class="wf-step-num">3</div>
+              R&eacute;solutions (ordre du jour)
+            </div>
+
+            <!-- Motion template card grid -->
+            <div class="wiz-template-grid">
+              <button class="wiz-template-card wiz-template-btn" type="button" data-template="approbation-comptes">
+                <div class="wiz-template-card-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <div class="wiz-template-card-body">
+                  <div class="wiz-template-card-title">Approbation des comptes</div>
+                  <div class="wiz-template-card-desc">Validation des comptes de l'exercice</div>
+                </div>
+              </button>
+              <button class="wiz-template-card wiz-template-btn" type="button" data-template="election-conseil">
+                <div class="wiz-template-card-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="wiz-template-card-body">
+                  <div class="wiz-template-card-title">&Eacute;lection au conseil</div>
+                  <div class="wiz-template-card-desc">&Eacute;lection des membres du conseil</div>
+                </div>
+              </button>
+              <button class="wiz-template-card wiz-template-btn" type="button" data-template="modification-reglement">
+                <div class="wiz-template-card-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </div>
+                <div class="wiz-template-card-body">
+                  <div class="wiz-template-card-title">Modification du r&egrave;glement</div>
+                  <div class="wiz-template-card-desc">Modification du r&egrave;glement int&eacute;rieur</div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Add resolution trigger button -->
+            <div class="reso-add-trigger" id="resoAddTrigger">
+              <button class="btn btn-sm btn-primary" type="button" id="btnShowResoPanel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                Ajouter une r&eacute;solution
+              </button>
+            </div>
+
+            <!-- Add resolution panel -->
+            <div class="reso-add-panel" style="display:none;">
+              <div class="reso-add-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                Ajouter une r&eacute;solution
+              </div>
+              <div class="form-grid-2">
+                <div class="field">
+                  <label class="field-label" for="resoTitle">Titre <span class="req">*</span></label>
+                  <input class="field-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label class="field-label" for="resoMaj">Majorit&eacute; <span class="req">*</span></label>
+                  <select class="field-input" id="resoMaj" aria-required="true">
+                    <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
+                    <option value="art25">Majorit&eacute; absolue (art. 25)</option>
+                    <option value="art26">Double majorit&eacute; (art. 26)</option>
+                    <option value="unanimite">Unanimit&eacute; (art. 26-1)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="resoDesc">Description</label>
+                <textarea class="form-textarea" id="resoDesc" placeholder="Texte de la r&eacute;solution soumise au vote" maxlength="2000" rows="2"></textarea>
+              </div>
+              <div class="field">
+                <label class="field-label">Vote secret <ag-popover title="Scrutin secret" content="Les bulletins de vote sont anonymes. Le r&eacute;sultat individuel n'est pas consultable." position="top" trigger="click"></ag-popover></label>
+                <div class="chips-row">
+                  <span class="chip active" id="chipNonSecret">Non (d&eacute;faut)</span>
+                  <span class="chip" id="chipSecret">Oui</span>
+                </div>
+              </div>
+              <div class="reso-add-footer">
+                <button class="btn btn-primary btn-sm" type="button" id="btnAddReso">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                  Ajouter
+                </button>
+              </div>
+            </div>
+
+            <!-- Resolutions list -->
+            <div id="wizResoList">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Document card styles (inline to avoid extra CSS file) -->
+            <style>
+              .resolution-documents { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border-subtle, #e8e7e2); }
+              .resolution-documents h4 { font-size: 12px; font-weight: 600; color: var(--color-text-muted, #6b7280); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+              .doc-list { margin-bottom: 8px; }
+              .doc-card { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--color-border, #e5e7eb); border-radius: var(--radius, 6px); margin-bottom: 4px; background: var(--color-surface, #fff); }
+              .doc-card__icon { font-size: 20px; flex-shrink: 0; }
+              .doc-card__name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+              .doc-card__size { font-size: 12px; color: var(--color-muted, #6b7280); flex-shrink: 0; }
+            </style>
+
+            <div id="errStep2Reso" class="field-error-msg">Veuillez ajouter au moins une r&eacute;solution avant de continuer.</div>
+          </div><!-- /.wiz-step-body -->
+
+          <div class="step-nav">
+            <button class="btn btn-ghost" type="button" id="btnPrev2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Pr&eacute;c&eacute;dent
+            </button>
+            <span class="step-nav-counter">Etape 3 sur 4</span>
+            <button class="btn btn-primary step-nav-next" type="button" id="btnNext2">Suivant
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div><!-- /#step2 -->
+
+        <!-- Step 3: Révision -->
+        <div class="wiz-step" id="step3">
+          <div class="wiz-step-body">
+            <div class="wf-step">
+              <div class="wf-step-num">4</div>
+              R&eacute;vision
+            </div>
+
+            <div class="alert alert-success">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+              <strong>Pr&ecirc;t &agrave; cr&eacute;er.</strong> V&eacute;rifiez les informations ci-dessous.
+            </div>
+
+            <div id="wizRecap">
+              <!-- Summary rows populated by JS -->
+            </div>
+
+            <div class="alert alert-warn alert-warn-recap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              La cr&eacute;ation ne lance pas le vote. Vous pourrez lancer la s&eacute;ance depuis l'espace op&eacute;rateur.
+            </div>
+          </div><!-- /.wiz-step-body -->
+
+          <div class="step-nav">
+            <button class="btn btn-ghost" type="button" id="btnPrev3">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Pr&eacute;c&eacute;dent
+            </button>
+            <span class="step-nav-counter">Etape 4 sur 4</span>
+            <button class="btn btn-primary step-nav-next" type="button" id="btnCreate">
+              Cr&eacute;er la s&eacute;ance &rarr;
+            </button>
+          </div>
+        </div><!-- /#step3 -->
 
       </div><!-- /.wiz-content -->
 
