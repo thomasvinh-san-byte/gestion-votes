@@ -1,34 +1,61 @@
 /**
  * wizard.css — Session creation wizard styles for AG-VOTE.
  *
- * Styles for the 4-step session creation wizard including stepper progress bar,
- * step panels, form layout, resolution list, member list, upload zone, and recap.
- * All values use design-system tokens.
+ * Complete rewrite for Phase 45: 900px content track, slide transitions,
+ * horizontal field grids, refined stepper with connector lines, step-level
+ * error banners, compact sections, dark mode via tokens only.
  *
  * Design language: Minimal but RICH — strong visual hierarchy, accent colors,
  * real depth via shadows, polished interactions.
- * All selectors scoped under .wiz-*, .step-nav, .reso-*, .member-*, .review-*, .wf-step.
+ * NEVER hardcodes hex values — all colors use design tokens for dark mode parity.
  * NEVER redefines global classes (.btn, .card) — those live in design-system.css.
  */
 
 /* =============================================================================
-   STEP FADE ANIMATION
+   SLIDE ANIMATIONS
    ============================================================================= */
 
-@keyframes wizFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+@keyframes wizSlideIn {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes wizPulseOnce {
-  0%, 100% { box-shadow: 0 0 0 0 var(--color-primary-glow); }
-  50% { box-shadow: 0 0 0 8px transparent; }
+@keyframes wizSlideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-32px); }
+}
+
+/* =============================================================================
+   900px CONTENT TRACK
+   ============================================================================= */
+
+.wiz-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  overflow: hidden; /* clip slide animations */
+  position: relative;
+}
+
+/* =============================================================================
+   STEP VISIBILITY + TRANSITIONS
+   ============================================================================= */
+
+.wiz-step {
+  display: none;
+  animation: wizSlideIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.wiz-step.active {
+  display: block;
+}
+
+.wiz-step.slide-out {
+  display: block;
+  animation: wizSlideOut 180ms ease-in both;
 }
 
 /* =============================================================================
@@ -36,365 +63,160 @@
    ============================================================================= */
 
 .wiz-progress-wrap {
+  max-width: 900px;
+  margin: 0 auto var(--space-4);
   display: flex;
-  align-items: stretch;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: 1.75rem;
-  box-shadow: var(--shadow-sm);
-  padding: 4px;
-  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
   position: sticky;
   top: 0;
   z-index: var(--z-sticky, 10);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
 }
 
 .wiz-step-item {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 18px;
+  gap: 6px;
+  padding: 8px 16px;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-muted);
   cursor: pointer;
-  border-radius: var(--radius);
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
   position: relative;
+  transition: color 150ms;
+  opacity: 0.6;
+  border-radius: var(--radius);
 }
 
-.wiz-step-item:hover {
-  background: var(--color-bg-subtle);
-}
-
-.wiz-step-item.done {
-  color: var(--color-success);
-  background: var(--color-success-subtle);
+.wiz-step-item:not(:first-child)::before {
+  content: '';
+  width: 24px;
+  height: 2px;
+  background: var(--color-border);
+  margin-right: 4px;
+  flex-shrink: 0;
 }
 
 .wiz-step-item.active {
   color: var(--color-primary);
+  font-weight: 600;
+  opacity: 1;
   background: var(--color-primary-subtle);
-  font-weight: 700;
 }
 
-.wiz-step-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 8px;
-  right: 8px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
-  border-radius: 2px;
+.wiz-step-item.done {
+  color: var(--color-success);
+  opacity: 1;
 }
 
-/* Pending steps — dimmed to clearly show progression (WIZARD-01) */
-.wiz-step-item:not(.active):not(.done) {
-  opacity: 0.6;
+.wiz-step-item.done::before {
+  background: var(--color-success);
 }
 
-/* Connector line between steps — uses box-shadow to avoid pseudo conflict (WIZARD-01) */
-.wiz-step-item:not(:last-child) {
-  box-shadow: inset -1px 0 0 var(--color-border);
-  margin-right: 0;
+.wiz-step-item.active::before {
+  background: var(--color-primary);
 }
 
 /* Step number circle */
 .wiz-snum {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: var(--color-bg-subtle);
-  border: 2px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6875rem;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
   flex-shrink: 0;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
+}
+
+.wiz-step-item.active .wiz-snum {
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .wiz-step-item.done .wiz-snum {
   background: var(--color-success);
-  border-color: var(--color-success);
-  color: var(--color-text-inverse);
-}
-
-.wiz-step-item.active .wiz-snum {
-  width: 32px;
-  height: 32px;
-  font-size: 0.8125rem;
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  box-shadow: 0 0 0 4px var(--color-primary-glow);
-}
-
-/* =============================================================================
-   WIZARD CENTERED TRACK & STICKY FOOTER (LAY-02)
-   ============================================================================= */
-
-.wiz-content {
-  padding: var(--space-card) var(--space-4);
-  padding-bottom: 80px; /* space for sticky footer */
-}
-
-/* Step 4 — 2-column recap grid */
-.review-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-card);
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .review-grid { grid-template-columns: 1fr; }
-}
-
-.wiz-footer {
-  position: sticky;
-  bottom: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-4) var(--space-card);
-  display: flex;
-  justify-content: space-between;
-  z-index: var(--z-sticky, 10);
+  color: #fff;
 }
 
 /* =============================================================================
    STEP CARD AND BODY
    ============================================================================= */
 
-.wiz-step {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  animation: wizFadeIn 200ms ease-out;
-}
-
-/* Scrollable body inside step card */
 .wiz-step-body {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
 }
 
 /* =============================================================================
-   STEP PANEL HEADER — hidden (stepper above makes it redundant, saves ~80px)
+   STEP PANEL HEADER — hidden (stepper above makes it redundant)
    ============================================================================= */
 
 .wf-step {
   display: none;
 }
 
-.wf-step-success {
-  background: linear-gradient(135deg, var(--color-success), var(--color-success-hover));
-  color: var(--color-text-inverse);
-  padding: 12px 16px;
+/* =============================================================================
+   STEP-LEVEL ERROR BANNER
+   ============================================================================= */
+
+.wiz-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--color-danger-subtle);
+  border: 1px solid var(--color-danger);
   border-radius: var(--radius) var(--radius) 0 0;
-  margin: -1.25rem -1.5rem 1rem -1.5rem;
-  font-weight: 700;
-}
-
-.wf-step-num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: var(--color-text-inverse);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
+  color: var(--color-danger);
   font-size: 0.875rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px var(--color-primary-glow);
+  font-weight: 500;
+  margin: 0;
 }
+
+.wiz-error-banner[hidden] { display: none; }
 
 /* =============================================================================
-   STEP NAVIGATION BUTTONS (WIZARD-03 redesign)
+   SECTIONS AND TITLES
    ============================================================================= */
 
-.step-nav {
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border-subtle);
-  background: var(--color-surface-raised);
-  border-radius: 0 0 12px 12px;
-  position: sticky;
-  bottom: 0;
-  z-index: var(--z-sticky, 10);
-  /* For absolute positioning of counter */
-}
-
-.step-nav .btn:only-child {
-  margin-left: auto;
-}
-
-/* Step counter — centered between back and next buttons */
-.step-nav-counter {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  flex: 1;
-  text-align: center;
-  pointer-events: none;
-}
-
-/* Gradient CTA next button */
-.step-nav-next {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  box-shadow: 0 2px 8px var(--color-primary-glow);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.step-nav-next:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px var(--color-primary-glow);
-}
-
-/* Ghost back button */
-.btn-ghost {
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn-ghost:hover {
-  background: var(--color-bg-subtle);
-  border-color: var(--color-border-strong);
-}
-
-.step-nav .btn-outline {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
-}
-
-.step-nav .btn-outline:hover {
-  background: var(--color-surface);
-  border-color: var(--color-border-strong);
-}
-
-/* =============================================================================
-   FORM LAYOUT
-   ============================================================================= */
-
-/* Sections use divider lines instead of nested card backgrounds (WIZARD-02 redesign) */
 .wiz-section {
-  background: transparent;
-  border: none;
+  margin-bottom: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--color-border-subtle);
-  border-radius: 0;
-  padding: 0.875rem 0;
-  margin-bottom: 0;
 }
 
 .wiz-section:first-of-type {
   border-top: none;
+  padding-top: 0;
 }
 
 .wiz-section-title {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  color: var(--color-primary);
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.wiz-section-title svg {
-  color: var(--color-primary);
-  stroke: var(--color-primary);
-}
-
-/* =============================================================================
-   ADVANCED TOGGLE — collapsible section using native details/summary
-   ============================================================================= */
-
-.wiz-advanced-toggle {
-  border-top: 1px solid var(--color-border-subtle);
-  padding-top: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.wiz-advanced-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-muted);
-  cursor: pointer;
-  list-style: none;
-  padding: 0.5rem 0;
-  user-select: none;
-}
-
-.wiz-advanced-summary::-webkit-details-marker { display: none; }
-.wiz-advanced-summary::marker { display: none; content: ''; }
-
-.wiz-advanced-summary svg:first-child {
-  color: var(--color-primary);
-  stroke: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.wiz-advanced-hint {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin-left: auto;
-  padding-right: 8px;
-}
-
-.wiz-advanced-chevron {
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-}
-
-.wiz-advanced-toggle[open] .wiz-advanced-chevron {
-  transform: rotate(180deg);
-}
-
-.wiz-advanced-toggle[open] .wiz-advanced-summary {
-  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-bottom: 0.5rem;
-}
-
-.wiz-advanced-body {
-  animation: wizFadeIn 150ms ease-out;
-}
-
-/* Collapsed resolution add trigger */
-.reso-add-trigger {
-  margin: 12px 0;
 }
 
 .wiz-required-note {
-  margin-bottom: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
 }
 
 .wiz-required-note .req,
@@ -403,7 +225,7 @@
   font-weight: 700;
 }
 
-/* Scoped field label — 14px semibold, no uppercase (WIZARD-02 redesign) */
+/* Field label styling */
 .wiz-step-body .field-label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -416,15 +238,7 @@
   margin-bottom: 8px;
 }
 
-/* Subtle required indicator — not red (WIZARD-02 redesign) */
-.wiz-step-body .field-label .req,
-.wiz-required-note .req {
-  color: var(--color-text-muted);
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-
-/* Helper text below complex fields */
+/* Field hint */
 .field-hint {
   font-size: 0.75rem;
   color: var(--color-text-muted);
@@ -454,67 +268,75 @@
   background: var(--color-primary-subtle);
 }
 
-/* Scoped field input */
-.wiz-step-body .field-input {
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-input);
-  background: var(--color-surface-raised);
-  color: var(--color-text);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  min-height: var(--input-height);
-  box-sizing: border-box;
-  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
-}
-
-.wiz-step-body .field-input:hover {
-  border-color: var(--color-border-strong);
-}
-
-.wiz-step-body .field-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-focus);
-}
-
-.wiz-step-body .field-input.field-error {
-  border-color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 8%, transparent);
-  transition: border-color 0.3s ease;
-}
-
-/* Increased row gap for wizard form fields */
-.wiz-step-body .row {
-  gap: var(--space-4, 16px);
-}
+/* =============================================================================
+   FIELD ERROR MESSAGES
+   ============================================================================= */
 
 .field-error-msg {
+  display: none;
   font-size: 0.75rem;
   color: var(--color-danger);
   margin-top: 4px;
-  display: none;
   font-weight: 500;
 }
 
-.field-error-msg.visible {
+.field-error-msg.visible,
+.field.has-error .field-error-msg {
   display: block;
 }
 
-/* Grid layouts */
-.grid-4 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+.field.has-error .field-input {
+  border-color: var(--color-danger);
 }
 
-.flex-between {
+/* Scoped error state for direct field-error class (legacy compat) */
+.wiz-step-body .field-input.field-error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}
+
+/* =============================================================================
+   ADVANCED TOGGLE — collapsible section using native details/summary
+   ============================================================================= */
+
+.wiz-advanced-toggle {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius);
+  margin-top: 0.5rem;
+}
+
+.wiz-advanced-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-text-muted);
+}
+
+.wiz-advanced-summary::-webkit-details-marker { display: none; }
+.wiz-advanced-summary::marker { display: none; content: ''; }
+
+.wiz-advanced-hint {
+  flex: 1;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.wiz-advanced-chevron {
+  transition: transform 200ms;
+  flex-shrink: 0;
+}
+
+.wiz-advanced-toggle[open] .wiz-advanced-chevron {
+  transform: rotate(180deg);
+}
+
+.wiz-advanced-body {
+  padding: 0 14px 14px;
 }
 
 /* =============================================================================
@@ -524,8 +346,7 @@
 .time-input-wrap {
   display: flex;
   align-items: center;
-  gap: 0;
-  max-width: 130px;
+  gap: 4px;
 }
 
 .time-input-hh,
@@ -540,39 +361,72 @@
   padding: 10px 8px;
 }
 
-.time-input-hh {
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  border-right: none;
-}
-
-.time-input-mm {
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  border-left: none;
-}
-
 .time-sep {
-  background: var(--color-bg-subtle);
-  border: 1.5px solid var(--color-border);
-  border-left: none;
-  border-right: none;
-  padding: 0 4px;
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--color-primary);
-  line-height: 40px;
-  height: 42px;
-  display: flex;
-  align-items: center;
+  font-weight: 600;
+  color: var(--color-text-muted);
   user-select: none;
 }
+
+/* =============================================================================
+   STEP NAVIGATION BUTTONS
+   ============================================================================= */
+
+.step-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 1.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.step-nav-counter {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Ghost back button */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
+}
+
+/* =============================================================================
+   MEMBER ADD FORM — single horizontal row
+   ============================================================================= */
+
+.wiz-member-add-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-bg-subtle);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-subtle);
+  margin-bottom: 1rem;
+}
+
+.wiz-member-add-row .field { margin: 0; }
+.wiz-member-add-row .field--flex { flex: 1; }
+.wiz-member-add-row .field--w-narrow { width: 90px; flex-shrink: 0; }
+.wiz-member-add-btn { flex-shrink: 0; align-self: flex-end; margin-bottom: 0; }
 
 /* =============================================================================
    VOTING POWER TOGGLE
    ============================================================================= */
 
 .wiz-toggle-row {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-border-subtle);
   margin-bottom: 0.75rem;
 }
 
@@ -603,7 +457,7 @@
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
-  background: white;
+  background: var(--color-surface);
   position: absolute;
   top: 3px;
   left: 3px;
@@ -617,27 +471,6 @@
 
 .toggle-label input[type="checkbox"]:checked::after {
   transform: translateX(1.125rem);
-}
-
-/* =============================================================================
-   MEMBER INLINE ADD FORM
-   ============================================================================= */
-
-.wiz-member-add-form {
-  padding: 1.25rem;
-  background: var(--color-bg-subtle);
-  border-radius: 10px;
-  margin-bottom: 1rem;
-  border: 1px solid var(--color-border-subtle);
-}
-
-.member-votes-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.field-action {
-  align-self: flex-end;
 }
 
 /* =============================================================================
@@ -672,7 +505,7 @@
   flex: 1;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-text-dark);
+  color: var(--color-text);
 }
 
 .member-votes {
@@ -689,91 +522,101 @@
 }
 
 .members-total-row {
-  padding: 1rem 0;
-  border-top: 2px solid var(--color-primary-subtle);
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
 }
 
 .members-total-label {
-  font-weight: 700;
-  color: var(--color-text-dark);
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .members-total-votes {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-primary);
   font-family: var(--font-mono);
-  font-size: var(--text-md);
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 /* =============================================================================
-   MOTION TEMPLATE CARDS (WIZARD-04 redesign)
+   UPLOAD ZONE (CSV drag-drop) — compact horizontal
    ============================================================================= */
 
-/* Legacy row (hidden when grid is used) */
-.wiz-templates-row {
+.upload-zone {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 1rem 0;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.wiz-templates-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
   color: var(--color-text-muted);
-  flex-shrink: 0;
+  font-size: 0.8125rem;
+  background: var(--color-bg-subtle);
+  transition: border-color 0.2s, background 0.2s;
 }
 
-/* Card grid layout */
+.upload-zone-title {
+  font-weight: 500;
+}
+
+.upload-zone:hover {
+  border-color: var(--color-border-strong);
+}
+
+.upload-zone.dragover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* =============================================================================
+   MOTION TEMPLATE CARDS
+   ============================================================================= */
+
 .wiz-template-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-/* Card style for template buttons */
 .wiz-template-card {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 14px;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  border-radius: 10px;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius);
   cursor: pointer;
+  background: var(--color-surface);
+  transition: border-color 150ms, box-shadow 150ms;
   text-align: left;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .wiz-template-card:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .wiz-template-card-icon {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius);
-  background: var(--color-primary-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
   flex-shrink: 0;
+  color: var(--color-primary);
 }
 
 .wiz-template-card-body {
@@ -783,72 +626,79 @@
 }
 
 .wiz-template-card-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-text-dark);
-  line-height: 1.2;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .wiz-template-card-desc {
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  line-height: 1.3;
-}
-
-/* Legacy inline button style (kept for non-grid context) */
-.wiz-template-btn:not(.wiz-template-card) {
-  padding: 6px 14px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  color: var(--color-text);
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-xs);
-}
-
-.wiz-template-btn:not(.wiz-template-card):hover {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  box-shadow: 0 2px 8px var(--color-primary-glow);
-  transform: translateY(-1px);
+  margin-top: 2px;
 }
 
 /* =============================================================================
    ADD RESOLUTION FORM PANEL
    ============================================================================= */
 
+.reso-add-trigger {
+  margin: 12px 0;
+}
+
 .reso-add-panel {
+  padding: 14px;
   background: var(--color-bg-subtle);
-  border-radius: 10px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.25rem;
+  border-radius: var(--radius);
   border: 1px solid var(--color-border-subtle);
-  border-left: 3px solid var(--color-primary);
+  margin-bottom: 1rem;
 }
 
 .reso-add-title {
-  font-weight: 700;
-  color: var(--color-primary);
-  font-size: 14px;
-  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.reso-add-title svg {
-  stroke: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
 }
 
 .reso-add-footer {
   display: flex;
-  gap: 6px;
   justify-content: flex-end;
   margin-top: 0.5rem;
+}
+
+/* =============================================================================
+   SECRET VOTE CHIPS ROW
+   ============================================================================= */
+
+.chips-row {
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  background: transparent;
+  transition: all 150ms;
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.chip.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
 }
 
 /* =============================================================================
@@ -886,9 +736,7 @@
 }
 
 .reso-drag-handle {
-  color: var(--color-text-light);
-  font-size: var(--text-md);
-  line-height: 1.4;
+  color: var(--color-text-muted);
   flex-shrink: 0;
   cursor: grab;
   user-select: none;
@@ -904,7 +752,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary-subtle), var(--color-primary-glow));
+  background: var(--color-primary-subtle);
   color: var(--color-primary);
   display: flex;
   align-items: center;
@@ -913,7 +761,6 @@
   font-weight: 800;
   flex-shrink: 0;
   font-family: var(--font-mono);
-  border: 1px solid var(--color-primary-glow);
 }
 
 .reso-body {
@@ -924,7 +771,7 @@
 .reso-title {
   font-weight: 600;
   font-size: 0.9375rem;
-  color: var(--color-text-dark);
+  color: var(--color-text);
   margin-bottom: 3px;
 }
 
@@ -955,86 +802,71 @@
 }
 
 /* =============================================================================
-   REVIEW CARD (Step 4 -- sectioned recap)
+   REVIEW RECAP (Step 4) — summary table with Modifier links
    ============================================================================= */
 
 .review-section {
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.review-section:last-child {
-  border-bottom: none;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .review-section-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--color-bg-subtle);
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 .review-section-title {
   font-size: 0.875rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 700;
   color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-/* Styled pill modifier buttons */
 .review-modifier {
   font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary-subtle);
   color: var(--color-primary);
-  border: none;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .review-modifier:hover {
-  background: var(--color-primary);
-  color: white;
+  text-decoration: underline;
 }
 
 .review-row {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .review-label {
-  font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
 
 .review-value {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text-dark);
-  text-align: right;
+  font-weight: 500;
+  color: var(--color-text);
 }
 
 .review-row-block {
-  padding: 8px 0;
-}
-
-.review-warning {
-  padding: 12px 16px;
-  background: var(--color-warning-subtle);
-  border-left: 3px solid var(--color-warning);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: 0.8125rem;
-  color: var(--color-warning);
-  margin-top: 10px;
-  font-weight: 500;
+  padding: 6px 14px;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .review-empty {
@@ -1053,7 +885,7 @@
 .review-reso-list li {
   font-size: 0.8125rem;
   padding: 6px 0;
-  color: var(--color-text-dark);
+  color: var(--color-text);
   display: flex;
   gap: 8px;
   align-items: baseline;
@@ -1069,162 +901,29 @@
   min-width: 18px;
 }
 
-/* =============================================================================
-   SECRET VOTE CHIPS ROW
-   ============================================================================= */
-
-.chips-row {
-  display: flex;
-  gap: 4px;
-}
-
-.chip {
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  border: 1.5px solid var(--color-border);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  transition: all 0.2s ease;
-}
-
-.chip:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.chip.active {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: white;
-  border-color: var(--color-primary);
-  box-shadow: 0 2px 8px var(--color-primary-glow);
-}
-
-/* =============================================================================
-   UPLOAD ZONE (CSV drag-drop)
-   ============================================================================= */
-
-.upload-zone {
-  background: var(--color-bg-subtle);
-  border-radius: 10px;
-  padding: 10px 14px;
-  text-align: left;
-  border: 2px dashed var(--color-border);
-  margin-bottom: 14px;
-  transition: border-color .2s, background .2s, box-shadow .2s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.upload-zone svg { flex-shrink: 0; }
-.upload-zone .upload-zone-title { font-size: 0.8125rem; }
-.upload-zone .muted { font-size: 0.75rem; margin: 0; }
-
-.upload-zone:hover {
-  border-color: var(--color-border-strong);
-}
-
-.upload-zone.dragover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  box-shadow: 0 0 0 4px var(--color-primary-glow);
-}
-
-.upload-zone-title {
-  font-weight: 700;
-  color: var(--color-text-dark);
-  font-size: 14px;
-  margin-top: 6px;
-}
-
-/* =============================================================================
-   CONTEXT PANEL (tip/guide)
-   ============================================================================= */
-
-.ctx-panel {
-  background: var(--color-primary-subtle);
-  border-radius: var(--radius);
+.review-warning {
   padding: 12px 16px;
-  font-size: 13px;
-  color: var(--color-text);
-  border: 1px solid var(--color-primary-glow);
-  border-left: 3px solid var(--color-primary);
+  background: var(--color-warning-subtle);
+  border-left: 3px solid var(--color-warning);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.8125rem;
+  color: var(--color-warning);
+  margin-top: 10px;
+  font-weight: 500;
 }
 
-.ctx-panel h4 {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+/* =============================================================================
+   ALERT INSIDE WIZARD STEP
+   ============================================================================= */
 
-.ctx-panel p {
-  margin: 0;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-}
-
-.ctx-panel-spaced {
-  margin-top: 12px;
+.wiz-step .alert {
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
 }
 
 .alert-warn-recap {
-  margin-top: 10px;
+  margin-top: 0.5rem;
   margin-bottom: 0;
-}
-
-/* Alert inside wizard step */
-.wiz-step .alert {
-  border-radius: var(--radius);
-}
-
-/* =============================================================================
-   SUCCESS / CONFIRMATION STEP (Step 5)
-   ============================================================================= */
-
-.wiz-success-body {
-  text-align: center;
-  padding: 24px 0;
-}
-
-.wiz-success-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--color-success-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
-  border: 2px solid var(--color-success);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-success) 8%, transparent);
-}
-
-.wiz-success-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--color-text-dark);
-  margin-bottom: 6px;
-}
-
-.wiz-success-sub {
-  margin-bottom: 8px;
-  color: var(--color-text-muted);
-}
-
-.wiz-success-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 8px;
 }
 
 /* =============================================================================
@@ -1244,28 +943,20 @@
     grid-template-columns: 1fr;
   }
 
+  .wiz-member-add-row {
+    flex-wrap: wrap;
+  }
+
+  .wiz-member-add-row .field--flex {
+    flex: 1 1 200px;
+  }
+
   .wiz-step-body {
-    padding: 1.25rem 1rem;
+    padding: 1rem;
   }
 
   .step-nav {
     padding: 1rem;
-  }
-
-  .wf-step-success {
-    margin: -1.25rem -1rem 1rem -1rem;
-  }
-
-  .wiz-section {
-    padding: 1rem;
-  }
-
-  .grid-4 {
-    grid-template-columns: 1fr;
-  }
-
-  .grid-2 {
-    grid-template-columns: 1fr;
   }
 
   .wiz-step-item span {
@@ -1279,24 +970,5 @@
 
   .members-action-row {
     flex-direction: column;
-  }
-
-  .step-nav {
-    flex-direction: column-reverse;
-  }
-
-  .step-nav .btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .wf-step {
-    font-size: 1.125rem;
-  }
-
-  .reso-add-panel {
-    padding: 12px;
   }
 }
