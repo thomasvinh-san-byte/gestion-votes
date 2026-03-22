@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
-status: executing
-stopped_at: Completed 46-02-PLAN.md — operator console fully rebuilt and browser-verified
-last_updated: "2026-03-22T15:37:00.000Z"
-last_activity: 2026-03-22 — Completed 46-02 operator console JS wire-up; browser checkpoint approved
+status: completed
+stopped_at: Completed 47-01-PLAN.md — Hub HTML+CSS rewrite complete
+last_updated: "2026-03-22T16:45:38.122Z"
+last_activity: 2026-03-22 — Completed 47-01 hub HTML+CSS rewrite; hub-hero card + two-column layout
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 9
+  total_plans: 11
   completed_plans: 10
   percent: 32
 ---
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.3 Ground-Up Rebuild — Phase 46: Operator Console Rebuild (in progress)
+**Current focus:** v4.3 Ground-Up Rebuild — Phase 47: Hub Rebuild (in progress)
 
 ## Current Position
 
-Phase: 46 of 48 (Operator Console Rebuild)
-Plan: 02 of 02 complete
-Status: Phase 46 complete
-Last activity: 2026-03-22 — Completed 46-02 operator console JS wire-up; browser checkpoint approved (26cbe01)
+Phase: 47 of 48 (Hub Rebuild)
+Plan: 01 of 02 complete
+Status: Phase 47 in progress
+Last activity: 2026-03-22 — Completed 47-01 hub HTML+CSS rewrite (68cb07c, 207ce73)
 
-Progress: [███░░░░░░░] ~32%
+Progress: [██████████] 99%
 
 ## Performance Metrics
 
@@ -70,6 +70,8 @@ Progress: [███░░░░░░░] ~32%
 - [Phase 46-operator-console-rebuild]: op-body is a 280px+1fr CSS grid inside app-shell; app-shell uses 6-row grid override for [data-page-role=operator]
 - [Phase Phase 46-operator-console-rebuild]: operator-realtime.js, operator-motions.js, operator-attendance.js, operator-speech.js needed no changes — all DOM IDs preserved in new HTML
 - [Phase 46-operator-console-rebuild]: Browser checkpoint approved — full operator console flow verified: SSE, vote lifecycle, agenda sidebar, dark mode, responsive collapse; Phase 46 complete
+- [Phase 47-hub-rebuild]: hub-hero card replaces hub-identity: same icon/badges/meta but adds inline CTA buttons (hubMainBtn + hubOperatorBtn)
+- [Phase 47-hub-rebuild]: 3-item checklist (convocation/quorum/agenda) replaces 6-step stepper — simpler prerequisite model, hidden attr for JS-toggled sections
 
 ### Pending Todos
 
@@ -81,7 +83,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-22T15:37:00.000Z
-Stopped at: Completed 46-02-PLAN.md — Phase 46 operator console rebuild fully complete and browser-verified
+Last session: 2026-03-22T16:45:38.116Z
+Stopped at: Completed 47-01-PLAN.md — Hub HTML+CSS rewrite complete
 Resume file: None
 Next action: /gsd:execute-phase 47 (next phase)
