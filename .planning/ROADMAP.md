@@ -115,11 +115,12 @@ Plans:
   2. The session checklist items (convocation sent, quorum reached, agenda locked) reflect the actual session state from the database
   3. Lifecycle action buttons (send convocation, open session, navigate to operator) trigger the correct backend operations and update the UI on success
   4. The hub displays the correct blocked reasons when a lifecycle step cannot proceed
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 47-01-PLAN.md — Rewrite hub HTML+CSS with hero card, two-column layout, 3-item vertical checklist, quorum bar card
-- [ ] 47-02-PLAN.md — Update hub.js for new DOM, fix dead convocations endpoint, add workflow check blocked reasons, browser verify
+- [x] 47-01-PLAN.md — Rewrite hub HTML+CSS with hero card, two-column layout, 3-item vertical checklist, quorum bar card
+- [x] 47-02-PLAN.md — Update hub.js for new DOM, fix dead convocations endpoint, add workflow check blocked reasons, browser verify
+- [ ] 47-03-PLAN.md — Gap closure: extend wizard_status API with date/place/type fields, load motions from motions_for_meeting
 
 ### Phase 48: Settings/Admin Rebuild
 **Goal**: The settings and admin pages are fully rebuilt — all settings persist correctly, admin KPIs load from real data, user management CRUD is functional
@@ -143,5 +144,5 @@ Plans:
 | 44. Login Rebuild | 2/2 | Complete    | 2026-03-20 |
 | 45. Wizard Rebuild | 2/2 | Complete    | 2026-03-22 |
 | 46. Operator Console Rebuild | 2/2 | Complete    | 2026-03-22 |
-| 47. Hub Rebuild | 2/2 | Complete   | 2026-03-22 |
+| 47. Hub Rebuild | 2/3 | Gap closure | 2026-03-22 |
 | 48. Settings/Admin Rebuild | 0/TBD | Not started | - |
