@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: executing
-stopped_at: Completed 47-02 — Phase 47 Hub Rebuild fully done, browser checkpoint approved
-last_updated: "2026-03-22T16:53:55.525Z"
-last_activity: 2026-03-22 — Completed 47-01 hub HTML+CSS rewrite (68cb07c, 207ce73)
+stopped_at: Completed 47-03 — Phase 47 fully complete, all API gaps closed
+last_updated: "2026-03-22T17:43:00.000Z"
+last_activity: 2026-03-22 — Completed 47-03 wizard_status API extension + hub.js motions_for_meeting wiring (23cfa56, d1dd434)
 progress:
   total_phases: 7
   completed_phases: 6
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 ## Current Position
 
 Phase: 47 of 48 (Hub Rebuild)
-Plan: 01 of 02 complete
-Status: Phase 47 in progress
-Last activity: 2026-03-22 — Completed 47-01 hub HTML+CSS rewrite (68cb07c, 207ce73)
+Plan: 03 of 03 complete
+Status: Phase 47 complete
+Last activity: 2026-03-22 — Completed 47-03 wizard_status API extension + hub.js motions_for_meeting wiring (23cfa56, d1dd434)
 
 Progress: [██████████] 99%
 
@@ -75,6 +75,9 @@ Progress: [██████████] 99%
 - [Phase 47-hub-rebuild]: renderChecklist() updates pre-rendered DOM elements in-place via classList/textContent (not innerHTML rewrite)
 - [Phase 47-hub-rebuild]: WIRE-01 fixed: invitations_send_bulk replaces dead /meetings/{id}/convocations endpoint in hub.js
 - [Phase 47-hub-rebuild]: Browser checkpoint approved: hub page verified functional with real data, no console errors, WIRE-01 confirmed fixed
+- [Phase 47-hub-rebuild]: Motions loaded via separate motions_for_meeting fetch — avoids bloating the lightweight wizard_status polling endpoint
+- [Phase 47-hub-rebuild]: scheduled_at formatted in JS with toLocaleDateString fr-FR — raw ISO timestamp kept in API for future callers
+- [Phase 47-hub-rebuild]: type_label derived client-side from meeting_type via replace+uppercase — no server-side label table needed
 
 ### Pending Todos
 
@@ -86,7 +89,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:53:55.520Z
-Stopped at: Completed 47-02 — Phase 47 Hub Rebuild fully done, browser checkpoint approved
+Last session: 2026-03-22T17:43:00Z
+Stopped at: Completed 47-03 — Phase 47 fully complete, all API gaps closed
 Resume file: None
-Next action: /gsd:execute-phase 47 (next phase)
+Next action: /gsd:execute-phase 48 (next phase)
