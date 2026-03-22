@@ -16,7 +16,7 @@ class WizardRepository extends AbstractRepository {
      */
     public function getMeetingBasics(string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            'SELECT id, title, status, vote_policy_id, quorum_policy_id, current_motion_id
+            'SELECT id, title, status, vote_policy_id, quorum_policy_id, current_motion_id, scheduled_at, location, meeting_type
              FROM meetings WHERE id = :id AND tenant_id = :tid',
             [':id' => $meetingId, ':tid' => $tenantId],
         );

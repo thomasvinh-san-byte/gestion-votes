@@ -182,6 +182,9 @@ final class DashboardController extends AbstractController {
             'has_president' => $hasPresident,
             'quorum_met' => $quorumMet,
             'policies_assigned' => !empty($m['vote_policy_id']) && !empty($m['quorum_policy_id']),
+            'scheduled_at' => $m['scheduled_at'] ?? null,
+            'location' => $m['location'] ?? null,
+            'meeting_type' => $m['meeting_type'] ?? 'ag_ordinaire',
         ]);
     }
 }
