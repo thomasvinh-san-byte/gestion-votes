@@ -447,21 +447,28 @@
     }
 
     var dateDisplay = data.date || '';
-    if (data.date && data.time) {
+    if (data.scheduled_at) {
+      try {
+        var d = new Date(data.scheduled_at);
+        dateDisplay = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch (e) { /* keep fallback */ }
+    } else if (data.date && data.time) {
       dateDisplay = data.date + ' \u00e0 ' + data.time;
     }
 
     return {
       title: data.title || '',
-      date: data.date || '',
+      date: data.scheduled_at || data.date || '',
       dateDisplay: dateDisplay,
-      place: [data.place, data.address].filter(Boolean).join(', ') || '',
+      place: data.location || [data.place, data.address].filter(Boolean).join(', ') || '',
       memberCount: memberCount,
       resolutionCount: resolutionCount,
       quorumRequired: data.quorum_required || (data.has_president ? Math.ceil(memberCount * 0.5) + 1 : 0),
       quorumMet: data.quorum_met === true,
       presentCount: data.present_count || 0,
       status: data.status || data.meeting_status || '',
+      type_label: data.meeting_type ? data.meeting_type.replace(/_/g, ' ').toUpperCase() : '',
+      status_label: data.meeting_status ? data.meeting_status.charAt(0).toUpperCase() + data.meeting_status.slice(1) : '',
       motions: Array.isArray(data.resolutions) ? data.resolutions : (Array.isArray(data.motions) ? data.motions : [])
     };
   }
@@ -521,8 +528,15 @@
           applySessionToDOM(sessionData, sessionId);
           renderChecklist(sessionData, invitationStats, workflowData);
           renderQuorumBar(sessionData);
-          var motions = sessionData.motions || [];
-          renderMotionsList(motions, sessionId);
+          // Load motions list separately (wizard_status only returns count)
+          window.api('/api/v1/motions_for_meeting?meeting_id=' + encodeURIComponent(sessionId))
+            .then(function(mRes) {
+              var items = (mRes && mRes.body && mRes.body.data && mRes.body.data.items) ? mRes.body.data.items : [];
+              renderMotionsList(items, sessionId);
+            })
+            .catch(function() {
+              renderMotionsList([], sessionId);
+            });
           setupConvocationBtn(invitationStats, sessionId);
           return;
         }
