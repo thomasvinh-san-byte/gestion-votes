@@ -131,7 +131,11 @@ Plans:
   2. Admin KPI cards display real counts (total members, sessions, votes) from the backend — no silent failures
   3. User management table loads, and an admin can create, edit, and deactivate users — changes reflect immediately
   4. No JS console errors on any settings or admin page load
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — Rewrite settings + admin HTML+CSS from scratch with sidebar tabs and KPI card row
+- [ ] 48-02-PLAN.md — Create admin_settings.php backend, update admin.js KPIs, browser verify both pages
 
 ## Progress
 
@@ -144,5 +148,5 @@ Plans:
 | 44. Login Rebuild | 2/2 | Complete    | 2026-03-20 |
 | 45. Wizard Rebuild | 2/2 | Complete    | 2026-03-22 |
 | 46. Operator Console Rebuild | 2/2 | Complete    | 2026-03-22 |
-| 47. Hub Rebuild | 2/3 | Gap closure | 2026-03-22 |
-| 48. Settings/Admin Rebuild | 0/TBD | Not started | - |
+| 47. Hub Rebuild | 3/3 | Complete    | 2026-03-22 |
+| 48. Settings/Admin Rebuild | 0/2 | Not started | - |
