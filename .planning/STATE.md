@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: completed
-stopped_at: Completed 48-01 — Settings + Admin HTML/CSS rebuild
-last_updated: "2026-03-22T17:37:31.122Z"
+stopped_at: Completed 48-02 task 2 — awaiting browser verification checkpoint (task 3)
+last_updated: "2026-03-22T17:44:21.650Z"
 last_activity: 2026-03-22 — Completed 47-03 wizard_status API extension + hub.js motions_for_meeting wiring (23cfa56, d1dd434)
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 99
 ---
 
@@ -79,6 +79,8 @@ Progress: [██████████] 99%
 - [Phase 47-hub-rebuild]: scheduled_at formatted in JS with toLocaleDateString fr-FR — raw ISO timestamp kept in API for future callers
 - [Phase 47-hub-rebuild]: type_label derived client-side from meeting_type via replace+uppercase — no server-side label table needed
 - [Phase 48-settings-admin-rebuild]: settings hidden attr on inactive panels (not display:none), CNIL cards use :has + .selected, admin KPI IDs renamed to semantic names, parse-time JS errors expected until Plan 02
+- [Phase 48-settings-admin-rebuild]: SettingsRepository.ensureTable() creates tenant_settings in constructor — no migration runner needed for SQLite
+- [Phase 48-settings-admin-rebuild]: admin.js loadAdminKpis() uses Promise.all for 3 parallel fetches: members + meetings + admin_users
 
 ### Pending Todos
 
@@ -90,7 +92,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-22T17:37:24.561Z
-Stopped at: Completed 48-01 — Settings + Admin HTML/CSS rebuild
+Last session: 2026-03-22T17:44:21.645Z
+Stopped at: Completed 48-02 task 2 — awaiting browser verification checkpoint (task 3)
 Resume file: None
 Next action: /gsd:execute-phase 48 (next phase)
