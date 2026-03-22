@@ -13,8 +13,8 @@
 ### Ground-Up Page Rebuilds (REB)
 
 - [ ] **REB-01**: Dashboard — complete HTML+CSS rewrite, KPIs wired to backend, session list with live data, horizontal-first layout, JS verified
-- [ ] **REB-02**: Login — complete HTML+CSS rewrite, auth flow wired, field validation, top 1% entry point
-- [ ] **REB-03**: Wizard — complete HTML+CSS+JS rewrite, all 4 steps fit viewport, form submissions wired, stepper functional, horizontal fields
+- [x] **REB-02**: Login — complete HTML+CSS rewrite, auth flow wired, field validation, top 1% entry point
+- [x] **REB-03**: Wizard — complete HTML+CSS+JS rewrite, all 4 steps fit viewport, form submissions wired, stepper functional, horizontal fields
 - [ ] **REB-04**: Operator console — complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional, agenda sidebar, tooltips on all actions
 - [ ] **REB-05**: Hub — complete HTML+CSS+JS rewrite, session lifecycle wired, quorum bar functional, checklist with real data
 - [ ] **REB-06**: Settings/Admin — complete HTML+CSS+JS rewrite, all settings save correctly, admin KPIs wired, user management functional
@@ -48,8 +48,8 @@
 | FIX-01 | Phase 42 — Stabilization | Complete (2026-03-20) |
 | FIX-02 | Phase 42 — Stabilization | Complete (2026-03-20) |
 | REB-01 | Phase 43 — Dashboard Rebuild | Pending |
-| REB-02 | Phase 44 — Login Rebuild | Pending |
-| REB-03 | Phase 45 — Wizard Rebuild | Pending |
+| REB-02 | Phase 44 — Login Rebuild | Complete |
+| REB-03 | Phase 45 — Wizard Rebuild | Complete |
 | REB-04 | Phase 46 — Operator Console Rebuild | Pending |
 | REB-05 | Phase 47 — Hub Rebuild | Pending |
 | REB-06 | Phase 48 — Settings/Admin Rebuild | Pending |
