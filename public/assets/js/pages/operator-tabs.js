@@ -32,57 +32,11 @@ window.OpS = { fn: {} };
   const viewSetup = document.getElementById('viewSetup');
   let viewExec = document.getElementById('viewExec');
 
-  // ── Lazy-loading for partials ─────────────────────────────────────────
-  // Large sections (exec view, live tabs) are loaded on demand to reduce
-  // initial page weight from 90KB to ~60KB.
-
-  const _partialCache = {};
+  // ── Content is fully inlined in HTML — no lazy loading needed ────────────
 
   /**
-   * Load a partial HTML file into a container element.
-   * Returns a promise that resolves when the content is injected.
-   */
-  async function loadPartial(container) {
-    if (!container) return;
-    const url = container.dataset.partial;
-    if (!url || container.dataset.loaded === 'true') return;
-
-    if (!_partialCache[url]) {
-      const res = await fetch(url);
-      if (!res.ok) {
-        console.warn('[operator] Failed to load partial:', url, res.status);
-        return;
-      }
-      _partialCache[url] = await res.text();
-    }
-
-    container.innerHTML = _partialCache[url];
-    container.dataset.loaded = 'true';
-  }
-
-  /**
-   * Ensure live tabs partial (parole, vote, resultats) is loaded.
-   */
-  async function ensureLiveTabsLoaded() {
-    const el = document.getElementById('liveTabs');
-    if (el && el.dataset.loaded !== 'true') {
-      await loadPartial(el);
-    }
-  }
-
-  /**
-   * Ensure exec view partial is loaded.
-   */
-  async function ensureExecViewLoaded() {
-    if (viewExec && viewExec.dataset.loaded !== 'true') {
-      await loadPartial(viewExec);
-      // Re-bind sub-tab clicks and other exec-view event listeners
-      bindExecSubTabs();
-    }
-  }
-
-  /**
-   * Bind event listeners for dynamically loaded exec view sub-tabs.
+   * Bind event listeners for exec view sub-tabs.
+   * Content is inlined — called once on init instead of after lazy load.
    */
   function bindExecSubTabs() {
     var subTabs = document.getElementById('opSubTabs');
@@ -347,8 +301,6 @@ window.OpS = { fn: {} };
     document.querySelectorAll('.tab-btn-live').forEach(btn => {
       btn.hidden = !isLive;
     });
-    // Lazy-load live tabs partial when meeting becomes live
-    if (isLive) ensureLiveTabsLoaded();
     // Update alert count badge
     const alertCountEl = document.getElementById('tabCountAlerts');
     if (alertCountEl) {
@@ -2067,9 +2019,8 @@ window.OpS = { fn: {} };
     const alreadyVisible = mode === 'setup' ? (viewSetup && !viewSetup.hidden) : (viewExec && !viewExec.hidden);
     if (mode === currentMode && !opts.tab && alreadyVisible) return;
 
-    // Lazy-load partials before switching
+    // Re-fetch viewExec in case DOM was updated
     if (mode === 'exec') {
-      await ensureExecViewLoaded();
       viewExec = document.getElementById('viewExec');
     }
 
