@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- GO-LIVE-STATUS: ready — Param&egrave;tres application (wireframe PageParam&egrave;tres). 4 onglets: R&egrave;gles, Communication, S&eacute;curit&eacute;, Accessibilit&eacute;. Auto-save avec toast. -->
+<!-- GO-LIVE-STATUS: ready — Parametres application (rebuild v4.3). Sidebar tabs + horizontal field groups. -->
 <html lang="fr" data-page-role="admin">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -38,7 +38,7 @@
           </nav>
           <h1 class="page-title">
             <span class="bar"></span>
-            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             Param&egrave;tres
           </h1>
           <p class="page-sub">Configuration de l'application</p>
@@ -48,820 +48,312 @@
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
+
       <div class="settings-layout">
 
-        <!-- Sidebar nav -->
+        <!-- ── Sidebar Nav ── -->
         <nav class="settings-sidenav" role="tablist" aria-label="Onglets param&egrave;tres">
-          <button class="settings-sidenav-item active" data-stab="regles" role="tab" aria-selected="true" aria-controls="stab-regles" id="tab-regles">
-            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+
+          <button class="settings-sidenav-item active" type="button"
+            data-stab="regles" role="tab"
+            aria-controls="stab-regles" aria-selected="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M3 7h18"/><path d="M6 7l-3 9h6"/><path d="M18 7l3 9h-6"/><circle cx="6" cy="16" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             R&egrave;gles
           </button>
-          <button class="settings-sidenav-item" data-stab="communication" role="tab" aria-selected="false" aria-controls="stab-communication" id="tab-communication">
-            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+
+          <button class="settings-sidenav-item" type="button"
+            data-stab="communication" role="tab"
+            aria-controls="stab-communication" aria-selected="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Communication
           </button>
-          <button class="settings-sidenav-item" data-stab="securite" role="tab" aria-selected="false" aria-controls="stab-securite" id="tab-securite">
-            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+
+          <button class="settings-sidenav-item" type="button"
+            data-stab="securite" role="tab"
+            aria-controls="stab-securite" aria-selected="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             S&eacute;curit&eacute;
           </button>
-          <button class="settings-sidenav-item" data-stab="accessibilite" role="tab" aria-selected="false" aria-controls="stab-accessibilite" id="tab-accessibilite">
-            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+
+          <button class="settings-sidenav-item" type="button"
+            data-stab="accessibilite" role="tab"
+            aria-controls="stab-accessibilite" aria-selected="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
             Accessibilit&eacute;
           </button>
+
         </nav>
 
-        <div class="settings-content">
+        <!-- ── Panels ── -->
+        <div class="settings-panels">
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 1 : RÈGLES (SET-01)                   -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="settings-panel" id="stab-regles" role="tabpanel" aria-labelledby="tab-regles">
+          <!-- ═══════════ PANEL: REGLES ═══════════ -->
+          <section id="stab-regles" class="settings-panel" role="tabpanel" aria-labelledby="">
 
-          <!-- Section 1 : Sécurité du vote -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">S&eacute;curit&eacute; du vote</h3>
-              <p class="card-description">Options de s&eacute;curit&eacute; appliqu&eacute;es lors des votes</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settDoubleAuth">
-                    <span class="toggle-track"></span>
-                  </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Double authentification obligatoire</span>
-                    <ag-tooltip text="Force une v&eacute;rification en deux &eacute;tapes pour chaque vote. Renforce la s&eacute;curit&eacute; mais ralentit le processus de vote." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
+            <!-- Card: Regles de vote -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">R&egrave;gles de vote</h2>
+                <div class="card-actions">
+                  <span class="unsaved-dot" hidden aria-hidden="true"></span>
+                  <button class="btn btn-sm btn-primary btn-save-section" type="button" data-section="regles-vote">Enregistrer</button>
                 </div>
-                <p class="settings-toggle-desc">Exige une v&eacute;rification en deux &eacute;tapes pour tous les votes. Renforce la s&eacute;curit&eacute; au d&eacute;triment de la fluidit&eacute;.</p>
               </div>
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settDoubleApproval">
-                    <span class="toggle-track"></span>
-                  </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Double approbation requise</span>
-                    <ag-tooltip text="N&eacute;cessite une confirmation explicite avant validation d'un vote. R&eacute;duit les erreurs de manipulation accidentelle." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                </div>
-                <p class="settings-toggle-desc">N&eacute;cessite une confirmation explicite avant validation d'un vote. R&eacute;duit les erreurs de manipulation.</p>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="vote-securite">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
+              <div class="card-body">
 
-          <!-- Section 2 : Quorum -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Quorum</h3>
-              <p class="card-description">Param&egrave;tres de calcul du quorum par d&eacute;faut</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-form-grid">
-                <div class="form-group">
-                  <label class="form-label" for="settQuorumBase">
-                    Base de calcul
-                    <ag-tooltip text="D&eacute;termine si le quorum est calcul&eacute; sur le nombre de personnes pr&eacute;sentes ou sur leur poids de vote (tanti&egrave;mes). Impacte la validit&eacute; des d&eacute;cisions." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <select class="form-input" id="settQuorumBase">
-                    <option value="persons">Par personnes</option>
-                    <option value="tantiemes">Par poids de vote</option>
+                <div class="field-group-h">
+                  <label for="settVoteMode">Mode de vote par d&eacute;faut</label>
+                  <select id="settVoteMode" class="form-input">
+                    <option value="secret">Secret</option>
+                    <option value="public">Public</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label class="form-label" for="settQuorumThreshold">
-                    Seuil (%)
-                    <ag-tooltip text="Pourcentage minimum de membres pr&eacute;sents ou repr&eacute;sent&eacute;s requis pour que la s&eacute;ance soit valide. En-dessous de ce seuil, aucun vote ne peut &ecirc;tre ouvert." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settQuorumThreshold" value="33" min="0" max="100">
-                </div>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="quorum">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
 
-          <!-- Section 3 : Types de majorité -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Types de majorit&eacute;</h3>
-              <p class="card-description">Art. 24, 25, 26, 26-1 et passerelle 25-1</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-majority-grid" id="majorityTypes">
-                <div class="settings-majority-card">
-                  <div class="settings-majority-article">Art. 24</div>
-                  <div class="settings-majority-title">
-                    Majorit&eacute; simple
-                    <ag-tooltip text="Article 24 de la loi du 10 juillet 1965 — majorit&eacute; des voix des copropri&eacute;taires pr&eacute;sents, repr&eacute;sent&eacute;s ou ayant vot&eacute; par correspondance." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                  <div class="settings-majority-desc">Majorit&eacute; des voix exprim&eacute;es des pr&eacute;sents et repr&eacute;sent&eacute;s</div>
+                <div class="field-group-h">
+                  <label for="settQuorumThreshold">Seuil de quorum (%)</label>
+                  <input id="settQuorumThreshold" class="form-input" type="number" min="0" max="100" placeholder="50">
                 </div>
-                <div class="settings-majority-card">
-                  <div class="settings-majority-article">Art. 25</div>
-                  <div class="settings-majority-title">
-                    Majorit&eacute; absolue
-                    <ag-tooltip text="Article 25 de la loi du 10 juillet 1965 — majorit&eacute; de tous les copropri&eacute;taires. Requise pour les travaux importants et d&eacute;cisions structurantes." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                  <div class="settings-majority-desc">Majorit&eacute; des voix de tous les membres</div>
-                </div>
-                <div class="settings-majority-card">
-                  <div class="settings-majority-article">Art. 25-1</div>
-                  <div class="settings-majority-title">
-                    Passerelle
-                    <ag-tooltip text="Article 25-1 — si une r&eacute;solution obtient plus du tiers des voix sans atteindre la majorit&eacute; absolue, un second vote &agrave; la majorit&eacute; art. 24 peut &ecirc;tre imm&eacute;diatement tenu." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                  <div class="settings-majority-desc">Si 1/3 atteint &agrave; l'art. 25, revote &agrave; l'art. 24</div>
-                </div>
-                <div class="settings-majority-card">
-                  <div class="settings-majority-article">Art. 26</div>
-                  <div class="settings-majority-title">
-                    Double majorit&eacute;
-                    <ag-tooltip text="Article 26 de la loi du 10 juillet 1965 — majorit&eacute; des membres repr&eacute;sentant au moins les deux tiers des voix. Requise pour les d&eacute;cisions les plus importantes." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                  <div class="settings-majority-desc">2/3 des voix de tous les membres</div>
-                </div>
-                <div class="settings-majority-card">
-                  <div class="settings-majority-article">Art. 26-1</div>
-                  <div class="settings-majority-title">
-                    Unanimit&eacute;
-                    <ag-tooltip text="Article 26-1 — unanimit&eacute; de tous les copropri&eacute;taires requise. R&eacute;serv&eacute; aux d&eacute;cisions touchant aux droits privatifs de tous les membres." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                  <div class="settings-majority-desc">Tous les membres doivent voter pour</div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Section 5 : Politiques de quorum -->
-          <div class="card">
-            <div class="card-header">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="card-title">Politiques de quorum</h3>
-                  <p class="card-description">Seuils de pr&eacute;sence requis pour la validit&eacute; des votes</p>
-                </div>
-                <button class="btn btn-primary btn-sm" id="btnAddQuorumPolicy">Cr&eacute;er une politique</button>
-              </div>
-            </div>
-            <div class="card-body" id="settingsQuorumList">
-              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 2 : COMMUNICATION (SET-02)            -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="settings-panel" id="stab-communication" role="tabpanel" aria-labelledby="tab-communication" hidden>
-
-          <!-- Card : Contact & support -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Contact &amp; support</h3>
-              <p class="card-description">Informations de contact et fuseau horaire</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-form-grid">
-                <div class="form-group">
-                  <label class="form-label" for="settSupportEmail">
-                    Email support
-                    <ag-tooltip text="Adresse email affich&eacute;e aux membres pour contacter le support du syndic. Re&ccedil;oit &eacute;galement les copies des notifications syst&egrave;me." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="email" id="settSupportEmail" placeholder="support@syndic.fr">
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="settTimezone">
-                    Fuseau horaire
-                    <ag-tooltip text="Fuseau horaire utilis&eacute; pour l'affichage des dates et heures des s&eacute;ances et convocations. Affecte tous les utilisateurs du tenant." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <select class="form-input" id="settTimezone">
-                    <option value="Europe/Paris" selected>Europe/Paris (UTC+1)</option>
-                    <option value="Europe/Brussels">Europe/Brussels (UTC+1)</option>
-                    <option value="Europe/Zurich">Europe/Zurich (UTC+1)</option>
-                    <option value="America/Guadeloupe">Am&eacute;rique/Guadeloupe (UTC-4)</option>
-                    <option value="Indian/Reunion">Oc&eacute;an Indien/R&eacute;union (UTC+4)</option>
+                <div class="field-group-h">
+                  <label for="settMajority">R&egrave;gle de majorit&eacute;</label>
+                  <select id="settMajority" class="form-input">
+                    <option value="simple">Majorit&eacute; simple</option>
+                    <option value="absolute">Majorit&eacute; absolue</option>
+                    <option value="qualified">Majorit&eacute; qualifi&eacute;e</option>
                   </select>
                 </div>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="contact">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
 
-          <!-- Card : SMTP -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">SMTP</h3>
-              <p class="card-description">Configuration du serveur d'envoi d'emails</p>
-            </div>
-            <div class="card-body">
-              <div class="form-grid-2">
-                <div class="form-group">
-                  <label class="form-label">
-                    Serveur SMTP
-                    <ag-tooltip text="Adresse du serveur de messagerie sortant. Ex&nbsp;: smtp.gmail.com, smtp.sendgrid.net. Requis pour l'envoi de convocations et notifications." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="text" id="settSmtpHost" placeholder="smtp.exemple.fr">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">
-                    Port
-                    <ag-tooltip text="Port de connexion SMTP. 587 (STARTTLS) est recommand&eacute;. Utilisez 465 pour SSL/TLS ou 25 pour les connexions non chiffr&eacute;es (d&eacute;conseill&eacute;)." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settSmtpPort" value="587">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Utilisateur</label>
-                  <input class="form-input" type="text" id="settSmtpUser" placeholder="noreply@syndic.fr">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Mot de passe</label>
-                  <input class="form-input" type="password" id="settSmtpPass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
-                </div>
-              </div>
-              <div class="mt-3">
-                <button class="btn btn-secondary btn-sm" id="btnTestSmtp">Tester la connexion</button>
               </div>
             </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="smtp">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
 
-          <!-- Card : Templates email -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="card-title">Templates email</h3>
-                  <p class="card-description">5 mod&egrave;les personnalisables avec variables dynamiques</p>
-                </div>
-                <button class="btn btn-secondary btn-sm" id="btnResetEmailTemplates" title="R&eacute;initialise tous les templates avec le contenu par d&eacute;faut">
-                  <svg class="icon icon-text" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                  Cr&eacute;er par d&eacute;faut
-                </button>
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="settings-template-list" id="emailTemplateList">
-                <div class="settings-template-item active">
-                  <div class="settings-template-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  </div>
-                  <div class="settings-template-info">
-                    <div class="settings-template-name">Convocation</div>
-                    <div class="settings-template-desc">Envoi initial de la convocation &agrave; l'assembl&eacute;e</div>
-                  </div>
-                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="convocation">&Eacute;diter</button>
-                </div>
-                <div class="settings-template-item">
-                  <div class="settings-template-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  </div>
-                  <div class="settings-template-info">
-                    <div class="settings-template-name">Rappel</div>
-                    <div class="settings-template-desc">Rappel avant la date de l'assembl&eacute;e</div>
-                  </div>
-                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="rappel">&Eacute;diter</button>
-                </div>
-                <div class="settings-template-item">
-                  <div class="settings-template-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                  </div>
-                  <div class="settings-template-info">
-                    <div class="settings-template-name">R&eacute;sultats</div>
-                    <div class="settings-template-desc">Communication des r&eacute;sultats de vote</div>
-                  </div>
-                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="resultats">&Eacute;diter</button>
-                </div>
-                <div class="settings-template-item">
-                  <div class="settings-template-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  </div>
-                  <div class="settings-template-info">
-                    <div class="settings-template-name">Proc&egrave;s-verbal</div>
-                    <div class="settings-template-desc">Envoi du PV apr&egrave;s validation</div>
-                  </div>
-                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="pv">&Eacute;diter</button>
-                </div>
-                <div class="settings-template-item">
-                  <div class="settings-template-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                  </div>
-                  <div class="settings-template-info">
-                    <div class="settings-template-name">Mise en demeure</div>
-                    <div class="settings-template-desc">Relance pour membres en retard de paiement</div>
-                  </div>
-                  <button class="btn btn-ghost btn-xs btn-edit-template" type="button" data-template="mise-en-demeure">&Eacute;diter</button>
+            <!-- Card: Politiques de quorum -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Politiques de quorum</h2>
+                <div class="card-actions">
+                  <button id="btnAddQuorumPolicy" class="btn btn-sm btn-secondary" type="button">Ajouter</button>
                 </div>
               </div>
+              <div class="card-body">
+                <div id="settingsQuorumList"></div>
+              </div>
             </div>
-          </div>
 
-          <!-- Template editor (shown when editing) -->
-          <div class="card mb-4" id="templateEditor" hidden>
-            <div class="card-header">
-              <h3 class="card-title" id="templateEditorTitle">&Eacute;diter le template</h3>
+          </section>
+
+          <!-- ═══════════ PANEL: COMMUNICATION ═══════════ -->
+          <section id="stab-communication" class="settings-panel" hidden role="tabpanel" aria-labelledby="">
+
+            <!-- Card: SMTP -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Configuration SMTP</h2>
+                <div class="card-actions">
+                  <span class="unsaved-dot" hidden aria-hidden="true"></span>
+                  <button id="btnTestSmtp" class="btn btn-sm btn-secondary" type="button">Tester SMTP</button>
+                  <button class="btn btn-sm btn-primary btn-save-section" type="button" data-section="smtp">Enregistrer</button>
+                </div>
+              </div>
+              <div class="card-body">
+
+                <div class="field-group-h">
+                  <label for="settSmtpHost">H&ocirc;te SMTP</label>
+                  <input id="settSmtpHost" class="form-input" type="text" placeholder="smtp.example.com">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settSmtpPort">Port SMTP</label>
+                  <input id="settSmtpPort" class="form-input" type="number" placeholder="587">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settSmtpUser">Utilisateur SMTP</label>
+                  <input id="settSmtpUser" class="form-input" type="email" placeholder="user@example.com">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settSmtpPass">Mot de passe SMTP</label>
+                  <input id="settSmtpPass" class="form-input" type="password" autocomplete="current-password">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settSenderName">Nom exp&eacute;diteur</label>
+                  <input id="settSenderName" class="form-input" type="text" placeholder="AG-VOTE">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settSenderEmail">Email exp&eacute;diteur</label>
+                  <input id="settSenderEmail" class="form-input" type="email" placeholder="no-reply@example.com">
+                </div>
+
+              </div>
             </div>
-            <div class="card-body">
-              <div class="template-editor-grid">
-                <div class="template-editor-form">
-                  <div class="form-group">
-                    <label class="form-label" for="templateSubject">Objet du mail</label>
-                    <input class="form-input" type="text" id="templateSubject" placeholder="Objet de l'email...">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="templateBody">Corps du message</label>
-                    <textarea class="form-textarea" id="templateBody" rows="12" placeholder="Contenu du template..."></textarea>
-                  </div>
-                  <div>
-                    <div class="variable-tags-label">Variables disponibles</div>
-                    <div class="variable-tags-row">
-                      <ag-tooltip text="Nom complet du destinataire, tel que saisi dans la fiche membre" position="top">
-                        <button class="variable-tag" type="button" data-var="&#123;&#123;nom&#125;&#125;">&#123;&#123;nom&#125;&#125;</button>
-                      </ag-tooltip>
-                      <ag-tooltip text="Date de la s&eacute;ance au format JJ/MM/AAAA" position="top">
-                        <button class="variable-tag" type="button" data-var="&#123;&#123;date&#125;&#125;">&#123;&#123;date&#125;&#125;</button>
-                      </ag-tooltip>
-                      <ag-tooltip text="Heure de d&eacute;but de la s&eacute;ance (format 24h)" position="top">
-                        <button class="variable-tag" type="button" data-var="&#123;&#123;heure&#125;&#125;">&#123;&#123;heure&#125;&#125;</button>
-                      </ag-tooltip>
-                      <ag-tooltip text="Lieu ou adresse o&ugrave; se tient la s&eacute;ance" position="top">
-                        <button class="variable-tag" type="button" data-var="&#123;&#123;lieu&#125;&#125;">&#123;&#123;lieu&#125;&#125;</button>
-                      </ag-tooltip>
-                      <ag-tooltip text="Nom du syndic ou de la soci&eacute;t&eacute; de gestion" position="top">
-                        <button class="variable-tag" type="button" data-var="&#123;&#123;syndic&#125;&#125;">&#123;&#123;syndic&#125;&#125;</button>
-                      </ag-tooltip>
-                      <ag-tooltip text="Lien unique de vote pour ce membre — &agrave; utiliser uniquement dans les templates de convocation et de vote" position="top">
-                        <button class="variable-tag" type="button" data-var="&#123;&#123;lien_vote&#125;&#125;">&#123;&#123;lien_vote&#125;&#125;</button>
-                      </ag-tooltip>
+
+            <!-- Card: Modeles d'email -->
+            <div class="card" id="templateEditor">
+              <div class="card-header">
+                <h2 class="card-title">Mod&egrave;les d'email</h2>
+                <div class="card-actions">
+                  <button id="btnResetTemplates" class="btn btn-sm btn-ghost" type="button">R&eacute;initialiser les mod&egrave;les</button>
+                  <button id="btnSaveTemplate" class="btn btn-sm btn-primary" type="button">Enregistrer</button>
+                </div>
+              </div>
+              <div class="card-body">
+
+                <div class="field-group-h">
+                  <label for="templateSelect">Mod&egrave;le</label>
+                  <select id="templateSelect" class="form-input">
+                    <option value="convocation">Convocation</option>
+                    <option value="rappel">Rappel</option>
+                    <option value="resultat">R&eacute;sultats</option>
+                    <option value="bienvenue">Bienvenue</option>
+                  </select>
+                </div>
+
+                <div class="field-group-h">
+                  <label for="templateSubject">Objet</label>
+                  <input id="templateSubject" class="form-input" type="text" placeholder="Objet de l'email">
+                </div>
+
+                <div class="field-group-h field-group-h--top">
+                  <label for="templateBody">Corps</label>
+                  <textarea id="templateBody" class="form-input" rows="8" placeholder="Corps du message..."></textarea>
+                </div>
+
+              </div>
+            </div>
+
+          </section>
+
+          <!-- ═══════════ PANEL: SECURITE ═══════════ -->
+          <section id="stab-securite" class="settings-panel" hidden role="tabpanel" aria-labelledby="">
+
+            <!-- Card: Niveau CNIL -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Niveau de conformit&eacute; CNIL</h2>
+                <div class="card-actions">
+                  <span class="unsaved-dot" hidden aria-hidden="true"></span>
+                  <button class="btn btn-sm btn-primary btn-save-section" type="button" data-section="cnil">Enregistrer</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="settings-level-cards">
+
+                  <label class="settings-level-card">
+                    <input type="radio" name="cnilLevel" value="standard">
+                    <div class="settings-level-card__content">
+                      <div class="settings-level-card__title">Standard</div>
+                      <div class="settings-level-card__desc">Conformit&eacute; basique — convient &agrave; la majorit&eacute; des assembl&eacute;es.</div>
                     </div>
-                  </div>
-                  <div class="flex gap-2">
-                    <button class="btn btn-primary" id="btnSaveTemplate">Enregistrer</button>
-                    <button class="btn btn-secondary" id="btnCancelTemplate">Annuler</button>
-                  </div>
-                </div>
-                <div class="template-editor-preview">
-                  <div class="template-editor-preview-label">Aper&ccedil;u</div>
-                  <div class="template-preview-render" id="templatePreviewRender">
-                    <span style="color: var(--color-text-muted); font-style: italic; font-family: var(--font-sans);">Commencez &agrave; saisir le corps du message pour voir l'aper&ccedil;u ici.</span>
-                  </div>
-                  <button class="btn btn-ghost btn-sm" id="btnTestEmail" type="button" style="margin-top: var(--space-3)">
-                    <svg class="icon icon-text" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    Envoyer un test
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </label>
 
-          <!-- Card : Préférences de notification -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Pr&eacute;f&eacute;rences de notification</h3>
-              <p class="card-description">Canaux de notification activ&eacute;s pour ce tenant</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settNotifEmail" checked>
-                    <span class="toggle-track"></span>
-                  </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Notifications par email</span>
-                    <ag-tooltip text="Active l'envoi de convocations, rappels et r&eacute;sultats de vote par email aux membres. D&eacute;sactiver bloque tous les emails sortants du syst&egrave;me." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                </div>
-                <p class="settings-toggle-desc">Envoie les notifications et convocations par email aux membres.</p>
-              </div>
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settNotifPush">
-                    <span class="toggle-track"></span>
-                  </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Notifications push</span>
-                    <ag-tooltip text="Envoie des notifications push aux navigateurs des membres ayant explicitement accord&eacute; l'autorisation. Ne fonctionne qu'en HTTPS." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                </div>
-                <p class="settings-toggle-desc">Envoie des notifications push aux navigateurs qui ont donn&eacute; leur accord.</p>
-              </div>
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settNotifWeekly">
-                    <span class="toggle-track"></span>
-                  </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">R&eacute;sum&eacute; hebdomadaire</span>
-                    <ag-tooltip text="Envoie chaque lundi matin un r&eacute;sum&eacute; des activit&eacute;s de la semaine aux administrateurs&nbsp;: s&eacute;ances &agrave; venir, votes en attente, alertes syst&egrave;me." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                </div>
-                <p class="settings-toggle-desc">Envoie un r&eacute;sum&eacute; hebdomadaire des activit&eacute;s aux administrateurs.</p>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="notifications">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 3 : SÉCURITÉ (SET-03)                 -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="settings-panel" id="stab-securite" role="tabpanel" aria-labelledby="tab-securite" hidden>
-
-          <!-- Card : Niveau CNIL -->
-          <div class="card mb-4 settings-cnil-card">
-            <div class="card-header">
-              <h3 class="card-title">
-                Niveau de protection CNIL
-                <ag-tooltip text="Choisissez le niveau de conformit&eacute; CNIL applicable &agrave; votre syndicat. Niveau 1 est conforme pour la majorit&eacute; des cas. Niveaux 2 et 3 activent des mesures techniques suppl&eacute;mentaires." position="top">
-                  <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                </ag-tooltip>
-              </h3>
-              <p class="card-description">Choisissez le niveau de protection des donn&eacute;es personnelles</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-cnil-levels">
-                <label class="settings-level-card selected">
-                  <input type="radio" name="cnilLevel" value="1" id="cnilLevel1" checked>
-                  <span class="settings-level-num">1</span>
-                  <span class="settings-level-title">Standard</span>
-                  <span class="settings-level-desc">S&eacute;paration identit&eacute;/bulletin, chiffrement AES-256</span>
-                </label>
-                <label class="settings-level-card">
-                  <input type="radio" name="cnilLevel" value="2" id="cnilLevel2">
-                  <span class="settings-level-num">2</span>
-                  <span class="settings-level-title">Renforc&eacute;</span>
-                  <span class="settings-level-desc">Niveau 1 + double authentification + horodatage certifi&eacute;</span>
-                </label>
-                <label class="settings-level-card">
-                  <input type="radio" name="cnilLevel" value="3" id="cnilLevel3">
-                  <span class="settings-level-num">3</span>
-                  <span class="settings-level-title">Maximum</span>
-                  <span class="settings-level-desc">Niveau 2 + urne scell&eacute;e + preuve &agrave; divulgation nulle</span>
-                </label>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="cnil">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
-
-          <!-- Card : Authentification à deux facteurs -->
-          <div class="card mb-4 settings-security-card">
-            <div class="card-header">
-              <h3 class="card-title">Authentification &agrave; deux facteurs</h3>
-            </div>
-            <div class="card-body">
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="sett2FA">
-                    <span class="toggle-track"></span>
-                  </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Activer 2FA pour tous les utilisateurs</span>
-                    <ag-tooltip text="Force l'authentification &agrave; deux facteurs pour tous les comptes du tenant. Les utilisateurs devront configurer une application d'authentification (TOTP) lors de leur prochaine connexion." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
-                </div>
-                <p class="settings-toggle-desc">Force la double authentification pour tous les comptes du tenant. Les utilisateurs devront configurer leur application d'authentification.</p>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="2fa">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
-
-          <!-- Card : Session -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Session</h3>
-            </div>
-            <div class="card-body">
-              <div class="settings-form-grid">
-                <div class="form-group">
-                  <label class="form-label" for="settSessionTimeout">
-                    D&eacute;lai d'expiration (minutes)
-                    <ag-tooltip text="Dur&eacute;e d'inactivit&eacute; apr&egrave;s laquelle la session de l'utilisateur est automatiquement termin&eacute;e. Une valeur plus faible renforce la s&eacute;curit&eacute; mais peut g&ecirc;ner les op&eacute;rateurs en s&eacute;ance." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settSessionTimeout" value="30" min="5" max="480">
-                </div>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="session">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
-
-          <!-- Card : Paramètres de sécurité -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Param&egrave;tres de s&eacute;curit&eacute;</h3>
-            </div>
-            <div class="card-body">
-              <div class="settings-form-grid">
-                <div class="form-group">
-                  <label class="form-label">
-                    Plafond procurations
-                    <ag-tooltip text="Nombre maximum de procurations qu'un membre peut d&eacute;tenir lors d'une assembl&eacute;e. La loi autorise jusqu'&agrave; 3 procurations selon l'art. 22 de la loi de 1965." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settMaxProxies" value="3" min="1" max="10">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">
-                    D&eacute;lai contestation (jours)
-                    <ag-tooltip text="Nombre de jours apr&egrave;s la tenue de l'assembl&eacute;e pendant lesquels les d&eacute;cisions peuvent &ecirc;tre contest&eacute;es. D&eacute;lai l&eacute;gal&nbsp;: 2 mois (60 jours)." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settContestDelay" value="60" min="1">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">
-                    2e convocation (jours apr&egrave;s 1re)
-                    <ag-tooltip text="D&eacute;lai minimal entre la 1re et la 2e convocation en cas de quorum non atteint. La loi exige au minimum 6 jours entre les deux convocations." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settSecondConv" value="7" min="1">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">
-                    Dur&eacute;e lien de vote (heures)
-                    <ag-tooltip text="Dur&eacute;e de validit&eacute; du lien de vote unique envoy&eacute; &agrave; chaque membre. Apr&egrave;s expiration, le membre doit demander un nouveau lien." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </label>
-                  <input class="form-input" type="number" id="settVoteLinkDuration" value="48" min="1">
-                </div>
-              </div>
-              <div class="mt-4">
-                <div class="settings-toggle-row">
-                  <div class="settings-toggle-header">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="settSeparation" checked>
-                      <span class="toggle-track"></span>
-                    </label>
-                    <div class="settings-toggle-label-group">
-                      <span class="settings-toggle-label">S&eacute;paration identit&eacute;/bulletin</span>
-                      <ag-tooltip text="S&eacute;pare cryptographiquement l'identit&eacute; du votant du contenu de son bulletin. Garantit l'anonymat du vote conforme aux recommandations CNIL niveau 1." position="top">
-                        <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                      </ag-tooltip>
+                  <label class="settings-level-card">
+                    <input type="radio" name="cnilLevel" value="renforce">
+                    <div class="settings-level-card__content">
+                      <div class="settings-level-card__title">Renforc&eacute;</div>
+                      <div class="settings-level-card__desc">Journalisation compl&egrave;te, chiffrement des votes, anonymisation.</div>
                     </div>
-                  </div>
-                  <p class="settings-toggle-desc">S&eacute;paration cryptographique de l'identit&eacute; du votant et du contenu du bulletin.</p>
-                </div>
-                <div class="settings-toggle-row">
-                  <div class="settings-toggle-header">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="settDoubleVote">
-                      <span class="toggle-track"></span>
-                    </label>
-                    <div class="settings-toggle-label-group">
-                      <span class="settings-toggle-label">Bloquer double vote</span>
-                      <ag-tooltip text="Emp&ecirc;che un membre de voter deux fois sur le m&ecirc;me scrutin, m&ecirc;me via des canaux diff&eacute;rents. Fortement recommand&eacute; pour la validit&eacute; juridique des votes." position="top">
-                        <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                      </ag-tooltip>
+                  </label>
+
+                  <label class="settings-level-card">
+                    <input type="radio" name="cnilLevel" value="maximal">
+                    <div class="settings-level-card__content">
+                      <div class="settings-level-card__title">Maximal</div>
+                      <div class="settings-level-card__desc">Conformit&eacute; maximale — audit trail compl&egrave;t, purge automatique.</div>
                     </div>
-                  </div>
-                  <p class="settings-toggle-desc">Emp&ecirc;che un membre de voter deux fois sur le m&ecirc;me scrutin.</p>
-                </div>
-              </div>
-            </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="securite-params">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 4 : ACCESSIBILITÉ (SET-04)            -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="settings-panel" id="stab-accessibilite" role="tabpanel" aria-labelledby="tab-accessibilite" hidden>
-
-          <!-- Card : Taille du texte -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Taille du texte</h3>
-              <p class="card-description">D&eacute;finit la taille de police par d&eacute;faut pour le tenant</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-text-size-grid">
-                <label class="settings-text-size-card">
-                  <input type="radio" name="settTextSize" id="settTextSizeNormal" value="normal" checked>
-                  <span class="settings-text-size-label">A</span>
-                  <span class="settings-text-size-desc">Standard</span>
-                </label>
-                <label class="settings-text-size-card">
-                  <input type="radio" name="settTextSize" id="settTextSizeLarge" value="large">
-                  <span class="settings-text-size-label" style="font-size:1.15em;">A+</span>
-                  <span class="settings-text-size-desc">Grand</span>
-                </label>
-                <label class="settings-text-size-card">
-                  <input type="radio" name="settTextSize" id="settTextSizeXLarge" value="xlarge">
-                  <span class="settings-text-size-label" style="font-size:1.3em;">A++</span>
-                  <span class="settings-text-size-desc">Tr&egrave;s grand</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card : Contraste élevé -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Contraste &eacute;lev&eacute;</h3>
-            </div>
-            <div class="card-body">
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settHighContrast">
-                    <span class="toggle-track"></span>
                   </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Activer le mode contraste &eacute;lev&eacute;</span>
-                    <ag-tooltip text="Augmente le rapport de contraste des couleurs pour am&eacute;liorer la lisibilit&eacute; pour les utilisateurs malvoyants. Requis pour la conformit&eacute; RGAA niveau AA." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
-                  </div>
+
                 </div>
-                <p class="settings-toggle-desc">Augmente le contraste des couleurs pour am&eacute;liorer la lisibilit&eacute; pour les utilisateurs malvoyants.</p>
               </div>
             </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="contraste">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
 
-          <!-- Card : Indicateurs de focus -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Indicateurs de focus</h3>
+            <!-- Card: Parametres de securite -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Param&egrave;tres de s&eacute;curit&eacute;</h2>
+                <div class="card-actions">
+                  <span class="unsaved-dot" hidden aria-hidden="true"></span>
+                  <button class="btn btn-sm btn-primary btn-save-section" type="button" data-section="securite">Enregistrer</button>
+                </div>
+              </div>
+              <div class="card-body">
+
+                <div class="field-group-h">
+                  <label for="settSessionTimeout">Expiration de session (min)</label>
+                  <input id="settSessionTimeout" class="form-input" type="number" min="5" placeholder="60">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settMaxLoginAttempts">Tentatives de connexion max</label>
+                  <input id="settMaxLoginAttempts" class="form-input" type="number" min="1" placeholder="5">
+                </div>
+
+                <div class="field-group-h">
+                  <label for="settPasswordMinLength">Longueur minimale du mot de passe</label>
+                  <input id="settPasswordMinLength" class="form-input" type="number" min="6" placeholder="8">
+                </div>
+
+              </div>
             </div>
-            <div class="card-body">
-              <div class="settings-toggle-row">
-                <div class="settings-toggle-header">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="settFocusIndicators" checked>
-                    <span class="toggle-track"></span>
+
+          </section>
+
+          <!-- ═══════════ PANEL: ACCESSIBILITE ═══════════ -->
+          <section id="stab-accessibilite" class="settings-panel" hidden role="tabpanel" aria-labelledby="">
+
+            <!-- Card: Taille du texte -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Taille du texte</h2>
+              </div>
+              <div class="card-body">
+                <div class="settings-text-size-row">
+
+                  <label class="settings-radio-card">
+                    <input type="radio" name="textSize" value="normal">
+                    <span class="settings-radio-card__label">A</span>
+                    <span class="settings-radio-card__desc">Normal</span>
                   </label>
-                  <div class="settings-toggle-label-group">
-                    <span class="settings-toggle-label">Afficher les indicateurs de focus visibles</span>
-                    <ag-tooltip text="Affiche des contours de focus bien visibles lors de la navigation au clavier. Fortement recommand&eacute; pour la conformit&eacute; RGAA — crit&egrave;re 10.7." position="top">
-                      <svg class="icon-info-xs" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </ag-tooltip>
+
+                  <label class="settings-radio-card">
+                    <input type="radio" name="textSize" value="large">
+                    <span class="settings-radio-card__label" style="font-size:1.2em">A</span>
+                    <span class="settings-radio-card__desc">Grand</span>
+                  </label>
+
+                  <label class="settings-radio-card">
+                    <input type="radio" name="textSize" value="xlarge">
+                    <span class="settings-radio-card__label" style="font-size:1.5em">A</span>
+                    <span class="settings-radio-card__desc">Tr&egrave;s grand</span>
+                  </label>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Card: Contraste eleve -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">Contraste &eacute;lev&eacute;</h2>
+              </div>
+              <div class="card-body">
+                <div class="field-group-h">
+                  <label for="settHighContrast">Activer le contraste &eacute;lev&eacute;</label>
+                  <div class="settings-toggle-wrap">
+                    <input id="settHighContrast" type="checkbox" class="settings-toggle" role="switch">
+                    <label for="settHighContrast" class="settings-toggle-label" aria-hidden="true"></label>
                   </div>
                 </div>
-                <p class="settings-toggle-desc">Affiche des contours de focus bien visibles lors de la navigation au clavier. Recommand&eacute; pour l'accessibilit&eacute; RGAA.</p>
               </div>
             </div>
-            <div class="card-footer">
-              <button class="btn btn-primary btn-sm btn-save-section" data-section="focus">Enregistrer</button>
-              <span class="unsaved-dot" hidden aria-label="Modifications non enregistr&eacute;es"></span>
-            </div>
-          </div>
 
-          <!-- Card : Déclaration d'accessibilité -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">D&eacute;claration d'accessibilit&eacute;</h3>
-              <p class="card-description">Conformit&eacute; RGAA 4.1 / WCAG 2.2 niveau AA</p>
-            </div>
-            <div class="card-body">
-              <div class="settings-a11y-score">
-                <div class="settings-a11y-ring">
-                  <svg viewBox="0 0 120 120" width="120" height="120">
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="10"/>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-success)" stroke-width="10"
-                      stroke-dasharray="305 314" stroke-dashoffset="-78.5"
-                      transform="rotate(-90 60 60)"/>
-                  </svg>
-                  <span class="settings-a11y-pct">97%</span>
-                </div>
-                <div>
-                  <div class="font-semibold text-success">Partiellement conforme</div>
-                  <div class="text-sm text-muted mt-1">97 crit&egrave;res sur 100 valid&eacute;s</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </section>
 
-          <!-- Card : Audits réalisés -->
-          <div class="card mb-4">
-            <div class="card-header"><h3 class="card-title">Audits r&eacute;alis&eacute;s</h3></div>
-            <div class="card-body p-0">
-              <table class="users-table">
-                <thead>
-                  <tr><th>Date</th><th>R&eacute;f&eacute;rentiel</th><th>Score</th><th>Auditeur</th></tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>15/01/2026</td>
-                    <td>RGAA 4.1</td>
-                    <td><span class="badge badge-success">97%</span></td>
-                    <td>Audit interne</td>
-                  </tr>
-                  <tr>
-                    <td>10/06/2025</td>
-                    <td>WCAG 2.2 AA</td>
-                    <td><span class="badge badge-success">95%</span></td>
-                    <td>Prestataire externe</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        </div><!-- /.settings-panels -->
 
-          <!-- Card : Non-conformités -->
-          <div class="card">
-            <div class="card-header"><h3 class="card-title">Non-conformit&eacute;s r&eacute;siduelles</h3></div>
-            <div class="card-body">
-              <div class="settings-nc-list">
-                <div class="settings-nc-item">
-                  <span class="badge badge-warning">Mineure</span>
-                  <span class="text-sm">Contraste insuffisant sur les placeholders des champs de saisie (ratio 3.8:1 au lieu de 4.5:1)</span>
-                </div>
-                <div class="settings-nc-item">
-                  <span class="badge badge-warning">Mineure</span>
-                  <span class="text-sm">Graphiques Chart.js : alternatives textuelles manquantes (donn&eacute;es accessibles via tableau masqu&eacute;)</span>
-                </div>
-                <div class="settings-nc-item">
-                  <span class="badge badge-warning">Mineure</span>
-                  <span class="text-sm">Focus visible insuffisant sur certains boutons d'ic&ocirc;ne dans le header en th&egrave;me sombre</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        </div><!-- /.settings-content -->
       </div><!-- /.settings-layout -->
+
     </main>
 
     <footer class="app-footer mobile-footer" role="contentinfo">
@@ -871,7 +363,7 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.3</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
       <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
