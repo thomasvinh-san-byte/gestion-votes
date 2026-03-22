@@ -100,7 +100,11 @@ Plans:
   3. The agenda sidebar lists all motions; clicking a motion loads it into the main panel
   4. All action buttons (open vote, close vote, end session) show tooltips explaining their state when disabled
   5. The delta badge increments correctly when new votes arrive over SSE
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 46-01-PLAN.md — Rewrite operator HTML+CSS with two-panel layout, inlined exec content, vote card centerpiece
+- [ ] 46-02-PLAN.md — Update all 6 JS modules for new DOM, delta badge 3s timer, browser verify
 
 ### Phase 47: Hub Rebuild
 **Goal**: The session hub is fully rebuilt — session lifecycle actions wired to real data, quorum bar showing live attendance, checklist reflecting actual state
@@ -133,7 +137,7 @@ Plans:
 | 42. Stabilization | 1/1 | Complete    | 2026-03-20 |
 | 43. Dashboard Rebuild | 2/2 | Complete    | 2026-03-20 |
 | 44. Login Rebuild | 2/2 | Complete    | 2026-03-20 |
-| 45. Wizard Rebuild | 2/2 | Complete   | 2026-03-22 |
-| 46. Operator Console Rebuild | 0/TBD | Not started | - |
+| 45. Wizard Rebuild | 2/2 | Complete    | 2026-03-22 |
+| 46. Operator Console Rebuild | 0/2 | Not started | - |
 | 47. Hub Rebuild | 0/TBD | Not started | - |
 | 48. Settings/Admin Rebuild | 0/TBD | Not started | - |
