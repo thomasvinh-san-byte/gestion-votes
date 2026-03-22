@@ -149,4 +149,4 @@ Plans:
 | 45. Wizard Rebuild | 2/2 | Complete    | 2026-03-22 |
 | 46. Operator Console Rebuild | 2/2 | Complete    | 2026-03-22 |
 | 47. Hub Rebuild | 3/3 | Complete    | 2026-03-22 |
-| 48. Settings/Admin Rebuild | 0/2 | Not started | - |
+| 48. Settings/Admin Rebuild | 1/2 | In Progress|  |
