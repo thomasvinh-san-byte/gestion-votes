@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- GO-LIVE-STATUS: ready — Administration utilisateurs + paramètres (wireframe PageUtilisateurs + PageParametres). -->
+<!-- GO-LIVE-STATUS: ready — Administration utilisateurs (rebuild v4.3). KPI row + user management table. -->
 <html lang="fr" data-page-role="admin">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -12,8 +12,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Administration — AG-VOTE">
-  <title>Administration — AG-VOTE</title>
+  <meta name="description" content="Administration &mdash; AG-VOTE">
+  <title>Administration &mdash; AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,1166 +24,139 @@
 <body>
   <!-- Skip links -->
   <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
 
   <div class="app-shell">
-    <!-- Sidebar (loaded from shared partial) -->
     <aside class="app-sidebar" data-include-sidebar data-page="admin"></aside>
 
     <!-- Header -->
     <header class="app-header" role="banner">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold">Administration</h1>
-          <p class="text-sm text-secondary">Utilisateurs, rôles, politiques, système</p>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item bc-current" aria-current="page">Administration</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Administration
+          </h1>
+          <p class="page-sub">Utilisateurs et param&egrave;tres syst&egrave;me</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-secondary btn-sm" id="btnRefresh">Actualiser</button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="guide" title="Guide" aria-label="Guide">?</button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg></button>
+        <button id="btnRefresh" class="btn btn-secondary btn-sm" type="button">Actualiser</button>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
-      <div class="container">
-        <div id="notif_box" class="hidden mb-4"></div>
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- DASHBOARD OVERVIEW                         -->
-        <!-- ═══════════════════════════════════════════ -->
+      <div class="admin-content">
 
-        <!-- Onboarding Banner (dismissible) -->
-        <div class="ob-banner page-anim" id="obBanner" role="status">
-          <div class="ob-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-          </div>
-          <div class="ob-body">
-            <div class="ob-title">Bienvenue sur AG-VOTE</div>
-            <p class="text-sm text-secondary">Configurez votre premi&egrave;re s&eacute;ance en quelques &eacute;tapes : cr&eacute;ez les membres, d&eacute;finissez les politiques de quorum, puis lancez votre assembl&eacute;e.</p>
-          </div>
-          <div class="ob-actions">
-            <a href="/meetings.htmx.html" class="ob-btn-primary">Cr&eacute;er une s&eacute;ance</a>
-            <a href="/help.htmx.html" class="ob-btn-ghost">Guide rapide</a>
-          </div>
-          <button class="ob-close" id="obClose" aria-label="Fermer la banni&egrave;re" title="Fermer">&times;</button>
-        </div>
+        <!-- ════════════════════════════════════════════
+             KPI ROW — 4 cards
+             ════════════════════════════════════════════ -->
+        <div class="admin-kpis">
 
-        <!-- Urgent Action Card -->
-        <div class="card card-urgent mb-4 page-anim" id="urgentCard" style="display:none;">
-          <div class="card-body">
-            <div class="flex items-center gap-4">
-              <span class="urgent-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              </span>
-              <div class="flex-1">
-                <div class="font-semibold" id="urgentTitle">S&eacute;ance en attente de validation</div>
-                <div class="text-sm text-muted" id="urgentDesc">Une s&eacute;ance cl&ocirc;tur&eacute;e attend la validation du pr&eacute;sident.</div>
-              </div>
-              <a href="/postsession.htmx.html" class="btn btn-danger btn-sm" id="urgentAction">Valider maintenant</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4 KPIs -->
-        <div class="dash-kpis mb-4">
-          <a href="/meetings.htmx.html" class="dash-kpi" id="kpiUpcoming">
-            <div class="dash-kpi-icon kpi-primary">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            </div>
-            <div class="dash-kpi-body">
-              <div class="dash-kpi-value" id="kpiUpcomingVal">&mdash;</div>
-              <div class="dash-kpi-label"><ag-tooltip text="Nombre de séances programmées dans le futur" position="top">AG à venir</ag-tooltip></div>
-              <div class="dash-kpi-context" id="kpiUpcomingContext"></div>
-            </div>
-          </a>
-          <a href="/operator.htmx.html" class="dash-kpi" id="kpiLive">
-            <div class="dash-kpi-icon kpi-danger">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            </div>
-            <div class="dash-kpi-body">
-              <div class="dash-kpi-value" id="kpiLiveVal">&mdash;</div>
-              <div class="dash-kpi-label"><ag-tooltip text="Séances actuellement en cours de vote" position="top">En cours</ag-tooltip></div>
-              <div class="dash-kpi-context" id="kpiLiveContext"></div>
-            </div>
-          </a>
-          <a href="/meetings.htmx.html" class="dash-kpi" id="kpiConvocations">
-            <div class="dash-kpi-icon kpi-warning">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-            </div>
-            <div class="dash-kpi-body">
-              <div class="dash-kpi-value" id="kpiConvocationsVal">&mdash;</div>
-              <div class="dash-kpi-label"><ag-tooltip text="Convocations en attente d'envoi pour les prochaines séances" position="top">Convocations</ag-tooltip></div>
-              <div class="dash-kpi-context" id="kpiConvocationsContext"></div>
-            </div>
-          </a>
-          <a href="/postsession.htmx.html" class="dash-kpi" id="kpiPV">
-            <div class="dash-kpi-icon kpi-success">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-            </div>
-            <div class="dash-kpi-body">
-              <div class="dash-kpi-value" id="kpiPVVal">&mdash;</div>
-              <div class="dash-kpi-label"><ag-tooltip text="Procès-verbaux non encore validés après clôture de séance" position="top">PV en attente</ag-tooltip></div>
-              <div class="dash-kpi-context" id="kpiPVContext"></div>
-            </div>
-          </a>
-        </div>
-
-        <!-- 2-column grid: Sessions + Tasks -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <!-- Prochaines séances -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Prochaines s&eacute;ances</h3>
-            </div>
-            <div class="card-body p-0" id="dashUpcomingSessions">
-              <div class="irow">
-                <div class="irow-body">
-                  <div class="skeleton skeleton-line skeleton-w-60"></div>
-                  <div class="skeleton skeleton-line skeleton-w-40"></div>
-                </div>
-              </div>
-              <div class="irow">
-                <div class="irow-body">
-                  <div class="skeleton skeleton-line skeleton-w-50"></div>
-                  <div class="skeleton skeleton-line skeleton-w-35"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Tâches en attente -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">T&acirc;ches en attente</h3>
-            </div>
-            <div class="card-body p-0" id="dashPendingTasks">
-              <div class="irow">
-                <div class="irow-body">
-                  <div class="skeleton skeleton-line skeleton-w-55"></div>
-                  <div class="skeleton skeleton-line skeleton-w-30"></div>
-                </div>
-              </div>
-              <div class="irow">
-                <div class="irow-body">
-                  <div class="skeleton skeleton-line skeleton-w-65"></div>
-                  <div class="skeleton skeleton-line skeleton-w-45"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3 Shortcuts -->
-        <div class="dash-shortcuts mb-6">
-          <a href="/meetings.htmx.html" class="dash-shortcut">
-            <div class="dash-shortcut-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </div>
-            <div>
-              <div class="dash-shortcut-title">Cr&eacute;er une s&eacute;ance</div>
-              <div class="text-xs text-muted">Nouvelle assembl&eacute;e</div>
-            </div>
-          </a>
-          <a href="/operator.htmx.html" class="dash-shortcut">
-            <div class="dash-shortcut-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            </div>
-            <div>
-              <div class="dash-shortcut-title">Piloter un vote</div>
-              <div class="text-xs text-muted">S&eacute;ance en direct</div>
-            </div>
-          </a>
-          <a href="/trust.htmx.html" class="dash-shortcut">
-            <div class="dash-shortcut-icon">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            </div>
-            <div>
-              <div class="dash-shortcut-title">Consulter l'audit</div>
-              <div class="text-xs text-muted">Journal et v&eacute;rifications</div>
-            </div>
-          </a>
-        </div>
-
-        <hr class="mb-6">
-
-        <!-- Users KPI strip -->
-        <div class="kpi-grid" style="margin-bottom: var(--space-4);">
-          <div class="kpi-card">
+          <div class="kpi-card kpi-card--1">
             <div class="kpi-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
-            <ag-tooltip text="Nombre total de comptes utilisateurs enregistrés" position="top">
-              <span class="kpi-label">Total utilisateurs</span>
-            </ag-tooltip>
-            <span class="kpi-value" id="adminKpiUsers">--</span>
+            <div class="kpi-value" id="adminKpiMembers">-</div>
+            <div class="kpi-label">Membres</div>
           </div>
-          <div class="kpi-card">
+
+          <div class="kpi-card kpi-card--2">
             <div class="kpi-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
             </div>
-            <ag-tooltip text="Utilisateurs avec le rôle Administrateur" position="top">
-              <span class="kpi-label">Admins</span>
-            </ag-tooltip>
-            <span class="kpi-value" id="adminKpiAdmins">--</span>
+            <div class="kpi-value" id="adminKpiSessions">-</div>
+            <div class="kpi-label">S&eacute;ances</div>
           </div>
-          <div class="kpi-card">
+
+          <div class="kpi-card kpi-card--3">
             <div class="kpi-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             </div>
-            <ag-tooltip text="Utilisateurs avec le rôle Opérateur de séance" position="top">
-              <span class="kpi-label">Opérateurs</span>
-            </ag-tooltip>
-            <span class="kpi-value" id="adminKpiOperators">--</span>
+            <div class="kpi-value" id="adminKpiVotes">-</div>
+            <div class="kpi-label">Votes</div>
           </div>
-          <div class="kpi-card">
+
+          <div class="kpi-card kpi-card--4">
             <div class="kpi-icon">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <ag-tooltip text="Utilisateurs connectés dans les 7 derniers jours" position="top">
-              <span class="kpi-label">Actifs (7j)</span>
-            </ag-tooltip>
-            <span class="kpi-value" id="adminKpiActive">--</span>
+            <div class="kpi-value" id="adminKpiActive">-</div>
+            <div class="kpi-label">Actifs (7j)</div>
           </div>
-        </div>
-        <div class="mb-4 flex" style="justify-content: flex-end;">
-          <a href="/users.htmx.html" class="btn btn-secondary btn-sm">Gérer les utilisateurs</a>
+
         </div>
 
-        <!-- Tabs -->
-        <div class="admin-tabs" role="tablist" aria-label="Sections d'administration">
-          <button class="admin-tab active" data-tab="meeting-roles" role="tab" aria-selected="true" aria-controls="panel-meeting-roles" id="tab-meeting-roles">
-            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            <ag-tooltip text="Définir les rôles attribués aux participants pour chaque séance" position="bottom">Rôles de séance</ag-tooltip>
-          </button>
-          <button class="admin-tab" data-tab="policies" role="tab" aria-selected="false" aria-controls="panel-policies" id="tab-policies">
-            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            <ag-tooltip text="Configurer les règles de quorum et de majorité applicables aux séances" position="bottom">Politiques</ag-tooltip>
-          </button>
-          <button class="admin-tab" data-tab="roles" role="tab" aria-selected="false" aria-controls="panel-roles" id="tab-roles">
-            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            <ag-tooltip text="Consulter la matrice des permissions par rôle système et de séance" position="bottom">Permissions</ag-tooltip>
-          </button>
-          <button class="admin-tab" data-tab="states" role="tab" aria-selected="false" aria-controls="panel-states" id="tab-states">
-            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" y1="9" x2="6" y2="21"></line></svg>
-            <ag-tooltip text="Visualiser les transitions d'états du cycle de vie d'une séance" position="bottom">Machine à états</ag-tooltip>
-          </button>
-          <button class="admin-tab" data-tab="system" role="tab" aria-selected="false" aria-controls="panel-system" id="tab-system">
-            <svg class="admin-tab-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-            <ag-tooltip text="Surveiller la santé du système, base de données et configuration" position="bottom">Système</ag-tooltip>
-          </button>
-        </div>
+        <!-- ════════════════════════════════════════════
+             USER MANAGEMENT SECTION
+             ════════════════════════════════════════════ -->
+        <div class="admin-users-section">
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 1 : RÔLES DE SÉANCE                   -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel active" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
-          <!-- Roles explanation panel -->
-          <div class="card mb-4 roles-explainer">
-            <div class="card-body">
-              <div class="roles-explainer-grid">
-                <div class="role-explain">
-                  <span class="tag tag-accent">Admin</span>
-                  <span class="text-xs text-muted">Acc&egrave;s complet au syst&egrave;me</span>
-                </div>
-                <div class="role-explain">
-                  <span class="tag tag-success">Op&eacute;rateur</span>
-                  <span class="text-xs text-muted">Gestion des s&eacute;ances et votes</span>
-                </div>
-                <div class="role-explain">
-                  <span class="tag tag-purple">Auditeur</span>
-                  <span class="text-xs text-muted">Consultation audit et contr&ocirc;le</span>
-                </div>
-                <div class="role-explain">
-                  <span class="tag">Observateur</span>
-                  <span class="text-xs text-muted">Acc&egrave;s en lecture seule</span>
-                </div>
-              </div>
+          <!-- Section Header: title + search/filter/create -->
+          <div class="section-header">
+            <div class="section-header__left">
+              <h2>Utilisateurs</h2>
+              <span id="usersCount" class="section-count">- utilisateurs</span>
+            </div>
+            <div class="section-actions">
+              <input id="searchUser" type="search" class="form-input form-input-sm"
+                placeholder="Rechercher..." autocomplete="off" aria-label="Rechercher un utilisateur">
+              <select id="filterRole" class="form-input form-input-sm" aria-label="Filtrer par r&ocirc;le">
+                <option value="">Tous les r&ocirc;les</option>
+                <option value="admin">Admin</option>
+                <option value="operator">Op&eacute;rateur</option>
+                <option value="auditor">Auditeur</option>
+                <option value="viewer">Observateur</option>
+              </select>
+              <button id="btnCreateUser" class="btn btn-primary btn-sm" type="button">Ajouter un utilisateur</button>
             </div>
           </div>
 
-          <!-- Create user form -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="card-title">Ajouter un utilisateur</h3>
-                  <p class="card-description">Créez un compte avec accès au système</p>
-                </div>
+          <!-- Create User Form -->
+          <div class="admin-create-form">
+            <input id="newName" type="text" class="form-input" placeholder="Nom" autocomplete="name">
+            <input id="newEmail" type="email" class="form-input" placeholder="Email" autocomplete="email">
+            <div class="admin-password-wrap">
+              <input id="newPassword" type="password" class="form-input" placeholder="Mot de passe" autocomplete="new-password">
+              <div id="passwordStrength" class="password-strength" hidden>
+                <div id="passwordStrengthFill" class="password-strength-fill"></div>
+                <span id="passwordStrengthText" class="password-strength-text"></span>
               </div>
             </div>
-            <div class="card-body">
-              <div id="createUserForm">
-                <div class="form-grid-2 mb-3">
-                  <div class="form-group">
-                    <label class="form-label" for="newName">Nom *</label>
-                    <input class="form-input" type="text" id="newName" placeholder="Jean Dupont" required maxlength="255">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="newEmail">Email *</label>
-                    <input class="form-input" type="email" id="newEmail" placeholder="jean@example.com" required maxlength="320">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="newPassword">Mot de passe *</label>
-                    <input class="form-input" type="password" id="newPassword" placeholder="Min. 8 caractères" autocomplete="new-password" required minlength="8">
-                    <div class="password-strength" id="passwordStrength" hidden>
-                      <div class="password-strength-bar"><div class="password-strength-fill" id="passwordStrengthFill"></div></div>
-                      <span class="password-strength-text" id="passwordStrengthText">—</span>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="newRole">Rôle système</label>
-                    <select class="form-input" id="newRole">
-                      <option value="viewer">Observateur</option>
-                      <option value="operator">Opérateur</option>
-                      <option value="auditor">Auditeur</option>
-                      <option value="admin">Administrateur</option>
-                    </select>
-                  </div>
-                </div>
-                <button class="btn btn-primary" id="btnCreateUser">Ajouter</button>
-              </div>
+            <select id="newRole" class="form-input">
+              <option value="">R&ocirc;le</option>
+              <option value="admin">Admin</option>
+              <option value="operator">Op&eacute;rateur</option>
+              <option value="auditor">Auditeur</option>
+              <option value="viewer">Observateur</option>
+            </select>
+          </div>
+
+          <!-- Users List Container — populated by admin.js renderUsersTable() -->
+          <div id="usersListContainer" aria-live="polite"></div>
+
+          <!-- Pagination Bar -->
+          <div class="admin-pagination">
+            <span id="usersPaginationInfo" class="pagination-info">- utilisateurs</span>
+            <div class="pagination-controls">
+              <button id="usersPrevPage" class="btn btn-ghost btn-sm" type="button">Pr&eacute;c&eacute;dent</button>
+              <div id="usersPaginationPages" class="pagination-pages"></div>
+              <button id="usersNextPage" class="btn btn-ghost btn-sm" type="button">Suivant</button>
             </div>
           </div>
 
-          <!-- Filter and search -->
-          <div class="card mb-4">
-            <div class="card-body">
-              <div class="flex items-center gap-4 flex-wrap">
-                <div class="form-group form-group-search">
-                  <label class="form-label" for="searchUser">Rechercher</label>
-                  <input class="form-input" type="text" id="searchUser" placeholder="Nom ou email...">
-                </div>
-                <div class="form-group form-group-filter">
-                  <label class="form-label" for="filterRole">Filtrer par r&ocirc;le</label>
-                  <select class="form-input" id="filterRole">
-                    <option value="">Tous les rôles</option>
-                    <option value="admin">Administrateur</option>
-                    <option value="operator">Opérateur</option>
-                    <option value="auditor">Auditeur</option>
-                    <option value="viewer">Observateur</option>
-                  </select>
-                </div>
-                <div class="text-sm text-muted users-count" id="usersCount">— utilisateurs</div>
-              </div>
-            </div>
-          </div>
+        </div><!-- /.admin-users-section -->
 
-          <!-- Users list -->
-          <div class="card">
-            <div class="card-body p-0">
-              <div class="users-list" id="usersListContainer">
-                <!-- JS-rendered .user-row divs -->
-              </div>
-            </div>
-            <!-- Pagination -->
-            <div class="card-footer users-pagination" id="usersPagination">
-              <span class="text-sm text-muted" id="usersPaginationInfo">— utilisateurs</span>
-              <div class="pagination-controls">
-                <button class="btn btn-ghost btn-icon btn-xs" id="usersPrevPage" disabled aria-label="Page précédente">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <span class="pagination-pages" id="usersPaginationPages"></span>
-                <button class="btn btn-ghost btn-icon btn-xs" id="usersNextPage" aria-label="Page suivante">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      </div><!-- /.admin-content -->
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 2 : RÔLES DE SÉANCE                   -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-meeting-roles" role="tabpanel" aria-labelledby="tab-meeting-roles">
-          <!-- Assign form -->
-          <div class="card mb-4">
-            <div class="card-header"><h3 class="card-title">Assigner un rôle de séance</h3></div>
-            <div class="card-body">
-              <div class="form-grid-3">
-                <div class="form-group">
-                  <label class="form-label">Séance</label>
-                  <ag-searchable-select
-                    id="mrMeeting"
-                    placeholder="Rechercher une séance..."
-                    empty-text="Aucune séance trouvée"
-                  ></ag-searchable-select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Utilisateur</label>
-                  <ag-searchable-select
-                    id="mrUser"
-                    placeholder="Rechercher un utilisateur..."
-                    empty-text="Aucun utilisateur trouvé"
-                  ></ag-searchable-select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="mrRole">R&ocirc;le</label>
-                  <select class="form-input" id="mrRole">
-                    <option value="voter">Électeur</option>
-                    <option value="assessor">Assesseur</option>
-                    <option value="president">Président</option>
-                  </select>
-                </div>
-              </div>
-              <div class="flex gap-2 mt-3">
-                <button class="btn btn-primary" id="btnAssignRole">Assigner</button>
-                <button class="btn btn-secondary" id="btnBulkAssign" title="Assigner un rôle à plusieurs utilisateurs">Assignation en masse</button>
-              </div>
-            </div>
-          </div>
-          <!-- Roles by meeting -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Rôles assignés</h3>
-              <p class="card-description">Sélectionnez une séance pour voir les rôles ou affichez le résumé global</p>
-            </div>
-            <div class="card-body p-0">
-              <table class="users-table">
-                <thead>
-                  <tr><th scope="col">Séance</th><th scope="col">Utilisateur</th><th scope="col">Rôle</th><th scope="col" class="table-col-actions-sm">Actions</th></tr>
-                </thead>
-                <tbody id="meetingRolesBody">
-                  <tr><td colspan="4"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 3 : POLITIQUES                         -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-policies" role="tabpanel" aria-labelledby="tab-policies">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Quorum policies -->
-            <div class="card">
-              <div class="card-header">
-                <div class="flex items-center justify-between">
-                  <div><h3 class="card-title">Politiques de quorum</h3><p class="card-description">Règles de quorum applicables aux séances</p></div>
-                  <button class="btn btn-primary btn-sm" id="btnAddQuorum">Ajouter</button>
-                </div>
-              </div>
-              <div class="card-body" id="quorumList"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
-            </div>
-            <!-- Vote policies -->
-            <div class="card">
-              <div class="card-header">
-                <div class="flex items-center justify-between">
-                  <div><h3 class="card-title">Politiques de vote</h3><p class="card-description">Règles de majorité applicables aux résolutions</p></div>
-                  <button class="btn btn-primary btn-sm" id="btnAddVote">Ajouter</button>
-                </div>
-              </div>
-              <div class="card-body" id="voteList"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 4 : PERMISSIONS                        -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-roles" role="tabpanel" aria-labelledby="tab-roles">
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">
-                Matrice des permissions
-                <ag-popover title="Matrice des permissions" content="S = Rôle système (permanent, lié au compte utilisateur). M = Rôle de séance (temporaire, attribué par séance). Chaque cellule indique si le rôle possède cette permission." position="right"></ag-popover>
-              </h3>
-              <p class="card-description">Rôles système (S) et rôles de séance (M)</p>
-            </div>
-            <div class="card-body card-body-scroll">
-              <div class="mb-3">
-                <input class="form-input" type="search" id="permSearch" placeholder="Filtrer les permissions..." aria-label="Filtrer les permissions">
-              </div>
-              <div id="permMatrix" aria-live="polite" aria-busy="true"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">
-                  Rôles système
-                  <ag-popover title="Rôles système" content="Rôles permanents attachés au compte utilisateur. Ils définissent les permissions globales : admin (tout accès), operator (gestion des séances), auditor (lecture seule), viewer (accès limité)." position="right"></ag-popover>
-                </h3>
-                <p class="card-description">Permanents, liés au compte</p>
-              </div>
-              <div class="card-body" id="systemRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line skeleton-w-60"></div></div></div>
-            </div>
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">
-                  Rôles de séance
-                  <ag-popover title="Rôles de séance" content="Rôles temporaires assignés pour une séance spécifique. Président : dirige la séance. Assesseur : assiste au dépouillement. Électeur : peut voter." position="right"></ag-popover>
-                </h3>
-                <p class="card-description">Temporaires, attribués par séance</p>
-              </div>
-              <div class="card-body" id="meetingRolesInfo"><div class="skeleton-row"><div class="skeleton skeleton-line skeleton-w-60"></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 3 : MACHINE À ÉTATS                   -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-states" role="tabpanel" aria-labelledby="tab-states">
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Cycle de vie d'une séance</h3>
-              <p class="card-description">Visualisation des états et transitions possibles</p>
-            </div>
-            <div class="card-body">
-              <div class="state-flow-visual" id="stateFlow"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Légende des états</h3></div>
-              <div class="card-body">
-                <div class="flex flex-wrap gap-2">
-                  <span class="state-node-visual draft"><ag-tooltip text="Séance en cours de création. Actions : programmer, supprimer" position="top">Brouillon</ag-tooltip></span>
-                  <span class="state-node-visual scheduled"><ag-tooltip text="Séance programmée. Actions : convoquer, verrouiller, annuler, ouvrir" position="top">Programmée</ag-tooltip></span>
-                  <span class="state-node-visual frozen"><ag-tooltip text="Séance verrouillée avant ouverture. Actions : ouvrir, annuler" position="top">Verrouillée</ag-tooltip></span>
-                  <span class="state-node-visual live"><ag-tooltip text="Séance en cours de vote. Actions : clôturer, mettre en pause" position="top">En cours</ag-tooltip></span>
-                  <span class="state-node-visual closed"><ag-tooltip text="Séance clôturée. Actions : valider (président requis)" position="top">Clôturée</ag-tooltip></span>
-                  <span class="state-node-visual validated"><ag-tooltip text="Séance validée et verrouillée. Actions : archiver, générer PV" position="top">Validée</ag-tooltip></span>
-                  <span class="state-node-visual archived"><ag-tooltip text="Séance archivée définitivement. Aucune modification possible" position="top">Archivée</ag-tooltip></span>
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Statistiques actuelles</h3></div>
-              <div class="card-body" id="stateStats">
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header"><h3 class="card-title">Transitions autorisées</h3></div>
-            <div class="card-body p-0">
-              <table class="users-table" id="transitionsTable">
-                <thead><tr><th scope="col">De</th><th scope="col">Vers</th><th scope="col">Rôle requis</th><th scope="col">Description</th></tr></thead>
-                <tbody id="transitionsBody"><tr><td colspan="4"><div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div></td></tr></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- P5-5: Dé-archivage -->
-          <div class="card mt-4">
-            <div class="card-header">
-              <h3 class="card-title">Séances archivées</h3>
-              <p class="card-description">Restaurer une séance archivée vers l'état « Validée » pour corrections</p>
-            </div>
-            <div class="card-body p-0" id="archivedMeetingsList">
-              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Settings panel extracted to /settings.htmx.html (Phase 13-01) -->
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 6 : SYSTÈME                           -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings">
-          <div class="alert alert-warning mb-4 alert-inline">
-            <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
-            <div>
-              <strong>Module en cours de d&eacute;veloppement</strong>
-              <div class="text-sm">Les param&egrave;tres ci-dessous sont en lecture seule. La sauvegarde sera disponible dans une prochaine version.</div>
-            </div>
-          </div>
-          <!-- Settings sub-tabs -->
-          <div class="settings-tabs" role="tablist" aria-label="Onglets param&egrave;tres">
-            <button class="settings-tab active" data-stab="vote-rules" role="tab" aria-selected="true">R&egrave;gles de vote</button>
-            <button class="settings-tab" data-stab="security" role="tab">S&eacute;curit&eacute;</button>
-            <button class="settings-tab" data-stab="mail" role="tab">Courrier</button>
-            <button class="settings-tab" data-stab="general" role="tab">G&eacute;n&eacute;ral</button>
-            <button class="settings-tab" data-stab="accessibility" role="tab">Accessibilit&eacute;</button>
-          </div>
-
-          <!-- ─── Règles de vote ─── -->
-          <div class="settings-panel active" id="stab-vote-rules">
-            <div class="card mb-4">
-              <div class="card-header">
-                <h3 class="card-title">Types de majorit&eacute;</h3>
-                <p class="card-description">Art. 24, 25, 26, 26-1 et passerelle 25-1</p>
-              </div>
-              <div class="card-body">
-                <div class="settings-majority-grid" id="majorityTypes">
-                  <div class="settings-majority-card">
-                    <div class="settings-majority-article">Art. 24</div>
-                    <div class="settings-majority-title">Majorit&eacute; simple</div>
-                    <div class="settings-majority-desc">Majorit&eacute; des voix exprim&eacute;es des pr&eacute;sents et repr&eacute;sent&eacute;s</div>
-                  </div>
-                  <div class="settings-majority-card">
-                    <div class="settings-majority-article">Art. 25</div>
-                    <div class="settings-majority-title">Majorit&eacute; absolue</div>
-                    <div class="settings-majority-desc">Majorit&eacute; des voix de tous les membres</div>
-                  </div>
-                  <div class="settings-majority-card">
-                    <div class="settings-majority-article">Art. 25-1</div>
-                    <div class="settings-majority-title">Passerelle</div>
-                    <div class="settings-majority-desc">Si 1/3 atteint &agrave; l'art. 25, revote &agrave; l'art. 24</div>
-                  </div>
-                  <div class="settings-majority-card">
-                    <div class="settings-majority-article">Art. 26</div>
-                    <div class="settings-majority-title">Double majorit&eacute;</div>
-                    <div class="settings-majority-desc">2/3 des voix de tous les membres</div>
-                  </div>
-                  <div class="settings-majority-card">
-                    <div class="settings-majority-article">Art. 26-1</div>
-                    <div class="settings-majority-title">Unanimit&eacute;</div>
-                    <div class="settings-majority-desc">Tous les membres doivent voter pour</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header">
-                <div class="flex items-center justify-between">
-                  <div><h3 class="card-title">Politiques de quorum</h3><p class="card-description">Seuils de pr&eacute;sence requis pour la validit&eacute; des votes</p></div>
-                  <button class="btn btn-primary btn-sm" id="btnAddQuorumPolicy">Cr&eacute;er une politique</button>
-                </div>
-              </div>
-              <div class="card-body" id="settingsQuorumList">
-                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-              </div>
-            </div>
-            <div class="card mt-4">
-              <div class="card-header">
-                <h3 class="card-title">Contr&ocirc;les de validation</h3>
-                <p class="card-description">R&egrave;gles suppl&eacute;mentaires applicables aux votes</p>
-              </div>
-              <div class="card-body">
-                <div class="settings-form-grid">
-                  <div class="form-group">
-                    <label class="form-label form-label-toggle">
-                      <input type="checkbox" id="settDoubleAuthRules">
-                      Double authentification obligatoire
-                    </label>
-                    <div class="text-xs text-muted">Exiger une v&eacute;rification en deux &eacute;tapes pour chaque vote</div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label form-label-toggle">
-                      <input type="checkbox" id="settDoubleApproval">
-                      Double approbation
-                    </label>
-                    <div class="text-xs text-muted">Exiger la validation d'un second assesseur pour proclamer les r&eacute;sultats</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ─── Sécurité ─── -->
-          <div class="settings-panel" id="stab-security" hidden>
-            <div class="card mb-4">
-              <div class="card-header"><h3 class="card-title">Niveau de protection CNIL</h3></div>
-              <div class="card-body">
-                <div class="settings-cnil-levels">
-                  <label class="settings-level-card selected">
-                    <input type="radio" name="cnilLevel" value="1" checked>
-                    <span class="settings-level-num">1</span>
-                    <span class="settings-level-title">Standard</span>
-                    <span class="settings-level-desc">S&eacute;paration identit&eacute;/bulletin, chiffrement AES-256</span>
-                  </label>
-                  <label class="settings-level-card">
-                    <input type="radio" name="cnilLevel" value="2">
-                    <span class="settings-level-num">2</span>
-                    <span class="settings-level-title">Renforc&eacute;</span>
-                    <span class="settings-level-desc">Niveau 1 + double authentification + horodatage certifi&eacute;</span>
-                  </label>
-                  <label class="settings-level-card">
-                    <input type="radio" name="cnilLevel" value="3">
-                    <span class="settings-level-num">3</span>
-                    <span class="settings-level-title">Maximum</span>
-                    <span class="settings-level-desc">Niveau 2 + urne scell&eacute;e + preuve &agrave; divulgation nulle</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Param&egrave;tres de s&eacute;curit&eacute;</h3></div>
-              <div class="card-body">
-                <div class="settings-form-grid">
-                  <div class="form-group">
-                    <label class="form-label">Plafond procurations</label>
-                    <input class="form-input" type="number" id="settMaxProxies" value="3" min="1" max="10">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">D&eacute;lai contestation (jours)</label>
-                    <input class="form-input" type="number" id="settContestDelay" value="60" min="1">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">2e convocation (jours apr&egrave;s 1re)</label>
-                    <input class="form-input" type="number" id="settSecondConv" value="7" min="1">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Dur&eacute;e lien de vote (heures)</label>
-                    <input class="form-input" type="number" id="settVoteLinkDuration" value="48" min="1">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label form-label-toggle">
-                      <input type="checkbox" id="settSeparation" checked>
-                      S&eacute;paration identit&eacute;/bulletin
-                    </label>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label form-label-toggle">
-                      <input type="checkbox" id="settDoubleVote">
-                      Bloquer double vote
-                    </label>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label form-label-toggle">
-                      <input type="checkbox" id="settDoubleAuth">
-                      Double authentification obligatoire
-                    </label>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="settSessionTimeout">Dur&eacute;e de session (minutes)</label>
-                    <input class="form-input" type="number" id="settSessionTimeout" value="30" min="5" max="480" step="5">
-                    <div class="text-xs text-muted mt-1">D&eacute;connexion automatique apr&egrave;s inactivit&eacute; (5&ndash;480 min)</div>
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <button class="btn btn-primary" id="btnSaveSecuritySettings">Enregistrer</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ─── Courrier ─── -->
-          <div class="settings-panel" id="stab-mail" hidden>
-            <div class="card">
-              <div class="card-header">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h3 class="card-title">Templates email</h3>
-                    <p class="card-description">5 mod&egrave;les personnalisables avec variables dynamiques</p>
-                  </div>
-                  <button class="btn btn-secondary btn-sm" id="btnResetEmailTemplates" title="R&eacute;initialise tous les templates avec le contenu par d&eacute;faut">
-                    <svg class="icon icon-text" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                    Cr&eacute;er par d&eacute;faut
-                  </button>
-                </div>
-              </div>
-              <div class="card-body p-0">
-                <div class="settings-template-list" id="emailTemplateList">
-                  <div class="settings-template-item active">
-                    <div class="settings-template-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    </div>
-                    <div class="settings-template-info">
-                      <div class="settings-template-name">Convocation</div>
-                      <div class="settings-template-desc">Envoi initial de la convocation &agrave; l'assembl&eacute;e</div>
-                    </div>
-                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
-                  </div>
-                  <div class="settings-template-item">
-                    <div class="settings-template-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    </div>
-                    <div class="settings-template-info">
-                      <div class="settings-template-name">Rappel</div>
-                      <div class="settings-template-desc">Rappel avant la date de l'assembl&eacute;e</div>
-                    </div>
-                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
-                  </div>
-                  <div class="settings-template-item">
-                    <div class="settings-template-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    </div>
-                    <div class="settings-template-info">
-                      <div class="settings-template-name">R&eacute;sultats</div>
-                      <div class="settings-template-desc">Communication des r&eacute;sultats de vote</div>
-                    </div>
-                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
-                  </div>
-                  <div class="settings-template-item">
-                    <div class="settings-template-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    </div>
-                    <div class="settings-template-info">
-                      <div class="settings-template-name">Proc&egrave;s-verbal</div>
-                      <div class="settings-template-desc">Envoi du PV apr&egrave;s validation</div>
-                    </div>
-                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
-                  </div>
-                  <div class="settings-template-item">
-                    <div class="settings-template-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    </div>
-                    <div class="settings-template-info">
-                      <div class="settings-template-name">Mise en demeure</div>
-                      <div class="settings-template-desc">Relance pour membres en retard de paiement</div>
-                    </div>
-                    <button class="btn btn-ghost btn-xs" type="button">&Eacute;diter</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Template editor (shown when editing) -->
-            <div class="card mt-4" id="templateEditor" hidden>
-              <div class="card-header">
-                <h3 class="card-title" id="templateEditorTitle">&Eacute;diter le template</h3>
-              </div>
-              <div class="card-body">
-                <div class="form-group mb-3">
-                  <label class="form-label">Objet</label>
-                  <input class="form-input" type="text" id="templateSubject" placeholder="Objet de l'email...">
-                </div>
-                <div class="form-group mb-3">
-                  <label class="form-label">Corps</label>
-                  <textarea class="form-textarea" id="templateBody" rows="10" placeholder="Contenu HTML du template..."></textarea>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="form-label">Variables disponibles</label>
-                  <div class="flex flex-wrap gap-1">
-                    <code class="text-xs">{{nom}}</code>
-                    <code class="text-xs">{{date}}</code>
-                    <code class="text-xs">{{heure}}</code>
-                    <code class="text-xs">{{lieu}}</code>
-                    <code class="text-xs">{{syndic}}</code>
-                    <code class="text-xs">{{lien_vote}}</code>
-                  </div>
-                </div>
-                <div class="flex gap-2">
-                  <button class="btn btn-primary" id="btnSaveTemplate">Enregistrer</button>
-                  <button class="btn btn-secondary" id="btnCancelTemplate">Annuler</button>
-                </div>
-              </div>
-            </div>
-            <!-- Notification preferences -->
-            <div class="card mt-4" id="notifPrefsCard">
-              <div class="card-header">
-                <h3 class="card-title">Pr&eacute;f&eacute;rences de notification</h3>
-                <p class="card-description">Choisissez quels &eacute;v&eacute;nements d&eacute;clenchent un email automatique</p>
-              </div>
-              <div class="card-body">
-                <div class="notif-prefs">
-                  <label class="notif-pref-row">
-                    <div>
-                      <div class="font-semibold">Convocation</div>
-                      <div class="text-xs text-muted">Email envoy&eacute; lors de la cr&eacute;ation d'une convocation</div>
-                    </div>
-                    <input type="checkbox" id="notifConvocation" checked>
-                  </label>
-                  <label class="notif-pref-row">
-                    <div>
-                      <div class="font-semibold">Rappel</div>
-                      <div class="text-xs text-muted">Rappel automatique 48h avant la s&eacute;ance</div>
-                    </div>
-                    <input type="checkbox" id="notifReminder" checked>
-                  </label>
-                  <label class="notif-pref-row">
-                    <div>
-                      <div class="font-semibold">R&eacute;sultats</div>
-                      <div class="text-xs text-muted">Notification des r&eacute;sultats de vote aux participants</div>
-                    </div>
-                    <input type="checkbox" id="notifResults" checked>
-                  </label>
-                  <label class="notif-pref-row">
-                    <div>
-                      <div class="font-semibold">Proc&egrave;s-verbal</div>
-                      <div class="text-xs text-muted">Envoi du PV apr&egrave;s validation de la s&eacute;ance</div>
-                    </div>
-                    <input type="checkbox" id="notifPV" checked>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ─── Général ─── -->
-          <div class="settings-panel" id="stab-general" hidden>
-            <div class="card mb-4">
-              <div class="card-header"><h3 class="card-title">Param&egrave;tres g&eacute;n&eacute;raux</h3></div>
-              <div class="card-body">
-                <div class="settings-form-grid">
-                  <div class="form-group">
-                    <label class="form-label" for="settTimezone">Fuseau horaire</label>
-                    <select class="form-input" id="settTimezone">
-                      <option value="Europe/Paris" selected>Europe/Paris (UTC+1)</option>
-                      <option value="Europe/Brussels">Europe/Brussels (UTC+1)</option>
-                      <option value="Europe/Zurich">Europe/Zurich (UTC+1)</option>
-                      <option value="America/Guadeloupe">Am&eacute;rique/Guadeloupe (UTC-4)</option>
-                      <option value="Indian/Reunion">Oc&eacute;an Indien/R&eacute;union (UTC+4)</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="settSupportEmail">Email support</label>
-                    <input class="form-input" type="email" id="settSupportEmail" placeholder="support@syndic.fr">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card mb-4">
-              <div class="card-header"><h3 class="card-title">SMTP</h3></div>
-              <div class="card-body">
-                <div class="settings-form-grid">
-                  <div class="form-group">
-                    <label class="form-label">Serveur SMTP</label>
-                    <input class="form-input" type="text" id="settSmtpHost" placeholder="smtp.exemple.fr">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Port</label>
-                    <input class="form-input" type="number" id="settSmtpPort" value="587">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Utilisateur</label>
-                    <input class="form-input" type="text" id="settSmtpUser" placeholder="noreply@syndic.fr">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Mot de passe</label>
-                    <input class="form-input" type="password" id="settSmtpPass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
-                  </div>
-                </div>
-                <div class="mt-3">
-                  <button class="btn btn-secondary btn-sm" id="btnTestSmtp">Tester la connexion</button>
-                </div>
-              </div>
-            </div>
-            <div class="card mb-4">
-              <div class="card-header"><h3 class="card-title">Logo &amp; Identit&eacute;</h3></div>
-              <div class="card-body">
-                <div class="flex items-center gap-4">
-                  <div class="settings-logo-preview" id="logoPreview">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  </div>
-                  <div>
-                    <input class="form-input" type="file" id="settLogo" accept="image/*">
-                    <p class="text-xs text-muted mt-1">PNG ou SVG, max 500 Ko</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card card-danger">
-              <div class="card-header"><h3 class="card-title">RGPD</h3></div>
-              <div class="card-body">
-                <div class="flex items-center justify-between gap-4 mb-3">
-                  <div>
-                    <div class="font-semibold">Exporter toutes les donn&eacute;es</div>
-                    <div class="text-sm text-muted">T&eacute;l&eacute;charger un export complet au format JSON</div>
-                  </div>
-                  <button class="btn btn-secondary btn-sm" id="btnExportData">Exporter</button>
-                </div>
-                <div class="flex items-center justify-between gap-4">
-                  <div>
-                    <div class="font-semibold text-danger">Supprimer mon compte</div>
-                    <div class="text-sm text-muted">Action irr&eacute;versible. Toutes les donn&eacute;es seront supprim&eacute;es.</div>
-                  </div>
-                  <button class="btn btn-danger btn-sm" id="btnDeleteAccount">Supprimer</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ─── Accessibilité ─── -->
-          <div class="settings-panel" id="stab-accessibility" hidden>
-            <div class="card mb-4">
-              <div class="card-header">
-                <h3 class="card-title">Confort de lecture</h3>
-                <p class="card-description">Adaptez l'affichage &agrave; vos besoins</p>
-              </div>
-              <div class="card-body">
-                <div class="form-group mb-4">
-                  <label class="form-label">Taille du texte</label>
-                  <div class="text-size-selector" id="textSizeSelector">
-                    <button class="text-size-btn active" data-size="normal" title="Taille normale">A</button>
-                    <button class="text-size-btn" data-size="large" title="Taille grande">A+</button>
-                    <button class="text-size-btn" data-size="xlarge" title="Taille tr&egrave;s grande">A++</button>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label form-label-toggle">
-                    <input type="checkbox" id="settHighContrast">
-                    Contraste &eacute;lev&eacute;
-                  </label>
-                  <div class="text-xs text-muted">Augmente les contrastes de couleur pour une meilleure lisibilit&eacute;</div>
-                </div>
-              </div>
-            </div>
-            <div class="card mb-4">
-              <div class="card-header">
-                <h3 class="card-title">D&eacute;claration d'accessibilit&eacute;</h3>
-                <p class="card-description">Conformit&eacute; RGAA 4.1 / WCAG 2.2 niveau AA</p>
-              </div>
-              <div class="card-body">
-                <div class="settings-a11y-score">
-                  <div class="settings-a11y-ring">
-                    <svg viewBox="0 0 120 120" width="120" height="120">
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-border)" stroke-width="10"/>
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-success)" stroke-width="10"
-                        stroke-dasharray="305 314" stroke-dashoffset="-78.5"
-                        transform="rotate(-90 60 60)"/>
-                    </svg>
-                    <span class="settings-a11y-pct">97%</span>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-success">Partiellement conforme</div>
-                    <div class="text-sm text-muted mt-1">97 crit&egrave;res sur 100 valid&eacute;s</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card mb-4">
-              <div class="card-header"><h3 class="card-title">Audits r&eacute;alis&eacute;s</h3></div>
-              <div class="card-body p-0">
-                <table class="users-table">
-                  <thead>
-                    <tr><th>Date</th><th>R&eacute;f&eacute;rentiel</th><th>Score</th><th>Auditeur</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>15/01/2026</td>
-                      <td>RGAA 4.1</td>
-                      <td><span class="badge badge-success">97%</span></td>
-                      <td>Audit interne</td>
-                    </tr>
-                    <tr>
-                      <td>10/06/2025</td>
-                      <td>WCAG 2.2 AA</td>
-                      <td><span class="badge badge-success">95%</span></td>
-                      <td>Prestataire externe</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Non-conformit&eacute;s r&eacute;siduelles</h3></div>
-              <div class="card-body">
-                <div class="settings-nc-list">
-                  <div class="settings-nc-item">
-                    <span class="badge badge-warning">Mineure</span>
-                    <span class="text-sm">Contraste insuffisant sur les placeholders des champs de saisie (ratio 3.8:1 au lieu de 4.5:1)</span>
-                  </div>
-                  <div class="settings-nc-item">
-                    <span class="badge badge-warning">Mineure</span>
-                    <span class="text-sm">Graphiques Chart.js : alternatives textuelles manquantes (donn&eacute;es accessibles via tableau masqu&eacute;)</span>
-                  </div>
-                  <div class="settings-nc-item">
-                    <span class="badge badge-warning">Mineure</span>
-                    <span class="text-sm">Focus visible insuffisant sur certains boutons d'ic&ocirc;ne dans le header en th&egrave;me sombre</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- TAB 7 : SYSTÈME                           -->
-        <!-- ═══════════════════════════════════════════ -->
-        <div class="admin-panel" id="panel-system" role="tabpanel" aria-labelledby="tab-system">
-          <div class="admin-health-strip">
-            <div class="admin-health-kpi" id="healthUptime">
-              <span class="admin-health-label">Statut syst&egrave;me</span>
-              <span class="admin-health-value">
-                <span class="admin-health-icon success" id="healthUptimeDot" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                </span>
-                En ligne
-              </span>
-            </div>
-            <div class="admin-health-kpi" id="healthLatency" title="Vert : &lt; 50ms &middot; Orange : &lt; 200ms &middot; Rouge : &ge; 200ms">
-              <span class="admin-health-label">Latence BDD</span>
-              <span class="admin-health-value">
-                <span class="admin-health-icon" id="healthLatencyDot" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </span>
-                <span id="healthLatencyValue">&mdash;</span>
-              </span>
-            </div>
-            <div class="admin-health-kpi" id="healthMemory" title="Vert : &lt; 64 MB &middot; Orange : &lt; 128 MB &middot; Rouge : &ge; 128 MB">
-              <span class="admin-health-label">M&eacute;moire</span>
-              <span class="admin-health-value">
-                <span class="admin-health-icon" id="healthMemoryDot" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
-                </span>
-                <span id="healthMemoryValue">&mdash;</span>
-              </span>
-              <div class="admin-health-bar">
-                <div class="admin-health-bar-fill success" id="healthMemoryBar" style="width: 0%"></div>
-              </div>
-            </div>
-            <div class="admin-health-kpi" id="healthMeetings">
-              <span class="admin-health-label">S&eacute;ances actives</span>
-              <span class="admin-health-value">
-                <span class="admin-health-icon primary" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                </span>
-                <span id="healthMeetingsValue">&mdash;</span>
-              </span>
-            </div>
-          </div>
-          <div class="card mb-4">
-            <div class="card-header">
-              <div class="flex items-center justify-between">
-                <div><h3 class="card-title">Statut système</h3><p class="card-description">Connexions, latence, compteurs</p></div>
-                <span class="badge badge-success badge-dot" id="systemStatus">En ligne</span>
-              </div>
-            </div>
-            <div class="card-body p-0" id="systemStats">
-              <div class="system-stat"><span class="system-stat-label">Base de données</span><span class="system-stat-value" id="statDbStatus"><span class="skeleton skeleton-line skeleton-w-60px skeleton-inline"></span></span></div>
-              <div class="system-stat"><span class="system-stat-label">Latence DB <ag-popover title="Latence de la base de données" content="Temps de réponse pour une requête simple. Normal : < 10ms. Acceptable : < 50ms. Lent : > 100ms." position="right"></ag-popover></span><span class="system-stat-value" id="statDbLatency">—</span></div>
-              <div class="system-stat"><span class="system-stat-label">Connexions actives</span><span class="system-stat-value" id="statDbConnections">—</span></div>
-              <div class="system-stat"><span class="system-stat-label">Séances en cours</span><span class="system-stat-value" id="statActiveMeetings">—</span></div>
-              <div class="system-stat"><span class="system-stat-label">Total séances</span><span class="system-stat-value" id="statTotalMeetings">—</span></div>
-              <div class="system-stat"><span class="system-stat-label">Membres actifs</span><span class="system-stat-value" id="statTotalMembers">—</span></div>
-              <div class="system-stat"><span class="system-stat-label">Version PHP</span><span class="system-stat-value" id="statPhpVersion">—</span></div>
-              <div class="system-stat"><span class="system-stat-label">Mémoire</span><span class="system-stat-value" id="statMemory">—</span></div>
-            </div>
-          </div>
-          <!-- System alerts -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Alertes système</h3>
-              <p class="card-description">Alertes automatiques : latence, disque, authentification</p>
-            </div>
-            <div class="card-body p-0" id="systemAlerts">
-              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div></div>
-            </div>
-          </div>
-
-          <!-- Journal d'audit admin (P7-2) — lien vers page dedie -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h3 class="card-title">Journal des actions admin</h3>
-              <p class="card-description">Historique des créations, modifications et suppressions d'utilisateurs, rôles et politiques</p>
-            </div>
-            <div class="card-body">
-              <p class="text-sm text-muted mb-4">Le journal complet des événements système est disponible sur la page dédiée, avec filtres par type, recherche, vue chronologique et export CSV.</p>
-              <a href="/audit.htmx.html" class="btn btn-secondary">
-                Voir le journal complet
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg>
-              </a>
-            </div>
-          </div>
-
-          <!-- Danger Zone -->
-          <div class="card card-danger">
-            <div class="card-header"><h3 class="card-title text-danger">Zone dangereuse</h3></div>
-            <div class="card-body">
-              <div class="flex items-center justify-between gap-4 p-4 bg-surface rounded-lg border">
-                <div>
-                  <div class="font-semibold">
-                    Réinitialiser les données de démo
-                    <ag-popover title="Attention - Action irréversible" content="Cette action supprimera TOUTES les séances, résolutions, votes et présences. Seuls les utilisateurs et la configuration seront conservés. Les données d'exemple seront rechargées." position="top"></ag-popover>
-                  </div>
-                  <div class="text-sm text-muted">Supprime toutes les séances et recharge les données de test</div>
-                </div>
-                <button class="btn btn-danger" id="btnResetDemo">Réinitialiser</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
     </main>
+
     <footer class="app-footer mobile-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
         <span class="logo-mark">
@@ -1191,19 +164,19 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.3</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
     </footer>
   </div>
 
-  <!-- Drawer -->
+  <!-- Drawer (shell.js) -->
   <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Panneau latéral">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Panneau lat&eacute;ral">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
-      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">&times;</button>
     </div>
     <div id="drawerBody" class="drawer-body"></div>
   </aside>
