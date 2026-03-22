@@ -84,7 +84,11 @@ Plans:
   3. Each wizard step fits within the viewport at 1024px without vertical overflow — no scrolling required to reach the next button
   4. All form fields use horizontal layout where applicable; validation errors appear inline next to the relevant field
   5. Form submission failures (network error, validation) display a user-visible error message without losing entered data
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 45-01-PLAN.md — Rewrite wizard HTML+CSS from scratch with 900px track, horizontal fields, slide transition CSS
+- [ ] 45-02-PLAN.md — Update wizard.js for new DOM, add slide transitions and error banners, browser verify
 
 ### Phase 46: Operator Console Rebuild
 **Goal**: The operator console is fully rebuilt — SSE connection live, vote panel functional, agenda sidebar operational, all action buttons wired with tooltips
@@ -128,8 +132,8 @@ Plans:
 |-------|----------------|--------|-----------|
 | 42. Stabilization | 1/1 | Complete    | 2026-03-20 |
 | 43. Dashboard Rebuild | 2/2 | Complete    | 2026-03-20 |
-| 44. Login Rebuild | 2/2 | Complete   | 2026-03-20 |
-| 45. Wizard Rebuild | 0/TBD | Not started | - |
+| 44. Login Rebuild | 2/2 | Complete    | 2026-03-20 |
+| 45. Wizard Rebuild | 0/2 | Not started | - |
 | 46. Operator Console Rebuild | 0/TBD | Not started | - |
 | 47. Hub Rebuild | 0/TBD | Not started | - |
 | 48. Settings/Admin Rebuild | 0/TBD | Not started | - |
