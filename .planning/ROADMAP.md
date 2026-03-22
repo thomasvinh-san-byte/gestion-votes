@@ -138,6 +138,6 @@ Plans:
 | 43. Dashboard Rebuild | 2/2 | Complete    | 2026-03-20 |
 | 44. Login Rebuild | 2/2 | Complete    | 2026-03-20 |
 | 45. Wizard Rebuild | 2/2 | Complete    | 2026-03-22 |
-| 46. Operator Console Rebuild | 0/2 | Not started | - |
+| 46. Operator Console Rebuild | 1/2 | In Progress|  |
 | 47. Hub Rebuild | 0/TBD | Not started | - |
 | 48. Settings/Admin Rebuild | 0/TBD | Not started | - |

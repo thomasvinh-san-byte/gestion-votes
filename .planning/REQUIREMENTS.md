@@ -15,7 +15,7 @@
 - [ ] **REB-01**: Dashboard — complete HTML+CSS rewrite, KPIs wired to backend, session list with live data, horizontal-first layout, JS verified
 - [x] **REB-02**: Login — complete HTML+CSS rewrite, auth flow wired, field validation, top 1% entry point
 - [x] **REB-03**: Wizard — complete HTML+CSS+JS rewrite, all 4 steps fit viewport, form submissions wired, stepper functional, horizontal fields
-- [ ] **REB-04**: Operator console — complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional, agenda sidebar, tooltips on all actions
+- [x] **REB-04**: Operator console — complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional, agenda sidebar, tooltips on all actions
 - [ ] **REB-05**: Hub — complete HTML+CSS+JS rewrite, session lifecycle wired, quorum bar functional, checklist with real data
 - [ ] **REB-06**: Settings/Admin — complete HTML+CSS+JS rewrite, all settings save correctly, admin KPIs wired, user management functional
 
@@ -23,7 +23,7 @@
 
 - [x] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data, no broken HTMX targets
 - [ ] **WIRE-02**: SSE connections verified on operator and voter pages — live updates flow correctly
-- [ ] **WIRE-03**: Form submissions verified — wizard creates sessions, settings save, user CRUD works
+- [x] **WIRE-03**: Form submissions verified — wizard creates sessions, settings save, user CRUD works
 
 ## v4.4+ Requirements (Deferred)
 
@@ -50,12 +50,12 @@
 | REB-01 | Phase 43 — Dashboard Rebuild | Pending |
 | REB-02 | Phase 44 — Login Rebuild | Complete |
 | REB-03 | Phase 45 — Wizard Rebuild | Complete |
-| REB-04 | Phase 46 — Operator Console Rebuild | Pending |
+| REB-04 | Phase 46 — Operator Console Rebuild | Complete |
 | REB-05 | Phase 47 — Hub Rebuild | Pending |
 | REB-06 | Phase 48 — Settings/Admin Rebuild | Pending |
 | WIRE-01 | Phases 43–48 (distributed across all rebuilds) | Complete |
 | WIRE-02 | Phase 46 — Operator Console Rebuild | Pending |
-| WIRE-03 | Phase 45 — Wizard Rebuild | Pending |
+| WIRE-03 | Phase 45 — Wizard Rebuild | Complete |
 
 **Coverage:**
 - v4.3 requirements: 11 total (FIX:2, REB:6, WIRE:3)

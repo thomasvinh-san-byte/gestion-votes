@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Ground-Up Rebuild
 status: executing
-stopped_at: Completed 45-02-PLAN.md — wizard JS wire-up and browser verification
-last_updated: "2026-03-22T15:00:00Z"
-last_activity: 2026-03-22 — Completed 45-02 wizard JS slide transitions + error banners + browser verification (0e78c1c)
+stopped_at: Completed 46-01-PLAN.md — operator console HTML+CSS rewrite
+last_updated: "2026-03-22T15:49:51.000Z"
+last_activity: 2026-03-22 — Completed 46-01 operator console HTML+CSS rebuild (8312b90)
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 32
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
+  percent: 35
 ---
 
 # AG-VOTE — Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v4.3 Ground-Up Rebuild — Phase 45: Wizard Rebuild (complete)
+**Current focus:** v4.3 Ground-Up Rebuild — Phase 46: Operator Console Rebuild (in progress)
 
 ## Current Position
 
-Phase: 45 of 48 (Wizard Rebuild)
-Plan: 02 of 02 complete
+Phase: 46 of 48 (Operator Console Rebuild)
+Plan: 01 of 02 complete
 Status: In progress
-Last activity: 2026-03-22 — Completed 45-02 wizard JS wire-up and browser verification (0e78c1c)
+Last activity: 2026-03-22 — Completed 46-01 operator console HTML+CSS rebuild (8312b90)
 
 Progress: [███░░░░░░░] ~32%
 
@@ -65,6 +65,9 @@ Progress: [███░░░░░░░] ~32%
 - [Phase 45-wizard-rebuild]: showStep() uses skipAnimation=true on init and draft restore to prevent slide flash
 - [Phase 45-wizard-rebuild]: Error banners cleared on every showStep() navigation; populated from errors[] array in each step's validation function
 - [Phase 45-wizard-rebuild]: Checkpoint approved — full wizard flow browser-verified: slide transitions, error banners, session creation, dark mode, draft persistence
+- [Phase 46-operator-console-rebuild]: All partials inlined: liveTabs bridge div kept data-loaded=true for JS compat; no lazy loading in new HTML
+- [Phase 46-operator-console-rebuild]: SSE indicator uses vivid fixed colors (#22c55e / #ef4444 / #f59e0b) intentionally overriding token system — dark mode override keeps them vivid
+- [Phase 46-operator-console-rebuild]: op-body is a 280px+1fr CSS grid inside app-shell; app-shell uses 6-row grid override for [data-page-role=operator]
 
 ### Pending Todos
 
@@ -76,7 +79,7 @@ None — v4.2 trust page regressions resolved in 42-01; clean baseline establish
 
 ## Session Continuity
 
-Last session: 2026-03-22T15:00:00Z
-Stopped at: Completed 45-02-PLAN.md — wizard JS wire-up and browser verification
+Last session: 2026-03-22T15:49:51Z
+Stopped at: Completed 46-01-PLAN.md — operator console HTML+CSS rewrite
 Resume file: None
-Next action: /gsd:execute-phase 46 (hub rebuild — next phase)
+Next action: /gsd:execute-phase 46 plan 02 (operator JS selector updates + browser verification)
