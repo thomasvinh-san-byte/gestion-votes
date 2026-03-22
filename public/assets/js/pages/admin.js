@@ -1,151 +1,85 @@
-/* GO-LIVE-STATUS: ready — Admin JS. innerHTML audité — OK. */
+/* GO-LIVE-STATUS: ready — Admin JS. KPIs + user management only. Rebuilt v4.3. */
 /**
  * admin.js — Administration page logic for AG-VOTE.
  *
  * Must be loaded AFTER utils.js, shared.js and shell.js.
- * Handles: users CRUD, meeting roles assign/revoke,
- *          policies CRUD, permissions matrix, state machine,
- *          system status, demo reset.
+ * Handles: 4-card KPI row (members / sessions / votes / active),
+ *          users CRUD (create, edit, toggle, delete, set password).
  */
 (function() {
   'use strict';
 
-  const roleLabelsSystem = Shared.ROLE_LABELS_SYSTEM;
-  const roleLabelsSeance = Shared.ROLE_LABELS_MEETING;
-  const allRoleLabels = Shared.ROLE_LABELS_ALL;
-
-  // --- Onboarding Banner (localStorage dismiss) ---
-  (function initOnboarding() {
-    var banner = document.getElementById('obBanner');
-    var closeBtn = document.getElementById('obClose');
-    if (!banner) return;
-    if (localStorage.getItem('ag_ob_dismissed') === '1') {
-      banner.style.display = 'none';
-    }
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function() {
-        banner.style.display = 'none';
-        localStorage.setItem('ag_ob_dismissed', '1');
-      });
-    }
-  })();
-
-  // --- Dashboard KPIs & Upcoming Sessions ---
-  (function initDashboard() {
-    async function loadDashboardData() {
-      try {
-        var r = await api('/api/v1/meetings.php');
-        if (r.body && r.body.ok && r.body.data) {
-          var meetings = r.body.data.items || [];
-          var _now = new Date();
-          var upcoming = meetings.filter(function(m) { return m.status === 'scheduled' || m.status === 'frozen'; });
-          var live = meetings.filter(function(m) { return m.status === 'live'; });
-          var closed = meetings.filter(function(m) { return m.status === 'closed'; });
-          var _validated = meetings.filter(function(m) { return m.status === 'validated'; });
-
-          var kpiUp = document.getElementById('kpiUpcomingVal');
-          var kpiLi = document.getElementById('kpiLiveVal');
-          var kpiCo = document.getElementById('kpiConvocationsVal');
-          var kpiPv = document.getElementById('kpiPVVal');
-          if (kpiUp) kpiUp.textContent = upcoming.length;
-          if (kpiLi) kpiLi.textContent = live.length;
-          if (kpiCo) kpiCo.textContent = upcoming.length;
-          if (kpiPv) kpiPv.textContent = closed.length;
-
-          var ctxUp = document.getElementById('kpiUpcomingContext');
-          var ctxLi = document.getElementById('kpiLiveContext');
-          var ctxCo = document.getElementById('kpiConvocationsContext');
-          var ctxPv = document.getElementById('kpiPVContext');
-          if (ctxUp) ctxUp.textContent = upcoming.length === 1 ? 's\u00e9ance programm\u00e9e' : 's\u00e9ances programm\u00e9es';
-          if (ctxLi) ctxLi.textContent = live.length === 1 ? 's\u00e9ance active' : 's\u00e9ances actives';
-          if (ctxCo) ctxCo.textContent = upcoming.length + ' \u00e0 cloturer';
-          if (ctxPv) ctxPv.textContent = closed.length === 1 ? 'PV \u00e0 valider' : 'PV \u00e0 valider';
-
-          // Urgent action card
-          var urgentCard = document.getElementById('urgentCard');
-          if (urgentCard && closed.length > 0) {
-            urgentCard.style.display = '';
-          }
-
-          // Upcoming sessions list
-          var sessionsEl = document.getElementById('dashUpcomingSessions');
-          if (sessionsEl) {
-            if (upcoming.length === 0) {
-              sessionsEl.innerHTML = '<div class="p-4 text-center text-muted text-sm">Aucune s\u00e9ance \u00e0 venir</div>';
-            } else {
-              sessionsEl.innerHTML = upcoming.slice(0, 5).map(function(m) {
-                var d = m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('fr-FR') : '';
-                return '<a href="/meetings.htmx.html?id=' + encodeURIComponent(m.id) + '" class="irow"><div class="irow-body"><div class="irow-title">' + escapeHtml(m.title || 'S\u00e9ance #' + m.id) + '</div><div class="text-xs text-muted">' + d + '</div></div><span class="irow-arrow">\u203A</span></a>';
-              }).join('');
-            }
-          }
-
-          // Pending tasks list
-          var tasksEl = document.getElementById('dashPendingTasks');
-          if (tasksEl) {
-            var tasks = [];
-            if (closed.length > 0) tasks.push({ label: closed.length + ' s\u00e9ance(s) \u00e0 valider', href: '/postsession.htmx.html', icon: 'danger' });
-            if (live.length > 0) tasks.push({ label: live.length + ' s\u00e9ance(s) en cours', href: '/operator.htmx.html', icon: 'success' });
-            if (upcoming.length > 0) tasks.push({ label: upcoming.length + ' s\u00e9ance(s) \u00e0 pr\u00e9parer', href: '/meetings.htmx.html', icon: 'primary' });
-            if (tasks.length === 0) {
-              tasksEl.innerHTML = '<div class="p-4 text-center text-muted text-sm">Aucune t\u00e2che en attente</div>';
-            } else {
-              tasksEl.innerHTML = tasks.map(function(t) {
-                return '<a href="' + t.href + '" class="irow"><div class="irow-body"><div class="irow-title">' + t.label + '</div></div><span class="irow-arrow">\u203A</span></a>';
-              }).join('');
-            }
-          }
-        }
-      } catch(e) { /* dashboard section is optional, fail silently */ }
-    }
-    loadDashboardData();
-  })();
-
-  // --- Users KPI strip (dashboard) ---
-  (function initUserKpis() {
-    async function loadUserKpis() {
-      try {
-        var r = await api('/api/v1/admin_users.php');
-        if (r.body && r.body.ok && r.body.data) {
-          var users = r.body.data.items || [];
-          updateAdminUserKpis(users);
-        }
-      } catch(e) { /* user KPI strip is optional, fail silently */ }
-    }
-
-    function updateAdminUserKpis(users) {
-      var total = users.length;
-      var admins = users.filter(function(u) { return u.role === 'admin'; }).length;
-      var operators = users.filter(function(u) { return u.role === 'operator'; }).length;
-      var sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      var active = users.filter(function(u) { return u.last_login && new Date(u.last_login).getTime() > sevenDaysAgo; }).length;
-      var el;
-      el = document.getElementById('adminKpiUsers'); if (el) el.textContent = total;
-      el = document.getElementById('adminKpiAdmins'); if (el) el.textContent = admins;
-      el = document.getElementById('adminKpiOperators'); if (el) el.textContent = operators;
-      el = document.getElementById('adminKpiActive'); if (el) el.textContent = active;
-    }
-
-    loadUserKpis();
-  })();
-
-  // --- Tabs (with ARIA support) ---
-  document.querySelectorAll('.admin-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.admin-tab').forEach(function(t) {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      document.querySelectorAll('.admin-panel').forEach(function(p) { p.classList.remove('active'); });
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-    });
-  });
+  var roleLabelsSystem = Shared.ROLE_LABELS_SYSTEM;
 
   // ═══════════════════════════════════════════════════════
-  // USERS — Lightweight count summary only
-  // Full user management moved to /users.htmx.html
+  // KPI ROW — 4 cards: Members / Sessions / Votes / Active
+  // ═══════════════════════════════════════════════════════
+
+  async function loadAdminKpis() {
+    try {
+      var results = await Promise.all([
+        api('/api/v1/members'),
+        api('/api/v1/meetings.php'),
+        api('/api/v1/admin_users.php')
+      ]);
+
+      var membersRes = results[0];
+      var meetingsRes = results[1];
+      var usersRes = results[2];
+
+      // Members count
+      var membersEl = document.getElementById('adminKpiMembers');
+      if (membersEl && membersRes.body && membersRes.body.ok) {
+        var membersData = membersRes.body.data;
+        var membersCount = 0;
+        if (membersData && Array.isArray(membersData.items)) {
+          membersCount = membersData.items.length;
+        } else if (membersData && typeof membersData.total === 'number') {
+          membersCount = membersData.total;
+        }
+        membersEl.textContent = membersCount;
+      }
+
+      // Sessions + votes count
+      var sessionsEl = document.getElementById('adminKpiSessions');
+      var votesEl = document.getElementById('adminKpiVotes');
+      if (meetingsRes.body && meetingsRes.body.ok) {
+        var meetings = (meetingsRes.body.data && meetingsRes.body.data.items) || [];
+        if (sessionsEl) sessionsEl.textContent = meetings.length;
+        // Sum motions_count across meetings, or fall back to closed+validated count
+        var totalVotes = 0;
+        meetings.forEach(function(m) {
+          if (typeof m.motions_count === 'number') {
+            totalVotes += m.motions_count;
+          }
+        });
+        if (totalVotes === 0) {
+          // Fallback: count meetings that have concluded votes
+          totalVotes = meetings.filter(function(m) {
+            return m.status === 'closed' || m.status === 'validated' || m.status === 'archived';
+          }).length;
+        }
+        if (votesEl) votesEl.textContent = totalVotes;
+      }
+
+      // Active users count (last 7 days)
+      var activeEl = document.getElementById('adminKpiActive');
+      if (activeEl && usersRes.body && usersRes.body.ok) {
+        var users = (usersRes.body.data && usersRes.body.data.items) || [];
+        var sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        var activeCount = users.filter(function(u) {
+          return u.last_login && new Date(u.last_login).getTime() > sevenDaysAgo;
+        }).length;
+        activeEl.textContent = activeCount;
+      }
+
+    } catch (e) {
+      // KPI section is optional — fail silently
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // USERS MANAGEMENT
   // ═══════════════════════════════════════════════════════
   var _users = [];
   var _allUsers = [];
@@ -163,13 +97,6 @@
     var str = name || '';
     for (var i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
-  }
-
-  // --- Date formatting ---
-  function formatLastLogin(dateStr) {
-    if (!dateStr) return '<span class="text-muted">Jamais</span>';
-    var d = new Date(dateStr);
-    return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   }
 
   // --- Pagination state ---
@@ -192,15 +119,16 @@
   }
 
   function filterAndRenderUsers() {
-    const searchInput = document.getElementById('searchUser');
-    const search = searchInput ? searchInput.value.trim() : '';
+    var searchInput = document.getElementById('searchUser');
+    var filterRoleEl = document.getElementById('filterRole');
+    var search = searchInput ? searchInput.value.trim() : '';
+    var roleFilter = filterRoleEl ? filterRoleEl.value : '';
 
+    // Apply search filter
     if (search && window.Utils && Utils.fuzzyFilter) {
-      // Use fuzzy search for better matching
       _users = Utils.fuzzyFilter(_allUsers, search, ['name', 'email']);
     } else if (search) {
-      // Fallback to simple includes
-      const searchLower = search.toLowerCase();
+      var searchLower = search.toLowerCase();
       _users = _allUsers.filter(function(u) {
         return (u.name || '').toLowerCase().includes(searchLower) ||
                (u.email || '').toLowerCase().includes(searchLower);
@@ -209,19 +137,18 @@
       _users = _allUsers;
     }
 
-    const countEl = document.getElementById('usersCount');
+    // Apply role filter
+    if (roleFilter) {
+      _users = _users.filter(function(u) { return u.role === roleFilter; });
+    }
+
+    var countEl = document.getElementById('usersCount');
     if (countEl) {
       countEl.textContent = _users.length + ' utilisateur' + (_users.length !== 1 ? 's' : '');
     }
 
     _usersCurrentPage = 1;
     renderUsersTable(_users, _usersCurrentPage);
-  }
-
-  // Search input handler
-  var searchUserInput = document.getElementById('searchUser');
-  if (searchUserInput) {
-    searchUserInput.addEventListener('input', filterAndRenderUsers);
   }
 
   function renderUsersTable(users, page) {
@@ -242,7 +169,6 @@
     var end = Math.min(start + USERS_PER_PAGE, users.length);
     var pageUsers = users.slice(start, end);
 
-    // Role tag variants: admin=accent, operator=success, auditor=purple, viewer=(default)
     var roleTagVariant = { admin: 'accent', operator: 'success', auditor: 'purple', viewer: '' };
 
     container.innerHTML = pageUsers.map(function(u) {
@@ -289,7 +215,7 @@
     if (!infoEl || !pagesEl || !prevBtn || !nextBtn) return;
 
     if (!total) {
-      infoEl.textContent = '— utilisateurs';
+      infoEl.textContent = '\u2014 utilisateurs';
       pagesEl.innerHTML = '';
       prevBtn.disabled = true;
       nextBtn.disabled = true;
@@ -298,7 +224,6 @@
 
     infoEl.textContent = (start + 1) + '\u2013' + end + ' sur ' + total + ' utilisateur' + (total !== 1 ? 's' : '');
 
-    // Generate page number buttons
     var pages = '';
     for (var i = 1; i <= totalPages; i++) {
       var activeClass = i === currentPage ? ' active' : '';
@@ -310,11 +235,24 @@
     nextBtn.disabled = currentPage >= totalPages;
   }
 
-  // Pagination button handlers
-  var usersPrevBtn = document.getElementById('usersPrevPage');
-  var usersNextBtn = document.getElementById('usersNextPage');
-  var usersPagesEl = document.getElementById('usersPaginationPages');
+  // ═══════════════════════════════════════════════════════
+  // EVENT LISTENERS — all null-guarded
+  // ═══════════════════════════════════════════════════════
 
+  // Search input
+  var searchUserEl = document.getElementById('searchUser');
+  if (searchUserEl) {
+    searchUserEl.addEventListener('input', filterAndRenderUsers);
+  }
+
+  // Role filter
+  var filterRoleEl = document.getElementById('filterRole');
+  if (filterRoleEl) {
+    filterRoleEl.addEventListener('change', filterAndRenderUsers);
+  }
+
+  // Pagination prev/next
+  var usersPrevBtn = document.getElementById('usersPrevPage');
   if (usersPrevBtn) {
     usersPrevBtn.addEventListener('click', function() {
       if (_usersCurrentPage > 1) {
@@ -323,6 +261,7 @@
     });
   }
 
+  var usersNextBtn = document.getElementById('usersNextPage');
   if (usersNextBtn) {
     usersNextBtn.addEventListener('click', function() {
       var totalPages = Math.ceil(_users.length / USERS_PER_PAGE);
@@ -332,6 +271,7 @@
     });
   }
 
+  var usersPagesEl = document.getElementById('usersPaginationPages');
   if (usersPagesEl) {
     usersPagesEl.addEventListener('click', function(e) {
       var btn = e.target.closest('.pagination-page');
@@ -341,12 +281,10 @@
     });
   }
 
-  document.getElementById('filterRole').addEventListener('change', loadUsers);
-
-  // P7-3: Password strength indicator
-  var newPasswordInput = document.getElementById('newPassword');
-  if (newPasswordInput) {
-    newPasswordInput.addEventListener('input', function() {
+  // Password strength indicator
+  var newPasswordEl = document.getElementById('newPassword');
+  if (newPasswordEl) {
+    newPasswordEl.addEventListener('input', function() {
       var pw = this.value;
       var strengthEl = document.getElementById('passwordStrength');
       var fillEl = document.getElementById('passwordStrengthFill');
@@ -377,1073 +315,256 @@
   }
 
   // Inline validation on create user form
-  Shared.liveValidate(document.getElementById('newName'), [
-    { test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }
-  ]);
-  Shared.liveValidate(document.getElementById('newEmail'), [
-    { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
-    { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
-  ]);
-  Shared.liveValidate(document.getElementById('newPassword'), [
-    { test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }
-  ]);
-
-  // Create user
-  document.getElementById('btnCreateUser').addEventListener('click', async function() {
-    const btn = this;
-    var valid = Shared.validateAll([
-      { input: document.getElementById('newName'), rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
-      { input: document.getElementById('newEmail'), rules: [
-        { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
-        { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
-      ]},
-      { input: document.getElementById('newPassword'), rules: [{ test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }] }
+  var newNameEl = document.getElementById('newName');
+  if (newNameEl) {
+    Shared.liveValidate(newNameEl, [
+      { test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }
     ]);
-    if (!valid) return;
-    const name = document.getElementById('newName').value.trim();
-    const email = document.getElementById('newEmail').value.trim();
-    const role = document.getElementById('newRole').value;
-    const password = document.getElementById('newPassword').value;
-    Shared.btnLoading(btn, true);
-    try {
-      const r = await api('/api/v1/admin_users.php', {action:'create', name:name, email:email, role:role, password:password});
-      if (r.body && r.body.ok) {
-        setNotif('success', 'Utilisateur cr\u00e9\u00e9');
-        document.getElementById('newName').value = '';
-        document.getElementById('newEmail').value = '';
-        document.getElementById('newPassword').value = '';
-        Shared.fieldClear(document.getElementById('newName'));
-        Shared.fieldClear(document.getElementById('newEmail'));
-        Shared.fieldClear(document.getElementById('newPassword'));
-        var strengthEl = document.getElementById('passwordStrength');
-        if (strengthEl) strengthEl.hidden = true;
-        loadUsers();
-      } else {
-        setNotif('error', getApiError(r.body));
+  }
+  var newEmailEl = document.getElementById('newEmail');
+  if (newEmailEl) {
+    Shared.liveValidate(newEmailEl, [
+      { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+      { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+    ]);
+  }
+  var newPwEl = document.getElementById('newPassword');
+  if (newPwEl) {
+    Shared.liveValidate(newPwEl, [
+      { test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }
+    ]);
+  }
+
+  // Create user button — opens form modal or inline form submit
+  var btnCreateUserEl = document.getElementById('btnCreateUser');
+  if (btnCreateUserEl) {
+    btnCreateUserEl.addEventListener('click', async function() {
+      var btn = this;
+
+      // Check if inline form fields are filled — if not, open modal-style inline form
+      var nameEl = document.getElementById('newName');
+      var emailEl = document.getElementById('newEmail');
+      var pwEl = document.getElementById('newPassword');
+      var roleEl = document.getElementById('newRole');
+
+      // If fields empty / not visible, open modal form
+      if (!nameEl || !nameEl.value.trim()) {
+        // Toggle create form visibility (the form is in the DOM, just scroll to it)
+        var createForm = document.querySelector('.admin-create-form');
+        if (createForm) {
+          createForm.hidden = !createForm.hidden;
+          if (!createForm.hidden && nameEl) nameEl.focus();
+        }
+        return;
       }
-    } catch (e) { setNotif('error', e.message); }
-    finally { Shared.btnLoading(btn, false); }
-  });
+
+      var valid = Shared.validateAll([
+        { input: nameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+        { input: emailEl, rules: [
+          { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+          { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+        ]},
+        { input: pwEl, rules: [{ test: function(v) { return v.length >= 8; }, msg: 'Minimum 8 caract\u00e8res' }] }
+      ]);
+      if (!valid) return;
+
+      var name = nameEl.value.trim();
+      var email = emailEl.value.trim();
+      var role = roleEl ? roleEl.value : 'viewer';
+      var password = pwEl.value;
+
+      Shared.btnLoading(btn, true);
+      try {
+        var r = await api('/api/v1/admin_users.php', { action: 'create', name: name, email: email, role: role, password: password });
+        if (r.body && r.body.ok) {
+          setNotif('success', 'Utilisateur cr\u00e9\u00e9');
+          nameEl.value = '';
+          emailEl.value = '';
+          pwEl.value = '';
+          Shared.fieldClear(nameEl);
+          Shared.fieldClear(emailEl);
+          Shared.fieldClear(pwEl);
+          var strengthEl = document.getElementById('passwordStrength');
+          if (strengthEl) strengthEl.hidden = true;
+          loadUsers();
+        } else {
+          setNotif('error', getApiError(r.body));
+        }
+      } catch (e) { setNotif('error', e.message); }
+      finally { Shared.btnLoading(btn, false); }
+    });
+  }
 
   // Delegated clicks on users list
-  document.getElementById('usersListContainer').addEventListener('click', async function(e) {
-    let btn;
+  var usersListContainerEl = document.getElementById('usersListContainer');
+  if (usersListContainerEl) {
+    usersListContainerEl.addEventListener('click', async function(e) {
+      var btn;
 
-    // Toggle active
-    btn = e.target.closest('.btn-toggle-user');
-    if (btn) {
-      const active = btn.dataset.active === '1' ? 0 : 1;
-      const label = active ? 'activer' : 'désactiver';
-      const toggleBtn = btn;
-      Shared.openModal({
-        title: (active ? 'Activer' : 'Désactiver') + ' l\'utilisateur',
-        body: '<p>Voulez-vous ' + label + ' cet utilisateur ?</p>',
-        confirmText: active ? 'Activer' : 'Désactiver',
-        onConfirm: async function() {
-          Shared.btnLoading(toggleBtn, true);
-          try {
-            var { body } = await api('/api/v1/admin_users.php', {action:'toggle', user_id:toggleBtn.dataset.id, is_active:active});
-            if (!body?.ok) { setNotif('error', body?.error || 'Erreur'); return; }
-            loadUsers();
-          } catch(err) { setNotif('error', err.message); }
-          finally { Shared.btnLoading(toggleBtn, false); }
-        }
-      });
-      return;
-    }
-
-    // Set password
-    btn = e.target.closest('.btn-password-user');
-    if (btn) {
-      const userId = btn.dataset.id;
-      const userName = btn.dataset.name || '';
-      Shared.openModal({
-        title: 'Définir le mot de passe — ' + userName,
-        body:
-          '<div class="form-group mb-4">' +
-            '<label class="form-label">Nouveau mot de passe</label>' +
-            '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 caractères" autocomplete="new-password">' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label class="form-label">Confirmer le mot de passe</label>' +
-            '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
-          '</div>',
-        confirmText: 'Enregistrer',
-        onConfirm: async function(modal) {
-          const pw = modal.querySelector('#setPassword').value;
-          const confirm = modal.querySelector('#confirmPassword').value;
-          if (!pw || pw.length < 8) { Shared.fieldError(modal.querySelector('#setPassword'), 'Minimum 8 caractères'); return false; }
-          if (pw !== confirm) { Shared.fieldError(modal.querySelector('#confirmPassword'), 'Les mots de passe ne correspondent pas'); return false; }
-          try {
-            var r = await api('/api/v1/admin_users.php', {action:'set_password', user_id:userId, password:pw});
-            if (r.body && r.body.ok) { setNotif('success', 'Mot de passe défini'); loadUsers(); }
-            else { setNotif('error', getApiError(r.body)); return false; }
-          } catch(err) { setNotif('error', err.message); return false; }
-        }
-      });
-      return;
-    }
-
-    // Delete user
-    btn = e.target.closest('.btn-delete-user');
-    if (btn) {
-      const userName = btn.dataset.name || 'cet utilisateur';
-      const delBtn = btn;
-      Shared.openModal({
-        title: 'Supprimer l\'utilisateur',
-        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
-          '<p>Supprimer définitivement <strong>' + escapeHtml(userName) + '</strong> ?</p>',
-        confirmText: 'Supprimer',
-        confirmClass: 'btn btn-danger',
-        onConfirm: async function() {
-          Shared.btnLoading(delBtn, true);
-          try {
-            var r = await api('/api/v1/admin_users.php', {action:'delete', user_id:delBtn.dataset.id});
-            if (r.body && r.body.ok) {
-              setNotif('success', 'Utilisateur supprimé');
-              loadUsers();
-            } else {
-              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
-            }
-          } catch(err) { setNotif('error', err.message); }
-          finally { Shared.btnLoading(delBtn, false); }
-        }
-      });
-      return;
-    }
-
-    // Edit user (modal dialog)
-    btn = e.target.closest('.btn-edit-user');
-    if (btn) {
-      const user = _users.find(function(u) { return u.id === btn.dataset.id; });
-      if (!user) return;
-
-      const roleOptions = Object.keys(roleLabelsSystem).map(function(k) {
-        const sel = k === user.role ? ' selected' : '';
-        return '<option value="' + k + '"' + sel + '>' + escapeHtml(roleLabelsSystem[k]) + '</option>';
-      }).join('');
-
-      Shared.openModal({
-        title: 'Modifier l\'utilisateur',
-        body:
-          '<div class="form-group mb-4">' +
-            '<label class="form-label">Nom</label>' +
-            '<input class="form-input" type="text" id="editName" value="' + escapeHtml(user.name || '') + '">' +
-          '</div>' +
-          '<div class="form-group mb-4">' +
-            '<label class="form-label">E-mail</label>' +
-            '<input class="form-input" type="email" id="editEmail" value="' + escapeHtml(user.email || '') + '">' +
-          '</div>' +
-          '<div class="form-group">' +
-            '<label class="form-label">Rôle système</label>' +
-            '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
-          '</div>',
-        confirmText: 'Enregistrer',
-        onConfirm: async function(modal) {
-          var editNameEl = modal.querySelector('#editName');
-          var editEmailEl = modal.querySelector('#editEmail');
-          var valid = Shared.validateAll([
-            { input: editNameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
-            { input: editEmailEl, rules: [
-              { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
-              { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
-            ]}
-          ]);
-          if (!valid) return false;
-          const newName = editNameEl.value.trim();
-          const newEmail = editEmailEl.value.trim();
-          const newRole = modal.querySelector('#editRole').value;
-          try {
-            var r = await api('/api/v1/admin_users.php', {action:'update', user_id:user.id, name:newName, email:newEmail, role:newRole});
-            if (r.body && r.body.ok) { setNotif('success', 'Utilisateur mis à jour'); loadUsers(); }
-            else { setNotif('error', getApiError(r.body)); return false; }
-          } catch(err) { setNotif('error', err.message); return false; }
-        }
-      });
-      return;
-    }
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // MEETING ROLES
-  // ═══════════════════════════════════════════════════════
-  let _meetings = [];
-  let _allUsers = []; // populated by loadMeetingSelects for bulk role assignment
-
-  /**
-   * Check if element is an ag-searchable-select component.
-   * @param {Element} el - DOM element to check
-   * @returns {boolean} True if element is a searchable select
-   */
-  function isSearchableSelect(el) {
-    return el && el.tagName && el.tagName.toLowerCase() === 'ag-searchable-select';
-  }
-
-  async function loadMeetingSelects() {
-    try {
-      const r = await api('/api/v1/meetings.php?active_only=1');
-      if (r.body && r.body.ok && r.body.data) {
-        _meetings = r.body.data.items || [];
-        const meetingSel = document.getElementById('mrMeeting');
-        const statusMap = Shared.MEETING_STATUS_MAP || {};
-
-        if (isSearchableSelect(meetingSel)) {
-          // Use ag-searchable-select API
-          const options = _meetings.map(function(m) {
-            const st = (statusMap[m.status] || {}).text || m.status;
-            return {
-              value: m.id,
-              label: m.title || 'Séance',
-              sublabel: st
-            };
-          });
-          meetingSel.setOptions(options);
-        } else {
-          // Fallback to native select
-          meetingSel.innerHTML = '<option value="">— Sélectionner —</option>' +
-            _meetings.map(function(m) {
-              const st = (statusMap[m.status] || {}).text || m.status;
-              return '<option value="' + m.id + '">' + escapeHtml(m.title) + ' (' + escapeHtml(st) + ')</option>';
-            }).join('');
-        }
-      }
-    } catch(e) { setNotif('error', 'Erreur chargement séances'); }
-
-    // Populate user select from full users list
-    try {
-      const r2 = await api('/api/v1/admin_users.php');
-      if (r2.body && r2.body.ok && r2.body.data) {
-        const users = r2.body.data.items || [];
-        _allUsers = users; // kept for bulk role assignment
-        const userSel = document.getElementById('mrUser');
-
-        if (isSearchableSelect(userSel)) {
-          // Use ag-searchable-select API
-          const options = users.filter(function(u) { return u.is_active; }).map(function(u) {
-            return {
-              value: u.id,
-              label: u.name || 'Utilisateur',
-              sublabel: u.email + ' — ' + (roleLabelsSystem[u.role] || u.role)
-            };
-          });
-          userSel.setOptions(options);
-        } else {
-          // Fallback to native select
-          userSel.innerHTML = '<option value="">— Sélectionner —</option>' +
-            users.filter(function(u) { return u.is_active; }).map(function(u) {
-              return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' (' + escapeHtml(roleLabelsSystem[u.role] || u.role) + ')</option>';
-            }).join('');
-        }
-      }
-    } catch(e) { setNotif('error', 'Erreur chargement utilisateurs'); }
-  }
-
-  async function loadMeetingRoles() {
-    const meetingId = document.getElementById('mrMeeting').value;
-    const tbody = document.getElementById('meetingRolesBody');
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Chargement...</td></tr>';
-
-    try {
-      const url = '/api/v1/admin_meeting_roles.php' + (meetingId ? '?meeting_id=' + encodeURIComponent(meetingId) : '');
-      const r = await api(url);
-      if (r.body && r.body.ok && r.body.data) {
-        const items = r.body.data.items || [];
-        if (!items.length) {
-          tbody.innerHTML = '<tr><td colspan="4">' + Shared.emptyState({ icon: 'meetings', title: 'Aucun rôle attribué', description: 'Sélectionnez une séance et assignez des rôles depuis le formulaire ci-dessus.' }) + '</td></tr>';
-          return;
-        }
-        tbody.innerHTML = items.map(function(row) {
-          const meetingTitle = row.meeting_title || row.meeting_id || '';
-          const userName = row.user_name || row.name || row.user_id || '';
-          const role = row.role || '';
-          return '<tr>' +
-            '<td>' + escapeHtml(meetingTitle) + '</td>' +
-            '<td><strong>' + escapeHtml(userName) + '</strong></td>' +
-            '<td><span class="role-badge ' + escapeHtml(role) + '">' + escapeHtml(roleLabelsSeance[role] || role) + '</span></td>' +
-            '<td><button class="btn btn-ghost btn-xs btn-danger-text btn-revoke-role" ' +
-              'data-meeting-id="' + escapeHtml(row.meeting_id || '') + '" ' +
-              'data-user-id="' + escapeHtml(row.user_id || '') + '" ' +
-              'data-role="' + escapeHtml(role) + '">Révoquer</button></td></tr>';
-        }).join('');
-      }
-    } catch(e) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">Erreur de chargement</td></tr>';
-    }
-  }
-
-  // Filter roles when meeting selection changes
-  document.getElementById('mrMeeting').addEventListener('change', loadMeetingRoles);
-
-  // P7-security: Hide president option from non-admin operators
-  function filterPresidentOption() {
-    var auth = window.Auth || {};
-    if (auth.role === 'admin') return; // admins see all
-    var mrRole = document.getElementById('mrRole');
-    if (mrRole) {
-      var presOpt = mrRole.querySelector('option[value="president"]');
-      if (presOpt) presOpt.remove();
-    }
-  }
-  if (window.Auth && window.Auth.ready) {
-    window.Auth.ready.then(filterPresidentOption);
-  } else {
-    filterPresidentOption();
-  }
-
-  // Assign role
-  document.getElementById('btnAssignRole').addEventListener('click', async function() {
-    const btn = this;
-    const meetingId = document.getElementById('mrMeeting').value;
-    const userId = document.getElementById('mrUser').value;
-    const role = document.getElementById('mrRole').value;
-    if (!meetingId || !userId) { setNotif('error', 'Séance et utilisateur requis'); return; }
-    Shared.btnLoading(btn, true);
-    try {
-      const r = await api('/api/v1/admin_meeting_roles.php', {action:'assign', meeting_id:meetingId, user_id:userId, role:role});
-      if (r.body && r.body.ok) {
-        setNotif('success', 'Rôle attribué');
-        loadMeetingRoles();
-        loadUsers(); // refresh meeting roles column in users table
-      } else {
-        setNotif('error', getApiError(r.body));
-      }
-    } catch(e) { setNotif('error', e.message); }
-    finally { Shared.btnLoading(btn, false); }
-  });
-
-  // Revoke role (delegated)
-  document.getElementById('meetingRolesBody').addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-revoke-role');
-    if (!btn) return;
-    const revokeBtn = btn;
-    const roleName = allRoleLabels[btn.dataset.role] || btn.dataset.role;
-    Shared.openModal({
-      title: 'Révoquer le rôle',
-      body: '<p>Révoquer le rôle <strong>' + escapeHtml(roleName) + '</strong> de cet utilisateur pour cette séance ?</p>',
-      confirmText: 'Révoquer',
-      confirmClass: 'btn btn-danger',
-      onConfirm: async function() {
-        Shared.btnLoading(revokeBtn, true);
-        try {
-          var r = await api('/api/v1/admin_meeting_roles.php', {
-            action: 'revoke',
-            meeting_id: revokeBtn.dataset.meetingId,
-            user_id: revokeBtn.dataset.userId,
-            role: revokeBtn.dataset.role
-          });
-          if (r.body && r.body.ok) {
-            setNotif('success', 'Rôle révoqué');
-            loadMeetingRoles();
-            loadUsers();
-          } else {
-            setNotif('error', getApiError(r.body));
-          }
-        } catch(err) { setNotif('error', err.message); }
-        finally { Shared.btnLoading(revokeBtn, false); }
-      }
-    });
-  });
-
-  // P7-4: Bulk role assignment
-  document.getElementById('btnBulkAssign').addEventListener('click', function() {
-    const meetingId = document.getElementById('mrMeeting').value;
-    if (!meetingId) { setNotif('error', 'Sélectionnez d\'abord une séance'); return; }
-
-    const activeUsers = _allUsers.filter(function(u) { return u.is_active; });
-    if (!activeUsers.length) { setNotif('error', 'Aucun utilisateur actif'); return; }
-
-    const checkboxes = activeUsers.map(function(u) {
-      return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;cursor:pointer;">' +
-        '<input type="checkbox" value="' + escapeHtml(u.id) + '" class="bulk-user-cb"> ' +
-        escapeHtml(u.name) + ' <span style="color:var(--color-text-muted);font-size:0.85rem;">(' + escapeHtml(u.email) + ')</span>' +
-        '</label>';
-    }).join('');
-
-    var isAdmin = window.Auth && window.Auth.role === 'admin';
-    var bulkRoleOptions =
-      '<option value="voter">Électeur</option>' +
-      '<option value="assessor">Assesseur</option>' +
-      (isAdmin ? '<option value="president">Président</option>' : '');
-
-    Shared.openModal({
-      title: 'Assignation en masse',
-      body:
-        '<div class="form-group">' +
-          '<label class="form-label">Rôle à attribuer</label>' +
-          '<select class="form-input" id="bulkRole">' + bulkRoleOptions + '</select>' +
-        '</div>' +
-        '<div class="form-group">' +
-          '<label class="form-label">Utilisateurs</label>' +
-          '<div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">' +
-            '<button type="button" class="btn btn-ghost btn-xs" id="bulkSelectAll">Tout sélectionner</button>' +
-            '<button type="button" class="btn btn-ghost btn-xs" id="bulkSelectNone">Tout désélectionner</button>' +
-          '</div>' +
-          '<div style="max-height:300px;overflow:auto;border:1px solid var(--color-border);border-radius:8px;padding:0.5rem;" id="bulkUserList">' +
-            checkboxes +
-          '</div>' +
-        '</div>',
-      confirmText: 'Assigner',
-      onConfirm: async function(modal) {
-        var role = document.getElementById('bulkRole').value;
-        var checked = document.querySelectorAll('.bulk-user-cb:checked');
-        if (!checked.length) { setNotif('error', 'S\u00e9lectionnez au moins un utilisateur'); return false; }
-
-        // Disable confirm button and show progress
-        var confirmBtn = modal.querySelector('.modal-confirm-btn');
-        if (confirmBtn) Shared.btnLoading(confirmBtn, true);
-
-        var success = 0;
-        var errors = 0;
-        var errorNames = [];
-        var total = checked.length;
-
-        for (var i = 0; i < total; i++) {
-          var userId = checked[i].value;
-          var userName = checked[i].parentElement.textContent.trim().split('(')[0].trim();
-          try {
-            var r = await api('/api/v1/admin_meeting_roles.php', {
-              action: 'assign', meeting_id: meetingId, user_id: userId, role: role
-            });
-            if (r.body && r.body.ok) success++;
-            else { errors++; errorNames.push(userName); }
-          } catch(e) { errors++; errorNames.push(userName); }
-        }
-
-        if (confirmBtn) Shared.btnLoading(confirmBtn, false);
-
-        if (success > 0) setNotif('success', success + ' r\u00f4le' + (success > 1 ? 's' : '') + ' attribu\u00e9' + (success > 1 ? 's' : ''));
-        if (errors > 0) {
-          var detail = errorNames.length <= 3 ? errorNames.join(', ') : errorNames.slice(0,3).join(', ') + '\u2026';
-          setNotif('error', errors + ' \u00e9chec' + (errors > 1 ? 's' : '') + ' : ' + detail);
-        }
-        loadMeetingRoles();
-        loadUsers();
-      }
-    });
-
-    // Wire up select all / none after modal is in DOM
-    setTimeout(function() {
-      var allBtn = document.getElementById('bulkSelectAll');
-      var noneBtn = document.getElementById('bulkSelectNone');
-      if (allBtn) allBtn.addEventListener('click', function() {
-        document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = true; });
-      });
-      if (noneBtn) noneBtn.addEventListener('click', function() {
-        document.querySelectorAll('.bulk-user-cb').forEach(function(cb) { cb.checked = false; });
-      });
-    }, 60);
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // POLICIES — VOTE
-  // ═══════════════════════════════════════════════════════
-  let _votePolicies = [];
-
-  async function loadVotePolicies() {
-    try {
-      const r = await api('/api/v1/admin_vote_policies.php');
-      if (r.body && r.body.ok && r.body.data && Array.isArray(r.body.data.items)) {
-        _votePolicies = r.body.data.items;
-        renderVoteList(_votePolicies);
-      }
-    } catch(e) {
-      setNotif('error', 'Erreur chargement politiques de vote');
-      var c = document.getElementById('voteList');
-      if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-    }
-  }
-
-  function renderVoteList(items) {
-    const el = document.getElementById('voteList');
-    if (!items.length) {
-      el.innerHTML = Shared.emptyState({ icon: 'votes', title: 'Aucune politique de vote', description: 'Créez une politique depuis le formulaire ci-dessus.' });
-      return;
-    }
-    el.innerHTML = items.map(function(p) {
-      return '<div class="policy-card">' +
-        '<div class="policy-icon vote">' +
-          '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' +
-        '</div>' +
-        '<div class="policy-info">' +
-          '<div class="policy-header">' +
-            '<div class="policy-name">' + escapeHtml(p.name) + '</div>' +
-            '<span class="policy-status-badge active">Active</span>' +
-          '</div>' +
-          '<div class="policy-details">' +
-            escapeHtml(p.description || '') +
-            (p.base ? ' | base : ' + escapeHtml(p.base) : '') +
-            ' | seuil : ' + Math.round((p.threshold||0)*100) + '%' +
-            (p.abstention_as_against ? ' | abstention=contre' : '') +
-          '</div>' +
-        '</div>' +
-        '<div class="policy-actions">' +
-          '<ag-tooltip text="Modifier"><button class="btn btn-ghost btn-icon btn-xs btn-edit-vote" data-id="' + escapeHtml(p.id) + '"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></ag-tooltip>' +
-          '<ag-tooltip text="Supprimer"><button class="btn btn-ghost btn-icon btn-xs btn-danger-text btn-delete-vote" data-id="' + escapeHtml(p.id) + '" data-name="' + escapeHtml(p.name) + '"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></ag-tooltip>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function openVoteModal(policy) {
-    const isEdit = !!policy;
-    const p = policy || {};
-
-    const baseOptions = ['expressed','total_eligible'].map(function(b) {
-      const sel = b === (p.base || 'expressed') ? ' selected' : '';
-      return '<option value="' + b + '"' + sel + '>' + b + '</option>';
-    }).join('');
-
-    Shared.openModal({
-      title: isEdit ? 'Modifier la politique de vote' : 'Nouvelle politique de vote',
-      body:
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Nom</label>' +
-          '<input class="form-input" type="text" id="vpName" value="' + escapeHtml(p.name || '') + '">' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Description</label>' +
-          '<input class="form-input" type="text" id="vpDesc" value="' + escapeHtml(p.description || '') + '">' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Base de calcul</label>' +
-          '<select class="form-input" id="vpBase">' + baseOptions + '</select>' +
-        '</div>' +
-        '<div class="form-group mb-3">' +
-          '<label class="form-label">Seuil (0 à 1)</label>' +
-          '<input class="form-input" type="number" id="vpThreshold" min="0" max="1" step="0.01" value="' + (p.threshold != null ? p.threshold : '0.5') + '">' +
-        '</div>' +
-        '<label class="flex items-center gap-2 text-sm">' +
-          '<input type="checkbox" id="vpAbstention"' + (p.abstention_as_against ? ' checked' : '') + '>' +
-          ' Compter les abstentions comme contre' +
-        '</label>',
-      confirmText: isEdit ? 'Enregistrer' : 'Créer',
-      onConfirm: async function(modal) {
-        const name = modal.querySelector('#vpName').value.trim();
-        if (!name) { setNotif('error', 'Nom requis'); return false; }
-        var thresholdVal = parseFloat(modal.querySelector('#vpThreshold').value);
-        if (isNaN(thresholdVal) || thresholdVal < 0 || thresholdVal > 1) {
-          setNotif('error', 'Le seuil doit être compris entre 0 et 1'); return false;
-        }
-        const payload = {
-          name: name,
-          description: modal.querySelector('#vpDesc').value.trim(),
-          base: modal.querySelector('#vpBase').value,
-          threshold: thresholdVal,
-          abstention_as_against: modal.querySelector('#vpAbstention').checked ? 1 : 0
-        };
-        if (isEdit) payload.id = p.id;
-        try {
-          var r = await api('/api/v1/admin_vote_policies.php', payload);
-          if (r.body && r.body.ok) { setNotif('success', isEdit ? 'Politique mise à jour' : 'Politique créée'); loadVotePolicies(); }
-          else { setNotif('error', getApiError(r.body)); return false; }
-        } catch(err) { setNotif('error', err.message); return false; }
-      }
-    });
-  }
-
-  document.getElementById('btnAddVote').addEventListener('click', function() { openVoteModal(null); });
-
-  document.getElementById('voteList').addEventListener('click', async function(e) {
-    // Edit
-    var btn = e.target.closest('.btn-edit-vote');
-    if (btn) {
-      const policy = _votePolicies.find(function(p) { return p.id === btn.dataset.id; });
-      if (policy) openVoteModal(policy);
-      return;
-    }
-    // Delete
-    btn = e.target.closest('.btn-delete-vote');
-    if (btn) {
-      const name = btn.dataset.name || 'cette politique';
-      const delBtn = btn;
-      Shared.openModal({
-        title: 'Supprimer la politique de vote',
-        body: '<div class="alert alert-danger mb-3"><strong>Action irréversible</strong></div>' +
-          '<p>Supprimer la politique « <strong>' + escapeHtml(name) + '</strong> » ?</p>',
-        confirmText: 'Supprimer',
-        confirmClass: 'btn btn-danger',
-        onConfirm: async function() {
-          Shared.btnLoading(delBtn, true);
-          try {
-            var r = await api('/api/v1/admin_vote_policies.php', {action:'delete', id:delBtn.dataset.id});
-            if (r.body && r.body.ok) {
-              setNotif('success', 'Politique supprimée');
-              loadVotePolicies();
-            } else {
-              setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
-            }
-          } catch(err) { setNotif('error', err.message); }
-          finally { Shared.btnLoading(delBtn, false); }
-        }
-      });
-    }
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // PERMISSIONS MATRIX
-  // ═══════════════════════════════════════════════════════
-  async function loadRoles() {
-    try {
-      const r = await api('/api/v1/admin_roles.php');
-      if (!r.body || !r.body.ok) return;
-      const d = r.body.data;
-
-      // System roles info
-      const sysInfo = Object.entries(d.system_roles || {}).map(function(e) {
-        const cnt = (d.users_by_system_role || []).find(function(x) { return x.role === e[0]; });
-        return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
-          '<span class="role-badge ' + e[0] + '">' + escapeHtml(e[1]) + '</span>' +
-          '<span class="text-sm text-muted">' + ((cnt && cnt.count) || 0) + ' utilisateur(s)</span></div>';
-      }).join('');
-      document.getElementById('systemRolesInfo').innerHTML = sysInfo;
-
-      // Meeting roles info
-      const mtgInfo = Object.entries(d.meeting_roles || {}).map(function(e) {
-        const cnt = (d.meeting_role_counts || []).find(function(x) { return x.role === e[0]; });
-        return '<div class="flex items-center justify-between py-2 border-b" style="border-color:var(--color-border-subtle)">' +
-          '<span class="role-badge ' + e[0] + '">' + escapeHtml(e[1]) + '</span>' +
-          '<span class="text-sm text-muted">' + ((cnt && cnt.users) || 0) + ' personne(s), ' + ((cnt && cnt.meetings) || 0) + ' séance(s)</span></div>';
-      }).join('');
-      document.getElementById('meetingRolesInfo').innerHTML = mtgInfo;
-
-      // Permission matrix
-      const perms = d.permissions_by_role || {};
-      const allPermsSet = {};
-      const roleOrder = ['admin','operator','auditor','viewer','president','assessor','voter'];
-      roleOrder.forEach(function(role) {
-        (perms[role] || []).forEach(function(p) { allPermsSet[p.permission] = true; });
-      });
-      const allPerms = Object.keys(allPermsSet).sort();
-
-      // Group by resource
-      const groups = {};
-      allPerms.forEach(function(p) {
-        const parts = p.split(':');
-        const g = parts[0];
-        if (!groups[g]) groups[g] = [];
-        groups[g].push(p);
-      });
-
-      const permsByRole = {};
-      roleOrder.forEach(function(role) {
-        permsByRole[role] = {};
-        (perms[role] || []).forEach(function(p) { permsByRole[role][p.permission] = true; });
-      });
-
-      let html = '<table class="perm-matrix"><thead><tr><th>Droit</th>';
-      roleOrder.forEach(function(role) {
-        const isSys = !!roleLabelsSystem[role];
-        html += '<th><span class="role-badge ' + role + '">' + escapeHtml(allRoleLabels[role] || role) + '</span><br><span class="text-xs text-muted">' + (isSys ? 'S' : 'M') + '</span></th>';
-      });
-      html += '</tr></thead><tbody>';
-
-      Object.keys(groups).sort().forEach(function(g) {
-        html += '<tr><td colspan="' + (roleOrder.length + 1) + '" style="background:var(--color-bg-subtle);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;padding:6px 8px">' + escapeHtml(g) + '</td></tr>';
-        groups[g].forEach(function(perm) {
-          html += '<tr><td>' + escapeHtml(perm) + '</td>';
-          roleOrder.forEach(function(role) {
-            html += '<td>' + (permsByRole[role][perm] ? '<span class="perm-check"><svg class="icon icon-sm"><use href="/assets/icons.svg#icon-check"></use></svg></span>' : '<span class="perm-none">-</span>') + '</td>';
-          });
-          html += '</tr>';
-        });
-      });
-      html += '</tbody></table>';
-      document.getElementById('permMatrix').innerHTML = html;
-
-      // Permission matrix search filtering
-      const permSearchEl = document.getElementById('permSearch');
-      if (permSearchEl) {
-        permSearchEl.addEventListener('input', function() {
-          const query = this.value.toLowerCase().trim();
-          const rows = document.querySelectorAll('#permMatrix table tbody tr');
-          rows.forEach(function(row) {
-            const text = row.textContent.toLowerCase();
-            // Always show group header rows (they have colspan)
-            const isGroupHeader = row.querySelector('td[colspan]');
-            if (isGroupHeader) {
-              row.style.display = '';
-              return;
-            }
-            row.style.display = (!query || text.includes(query)) ? '' : 'none';
-          });
-        });
-      }
-
-    } catch (e) {
-      setNotif('error', 'Erreur chargement rôles');
-      ['permMatrix', 'systemRolesInfo', 'meetingRolesInfo'].forEach(function(id) {
-        var c = document.getElementById(id);
-        if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-      });
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // STATE MACHINE
-  // ═══════════════════════════════════════════════════════
-  async function loadStates() {
-    try {
-      const r = await api('/api/v1/admin_roles.php');
-      if (!r.body || !r.body.ok) return;
-      const d = r.body.data;
-      const statuses = d.statuses || {};
-      const transitions = d.state_transitions || [];
-
-      // State icons
-      const stateIcons = {
-        'draft': icon('file-text', 'icon-sm'),
-        'scheduled': icon('calendar', 'icon-sm'),
-        'frozen': icon('lock', 'icon-sm'),
-        'live': icon('circle', 'icon-sm'),
-        'closed': icon('check-circle', 'icon-sm'),
-        'validated': icon('clipboard-list', 'icon-sm'),
-        'archived': icon('archive', 'icon-sm')
-      };
-
-      // Flow diagram with visual styling
-      const flow = ['draft','scheduled','frozen','live','closed','validated','archived'];
-      document.getElementById('stateFlow').innerHTML = flow.map(function(s, i) {
-        const label = statuses[s] || s;
-        const icon = stateIcons[s] || '';
-        return (i > 0 ? '<span class="state-arrow-visual" aria-hidden="true"></span>' : '') +
-          '<span class="state-node-visual ' + escapeHtml(s) + '">' + icon + ' ' + escapeHtml(label) + '</span>';
-      }).join('');
-
-      // Transitions table with visual states
-      document.getElementById('transitionsBody').innerHTML = transitions.map(function(t) {
-        const fromIcon = stateIcons[t.from_status] || '';
-        const toIcon = stateIcons[t.to_status] || '';
-        return '<tr>' +
-          '<td><span class="state-node-visual state-node-sm ' + escapeHtml(t.from_status) + '">' + fromIcon + ' ' + escapeHtml(statuses[t.from_status] || t.from_status) + '</span></td>' +
-          '<td><span class="state-node-visual state-node-sm ' + escapeHtml(t.to_status) + '">' + toIcon + ' ' + escapeHtml(statuses[t.to_status] || t.to_status) + '</span></td>' +
-          '<td><span class="role-badge ' + escapeHtml(t.required_role) + '">' + escapeHtml(allRoleLabels[t.required_role] || t.required_role) + '</span></td>' +
-          '<td class="text-sm">' + escapeHtml(t.description || '') + '</td></tr>';
-      }).join('');
-
-      // Load state stats + archived meetings (single API call)
-      loadStateStatsAndArchived();
-
-    } catch (e) {
-      setNotif('error', 'Erreur chargement états');
-      ['stateFlow', 'transitionsBody'].forEach(function(id) {
-        var c = document.getElementById(id);
-        if (c) c.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-      });
-    }
-  }
-
-  // Load statistics by state + archived meetings list (single API call)
-  async function loadStateStatsAndArchived() {
-    var list = document.getElementById('archivedMeetingsList');
-    try {
-      var r = await api('/api/v1/meetings.php');
-      if (r.body && r.body.ok && r.body.data) {
-        var meetings = r.body.data.items || [];
-
-        // --- State stats ---
-        var counts = {
-          draft: 0, scheduled: 0, frozen: 0, live: 0, closed: 0, validated: 0, archived: 0
-        };
-        meetings.forEach(function(m) {
-          if (counts.hasOwnProperty(m.status)) counts[m.status]++;
-        });
-
-        var statsEl = document.getElementById('stateStats');
-        statsEl.innerHTML = '<div class="flex flex-wrap gap-3">' +
-          Object.entries(counts).map(function(e) {
-            var status = e[0];
-            var count = e[1];
-            return '<div class="flex items-center gap-2">' +
-              '<span class="state-node-visual ' + status + '" style="padding:0.25rem 0.5rem;font-size:0.75rem">' + count + '</span>' +
-            '</div>';
-          }).join('') +
-        '</div>';
-
-        // --- Archived meetings ---
-        var archived = meetings.filter(function(m) { return m.status === 'archived'; });
-        if (!archived.length) {
-          list.innerHTML = '<div class="text-center p-4 text-muted">Aucune séance archivée</div>';
-          return;
-        }
-        list.innerHTML = archived.map(function(m) {
-          var date = m.archived_at ? new Date(m.archived_at).toLocaleDateString('fr-FR') : '—';
-          return '<div class="system-stat" style="padding:0.75rem 1rem;">' +
-            '<div style="flex:1;">' +
-              '<strong>' + escapeHtml(m.title || m.slug || '') + '</strong>' +
-              '<div class="text-xs text-muted">Archivée le ' + date + '</div>' +
-            '</div>' +
-            '<button class="btn btn-ghost btn-xs btn-unarchive" data-meeting-id="' + escapeHtml(m.id) + '" data-title="' + escapeHtml(m.title || '') + '">Dé-archiver</button>' +
-          '</div>';
-        }).join('');
-
-        list.querySelectorAll('.btn-unarchive').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            var meetingId = btn.dataset.meetingId;
-            var title = btn.dataset.title;
-            Shared.openModal({
-              title: 'Dé-archiver la séance',
-              body: '<p>Restaurer <strong>' + escapeHtml(title) + '</strong> vers l\'état « Validée » ?</p>' +
-                    '<p class="text-sm text-muted">Cela permet de corriger ou re-valider la séance avant de l\'archiver à nouveau.</p>',
-              confirmText: 'Dé-archiver',
-              onConfirm: async function() {
-                try {
-                  var r = await api('/api/v1/meeting_transition.php', {
-                    meeting_id: meetingId,
-                    to_status: 'validated'
-                  });
-                  if (r.body && r.body.ok) {
-                    setNotif('success', 'Séance dé-archivée');
-                    loadStateStatsAndArchived();
-                  } else {
-                    setNotif('error', getApiError(r.body));
-                  }
-                } catch(e) { setNotif('error', e.message); }
+      // Toggle active
+      btn = e.target.closest('.btn-toggle-user');
+      if (btn) {
+        var active = btn.dataset.active === '1' ? 0 : 1;
+        var label = active ? 'activer' : 'd\u00e9sactiver';
+        var toggleBtn = btn;
+        Shared.openModal({
+          title: (active ? 'Activer' : 'D\u00e9sactiver') + ' l\'utilisateur',
+          body: '<p>Voulez-vous ' + label + ' cet utilisateur ?</p>',
+          confirmText: active ? 'Activer' : 'D\u00e9sactiver',
+          onConfirm: async function() {
+            Shared.btnLoading(toggleBtn, true);
+            try {
+              var r = await api('/api/v1/admin_users.php', { action: 'toggle', user_id: toggleBtn.dataset.id, is_active: active });
+              if (r.body && r.body.ok) {
+                loadUsers();
+              } else {
+                setNotif('error', getApiError(r.body));
               }
-            });
-          });
+            } catch (err) { setNotif('error', err.message); }
+            finally { Shared.btnLoading(toggleBtn, false); }
+          }
         });
+        return;
       }
-    } catch(e) {
-      list.innerHTML = '<div class="text-center p-4 text-muted">Erreur de chargement</div>';
-    }
-  }
 
-  // ═══════════════════════════════════════════════════════
-  // SYSTEM STATUS
-  // ═══════════════════════════════════════════════════════
-  async function loadSystemStatus() {
-    try {
-      const r = await api('/api/v1/admin_system_status.php');
-      if (r.body && r.body.ok && r.body.data) {
-        const s = r.body.data.system || r.body.data;
-        document.getElementById('statDbStatus').textContent = 'Connectée';
-        document.getElementById('statDbStatus').className = 'system-stat-value text-success';
-        document.getElementById('statDbLatency').textContent = s.db_latency_ms != null ? s.db_latency_ms + ' ms' : '—';
-        document.getElementById('statDbConnections').textContent = s.db_active_connections || '—';
-        document.getElementById('statActiveMeetings').textContent = s.active_meetings || '—';
-        document.getElementById('statTotalMeetings').textContent = s.count_meetings || '—';
-        document.getElementById('statTotalMembers').textContent = s.total_members || '—';
-        document.getElementById('statPhpVersion').textContent = s.php_version || '—';
-        document.getElementById('statMemory').textContent = s.memory_usage || '—';
-        document.getElementById('systemStatus').className = 'badge badge-success badge-dot';
-        document.getElementById('systemStatus').textContent = 'En ligne';
-
-        // --- Health KPI strip updates ---
-        // Color-code latency with accessible labels
-        var latencyText = s.db_latency_ms != null ? s.db_latency_ms + ' ms' : '—';
-        var latencyVal = parseFloat(latencyText);
-        var latencyDot = document.getElementById('healthLatencyDot');
-        var latencyDisplay = document.getElementById('healthLatencyValue');
-        if (latencyDot && latencyDisplay) {
-          latencyDisplay.textContent = latencyText;
-          if (latencyVal < 50) {
-            latencyDot.className = 'admin-health-icon success';
-            latencyDot.setAttribute('aria-label', 'Bonne latence');
-          } else if (latencyVal < 200) {
-            latencyDot.className = 'admin-health-icon warning';
-            latencyDot.setAttribute('aria-label', 'Latence moyenne');
-          } else {
-            latencyDot.className = 'admin-health-icon danger';
-            latencyDot.setAttribute('aria-label', 'Latence élevée');
+      // Set password
+      btn = e.target.closest('.btn-password-user');
+      if (btn) {
+        var userId = btn.dataset.id;
+        var userName = btn.dataset.name || '';
+        Shared.openModal({
+          title: 'D\u00e9finir le mot de passe \u2014 ' + escapeHtml(userName),
+          body:
+            '<div class="form-group mb-4">' +
+              '<label class="form-label">Nouveau mot de passe</label>' +
+              '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 caract\u00e8res" autocomplete="new-password">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Confirmer le mot de passe</label>' +
+              '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
+            '</div>',
+          confirmText: 'Enregistrer',
+          onConfirm: async function(modal) {
+            var pw = modal.querySelector('#setPassword').value;
+            var confirm = modal.querySelector('#confirmPassword').value;
+            if (!pw || pw.length < 8) { Shared.fieldError(modal.querySelector('#setPassword'), 'Minimum 8 caract\u00e8res'); return false; }
+            if (pw !== confirm) { Shared.fieldError(modal.querySelector('#confirmPassword'), 'Les mots de passe ne correspondent pas'); return false; }
+            try {
+              var r = await api('/api/v1/admin_users.php', { action: 'set_password', user_id: userId, password: pw });
+              if (r.body && r.body.ok) {
+                setNotif('success', 'Mot de passe d\u00e9fini');
+                loadUsers();
+              } else {
+                setNotif('error', getApiError(r.body));
+                return false;
+              }
+            } catch (err) { setNotif('error', err.message); return false; }
           }
-        }
-
-        // Color-code memory with accessible labels
-        // memory_usage is in MB (e.g. "12.3 MB"), use MB-based thresholds
-        var memoryText = s.memory_usage || '—';
-        var memoryDot = document.getElementById('healthMemoryDot');
-        var memoryDisplay = document.getElementById('healthMemoryValue');
-        if (memoryDot && memoryDisplay) {
-          memoryDisplay.textContent = memoryText;
-          var memMB = parseFloat(memoryText) || 0;
-          if (memMB < 64) {
-            memoryDot.className = 'admin-health-icon success';
-            memoryDot.setAttribute('aria-label', 'Mémoire normale');
-          } else if (memMB < 128) {
-            memoryDot.className = 'admin-health-icon warning';
-            memoryDot.setAttribute('aria-label', 'Mémoire élevée');
-          } else {
-            memoryDot.className = 'admin-health-icon danger';
-            memoryDot.setAttribute('aria-label', 'Mémoire critique');
-          }
-          // Memory progress bar — cap at 256 MB for bar scale
-          var memBar = document.getElementById('healthMemoryBar');
-          if (memBar) {
-            var memoryPercent = Math.min(Math.round((memMB / 256) * 100), 100);
-            memBar.style.width = memoryPercent + '%';
-            memBar.className = 'admin-health-bar-fill ' + (memMB >= 128 ? 'danger' : memMB >= 64 ? 'warning' : 'success');
-          }
-        }
-
-        // Active meetings count
-        var meetingsDisplay = document.getElementById('healthMeetingsValue');
-        if (meetingsDisplay) {
-          meetingsDisplay.textContent = s.active_meetings || '0';
-        }
-
-        // System alerts
-        var alertsContainer = document.getElementById('systemAlerts');
-        var alerts = r.body.data.alerts || [];
-        if (alertsContainer) {
-          if (!alerts.length) {
-            alertsContainer.innerHTML = Shared.emptyState({ icon: 'generic', title: 'Aucune alerte récente', description: 'Le système fonctionne normalement.' });
-          } else {
-            alertsContainer.innerHTML = alerts.map(function(a) {
-              var sevClass = a.severity === 'critical' ? 'danger' : (a.severity === 'warn' ? 'warning' : 'info');
-              var ts = a.created_at ? new Date(a.created_at).toLocaleString('fr-FR') : '';
-              return '<div class="system-stat" style="padding:0.6rem 1rem;">' +
-                '<span class="admin-health-icon ' + sevClass + '" style="flex-shrink:0">●</span>' +
-                '<div style="flex:1;">' +
-                  '<span class="text-sm font-medium">' + escapeHtml(a.message || a.code) + '</span>' +
-                  (ts ? '<div class="text-xs text-muted">' + ts + '</div>' : '') +
-                '</div>' +
-              '</div>';
-            }).join('');
-          }
-        }
-      } else {
-        document.getElementById('statDbStatus').textContent = 'Erreur';
-        document.getElementById('statDbStatus').className = 'system-stat-value text-danger';
-        document.getElementById('systemStatus').className = 'badge badge-danger';
-        document.getElementById('systemStatus').textContent = 'Erreur';
+        });
+        return;
       }
-    } catch (e) {
-      document.getElementById('statDbStatus').textContent = 'Hors ligne';
-      document.getElementById('statDbStatus').className = 'system-stat-value text-danger';
-      document.getElementById('systemStatus').className = 'badge badge-danger';
-      document.getElementById('systemStatus').textContent = 'Erreur';
-    }
-  }
 
-  // ═══════════════════════════════════════════════════════
-  // RESET DEMO — P7-1: Strong confirmation modal
-  // ═══════════════════════════════════════════════════════
-  document.getElementById('btnResetDemo').addEventListener('click', function() {
-    const btn = this;
-    Shared.openModal({
-      title: 'Réinitialisation complète des données',
-      body:
-        '<div class="alert alert-danger mb-4">' +
-          '<strong>ATTENTION : Cette action est IRRÉVERSIBLE.</strong><br>' +
-          'Toutes les séances, résolutions, votes et présences seront <strong>définitivement supprimés</strong>.<br>' +
-          'Seuls les utilisateurs et la configuration seront conservés.' +
-        '</div>' +
-        '<div class="form-group">' +
-          '<label class="form-label">Tapez <strong>REINITIALISER</strong> pour confirmer</label>' +
-          '<input class="form-input" type="text" id="resetConfirmText" placeholder="REINITIALISER" autocomplete="off" spellcheck="false">' +
-        '</div>',
-      confirmText: 'Réinitialiser',
-      confirmClass: 'btn btn-danger',
-      onConfirm: async function(modal) {
-        var text = modal.querySelector('#resetConfirmText').value.trim();
-        if (text !== 'REINITIALISER') {
-          setNotif('error', 'Tapez exactement REINITIALISER pour confirmer');
-          return false;
-        }
-        Shared.btnLoading(btn, true);
-        try {
-          var r = await api('/api/v1/admin_reset_demo.php', { confirm: 'RESET' });
-          if (r.body && r.body.ok) {
-            var n = r.body.data?.reset_count || r.body.reset_count || 0;
-            setNotif('success', n + ' séance(s) réinitialisée(s)');
-            refreshAll();
-          } else { setNotif('error', getApiError(r.body)); }
-        } catch(e) { setNotif('error', e.message); }
-        finally { Shared.btnLoading(btn, false); }
+      // Delete user
+      btn = e.target.closest('.btn-delete-user');
+      if (btn) {
+        var delUserName = btn.dataset.name || 'cet utilisateur';
+        var delBtn = btn;
+        Shared.openModal({
+          title: 'Supprimer l\'utilisateur',
+          body: '<div class="alert alert-danger mb-3"><strong>Action irr\u00e9versible</strong></div>' +
+            '<p>Supprimer d\u00e9finitivement <strong>' + escapeHtml(delUserName) + '</strong> ?</p>',
+          confirmText: 'Supprimer',
+          confirmClass: 'btn btn-danger',
+          onConfirm: async function() {
+            Shared.btnLoading(delBtn, true);
+            try {
+              var r = await api('/api/v1/admin_users.php', { action: 'delete', user_id: delBtn.dataset.id });
+              if (r.body && r.body.ok) {
+                setNotif('success', 'Utilisateur supprim\u00e9');
+                loadUsers();
+              } else {
+                setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+              }
+            } catch (err) { setNotif('error', err.message); }
+            finally { Shared.btnLoading(delBtn, false); }
+          }
+        });
+        return;
+      }
+
+      // Edit user
+      btn = e.target.closest('.btn-edit-user');
+      if (btn) {
+        var user = _users.find(function(u) { return u.id === btn.dataset.id; });
+        if (!user) return;
+
+        var roleOptions = Object.keys(roleLabelsSystem).map(function(k) {
+          var sel = k === user.role ? ' selected' : '';
+          return '<option value="' + k + '"' + sel + '>' + escapeHtml(roleLabelsSystem[k]) + '</option>';
+        }).join('');
+
+        Shared.openModal({
+          title: 'Modifier l\'utilisateur',
+          body:
+            '<div class="form-group mb-4">' +
+              '<label class="form-label">Nom</label>' +
+              '<input class="form-input" type="text" id="editName" value="' + escapeHtml(user.name || '') + '">' +
+            '</div>' +
+            '<div class="form-group mb-4">' +
+              '<label class="form-label">E-mail</label>' +
+              '<input class="form-input" type="email" id="editEmail" value="' + escapeHtml(user.email || '') + '">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">R\u00f4le syst\u00e8me</label>' +
+              '<select class="form-input" id="editRole">' + roleOptions + '</select>' +
+            '</div>',
+          confirmText: 'Enregistrer',
+          onConfirm: async function(modal) {
+            var editNameEl = modal.querySelector('#editName');
+            var editEmailEl = modal.querySelector('#editEmail');
+            var valid = Shared.validateAll([
+              { input: editNameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
+              { input: editEmailEl, rules: [
+                { test: function(v) { return v.length > 0; }, msg: 'L\u2019e-mail est requis' },
+                { test: function(v) { return Utils.isValidEmail(v); }, msg: 'Format d\u2019e-mail invalide' }
+              ]}
+            ]);
+            if (!valid) return false;
+            var newName = editNameEl.value.trim();
+            var newEmail = editEmailEl.value.trim();
+            var newRole = modal.querySelector('#editRole').value;
+            try {
+              var r = await api('/api/v1/admin_users.php', { action: 'update', user_id: user.id, name: newName, email: newEmail, role: newRole });
+              if (r.body && r.body.ok) {
+                setNotif('success', 'Utilisateur mis \u00e0 jour');
+                loadUsers();
+              } else {
+                setNotif('error', getApiError(r.body));
+                return false;
+              }
+            } catch (err) { setNotif('error', err.message); return false; }
+          }
+        });
+        return;
       }
     });
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // P7-2: ADMIN AUDIT LOG — moved to /audit.htmx.html
-  // DOM elements removed; function is a no-op to avoid errors
-  // when called from refreshAll().
-  // ═══════════════════════════════════════════════════════
-  function loadAdminAuditLog() {
-    // Audit log has been extracted to the dedicated /audit.htmx.html page.
-    // This stub is kept so refreshAll() callers do not throw errors.
   }
 
   // ═══════════════════════════════════════════════════════
-  // REFRESH ALL
+  // REFRESH BUTTON
   // ═══════════════════════════════════════════════════════
-  function refreshAll() {
-    loadUsers();
-    loadMeetingSelects().then(loadMeetingRoles);
-    // loadQuorumPolicies() extracted to settings.js (Phase 13-01)
-    loadVotePolicies();
-    loadRoles();
-    loadStates();
-    loadSystemStatus();
-    loadAdminAuditLog();
-  }
-
-  document.getElementById('btnRefresh').addEventListener('click', refreshAll);
-
-  // ═══════════════════════════════════════════════════════
-  // GUIDE DRAWER
-  // ═══════════════════════════════════════════════════════
-  if (window.ShellDrawer && window.ShellDrawer.register) {
-    window.ShellDrawer.register('guide', 'Guide', function(mid, body) {
-      body.innerHTML =
-        '<div style="display:flex;flex-direction:column;gap:16px;padding:4px 0;">' +
-          '<div><div style="font-weight:600;margin-bottom:8px">Modèle de rôles</div>' +
-            '<div class="text-sm"><strong>Rôles système</strong> (permanents) :<br>' +
-            'Admin, Opérateur, Auditeur, Observateur<br><br>' +
-            '<strong>Rôles de séance</strong> (par séance) :<br>' +
-            'Président, Assesseur, Électeur<br><br>' +
-            'Un opérateur peut être président d\'une séance et assesseur d\'une autre.</div></div>' +
-          '<div><div style="font-weight:600;margin-bottom:8px">Machine à états</div>' +
-            '<div class="text-sm">Brouillon &rarr; Planifiée &rarr; Verrouillée &rarr; En cours &rarr; Clôturée &rarr; Validée &rarr; Archivée<br><br>' +
-            'Le président verrouille, ouvre, clôture et valide.<br>L\'admin archive et peut dégeler.</div></div>' +
-          '<div><div style="font-weight:600;margin-bottom:8px">Setup DB</div>' +
-            '<pre class="text-xs" style="background:var(--color-bg-subtle,#f5f5f5);padding:8px;border-radius:6px;overflow-x:auto">sudo bash database/setup.sh</pre></div>' +
-        '</div>';
+  var btnRefreshEl = document.getElementById('btnRefresh');
+  if (btnRefreshEl) {
+    btnRefreshEl.addEventListener('click', function() {
+      loadAdminKpis();
+      loadUsers();
     });
   }
 
-  // Initial load
-  refreshAll();
-})();
+  // ═══════════════════════════════════════════════════════
+  // INITIAL LOAD
+  // ═══════════════════════════════════════════════════════
+  loadAdminKpis();
+  loadUsers();
 
-// ═══════════════════════════════════════════════════════
-// ACCESSIBILITY: TEXT SIZE & HIGH CONTRAST (localStorage)
-// ═══════════════════════════════════════════════════════
-
-// Text size selector
-(function initTextSize() {
-  var saved = localStorage.getItem('ag-vote-text-size') || 'normal';
-  applyTextSize(saved);
-
-  var selector = document.getElementById('textSizeSelector');
-  if (!selector) return;
-  selector.querySelectorAll('.text-size-btn').forEach(function(btn) {
-    if (btn.dataset.size === saved) btn.classList.add('active');
-    else btn.classList.remove('active');
-    btn.addEventListener('click', function() {
-      selector.querySelectorAll('.text-size-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      applyTextSize(btn.dataset.size);
-      localStorage.setItem('ag-vote-text-size', btn.dataset.size);
-    });
-  });
-})();
-
-function applyTextSize(size) {
-  document.documentElement.classList.remove('text-size-large', 'text-size-xlarge');
-  if (size === 'large') document.documentElement.classList.add('text-size-large');
-  else if (size === 'xlarge') document.documentElement.classList.add('text-size-xlarge');
-}
-
-// High contrast toggle
-(function initHighContrast() {
-  var saved = localStorage.getItem('ag-vote-high-contrast') === 'true';
-  document.documentElement.setAttribute('data-high-contrast', saved);
-  var toggle = document.getElementById('settHighContrast');
-  if (!toggle) return;
-  toggle.checked = saved;
-  toggle.addEventListener('change', function() {
-    document.documentElement.setAttribute('data-high-contrast', toggle.checked);
-    localStorage.setItem('ag-vote-high-contrast', toggle.checked);
-  });
 })();
