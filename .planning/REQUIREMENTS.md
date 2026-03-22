@@ -22,7 +22,7 @@
 ### Backend Wiring (WIRE)
 
 - [x] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data, no broken HTMX targets
-- [ ] **WIRE-02**: SSE connections verified on operator and voter pages — live updates flow correctly
+- [x] **WIRE-02**: SSE connections verified on operator and voter pages — live updates flow correctly
 - [x] **WIRE-03**: Form submissions verified — wizard creates sessions, settings save, user CRUD works
 
 ## v4.4+ Requirements (Deferred)
@@ -54,7 +54,7 @@
 | REB-05 | Phase 47 — Hub Rebuild | Pending |
 | REB-06 | Phase 48 — Settings/Admin Rebuild | Pending |
 | WIRE-01 | Phases 43–48 (distributed across all rebuilds) | Complete |
-| WIRE-02 | Phase 46 — Operator Console Rebuild | Pending |
+| WIRE-02 | Phase 46 — Operator Console Rebuild | Complete |
 | WIRE-03 | Phase 45 — Wizard Rebuild | Complete |
 
 **Coverage:**
