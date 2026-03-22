@@ -476,7 +476,7 @@
             badge.textContent = '+' + delta + ' \u25b2';
             badge.hidden = false;
             if (_deltaFadeTimer) clearTimeout(_deltaFadeTimer);
-            _deltaFadeTimer = setTimeout(function() { badge.hidden = true; }, 10000);
+            _deltaFadeTimer = setTimeout(function() { badge.hidden = true; }, 3000);
           }
         }
         _prevVoteTotal = totalBallots;
