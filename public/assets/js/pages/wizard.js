@@ -89,12 +89,27 @@
 
   /* ── Step navigation ─────────────────────────────── */
 
-  function showStep(n) {
-    currentStep = n;
-    for (var i = 0; i < totalSteps; i++) {
-      var el = document.getElementById('step' + i);
-      if (el) el.style.display = i === n ? '' : 'none';
+  function showStep(n, skipAnimation) {
+    // Hide all error banners when navigating
+    ['errBannerStep0', 'errBannerStep1', 'errBannerStep2'].forEach(function(id) {
+      var b = document.getElementById(id);
+      if (b) b.setAttribute('hidden', '');
+    });
+
+    var prev = document.getElementById('step' + currentStep);
+    if (prev && n !== currentStep && !skipAnimation) {
+      prev.classList.add('slide-out');
+      setTimeout(function() {
+        prev.classList.remove('active', 'slide-out');
+      }, 180);
+    } else if (prev && n !== currentStep) {
+      // Skip animation (draft restore, first load)
+      prev.classList.remove('active');
     }
+    currentStep = n;
+    var next = document.getElementById('step' + n);
+    if (next) next.classList.add('active');
+
     updateStepper();
 
     // Update step counter (WIZARD-03: "Etape X sur 4")
@@ -177,8 +192,8 @@
       renderMembersList();
       renderResoList();
 
-      // Resume at saved step
-      showStep(draft.step || 0);
+      // Resume at saved step — skip animation to avoid flash on page load
+      showStep(draft.step || 0, true);
     } catch (e) { /* corrupted draft — ignore */ }
   }
 
@@ -234,6 +249,31 @@
       if (hhEl)     hhEl.classList.toggle('field-error', !timeOk);
       if (mmEl)     mmEl.classList.toggle('field-error', !timeOk);
       if (errTime)  errTime.classList.toggle('visible', !timeOk);
+
+      // Populate and show/hide the step-level error banner
+      var errors = [];
+      if (!titleOk) errors.push('Le titre est obligatoire');
+      if (!dateOk)  errors.push('La date est obligatoire');
+      if (!timeOk)  errors.push("L'heure est obligatoire (HH:MM)");
+      var banner0 = document.getElementById('errBannerStep0');
+      var bannerText0 = document.getElementById('errBannerStep0Text');
+      if (errors.length > 0) {
+        if (bannerText0) bannerText0.textContent = errors.join(' \u2022 ');
+        if (banner0) banner0.removeAttribute('hidden');
+      } else {
+        if (banner0) banner0.setAttribute('hidden', '');
+      }
+    }
+  }
+
+  function showBanner(step, message) {
+    var banner = document.getElementById('errBannerStep' + step);
+    var bannerText = document.getElementById('errBannerStep' + step + 'Text');
+    if (banner && message) {
+      if (bannerText) bannerText.textContent = message;
+      banner.removeAttribute('hidden');
+    } else if (banner) {
+      banner.setAttribute('hidden', '');
     }
   }
 
@@ -1025,7 +1065,7 @@
       var mmEl = document.getElementById('wizTimeMM');
       if (hhEl && !hhEl.value) hhEl.value = '18';
       if (mmEl && !mmEl.value) mmEl.value = '00';
-      showStep(0);
+      showStep(0, true);
     }
   }
 
