@@ -1,10 +1,9 @@
-/* GO-LIVE-STATUS: ready — Hub JS. 6 étapes guidées, stepper cliquable, checklist. */
+/* GO-LIVE-STATUS: ready — Hub JS. 3-item checklist, quorum bar, lifecycle CTAs. */
 /**
- * Hub — Fiche séance (6-step guided flow).
- * Shows one action at a time, tracks progress.
- * Phase 8.2: horizontal status bar (HUB-01), standalone checklist (HUB-04),
- *             dynamic action card (HUB-02), KPI CSS classes (HUB-03),
- *             documents panel CSS classes (HUB-05), toast pickup from wizard.
+ * Hub — Fiche séance.
+ * Loads session data from wizard_status API, renders 3-item prerequisite checklist,
+ * quorum bar, motions preview, and wires lifecycle CTA buttons.
+ * Phase 47-02: updated for new HTML structure (hub-hero + two-column body).
  */
 (function () {
   'use strict';
@@ -18,60 +17,6 @@
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
-
-  /* ── Step definitions (from wireframe HUB_STEPS) ──── */
-
-  var HUB_STEPS = [
-    {
-      id: 'preparation', num: 1,
-      titre: 'Pr\u00e9parer la s\u00e9ance',
-      titreAction: 'Compl\u00e9ter les informations',
-      descAction: 'Ajoutez les derniers d\u00e9tails manquants : lieu, heure, r\u00e9solutions restantes.',
-      icon: 'edit', color: 'var(--color-primary)', dest: '/wizard.htmx.html',
-      btnLabel: 'Ouvrir la pr\u00e9paration'
-    },
-    {
-      id: 'convocations', num: 2,
-      titre: 'Envoyer les convocations',
-      titreAction: 'Envoyer les 12 convocations restantes',
-      descAction: '55 participants ont d\u00e9j\u00e0 re\u00e7u la convocation. Il reste 12 envois \u00e0 d\u00e9clencher avant le 22/02/2026.',
-      icon: 'send', color: 'var(--color-warning)', dest: null,
-      btnLabel: 'Envoyer les convocations',
-      btnPreview: true
-    },
-    {
-      id: 'presences', num: 3,
-      titre: 'Pointer les pr\u00e9sences',
-      titreAction: 'Accueillir les participants',
-      descAction: 'La s\u00e9ance commence. Enregistrez les arriv\u00e9es et les procurations au fur et \u00e0 mesure.',
-      icon: 'users', color: 'var(--color-primary)', dest: '/operator.htmx.html',
-      btnLabel: 'Ouvrir le pointage'
-    },
-    {
-      id: 'vote', num: 4,
-      titre: 'Piloter les votes',
-      titreAction: 'La s\u00e9ance est en cours',
-      descAction: 'Les votes sont ouverts. Pilotez chaque r\u00e9solution depuis l\u2019espace op\u00e9rateur en direct.',
-      icon: 'play', color: 'var(--color-danger)', dest: '/operator.htmx.html',
-      btnLabel: 'Rejoindre la s\u00e9ance en direct'
-    },
-    {
-      id: 'cloture', num: 5,
-      titre: 'Cl\u00f4turer et envoyer le PV',
-      titreAction: 'Finaliser et archiver',
-      descAction: 'La s\u00e9ance est termin\u00e9e. Validez le PV, apposez la signature \u00e9lectronique et envoyez.',
-      icon: 'file-text', color: 'var(--color-purple)', dest: '/postsession.htmx.html',
-      btnLabel: 'G\u00e9n\u00e9rer et envoyer le PV'
-    },
-    {
-      id: 'archive', num: 6,
-      titre: 'S\u00e9ance archiv\u00e9e',
-      titreAction: 'S\u00e9ance archiv\u00e9e',
-      descAction: 'Tout est termin\u00e9. Le PV est envoy\u00e9 et archiv\u00e9.',
-      icon: 'archive', color: 'var(--color-success)', dest: '/archives.htmx.html',
-      btnLabel: 'Consulter l\u2019archive'
-    }
-  ];
 
   var SVG_ICONS = {
     'edit': '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
@@ -93,203 +38,110 @@
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + escapeHtml(color) + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
   }
 
-  var currentStep = 1; // Default to convocations step
+  /* ── 3-item checklist rendering ────────────────── */
 
-  /* ── Horizontal colorful status bar (HUB-01) ─── */
-
-  function renderStatusBar() {
-    var bar = document.getElementById('hubStatusBar');
-    if (!bar) return;
-    var html = '';
-    HUB_STEPS.forEach(function (s, i) {
-      var isDone = i < currentStep;
-      var isActive = i === currentStep;
-      // Dynamic color is the only acceptable inline style here (JS-driven)
-      var color = isDone ? 'var(--color-success)' : isActive ? s.color : 'var(--color-border)';
-      var cls = 'hub-bar-segment' + (isActive ? ' active' : isDone ? ' done' : '');
-      html += '<div class="' + cls + '" style="background:' + color + '" title="' + escapeHtml(s.titre) + '">' +
-        '<span class="hub-bar-label">' + escapeHtml(s.titre) + '</span>' +
-      '</div>';
-    });
-    bar.innerHTML = html;
-  }
-
-  /* ── Standalone preparation checklist (HUB-04) ─── */
-
-  var CHECKLIST_ITEMS = [
-    { key: 'title',        label: 'Titre d\u00e9fini',           autoCheck: function (d) { return !!d.title; }, blockedReason: null },
-    { key: 'date',         label: 'Date fix\u00e9e',              autoCheck: function (d) { return !!d.date; }, blockedReason: null },
-    { key: 'members',      label: 'Membres ajout\u00e9s',         autoCheck: function (d) { return d.memberCount > 0; }, blockedReason: null },
-    { key: 'resolutions',  label: 'R\u00e9solutions cr\u00e9\u00e9es',  autoCheck: function (d) { return d.resolutionCount > 0; }, blockedReason: null },
-    { key: 'convocations', label: 'Convocations envoy\u00e9es',   autoCheck: function (d) { return d.convocationsSent; },
-      blockedReason: function(d) {
-        if (!d.memberCount) return 'Disponible apr\u00e8s ajout des membres';
-        if (!d.resolutionCount) return 'Disponible apr\u00e8s ajout des r\u00e9solutions';
-        return null;
-      }
-    },
-    { key: 'documents',    label: 'Documents attach\u00e9s',      autoCheck: function (d) { return d.documentCount > 0; },
-      blockedReason: function(d) {
-        if (!d.resolutionCount) return 'Disponible apr\u00e8s ajout des r\u00e9solutions';
-        return null;
-      }
-    }
-  ];
-
-  function renderChecklist(sessionData) {
+  function renderChecklist(sessionData, invitationStats, workflowData) {
     var container = document.getElementById('hubChecklist');
     if (!container) return;
     container.removeAttribute('aria-busy');
 
-    var done = 0;
-    var itemsHtml = '';
+    var meetingStatus = sessionData.status || '';
+    var isFrozenOrLater = ['frozen', 'live', 'paused', 'closed', 'validated', 'archived'].indexOf(meetingStatus) !== -1;
 
-    CHECKLIST_ITEMS.forEach(function (item) {
-      var checked = item.autoCheck(sessionData);
-      if (checked) done++;
-      itemsHtml += '<div class="hub-check-item' + (checked ? ' done' : '') + '">' +
-        '<div class="hub-check-icon">' + (checked ? svgIcon('check', 12, '#fff') : '') + '</div>' +
-        '<span class="hub-check-label">' + escapeHtml(item.label) + '</span>' +
-        (function() {
-          if (checked) return '<span class="hub-check-done-badge">Fait</span>';
-          var reason = item.blockedReason ? item.blockedReason(sessionData) : null;
-          if (reason) return '<span class="hub-check-blocked">' + escapeHtml(reason) + '</span>';
-          return '<span class="hub-check-todo">\u00c0 faire</span>';
-        })() +
-      '</div>';
-    });
+    // Item 1: convocations
+    var convocDone = !!(invitationStats && invitationStats.sent > 0 && invitationStats.pending === 0);
+    var convocBlocked = false;
+    var convocReason = '';
+    if (!convocDone && invitationStats && invitationStats.pending > 0) {
+      convocReason = invitationStats.pending + ' convocation(s) encore en attente';
+    } else if (!convocDone && invitationStats && invitationStats.sent === 0) {
+      convocReason = 'Aucune convocation envoy\u00e9e';
+    }
 
-    var pct = Math.round(done / CHECKLIST_ITEMS.length * 100);
-    // Dynamic width is the only acceptable inline style here (JS-driven progress)
-    container.innerHTML =
-      '<div class="hub-checklist-header">' +
-        '<span class="hub-checklist-title">Pr\u00e9paration</span>' +
-        '<span class="hub-checklist-progress-text">' + done + ' / ' + CHECKLIST_ITEMS.length + '</span>' +
-      '</div>' +
-      '<div class="hub-checklist-bar">' +
-        '<div class="hub-checklist-bar-fill" style="--bar-pct:' + pct + '%"></div>' +
-      '</div>' +
-      itemsHtml;
-  }
+    // Item 2: quorum
+    var quorumDone = !!(sessionData.quorumMet === true);
+    var quorumReason = '';
+    if (!quorumDone && sessionData.presentCount !== undefined && sessionData.quorumRequired !== undefined) {
+      quorumReason = sessionData.presentCount + ' pr\u00e9sent(s) sur ' + sessionData.quorumRequired + ' requis';
+    }
 
-  /* ── Render stepper ──────────────────────────────── */
-
-  function renderStepper() {
-    var container = document.getElementById('hubStepper');
-    if (!container) return;
-
-    var html = '';
-    HUB_STEPS.forEach(function (s, i) {
-      var isDone = i < currentStep;
-      var isActive = i === currentStep;
-      var numClass = isDone ? ' done' : isActive ? ' active' : '';
-      var numContent = isDone ? svgIcon('check', 16, '#fff') : String(s.num);
-
-      html += '<button class="hub-step-row" data-step="' + i + '"' +
-        (isActive ? ' aria-current="step"' : '') +
-        ' aria-label="' + (isDone ? '\u00c9tape termin\u00e9e\u00a0: ' : 'Aller \u00e0 ') + escapeHtml(s.titre) + '">' +
-        '<div class="hub-step-num' + numClass + '">' + numContent + '</div>' +
-        '<div class="hub-step-text">' +
-          '<div class="hub-step-title' + (isDone ? ' done' : isActive ? ' active' : '') + '">' + escapeHtml(s.titre) + '</div>' +
-          (isActive ? '<div class="hub-step-here">\u25b6 \u00c9tape en cours</div>' : '') +
-        '</div>' +
-      '</button>';
-
-      if (i < HUB_STEPS.length - 1) {
-        html += '<div class="hub-step-line' + (isDone ? ' done' : '') + '"></div>';
-      }
-    });
-    container.innerHTML = html;
-
-    // Bind clicks
-    container.querySelectorAll('.hub-step-row').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var step = parseInt(btn.getAttribute('data-step'), 10);
-        if (!isNaN(step)) {
-          currentStep = step;
-          render();
+    // Item 3: agenda locked
+    var agendaDone = isFrozenOrLater;
+    var agendaReason = '';
+    if (!agendaDone) {
+      // Check workflow data for issues
+      if (workflowData && workflowData.transitions && workflowData.transitions.frozen) {
+        var frozenTransition = workflowData.transitions.frozen;
+        if (!frozenTransition.can_proceed && frozenTransition.issues && frozenTransition.issues.length > 0) {
+          agendaReason = frozenTransition.issues[0].msg || '';
         }
-      });
-    });
-  }
-
-  /* ── Render action card (HUB-02) ──────────────────── */
-
-  function renderAction() {
-    var step = HUB_STEPS[currentStep];
-    if (!step) return;
-
-    var icon = document.getElementById('hubActionIcon');
-    var svg = document.getElementById('hubActionSvg');
-    var title = document.getElementById('hubActionTitle');
-    var desc = document.getElementById('hubActionDesc');
-    var btn = document.getElementById('hubMainBtn');
-    var preview = document.getElementById('hubPreviewBtn');
-
-    // Dynamic background color per stage — acceptable inline style from JS
-    if (icon) icon.style.background = step.color;
-    if (svg) svg.innerHTML = SVG_ICONS[step.icon] || SVG_ICONS['circle'];
-    if (title) title.textContent = step.titreAction;
-    if (desc) desc.textContent = step.descAction;
-
-    if (btn) {
-      btn.textContent = step.btnLabel;
-      if (step.dest) {
-        btn.href = step.dest;
-        btn.style.cursor = '';
-      } else {
-        btn.removeAttribute('href');
-        btn.style.cursor = 'pointer';
       }
     }
 
-    if (preview) {
-      preview.hidden = !step.btnPreview;
-    }
-  }
+    var items = [
+      { check: 'convocation', done: convocDone, blocked: convocBlocked, reason: convocReason },
+      { check: 'quorum',      done: quorumDone, blocked: false,         reason: quorumReason },
+      { check: 'agenda',      done: agendaDone, blocked: false,         reason: agendaReason }
+    ];
 
-  /* ── Render KPI cards (HUB-03) ──────────────────── */
+    var doneCount = 0;
+    items.forEach(function(item) { if (item.done) doneCount++; });
 
-  function renderKpis(data) {
-    var fields = {
-      hubKpiParticipants: data.kpiParticipants || '-',
-      hubKpiVoix:         data.kpiVoix || '- voix',
-      hubKpiResolutions:  data.kpiResolutions || '-',
-      hubKpiResoDetail:   data.kpiResoDetail || '',
-      hubKpiQuorum:       data.kpiQuorum || '-',
-      hubKpiQuorumDetail: data.kpiQuorumDetail || '',
-      hubKpiConvoc:       data.kpiConvoc || '-',
-      hubKpiConvocDetail: data.kpiConvocDetail || ''
-    };
-    Object.keys(fields).forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = fields[id];
+    // Update progress badge
+    var progressEl = document.getElementById('hubChecklistProgress');
+    if (progressEl) progressEl.textContent = doneCount + '/3';
+
+    // Update each checklist item in the pre-rendered HTML
+    items.forEach(function(item) {
+      var el = container.querySelector('[data-check="' + item.check + '"]');
+      if (!el) return;
+
+      // Remove all state modifier classes
+      el.classList.remove('hub-checklist-item--done', 'hub-checklist-item--blocked', 'hub-checklist-item--pending');
+      var dot = el.querySelector('.hub-checklist-dot');
+      if (dot) {
+        dot.classList.remove('hub-checklist-dot--done', 'hub-checklist-dot--blocked', 'hub-checklist-dot--pending');
+      }
+      var badge = el.querySelector('.hub-checklist-badge');
+      if (badge) {
+        badge.classList.remove('hub-checklist-badge--done', 'hub-checklist-badge--blocked', 'hub-checklist-badge--pending');
+      }
+      var reasonEl = el.querySelector('.hub-checklist-reason');
+
+      if (item.done) {
+        el.classList.add('hub-checklist-item--done');
+        if (dot) dot.classList.add('hub-checklist-dot--done');
+        if (badge) { badge.classList.add('hub-checklist-badge--done'); badge.textContent = 'Fait'; }
+        if (reasonEl) reasonEl.setAttribute('hidden', '');
+      } else if (item.blocked) {
+        el.classList.add('hub-checklist-item--blocked');
+        if (dot) dot.classList.add('hub-checklist-dot--blocked');
+        if (badge) { badge.classList.add('hub-checklist-badge--blocked'); badge.textContent = 'Bloqu\u00e9'; }
+        if (reasonEl) {
+          if (item.reason) {
+            reasonEl.textContent = item.reason;
+            reasonEl.removeAttribute('hidden');
+          } else {
+            reasonEl.setAttribute('hidden', '');
+          }
+        }
+      } else {
+        el.classList.add('hub-checklist-item--pending');
+        if (dot) dot.classList.add('hub-checklist-dot--pending');
+        if (badge) { badge.classList.add('hub-checklist-badge--pending'); badge.textContent = 'En attente'; }
+        if (reasonEl) {
+          if (item.reason) {
+            reasonEl.textContent = item.reason;
+            reasonEl.removeAttribute('hidden');
+          } else {
+            reasonEl.setAttribute('hidden', '');
+          }
+        }
+      }
     });
   }
 
-  /* ── Render documents panel (HUB-05) ─────────────── */
-
-  function renderDocuments(files) {
-    var docs = document.getElementById('hubDocsList');
-    if (!docs) return;
-    if (!files || files.length === 0) {
-      docs.innerHTML = '<p class="text-muted" style="font-size:13px;margin:8px 0;">Aucun document attach\u00e9.</p>';
-      return;
-    }
-    var html = '';
-    files.forEach(function (f) {
-      html += '<div class="hub-doc-item">' +
-        svgIcon('file', 14, 'var(--color-primary)') +
-        (f.url
-          ? '<a class="hub-doc-link" href="' + escapeHtml(f.url) + '" download>' + escapeHtml(f.name) + '</a>'
-          : '<span class="hub-doc-link">' + escapeHtml(f.name) + '</span>') +
-        '<span class="hub-doc-size">' + escapeHtml(f.size) + '</span>' +
-      '</div>';
-    });
-    docs.innerHTML = html;
-  }
-
-  /* ── Quorum progress bar / hero (HUB-04) ───────────────── */
+  /* ── Quorum progress bar ─────────────────────────── */
 
   function renderQuorumBar(sessionData) {
     var section = document.getElementById('hubQuorumSection');
@@ -299,8 +151,8 @@
     var total = sessionData.memberCount || 0;
     var required = sessionData.quorumRequired || 0;
     var current = sessionData.presentCount || 0;
-    if (total === 0) { section.style.display = 'none'; return; }
-    section.style.display = '';
+    if (total === 0) { section.setAttribute('hidden', ''); return; }
+    section.removeAttribute('hidden');
     bar.setAttribute('current', String(current));
     bar.setAttribute('required', String(required));
     bar.setAttribute('total', String(total));
@@ -311,11 +163,11 @@
         ' \u2014 Seuil\u202f: ' + thresholdPct + '%\u202f=\u202f' + required + ' membres'
       );
     }
-    // Update hero percentage display
+    // Update percentage display
     if (pctEl) {
       var presentPct = total > 0 ? Math.round(current / total * 100) : 0;
       pctEl.textContent = presentPct + '%';
-      pctEl.className = 'hub-quorum-hero-pct';
+      pctEl.className = 'hub-quorum-pct';
       if (required > 0) {
         if (current >= required) {
           pctEl.classList.add('reached');
@@ -328,16 +180,22 @@
     }
   }
 
-  /* ── Motions list with doc badges (WIZ-08) ─────── */
+  /* ── Motions list with doc badges ───────────────── */
 
   function renderMotionsList(motions, meetingId) {
     var section = document.getElementById('hubMotionsSection');
     var list = document.getElementById('hubMotionsList');
+    var countEl = document.getElementById('hubMotionsCount');
+    var voirTout = document.getElementById('hubMotionsVoirTout');
     if (!list || !section) return;
-    if (!motions || !motions.length) { section.style.display = 'none'; return; }
-    section.style.display = '';
+    if (!motions || !motions.length) { section.setAttribute('hidden', ''); return; }
+    section.removeAttribute('hidden');
+    if (countEl) countEl.textContent = String(motions.length);
+    if (voirTout) voirTout.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(meetingId);
+    // Display first 3 motions only
+    var displayMotions = motions.slice(0, 3);
     var html = '';
-    motions.forEach(function(m, i) {
+    displayMotions.forEach(function(m, i) {
       html += '<div class="hub-motion-item">' +
         '<span class="hub-motion-num">' + (i + 1) + '</span>' +
         '<span class="hub-motion-title">' + escapeHtml(m.title || m.name || '') + '</span>' +
@@ -345,47 +203,52 @@
       '</div>';
     });
     list.innerHTML = html;
-    loadDocBadges(motions, meetingId);
+    loadDocBadges(displayMotions, meetingId);
   }
 
-  /* ── Convocation send button (WIZ-06) ───────────── */
+  /* ── Convocation send button ─────────────────────── */
 
-  function setupConvocationBtn(sessionData, sessionId) {
+  function setupConvocationBtn(invitationStats, sessionId) {
     var section = document.getElementById('hubConvocationSection');
     var btn = document.getElementById('btnSendConvocations');
     if (!btn || !section) return;
-    if (sessionData.convocationsSent || !sessionData.memberCount) {
-      section.style.display = 'none';
+    // Hide if already all sent, or no stats
+    if (!invitationStats || (invitationStats.sent > 0 && invitationStats.pending === 0)) {
+      section.setAttribute('hidden', '');
       return;
     }
-    section.style.display = '';
-    btn.addEventListener('click', function() {
+    section.removeAttribute('hidden');
+    // Remove previous listener by cloning
+    var newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', function() {
       if (!window.AgConfirm) return;
       window.AgConfirm.ask({
         title: 'Envoyer les convocations',
-        message: 'Envoyer les convocations \u00e0 ' + sessionData.memberCount + ' membres\u202f?',
+        message: 'Envoyer les convocations manquantes\u202f?',
         confirmLabel: 'Envoyer',
         variant: 'info'
       }).then(function(ok) {
         if (!ok) return;
-        btn.disabled = true;
-        btn.textContent = 'Envoi en cours\u2026';
-        window.api('/api/v1/meetings/' + encodeURIComponent(sessionId) + '/convocations', {}, 'POST')
-          .then(function() {
-            if (window.AgToast) window.AgToast.show('Convocations envoy\u00e9es', 'success');
-            section.style.display = 'none';
+        newBtn.disabled = true;
+        newBtn.textContent = 'Envoi en cours\u2026';
+        window.api('/api/v1/invitations_send_bulk', { meeting_id: sessionId, only_unsent: true }, 'POST')
+          .then(function(res) {
+            var sent = (res && res.body && res.body.data) ? (res.body.data.sent || 0) : 0;
+            if (window.AgToast) window.AgToast.show('Convocations envoy\u00e9es\u202f: ' + sent, 'success');
+            section.setAttribute('hidden', '');
             loadData();
           })
           .catch(function() {
-            btn.disabled = false;
-            btn.textContent = 'Envoyer les convocations';
+            newBtn.disabled = false;
+            newBtn.textContent = 'Envoyer les convocations';
             if (window.AgToast) window.AgToast.show('Erreur lors de l\u2019envoi des convocations', 'error');
           });
       });
     });
   }
 
-  /* ── Resolution document badges (per-motion) ─────── */
+  /* ── Resolution document badges ──────────────────── */
 
   function loadDocBadges(motions, meetingId) {
     if (!motions || !motions.length || !meetingId) return;
@@ -440,33 +303,38 @@
     }
   }
 
-  function render() {
-    renderStatusBar();
-    renderStepper();
-    renderAction();
+  /* ── Load invitation stats ───────────────────────── */
+
+  function loadInvitationStats(meetingId) {
+    return window.api('/api/v1/invitations_stats?meeting_id=' + encodeURIComponent(meetingId))
+      .then(function(res) {
+        var statsRaw = (res && res.body && res.body.stats) ? res.body.stats : (res && res.stats ? res.stats : null);
+        if (!statsRaw) return { sent: 0, pending: 0 };
+        return {
+          sent: statsRaw.sent || 0,
+          pending: statsRaw.pending || 0
+        };
+      })
+      .catch(function() {
+        return { sent: 0, pending: 0 };
+      });
   }
 
-  /* ── Details toggle ──────────────────────────────── */
+  /* ── Load workflow check ─────────────────────────── */
 
-  function setupDetails() {
-    var toggle = document.getElementById('hubDetailsToggle');
-    var body = document.getElementById('hub-details-body');
-    var chevron = document.getElementById('hubDetailsChevron');
-    if (!toggle || !body) return;
-
-    toggle.addEventListener('click', function () {
-      var open = !body.hidden;
-      body.hidden = open;
-      toggle.setAttribute('aria-expanded', String(!open));
-      if (chevron) {
-        chevron.innerHTML = open ? '<path d="m6 9 6 6 6-6"/>' : '<path d="m18 15-6-6-6 6"/>';
-      }
-    });
+  function loadWorkflowCheck(meetingId) {
+    return window.api('/api/v1/meeting_workflow_check?meeting_id=' + encodeURIComponent(meetingId))
+      .then(function(res) {
+        return (res && res.body) ? res.body : (res || null);
+      })
+      .catch(function() {
+        return null;
+      });
   }
 
-  /* ── Load data (real API, no demo fallback) ──────── */
+  /* ── Apply session data to DOM ───────────────────── */
 
-  function applySessionToDOM(sessionData) {
+  function applySessionToDOM(sessionData, sessionId) {
     var titleEl = document.getElementById('hubTitle');
     var dateEl = document.getElementById('hubDate');
     var placeEl = document.getElementById('hubPlace');
@@ -480,7 +348,79 @@
     if (participantsEl) participantsEl.textContent = (sessionData.memberCount || 0) + ' participants';
     if (typeTagEl) typeTagEl.textContent = sessionData.type_label || 'AG';
     if (statusTagEl) statusTagEl.textContent = sessionData.status_label || sessionData.status || 'En pr\u00e9paration';
+
+    // Wire operator button
+    var operatorBtn = document.getElementById('hubOperatorBtn');
+    if (operatorBtn) {
+      operatorBtn.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(sessionId);
+    }
+
+    // Wire main CTA button based on meeting status
+    var mainBtn = document.getElementById('hubMainBtn');
+    if (mainBtn) {
+      var status = sessionData.status || '';
+      if (status === 'draft' || status === 'scheduled') {
+        mainBtn.textContent = 'Geler l\u2019ordre du jour';
+        mainBtn.removeAttribute('href');
+        mainBtn.setAttribute('data-action', 'freeze');
+      } else if (status === 'frozen') {
+        mainBtn.textContent = 'Ouvrir la s\u00e9ance';
+        mainBtn.removeAttribute('href');
+        mainBtn.setAttribute('data-action', 'open');
+      } else if (status === 'live' || status === 'paused') {
+        mainBtn.textContent = 'Aller \u00e0 la console';
+        mainBtn.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(sessionId);
+        mainBtn.removeAttribute('data-action');
+      } else if (status === 'closed' || status === 'validated' || status === 'archived') {
+        mainBtn.textContent = 'Voir l\u2019archive';
+        mainBtn.href = '/postsession.htmx.html?meeting_id=' + encodeURIComponent(sessionId);
+        mainBtn.removeAttribute('data-action');
+      } else {
+        mainBtn.textContent = 'Ouvrir la s\u00e9ance';
+        mainBtn.removeAttribute('href');
+        mainBtn.setAttribute('data-action', 'open');
+      }
+    }
+
+    // Wire data-action buttons (freeze / open)
+    setupLifecycleBtn(sessionId);
   }
+
+  /* ── Lifecycle button (freeze / open) ───────────── */
+
+  function setupLifecycleBtn(sessionId) {
+    var mainBtn = document.getElementById('hubMainBtn');
+    if (!mainBtn) return;
+    var action = mainBtn.getAttribute('data-action');
+    if (!action) return; // href-based navigation, no JS needed
+
+    mainBtn.addEventListener('click', function() {
+      var toStatus = action === 'freeze' ? 'frozen' : 'live';
+      mainBtn.disabled = true;
+      var origText = mainBtn.textContent;
+      mainBtn.textContent = 'En cours\u2026';
+      window.api('/api/v1/meeting_transition', { meeting_id: sessionId, to_status: toStatus }, 'POST')
+        .then(function(res) {
+          if (res && res.body && res.body.ok) {
+            if (window.AgToast) window.AgToast.show('Statut mis \u00e0 jour', 'success');
+            loadData();
+          } else {
+            var issues = (res && res.body && res.body.data && res.body.data.issues) ? res.body.data.issues : [];
+            var msg = issues.length > 0 ? issues[0].msg : 'Impossible de changer le statut';
+            if (window.AgToast) window.AgToast.show(msg, 'error');
+            mainBtn.disabled = false;
+            mainBtn.textContent = origText;
+          }
+        })
+        .catch(function() {
+          if (window.AgToast) window.AgToast.show('Erreur lors du changement de statut', 'error');
+          mainBtn.disabled = false;
+          mainBtn.textContent = origText;
+        });
+    });
+  }
+
+  /* ── Map API data to session object ──────────────── */
 
   function mapApiDataToSession(data) {
     var normalized = Object.assign({}, data);
@@ -506,15 +446,6 @@
       resolutionCount = data.resolution_count;
     }
 
-    var documentCount = 0;
-    if (Array.isArray(data.documents)) {
-      documentCount = data.documents.length;
-    } else if (typeof data.document_count === 'number') {
-      documentCount = data.document_count;
-    }
-
-    var convocationsSent = !!(data.convocation_status === 'sent' || data.convocations_sent);
-
     var dateDisplay = data.date || '';
     if (data.date && data.time) {
       dateDisplay = data.date + ' \u00e0 ' + data.time;
@@ -527,19 +458,11 @@
       place: [data.place, data.address].filter(Boolean).join(', ') || '',
       memberCount: memberCount,
       resolutionCount: resolutionCount,
-      convocationsSent: convocationsSent,
-      documentCount: documentCount,
-      quorumRequired: data.quorum_required || (data.quorum_policy ? Math.ceil(memberCount * 0.5) + 1 : 0),
+      quorumRequired: data.quorum_required || (data.has_president ? Math.ceil(memberCount * 0.5) + 1 : 0),
+      quorumMet: data.quorum_met === true,
       presentCount: data.present_count || 0,
-      motions: Array.isArray(data.resolutions) ? data.resolutions : (Array.isArray(data.motions) ? data.motions : []),
-      kpiParticipants: String(memberCount || '-'),
-      kpiVoix: data.kpi_voix || (memberCount ? memberCount + ' voix' : '-'),
-      kpiResolutions: String(resolutionCount || '-'),
-      kpiResoDetail: data.kpi_reso_detail || '',
-      kpiQuorum: data.kpi_quorum || '-',
-      kpiQuorumDetail: data.kpi_quorum_detail || '',
-      kpiConvoc: data.kpi_convoc || (convocationsSent ? memberCount + '/' + memberCount : '-'),
-      kpiConvocDetail: data.kpi_convoc_detail || ''
+      status: data.status || data.meeting_status || '',
+      motions: Array.isArray(data.resolutions) ? data.resolutions : (Array.isArray(data.motions) ? data.motions : [])
     };
   }
 
@@ -547,7 +470,7 @@
     if (window.Shared && Shared.showToast) {
       Shared.showToast('Impossible de charger la s\u00e9ance.', 'error');
     }
-    var content = document.getElementById('hubContent') || document.querySelector('.hub-main');
+    var content = document.getElementById('main-content') || document.querySelector('.hub-main');
     if (content) {
       var banner = document.createElement('div');
       banner.className = 'hub-error';
@@ -567,7 +490,7 @@
 
   async function loadData() {
     var params = new URLSearchParams(window.location.search);
-    var sessionId = params.get('id');
+    var sessionId = params.get('id') || params.get('meeting_id');
 
     if (!sessionId) {
       sessionStorage.setItem('ag-vote-toast', JSON.stringify({
@@ -581,29 +504,26 @@
     async function tryLoad() {
       attempt++;
       try {
-        var res = await window.api('/api/v1/wizard_status?meeting_id=' + encodeURIComponent(sessionId));
+        // Load wizard_status, invitation stats, and workflow check in parallel
+        var results = await Promise.all([
+          window.api('/api/v1/wizard_status?meeting_id=' + encodeURIComponent(sessionId)),
+          loadInvitationStats(sessionId),
+          loadWorkflowCheck(sessionId)
+        ]);
+
+        var res = results[0];
+        var invitationStats = results[1];
+        var workflowData = results[2];
+
         if (res && res.body && res.body.ok && res.body.data) {
           var data = res.body.data;
           var sessionData = mapApiDataToSession(data);
-          applySessionToDOM(sessionData);
-          renderKpis(sessionData);
-          renderChecklist(sessionData);
-          var files = Array.isArray(data.documents) ? data.documents : [];
-          renderDocuments(files);
+          applySessionToDOM(sessionData, sessionId);
+          renderChecklist(sessionData, invitationStats, workflowData);
           renderQuorumBar(sessionData);
           var motions = sessionData.motions || [];
-          var meetingId = sessionId;
-          renderMotionsList(motions, meetingId);
-          setupConvocationBtn(sessionData, sessionId);
-          // HUB-01: Propagate meeting_id to operator-bound and postsession action buttons
-          HUB_STEPS.forEach(function(s) {
-            if (s.dest && (s.dest.indexOf('/operator.htmx.html') === 0 || s.dest.indexOf('/postsession.htmx.html') === 0)) {
-              var u = new URL(s.dest, window.location.origin);
-              u.searchParams.set('meeting_id', sessionId);
-              s.dest = u.pathname + u.search;
-            }
-          });
-          render();
+          renderMotionsList(motions, sessionId);
+          setupConvocationBtn(invitationStats, sessionId);
           return;
         }
         if (res && res.body && res.body.error === 'meeting_not_found') {
@@ -625,7 +545,7 @@
     await tryLoad();
   }
 
-  /* ── Toast pickup from wizard redirect (WIZ-05 / HUB) ── */
+  /* ── Toast pickup from wizard redirect ───────────── */
 
   function checkToast() {
     try {
@@ -641,13 +561,11 @@
     }
   }
 
-  /* ── Init ────────────────────────────────────────── */
+  /* ── Init ─────────────────────────────────────────── */
 
   function init() {
     checkToast();
     loadData().catch(function(e) { console.warn('Hub loadData error:', e); });
-    render();
-    setupDetails();
   }
 
   if (document.readyState === 'loading') {
