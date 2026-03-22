@@ -37,7 +37,9 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 - "Officiel et confiance" visual identity — bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono
 - Dompdf ^3.1 for PV PDF, FilePond for document upload, native iframe PDF viewer
 
-**Shipped v4.2 Visual Redesign** (2026-03-20): Page-by-page visual redesign of all 20+ pages — horizontal KPIs, gradient CTAs, ag-tooltip guidance, hover-reveal actions, modern tab navigation, hero chart layouts, form field modernization, horizontal-first layouts. Known issues: some visual regressions from HTML restructuring, some JS interactions broken by DOM changes. Needs stabilization pass (v4.3).
+**Shipped v4.3 Ground-Up Rebuild** (2026-03-22): Every critical page rebuilt from scratch — dashboard (horizontal KPIs, session list), login (floating labels, gradient orb, Stripe/Clerk quality), wizard (900px track, slide transitions, horizontal fields), operator console (two-panel split, SSE live, vote card centerpiece), hub (hero card, quorum bar, lifecycle checklist), settings/admin (sidebar tabs, KPI cards, user CRUD). 7 phases, 14 plans. All v4.2 regressions fixed. Backend wiring verified (dead endpoints fixed, SSE confirmed, form submissions tested). New admin_settings.php endpoint created for settings persistence.
+
+**Shipped v4.2 Visual Redesign** (2026-03-20): Page-by-page visual redesign of all 20+ pages — horizontal KPIs, gradient CTAs, ag-tooltip guidance, hover-reveal actions, modern tab navigation, hero chart layouts, form field modernization, horizontal-first layouts. Regressions fixed in v4.3.
 
 **Shipped v4.1 Design Excellence** (2026-03-19): CSS token restructuring (primitive→semantic→component hierarchy, shadow system, spacing/radius aliases), component refresh (8 component types tokenized, 4 Web Components reconciled), page layout rebuilds (12 pages with CSS Grid/flex specs, three-depth background, max-width constraints, responsive breakpoints), QA audit (Fraunces discipline, inline style removal, transition/focus/hover standards). Infrastructure-level CSS work — visual identity foundation established but page-by-page visual redesign still needed.
 
@@ -63,18 +65,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v4.2: Page-by-page visual redesign (20+ pages), horizontal KPIs, gradient CTAs, tooltips, hover-reveal, modern tabs, hero charts, form modernization, horizontal-first layouts. Known regressions: HTML restructuring broke some JS interactions
 
+- v4.3: Ground-up rebuild of 6 critical pages (dashboard, login, wizard, operator console, hub, settings/admin). v4.2 regressions fixed. All pages rewritten HTML+CSS+JS from scratch. Backend wiring verified — dead endpoints fixed, SSE confirmed, admin_settings.php created. Floating labels on login, slide transitions on wizard, two-panel operator console, hero card hub, sidebar-tab settings.
+
 ### Active
 
-**Current Milestone: v4.3 "Ground-Up Rebuild"**
-
-**Goal:** Rebuild every page from the ground up — complete HTML+CSS+JS rewrite per page, fix all v4.2 regressions, wire backend properly, achieve genuine top 1% design quality.
-
-**Approach:**
-- Each page rebuilt from scratch: new HTML structure, new CSS, JS verified/updated in the same commit
-- No more incremental patches on old structure — full rewrites
-- Backend wiring verified for every page (API calls, HTMX targets, SSE connections)
-- Every page tested in browser before marking complete
-- Design quality verified against Stripe/Linear/Clerk references
+No active milestone — v4.3 complete. Next: `/gsd:new-milestone` for v4.4.
 
 ### Out of Scope
 

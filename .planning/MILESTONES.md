@@ -1,5 +1,14 @@
 # Milestones
 
+## v4.3 Ground-Up Rebuild (Shipped: 2026-03-22)
+
+**Phases completed:** 7 phases, 14 plans, 2 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v4.2 Visual Redesign (Shipped: 2026-03-20)
 
 **Phases completed:** 12 phases, 34 plans, 14 tasks
