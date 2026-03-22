@@ -25,7 +25,7 @@
 - [x] **Phase 44: Login Rebuild** - Complete HTML+CSS rewrite, auth flow wired, top 1% entry point (completed 2026-03-20)
 - [x] **Phase 45: Wizard Rebuild** - Complete HTML+CSS+JS rewrite, all 4 steps wired, form submissions verified (completed 2026-03-22)
 - [x] **Phase 46: Operator Console Rebuild** - Complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional (completed 2026-03-22)
-- [ ] **Phase 47: Hub Rebuild** - Complete HTML+CSS+JS rewrite, session lifecycle wired, quorum bar functional
+- [x] **Phase 47: Hub Rebuild** - Complete HTML+CSS+JS rewrite, session lifecycle wired, quorum bar functional (completed 2026-03-22)
 - [ ] **Phase 48: Settings/Admin Rebuild** - Complete HTML+CSS+JS rewrite, all settings save, admin KPIs wired
 
 ## Phase Details
@@ -143,5 +143,5 @@ Plans:
 | 44. Login Rebuild | 2/2 | Complete    | 2026-03-20 |
 | 45. Wizard Rebuild | 2/2 | Complete    | 2026-03-22 |
 | 46. Operator Console Rebuild | 2/2 | Complete    | 2026-03-22 |
-| 47. Hub Rebuild | 1/2 | In Progress|  |
+| 47. Hub Rebuild | 2/2 | Complete   | 2026-03-22 |
 | 48. Settings/Admin Rebuild | 0/TBD | Not started | - |
