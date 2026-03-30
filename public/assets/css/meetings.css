@@ -1,24 +1,85 @@
 /**
- * meetings.css — Meetings/Sessions page styles for AG-VOTE.
+ * meetings.css — Meetings/Sessions page styles for AG-VOTE v4.4.
  *
- * Styles for the sessions list page including filter pills, session list items,
- * search/sort toolbar, calendar view, pagination, and responsive behavior.
+ * Ground-up rebuild: filter pills, session list items, search/sort toolbar,
+ * calendar view, pagination, modals, onboarding banner, responsive behavior.
+ * All values use design-system tokens — no magic numbers.
  */
 
 /* =============================================================================
-   PAGE CONTENT
+   PAGE LAYOUT
    ============================================================================= */
 
-/* meetings-main uses default .app-main padding (16px 22px) from design-system.css.
-   No padding override needed — avoids conflicting .app-main rules. */
-
-/* =============================================================================
-   PAGE MAX-WIDTH CONSTRAINT
-   ============================================================================= */
+/* meetings-main uses default .app-main padding from design-system.css */
 
 .meetings-main .page-content {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* =============================================================================
+   ONBOARDING BANNER
+   ============================================================================= */
+
+.onboarding-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-border, var(--color-border));
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-4);
+  position: relative;
+}
+
+.onboarding-banner[hidden] { display: none; }
+
+.onboarding-banner-icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.onboarding-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.onboarding-banner-title {
+  font-weight: var(--font-semibold, 600);
+  font-size: var(--text-base, 1rem);
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+
+.onboarding-banner-text {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-secondary);
+}
+
+.onboarding-banner-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.onboarding-banner-dismiss {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast, 100ms);
+}
+
+.onboarding-banner-dismiss:hover {
+  color: var(--color-text);
 }
 
 /* =============================================================================
@@ -38,17 +99,19 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-semibold, 600);
   cursor: pointer;
-  transition: background var(--duration-fast, 100ms);
+  transition: background var(--duration-fast, 100ms), border-color var(--duration-fast, 100ms), color var(--duration-fast, 100ms);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
+  line-height: 1.25;
 }
 
 .filter-pill:hover {
   background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
 }
 
 .filter-pill.active {
@@ -57,14 +120,19 @@
   border-color: var(--color-primary);
 }
 
+.filter-pill.active:hover {
+  background: var(--color-primary-hover, var(--color-primary));
+}
+
 .filter-pill-count {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--font-bold, 700);
   background: color-mix(in srgb, currentColor 15%, transparent);
   padding: 1px 6px;
   border-radius: var(--radius-full, 999px);
   min-width: 20px;
   text-align: center;
+  line-height: 1.5;
 }
 
 .filter-pill.active .filter-pill-count {
@@ -79,7 +147,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 0;
   margin-bottom: var(--space-3);
   flex-wrap: wrap;
 }
@@ -94,12 +161,13 @@
 }
 
 .meetings-result-count {
-  font-size: 13px;
+  font-size: var(--text-sm, 0.875rem);
   color: var(--color-text-muted);
   margin-left: auto;
+  white-space: nowrap;
 }
 
-/* ─── View toggle ─── */
+/* ─── View toggle button group ─── */
 .view-toggle {
   display: flex;
   border: 1px solid var(--color-border);
@@ -111,41 +179,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   background: var(--color-surface);
   border: none;
   cursor: pointer;
   color: var(--color-text-muted);
   transition: background var(--duration-fast, 100ms), color var(--duration-fast, 100ms);
+  flex-shrink: 0;
 }
 
 .view-toggle-btn:hover {
   background: var(--color-bg-subtle);
+  color: var(--color-text);
 }
 
 .view-toggle-btn.active {
   background: var(--color-primary);
   color: var(--color-text-inverse);
-}
-
-/* =============================================================================
-   SECTION HEADER
-   ============================================================================= */
-
-.meetings-main .section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-.meetings-main .section-title {
-  font-size: var(--text-sm, 0.875rem);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 /* =============================================================================
@@ -158,13 +209,12 @@
   gap: var(--space-3);
 }
 
-/* ─── Session card density override ─── */
-/* design-system.css .session-card uses gap: 14px — override for meetings page density */
+/* Session card density — design-system.css .session-card uses gap: 14px */
 .sessions-list .session-card {
   gap: var(--space-3);
 }
 
-/* ─── Type badge ─── */
+/* ─── Meeting type badge ─── */
 .meeting-type-badge {
   font-size: 0.6875rem;
   padding: 2px 8px;
@@ -172,20 +222,20 @@
   background: var(--color-neutral-subtle, var(--color-bg-subtle));
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
-  font-weight: 600;
+  font-weight: var(--font-semibold, 600);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-/* ─── Date in mono ─── */
+/* ─── Date in mono font ─── */
 .sessions-list .session-card-date {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
 
-/* ─── State-based left border accents ─── */
+/* ─── Status-based left border accents ─── */
 .sessions-list .session-card[data-status="live"],
 .sessions-list .session-card[data-status="paused"] {
   border-left: 3px solid var(--color-danger);
@@ -198,26 +248,7 @@
   border-left: 3px solid var(--color-success);
 }
 
-/* ─── Legacy session-item (kept for backward compat, JS now emits session-card) ─── */
-.session-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  text-decoration: none;
-  transition: background var(--duration-fast, 100ms);
-  margin-bottom: 0;
-}
-
-.session-item:hover {
-  background: var(--color-bg-subtle);
-}
-
-/* ─── Status dot (legacy) ─── */
+/* ─── Session status dot (for calendar popover and dot list items) ─── */
 .session-dot {
   width: 10px;
   height: 10px;
@@ -226,96 +257,17 @@
 }
 
 .session-dot.upcoming { background: var(--color-primary); }
-.session-dot.live { background: var(--color-danger); animation: pulse 2s ease-in-out infinite; }
-.session-dot.completed { background: var(--color-text-muted); }
-.session-dot.draft { background: var(--color-border); }
+.session-dot.live     { background: var(--color-danger); animation: pulse 2s ease-in-out infinite; }
+.session-dot.completed{ background: var(--color-text-muted); }
+.session-dot.draft    { background: var(--color-border); }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-/* ─── Session info (legacy) ─── */
-.session-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.session-title {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.session-meta {
-  font-size: 14px;
-  color: var(--color-text-muted);
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 2px;
-}
-
-.session-meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* ─── Session actions (legacy) ─── */
-.session-actions {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  50%       { opacity: 0.4; }
 }
 
 /* =============================================================================
-   SKELETON PLACEHOLDERS
-   ============================================================================= */
-
-.skeleton-session-item {
-  height: 56px;
-  border-radius: var(--radius-md, 8px);
-  margin-bottom: 0;
-}
-
-/* =============================================================================
-   EMPTY STATE
-   ============================================================================= */
-
-.meetings-empty,
-.sessions-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  color: var(--color-text-muted);
-}
-
-.meetings-empty svg,
-.sessions-empty svg {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 1rem;
-  opacity: 0.4;
-}
-
-.meetings-empty .empty-title,
-.sessions-empty .empty-title {
-  font-weight: 600;
-  font-size: var(--text-base, 1rem);
-  color: var(--color-text-secondary);
-  margin-bottom: 0.25rem;
-}
-
-/* =============================================================================
-   MEETING CARD STATUS (used by JS-rendered cards)
+   MEETING CARD STATUS BADGE (JS-rendered)
    ============================================================================= */
 
 .meeting-card-status {
@@ -325,20 +277,23 @@
   padding: 0.15rem 0.6rem;
   border-radius: var(--radius-full);
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--font-bold, 700);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.meeting-card-status.draft { background: var(--color-neutral-subtle); color: var(--color-text-muted); }
-.meeting-card-status.scheduled { background: var(--color-info-subtle); color: var(--color-info-text, #1650E0); }
-.meeting-card-status.frozen { background: var(--color-warning-subtle); color: var(--color-warning-text, #b8860b); }
-.meeting-card-status.live { background: var(--color-danger-subtle); color: var(--color-danger-text, #c42828); }
-.meeting-card-status.closed { background: var(--color-success-subtle); color: var(--color-success-text, #0b7a40); }
-.meeting-card-status.validated { background: var(--color-success-subtle); color: var(--color-success-hover, #064e28); }
-.meeting-card-status.archived { background: var(--color-accent-subtle); color: var(--color-accent-text); }
+.meeting-card-status.draft        { background: var(--color-neutral-subtle);  color: var(--color-text-muted); }
+.meeting-card-status.scheduled    { background: var(--color-info-subtle);     color: var(--color-info-text, #1650E0); }
+.meeting-card-status.frozen       { background: var(--color-warning-subtle);  color: var(--color-warning-text, #b8860b); }
+.meeting-card-status.convocations { background: var(--color-info-subtle);     color: var(--color-info-text, #1650E0); }
+.meeting-card-status.live         { background: var(--color-danger-subtle);   color: var(--color-danger-text, #c42828); }
+.meeting-card-status.paused       { background: var(--color-danger-subtle);   color: var(--color-danger-text, #c42828); }
+.meeting-card-status.closed       { background: var(--color-success-subtle);  color: var(--color-success-text, #0b7a40); }
+.meeting-card-status.validated    { background: var(--color-success-subtle);  color: var(--color-success-hover, #064e28); }
+.meeting-card-status.archived     { background: var(--color-accent-subtle);   color: var(--color-accent-text); }
+.meeting-card-status.pv_sent      { background: var(--color-accent-subtle);   color: var(--color-accent-text); }
 
 .meeting-card-status .status-dot {
   width: 6px;
@@ -352,13 +307,13 @@
 }
 
 /* =============================================================================
-   TYPE CHIPS (used in edit modal)
+   TYPE CHIPS (edit modal)
    ============================================================================= */
 
 .meeting-type-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  gap: var(--space-2);
 }
 
 .type-chip {
@@ -373,14 +328,15 @@
 
 .type-chip-label {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   font-size: var(--text-xs, 0.75rem);
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
   color: var(--color-text-secondary);
   background: var(--color-surface);
-  transition: border-color .15s ease, background .15s ease, color .15s ease;
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease, color var(--duration-fast) ease;
+  white-space: nowrap;
 }
 
 .type-chip input:checked + .type-chip-label {
@@ -394,6 +350,31 @@
 }
 
 /* =============================================================================
+   SKELETON LOADING
+   ============================================================================= */
+
+.skeleton-session-item {
+  height: 60px;
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+   PAGINATION
+   ============================================================================= */
+
+.meetings-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+/* =============================================================================
    CALENDAR VIEW
    ============================================================================= */
 
@@ -403,19 +384,26 @@
 
 .calendar-container.active {
   display: block;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised, var(--color-surface));
 }
 
 .calendar-nav {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .calendar-nav-btn {
@@ -429,16 +417,23 @@
   background: var(--color-surface);
   cursor: pointer;
   color: var(--color-text-secondary);
-  transition: border-color .15s ease;
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
 }
 
-.calendar-nav-btn:hover { border-color: var(--color-primary); }
+.calendar-nav-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
 
 .calendar-title {
-  font-weight: 600;
+  font-weight: var(--font-semibold, 600);
   font-size: var(--text-base, 1rem);
   min-width: 160px;
   text-align: center;
+}
+
+.calendar-today-btn {
+  white-space: nowrap;
 }
 
 .calendar-grid {
@@ -446,29 +441,31 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
   background: var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .calendar-day-header {
   background: var(--color-bg-subtle);
-  padding: 0.5rem;
+  padding: var(--space-2);
   text-align: center;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: var(--font-semibold, 600);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
 
 .calendar-day {
   background: var(--color-surface);
   min-height: 80px;
-  padding: 0.375rem;
+  padding: var(--space-1) var(--space-2);
   font-size: var(--text-xs, 0.75rem);
+  position: relative;
 }
 
 .calendar-day.other-month {
   opacity: 0.35;
+  background: var(--color-bg-subtle);
 }
 
 .calendar-day.today {
@@ -477,9 +474,10 @@
 }
 
 .calendar-day-num {
-  font-weight: 600;
+  font-weight: var(--font-semibold, 600);
   font-size: var(--text-xs, 0.75rem);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--space-1);
+  line-height: 1.25;
 }
 
 .calendar-event {
@@ -487,26 +485,28 @@
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 0.6rem;
-  font-weight: 500;
+  font-weight: var(--font-medium, 500);
   margin-bottom: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-decoration: none;
   color: inherit;
+  transition: opacity var(--duration-fast);
 }
 
-.calendar-event.live { background: var(--color-danger-subtle); color: var(--color-danger); }
-.calendar-event.scheduled { background: var(--color-info-subtle); color: var(--color-info-text, #1650E0); }
-.calendar-event.draft { background: var(--color-neutral-subtle); color: var(--color-text-muted); }
+.calendar-event:hover { opacity: 0.8; }
 
-/* ─── Calendar day count badge ─── */
+.calendar-event.live      { background: var(--color-danger-subtle);  color: var(--color-danger); }
+.calendar-event.scheduled { background: var(--color-info-subtle);    color: var(--color-info-text, #1650E0); }
+.calendar-event.draft     { background: var(--color-neutral-subtle); color: var(--color-text-muted); }
+
 .calendar-day-count {
   position: absolute;
   top: 2px;
   right: 4px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--font-bold, 700);
   color: var(--color-primary);
   background: var(--color-bg-subtle);
   border-radius: var(--radius-full, 999px);
@@ -520,10 +520,10 @@
 /* ─── Calendar day popover ─── */
 .calendar-day-popover {
   position: absolute;
-  background: var(--color-surface-raised);
+  background: var(--color-surface-raised, var(--color-surface));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
-  padding: 8px;
+  padding: var(--space-2);
   box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,.12));
   z-index: 50;
   min-width: 200px;
@@ -532,13 +532,14 @@
 .calendar-popover-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: var(--space-2);
+  padding: var(--space-2);
   border-radius: var(--radius-sm, 4px);
   cursor: pointer;
   text-decoration: none;
   color: var(--color-text);
-  font-size: 13px;
+  font-size: var(--text-sm, 0.875rem);
+  transition: background var(--duration-fast);
 }
 
 .calendar-popover-item:hover {
@@ -546,38 +547,38 @@
 }
 
 /* =============================================================================
-   PAGINATION
-   ============================================================================= */
-
-.meetings-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-}
-
-/* =============================================================================
    RESPONSIVE
    ============================================================================= */
 
-/* Tablet: hide quorum and resolutions metadata */
+/* Tablet: hide secondary metadata */
 @media (max-width: 1024px) {
   .session-meta-item.quorum,
   .session-meta-item.resolutions {
     display: none;
   }
 
-  /* For .session-card: hide type badge on small tablets */
   .sessions-list .meeting-type-badge {
     display: none;
   }
 }
 
-/* Mobile: minimal display — title, date, status tag */
+/* Mobile: compact display */
 @media (max-width: 640px) {
+  .meetings-toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .meetings-toolbar .form-group-search {
+    min-width: 0;
+    width: 100%;
+    flex: none;
+  }
+
+  .meetings-result-count {
+    margin-left: 0;
+  }
+
   .session-meta-item {
     display: none;
   }
@@ -588,7 +589,30 @@
 
   /* Mobile: always show CTA (hover not reliable on touch) */
   .sessions-list .session-card-cta {
-    opacity: 1;
-    transform: none;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Calendar: horizontal scroll on small screens */
+  .calendar-grid {
+    min-width: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .filter-pills {
+    gap: var(--space-1);
+  }
+
+  .filter-pill {
+    font-size: var(--text-xs, 0.75rem);
+    padding: var(--space-1) var(--space-3);
   }
 }

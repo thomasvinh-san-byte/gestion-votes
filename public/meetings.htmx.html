@@ -1,6 +1,5 @@
 <!doctype html>
-<!-- GO-LIVE-STATUS: ready — Liste des séances (wireframe PageSeances).
-     NICE-TO-HAVE: vue calendrier alternative. -->
+<!-- GO-LIVE-STATUS: ready — Liste des séances (rebuild v4.4). Filter pills, toolbar, session list, calendar, modals. -->
 <html lang="fr" data-page-role="viewer">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -13,8 +12,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Gestion des séances - AG-VOTE">
-  <title>Séances — AG-VOTE</title>
+  <meta name="description" content="Gestion des s&eacute;ances - AG-VOTE">
+  <title>S&eacute;ances &mdash; AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +24,7 @@
 <body>
   <!-- Skip links for accessibility -->
   <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
 
   <div class="app-shell">
     <aside class="app-sidebar" data-include-sidebar data-page="meetings"></aside>
@@ -40,9 +39,10 @@
           </nav>
           <h1 class="page-title">
             <span class="bar"></span>
-            <svg class="icon" width="18" height="18" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
             S&eacute;ances
           </h1>
+          <p class="page-sub">Gestion de vos assembl&eacute;es g&eacute;n&eacute;rales</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -54,9 +54,10 @@
           <div slot="content">
             <strong>S&eacute;ances &mdash; Comment &ccedil;a marche</strong>
             <ul class="onboarding-tips">
-              <li>Filtrez par &eacute;tat avec les onglets</li>
+              <li>Filtrez par &eacute;tat avec les onglets en haut</li>
               <li>Cliquez sur une s&eacute;ance pour ouvrir sa fiche hub</li>
               <li>Utilisez la barre de recherche pour retrouver une s&eacute;ance par nom</li>
+              <li>Basculez en vue calendrier pour voir les s&eacute;ances par date</li>
             </ul>
           </div>
         </ag-popover>
@@ -64,13 +65,14 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
           Nouvelle s&eacute;ance
         </a>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
 
     <main class="app-main meetings-main" id="main-content" role="main">
+
       <!-- Onboarding banner (dismissible, persisted via localStorage) -->
       <div class="onboarding-banner" id="onboardingBanner" role="region" aria-label="Guide de d&eacute;marrage" data-tour="hub-action" data-session-driven="true">
         <div class="onboarding-banner-icon" aria-hidden="true">
@@ -88,12 +90,12 @@
       </div>
 
       <!-- Filter pills -->
-      <div class="filter-pills" id="filterPills" role="tablist" aria-label="Filtrer les seances" data-tour="hub-kpis">
+      <div class="filter-pills" id="filterPills" role="tablist" aria-label="Filtrer les s&eacute;ances">
         <button class="filter-pill active" data-filter="all" role="tab" aria-selected="true">
           Toutes <span class="filter-pill-count" id="countAll">0</span>
         </button>
         <button class="filter-pill" data-filter="upcoming" role="tab" aria-selected="false">
-          &#192; venir <span class="filter-pill-count" id="countUpcoming">0</span>
+          &Agrave; venir <span class="filter-pill-count" id="countUpcoming">0</span>
         </button>
         <button class="filter-pill" data-filter="live" role="tab" aria-selected="false">
           En cours <span class="filter-pill-count" id="countLive">0</span>
@@ -106,10 +108,10 @@
       <div class="page-content">
         <div id="notif_box" class="alert hidden mb-4"></div>
 
-        <!-- Search, Sort, and View Toggle -->
+        <!-- Toolbar: search, sort, count, view toggle -->
         <div class="meetings-toolbar">
           <div class="form-group form-group-search">
-            <input class="form-input" type="search" id="meetingsSearch" placeholder="Rechercher par titre..." aria-label="Rechercher une séance">
+            <input class="form-input" type="search" id="meetingsSearch" placeholder="Rechercher par titre..." aria-label="Rechercher une s&eacute;ance">
           </div>
           <div class="form-group">
             <select class="form-input form-input-sm" id="meetingsSort" aria-label="Trier par">
@@ -120,17 +122,17 @@
             </select>
           </div>
           <span class="meetings-result-count" id="meetingsCount">0 s&eacute;ances</span>
-          <div class="view-toggle">
-            <button class="view-toggle-btn active" data-view="list" title="Vue liste" aria-label="Vue liste">
+          <div class="view-toggle" role="group" aria-label="Mode d'affichage">
+            <button class="view-toggle-btn active" data-view="list" title="Vue liste" aria-label="Vue liste" aria-pressed="true">
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg>
             </button>
-            <button class="view-toggle-btn" data-view="calendar" title="Vue calendrier" aria-label="Vue calendrier">
+            <button class="view-toggle-btn" data-view="calendar" title="Vue calendrier" aria-label="Vue calendrier" aria-pressed="false">
               <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
             </button>
           </div>
         </div>
 
-        <!-- Sessions list -->
+        <!-- Sessions list (JS renders session cards here) -->
         <div class="sessions-list" id="meetingsList">
           <div class="skeleton skeleton-session-item"></div>
           <div class="skeleton skeleton-session-item"></div>
@@ -140,15 +142,15 @@
         <!-- Pagination -->
         <div class="meetings-pagination" id="meetingsPagination"></div>
 
-        <!-- Calendar view -->
+        <!-- Calendar view (hidden by default, toggled by JS) -->
         <div class="calendar-container" id="calendarContainer">
           <div class="calendar-header">
             <div class="calendar-nav">
-              <button class="calendar-nav-btn" id="calendarPrev" title="Mois précédent">
+              <button class="calendar-nav-btn" id="calendarPrev" title="Mois pr&eacute;c&eacute;dent" aria-label="Mois pr&eacute;c&eacute;dent">
                 <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-left"></use></svg>
               </button>
               <span class="calendar-title" id="calendarTitle">Janvier 2026</span>
-              <button class="calendar-nav-btn" id="calendarNext" title="Mois suivant">
+              <button class="calendar-nav-btn" id="calendarNext" title="Mois suivant" aria-label="Mois suivant">
                 <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
               </button>
             </div>
@@ -158,8 +160,10 @@
             <!-- Generated by JS -->
           </div>
         </div>
-      </div>
+
+      </div><!-- /.page-content -->
     </main>
+
     <footer class="app-footer mobile-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
         <span class="logo-mark">
@@ -167,10 +171,10 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.4</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
     </footer>
   </div>
 
@@ -178,27 +182,42 @@
   <div class="modal-backdrop" id="editMeetingModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
       <header class="modal-header">
-        <h3 class="modal-title" id="editModalTitle">Modifier la séance</h3>
+        <h3 class="modal-title" id="editModalTitle">Modifier la s&eacute;ance</h3>
         <button class="btn btn-icon btn-ghost modal-close-btn" data-close-modal aria-label="Fermer">&times;</button>
       </header>
       <div class="modal-body">
         <input type="hidden" id="editMeetingId">
         <div class="form-group">
           <label class="form-label" for="editMeetingTitle">Titre <span class="text-danger">*</span></label>
-          <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off">
+          <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off" placeholder="Titre de la s&eacute;ance">
         </div>
         <div class="form-group">
           <label class="form-label" for="editMeetingDate">Date</label>
           <input class="form-input date-picker-input" type="date" id="editMeetingDate">
         </div>
         <div class="form-group">
-          <label class="form-label">Type</label>
+          <label class="form-label">Type de s&eacute;ance</label>
           <div class="meeting-type-chips">
-            <label class="type-chip"><input type="radio" name="editMeetingType" value="ag_ordinaire"><span class="type-chip-label">AG ordinaire</span></label>
-            <label class="type-chip"><input type="radio" name="editMeetingType" value="ag_extraordinaire"><span class="type-chip-label">AG extra.</span></label>
-            <label class="type-chip"><input type="radio" name="editMeetingType" value="conseil"><span class="type-chip-label">Conseil</span></label>
-            <label class="type-chip"><input type="radio" name="editMeetingType" value="bureau"><span class="type-chip-label">Bureau</span></label>
-            <label class="type-chip"><input type="radio" name="editMeetingType" value="autre"><span class="type-chip-label">Autre</span></label>
+            <label class="type-chip">
+              <input type="radio" name="editMeetingType" value="ag_ordinaire">
+              <span class="type-chip-label">AG ordinaire</span>
+            </label>
+            <label class="type-chip">
+              <input type="radio" name="editMeetingType" value="ag_extraordinaire">
+              <span class="type-chip-label">AG extra.</span>
+            </label>
+            <label class="type-chip">
+              <input type="radio" name="editMeetingType" value="conseil">
+              <span class="type-chip-label">Conseil</span>
+            </label>
+            <label class="type-chip">
+              <input type="radio" name="editMeetingType" value="bureau">
+              <span class="type-chip-label">Bureau</span>
+            </label>
+            <label class="type-chip">
+              <input type="radio" name="editMeetingType" value="autre">
+              <span class="type-chip-label">Autre</span>
+            </label>
           </div>
         </div>
       </div>
@@ -216,12 +235,12 @@
   <div class="modal-backdrop" id="deleteMeetingModal" hidden>
     <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
       <header class="modal-header">
-        <h3 class="modal-title" id="deleteModalTitle">Supprimer la séance</h3>
+        <h3 class="modal-title" id="deleteModalTitle">Supprimer la s&eacute;ance</h3>
         <button class="btn btn-icon btn-ghost modal-close-btn" data-close-modal aria-label="Fermer">&times;</button>
       </header>
       <div class="modal-body">
-        <p>Êtes-vous sûr de vouloir supprimer cette séance ?</p>
-        <p class="text-sm text-muted">Cette action est irréversible. Seules les séances en brouillon peuvent être supprimées.</p>
+        <p>&Ecirc;tes-vous s&ucirc;r de vouloir supprimer cette s&eacute;ance&nbsp;?</p>
+        <p class="text-sm text-muted">Cette action est irr&eacute;versible. Seules les s&eacute;ances en brouillon peuvent &ecirc;tre supprim&eacute;es.</p>
         <p class="font-semibold mt-2" id="deleteMeetingName"></p>
         <input type="hidden" id="deleteMeetingId">
       </div>
@@ -244,7 +263,6 @@
     </header>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
-
 
   <script src="/assets/js/core/utils.js"></script>
   <script type="module" src="/assets/js/components/index.js"></script>
