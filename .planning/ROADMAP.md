@@ -174,7 +174,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
-| 53. Service Unit Tests Batch 1 | 2/2 | Complete   | 2026-03-30 | - |
+| 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
 | 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
