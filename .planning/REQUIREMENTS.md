@@ -30,7 +30,7 @@
 - [x] **E2E-02**: auth.spec.js uses v4.3 login page selectors (#email, #password, #submitBtn, .field-eye)
 - [x] **E2E-03**: audit-regression.spec.js updated for v4.4 audit page structure (filter tabs, timeline/table views)
 - [x] **E2E-04**: vote.spec.js updated for French data-choice attributes and v4.4 ballot layout
-- [ ] **E2E-05**: All E2E specs pass against running Docker stack on chromium
+- [x] **E2E-05**: All E2E specs pass against running Docker stack on chromium
 - [x] **E2E-06**: Mobile viewport specs pass for vote/ballot page on tablet and mobile-chrome projects
 
 ### CI/CD Pipeline (CI)
@@ -96,7 +96,7 @@
 | E2E-02 | Phase 56 | Complete |
 | E2E-03 | Phase 56 | Complete |
 | E2E-04 | Phase 56 | Complete |
-| E2E-05 | Phase 56 | Pending |
+| E2E-05 | Phase 56 | Complete |
 | E2E-06 | Phase 56 | Complete |
 | CI-01 | Phase 57 | Pending |
 | CI-02 | Phase 57 | Pending |
