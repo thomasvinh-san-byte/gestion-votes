@@ -5,552 +5,566 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\DashboardController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\ProxyRepository;
+use AgVote\Repository\WizardRepository;
 
 /**
  * Unit tests for DashboardController.
  *
- * Tests the dashboard and wizard status endpoints including:
- *  - Controller structure (final, extends AbstractController, public methods)
- *  - HTTP method enforcement (implicit via api_query/api_ok patterns)
- *  - UUID validation for meeting_id in wizardStatus
- *  - Quorum calculation logic
- *  - Ready-to-sign logic
- *  - Response structure verification via source introspection
+ * Endpoints:
+ *  - index():        GET — returns meetings list + optional meeting detail
+ *  - wizardStatus(): GET — returns meeting setup progress
  *
- * Note: index() does not call api_request(), so method enforcement is not
- * checked. It also instantiates MeetingRepository early, so in test env
- * without DB it will throw RuntimeException caught as business_error (400).
+ * Response structure:
+ *   - api_ok($data)  => body['data'][...] (wrapped in 'data' key)
+ *   - api_fail(...)  => body['error'] (direct)
  *
- * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
- * inspect controller behavior without a database.
+ * Pattern: extends ControllerTestCase, uses injectRepos() + callController().
  */
-class DashboardControllerTest extends TestCase
+class DashboardControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
+    private const TENANT     = 'tenant-uuid-001';
+    private const MEETING_ID = 'aaaaaaaa-1111-2222-3333-000000000001';
+    private const MOTION_ID  = 'bbbbbbbb-1111-2222-3333-000000000001';
+    private const POLICY_ID  = 'cccccccc-1111-2222-3333-000000000001';
+    private const USER_ID    = 'user-uuid-0001';
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new DashboardController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(DashboardController::class);
-        $this->assertTrue($ref->isFinal(), 'DashboardController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new DashboardController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
-    }
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
         $ref = new \ReflectionClass(DashboardController::class);
-
-        $expectedMethods = ['index', 'wizardStatus'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "DashboardController should have a '{$method}' method",
-            );
-        }
+        $this->assertSame(
+            \AgVote\Controller\AbstractController::class,
+            $ref->getParentClass()->getName()
+        );
     }
 
-    public function testControllerMethodsArePublic(): void
+    public function testControllerHasIndexMethod(): void
     {
-        $ref = new \ReflectionClass(DashboardController::class);
+        $this->assertTrue(method_exists(DashboardController::class, 'index'));
+    }
 
-        $expectedMethods = ['index', 'wizardStatus'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "DashboardController::{$method}() should be public",
-            );
-        }
+    public function testControllerHasWizardStatusMethod(): void
+    {
+        $this->assertTrue(method_exists(DashboardController::class, 'wizardStatus'));
     }
 
     // =========================================================================
-    // index: EARLY REPO INSTANTIATION BEHAVIOR
-    //
-    // index() calls new MeetingRepository() early. In test env (no DB),
-    // this raises RuntimeException which handle() wraps as business_error/400.
+    // HELPERS
     // =========================================================================
 
-    public function testIndexFailsWithBusinessErrorOnGetDueToNoDb(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
-
-        $result = $this->callControllerMethod('index');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    public function testIndexFailsWithBusinessErrorOnPostDueToNoDb(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([]);
-
-        $result = $this->callControllerMethod('index');
-
-        // No method enforcement, so repo instantiation fails first
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+    /**
+     * Inject all 6 repos needed by DashboardController::index().
+     */
+    private function injectIndexRepos(
+        \AgVote\Repository\MeetingRepository $meetingRepo,
+        ?\AgVote\Repository\MeetingStatsRepository $statsRepo = null,
+        ?\AgVote\Repository\MemberRepository $memberRepo = null,
+        ?\AgVote\Repository\AttendanceRepository $attRepo = null,
+        ?\AgVote\Repository\MotionRepository $motionRepo = null,
+        ?\AgVote\Repository\BallotRepository $ballotRepo = null,
+        ?\AgVote\Repository\ProxyRepository $proxyRepo = null,
+    ): void {
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MeetingStatsRepository::class => $statsRepo ?? $this->createMock(MeetingStatsRepository::class),
+            MemberRepository::class       => $memberRepo ?? $this->createMock(MemberRepository::class),
+            AttendanceRepository::class   => $attRepo ?? $this->createMock(AttendanceRepository::class),
+            MotionRepository::class       => $motionRepo ?? $this->createMock(MotionRepository::class),
+            BallotRepository::class       => $ballotRepo ?? $this->createMock(BallotRepository::class),
+            ProxyRepository::class        => $proxyRepo ?? $this->createMock(ProxyRepository::class),
+        ]);
     }
 
     // =========================================================================
-    // wizardStatus: MEETING_ID VALIDATION
+    // index() — no meeting_id supplied
     // =========================================================================
 
-    public function testWizardStatusRequiresMeetingId(): void
+    public function testIndexNoMeetingIdReturnsEmptyDashboard(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('wizardStatus');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([]);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectIndexRepos($meetingRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertArrayHasKey('meetings', $data);
+        $this->assertSame([], $data['meetings']);
+        $this->assertNull($data['meeting']);
+        $this->assertNull($data['suggested_meeting_id']);
     }
 
-    public function testWizardStatusRejectsEmptyMeetingId(): void
+    public function testIndexPicksLiveMeetingAsSuggested(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
+        // When no meeting_id query param, controller falls back to suggested as meetingId.
+        // So findByIdForTenant IS called. We mock it to return the live meeting.
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('wizardStatus');
+        $meetingIdA = 'aaaaaaaa-0001-0001-0001-000000000001';
+        $meetingIdB = 'bbbbbbbb-0001-0001-0001-000000000001';
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testWizardStatusRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-valid-uuid'];
-
-        $result = $this->callControllerMethod('wizardStatus');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testWizardStatusRejectsShortUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678'];
-
-        $result = $this->callControllerMethod('wizardStatus');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testWizardStatusRejectsPartialUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234'];
-
-        $result = $this->callControllerMethod('wizardStatus');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testWizardStatusRejectsUuidWithNonHexChars(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234-1234-12345678ZZZZ'];
-
-        $result = $this->callControllerMethod('wizardStatus');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // QUORUM CALCULATION LOGIC
-    // =========================================================================
-
-    public function testQuorumMetWithPresentMembers(): void
-    {
-        $membersCount = 100;
-        $presentCount = 60;
-
-        $quorumMet = false;
-        if ($membersCount > 0) {
-            $ratio = $presentCount / $membersCount;
-            $quorumMet = $ratio > 0;
-        }
-
-        $this->assertTrue($quorumMet);
-    }
-
-    public function testQuorumNotMetWithZeroPresent(): void
-    {
-        $membersCount = 100;
-        $presentCount = 0;
-
-        $quorumMet = false;
-        if ($membersCount > 0) {
-            $ratio = $presentCount / $membersCount;
-            $quorumMet = $ratio > 0;
-        }
-
-        $this->assertFalse($quorumMet);
-    }
-
-    public function testQuorumNotMetWithZeroMembers(): void
-    {
-        $membersCount = 0;
-        $presentCount = 0;
-
-        $quorumMet = false;
-        if ($membersCount > 0) {
-            $ratio = $presentCount / $membersCount;
-            $quorumMet = $ratio > 0;
-        }
-
-        $this->assertFalse($quorumMet);
-    }
-
-    public function testQuorumWithThresholdMet(): void
-    {
-        $membersCount = 100;
-        $presentCount = 55;
-        $threshold = 0.5;
-
-        $ratio = $presentCount / $membersCount;
-        $quorumMet = $ratio >= $threshold;
-
-        $this->assertTrue($quorumMet);
-    }
-
-    public function testQuorumWithThresholdNotMet(): void
-    {
-        $membersCount = 100;
-        $presentCount = 40;
-        $threshold = 0.5;
-
-        $ratio = $presentCount / $membersCount;
-        $quorumMet = $ratio >= $threshold;
-
-        $this->assertFalse($quorumMet);
-    }
-
-    public function testQuorumThresholdExactBoundary(): void
-    {
-        $membersCount = 100;
-        $presentCount = 50;
-        $threshold = 0.5;
-
-        $ratio = $presentCount / $membersCount;
-        $quorumMet = $ratio >= $threshold;
-
-        $this->assertTrue($quorumMet, 'Exact threshold should meet quorum');
-    }
-
-    // =========================================================================
-    // READY-TO-SIGN LOGIC
-    // =========================================================================
-
-    public function testReadyToSignWhenNoReasons(): void
-    {
-        $reasons = [];
-        $data = [
-            'can' => count($reasons) === 0,
-            'reasons' => $reasons,
-        ];
-
-        $this->assertTrue($data['can']);
-        $this->assertEmpty($data['reasons']);
-    }
-
-    public function testNotReadyToSignWithMissingPresident(): void
-    {
-        $presidentName = '';
-        $reasons = [];
-
-        if (trim($presidentName) === '') {
-            $reasons[] = 'Président non renseigné.';
-        }
-
-        $data = [
-            'can' => count($reasons) === 0,
-            'reasons' => $reasons,
-        ];
-
-        $this->assertFalse($data['can']);
-        $this->assertContains('Président non renseigné.', $data['reasons']);
-    }
-
-    public function testNotReadyToSignWithOpenMotion(): void
-    {
-        $openCount = 1;
-        $reasons = [];
-
-        if ($openCount > 0) {
-            $reasons[] = 'Une motion est encore ouverte.';
-        }
-
-        $data = [
-            'can' => count($reasons) === 0,
-            'reasons' => $reasons,
-        ];
-
-        $this->assertFalse($data['can']);
-        $this->assertContains('Une motion est encore ouverte.', $data['reasons']);
-    }
-
-    public function testNotReadyToSignWithMultipleReasons(): void
-    {
-        $reasons = [];
-        $reasons[] = 'Président non renseigné.';
-        $reasons[] = 'Une motion est encore ouverte.';
-        $reasons[] = 'Comptage manquant pour: Résolution 1';
-
-        $data = [
-            'can' => count($reasons) === 0,
-            'reasons' => $reasons,
-        ];
-
-        $this->assertFalse($data['can']);
-        $this->assertCount(3, $data['reasons']);
-    }
-
-    // =========================================================================
-    // SUGGESTED MEETING SELECTION LOGIC
-    // =========================================================================
-
-    public function testSuggestedMeetingSelectsLiveFirst(): void
-    {
         $meetings = [
-            ['id' => 'aaa', 'status' => 'draft'],
-            ['id' => 'bbb', 'status' => 'live'],
-            ['id' => 'ccc', 'status' => 'paused'],
+            ['id' => $meetingIdA, 'status' => 'draft'],
+            ['id' => $meetingIdB, 'status' => 'live'],
         ];
 
-        $suggested = null;
-        foreach ($meetings as $m) {
-            if (in_array($m['status'] ?? '', ['live', 'paused'], true)) {
-                $suggested = $m['id'];
-                break;
-            }
-        }
-
-        $this->assertEquals('bbb', $suggested);
-    }
-
-    public function testSuggestedMeetingSelectsPausedIfNoLive(): void
-    {
-        $meetings = [
-            ['id' => 'aaa', 'status' => 'draft'],
-            ['id' => 'bbb', 'status' => 'paused'],
+        $meetingData = [
+            'id'                => $meetingIdB,
+            'status'            => 'live',
+            'current_motion_id' => '',
+            'president_name'    => 'Alice',
         ];
 
-        $suggested = null;
-        foreach ($meetings as $m) {
-            if (in_array($m['status'] ?? '', ['live', 'paused'], true)) {
-                $suggested = $m['id'];
-                break;
-            }
-        }
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn($meetings);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
 
-        $this->assertEquals('bbb', $suggested);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(10);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(10.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 5, 'present_weight' => 5.0,
+        ]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countOpenMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn([
+            'total_ballots' => 0, 'weight_for' => 0, 'weight_against' => 0, 'weight_abstain' => 0,
+        ]);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        // suggested_meeting_id = meetingIdB (live)
+        $this->assertSame($meetingIdB, $data['suggested_meeting_id']);
+        // meeting detail is also loaded since meetingId falls back to suggested
+        $this->assertSame($meetingIdB, $data['meeting']['id']);
     }
 
-    public function testSuggestedMeetingFallsBackToFirstMeeting(): void
+    public function testIndexWithMeetingIdReturnsFullDetail(): void
     {
-        $meetings = [
-            ['id' => 'aaa', 'status' => 'draft'],
-            ['id' => 'bbb', 'status' => 'draft'],
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingData = [
+            'id'               => self::MEETING_ID,
+            'status'           => 'live',
+            'current_motion_id' => '',
+            'president_name'   => 'Alice',
         ];
 
-        $suggested = null;
-        foreach ($meetings as $m) {
-            if (in_array($m['status'] ?? '', ['live', 'paused'], true)) {
-                $suggested = $m['id'];
-                break;
-            }
-        }
-        if ($suggested === null && count($meetings) > 0) {
-            $suggested = $meetings[0]['id'];
-        }
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
 
-        $this->assertEquals('aaa', $suggested);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(10);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(10.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 6,
+            'present_weight' => 6.0,
+        ]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countOpenMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn([
+            'total_ballots' => 0, 'weight_for' => 0, 'weight_against' => 0, 'weight_abstain' => 0,
+        ]);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame(self::MEETING_ID, $data['meeting']['id']);
+        $this->assertSame(6, $data['attendance']['present_count']);
+        $this->assertSame(10, $data['attendance']['eligible_count']);
+        $this->assertTrue($data['ready_to_sign']['can']);
     }
 
-    public function testSuggestedMeetingIsNullWhenNoMeetings(): void
+    public function testIndexMeetingNotFoundReturns404(): void
     {
-        $meetings = [];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $suggested = null;
-        foreach ($meetings as $m) {
-            if (in_array($m['status'] ?? '', ['live', 'paused'], true)) {
-                $suggested = $m['id'];
-                break;
-            }
-        }
-        if ($suggested === null && count($meetings) > 0) {
-            $suggested = $meetings[0]['id'];
-        }
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
 
-        $this->assertNull($suggested);
+        $this->injectIndexRepos($meetingRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('meeting_not_found', $res['body']['error']);
+    }
+
+    public function testIndexReadyToSignFalseWhenOpenMotionExists(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingData = [
+            'id'               => self::MEETING_ID,
+            'status'           => 'live',
+            'current_motion_id' => '',
+            'president_name'   => 'Alice',
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(5);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(5.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 3, 'present_weight' => 3.0,
+        ]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countOpenMotions')->willReturn(1); // blocks sign
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertFalse($res['body']['data']['ready_to_sign']['can']);
+        $this->assertNotEmpty($res['body']['data']['ready_to_sign']['reasons']);
+    }
+
+    public function testIndexReadyToSignFalseWhenPresidentMissing(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingData = [
+            'id'               => self::MEETING_ID,
+            'status'           => 'live',
+            'current_motion_id' => '',
+            'president_name'   => '',  // empty => blocks sign
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(4);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(4.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 2, 'present_weight' => 2.0,
+        ]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countOpenMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertFalse($res['body']['data']['ready_to_sign']['can']);
+    }
+
+    public function testIndexWithCurrentMotionId(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingData = [
+            'id'               => self::MEETING_ID,
+            'status'           => 'live',
+            'current_motion_id' => self::MOTION_ID,
+            'president_name'   => 'Bob',
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(5);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(5.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 3, 'present_weight' => 3.0,
+        ]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn([
+            'id' => self::MOTION_ID, 'title' => 'Motion 1',
+        ]);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countOpenMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn([
+            'total_ballots' => 3, 'weight_for' => 2.0, 'weight_against' => 1.0, 'weight_abstain' => 0.0,
+        ]);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame(self::MOTION_ID, $data['current_motion']['id']);
+        $this->assertSame(3, $data['current_motion_votes']['ballots_count']);
     }
 
     // =========================================================================
-    // CONTROLLER SOURCE: RESPONSE STRUCTURE VERIFICATION
+    // wizardStatus() — GET
     // =========================================================================
 
-    public function testIndexResponseStructure(): void
+    public function testWizardStatusMissingMeetingIdReturns422(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $fields = [
-            'meetings', 'suggested_meeting_id', 'meeting', 'attendance',
-            'proxies', 'current_motion', 'current_motion_votes',
-            'openable_motions', 'ready_to_sign',
+        $res = $this->callController(DashboardController::class, 'wizardStatus');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('missing_meeting_id', $res['body']['error']);
+    }
+
+    public function testWizardStatusInvalidUuidReturns422(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => 'not-a-uuid']);
+
+        $res = $this->callController(DashboardController::class, 'wizardStatus');
+
+        $this->assertSame(422, $res['status']);
+    }
+
+    public function testWizardStatusMeetingNotFoundReturns404(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $wizardRepo = $this->createMock(WizardRepository::class);
+        $wizardRepo->method('getMeetingBasics')->willReturn(null);
+
+        $this->injectRepos([WizardRepository::class => $wizardRepo]);
+
+        $res = $this->callController(DashboardController::class, 'wizardStatus');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('meeting_not_found', $res['body']['error']);
+    }
+
+    public function testWizardStatusReturnsFullData(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingBasics = [
+            'id'               => self::MEETING_ID,
+            'title'            => 'AG 2025',
+            'status'           => 'live',
+            'current_motion_id' => null,
+            'quorum_policy_id' => null,
+            'vote_policy_id'   => self::POLICY_ID,
+            'scheduled_at'     => '2025-06-01T10:00:00Z',
+            'location'         => 'Paris',
+            'meeting_type'     => 'ag_ordinaire',
         ];
-        foreach ($fields as $field) {
-            $this->assertStringContainsString(
-                "'{$field}'",
-                $source,
-                "index response should contain '{$field}'",
-            );
-        }
+
+        $wizardRepo = $this->createMock(WizardRepository::class);
+        $wizardRepo->method('getMeetingBasics')->willReturn($meetingBasics);
+        $wizardRepo->method('countAttendances')->willReturn(5);
+        $wizardRepo->method('countPresentAttendances')->willReturn(3);
+        $wizardRepo->method('getMotionsCounts')->willReturn(['total' => 2, 'closed' => 1]);
+        $wizardRepo->method('hasPresident')->willReturn(true);
+
+        $this->injectRepos([WizardRepository::class => $wizardRepo]);
+
+        $res = $this->callController(DashboardController::class, 'wizardStatus');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame(self::MEETING_ID, $data['meeting_id']);
+        $this->assertSame('AG 2025', $data['meeting_title']);
+        $this->assertSame(5, $data['members_count']);
+        $this->assertSame(3, $data['present_count']);
+        $this->assertTrue($data['has_president']);
+        $this->assertTrue($data['quorum_met']); // ratio = 3/5 > 0, no policy threshold
     }
 
-    public function testWizardStatusResponseStructure(): void
+    public function testWizardStatusFallsBackToActiveMembersWhenNoAttendances(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $fields = [
-            'meeting_id', 'meeting_title', 'meeting_status', 'current_motion_id',
-            'members_count', 'present_count', 'motions_total', 'motions_closed',
-            'has_president', 'quorum_met', 'policies_assigned',
+        $meetingBasics = [
+            'id'               => self::MEETING_ID,
+            'title'            => 'AG 2025',
+            'status'           => 'draft',
+            'current_motion_id' => null,
+            'quorum_policy_id' => null,
+            'vote_policy_id'   => null,
+            'scheduled_at'     => null,
+            'location'         => null,
+            'meeting_type'     => 'ag_ordinaire',
         ];
-        foreach ($fields as $field) {
-            $this->assertStringContainsString(
-                "'{$field}'",
-                $source,
-                "wizardStatus response should contain '{$field}'",
-            );
-        }
+
+        $wizardRepo = $this->createMock(WizardRepository::class);
+        $wizardRepo->method('getMeetingBasics')->willReturn($meetingBasics);
+        $wizardRepo->method('countAttendances')->willReturn(0);  // fallback trigger
+        $wizardRepo->method('countActiveMembers')->willReturn(12);
+        $wizardRepo->method('countPresentAttendances')->willReturn(0);
+        $wizardRepo->method('getMotionsCounts')->willReturn(['total' => 0, 'closed' => 0]);
+        $wizardRepo->method('hasPresident')->willReturn(false);
+
+        $this->injectRepos([WizardRepository::class => $wizardRepo]);
+
+        $res = $this->callController(DashboardController::class, 'wizardStatus');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame(12, $data['members_count']);
+        $this->assertFalse($data['quorum_met']); // 0/12 = 0, not > 0
     }
 
-    // =========================================================================
-    // CONTROLLER SOURCE: REPOSITORY USAGE
-    // =========================================================================
-
-    public function testControllerUsesMeetingRepository(): void
+    public function testWizardStatusWithQuorumPolicyBelowThreshold(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $this->assertStringContainsString('repo()->meeting()', $source);
-    }
+        $meetingBasics = [
+            'id'               => self::MEETING_ID,
+            'title'            => 'AG 2025',
+            'status'           => 'live',
+            'current_motion_id' => null,
+            'quorum_policy_id' => self::POLICY_ID,
+            'vote_policy_id'   => self::POLICY_ID,
+            'scheduled_at'     => '2025-06-01',
+            'location'         => 'Lyon',
+            'meeting_type'     => 'ag_extraordinaire',
+        ];
 
-    public function testControllerUsesWizardRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
+        $wizardRepo = $this->createMock(WizardRepository::class);
+        $wizardRepo->method('getMeetingBasics')->willReturn($meetingBasics);
+        $wizardRepo->method('countAttendances')->willReturn(10);
+        $wizardRepo->method('countPresentAttendances')->willReturn(4); // 40%
+        $wizardRepo->method('getMotionsCounts')->willReturn(['total' => 1, 'closed' => 0]);
+        $wizardRepo->method('hasPresident')->willReturn(true);
+        $wizardRepo->method('getQuorumThreshold')->willReturn(0.5); // need >= 50%
 
-        $this->assertStringContainsString('repo()->wizard()', $source);
-    }
+        $this->injectRepos([WizardRepository::class => $wizardRepo]);
 
-    public function testControllerUsesAttendanceRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
+        $res = $this->callController(DashboardController::class, 'wizardStatus');
 
-        $this->assertStringContainsString('repo()->attendance()', $source);
-    }
-
-    public function testControllerUsesMotionRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
-
-        $this->assertStringContainsString('repo()->motion()', $source);
-    }
-
-    public function testControllerUsesBallotRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
-
-        $this->assertStringContainsString('repo()->ballot()', $source);
-    }
-
-    public function testControllerUsesProxyRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
-
-        $this->assertStringContainsString('repo()->proxy()', $source);
-    }
-
-    public function testControllerUsesMemberRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DashboardController.php');
-
-        $this->assertStringContainsString('repo()->member()', $source);
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        // 4/10 = 40%, threshold 50% => not met
+        $this->assertFalse($data['quorum_met']);
+        $this->assertTrue($data['policies_assigned']);
     }
 }

@@ -5,516 +5,537 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\EmailTemplatesController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\EmailTemplateRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MemberRepository;
 
 /**
  * Unit tests for EmailTemplatesController.
  *
- * Tests the email template CRUD endpoints including:
- *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (create uses api_request('POST'))
- *  - Source-level validation verification
- *  - Template type validation logic
- *  - Duplicate action validation logic
+ * Endpoints:
+ *  - list():   GET  — list templates or get one by id
+ *  - create(): POST — create or special actions (create_defaults, duplicate)
+ *  - update(): PUT  — update a template
+ *  - delete(): DELETE — delete a template
  *
- * Note: list(), update(), delete() eagerly construct EmailTemplateRepository
- * (which calls db()) before any method or input checks. In test env (no DB),
- * the repo constructor throws RuntimeException, caught as business_error (400).
- * Input validation for these methods is verified at source level instead.
+ * Response structure:
+ *   - api_ok($data)  => body['data'][...] (wrapped in 'data' key)
+ *   - api_fail(...)  => body['error'] (direct)
+ *
+ * Note: EmailTemplateService is instantiated in each controller method and its
+ * constructor calls RepositoryFactory for emailTemplate, meeting, member,
+ * meetingStats repos. All 4 repos must be injected.
+ *
+ * Pattern: extends ControllerTestCase, uses injectRepos() + callController().
  */
-class EmailTemplatesControllerTest extends TestCase
+class EmailTemplatesControllerTest extends ControllerTestCase
 {
+    private const TENANT  = 'tenant-uuid-001';
+    private const TPL_ID  = 'aaaaaaaa-1111-2222-3333-000000000010';
+    private const SRC_ID  = 'bbbbbbbb-1111-2222-3333-000000000010';
+    private const USER_ID = 'user-uuid-0010';
+
     // =========================================================================
-    // SETUP / TEARDOWN
+    // HELPER — inject all repos required by EmailTemplateService constructor
     // =========================================================================
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
+    /**
+     * EmailTemplateService.__construct() calls factory for all 4 repos.
+     * Always inject all of them to avoid RuntimeException from null PDO.
+     */
+    private function injectEmailRepos(
+        EmailTemplateRepository $tplRepo,
+        ?MeetingRepository $meetingRepo = null,
+        ?MemberRepository $memberRepo = null,
+        ?MeetingStatsRepository $statsRepo = null,
+    ): void {
+        $this->injectRepos([
+            EmailTemplateRepository::class => $tplRepo,
+            MeetingRepository::class       => $meetingRepo ?? $this->createMock(MeetingRepository::class),
+            MemberRepository::class        => $memberRepo  ?? $this->createMock(MemberRepository::class),
+            MeetingStatsRepository::class  => $statsRepo   ?? $this->createMock(MeetingStatsRepository::class),
+        ]);
     }
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new EmailTemplatesController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(EmailTemplatesController::class);
-        $this->assertTrue($ref->isFinal(), 'EmailTemplatesController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
-    public function testControllerExtendsAbstractController(): void
+    public function testControllerHasRequiredMethods(): void
     {
-        $controller = new EmailTemplatesController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
-    }
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
-        $ref = new \ReflectionClass(EmailTemplatesController::class);
-
-        $expectedMethods = ['list', 'create', 'update', 'delete'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "EmailTemplatesController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(EmailTemplatesController::class);
-
-        $expectedMethods = ['list', 'create', 'update', 'delete'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "EmailTemplatesController::{$method}() should be public",
-            );
+        foreach (['list', 'create', 'update', 'delete'] as $method) {
+            $this->assertTrue(method_exists(EmailTemplatesController::class, $method));
         }
     }
 
     // =========================================================================
-    // list: EAGER REPO CONSTRUCTION IN NO-DB ENV
-    // list() eagerly creates EmailTemplateRepository which calls db(),
-    // throwing RuntimeException caught as business_error.
+    // list() — GET
     // =========================================================================
 
-    public function testListEagerRepoThrowsBusinessErrorInNoDbEnv(): void
+    public function testListReturnsAllTemplates(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('list');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    public function testListNoMethodEnforcementPostReturnsBusinessError(): void
-    {
-        // list() does NOT call api_request(); repo constructor fires first
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-
-        $result = $this->callControllerMethod('list');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // list: template_id VALIDATION (source verification)
-    // Since list() eagerly constructs repo before validation, verify via source
-    // =========================================================================
-
-    public function testListSourceValidatesInvalidTemplateId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("api_is_uuid(\$id)", $source);
-        $this->assertStringContainsString("'invalid_template_id'", $source);
-    }
-
-    // =========================================================================
-    // create: METHOD ENFORCEMENT
-    // create() calls api_request('POST') before the repo constructor,
-    // so method enforcement works correctly.
-    // =========================================================================
-
-    public function testCreateRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testCreateRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testCreateRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // create: REPO CONSTRUCTOR FIRES AFTER api_request('POST')
-    // In no-DB env, after passing method check, repo constructor fires
-    // and throws business_error.
-    // =========================================================================
-
-    public function testCreateWithValidMethodReturnsBusinessErrorNoDb(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([
-            'name' => 'Template',
-            'subject' => 'Subject',
-            'body_html' => '<p>Body</p>',
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('listForTenant')->willReturn([
+            ['id' => self::TPL_ID, 'name' => 'Invitation standard'],
         ]);
 
-        $result = $this->callControllerMethod('create');
+        $this->injectEmailRepos($repo);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $res = $this->callController(EmailTemplatesController::class, 'list');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['items'][0]['id']);
+    }
+
+    public function testListFiltersByType(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['type' => 'reminder']);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->expects($this->once())
+            ->method('listForTenant')
+            ->with(self::TENANT, 'reminder')
+            ->willReturn([]);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'list');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertSame([], $res['body']['data']['items']);
+    }
+
+    public function testListByIdInvalidUuidReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => 'not-a-uuid']);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'list');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_id', $res['body']['error']);
+    }
+
+    public function testListByIdNotFoundReturns404(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn(null);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'list');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('template_not_found', $res['body']['error']);
+    }
+
+    public function testListByIdReturnsTemplate(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+
+        $tplData = ['id' => self::TPL_ID, 'name' => 'Invitation', 'template_type' => 'invitation'];
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn($tplData);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'list');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
     }
 
     // =========================================================================
-    // create (duplicate action): INPUT VALIDATION LOGIC (replicated)
-    // Since repo constructor fires before validation in test env,
-    // we replicate the validation logic directly.
+    // create() — POST
     // =========================================================================
 
-    public function testCreateDuplicateSourceIdValidationLogic(): void
+    public function testCreateRequiresPost(): void
     {
-        // Replicate: if (!api_is_uuid($sourceId)) api_fail('invalid_source_id')
-        $this->assertFalse(api_is_uuid('not-a-uuid'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertFalse(api_is_uuid('12345678-1234'));
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testCreateDuplicateNewNameValidationLogic(): void
+    public function testCreateMissingNameReturns400(): void
     {
-        // Replicate: if ($newName === '') api_fail('missing_new_name')
-        $this->assertTrue(trim('') === '');
-        $this->assertTrue(trim('   ') === '');
-        $this->assertFalse(trim('Copy of template') === '');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'subject'   => 'Subj',
+            'body_html' => '<p>Hello</p>',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_name', $res['body']['error']);
+    }
+
+    public function testCreateMissingSubjectReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'      => 'My Template',
+            'body_html' => '<p>Hello</p>',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_subject', $res['body']['error']);
+    }
+
+    public function testCreateMissingBodyHtmlReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'    => 'My Template',
+            'subject' => 'Hello',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_body_html', $res['body']['error']);
+    }
+
+    public function testCreateInvalidTypeReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'          => 'My Template',
+            'subject'       => 'Hello',
+            'body_html'     => '<p>Body</p>',
+            'template_type' => 'invalid_type',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_type', $res['body']['error']);
+    }
+
+    public function testCreateNameExistsReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'          => 'My Template',
+            'subject'       => 'Hello',
+            'body_html'     => '<p>Body</p>',
+            'template_type' => 'invitation',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('nameExists')->willReturn(true);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('template_name_exists', $res['body']['error']);
+    }
+
+    public function testCreateSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'          => 'My Template',
+            'subject'       => 'Hello',
+            'body_html'     => '<p>Body</p>',
+            'template_type' => 'invitation',
+        ]);
+
+        $tplData = ['id' => self::TPL_ID, 'name' => 'My Template'];
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('nameExists')->willReturn(false);
+        $repo->method('create')->willReturn($tplData);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(201, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
+    }
+
+    public function testCreateDuplicateActionInvalidSourceIdReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action'    => 'duplicate',
+            'source_id' => 'not-a-uuid',
+            'new_name'  => 'Copy',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_source_id', $res['body']['error']);
+    }
+
+    public function testCreateDuplicateActionMissingNewNameReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action'    => 'duplicate',
+            'source_id' => self::SRC_ID,
+            'new_name'  => '',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_new_name', $res['body']['error']);
+    }
+
+    public function testCreateDuplicateActionSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action'    => 'duplicate',
+            'source_id' => self::SRC_ID,
+            'new_name'  => 'Copy of Template',
+        ]);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('duplicate')->willReturn([
+            'id'   => self::TPL_ID,
+            'name' => 'Copy of Template',
+        ]);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'create');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
     }
 
     // =========================================================================
-    // create (standard): INPUT VALIDATION LOGIC (replicated)
+    // update() — PUT
+    // Note: update() validates id/findById BEFORE calling api_request('PUT').
+    // So method enforcement (405) only triggers after those checks pass.
     // =========================================================================
 
-    public function testCreateNameValidationLogic(): void
+    public function testUpdateRequiresPut(): void
     {
-        // Replicate: if ($name === '') api_fail('missing_name')
-        $this->assertTrue(trim('') === '');
-        $this->assertTrue(trim('   ') === '');
-        $this->assertFalse(trim('Valid Name') === '');
+        // update() checks id validity and findById BEFORE api_request('PUT').
+        // To reach the 405 check, id must be valid and template must exist.
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+
+        $existing = [
+            'id'        => self::TPL_ID,
+            'name'      => 'Old Name',
+            'subject'   => 'Hello',
+            'body_html' => '<p>Body</p>',
+            'body_text' => null,
+        ];
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn($existing);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'update');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testCreateSubjectValidationLogic(): void
+    public function testUpdateInvalidIdReturns400(): void
     {
-        // Replicate: if ($subject === '') api_fail('missing_subject')
-        $this->assertTrue(trim('') === '');
-        $this->assertFalse(trim('A subject') === '');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PUT');
+        $this->setQueryParams(['id' => 'bad-id']);
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'update');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_id', $res['body']['error']);
     }
 
-    public function testCreateBodyHtmlValidationLogic(): void
+    public function testUpdateNotFoundReturns404(): void
     {
-        // Replicate: if ($bodyHtml === '') api_fail('missing_body_html')
-        $this->assertTrue(trim('') === '');
-        $this->assertFalse(trim('<p>Content</p>') === '');
-    }
-
-    // =========================================================================
-    // create: TEMPLATE TYPE VALIDATION
-    // =========================================================================
-
-    public function testCreateValidTemplateTypes(): void
-    {
-        $allowedTypes = ['invitation', 'reminder', 'confirmation', 'custom'];
-        foreach ($allowedTypes as $type) {
-            $this->assertTrue(
-                in_array($type, $allowedTypes, true),
-                "'{$type}' should be a valid template type",
-            );
-        }
-        $this->assertNotContains('unknown_type', $allowedTypes);
-    }
-
-    public function testCreateRejectsInvalidTemplateTypeLogic(): void
-    {
-        $allowedTypes = ['invitation', 'reminder', 'confirmation', 'custom'];
-        $this->assertFalse(in_array('unknown_type', $allowedTypes, true));
-        $this->assertFalse(in_array('', $allowedTypes, true));
-        $this->assertFalse(in_array('Invitation', $allowedTypes, true));
-    }
-
-    public function testCreateDefaultTemplateTypeIsInvitation(): void
-    {
-        $input = [];
-        $type = trim((string) ($input['template_type'] ?? 'invitation'));
-        $this->assertEquals('invitation', $type);
-    }
-
-    // =========================================================================
-    // update/delete: EAGER REPO CONSTRUCTION IN NO-DB ENV
-    // update() and delete() eagerly create repo before method checks.
-    // =========================================================================
-
-    public function testUpdateEagerRepoThrowsBusinessErrorInNoDbEnv(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-        $_GET = ['id' => '12345678-1234-1234-1234-123456789abc'];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PUT');
+        $this->setQueryParams(['id' => self::TPL_ID]);
         $this->injectJsonBody(['name' => 'Updated']);
 
-        $result = $this->callControllerMethod('update');
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn(null);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'update');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('template_not_found', $res['body']['error']);
     }
 
-    public function testDeleteEagerRepoThrowsBusinessErrorInNoDbEnv(): void
+    public function testUpdateSucceeds(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $_GET = ['id' => '12345678-1234-1234-1234-123456789abc'];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PUT');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+        $this->injectJsonBody(['name' => 'Updated Name']);
 
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // update/delete: SOURCE-LEVEL VALIDATION VERIFICATION
-    // Since repo constructor fires before validation, verify via source.
-    // =========================================================================
-
-    public function testUpdateSourceValidatesTemplateId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("api_is_uuid(\$id)", $source);
-        $this->assertStringContainsString("'invalid_template_id'", $source);
-    }
-
-    public function testUpdateSourceUsesApiRequestPut(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("api_request('PUT')", $source);
-    }
-
-    public function testDeleteSourceValidatesTemplateId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("api_is_uuid(\$id)", $source);
-        $this->assertStringContainsString("'invalid_template_id'", $source);
-    }
-
-    // =========================================================================
-    // CROSS-CUTTING: METHOD CHECK BEFORE BODY VALIDATION
-    // =========================================================================
-
-    public function testCreateMethodCheckBeforeBodyValidation(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $this->injectJsonBody([
-            'name' => 'Template',
-            'subject' => 'Subject',
+        $existing = [
+            'id'        => self::TPL_ID,
+            'name'      => 'Old Name',
+            'subject'   => 'Hello',
             'body_html' => '<p>Body</p>',
+            'body_text' => null,
+        ];
+
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn($existing);
+        $repo->method('nameExists')->willReturn(false);
+        $repo->method('update')->willReturn([
+            'id' => self::TPL_ID, 'name' => 'Updated Name',
         ]);
 
-        $result = $this->callControllerMethod('create');
+        $this->injectEmailRepos($repo);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(EmailTemplatesController::class, 'update');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
     }
 
     // =========================================================================
-    // RESPONSE STRUCTURE (source verification)
+    // delete() — DELETE
     // =========================================================================
 
-    public function testListResponseStructure(): void
+    public function testDeleteInvalidIdReturns400(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => 'not-a-uuid']);
 
-        $this->assertStringContainsString("'items'", $source);
-        $this->assertStringContainsString("'template'", $source);
-        $this->assertStringContainsString("'available_variables'", $source);
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'delete');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_id', $res['body']['error']);
     }
 
-    public function testCreateResponseStructure(): void
+    public function testDeleteNotFoundReturns404(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => self::TPL_ID]);
 
-        $this->assertStringContainsString("'template'", $source);
-        $this->assertStringContainsString('201', $source);
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn(null);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'delete');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('template_not_found', $res['body']['error']);
     }
 
-    public function testDeleteResponseStructure(): void
+    public function testDeleteDefaultTemplateReturns400(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => self::TPL_ID]);
 
-        $this->assertStringContainsString("'deleted' => true", $source);
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn([
+            'id' => self::TPL_ID, 'name' => 'Default', 'is_default' => true,
+        ]);
+
+        $this->injectEmailRepos($repo);
+
+        $res = $this->callController(EmailTemplatesController::class, 'delete');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('cannot_delete_default', $res['body']['error']);
     }
 
-    // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCreateAuditsTemplateCreation(): void
+    public function testDeleteSucceeds(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => self::TPL_ID]);
 
-        $this->assertStringContainsString("'email_template.create'", $source);
-    }
+        $repo = $this->createMock(EmailTemplateRepository::class);
+        $repo->method('findById')->willReturn([
+            'id' => self::TPL_ID, 'name' => 'My Template', 'is_default' => false,
+        ]);
+        $repo->method('delete')->willReturn(true);
 
-    public function testUpdateAuditsTemplateUpdate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
+        $this->injectEmailRepos($repo);
 
-        $this->assertStringContainsString("'email_template.update'", $source);
-    }
+        $res = $this->callController(EmailTemplatesController::class, 'delete');
 
-    public function testDeleteAuditsTemplateDeletion(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("'email_template.delete'", $source);
-    }
-
-    public function testDuplicateAuditsTemplateDuplicate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("'email_template.duplicate'", $source);
-    }
-
-    // =========================================================================
-    // BUSINESS GUARD VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testDeleteGuardsDefaultTemplate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString('cannot_delete_default', $source);
-    }
-
-    public function testCreateValidatesUnknownVariables(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString('unknown_variables', $source);
-    }
-
-    public function testCreateChecksNameUniqueness(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString('template_name_exists', $source);
-    }
-
-    // =========================================================================
-    // UNKNOWN METHOD HANDLING
-    // =========================================================================
-
-    public function testHandleUnknownMethodReturns500(): void
-    {
-        $result = $this->callControllerMethod('nonExistentMethod');
-
-        $this->assertEquals(500, $result['status']);
-        $this->assertEquals('internal_error', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // create: VALIDATION ORDER (source verification)
-    // =========================================================================
-
-    public function testCreateValidationOrderInSource(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        // missing_name should appear before missing_subject
-        $namePos = strpos($source, "'missing_name'");
-        $subjectPos = strpos($source, "'missing_subject'");
-        $bodyPos = strpos($source, "'missing_body_html'");
-
-        $this->assertNotFalse($namePos, 'Source should contain missing_name');
-        $this->assertNotFalse($subjectPos, 'Source should contain missing_subject');
-        $this->assertNotFalse($bodyPos, 'Source should contain missing_body_html');
-        $this->assertLessThan($subjectPos, $namePos, 'Name validation should come before subject');
-        $this->assertLessThan($bodyPos, $subjectPos, 'Subject validation should come before body_html');
-    }
-
-    // =========================================================================
-    // create: SOURCE-LEVEL ACTION HANDLING
-    // =========================================================================
-
-    public function testCreateSourceHandlesCreateDefaultsAction(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("'create_defaults'", $source);
-        $this->assertStringContainsString('createDefaultTemplates', $source);
-    }
-
-    public function testCreateSourceHandlesDuplicateAction(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailTemplatesController.php');
-
-        $this->assertStringContainsString("'duplicate'", $source);
-        $this->assertStringContainsString("'invalid_source_id'", $source);
-        $this->assertStringContainsString("'missing_new_name'", $source);
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['deleted']);
     }
 }
