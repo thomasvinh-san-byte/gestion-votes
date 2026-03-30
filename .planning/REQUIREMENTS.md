@@ -12,10 +12,10 @@
 - [x] **TEST-03**: ImportService has unit tests covering CSV parsing, validation, and error handling
 - [x] **TEST-04**: MeetingValidator has unit tests covering all meeting state transition rules
 - [x] **TEST-05**: NotificationsService has unit tests covering notification creation and delivery logic
-- [ ] **TEST-06**: EmailTemplateService has unit tests covering template rendering and variable substitution
-- [ ] **TEST-07**: SpeechService has unit tests covering speech queue management and ordering
+- [x] **TEST-06**: EmailTemplateService has unit tests covering template rendering and variable substitution
+- [x] **TEST-07**: SpeechService has unit tests covering speech queue management and ordering
 - [ ] **TEST-08**: MonitoringService has unit tests covering health checks and metric collection
-- [ ] **TEST-09**: ErrorDictionary has unit tests covering error code lookup and message formatting
+- [x] **TEST-09**: ErrorDictionary has unit tests covering error code lookup and message formatting
 - [ ] **TEST-10**: ResolutionDocumentController has unit tests covering upload, serve, and delete endpoints
 
 ### Coverage Target (COV)
@@ -84,10 +84,10 @@
 | TEST-03 | Phase 53 | Complete |
 | TEST-04 | Phase 53 | Complete |
 | TEST-05 | Phase 53 | Complete |
-| TEST-06 | Phase 54 | Pending |
-| TEST-07 | Phase 54 | Pending |
+| TEST-06 | Phase 54 | Complete |
+| TEST-07 | Phase 54 | Complete |
 | TEST-08 | Phase 54 | Pending |
-| TEST-09 | Phase 54 | Pending |
+| TEST-09 | Phase 54 | Complete |
 | TEST-10 | Phase 54 | Pending |
 | COV-01 | Phase 55 | Pending |
 | COV-02 | Phase 55 | Pending |
