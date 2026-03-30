@@ -1,5 +1,14 @@
 # Milestones
 
+## v5.0 Quality & Production Readiness (Shipped: 2026-03-30)
+
+**Phases completed:** 6 phases, 18 plans, 6 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v4.4 Complete Rebuild (Shipped: 2026-03-30)
 
 **Scope:** Ground-up rebuild of all remaining 13 pages to v4.3 quality standard
