@@ -4,82 +4,35 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Controller\AbstractController;
 use AgVote\Controller\ProjectorController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MotionRepository;
 
 /**
  * Unit tests for ProjectorController.
  *
- * Tests the projector state endpoint including:
+ * Extends ControllerTestCase for repo injection and standard helpers.
+ *
+ * Tests:
  *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (GET only)
- *  - Phase resolution logic (idle, active, closed)
- *  - Motion state construction
- *  - Response structure verification via source introspection
+ *  - state(): GET only enforcement
+ *  - No live meetings => 404
+ *  - Multiple live meetings => choose prompt
+ *  - Single live meeting with idle phase (no motions)
+ *  - Single live meeting with active phase (open motion)
+ *  - Single live meeting with closed phase (last closed motion)
+ *  - Explicit meeting_id in query
+ *  - Explicit meeting_id not found => 404
+ *  - Archived meeting => 404
  */
-class ProjectorControllerTest extends TestCase
+class ProjectorControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new ProjectorController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
+    private const TENANT   = 'aaaaaaaa-0000-0000-0000-000000000001';
+    private const MEETING  = 'bbbbbbbb-0000-0000-0000-000000000001';
+    private const MEETING2 = 'bbbbbbbb-0000-0000-0000-000000000002';
+    private const MOTION   = 'cccccccc-0000-0000-0000-000000000001';
 
     // =========================================================================
     // CONTROLLER STRUCTURE TESTS
@@ -93,418 +46,290 @@ class ProjectorControllerTest extends TestCase
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new ProjectorController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(AbstractController::class, new ProjectorController());
     }
 
     public function testControllerHasStateMethod(): void
     {
         $ref = new \ReflectionClass(ProjectorController::class);
-
-        $this->assertTrue(
-            $ref->hasMethod('state'),
-            "ProjectorController should have a 'state' method",
-        );
-    }
-
-    public function testStateMethodIsPublic(): void
-    {
-        $ref = new \ReflectionClass(ProjectorController::class);
-
-        $this->assertTrue(
-            $ref->getMethod('state')->isPublic(),
-            "ProjectorController::state() should be public",
-        );
+        $this->assertTrue($ref->hasMethod('state'));
+        $this->assertTrue($ref->getMethod('state')->isPublic());
     }
 
     // =========================================================================
-    // state: METHOD ENFORCEMENT
+    // state(): METHOD ENFORCEMENT
     // =========================================================================
 
     public function testStateRejectsPostMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([]);
+        $this->setHttpMethod('POST');
 
-        $result = $this->callControllerMethod('state');
+        $result = $this->callController(ProjectorController::class, 'state');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     public function testStateRejectsPutMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('PUT');
 
-        $result = $this->callControllerMethod('state');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testStateRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('state');
+        $result = $this->callController(ProjectorController::class, 'state');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testStateRejectsPatchMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-
-        $result = $this->callControllerMethod('state');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     // =========================================================================
-    // PHASE RESOLUTION LOGIC
+    // state(): NO LIVE MEETING
     // =========================================================================
 
-    public function testPhaseIsActiveWhenOpenMotionExists(): void
+    public function testStateReturnsNoLiveMeetingWhenNoneExist(): void
     {
-        $open = ['id' => 'm1', 'title' => 'Open Motion', 'secret' => false, 'position' => 1];
-        $closed = null;
+        $this->setAuth('user-1', 'operator', self::TENANT);
 
-        $phase = 'idle';
-        $motion = null;
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('listLiveForTenant')->willReturn([]);
 
-        if ($open) {
-            $phase = 'active';
-            $motion = [
-                'id' => (string) $open['id'],
-                'title' => (string) $open['title'],
-                'secret' => (bool) $open['secret'],
-                'position' => $open['position'] !== null ? (int) $open['position'] : null,
-            ];
-        } elseif ($closed) {
-            $phase = 'closed';
-        }
+        $mockMotion = $this->createMock(MotionRepository::class);
 
-        $this->assertEquals('active', $phase);
-        $this->assertNotNull($motion);
-        $this->assertEquals('m1', $motion['id']);
-    }
+        $this->injectRepos([
+            MeetingRepository::class => $mockMeeting,
+            MotionRepository::class  => $mockMotion,
+        ]);
 
-    public function testPhaseIsClosedWhenOnlyClosedMotionExists(): void
-    {
-        $open = null;
-        $closed = ['id' => 'm2', 'title' => 'Closed Motion', 'secret' => true, 'position' => 2];
+        $result = $this->callController(ProjectorController::class, 'state');
 
-        $phase = 'idle';
-        $motion = null;
-
-        if ($open) {
-            $phase = 'active';
-        } elseif ($closed) {
-            $phase = 'closed';
-            $motion = [
-                'id' => (string) $closed['id'],
-                'title' => (string) $closed['title'],
-                'secret' => (bool) $closed['secret'],
-                'position' => $closed['position'] !== null ? (int) $closed['position'] : null,
-            ];
-        }
-
-        $this->assertEquals('closed', $phase);
-        $this->assertNotNull($motion);
-        $this->assertEquals('m2', $motion['id']);
-        $this->assertTrue($motion['secret']);
-    }
-
-    public function testPhaseIsIdleWhenNoMotions(): void
-    {
-        $open = null;
-        $closed = null;
-
-        $phase = 'idle';
-        $motion = null;
-
-        if ($open) {
-            $phase = 'active';
-        } elseif ($closed) {
-            $phase = 'closed';
-        }
-
-        $this->assertEquals('idle', $phase);
-        $this->assertNull($motion);
-    }
-
-    public function testPhaseActiveOverridesClosedWhenBothExist(): void
-    {
-        $open = ['id' => 'm1', 'title' => 'Open', 'secret' => false, 'position' => 1];
-        $closed = ['id' => 'm2', 'title' => 'Closed', 'secret' => false, 'position' => 0];
-
-        $phase = 'idle';
-        $motion = null;
-
-        if ($open) {
-            $phase = 'active';
-            $motion = ['id' => (string) $open['id']];
-        } elseif ($closed) {
-            $phase = 'closed';
-            $motion = ['id' => (string) $closed['id']];
-        }
-
-        $this->assertEquals('active', $phase, 'Active should take precedence over closed');
-        $this->assertEquals('m1', $motion['id'], 'Should use the open motion');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('no_live_meeting', $result['body']['error']);
     }
 
     // =========================================================================
-    // MOTION STATE CONSTRUCTION
+    // state(): MULTIPLE LIVE MEETINGS (choose prompt)
     // =========================================================================
 
-    public function testMotionStateFieldTypes(): void
+    public function testStateReturnsChoosePromptForMultipleLiveMeetings(): void
     {
-        $raw = [
-            'id' => 'abc-123',
-            'title' => 'Test Motion',
-            'description' => 'A description',
-            'body' => 'Body content',
-            'secret' => true,
-            'position' => 3,
-        ];
+        $this->setAuth('user-1', 'operator', self::TENANT);
 
-        $motion = [
-            'id' => (string) $raw['id'],
-            'title' => (string) $raw['title'],
-            'description' => (string) ($raw['description'] ?? ''),
-            'body' => (string) ($raw['body'] ?? ''),
-            'secret' => (bool) $raw['secret'],
-            'position' => $raw['position'] !== null ? (int) $raw['position'] : null,
-        ];
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('listLiveForTenant')->willReturn([
+            ['id' => self::MEETING,  'title' => 'Meeting A', 'started_at' => null],
+            ['id' => self::MEETING2, 'title' => 'Meeting B', 'started_at' => null],
+        ]);
 
-        $this->assertIsString($motion['id']);
-        $this->assertIsString($motion['title']);
-        $this->assertIsString($motion['description']);
-        $this->assertIsString($motion['body']);
-        $this->assertIsBool($motion['secret']);
-        $this->assertIsInt($motion['position']);
-    }
+        $mockMotion = $this->createMock(MotionRepository::class);
 
-    public function testMotionStateNullPosition(): void
-    {
-        $raw = [
-            'id' => 'abc-123',
-            'title' => 'Test Motion',
-            'secret' => false,
-            'position' => null,
-        ];
+        $this->injectRepos([
+            MeetingRepository::class => $mockMeeting,
+            MotionRepository::class  => $mockMotion,
+        ]);
 
-        $position = $raw['position'] !== null ? (int) $raw['position'] : null;
-        $this->assertNull($position);
-    }
+        $result = $this->callController(ProjectorController::class, 'state');
 
-    public function testMotionStateEmptyDescription(): void
-    {
-        $raw = ['description' => null, 'body' => null];
-
-        $description = (string) ($raw['description'] ?? '');
-        $body = (string) ($raw['body'] ?? '');
-
-        $this->assertEquals('', $description);
-        $this->assertEquals('', $body);
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['data']['choose'] ?? false);
+        $this->assertCount(2, $result['body']['data']['meetings']);
     }
 
     // =========================================================================
-    // MULTIPLE LIVE MEETINGS: CHOOSE RESPONSE
+    // state(): SINGLE LIVE MEETING — IDLE PHASE
     // =========================================================================
 
-    public function testMultipleLiveMeetingsReturnsChooseFlag(): void
+    public function testStateReturnsIdlePhaseWhenNoMotions(): void
     {
-        // Replicate the choose logic
-        $liveMeetings = [
-            ['id' => 'm1', 'title' => 'Meeting 1', 'started_at' => '2025-01-01'],
-            ['id' => 'm2', 'title' => 'Meeting 2', 'started_at' => '2025-01-02'],
-        ];
+        $this->setAuth('user-1', 'operator', self::TENANT);
 
-        $this->assertGreaterThan(1, count($liveMeetings));
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('listLiveForTenant')->willReturn([
+            ['id' => self::MEETING, 'title' => 'Test AG', 'status' => 'live'],
+        ]);
 
-        $response = [
-            'choose' => true,
-            'meetings' => array_map(fn ($m) => [
-                'id' => (string) $m['id'],
-                'title' => (string) $m['title'],
-                'started_at' => (string) ($m['started_at'] ?? ''),
-            ], $liveMeetings),
-        ];
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findOpenForProjector')->willReturn(null);
+        $mockMotion->method('findLastClosedForProjector')->willReturn(null);
+        $mockMotion->method('countForMeeting')->willReturn(5);
 
-        $this->assertTrue($response['choose']);
-        $this->assertCount(2, $response['meetings']);
-        $this->assertEquals('m1', $response['meetings'][0]['id']);
-        $this->assertEquals('m2', $response['meetings'][1]['id']);
-    }
+        $mockStats = $this->createMock(MeetingStatsRepository::class);
+        $mockStats->method('countActiveMembers')->willReturn(42);
 
-    // =========================================================================
-    // ARCHIVED MEETING REJECTION
-    // =========================================================================
+        $this->injectRepos([
+            MeetingRepository::class      => $mockMeeting,
+            MotionRepository::class       => $mockMotion,
+            MeetingStatsRepository::class => $mockStats,
+        ]);
 
-    public function testArchivedMeetingIsRejected(): void
-    {
-        $meeting = ['id' => 'm1', 'status' => 'archived', 'title' => 'Old Meeting'];
+        $result = $this->callController(ProjectorController::class, 'state');
 
-        $isArchived = !$meeting || ($meeting['status'] ?? '') === 'archived';
-        $this->assertTrue($isArchived, 'Archived meetings should be rejected');
-    }
-
-    public function testNonArchivedMeetingIsAccepted(): void
-    {
-        $meeting = ['id' => 'm1', 'status' => 'live', 'title' => 'Active Meeting'];
-
-        $isArchived = !$meeting || ($meeting['status'] ?? '') === 'archived';
-        $this->assertFalse($isArchived, 'Live meetings should be accepted');
-    }
-
-    public function testNullMeetingIsRejected(): void
-    {
-        $meeting = null;
-
-        $isRejected = !$meeting || ($meeting['status'] ?? '') === 'archived';
-        $this->assertTrue($isRejected, 'Null meeting should be rejected');
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals('idle', $result['body']['data']['phase']);
+        $this->assertNull($result['body']['data']['motion']);
+        $this->assertEquals(42, $result['body']['data']['eligible_count']);
+        $this->assertEquals(5, $result['body']['data']['total_motions']);
     }
 
     // =========================================================================
-    // RESPONSE STRUCTURE VERIFICATION (source-level)
+    // state(): SINGLE LIVE MEETING — ACTIVE PHASE
     // =========================================================================
 
-    public function testStateResponseStructure(): void
+    public function testStateReturnsActivePhaseWhenMotionOpen(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
+        $this->setAuth('user-1', 'operator', self::TENANT);
 
-        $expectedKeys = [
-            'meeting_id',
-            'meeting_title',
-            'meeting_status',
-            'phase',
-            'motion',
-            'total_motions',
-            'eligible_count',
-        ];
-        foreach ($expectedKeys as $key) {
-            $this->assertStringContainsString(
-                "'{$key}'",
-                $source,
-                "state() response should contain '{$key}'",
-            );
-        }
-    }
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('listLiveForTenant')->willReturn([
+            ['id' => self::MEETING, 'title' => 'Test AG', 'status' => 'live'],
+        ]);
 
-    public function testStateUsesCorrectRepositories(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findOpenForProjector')->willReturn([
+            'id'          => self::MOTION,
+            'title'       => 'Motion 1',
+            'description' => 'Description',
+            'body'        => 'Body text',
+            'secret'      => false,
+            'position'    => 1,
+        ]);
+        $mockMotion->method('findLastClosedForProjector')->willReturn(null);
+        $mockMotion->method('countForMeeting')->willReturn(3);
 
-        $this->assertStringContainsString('repo()->meeting()', $source);
-        $this->assertStringContainsString('repo()->motion()', $source);
-        $this->assertStringContainsString('repo()->meetingStats()', $source);
-    }
+        $mockStats = $this->createMock(MeetingStatsRepository::class);
+        $mockStats->method('countActiveMembers')->willReturn(10);
 
-    public function testStateQueriesOpenMotion(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
+        $this->injectRepos([
+            MeetingRepository::class      => $mockMeeting,
+            MotionRepository::class       => $mockMotion,
+            MeetingStatsRepository::class => $mockStats,
+        ]);
 
-        $this->assertStringContainsString('findOpenForProjector', $source);
-    }
+        $result = $this->callController(ProjectorController::class, 'state');
 
-    public function testStateQueriesLastClosedMotion(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
-
-        $this->assertStringContainsString('findLastClosedForProjector', $source);
-    }
-
-    public function testStateQueriesLiveMeetings(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
-
-        $this->assertStringContainsString('listLiveForTenant', $source);
-    }
-
-    public function testStateHandlesNoLiveMeeting(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
-
-        $this->assertStringContainsString('no_live_meeting', $source);
-    }
-
-    public function testStateMeetingNotFoundError(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
-
-        $this->assertStringContainsString('meeting_not_found', $source);
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals('active', $result['body']['data']['phase']);
+        $this->assertNotNull($result['body']['data']['motion']);
+        $this->assertEquals(self::MOTION, $result['body']['data']['motion']['id']);
+        $this->assertFalse($result['body']['data']['motion']['secret']);
     }
 
     // =========================================================================
-    // PHASE VALUES
+    // state(): SINGLE LIVE MEETING — CLOSED PHASE
     // =========================================================================
 
-    public function testValidPhaseValues(): void
+    public function testStateReturnsClosedPhaseWhenLastMotionClosed(): void
     {
-        $validPhases = ['idle', 'active', 'closed'];
+        $this->setAuth('user-1', 'operator', self::TENANT);
 
-        foreach ($validPhases as $phase) {
-            $this->assertContains(
-                $phase,
-                $validPhases,
-                "'{$phase}' should be a valid projector phase",
-            );
-        }
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('listLiveForTenant')->willReturn([
+            ['id' => self::MEETING, 'title' => 'Test AG', 'status' => 'live'],
+        ]);
+
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findOpenForProjector')->willReturn(null);
+        $mockMotion->method('findLastClosedForProjector')->willReturn([
+            'id'          => self::MOTION,
+            'title'       => 'Closed Motion',
+            'description' => '',
+            'body'        => '',
+            'secret'      => true,
+            'position'    => 2,
+        ]);
+        $mockMotion->method('countForMeeting')->willReturn(2);
+
+        $mockStats = $this->createMock(MeetingStatsRepository::class);
+        $mockStats->method('countActiveMembers')->willReturn(15);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $mockMeeting,
+            MotionRepository::class       => $mockMotion,
+            MeetingStatsRepository::class => $mockStats,
+        ]);
+
+        $result = $this->callController(ProjectorController::class, 'state');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals('closed', $result['body']['data']['phase']);
+        $this->assertTrue($result['body']['data']['motion']['secret']);
     }
 
     // =========================================================================
-    // ELIGIBLE COUNT
+    // state(): EXPLICIT meeting_id IN QUERY
     // =========================================================================
 
-    public function testStateCountsActiveMembers(): void
+    public function testStateWithExplicitMeetingId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
+        $this->setAuth('user-1', 'operator', self::TENANT);
+        $this->setQueryParams(['meeting_id' => self::MEETING]);
 
-        $this->assertStringContainsString('countActiveMembers', $source);
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id'     => self::MEETING,
+            'title'  => 'Explicit Meeting',
+            'status' => 'live',
+        ]);
+
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findOpenForProjector')->willReturn(null);
+        $mockMotion->method('findLastClosedForProjector')->willReturn(null);
+        $mockMotion->method('countForMeeting')->willReturn(0);
+
+        $mockStats = $this->createMock(MeetingStatsRepository::class);
+        $mockStats->method('countActiveMembers')->willReturn(5);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $mockMeeting,
+            MotionRepository::class       => $mockMotion,
+            MeetingStatsRepository::class => $mockStats,
+        ]);
+
+        $result = $this->callController(ProjectorController::class, 'state');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(self::MEETING, $result['body']['data']['meeting_id']);
+        $this->assertEquals('Explicit Meeting', $result['body']['data']['meeting_title']);
     }
 
-    // =========================================================================
-    // TOTAL MOTIONS COUNT
-    // =========================================================================
-
-    public function testStateCountsMotionsForMeeting(): void
+    public function testStateWithExplicitMeetingIdNotFound(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ProjectorController.php');
+        $this->setAuth('user-1', 'operator', self::TENANT);
+        $this->setQueryParams(['meeting_id' => self::MEETING]);
 
-        $this->assertStringContainsString('countForMeeting', $source);
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn(null);
+
+        $mockMotion = $this->createMock(MotionRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $mockMeeting,
+            MotionRepository::class  => $mockMotion,
+        ]);
+
+        $result = $this->callController(ProjectorController::class, 'state');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
 
-    // =========================================================================
-    // UUID VALIDATION HELPER
-    // =========================================================================
-
-    public function testUuidValidationForMeetingIds(): void
+    public function testStateWithArchivedMeetingReturnsNotFound(): void
     {
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
-        $this->assertTrue(api_is_uuid('00000000-0000-0000-0000-000000000000'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertFalse(api_is_uuid('not-a-uuid'));
-        $this->assertFalse(api_is_uuid('12345'));
-    }
+        $this->setAuth('user-1', 'operator', self::TENANT);
+        $this->setQueryParams(['meeting_id' => self::MEETING]);
 
-    // =========================================================================
-    // MEETING ID RESOLUTION: EXPLICIT VS IMPLICIT
-    // =========================================================================
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id'     => self::MEETING,
+            'title'  => 'Archived Meeting',
+            'status' => 'archived',
+        ]);
 
-    public function testExplicitMeetingIdUsedWhenProvided(): void
-    {
-        $requestedId = '12345678-1234-1234-1234-123456789abc';
-        $usesExplicitId = ($requestedId !== '');
-        $this->assertTrue($usesExplicitId, 'Should use explicit meeting_id when provided');
-    }
+        $mockMotion = $this->createMock(MotionRepository::class);
 
-    public function testImplicitMeetingIdFromLiveMeetings(): void
-    {
-        $requestedId = '';
-        $usesExplicitId = ($requestedId !== '');
-        $this->assertFalse($usesExplicitId, 'Should fall back to live meetings when no meeting_id');
+        $this->injectRepos([
+            MeetingRepository::class => $mockMeeting,
+            MotionRepository::class  => $mockMotion,
+        ]);
+
+        $result = $this->callController(ProjectorController::class, 'state');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
 }

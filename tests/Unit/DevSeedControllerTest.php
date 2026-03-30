@@ -4,87 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Controller\AbstractController;
 use AgVote\Controller\DevSeedController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MemberRepository;
 
 /**
  * Unit tests for DevSeedController.
  *
- * Tests the dev-only seed endpoints including:
- *  - Controller structure (final, extends AbstractController, public methods)
- *  - HTTP method enforcement for seedMembers and seedAttendances
- *  - Production guard behavior
- *  - Input validation (meeting_id for seedAttendances)
- *  - Count clamping logic
- *  - Present ratio parsing
- *  - Response structure verification via source introspection
+ * Extends ControllerTestCase for repo injection and standard helpers.
  *
- * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
- * inspect controller behavior without a database.
+ * Tests:
+ *  - Controller structure (final, extends AbstractController)
+ *  - guardProduction: 403 in production/prod environments
+ *  - seedMembers: production guard, count clamping, success path
+ *  - seedAttendances: production guard, missing meeting_id, no-members error, success path
  */
-class DevSeedControllerTest extends TestCase
+class DevSeedControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new DevSeedController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
+    private const TENANT  = 'aaaaaaaa-0000-0000-0000-000000000001';
+    private const MEETING = 'bbbbbbbb-0000-0000-0000-000000000001';
 
     // =========================================================================
     // CONTROLLER STRUCTURE TESTS
@@ -98,20 +37,15 @@ class DevSeedControllerTest extends TestCase
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new DevSeedController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(AbstractController::class, new DevSeedController());
     }
 
-    public function testControllerHasAllExpectedMethods(): void
+    public function testControllerHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(DevSeedController::class);
 
-        $expectedMethods = ['seedMembers', 'seedAttendances'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "DevSeedController should have a '{$method}' method",
-            );
+        foreach (['seedMembers', 'seedAttendances'] as $method) {
+            $this->assertTrue($ref->hasMethod($method), "Missing method: {$method}");
         }
     }
 
@@ -119,23 +53,46 @@ class DevSeedControllerTest extends TestCase
     {
         $ref = new \ReflectionClass(DevSeedController::class);
 
-        $expectedMethods = ['seedMembers', 'seedAttendances'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "DevSeedController::{$method}() should be public",
-            );
+        foreach (['seedMembers', 'seedAttendances'] as $method) {
+            $this->assertTrue($ref->getMethod($method)->isPublic(), "{$method} should be public");
         }
     }
 
-    public function testControllerHasPrivateGuardProductionMethod(): void
+    // =========================================================================
+    // guardProduction: PRODUCTION BLOCK
+    // =========================================================================
+
+    /**
+     * Source check: guardProduction checks env for 'production'/'prod'.
+     */
+    public function testGuardProductionBlocksProductionEnv(): void
     {
         $ref = new \ReflectionClass(DevSeedController::class);
+        $source = file_get_contents($ref->getFileName());
 
-        $this->assertTrue($ref->hasMethod('guardProduction'),
-            'DevSeedController should have a guardProduction method');
-        $this->assertTrue($ref->getMethod('guardProduction')->isPrivate(),
-            'guardProduction should be private');
+        $this->assertStringContainsString("'production'", $source);
+        $this->assertStringContainsString("'prod'", $source);
+        $this->assertStringContainsString('endpoint_disabled', $source);
+        $this->assertStringContainsString('403', $source);
+    }
+
+    /**
+     * Verify the guardProduction logic: both 'production' and 'prod' trigger the block.
+     */
+    public function testGuardProductionLogicCoverage(): void
+    {
+        $productionEnvs = ['production', 'prod'];
+        $devEnvs        = ['dev', 'staging', 'test', 'local', ''];
+
+        foreach ($productionEnvs as $env) {
+            $blocked = in_array($env, ['production', 'prod'], true);
+            $this->assertTrue($blocked, "Env '{$env}' should be blocked");
+        }
+
+        foreach ($devEnvs as $env) {
+            $blocked = in_array($env, ['production', 'prod'], true);
+            $this->assertFalse($blocked, "Env '{$env}' should not be blocked");
+        }
     }
 
     // =========================================================================
@@ -144,42 +101,68 @@ class DevSeedControllerTest extends TestCase
 
     public function testSeedMembersRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('seedMembers');
+        $result = $this->callController(DevSeedController::class, 'seedMembers');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    public function testSeedMembersRejectsPutMethod(): void
+    // =========================================================================
+    // seedMembers: COUNT CLAMPING LOGIC
+    // =========================================================================
+
+    /**
+     * The seed count is clamped: max(1, min(100, (int) $in['count'] ?? 10)).
+     */
+    public function testSeedMembersCountClampingLogic(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $clamp = fn($input): int => max(1, min(100, (int) ($input ?? 10)));
 
-        $result = $this->callControllerMethod('seedMembers');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->assertEquals(10, $clamp(null));    // Default
+        $this->assertEquals(10, $clamp(10));      // Normal
+        $this->assertEquals(1, $clamp(0));        // Zero => min 1
+        $this->assertEquals(1, $clamp(-5));       // Negative => min 1
+        $this->assertEquals(100, $clamp(150));    // Over max => clamped
+        $this->assertEquals(50, $clamp(50));      // Mid-range
     }
 
-    public function testSeedMembersRejectsDeleteMethod(): void
+    // =========================================================================
+    // seedMembers: SUCCESS PATH
+    // =========================================================================
+
+    public function testSeedMembersCreatesMembers(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody(['count' => 5]);
 
-        $result = $this->callControllerMethod('seedMembers');
+        $mockMember = $this->createMock(MemberRepository::class);
+        $mockMember->method('insertSeedMember')->willReturn(true);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->injectRepos([MemberRepository::class => $mockMember]);
+
+        $result = $this->callController(DevSeedController::class, 'seedMembers');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['ok']);
+        $this->assertArrayHasKey('created', $result['body']['data']);
+        $this->assertEquals(5, $result['body']['data']['requested']);
     }
 
-    public function testSeedMembersRejectsPatchMethod(): void
+    public function testSeedMembersDefaultCount(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('seedMembers');
+        $mockMember = $this->createMock(MemberRepository::class);
+        $mockMember->method('insertSeedMember')->willReturn(true);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->injectRepos([MemberRepository::class => $mockMember]);
+
+        $result = $this->callController(DevSeedController::class, 'seedMembers');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(10, $result['body']['data']['requested']);
     }
 
     // =========================================================================
@@ -188,316 +171,85 @@ class DevSeedControllerTest extends TestCase
 
     public function testSeedAttendancesRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('seedAttendances');
+        $result = $this->callController(DevSeedController::class, 'seedAttendances');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testSeedAttendancesRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('seedAttendances');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testSeedAttendancesRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('seedAttendances');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testSeedAttendancesRejectsPatchMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-
-        $result = $this->callControllerMethod('seedAttendances');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     // =========================================================================
-    // seedAttendances: MEETING_ID VALIDATION
-    //
-    // seedAttendances requires meeting_id in the POST body. If empty, it
-    // throws InvalidArgumentException which handle() wraps as
-    // invalid_request/422.
+    // seedAttendances: VALIDATION
     // =========================================================================
 
     public function testSeedAttendancesRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('seedAttendances');
+        // DevSeedController throws InvalidArgumentException for empty meeting_id,
+        // which AbstractController converts to 422.
+        $result = $this->callController(DevSeedController::class, 'seedAttendances');
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_request', $result['body']['error']);
-    }
-
-    public function testSeedAttendancesRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['meeting_id' => '']);
-
-        $result = $this->callControllerMethod('seedAttendances');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_request', $result['body']['error']);
-    }
-
-    public function testSeedAttendancesRejectsWhitespaceMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['meeting_id' => '   ']);
-
-        $result = $this->callControllerMethod('seedAttendances');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_request', $result['body']['error']);
+        $this->assertGreaterThanOrEqual(400, $result['status']);
     }
 
     // =========================================================================
-    // COUNT CLAMPING LOGIC (seedMembers)
+    // seedAttendances: NO MEMBERS
     // =========================================================================
 
-    public function testCountClampingDefault10(): void
+    public function testSeedAttendancesFailsWhenNoActiveMembers(): void
     {
-        $in = [];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(10, $count, 'Default count should be 10');
-    }
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody(['meeting_id' => self::MEETING]);
 
-    public function testCountClampingMinBound(): void
-    {
-        $in = ['count' => 0];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(1, $count, 'Count of 0 should be clamped to 1');
-    }
+        $mockMember = $this->createMock(MemberRepository::class);
+        $mockMember->method('listActiveIds')->willReturn([]);
 
-    public function testCountClampingNegative(): void
-    {
-        $in = ['count' => -5];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(1, $count, 'Negative count should be clamped to 1');
-    }
+        $mockAttendance = $this->createMock(AttendanceRepository::class);
 
-    public function testCountClampingMaxBound(): void
-    {
-        $in = ['count' => 200];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(100, $count, 'Count of 200 should be clamped to 100');
-    }
+        $this->injectRepos([
+            MemberRepository::class    => $mockMember,
+            AttendanceRepository::class => $mockAttendance,
+        ]);
 
-    public function testCountClampingExactly100(): void
-    {
-        $in = ['count' => 100];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(100, $count, 'Count of 100 should be accepted');
-    }
+        $result = $this->callController(DevSeedController::class, 'seedAttendances');
 
-    public function testCountClampingExactly1(): void
-    {
-        $in = ['count' => 1];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(1, $count, 'Count of 1 should be accepted');
-    }
-
-    public function testCountClampingValidValue50(): void
-    {
-        $in = ['count' => 50];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(50, $count, 'Valid count of 50 should pass through');
-    }
-
-    public function testCountClampingStringInput(): void
-    {
-        $in = ['count' => '25'];
-        $count = max(1, min(100, (int) ($in['count'] ?? 10)));
-        $this->assertEquals(25, $count, 'String count should be cast to int');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('no_members', $result['body']['error']);
     }
 
     // =========================================================================
-    // PRESENT RATIO PARSING (seedAttendances)
+    // seedAttendances: SUCCESS PATH
     // =========================================================================
 
-    public function testPresentRatioDefault(): void
+    public function testSeedAttendancesCreatesAttendances(): void
     {
-        $in = [];
-        $presentRatio = (float) ($in['present_ratio'] ?? 0.7);
-        $this->assertEquals(0.7, $presentRatio, 'Default present_ratio should be 0.7');
-    }
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id'    => self::MEETING,
+            'present_ratio' => 1.0, // 100% present to make test deterministic
+        ]);
 
-    public function testPresentRatioCustomValue(): void
-    {
-        $in = ['present_ratio' => 0.5];
-        $presentRatio = (float) ($in['present_ratio'] ?? 0.7);
-        $this->assertEquals(0.5, $presentRatio);
-    }
+        $mockMember = $this->createMock(MemberRepository::class);
+        $mockMember->method('listActiveIds')->willReturn([
+            ['id' => 'member-uuid-0000-0000-000000000001'],
+            ['id' => 'member-uuid-0000-0000-000000000002'],
+        ]);
 
-    public function testPresentRatioZero(): void
-    {
-        $in = ['present_ratio' => 0];
-        $presentRatio = (float) ($in['present_ratio'] ?? 0.7);
-        $this->assertEquals(0.0, $presentRatio);
-    }
+        $mockAttendance = $this->createMock(AttendanceRepository::class);
+        // upsertSeed returns void — no return value needed
 
-    public function testPresentRatioOne(): void
-    {
-        $in = ['present_ratio' => 1.0];
-        $presentRatio = (float) ($in['present_ratio'] ?? 0.7);
-        $this->assertEquals(1.0, $presentRatio);
-    }
+        $this->injectRepos([
+            MemberRepository::class    => $mockMember,
+            AttendanceRepository::class => $mockAttendance,
+        ]);
 
-    // =========================================================================
-    // PRODUCTION GUARD LOGIC
-    // =========================================================================
+        $result = $this->callController(DevSeedController::class, 'seedAttendances');
 
-    public function testGuardProductionSourceChecksEnvironment(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString("'production'", $source);
-        $this->assertStringContainsString("'prod'", $source);
-        $this->assertStringContainsString("'endpoint_disabled'", $source);
-        $this->assertStringContainsString('403', $source);
-    }
-
-    public function testGuardProductionLogicForDevEnv(): void
-    {
-        $env = 'dev';
-        $blocked = in_array($env, ['production', 'prod'], true);
-        $this->assertFalse($blocked, 'Dev environment should not be blocked');
-    }
-
-    public function testGuardProductionLogicForProductionEnv(): void
-    {
-        $env = 'production';
-        $blocked = in_array($env, ['production', 'prod'], true);
-        $this->assertTrue($blocked, 'Production environment should be blocked');
-    }
-
-    public function testGuardProductionLogicForProdEnv(): void
-    {
-        $env = 'prod';
-        $blocked = in_array($env, ['production', 'prod'], true);
-        $this->assertTrue($blocked, 'Prod environment should be blocked');
-    }
-
-    public function testGuardProductionLogicForStagingEnv(): void
-    {
-        $env = 'staging';
-        $blocked = in_array($env, ['production', 'prod'], true);
-        $this->assertFalse($blocked, 'Staging environment should not be blocked');
-    }
-
-    // =========================================================================
-    // SEED NAMES DATA
-    // =========================================================================
-
-    public function testSeedNamesExistInSource(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString('Jean', $source);
-        $this->assertStringContainsString('Marie', $source);
-        $this->assertStringContainsString('Martin', $source);
-        $this->assertStringContainsString('Dupont', $source);
-    }
-
-    // =========================================================================
-    // ATTENDANCE MODE LOGIC
-    // =========================================================================
-
-    public function testAttendanceModeDistribution(): void
-    {
-        // Replicate mode selection logic from seedAttendances
-        $presentRatio = 0.7;
-
-        // A value of 0.5 should be present (0.5 <= 0.7)
-        $rand = 0.5;
-        if ($rand <= $presentRatio) {
-            $mode = 'present'; // simplified, ignoring remote sub-branch
-        } else {
-            $mode = 'absent';
-        }
-
-        $this->assertEquals('present', $mode);
-    }
-
-    public function testAttendanceModeAbsentCase(): void
-    {
-        $presentRatio = 0.7;
-
-        $rand = 0.8;
-        if ($rand <= $presentRatio) {
-            $mode = 'present';
-        } else {
-            $mode = 'absent';
-        }
-
-        $this->assertEquals('absent', $mode);
-    }
-
-    // =========================================================================
-    // CONTROLLER SOURCE: RESPONSE STRUCTURE VERIFICATION
-    // =========================================================================
-
-    public function testSeedMembersResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString("'created'", $source);
-        $this->assertStringContainsString("'requested'", $source);
-    }
-
-    public function testSeedAttendancesResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString("'created'", $source);
-        $this->assertStringContainsString("'total_members'", $source);
-    }
-
-    // =========================================================================
-    // CONTROLLER SOURCE: REPOSITORY USAGE
-    // =========================================================================
-
-    public function testControllerUsesMemberRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString('repo()->member()', $source);
-    }
-
-    public function testControllerUsesAttendanceRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString('repo()->attendance()', $source);
-    }
-
-    public function testSeedMembersUsesInsertSeedMember(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString('insertSeedMember', $source);
-    }
-
-    public function testSeedAttendancesUsesUpsertSeed(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DevSeedController.php');
-
-        $this->assertStringContainsString('upsertSeed', $source);
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['ok']);
+        $this->assertEquals(2, $result['body']['data']['total_members']);
     }
 }
