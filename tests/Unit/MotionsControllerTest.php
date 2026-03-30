@@ -5,8 +5,15 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\MotionsController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AgendaRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\ManualActionRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\NotificationRepository;
+use AgVote\Repository\PolicyRepository;
 
 /**
  * Unit tests for MotionsController.
@@ -18,64 +25,24 @@ use PHPUnit\Framework\TestCase;
  *  - Title/description length constraints
  *  - Reorder array validation
  *  - Degraded tally arithmetic checks
+ *  - Execution-based tests with mocked repos via ControllerTestCase
  *
  * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
  * inspect controller behavior without a database.
  */
-class MotionsControllerTest extends TestCase
+class MotionsControllerTest extends ControllerTestCase
 {
     // =========================================================================
-    // SETUP / TEARDOWN
+    // HELPER: backward compat wrapper for old test pattern
     // =========================================================================
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        // Reset cached raw body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
+    /**
+     * Backward-compat wrapper: calls handle() on MotionsController.
+     * New tests should use $this->callController(MotionsController::class, $method) directly.
+     */
     private function callControllerMethod(string $method): array
     {
-        $controller = new MotionsController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
+        return $this->callController(MotionsController::class, $method);
     }
 
     /**
@@ -83,10 +50,7 @@ class MotionsControllerTest extends TestCase
      */
     private function setJsonBody(array $data): void
     {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
+        $this->injectJsonBody($data);
     }
 
     // =========================================================================
@@ -1775,5 +1739,540 @@ class MotionsControllerTest extends TestCase
             $source,
             'routes.php must map motions_override_decision to overrideDecision()',
         );
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: listForMeeting with mocked repos
+    // =========================================================================
+
+    public function testListForMeetingMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(false);
+
+        // MotionRepository is also instantiated before the meeting check — must inject
+        $motionRepo = $this->createMock(MotionRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'listForMeeting');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testListForMeetingHappyPathReturnsMotions(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'current_motion_id' => null,
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('listForMeetingJson')->willReturn(['motions' => []]);
+        $motionRepo->method('listStatsForMeeting')->willReturn([]);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+            PolicyRepository::class => $policyRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'listForMeeting');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('items', $data);
+        $this->assertArrayHasKey('meeting_id', $data);
+        $this->assertIsArray($data['items']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: createSimple with mocked repos
+    // =========================================================================
+
+    public function testCreateSimpleMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'title' => 'My motion',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(false);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(MotionsController::class, 'createSimple');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testCreateSimpleHappyPath(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'title' => 'My motion',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
+
+        $agendaRepo = $this->createMock(AgendaRepository::class);
+        $agendaRepo->method('listForMeetingCompact')->willReturn([
+            ['agenda_id' => 'agenda-uuid-1234-1234-1234-123456789abc'],
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('generateUuid')->willReturn('motion-uuid-1234-1234-1234-123456789abc');
+        // MotionRepository::create returns void — just call method() without willReturn
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            AgendaRepository::class => $agendaRepo,
+            MotionRepository::class => $motionRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'createSimple');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('motion_id', $data);
+        $this->assertTrue($data['created']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: createOrUpdate with mocked repos
+    // =========================================================================
+
+    public function testCreateOrUpdateAgendaNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'agenda_id' => '12345678-1234-1234-1234-123456789abc',
+            'title' => 'My motion',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findAgendaWithMeeting')->willReturn(null);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'createOrUpdate');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('agenda_not_found', $result['body']['error']);
+    }
+
+    public function testCreateOrUpdateCreatesNewMotion(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'agenda_id' => '12345678-1234-1234-1234-123456789abc',
+            'title' => 'My motion',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findAgendaWithMeeting')->willReturn([
+            'meeting_id' => 'meeting-uuid-1234-1234-1234-123456789abc',
+        ]);
+        $motionRepo->method('generateUuid')->willReturn('new-motion-uuid-1234-1234-1234-1234');
+        // MotionRepository::create returns void — just call method() without willReturn
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('votePolicyExists')->willReturn(true);
+        $policyRepo->method('quorumPolicyExists')->willReturn(true);
+
+        $this->injectRepos([
+            MotionRepository::class => $motionRepo,
+            PolicyRepository::class => $policyRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'createOrUpdate');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['data']['created']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: deleteMotion with mocked repos
+    // =========================================================================
+
+    public function testDeleteMotionMotionNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['motion_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn(null);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'deleteMotion');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('motion_not_found', $result['body']['error']);
+    }
+
+    public function testDeleteMotionActiveMotionReturns409(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['motion_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'meeting_id' => 'meet-uuid-1234-1234-1234-123456789abc',
+            'opened_at' => '2024-01-01 10:00:00',
+            'closed_at' => null,
+        ]);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'deleteMotion');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('motion_open_locked', $result['body']['error']);
+    }
+
+    public function testDeleteMotionHappyPath(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['motion_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'meeting_id' => 'meet-uuid-1234-1234-1234-123456789abc',
+            'agenda_id' => 'agenda-uuid-1234-1234-1234-123456789abc',
+            'opened_at' => null,
+            'closed_at' => null,
+        ]);
+        $motionRepo->expects($this->once())->method('delete');
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'deleteMotion');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('motion_id', $data);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: reorder with mocked repos
+    // =========================================================================
+
+    public function testReorderMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'motion_ids' => ['aaaaaaaa-1234-1234-1234-123456789abc'],
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(MotionsController::class, 'reorder');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testReorderLockedMeetingReturns409(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'motion_ids' => ['aaaaaaaa-1234-1234-1234-123456789abc'],
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'live',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(MotionsController::class, 'reorder');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_locked', $result['body']['error']);
+    }
+
+    public function testReorderHappyPath(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'motion_ids' => ['aaaaaaaa-1234-1234-1234-123456789abc'],
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->expects($this->once())->method('reorderAll');
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'reorder');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['data']['reordered']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: tally with mocked repos
+    // =========================================================================
+
+    public function testTallyMotionNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['motion_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn(null);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'tally');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('motion_not_found', $result['body']['error']);
+    }
+
+    public function testTallyHappyPath(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['motion_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'closed_at' => '2024-01-01 12:00:00',
+        ]);
+        $motionRepo->method('getTally')->willReturn([
+            ['value' => 'for', 'c' => '5', 'w' => '5.0'],
+            ['value' => 'against', 'c' => '2', 'w' => '2.0'],
+        ]);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'tally');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('tally', $data);
+        $this->assertEquals(5, $data['tally']['for']['count']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: degradedTally with mocked repos
+    // =========================================================================
+
+    public function testDegradedTallyMotionNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'manual_total' => 10,
+            'manual_for' => 5,
+            'manual_against' => 3,
+            'manual_abstain' => 2,
+            'justification' => 'Network issues during e-vote',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithMeetingTenant')->willReturn(null);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'degradedTally');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('motion_not_found', $result['body']['error']);
+    }
+
+    public function testDegradedTallyHappyPath(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'manual_total' => 10,
+            'manual_for' => 5,
+            'manual_against' => 3,
+            'manual_abstain' => 2,
+            'justification' => 'Network issues during e-vote',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithMeetingTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'meeting_id' => 'meet-uuid-1234-1234-1234-123456789abc',
+            'motion_title' => 'Test motion',
+        ]);
+        $motionRepo->expects($this->once())->method('updateManualTally');
+
+        $manualActionRepo = $this->createMock(ManualActionRepository::class);
+        // createManualTally returns void — no willReturn needed
+
+        $meetingStatsRepo = $this->createMock(MeetingStatsRepository::class);
+
+        // NotificationsService() calls RepositoryFactory for meeting + notification repos
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => 'meet-uuid-1234-1234-1234-123456789abc',
+            'status' => 'live',
+        ]);
+        $notifRepo = $this->createMock(NotificationRepository::class);
+
+        $this->injectRepos([
+            MotionRepository::class => $motionRepo,
+            ManualActionRepository::class => $manualActionRepo,
+            MeetingStatsRepository::class => $meetingStatsRepo,
+            MeetingRepository::class => $meetingRepo,
+            NotificationRepository::class => $notifRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'degradedTally');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertEquals(10, $data['manual_total']);
+        $this->assertEquals(5, $data['manual_for']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: current with mocked repos
+    // =========================================================================
+
+    public function testCurrentHappyPathNoOpenMotion(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('countForMeeting')->willReturn(3);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'live',
+        ]);
+
+        $meetingStatsRepo = $this->createMock(MeetingStatsRepository::class);
+        $meetingStatsRepo->method('countActiveMembers')->willReturn(10);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $this->injectRepos([
+            MotionRepository::class => $motionRepo,
+            MeetingRepository::class => $meetingRepo,
+            MeetingStatsRepository::class => $meetingStatsRepo,
+            BallotRepository::class => $ballotRepo,
+        ]);
+
+        $result = $this->callController(MotionsController::class, 'current');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertNull($data['motion']);
+        $this->assertEquals(3, $data['total_motions']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED TESTS: overrideDecision with mocked repos
+    // =========================================================================
+
+    public function testOverrideDecisionMotionNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'adopted',
+            'justification' => 'President tie-break',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithMeetingTenant')->willReturn(null);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'overrideDecision');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('motion_not_found', $result['body']['error']);
+    }
+
+    public function testOverrideDecisionMotionNotClosedReturns409(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'motion_id' => '12345678-1234-1234-1234-123456789abc',
+            'decision' => 'adopted',
+            'justification' => 'President tie-break',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithMeetingTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'meeting_id' => 'meet-uuid-1234-1234-1234-123456789abc',
+            'motion_title' => 'Test',
+            'closed_at' => null,
+        ]);
+
+        $this->injectRepos([MotionRepository::class => $motionRepo]);
+
+        $result = $this->callController(MotionsController::class, 'overrideDecision');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('motion_not_closed', $result['body']['error']);
     }
 }

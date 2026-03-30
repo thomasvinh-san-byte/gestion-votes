@@ -56,7 +56,7 @@ if (!function_exists('config')) {
 
 // Stub audit_log() for tests — no-op in test environment.
 if (!function_exists('audit_log')) {
-    function audit_log(string $action, string $resourceType, string $resourceId, array $data = []): void {
+    function audit_log(string $action, string $resourceType, ?string $resourceId, array $data = [], ?string $meetingId = null): void {
         // no-op
     }
 }
@@ -174,6 +174,18 @@ if (!function_exists('api_guard_meeting_not_validated')) {
     }
 }
 
+if (!function_exists('api_guard_meeting_exists')) {
+    function api_guard_meeting_exists(string $meetingId): array {
+        // Delegates to RepositoryFactory so injectRepos() mocks are respected.
+        $repo = \AgVote\Core\Providers\RepositoryFactory::getInstance()->meeting();
+        $mt = $repo->findByIdForTenant($meetingId, \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId());
+        if (!$mt) {
+            api_fail('meeting_not_found', 404);
+        }
+        return $mt;
+    }
+}
+
 if (!function_exists('api_require_role')) {
     function api_require_role(string|array $roles): void {
         // no-op in test environment
@@ -197,6 +209,13 @@ if (!function_exists('api_file')) {
         return null;
     }
 }
+
+// Explicitly require ControllerTestCase so it is always available regardless of
+// file-load order. PHPUnit loads test files alphabetically; without this,
+// DashboardControllerTest (D) would fail because the class is declared in
+// ControllerTestCase.php (C) but PHP's require_once order is non-deterministic
+// across different PHPUnit invocation modes.
+require_once __DIR__ . '/Unit/ControllerTestCase.php';
 
 // Use namespaced classes
 use AgVote\Core\Security\RateLimiter;

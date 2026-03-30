@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\ImportController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MemberGroupRepository;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\ProxyRepository;
 
 /**
  * Unit tests for ImportController.
@@ -18,73 +22,10 @@ use PHPUnit\Framework\TestCase;
  *  - File upload requirement validation
  *  - All 8 public import methods (membersCsv, membersXlsx, attendancesCsv,
  *    attendancesXlsx, proxiesCsv, proxiesXlsx, motionsCsv, motionsXlsx)
+ *  - Execution-based tests with mocked repos via ControllerTestCase
  */
-class ImportControllerTest extends TestCase
+class ImportControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-        $_FILES = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        $_FILES = [];
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new ImportController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
     // =========================================================================
     // CONTROLLER STRUCTURE TESTS
     // =========================================================================
@@ -177,9 +118,9 @@ class ImportControllerTest extends TestCase
 
     public function testMembersCsvRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('membersCsv');
+        $result = $this->callController(ImportController::class, 'membersCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
@@ -187,9 +128,9 @@ class ImportControllerTest extends TestCase
 
     public function testMembersCsvRejectsPutMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('PUT');
 
-        $result = $this->callControllerMethod('membersCsv');
+        $result = $this->callController(ImportController::class, 'membersCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
@@ -197,26 +138,24 @@ class ImportControllerTest extends TestCase
 
     public function testMembersCsvRejectsDeleteMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->setHttpMethod('DELETE');
 
-        $result = $this->callControllerMethod('membersCsv');
+        $result = $this->callController(ImportController::class, 'membersCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     // =========================================================================
-    // membersCsv: FILE UPLOAD VALIDATION (no-DB env limitation)
-    // After api_request('POST'), membersCsv() calls api_file() which returns
-    // null when no file is uploaded, then falls through to upload_error (400).
+    // membersCsv: MISSING FILE — upload_error 400
     // =========================================================================
 
     public function testMembersCsvNoApiFileReturnsInternalErrorInTestEnv(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('membersCsv');
+        $result = $this->callController(ImportController::class, 'membersCsv');
 
         // api_file() returns null (no file), no csv_content either -> upload_error 400
         $this->assertEquals(400, $result['status']);
@@ -224,31 +163,143 @@ class ImportControllerTest extends TestCase
     }
 
     // =========================================================================
-    // membersXlsx: METHOD ENFORCEMENT
+    // membersCsv: HAPPY PATH via csv_content with mocked repos
+    // =========================================================================
+
+    public function testMembersCsvHappyPathWithCsvContent(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        $csvContent = "name,email\nJean Dupont,jean@example.com\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->method('createImport')->willReturn('new-member-uuid');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $this->injectRepos([
+            MemberRepository::class => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('imported', $data);
+        $this->assertArrayHasKey('skipped', $data);
+        $this->assertEquals(1, $data['imported']);
+    }
+
+    public function testMembersCsvMissingNameColumnReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        // CSV with only an 'email' column, no name column
+        $csvContent = "email\njean@example.com\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_name_column', $result['body']['error']);
+    }
+
+    public function testMembersCsvTooLargeContentReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        // More than 5 MB
+        $bigContent = str_repeat('a', 5 * 1024 * 1024 + 1);
+        $this->injectJsonBody(['csv_content' => $bigContent]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('file_too_large', $result['body']['error']);
+    }
+
+    public function testMembersCsvWithFirstLastNameColumns(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        $csvContent = "first_name,last_name,email\nJean,Dupont,jean@example.com\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->method('createImport')->willReturn('new-member-uuid');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $this->injectRepos([
+            MemberRepository::class => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(1, $result['body']['data']['imported']);
+    }
+
+    public function testMembersCsvUpdatesExistingMember(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        $csvContent = "name,email\nJean Dupont,jean@example.com\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $existingMember = ['id' => 'existing-uuid', 'full_name' => 'Jean Dupont', 'email' => 'jean@example.com'];
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn($existingMember);
+        $memberRepo->expects($this->once())->method('updateImport');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $this->injectRepos([
+            MemberRepository::class => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(1, $result['body']['data']['imported']);
+    }
+
+    // =========================================================================
+    // membersXlsx: METHOD ENFORCEMENT + missing file
     // =========================================================================
 
     public function testMembersXlsxRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('membersXlsx');
+        $result = $this->callController(ImportController::class, 'membersXlsx');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // membersXlsx: FILE UPLOAD VALIDATION (no-DB env limitation)
-    // After api_request('POST'), membersXlsx() calls readImportFile('xlsx')
-    // which calls api_file() returning null -> upload_error (400).
-    // =========================================================================
-
     public function testMembersXlsxNoApiFileReturnsInternalErrorInTestEnv(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('membersXlsx');
+        $result = $this->callController(ImportController::class, 'membersXlsx');
 
         // api_file() returns null (no file) -> readImportFile -> upload_error 400
         $this->assertEquals(400, $result['status']);
@@ -256,29 +307,25 @@ class ImportControllerTest extends TestCase
     }
 
     // =========================================================================
-    // attendancesCsv: METHOD ENFORCEMENT
+    // attendancesCsv: METHOD ENFORCEMENT + validation
     // =========================================================================
 
     public function testAttendancesCsvRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('attendancesCsv');
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // attendancesCsv: meeting_id VALIDATION
-    // =========================================================================
-
     public function testAttendancesCsvRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('attendancesCsv');
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
@@ -286,10 +333,10 @@ class ImportControllerTest extends TestCase
 
     public function testAttendancesCsvRejectsInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => 'not-a-uuid']);
 
-        $result = $this->callControllerMethod('attendancesCsv');
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
@@ -297,68 +344,140 @@ class ImportControllerTest extends TestCase
 
     public function testAttendancesCsvRejectsEmptyMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => '']);
 
-        $result = $this->callControllerMethod('attendancesCsv');
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
+    public function testAttendancesCsvMeetingNotFound(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testAttendancesCsvLockedMeetingReturns403(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'validated',
+            'tenant_id' => 'tenant-1',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
+
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('meeting_locked', $result['body']['error']);
+    }
+
+    public function testAttendancesCsvMissingFileReturnsUploadError(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+            'tenant_id' => 'tenant-1',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('upload_error', $result['body']['error']);
+    }
+
     // =========================================================================
-    // attendancesXlsx: METHOD ENFORCEMENT
+    // attendancesXlsx: METHOD ENFORCEMENT + validation
     // =========================================================================
 
     public function testAttendancesXlsxRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('attendancesXlsx');
+        $result = $this->callController(ImportController::class, 'attendancesXlsx');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // attendancesXlsx: meeting_id VALIDATION
-    // =========================================================================
-
     public function testAttendancesXlsxRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('attendancesXlsx');
+        $result = $this->callController(ImportController::class, 'attendancesXlsx');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
+    public function testAttendancesXlsxMeetingLockedReturns403(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'archived',
+            'tenant_id' => 'tenant-1',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'attendancesXlsx');
+
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('meeting_locked', $result['body']['error']);
+    }
+
     // =========================================================================
-    // proxiesCsv: METHOD ENFORCEMENT
+    // proxiesCsv: METHOD ENFORCEMENT + validation
     // =========================================================================
 
     public function testProxiesCsvRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('proxiesCsv');
+        $result = $this->callController(ImportController::class, 'proxiesCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // proxiesCsv: meeting_id VALIDATION
-    // =========================================================================
-
     public function testProxiesCsvRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('proxiesCsv');
+        $result = $this->callController(ImportController::class, 'proxiesCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
@@ -366,68 +485,142 @@ class ImportControllerTest extends TestCase
 
     public function testProxiesCsvRejectsInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => 'bad']);
 
-        $result = $this->callControllerMethod('proxiesCsv');
+        $result = $this->callController(ImportController::class, 'proxiesCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
+    public function testProxiesCsvMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'proxiesCsv');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testProxiesCsvMissingFileReturnsUploadError(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'proxiesCsv');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('upload_error', $result['body']['error']);
+    }
+
+    public function testProxiesCsvWithCsvContentMissingColumnsReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        // CSV missing giver/receiver columns
+        $csvContent = "name\nJean Dupont\n";
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'csv_content' => $csvContent,
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'proxiesCsv');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_columns', $result['body']['error']);
+    }
+
     // =========================================================================
-    // proxiesXlsx: METHOD ENFORCEMENT
+    // proxiesXlsx: METHOD ENFORCEMENT + validation
     // =========================================================================
 
     public function testProxiesXlsxRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('proxiesXlsx');
+        $result = $this->callController(ImportController::class, 'proxiesXlsx');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // proxiesXlsx: meeting_id VALIDATION
-    // =========================================================================
-
     public function testProxiesXlsxRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('proxiesXlsx');
+        $result = $this->callController(ImportController::class, 'proxiesXlsx');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
+    public function testProxiesXlsxMeetingLockedReturns403(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'validated',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'proxiesXlsx');
+
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('meeting_locked', $result['body']['error']);
+    }
+
     // =========================================================================
-    // motionsCsv: METHOD ENFORCEMENT
+    // motionsCsv: METHOD ENFORCEMENT + validation
     // =========================================================================
 
     public function testMotionsCsvRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('motionsCsv');
+        $result = $this->callController(ImportController::class, 'motionsCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // motionsCsv: meeting_id VALIDATION
-    // =========================================================================
-
     public function testMotionsCsvRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('motionsCsv');
+        $result = $this->callController(ImportController::class, 'motionsCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
@@ -435,10 +628,10 @@ class ImportControllerTest extends TestCase
 
     public function testMotionsCsvRejectsInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => 'not-valid']);
 
-        $result = $this->callControllerMethod('motionsCsv');
+        $result = $this->callController(ImportController::class, 'motionsCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
@@ -446,39 +639,154 @@ class ImportControllerTest extends TestCase
 
     public function testMotionsCsvRejectsEmptyMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => '']);
 
-        $result = $this->callControllerMethod('motionsCsv');
+        $result = $this->callController(ImportController::class, 'motionsCsv');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
+    public function testMotionsCsvMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'motionsCsv');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testMotionsCsvMissingFileReturnsUploadError(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(ImportController::class, 'motionsCsv');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('upload_error', $result['body']['error']);
+    }
+
+    public function testMotionsCsvWithTmpFileMissingTitleColumnReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        // Create a real temp CSV file missing the title column
+        $tmpPath = tempnam(sys_get_temp_dir(), 'csv_test_');
+        file_put_contents($tmpPath, "description\nSome description\n");
+
+        $_FILES['file'] = [
+            'name' => 'test.csv',
+            'type' => 'text/csv',
+            'tmp_name' => $tmpPath,
+            'error' => UPLOAD_ERR_OK,
+            'size' => filesize($tmpPath),
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        try {
+            $result = $this->callController(ImportController::class, 'motionsCsv');
+            $this->assertEquals(400, $result['status']);
+            $this->assertEquals('missing_title_column', $result['body']['error']);
+        } finally {
+            if (file_exists($tmpPath)) {
+                unlink($tmpPath);
+            }
+        }
+    }
+
+    public function testMotionsCsvHappyPathDryRunWithTmpFile(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody(['meeting_id' => '12345678-1234-1234-1234-123456789abc', 'dry_run' => '1']);
+
+        // Create a real temp CSV file with a title column
+        $tmpPath = tempnam(sys_get_temp_dir(), 'csv_test_');
+        file_put_contents($tmpPath, "title,description\n\"Résolution 1\",\"Description 1\"\n");
+
+        $_FILES['file'] = [
+            'name' => 'motions.csv',
+            'type' => 'text/csv',
+            'tmp_name' => $tmpPath,
+            'error' => UPLOAD_ERR_OK,
+            'size' => filesize($tmpPath),
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'status' => 'draft',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('countForMeeting')->willReturn(0);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+        ]);
+
+        try {
+            $result = $this->callController(ImportController::class, 'motionsCsv');
+
+            $this->assertEquals(200, $result['status']);
+            $this->assertTrue($result['body']['data']['dry_run']);
+            $this->assertArrayHasKey('preview', $result['body']['data']);
+        } finally {
+            if (file_exists($tmpPath)) {
+                unlink($tmpPath);
+            }
+        }
+    }
+
     // =========================================================================
-    // motionsXlsx: METHOD ENFORCEMENT
+    // motionsXlsx: METHOD ENFORCEMENT + validation
     // =========================================================================
 
     public function testMotionsXlsxRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
 
-        $result = $this->callControllerMethod('motionsXlsx');
+        $result = $this->callController(ImportController::class, 'motionsXlsx');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // motionsXlsx: meeting_id VALIDATION
-    // =========================================================================
-
     public function testMotionsXlsxRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('motionsXlsx');
+        $result = $this->callController(ImportController::class, 'motionsXlsx');
 
         $this->assertEquals(422, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
@@ -490,10 +798,10 @@ class ImportControllerTest extends TestCase
 
     public function testMembersCsvMethodCheckBeforeBodyValidation(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
         $this->injectJsonBody(['csv_content' => 'name\nJohn']);
 
-        $result = $this->callControllerMethod('membersCsv');
+        $result = $this->callController(ImportController::class, 'membersCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
@@ -501,12 +809,12 @@ class ImportControllerTest extends TestCase
 
     public function testAttendancesCsvMethodCheckBeforeBodyValidation(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setHttpMethod('GET');
         $this->injectJsonBody([
             'meeting_id' => '12345678-1234-1234-1234-123456789abc',
         ]);
 
-        $result = $this->callControllerMethod('attendancesCsv');
+        $result = $this->callController(ImportController::class, 'attendancesCsv');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
@@ -683,7 +991,7 @@ class ImportControllerTest extends TestCase
 
     public function testHandleUnknownMethodReturns500(): void
     {
-        $result = $this->callControllerMethod('nonExistentMethod');
+        $result = $this->callController(ImportController::class, 'nonExistentMethod');
 
         $this->assertEquals(500, $result['status']);
         $this->assertEquals('internal_error', $result['body']['error']);
