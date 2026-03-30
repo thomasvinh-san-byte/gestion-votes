@@ -181,7 +181,9 @@ Plans:
   2. The CI workflow runs PHPUnit with coverage and fails the build if coverage drops below 90% on Services or Controllers — the failure message names the threshold breached
   3. The CI workflow runs a migration validation step that checks all `.sql` files for PostgreSQL compatibility — a file containing SQLite syntax causes the step to fail with the offending filename
   4. Integration tests run against a containerized PostgreSQL + Redis stack in CI — tests exercise real database and cache connections, not mocks
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 57-01-PLAN.md — Add migrate-check, coverage, e2e, and integration jobs to GitHub Actions workflow
 
 ## Progress
 
@@ -194,4 +196,4 @@ Plans:
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
 | 55. Coverage Target & Tooling | 9/9 | Complete    | 2026-03-30 | 2026-03-30 |
 | 56. E2E Test Updates | 2/2 | Complete    | 2026-03-30 | - |
-| 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
+| 57. CI/CD Pipeline | v5.0 | 0/1 | Not started | - |
