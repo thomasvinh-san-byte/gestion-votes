@@ -18,11 +18,11 @@
 
 ### Utility Page Rebuilds (UTL)
 
-- [ ] **UTL-01**: Help/FAQ — complete HTML+CSS rewrite, accordion with proper spacing, search
-- [ ] **UTL-02**: Email templates — complete HTML+CSS+JS rewrite, editor with preview panel
-- [ ] **UTL-03**: Public/Projector display — complete HTML+CSS rewrite, projection-optimized results
-- [ ] **UTL-04**: Report/PV page — complete HTML+CSS rewrite, print-ready layout at 880px
-- [ ] **UTL-05**: Trust/Validate/Docs — complete HTML+CSS rewrite, verification status display
+- [x] **UTL-01**: Help/FAQ — complete HTML+CSS rewrite, accordion with proper spacing, search
+- [x] **UTL-02**: Email templates — complete HTML+CSS+JS rewrite, editor with preview panel
+- [x] **UTL-03**: Public/Projector display — complete HTML+CSS rewrite, projection-optimized results
+- [x] **UTL-04**: Report/PV page — complete HTML+CSS rewrite, print-ready layout at 880px
+- [x] **UTL-05**: Trust/Validate/Docs — complete HTML+CSS rewrite, verification status display
 
 ### Backend Wiring (WIRE)
 

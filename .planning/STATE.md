@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.4
 milestone_name: Complete Rebuild
 status: Defining requirements
-stopped_at: Completed 51-03-PLAN.md (trust/validate/docs page rebuild)
-last_updated: "2026-03-30T05:49:56.434Z"
+stopped_at: Completed 51-01-PLAN.md (help/FAQ + email-templates page rebuild)
+last_updated: "2026-03-30T05:54:00.363Z"
 last_activity: 2026-03-30 — Milestone v4.4 started
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # AG-VOTE — Project State
@@ -52,6 +52,8 @@ v4.4 continues v4.3 approach for remaining pages.
 - [Phase 51-utility-pages]: Public page was already complete (47 IDs, dark theme, SSE). Report page HTML was also complete; only report.css needed @media print (880px) and .export-grid added.
 - [Phase 51-utility-pages]: Trust page htmx.min.js vendor script removed — not needed for rebuilt v4.3 page
 - [Phase 51-utility-pages]: Validate and Docs pages were already fully compliant with v4.3 — verified all DOM IDs, no rewrite needed
+- [Phase 51-utility-pages]: Help page now uses app-header with page-title pattern matching all other v4.3/v4.4 pages
+- [Phase 51-utility-pages]: Email-templates toolbar uses dedicated .email-templates-toolbar class instead of utility classes
 
 ### Pending Todos
 
@@ -63,6 +65,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T05:49:56.431Z
-Stopped at: Completed 51-03-PLAN.md (trust/validate/docs page rebuild)
+Last session: 2026-03-30T05:54:00.361Z
+Stopped at: Completed 51-01-PLAN.md (help/FAQ + email-templates page rebuild)
 Resume file: None
