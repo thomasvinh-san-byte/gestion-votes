@@ -83,7 +83,7 @@
 ## Phases
 
 - [x] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms (completed 2026-03-30)
-- [ ] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services)
+- [x] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services) (completed 2026-03-30)
 - [ ] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController
 - [ ] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
 - [ ] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium
@@ -116,7 +116,7 @@ Plans:
   3. `vendor/bin/phpunit --filter ImportServiceTest` passes with tests covering valid CSV import, malformed rows, duplicate detection, and encoding edge cases
   4. `vendor/bin/phpunit --filter MeetingValidatorTest` passes with tests covering all valid and invalid meeting state transitions
   5. `vendor/bin/phpunit --filter NotificationsServiceTest` passes with tests covering notification creation, delivery dispatch, and failure handling
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 53-01-PLAN.md — VoteEngine computeMotionResult tests + ImportServiceTest + verify QuorumEngineTest
 - [ ] 53-02-PLAN.md — MeetingValidatorTest + NotificationsServiceTest
@@ -174,7 +174,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
-| 53. Service Unit Tests Batch 1 | v5.0 | 0/2 | Planned | - |
+| 53. Service Unit Tests Batch 1 | 2/2 | Complete   | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
 | 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
