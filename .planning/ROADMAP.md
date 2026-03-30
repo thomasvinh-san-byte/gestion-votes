@@ -78,7 +78,7 @@
 
 **Milestone Goal:** Achieve 90%+ test coverage across all layers, fix infrastructure bugs, harden Docker/CI pipeline, and make AG-VOTE production-ready.
 
-**Approach:** Fix foundations first (migrations, Docker), then build test coverage bottom-up (unit tests → coverage tooling → E2E updates → CI wiring). Each phase delivers a verifiable quality gate.
+**Approach:** Fix foundations first (migrations, Docker), then build test coverage bottom-up (unit tests -> coverage tooling -> E2E updates -> CI wiring). Each phase delivers a verifiable quality gate.
 
 ## Phases
 
@@ -145,10 +145,17 @@ Plans:
   2. The coverage report shows 90%+ line coverage for the `app/Services/` directory
   3. The coverage report shows 90%+ line coverage for the `app/Controller/` directory
   4. A PHPUnit configuration (phpunit.xml) enforces the 90% threshold — running the suite below threshold exits with a non-zero code
-**Plans:** 2 plans
+**Plans:** 9 plans (2 complete + 7 gap closure)
 Plans:
 - [x] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
 - [x] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
+- [ ] 55-03-PLAN.md — ControllerTestCase base class + service gap-filling to 90%
+- [ ] 55-04-PLAN.md — Controller tests: Import, Motions, MeetingReports, Meetings, MeetingWorkflow
+- [ ] 55-05-PLAN.md — Controller tests: Operator, Admin, Analytics, Ballots, Audit
+- [ ] 55-06-PLAN.md — Controller tests: Trust, MemberGroups, Auth, Export, ResolutionDocument, Email, Doc, Devices
+- [ ] 55-07-PLAN.md — Controller tests: Dashboard, EmailTemplates, Quorum, Speech, Attendances, Invitations, ExportTemplates, Policies, VotePublic, MeetingAttachment, Members, Agenda
+- [ ] 55-08-PLAN.md — Controller tests: Proxies, EmailTracking, Reminder, DevSeed, Projector, VoteToken, Settings, Emergency, DocContent, Notifications
+- [ ] 55-09-PLAN.md — Update coverage-check.sh thresholds to 90/90 and final validation
 
 ### Phase 56: E2E Test Updates
 **Goal**: All Playwright specs reflect the v4.3/v4.4 page rebuilds — every spec uses current selectors and passes on Chromium against the running Docker stack
@@ -175,13 +182,13 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 52 → 53 → 54 → 55 → 56 → 57 (56 can run in parallel with 53-55 after 52)
+**Execution Order:** 52 -> 53 -> 54 -> 55 -> 56 -> 57 (56 can run in parallel with 53-55 after 52)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
-| 55. Coverage Target & Tooling | v5.0 | 2/2 | Complete | 2026-03-30 |
+| 55. Coverage Target & Tooling | v5.0 | 2/9 | Gap closure | 2026-03-30 |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
