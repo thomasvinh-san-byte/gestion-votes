@@ -25,26 +25,26 @@
   let hasVoted = false;
   let _isSubmitting = false; // Guard against double-submission
 
-  // Choice labels
+  // Choice labels — keys use French values matching data-choice attributes (pour/contre/abstention/blanc)
   const choiceInfo = {
-    'for': { label: 'POUR', color: 'var(--color-success)' },
-    'against': { label: 'CONTRE', color: 'var(--color-danger)' },
-    'abstain': { label: 'ABSTENTION', color: 'var(--color-text-muted)' },
-    'blanc': { label: 'BLANC', color: 'var(--color-neutral)' }
+    'pour':      { label: 'POUR',       color: 'var(--color-success)' },
+    'contre':    { label: 'CONTRE',     color: 'var(--color-danger)' },
+    'abstention':{ label: 'ABSTENTION', color: 'var(--color-text-muted)' },
+    'blanc':     { label: 'BLANC',      color: 'var(--color-neutral)' }
   };
 
-  // Inline confirm button: color map per choice
+  // Inline confirm button: color map per choice (using CSS token gradients)
   const choiceStyles = {
-    'for':     { bg: 'linear-gradient(135deg, #16a34a, #15803d)', label: 'Confirmer : Pour' },
-    'against': { bg: 'linear-gradient(135deg, #dc2626, #b91c1c)', label: 'Confirmer : Contre' },
-    'abstain': { bg: 'linear-gradient(135deg, #64748b, #475569)', label: 'Confirmer : Abstention' },
-    'blanc':   { bg: 'linear-gradient(135deg, #94a3b8, #64748b)', label: 'Confirmer : Blanc' }
+    'pour':       { bg: 'linear-gradient(135deg, var(--color-success), var(--color-success-hover, var(--color-success)))', label: 'Confirmer : Pour' },
+    'contre':     { bg: 'linear-gradient(135deg, var(--color-danger), var(--color-danger-hover, var(--color-danger)))', label: 'Confirmer : Contre' },
+    'abstention': { bg: 'linear-gradient(135deg, var(--color-neutral), var(--color-text-muted))', label: 'Confirmer : Abstention' },
+    'blanc':      { bg: 'linear-gradient(135deg, var(--color-border-strong, var(--color-neutral)), var(--color-neutral))', label: 'Confirmer : Blanc' }
   };
 
   // Show inline confirm button for a given choice
   function showInlineConfirm(choice) {
     if (!btnConfirmInline) return;
-    var style = choiceStyles[choice] || choiceStyles['for'];
+    var style = choiceStyles[choice] || choiceStyles['pour'];
     btnConfirmInline.style.background = style.bg;
     btnConfirmInline.textContent = style.label;
     btnConfirmInline.hidden = false;

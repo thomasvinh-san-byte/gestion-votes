@@ -1012,8 +1012,9 @@
   };
 
   async function cast(choice){
-    // Map UI value to API value
-    if (choice === 'blanc') choice = 'nsp';
+    // Map French UI data-choice values to English API values
+    var choiceApiMap = { 'pour': 'for', 'contre': 'against', 'abstention': 'abstain', 'blanc': 'nsp' };
+    choice = choiceApiMap[choice] || choice;
 
     const memberId = selectedMemberId();
     if (!_currentMotionId) {
