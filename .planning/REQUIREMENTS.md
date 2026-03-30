@@ -11,10 +11,10 @@
 - [x] **REB-02**: Analytics/Statistics — complete HTML+CSS+JS rewrite, chart area + KPI grid, proper responsive layout
 - [x] **REB-03**: Meetings list — complete HTML+CSS+JS rewrite, session cards with status badges, filters functional
 - [x] **REB-04**: Archives — complete HTML+CSS+JS rewrite, table with sticky header, pagination, search
-- [ ] **REB-05**: Audit — complete HTML+CSS+JS rewrite, timeline view, table view, CSV export functional
-- [ ] **REB-06**: Members — complete HTML+CSS+JS rewrite, card/table view, import CSV, role management
-- [ ] **REB-07**: Users — complete HTML+CSS+JS rewrite, table with CRUD, role assignment, pagination
-- [ ] **REB-08**: Vote/Ballot — complete HTML+CSS+JS rewrite, full-screen mobile ballot, optimistic feedback, PDF consultation
+- [x] **REB-05**: Audit — complete HTML+CSS+JS rewrite, timeline view, table view, CSV export functional
+- [x] **REB-06**: Members — complete HTML+CSS+JS rewrite, card/table view, import CSV, role management
+- [x] **REB-07**: Users — complete HTML+CSS+JS rewrite, table with CRUD, role assignment, pagination
+- [x] **REB-08**: Vote/Ballot — complete HTML+CSS+JS rewrite, full-screen mobile ballot, optimistic feedback, PDF consultation
 
 ### Utility Page Rebuilds (UTL)
 

@@ -118,5 +118,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 49. Secondary Pages Part 1 | 3/3 | Complete    | 2026-03-30 |
-| 50. Secondary Pages Part 2 | 4/4 | Complete   | 2026-03-30 |
+| 50. Secondary Pages Part 2 | 4/4 | Complete    | 2026-03-30 |
 | 51. Utility Pages | 0/TBD | Not started | - |

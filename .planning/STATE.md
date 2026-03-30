@@ -4,7 +4,7 @@ milestone: v4.4
 milestone_name: Complete Rebuild
 status: Defining requirements
 stopped_at: Completed 50-04-PLAN.md (vote/ballot page rebuild)
-last_updated: "2026-03-30T05:27:15.967Z"
+last_updated: "2026-03-30T05:34:44.984Z"
 last_activity: 2026-03-30 — Milestone v4.4 started
 progress:
   total_phases: 3
