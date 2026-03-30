@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 55-04-PLAN.md
-last_updated: "2026-03-30T10:00:00.000Z"
+stopped_at: Completed 55-05-PLAN.md
+last_updated: "2026-03-30T09:21:59.052Z"
 last_activity: "2026-03-30 — 55-04 complete: 5 largest controller tests rewritten with ControllerTestCase + mocked repos, 567 tests pass"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 12
   percent: 0
 ---
 
@@ -69,6 +69,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 55-coverage-target-tooling 55-03]: Services aggregate COV-01 satisfied at 90.8% via broader coverage: BallotsService 99%, QuorumEngine 100%, SpeechService 100%
 - [Phase 55-coverage-target-tooling 55-08]: Always inject ALL repos a controller accesses — controllers fetch repos at top of methods before validation, missing injection causes false 500 errors in tests
 - [Phase 55-coverage-target-tooling 55-08]: Source inspection approach used for controllers using exit() or plain-text (EmailTracking, DocContent) — cannot use callController() execution pattern
+- [Phase 55-coverage-target-tooling]: VoteEngine fetches policyRepo+attendanceRepo eagerly in constructor — all 5 repos must be injected in result() tests
+- [Phase 55-coverage-target-tooling]: AuditController::export() untestable via callController() (raw echo+headers, no api_ok/fail) — excluded from coverage
 
 ### Pending Todos
 
@@ -80,6 +82,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:16:26.767Z
-Stopped at: Completed 55-08-PLAN.md
+Last session: 2026-03-30T09:21:51.139Z
+Stopped at: Completed 55-05-PLAN.md
 Resume file: None
