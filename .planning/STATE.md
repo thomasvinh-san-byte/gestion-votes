@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 55-06-PLAN.md
-last_updated: "2026-03-30T09:30:00.000Z"
-last_activity: "2026-03-30 — 55-06 complete: 8 mid-tier controllers rewritten with ControllerTestCase + mocked repos, 218 tests pass"
+stopped_at: Completed 55-07-PLAN.md
+last_updated: "2026-03-30T09:36:51.210Z"
+last_activity: "2026-03-30 — 55-06 complete: 8 mid-tier controllers (Trust+MemberGroups+Auth+Export+ResolutionDoc+Email+Doc+Devices) rewritten to ControllerTestCase, 218 tests pass"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -74,6 +74,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 55-coverage-target-tooling 55-06]: putenv(APP_AUTH_ENABLED=1) in try/finally for serve() unauthenticated tests — auth disabled env causes authenticate() to auto-fill dev-user, preventing null userId path
 - [Phase 55-coverage-target-tooling 55-06]: AG_UPLOAD_DIR now defined in tests/bootstrap.php — upload controller tests don't need per-test define() guards
 - [Phase 55-coverage-target-tooling 55-06]: EmailTemplateService preview happy path not testable in unit tests — instantiates DB connection inline; validated via source inspection
+- [Phase 55-coverage-target-tooling]: VotePublicController tests use Reflection only — HtmlView::text() calls exit()
+- [Phase 55-coverage-target-tooling]: Service inline constructors require all dependent repos injected into factory cache before test
 
 ### Pending Todos
 
@@ -85,6 +87,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:21:51.139Z
-Stopped at: Completed 55-05-PLAN.md
+Last session: 2026-03-30T09:36:51.207Z
+Stopped at: Completed 55-07-PLAN.md
 Resume file: None
