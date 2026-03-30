@@ -61,6 +61,20 @@ if (!function_exists('audit_log')) {
     }
 }
 
+// Stub api_uuid4() for tests — returns a deterministic v4-format UUID.
+if (!function_exists('api_uuid4')) {
+    function api_uuid4(): string {
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        );
+    }
+}
+
 // Stub API helper functions for controller tests — these replicate the
 // behaviour from app/api.php but are safe for unit tests (no exit(), no
 // bootstrap.php side-effects).
