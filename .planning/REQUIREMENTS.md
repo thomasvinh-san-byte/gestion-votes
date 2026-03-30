@@ -35,10 +35,10 @@
 
 ### CI/CD Pipeline (CI)
 
-- [ ] **CI-01**: Playwright E2E tests run in GitHub Actions workflow after Docker build
-- [ ] **CI-02**: Code coverage gate enforced in CI — build fails below 90% threshold
-- [ ] **CI-03**: Migration syntax validation step in CI — all .sql files checked for PostgreSQL compatibility
-- [ ] **CI-04**: Integration tests run post-Docker-build against containerized PostgreSQL + Redis
+- [x] **CI-01**: Playwright E2E tests run in GitHub Actions workflow after Docker build
+- [x] **CI-02**: Code coverage gate enforced in CI — build fails below 90% threshold
+- [x] **CI-03**: Migration syntax validation step in CI — all .sql files checked for PostgreSQL compatibility
+- [x] **CI-04**: Integration tests run post-Docker-build against containerized PostgreSQL + Redis
 
 ### Infrastructure — Migrations (MIG)
 
@@ -98,10 +98,10 @@
 | E2E-04 | Phase 56 | Complete |
 | E2E-05 | Phase 56 | Complete |
 | E2E-06 | Phase 56 | Complete |
-| CI-01 | Phase 57 | Pending |
-| CI-02 | Phase 57 | Pending |
-| CI-03 | Phase 57 | Pending |
-| CI-04 | Phase 57 | Pending |
+| CI-01 | Phase 57 | Complete |
+| CI-02 | Phase 57 | Complete |
+| CI-03 | Phase 57 | Complete |
+| CI-04 | Phase 57 | Complete |
 | MIG-01 | Phase 52 | Complete |
 | MIG-02 | Phase 52 | Complete |
 | MIG-03 | Phase 52 | Complete |

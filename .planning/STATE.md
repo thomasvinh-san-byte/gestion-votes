@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: completed
-stopped_at: Completed 56-02-PLAN.md
-last_updated: "2026-03-30T11:59:26.938Z"
+stopped_at: Completed 57-01-PLAN.md
+last_updated: "2026-03-30T12:07:53.357Z"
 last_activity: "2026-03-30 — 56-02 complete: 143 Playwright E2E tests pass on Chromium, 17 mobile-chrome, 17 tablet — zero failures, rate-limit-safe auth setup"
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 17
-  completed_plans: 17
+  completed_phases: 6
+  total_plans: 18
+  completed_plans: 18
   percent: 0
 ---
 
@@ -85,6 +85,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 56-e2e-test-updates 56-02]: Tablet project uses Desktop Chrome + iPad viewport (768x1024) since WebKit binary not installed in environment
 - [Phase 56-e2e-test-updates 56-02]: meeting_stats.php is public (projection display) — not in auth-required test list
 - [Phase 56-e2e-test-updates 56-02]: Container FS is read-only — PHP fixes local only; test assertions updated to match container behavior
+- [Phase 57-ci-cd-pipeline]: E2E job uses GHA Buildx cache to restore pre-built image as agvote:ci, tags as agvote-app, runs docker compose --no-build with COMPOSE_PROJECT_NAME=agvote — avoids Docker rebuild and ensures container names match auth.setup.js
+- [Phase 57-ci-cd-pipeline]: Integration job uses GHA services: block for Postgres+Redis — cleaner lifecycle than docker-compose, services healthy before steps run
 
 ### Pending Todos
 
@@ -96,6 +98,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T13:30:00.000Z
-Stopped at: Completed 56-02-PLAN.md
+Last session: 2026-03-30T12:07:53.354Z
+Stopped at: Completed 57-01-PLAN.md
 Resume file: None

@@ -87,7 +87,7 @@
 - [x] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController (completed 2026-03-30)
 - [x] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
 - [x] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium (completed 2026-03-30)
-- [ ] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions workflow
+- [x] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions workflow (completed 2026-03-30)
 
 ## Phase Details
 
@@ -181,7 +181,7 @@ Plans:
   2. The CI workflow runs PHPUnit with coverage and fails the build if coverage drops below 90% on Services or Controllers — the failure message names the threshold breached
   3. The CI workflow runs a migration validation step that checks all `.sql` files for PostgreSQL compatibility — a file containing SQLite syntax causes the step to fail with the offending filename
   4. Integration tests run against a containerized PostgreSQL + Redis stack in CI — tests exercise real database and cache connections, not mocks
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 57-01-PLAN.md — Add migrate-check, coverage, e2e, and integration jobs to GitHub Actions workflow
 
@@ -196,4 +196,4 @@ Plans:
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
 | 55. Coverage Target & Tooling | 9/9 | Complete    | 2026-03-30 | 2026-03-30 |
 | 56. E2E Test Updates | 2/2 | Complete    | 2026-03-30 | - |
-| 57. CI/CD Pipeline | v5.0 | 0/1 | Not started | - |
+| 57. CI/CD Pipeline | 1/1 | Complete   | 2026-03-30 | - |
