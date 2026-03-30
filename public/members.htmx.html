@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- GO-LIVE-STATUS: ready — Gestion des membres (wireframe PageMembres). -->
+<!-- GO-LIVE-STATUS: ready — Gestion des membres (v4.3 rebuild). -->
 <html lang="fr" data-page-role="operator,admin">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -33,8 +33,15 @@
     <header class="app-header" role="banner">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold">Membres</h1>
-          <p class="text-sm text-secondary">Gestion des participants et pondération</p>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item bc-current" aria-current="page">Membres</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Membres
+          </h1>
+          <p class="page-sub">Gestion des participants et pondération des voix</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -63,37 +70,38 @@
     </header>
 
     <main class="app-main members-main" id="main-content" role="main">
-      <!-- Stats bar -->
-      <div class="stats-bar" aria-live="polite">
-        <div class="stat-item total">
-          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-          <div class="stat-value" id="kpiTotal">&mdash;</div>
-          <div class="stat-label"><ag-tooltip text="Nombre total de membres enregistres" position="top">Total</ag-tooltip></div>
+
+      <!-- KPI bar: 6 metrics -->
+      <div class="members-kpi-bar" aria-live="polite">
+        <div class="members-kpi-card">
+          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="members-kpi-value" id="kpiTotal">&mdash;</div>
+          <div class="members-kpi-label">Total</div>
         </div>
-        <div class="stat-item active">
-          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
-          <div class="stat-value" id="kpiActive">&mdash;</div>
-          <div class="stat-label"><ag-tooltip text="Membres actifs pouvant voter" position="top">Actifs</ag-tooltip></div>
+        <div class="members-kpi-card members-kpi-card--active">
+          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="members-kpi-value" id="kpiActive">&mdash;</div>
+          <div class="members-kpi-label">Actifs</div>
         </div>
-        <div class="stat-item inactive">
-          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-x-circle"></use></svg>
-          <div class="stat-value" id="kpiInactive">&mdash;</div>
-          <div class="stat-label"><ag-tooltip text="Membres desactives, exclus du quorum" position="top">Inactifs</ag-tooltip></div>
+        <div class="members-kpi-card members-kpi-card--inactive">
+          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+          <div class="members-kpi-value" id="kpiInactive">&mdash;</div>
+          <div class="members-kpi-label">Inactifs</div>
         </div>
-        <div class="stat-item">
-          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-bar-chart-2"></use></svg>
-          <div class="stat-value" id="kpiPower">&mdash;</div>
-          <div class="stat-label"><ag-tooltip text="Somme des ponderations de tous les membres actifs" position="top">Voix totales</ag-tooltip></div>
+        <div class="members-kpi-card">
+          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <div class="members-kpi-value" id="kpiPower">&mdash;</div>
+          <div class="members-kpi-label">Voix totales</div>
         </div>
-        <div class="stat-item">
-          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-trending-up"></use></svg>
-          <span class="stat-value" id="kpiAvgPower">—</span>
-          <span class="stat-label"><ag-tooltip text="Ponderation moyenne par membre actif" position="top">Pouvoir moyen</ag-tooltip></span>
+        <div class="members-kpi-card">
+          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <div class="members-kpi-value" id="kpiAvgPower">&mdash;</div>
+          <div class="members-kpi-label">Pouvoir moyen</div>
         </div>
-        <div class="stat-item">
-          <svg class="icon stat-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
-          <span class="stat-value" id="kpiEmailCoverage">—</span>
-          <span class="stat-label"><ag-tooltip text="Pourcentage de membres avec adresse email renseignee" position="top">Couv. email</ag-tooltip></span>
+        <div class="members-kpi-card">
+          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <div class="members-kpi-value" id="kpiEmailCoverage">&mdash;</div>
+          <div class="members-kpi-label">Couv. email</div>
         </div>
       </div>
 
@@ -125,199 +133,204 @@
 
       <div id="notif_box" class="alert hidden mt-4 mb-4 px-5"></div>
 
-      <!-- Management panels (collapsible, above the two-column layout) -->
-      <div class="members-management">
-        <!-- Create member card -->
-        <div class="create-card" id="create-form">
-          <h3>
-            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg>
-            Ajouter un membre
-          </h3>
-          <div class="create-form">
-            <div class="form-group">
-              <label for="mName">Nom complet *</label>
-              <input class="form-input" type="text" id="mName" placeholder="Jean Dupont" required>
-            </div>
-            <div class="form-group">
-              <label for="mEmail">Email</label>
-              <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
-            </div>
-            <div class="form-group">
-              <label for="mPower">
-                Nombre de voix
-                <ag-popover title="Nombre de voix" content="Nombre de voix que ce membre représente. La valeur par défaut est 1. Pour une pondération, utilisez un nombre supérieur (ex: 2 = 2 voix). Affecte le calcul du quorum et les résultats des votes." position="top"></ag-popover>
-              </label>
-              <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
-            </div>
-            <div class="form-group">
-              <label>&nbsp;</label>
-              <label class="flex items-center gap-2">
-                <input type="checkbox" id="mActive" checked>
-                <span>Actif</span>
-              </label>
-            </div>
-            <div class="form-group">
-              <label>&nbsp;</label>
-              <button class="btn btn-primary" id="btnCreate">Ajouter</button>
-            </div>
-          </div>
+      <!-- Management tabs -->
+      <div class="members-mgmt-container">
+        <div class="mgmt-tabs" role="tablist" aria-label="Gestion des membres">
+          <button class="mgmt-tab active" role="tab" aria-selected="true" aria-controls="membersPanel" data-mgmt-tab="members">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+            Membres
+          </button>
+          <button class="mgmt-tab" role="tab" aria-selected="false" aria-controls="groupsPanel" data-mgmt-tab="groups">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-tag"></use></svg>
+            Groupes
+          </button>
+          <button class="mgmt-tab" role="tab" aria-selected="false" aria-controls="importPanel" data-mgmt-tab="import">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+            Importation CSV
+          </button>
         </div>
 
-        <!-- Management tabs -->
-        <div class="mgmt-panels-row">
-          <div class="mgmt-tabs" role="tablist" aria-label="Gestion des membres">
-            <button class="mgmt-tab active" role="tab" aria-selected="true" aria-controls="groupsPanel" data-mgmt-tab="groups">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-              Groupes
-            </button>
-            <button class="mgmt-tab" role="tab" aria-selected="false" aria-controls="importPanel" data-mgmt-tab="import">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
-              Importation CSV
-            </button>
-          </div>
+        <!-- MEMBERS TAB PANEL -->
+        <div class="mgmt-tab-panel" id="membersPanel" data-mgmt-panel="members" role="tabpanel">
 
-          <!-- Groups tab panel -->
-          <div class="mgmt-tab-panel" id="groupsPanel" data-scroll-target="groups-panel" role="tabpanel">
-            <p class="text-sm text-muted mb-4">
-              Organisez vos membres par catégories, collèges électoraux, départements, etc.
-              <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
-            </p>
-            <div class="create-group-form">
+          <!-- Create member form -->
+          <div class="create-card" id="create-form">
+            <h3>
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg>
+              Ajouter un membre
+            </h3>
+            <div class="create-form">
               <div class="form-group">
-                <label for="groupName">Nom du groupe</label>
-                <input class="form-input" type="text" id="groupName" placeholder="Ex: Collège A, Cadres...">
+                <label for="mName">Nom complet *</label>
+                <input class="form-input" type="text" id="mName" placeholder="Jean Dupont" required>
               </div>
-              <div class="form-group form-group-color">
-                <label for="groupColor">Couleur</label>
-                <input type="color" id="groupColor" value="#6366f1">
+              <div class="form-group">
+                <label for="mEmail">Email</label>
+                <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
               </div>
-              <button class="btn btn-primary" id="btnCreateGroup">Créer groupe</button>
-            </div>
-            <div class="groups-grid" id="groupsList">
-              <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+              <div class="form-group">
+                <label for="mPower">
+                  Nombre de voix
+                  <ag-popover title="Nombre de voix" content="Nombre de voix que ce membre représente. La valeur par défaut est 1. Pour une pondération, utilisez un nombre supérieur (ex: 2 = 2 voix)." position="top"></ag-popover>
+                </label>
+                <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" id="mActive" checked>
+                  <span>Actif</span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" id="btnCreate">Ajouter</button>
+              </div>
             </div>
           </div>
 
-          <!-- Import tab panel -->
-          <div class="mgmt-tab-panel" id="importPanel" role="tabpanel" style="display: none;">
-            <div class="import-card-desc">
-              Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
-              <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement. Colonnes alternatives acceptées : name, full_name, voting_power, is_active, groups, college, categorie…" position="right" trigger="click"></ag-popover>
-            </div>
-            <div class="import-template-link flex gap-3 flex-wrap">
-              <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-                Modèle vierge CSV
-              </a>
-              <a href="/assets/demo_membres_ag.csv" download class="btn btn-ghost btn-sm">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-                Exemple avec 25 membres (démo)
-              </a>
-            </div>
-            <div class="upload-zone" id="uploadZone">
-              <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;" aria-label="Importer un fichier CSV">
-              <div class="upload-zone-icon">
-                <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+          <!-- Two-column layout: filters sidebar + results grid -->
+          <div class="members-layout">
+
+            <!-- LEFT: Search & Filters panel -->
+            <aside class="members-filters-panel" aria-label="Recherche et filtres">
+              <div class="filters-panel-header">
+                <h2>Recherche</h2>
+                <span class="filters-hint" id="activeFiltersHint">0 filtre</span>
               </div>
-              <div class="upload-zone-text">Glisser un fichier CSV ici</div>
-              <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
-            </div>
-            <div class="flex gap-2 mt-4">
-              <ag-tooltip text="Disponible apr&egrave;s s&eacute;lection d'un fichier CSV" position="bottom">
-                <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
-              </ag-tooltip>
-              <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
-              <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
-            </div>
-            <div id="importOut" class="import-result" style="display: none;"></div>
-          </div>
-        </div>
-      </div>
+              <div class="filters-panel-body">
+                <!-- Search -->
+                <div class="field">
+                  <label for="searchInput">Nom, email…</label>
+                  <div class="search-input-wrap">
+                    <svg class="icon search-input-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
+                    <input class="form-input search-input-field" type="search" id="searchInput" placeholder="Rechercher un membre...">
+                  </div>
+                </div>
 
-      <!-- Two-column layout: filters sidebar + results grid -->
-      <div class="table-page members-layout-wrapper">
-      <div class="members-layout">
+                <!-- Status filter -->
+                <div class="field">
+                  <label>Statut</label>
+                  <div class="filter-chips" role="group" aria-label="Filtrer par statut">
+                    <button class="filter-chip active" data-filter="all">Tous</button>
+                    <button class="filter-chip" data-filter="active">Actifs</button>
+                    <button class="filter-chip" data-filter="inactive">Inactifs</button>
+                  </div>
+                </div>
 
-        <!-- LEFT: Search & Filters panel -->
-        <aside class="members-filters-panel" aria-label="Recherche et filtres">
-          <div class="filters-panel-header">
-            <h2>Recherche</h2>
-            <span class="filters-hint" id="activeFiltersHint">0 filtre</span>
-          </div>
-          <div class="filters-panel-body">
-            <!-- Search -->
-            <div class="field">
-              <label for="searchInput">Nom, email…</label>
-              <div class="search-input-wrap">
-                <svg class="icon search-input-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-search"></use></svg>
-                <input class="form-input search-input-field" type="search" id="searchInput" placeholder="Rechercher un membre...">
+                <!-- Group filters -->
+                <div class="field" id="groupFiltersField" style="display: none;">
+                  <label>Groupes</label>
+                  <div class="filter-chips filter-chips-col" id="groupFilters" role="group" aria-label="Filtrer par groupe">
+                    <!-- Populated by JavaScript -->
+                  </div>
+                </div>
+
+                <!-- Sort -->
+                <div class="field">
+                  <label for="sortSelect">Trier par</label>
+                  <select class="form-input" id="sortSelect">
+                    <option value="nameAsc">Nom (A → Z)</option>
+                    <option value="nameDesc">Nom (Z → A)</option>
+                    <option value="powerDesc">Nombre de voix (décroissant)</option>
+                    <option value="powerAsc">Nombre de voix (croissant)</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            </aside>
 
-            <!-- Status filter -->
-            <div class="field">
-              <label>Statut</label>
-              <div class="filter-chips" role="group" aria-label="Filtrer par statut">
-                <button class="filter-chip active" data-filter="all">Tous</button>
-                <button class="filter-chip" data-filter="active">Actifs</button>
-                <button class="filter-chip" data-filter="inactive">Inactifs</button>
+            <!-- RIGHT: Results -->
+            <section class="members-results" aria-label="Résultats">
+              <div class="results-meta">
+                <div class="results-meta-left">
+                  <span class="results-count" id="membersCount">0 membre</span>
+                  <span class="results-subtitle" id="resultsSubtitle">Affichage de l'ensemble des membres</span>
+                </div>
               </div>
-            </div>
-
-            <!-- Group filters -->
-            <div class="field" id="groupFiltersField" style="display: none;">
-              <label>Groupes</label>
-              <div class="filter-chips filter-chips-col" id="groupFilters" role="group" aria-label="Filtrer par groupe">
-                <!-- Populated by JavaScript -->
+              <div class="members-grid" id="membersList" data-tour="members-table">
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+                <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
               </div>
-            </div>
+              <nav class="pagination" id="pagination" aria-label="Pagination des membres">
+                <button class="pagination-btn" id="paginPrev" type="button" disabled aria-label="Page précédente">
+                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-left"></use></svg>
+                </button>
+                <span class="pagination-info" id="paginInfo">Page 1 / 1</span>
+                <button class="pagination-btn" id="paginNext" type="button" disabled aria-label="Page suivante">
+                  <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+                </button>
+                <select class="form-input pagination-size" id="paginSize" aria-label="Membres par page">
+                  <option value="12">12 / page</option>
+                  <option value="24">24 / page</option>
+                  <option value="48">48 / page</option>
+                  <option value="96">96 / page</option>
+                </select>
+              </nav>
+            </section>
 
-            <!-- Sort -->
-            <div class="field">
-              <label for="sortSelect">Trier par</label>
-              <select class="form-input" id="sortSelect">
-                <option value="nameAsc">Nom (A → Z)</option>
-                <option value="nameDesc">Nom (Z → A)</option>
-                <option value="powerDesc">Nombre de voix (décroissant)</option>
-                <option value="powerAsc">Nombre de voix (croissant)</option>
-              </select>
-            </div>
-          </div>
-        </aside>
+          </div><!-- .members-layout -->
+        </div><!-- #membersPanel -->
 
-        <!-- RIGHT: Results -->
-        <section class="members-results" aria-label="Résultats">
-          <div class="results-meta">
-            <div class="results-meta-left">
-              <span class="results-count" id="membersCount">0 membre</span>
-              <span class="results-subtitle" id="resultsSubtitle">Affichage de l'ensemble des membres</span>
+        <!-- GROUPS TAB PANEL -->
+        <div class="mgmt-tab-panel" id="groupsPanel" data-mgmt-panel="groups" data-scroll-target="groups-panel" role="tabpanel" style="display: none;">
+          <p class="text-sm text-muted mb-4">
+            Organisez vos membres par catégories, collèges électoraux, départements, etc.
+            <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
+          </p>
+          <div class="create-group-form">
+            <div class="form-group">
+              <label for="groupName">Nom du groupe</label>
+              <input class="form-input" type="text" id="groupName" placeholder="Ex: Collège A, Cadres...">
             </div>
+            <div class="form-group form-group-color">
+              <label for="groupColor">Couleur</label>
+              <input type="color" id="groupColor" value="#6366f1">
+            </div>
+            <button class="btn btn-primary" id="btnCreateGroup">Créer groupe</button>
           </div>
-          <div class="members-grid" id="membersList" data-tour="members-table">
-            <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+          <div class="groups-grid" id="groupsList">
+            <div class="skeleton-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
           </div>
-          <nav class="pagination" id="pagination" aria-label="Pagination des membres">
-            <button class="pagination-btn" id="paginPrev" type="button" disabled aria-label="Page précédente">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-left"></use></svg>
-            </button>
-            <span class="pagination-info" id="paginInfo">Page 1 / 1</span>
-            <button class="pagination-btn" id="paginNext" type="button" disabled aria-label="Page suivante">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
-            </button>
-            <select class="form-input pagination-size" id="paginSize" aria-label="Membres par page">
-              <option value="12">12 / page</option>
-              <option value="24">24 / page</option>
-              <option value="48">48 / page</option>
-              <option value="96">96 / page</option>
-            </select>
-          </nav>
-        </section>
+        </div><!-- #groupsPanel -->
 
-      </div>
-      </div><!-- .table-page.members-layout-wrapper -->
+        <!-- IMPORT TAB PANEL -->
+        <div class="mgmt-tab-panel" id="importPanel" data-mgmt-panel="import" role="tabpanel" style="display: none;">
+          <div class="import-card-desc">
+            Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
+            <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
+          </div>
+          <div class="import-template-link flex gap-3 flex-wrap">
+            <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+              Modèle vierge CSV
+            </a>
+            <a href="/assets/demo_membres_ag.csv" download class="btn btn-ghost btn-sm">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+              Exemple avec 25 membres (démo)
+            </a>
+          </div>
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;" aria-label="Importer un fichier CSV">
+            <div class="upload-zone-icon">
+              <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
+            </div>
+            <div class="upload-zone-text">Glisser un fichier CSV ici</div>
+            <div class="upload-zone-hint">ou cliquer pour sélectionner</div>
+          </div>
+          <div class="flex gap-2 mt-4">
+            <ag-tooltip text="Disponible apr&egrave;s s&eacute;lection d'un fichier CSV" position="bottom">
+              <button class="btn btn-primary" id="btnImport" disabled>Importer</button>
+            </ag-tooltip>
+            <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
+            <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
+          </div>
+          <div id="importOut" class="import-result" style="display: none;"></div>
+        </div><!-- #importPanel -->
+
+      </div><!-- .members-mgmt-container -->
+
     </main>
     <footer class="app-footer mobile-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
@@ -326,7 +339,7 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.3</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
       <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
