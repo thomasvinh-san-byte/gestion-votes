@@ -147,7 +147,7 @@ Plans:
   4. A PHPUnit configuration (phpunit.xml) enforces the 90% threshold — running the suite below threshold exits with a non-zero code
 **Plans:** 2 plans
 Plans:
-- [ ] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
+- [x] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
 - [ ] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
 
 ### Phase 56: E2E Test Updates
@@ -182,6 +182,6 @@ Plans:
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
-| 55. Coverage Target & Tooling | v5.0 | 0/2 | Not started | - |
+| 55. Coverage Target & Tooling | v5.0 | 1/2 | In progress | 2026-03-30 |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |

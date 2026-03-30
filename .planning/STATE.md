@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 54-02-PLAN.md
-last_updated: "2026-03-30T07:22:49.007Z"
-last_activity: "2026-03-30 — 54-01 complete: ErrorDictionary + EmailTemplateService + SpeechService tests (51 tests, all green)"
+stopped_at: Completed 55-01-PLAN.md
+last_updated: "2026-03-30T07:38:00.000Z"
+last_activity: "2026-03-30 — 55-01 complete: pcov installed, app/Controller/ added to coverage source, baseline measured (Services 66.16%, Controllers 10.39%)"
 progress:
   total_phases: 6
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 ## Current Position
 
-Phase: 54 of 57 (Service Unit Tests Batch 2)
-Plan: 01 complete — 54-02 is next
+Phase: 55 of 57 (Coverage Target Tooling)
+Plan: 01 complete — 55-02 is next
 Status: In progress
-Last activity: 2026-03-30 — 54-01 complete: ErrorDictionary + EmailTemplateService + SpeechService tests (51 tests, all green)
+Last activity: 2026-03-30 — 55-01 complete: pcov installed, app/Controller/ added to coverage source, baseline measured (Services 66.16%, Controllers 10.39%)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -57,6 +57,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 54-service-unit-tests-batch-2]: SpeechServiceTest setUp sets default meetingRepo/memberRepo returns so resolveTenant passes silently in all test methods except the explicit exception test
 - [Phase 54-service-unit-tests-batch-2]: RepositoryFactory is final — use ReflectionProperty cache injection to inject mocks into RepositoryFactory::cache for MonitoringService tests
 - [Phase 54-service-unit-tests-batch-2]: api_file() stub added to bootstrap; ImportControllerTest updated to expect upload_error 400 instead of internal_error 500
+- [Phase 55-coverage-target-tooling]: pcov loaded via -d extension= from extracted deb (no sudo); CI Dockerfile needs php8.3-pcov in Phase 57
+- [Phase 55-coverage-target-tooling]: Baseline Services 66.16% (8/19 below 90%), Controllers 10.39% (41/41 below 90%) — Plan 02 must write gap tests before threshold enforcement
+- [Phase 55-coverage-target-tooling]: app/Controller/ was missing from phpunit.xml source — now added; controller coverage was unmeasured before this fix
 
 ### Pending Todos
 
@@ -68,6 +71,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T07:20:18.774Z
-Stopped at: Completed 54-02-PLAN.md
+Last session: 2026-03-30T07:38:00.000Z
+Stopped at: Completed 55-01-PLAN.md
 Resume file: None
