@@ -668,6 +668,10 @@ body:has(.analytics-main) .page-header .page-header-actions {
   background: var(--color-primary);
 }
 
+.progress-bar-fill.warning {
+  background: var(--color-warning);
+}
+
 /* =============================================================================
    PRIVACY NOTICE
    ============================================================================= */
