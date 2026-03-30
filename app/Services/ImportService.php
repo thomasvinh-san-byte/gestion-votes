@@ -174,7 +174,7 @@ final class ImportService {
      * @return array ['headers' => array, 'rows' => array, 'separator' => string, 'error' => ?string]
      */
     public static function readCsvFile(string $filePath): array {
-        $handle = fopen($filePath, 'r');
+        $handle = @fopen($filePath, 'r');
         if (!$handle) {
             return [
                 'headers' => [],
@@ -187,7 +187,7 @@ final class ImportService {
         // Detect separator
         $firstLine = fgets($handle);
         rewind($handle);
-        $separator = strpos($firstLine, ';') !== false ? ';' : ',';
+        $separator = ($firstLine !== false && strpos($firstLine, ';') !== false) ? ';' : ',';
 
         // Read headers
         $headers = fgetcsv($handle, 0, $separator);
