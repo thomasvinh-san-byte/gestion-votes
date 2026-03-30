@@ -166,21 +166,15 @@ export PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d:/tmp/php-runtime"
 # ---------------------------------------------------------------------------
 # Dynamic port binding (Render injects PORT=10000 by default)
 # ---------------------------------------------------------------------------
-LISTEN_PORT="${PORT:-8080}"
+export LISTEN_PORT="${PORT:-8080}"
 if ! echo "$LISTEN_PORT" | grep -qE '^[0-9]+$'; then
   echo "[FATAL] PORT invalide: '${LISTEN_PORT}' — doit être un nombre."
   exit 1
 fi
-if [ "$LISTEN_PORT" != "8080" ]; then
-  if ! sed -i "s/listen 8080/listen ${LISTEN_PORT}/" /etc/nginx/http.d/default.conf 2>/dev/null; then
-    echo "[FATAL] Impossible de modifier le port Nginx (filesystem read-only)."
-    echo "        Utilisez PORT=8080 ou désactivez read_only dans docker-compose.yml."
-    exit 1
-  fi
-  echo "Nginx port: ${LISTEN_PORT} (from \$PORT)"
-else
-  echo "Nginx port: 8080 (default)"
-fi
+# Use envsubst to generate nginx config from template — works on read-only FS
+# because /etc/nginx/http.d/ is writable (chown'd to www-data in Dockerfile).
+envsubst '${LISTEN_PORT}' < /var/www/deploy/nginx.conf.template > /etc/nginx/http.d/default.conf
+echo "Nginx port: ${LISTEN_PORT}"
 
 echo "=== Demarrage des services ==="
 exec "$@"

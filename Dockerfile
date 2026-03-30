@@ -24,7 +24,7 @@ LABEL org.opencontainers.image.title="AG-VOTE" \
 RUN apk add --no-cache \
     nginx supervisor curl postgresql-client libpq \
     libpng libjpeg-turbo freetype libzip icu-libs oniguruma \
-    zlib zstd-libs brotli-libs lz4-libs
+    zlib zstd-libs brotli-libs lz4-libs gettext
 
 # Build-time headers in a virtual group (cleanly removed after compile)
 RUN apk add --no-cache --virtual .php-build-deps \
@@ -66,6 +66,7 @@ COPY --from=assets /assets/ public/assets/
 
 # Config files
 COPY deploy/nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/nginx.conf.template /var/www/deploy/nginx.conf.template
 COPY deploy/php-fpm.conf /usr/local/etc/php-fpm.d/zz-custom.conf
 COPY deploy/supervisord.conf /etc/supervisord.conf
 COPY deploy/php.ini /usr/local/etc/php/conf.d/99-custom.ini
@@ -88,7 +89,7 @@ RUN chown -R www-data:www-data /var/www \
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -sf http://127.0.0.1:${PORT:-8080}/api/v1/health.php || exit 1
+    CMD sh -c 'curl -sf http://127.0.0.1:${PORT:-8080}/api/v1/health.php || exit 1'
 
 # Run as non-root
 USER www-data
