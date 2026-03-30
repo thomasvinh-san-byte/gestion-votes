@@ -21,6 +21,7 @@ node_modules/
 
 # Archives
 *.zip
+*.deb
 
 # OS
 .DS_Store
