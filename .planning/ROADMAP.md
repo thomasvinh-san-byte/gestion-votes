@@ -131,7 +131,10 @@ Plans:
   3. `vendor/bin/phpunit --filter MonitoringServiceTest` passes with tests covering health check responses for each subsystem (database, redis, filesystem)
   4. `vendor/bin/phpunit --filter ErrorDictionaryTest` passes with tests covering known error code lookup, unknown code fallback, and message formatting with parameters
   5. `vendor/bin/phpunit --filter ResolutionDocumentControllerTest` passes with tests covering upload validation, file serving with auth check, and delete authorization
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 54-01-PLAN.md — ErrorDictionary + EmailTemplateService + SpeechService unit tests
+- [ ] 54-02-PLAN.md — MonitoringService + ResolutionDocumentController unit tests
 
 ### Phase 55: Coverage Target & Tooling
 **Goal**: Code coverage measurement is operational and the codebase meets 90%+ coverage on Services and Controllers — the gap between current state and target is closed
@@ -175,7 +178,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
-| 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
+| 54. Service Unit Tests Batch 2 | v5.0 | 0/2 | Planning complete | - |
 | 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
