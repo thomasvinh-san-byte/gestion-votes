@@ -368,4 +368,243 @@ class MonitoringServiceTest extends TestCase
         $this->assertEquals(25, $metrics['count_motions']);
         $this->assertEquals(50, $metrics['count_vote_tokens']);
     }
+
+    // =========================================================================
+    // DISK SPACE ALERT
+    // =========================================================================
+
+    public function testCheckMetricsContainDiskFields(): void
+    {
+        $this->sysRepo->method('dbPing')->willReturn(10.0);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+
+        $result = $this->service->check();
+
+        // disk_free_bytes and disk_total_bytes are populated from real disk (not mocked)
+        $this->assertArrayHasKey('disk_free_bytes', $result['metrics']);
+        $this->assertArrayHasKey('disk_total_bytes', $result['metrics']);
+        $this->assertArrayHasKey('disk_free_pct', $result['metrics']);
+    }
+
+    public function testCheckMetricsContainAuthFailures(): void
+    {
+        $this->sysRepo->method('dbPing')->willReturn(10.0);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(3);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+
+        $result = $this->service->check();
+
+        $this->assertEquals(3, $result['metrics']['auth_failures_15m']);
+    }
+
+    public function testCheckMetricsContainEmailBacklog(): void
+    {
+        $this->sysRepo->method('dbPing')->willReturn(10.0);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(42);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+
+        $result = $this->service->check();
+
+        $this->assertEquals(42, $result['metrics']['email_queue_backlog']);
+    }
+
+    // =========================================================================
+    // MULTIPLE ALERTS IN ONE CHECK
+    // =========================================================================
+
+    public function testCheckCanCreateMultipleAlertsAtOnce(): void
+    {
+        // Both DB unreachable (null ping = db_unreachable) AND auth failures
+        $this->sysRepo->method('dbPing')->willReturn(null);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(10); // > threshold of 5
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        $result = $this->service->check();
+
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('db_unreachable', $codes);
+        $this->assertContains('auth_failures', $codes);
+    }
+
+    // =========================================================================
+    // CLEANUP DEFAULTS
+    // =========================================================================
+
+    public function testCleanupAlertsDefaultRetainDays(): void
+    {
+        $this->sysRepo->expects($this->once())
+            ->method('cleanupAlerts')
+            ->with(90);
+
+        $this->service->cleanupAlerts();
+    }
+
+    // =========================================================================
+    // PHP METRICS
+    // =========================================================================
+
+    public function testCheckMetricsContainPhpVersion(): void
+    {
+        $this->sysRepo->method('dbPing')->willReturn(10.0);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+
+        $result = $this->service->check();
+
+        $this->assertSame(phpversion(), $result['metrics']['php_version']);
+        $this->assertIsFloat($result['metrics']['memory_usage_mb']);
+    }
+
+    // =========================================================================
+    // METRIC PERSISTENCE FAILURE IS NON-CRITICAL
+    // =========================================================================
+
+    public function testCheckContinuesWhenMetricPersistenceFails(): void
+    {
+        $this->sysRepo->method('dbPing')->willReturn(10.0);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemMetric')
+            ->willThrowException(new \RuntimeException('DB write failed'));
+
+        // Should not throw — metric persistence failure is non-critical
+        $result = $this->service->check();
+
+        $this->assertArrayHasKey('metrics', $result);
+    }
+
+    // =========================================================================
+    // SEND ALERT EMAIL PATH (covers sendAlertEmails + getAlertRecipients)
+    // =========================================================================
+
+    public function testCheckAlertEmailPathWithSmtpNotConfigured(): void
+    {
+        // Enable alert emails — triggers sendAlertEmails() code path
+        putenv('MONITOR_ALERT_EMAILS=admin@test.local');
+
+        // Trigger an alert: db_unreachable
+        $this->sysRepo->method('dbPing')->willReturn(null);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // Service config has no SMTP → MailerService::isConfigured() returns false → early return
+        // This still exercises sendAlertEmails() up to the isConfigured() check
+        $result = $this->service->check();
+
+        // Alert was created, but no emails sent (SMTP not configured)
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('db_unreachable', $codes);
+        $this->assertEquals(0, $result['notifications_sent']);
+    }
+
+    public function testCheckAlertEmailPathWithAutoRecipients(): void
+    {
+        // Enable "auto" mode — triggers getAlertRecipients() auto branch
+        putenv('MONITOR_ALERT_EMAILS=auto');
+
+        $this->sysRepo->method('dbPing')->willReturn(null);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // repo->user() is not in our factory cache — will try to create UserRepository with null PDO
+        // but the try/catch in getAlertRecipients() catches it and returns []
+        $result = $this->service->check();
+
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('db_unreachable', $codes);
+        // No emails sent (no SMTP config + recipients failed to load)
+        $this->assertEquals(0, $result['notifications_sent']);
+    }
+
+    public function testCheckAlertEmailPathWithCommaRecipients(): void
+    {
+        // Multiple recipients — triggers array_filter + explode in getAlertRecipients()
+        putenv('MONITOR_ALERT_EMAILS=a@test.local,b@test.local');
+
+        $this->sysRepo->method('dbPing')->willReturn(null);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // No SMTP config → isConfigured() = false → return 0 (no emails sent)
+        $result = $this->service->check();
+
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('db_unreachable', $codes);
+        $this->assertEquals(0, $result['notifications_sent']);
+    }
+
+    // =========================================================================
+    // SEND WEBHOOK PATH (covers sendWebhook)
+    // =========================================================================
+
+    public function testCheckWebhookPathWithInvalidUrl(): void
+    {
+        // Enable webhook with an invalid URL — triggers sendWebhook() code path
+        // curl_init() will fail on a non-URL or return connection refused quickly
+        putenv('MONITOR_WEBHOOK_URL=http://127.0.0.1:19999/nonexistent');
+
+        $this->sysRepo->method('dbPing')->willReturn(null);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // sendWebhook tries curl but connection fails → returns 0, logs warning
+        $result = $this->service->check();
+
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('db_unreachable', $codes);
+        // 0 notifications_sent (curl failed)
+        $this->assertIsInt($result['notifications_sent']);
+    }
+
+    // =========================================================================
+    // RENDER ALERT EMAIL (covered via sendAlertEmails with non-empty env)
+    // The renderAlertEmail path is exercised via testCheckAlertEmailPathWith* above
+    // but we also test the low_disk alert which passes details[] to renderAlertEmail
+    // =========================================================================
+
+    public function testCheckLowDiskAlertCreated(): void
+    {
+        // Force disk free pct to be very low by using a threshold that's impossibly high
+        putenv('MONITOR_DISK_FREE_PCT=99999');
+
+        $service = new MonitoringService(
+            ['default_tenant_id' => 'tenant-001'],
+            $this->repoFactory,
+        );
+
+        $this->sysRepo->method('dbPing')->willReturn(10.0);
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        $result = $service->check();
+
+        // disk_free_pct will be very low relative to threshold=99999 → low_disk alert
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('low_disk', $codes);
+    }
 }

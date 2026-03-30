@@ -321,4 +321,155 @@ class ExportServiceTest extends TestCase {
         $row = $this->export->formatProxyRow(['grantor_name' => 'A', 'grantee_name' => 'B']);
         $this->assertCount(count($headers), $row);
     }
+
+    // =========================================================================
+    // AUDIT HEADERS + ROW
+    // =========================================================================
+
+    public function testGetAuditHeadersReturnsNonEmpty(): void {
+        $headers = $this->export->getAuditHeaders();
+        $this->assertNotEmpty($headers);
+        $this->assertIsArray($headers);
+    }
+
+    public function testFormatAuditRow(): void {
+        $r = [
+            'ballot_id' => 'b-001',
+            'motion_id' => 'm-001',
+            'motion_title' => 'Budget',
+            'member_id' => 'mem-001',
+            'voter_name' => 'Alice',
+            'attendance_mode' => 'present',
+            'value' => 'for',
+            'weight' => '1.5',
+            'is_proxy_vote' => false,
+            'proxy_source_member_id' => '',
+            'cast_at' => '2024-01-15 10:30:00',
+            'source' => 'electronic',
+            'token_id' => 'tok-001',
+            'token_hash_prefix' => 'abc123',
+            'token_expires_at' => '2024-01-15 23:59:00',
+            'token_used_at' => '2024-01-15 10:30:00',
+            'manual_justification' => '',
+        ];
+
+        $row = $this->export->formatAuditRow($r);
+
+        $this->assertCount(count($this->export->getAuditHeaders()), $row);
+        $this->assertSame('b-001', $row[0]);
+        $this->assertSame('Alice', $row[4]);
+        $this->assertSame('Présent', $row[5]);
+        $this->assertSame('Pour', $row[6]);
+        $this->assertSame('Électronique', $row[11]);
+    }
+
+    public function testAuditHeadersMatchRowLength(): void {
+        $headers = $this->export->getAuditHeaders();
+        $row = $this->export->formatAuditRow([]);
+        $this->assertCount(count($headers), $row);
+    }
+
+    // =========================================================================
+    // CSV OUTPUT METHODS (testing non-header-sending paths)
+    // =========================================================================
+
+    public function testOpenCsvOutputReturnsResource(): void {
+        // Start output buffering so we don't actually output
+        ob_start();
+        $handle = $this->export->openCsvOutput();
+        ob_end_clean();
+
+        $this->assertIsResource($handle);
+        fclose($handle);
+    }
+
+    public function testWriteCsvRowWritesToHandle(): void {
+        $tmp = tmpfile();
+        $this->export->writeCsvRow($tmp, ['col1', 'col2', 'col3']);
+        rewind($tmp);
+        $content = stream_get_contents($tmp);
+        fclose($tmp);
+
+        $this->assertStringContainsString('col1', $content);
+        $this->assertStringContainsString('col2', $content);
+    }
+
+    public function testWriteCsvRowWithCustomSeparator(): void {
+        $tmp = tmpfile();
+        $this->export->writeCsvRow($tmp, ['a', 'b'], ',');
+        rewind($tmp);
+        $content = stream_get_contents($tmp);
+        fclose($tmp);
+
+        $this->assertStringContainsString('a', $content);
+        $this->assertStringContainsString('b', $content);
+    }
+
+    // =========================================================================
+    // GENERATE FILENAME — all mappings
+    // =========================================================================
+
+    public function testGenerateFilenameDefaultExtension(): void {
+        $filename = $this->export->generateFilename('votes');
+        $this->assertStringEndsWith('.csv', $filename);
+    }
+
+    public function testGenerateFilenameAllMappings(): void {
+        $this->assertStringStartsWith('Emargement_', $this->export->generateFilename('attendance'));
+        $this->assertStringStartsWith('Votes_', $this->export->generateFilename('votes'));
+        $this->assertStringStartsWith('Membres_', $this->export->generateFilename('members'));
+        $this->assertStringStartsWith('Resolutions_', $this->export->generateFilename('motions'));
+        $this->assertStringStartsWith('Resultats_', $this->export->generateFilename('results'));
+        $this->assertStringStartsWith('Journal_audit_', $this->export->generateFilename('audit'));
+        $this->assertStringStartsWith('Procurations_', $this->export->generateFilename('proxies'));
+        $this->assertStringStartsWith('Export_complet_', $this->export->generateFilename('full'));
+        // Unknown type falls through to raw type name
+        $this->assertStringStartsWith('custom_type_', $this->export->generateFilename('custom_type'));
+    }
+
+    // =========================================================================
+    // FORMAT PERCENT edge cases
+    // =========================================================================
+
+    public function testFormatPercentWithEmptyString(): void {
+        $this->assertSame('', $this->export->formatPercent(''));
+    }
+
+    public function testFormatPercentWithZero(): void {
+        $result = $this->export->formatPercent(0.0);
+        $this->assertStringContainsString('%', $result);
+    }
+
+    // =========================================================================
+    // FORMAT TIME edge cases
+    // =========================================================================
+
+    public function testFormatTimeWithInvalidDateReturnsEmpty(): void {
+        $result = $this->export->formatTime('not-a-date');
+        $this->assertSame('', $result);
+    }
+
+    // =========================================================================
+    // FORMAT NUMBER edge cases
+    // =========================================================================
+
+    public function testFormatNumberWithCustomDecimals(): void {
+        $result = $this->export->formatNumber(3.14159, 4);
+        $this->assertStringContainsString('3', $result);
+    }
+
+    public function testFormatNumberWithLargeInteger(): void {
+        $result = $this->export->formatNumber(1000000);
+        $this->assertStringContainsString('1', $result);
+    }
+
+    // =========================================================================
+    // TRANSLATE BOOLEAN — edge cases
+    // =========================================================================
+
+    public function testTranslateBooleanWithUnknownValue(): void {
+        // Unknown string values should pass through
+        $result = $this->export->translateBoolean('maybe');
+        $this->assertIsString($result);
+    }
 }

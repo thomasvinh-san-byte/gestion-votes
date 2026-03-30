@@ -547,6 +547,132 @@ class OfficialResultsServiceTest extends TestCase {
     }
 
     // =========================================================================
+    // guardWriteAccess() — role enforcement
+    // =========================================================================
+
+    public function testComputeAndPersistMotionThrowsForNonOperatorRole(): void
+    {
+        AuthMiddleware::setCurrentUser([
+            'id' => 'test-user',
+            'role' => 'viewer',
+            'tenant_id' => self::TENANT_ID,
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('consolidation_forbidden');
+
+        $this->service->computeAndPersistMotion(self::MOTION_ID, self::TENANT_ID);
+    }
+
+    public function testConsolidateMeetingThrowsForNonOperatorRole(): void
+    {
+        AuthMiddleware::setCurrentUser([
+            'id' => 'test-user',
+            'role' => 'viewer',
+            'tenant_id' => self::TENANT_ID,
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('consolidation_forbidden');
+
+        $this->service->consolidateMeeting(self::MEETING_ID, self::TENANT_ID);
+    }
+
+    public function testGuardWriteAccessAllowsOperatorRole(): void
+    {
+        AuthMiddleware::setCurrentUser([
+            'id' => 'test-operator',
+            'role' => 'operator',
+            'tenant_id' => self::TENANT_ID,
+        ]);
+
+        $motion = $this->buildMotionContext([
+            'manual_total' => 10,
+            'manual_for' => 6,
+            'manual_against' => 3,
+            'manual_abstain' => 1,
+        ]);
+
+        $this->motionRepo->method('findWithOfficialContext')->willReturn($motion);
+        $this->memberRepo->method('countActive')->willReturn(100);
+        $this->memberRepo->method('sumActiveWeight')->willReturn(100.0);
+        $this->motionRepo->expects($this->once())->method('updateOfficialResults');
+
+        // Should not throw
+        $result = $this->service->computeAndPersistMotion(self::MOTION_ID, self::TENANT_ID);
+
+        $this->assertSame('manual', $result['source']);
+    }
+
+    // =========================================================================
+    // computeOfficialTallies() — meeting-level quorum policy inheritance
+    // =========================================================================
+
+    public function testComputeOfficialTalliesWithMeetingLevelQuorumPolicy(): void
+    {
+        $meetingQuorumPolicyId = 'meeting-quorum-policy-001';
+
+        $motion = $this->buildMotionContext([
+            'manual_total' => 10,
+            'manual_for' => 6,
+            'manual_against' => 3,
+            'manual_abstain' => 1,
+            'quorum_policy_id' => '',
+            'meeting_quorum_policy_id' => $meetingQuorumPolicyId,
+        ]);
+
+        $this->motionRepo->method('findWithOfficialContext')->willReturn($motion);
+        $this->memberRepo->method('countActive')->willReturn(100);
+        $this->memberRepo->method('sumActiveWeight')->willReturn(100.0);
+
+        $this->policyRepo->method('findQuorumPolicy')
+            ->with($meetingQuorumPolicyId)
+            ->willReturn([
+                'id' => $meetingQuorumPolicyId,
+                'denominator' => 'eligible_members',
+                'threshold' => 0.05, // 5% threshold, easily met with 10/100
+            ]);
+
+        $result = $this->service->computeOfficialTallies(self::MOTION_ID);
+
+        $this->assertSame('manual', $result['source']);
+        // 10/100 = 10% >= 5% threshold, quorum met
+        $this->assertSame('adopted', $result['decision']);
+    }
+
+    public function testComputeOfficialTalliesWithAbstentionAsAgainstPolicy(): void
+    {
+        $votePolicyId = 'vote-policy-abst';
+
+        $motion = $this->buildMotionContext([
+            'manual_total' => 100,
+            'manual_for' => 40,
+            'manual_against' => 30,
+            'manual_abstain' => 30,
+            'vote_policy_id' => $votePolicyId,
+        ]);
+
+        $this->motionRepo->method('findWithOfficialContext')->willReturn($motion);
+        $this->memberRepo->method('countActive')->willReturn(200);
+        $this->memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $this->policyRepo->method('findVotePolicy')
+            ->with($votePolicyId)
+            ->willReturn([
+                'id' => $votePolicyId,
+                'base' => 'expressed',
+                'threshold' => 0.5,
+                'abstention_as_against' => true, // abstentions count as against
+            ]);
+
+        $result = $this->service->computeOfficialTallies(self::MOTION_ID);
+
+        $this->assertSame('manual', $result['source']);
+        // With abstention_as_against: for=40 vs against=30+30=60, so rejected
+        $this->assertSame('rejected', $result['decision']);
+    }
+
+    // =========================================================================
     // HELPER METHODS
     // =========================================================================
 
