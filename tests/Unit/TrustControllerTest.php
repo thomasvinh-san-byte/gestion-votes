@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\TrustController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\ProxyRepository;
 
 /**
  * Unit tests for TrustController.
@@ -15,78 +20,24 @@ use PHPUnit\Framework\TestCase;
  *  - anomalies: GET, lists anomalies for a meeting
  *  - checks: GET, runs integrity checks for a meeting
  *
- * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
- * inspect controller behavior without a database.
+ * Extends ControllerTestCase for RepositoryFactory injection.
+ * Body structure: api_ok → ['ok' => true, 'data' => [...]]
+ *                 api_fail → ['ok' => false, 'error' => '...']
  */
-class TrustControllerTest extends TestCase
+class TrustControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
+    private const MEETING_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    private const TENANT_ID  = 'ffffffff-0000-1111-2222-333333333333';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        // Reset cached raw body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
+        $this->setAuth('user-1', 'admin', self::TENANT_ID);
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
     }
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new TrustController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    /**
-     * Inject a JSON body into Request::$cachedRawBody for POST endpoints.
-     */
-    private function setJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // STRUCTURE TESTS
     // =========================================================================
 
     public function testControllerIsFinal(): void
@@ -97,538 +48,368 @@ class TrustControllerTest extends TestCase
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new TrustController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, new TrustController());
     }
 
-    public function testControllerHasAllExpectedMethods(): void
+    public function testControllerHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(TrustController::class);
-
-        $expectedMethods = ['anomalies', 'checks'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "TrustController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(TrustController::class);
-
-        $expectedMethods = ['anomalies', 'checks'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "TrustController::{$method}() should be public",
-            );
-        }
+        $this->assertTrue($ref->hasMethod('anomalies'));
+        $this->assertTrue($ref->hasMethod('checks'));
     }
 
     // =========================================================================
-    // anomalies: INPUT VALIDATION - MISSING MEETING ID
+    // anomalies() – validation
     // =========================================================================
 
-    public function testAnomaliesRejectsMissingMeetingId(): void
+    public function testAnomaliesMissingMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
-
-        $result = $this->callControllerMethod('anomalies');
-
+        $this->setQueryParams([]);
+        $result = $this->callController(TrustController::class, 'anomalies');
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    public function testAnomaliesRejectsEmptyMeetingId(): void
+    public function testAnomaliesInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
-
-        $result = $this->callControllerMethod('anomalies');
-
+        $this->setQueryParams(['meeting_id' => 'not-a-uuid']);
+        $result = $this->callController(TrustController::class, 'anomalies');
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    public function testAnomaliesRejectsInvalidUuid(): void
+    public function testAnomaliesMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-valid-uuid'];
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
 
-        $result = $this->callControllerMethod('anomalies');
+        $result = $this->callController(TrustController::class, 'anomalies');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
 
+    public function testAnomaliesHappyPathNoAnomalies(): void
+    {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING_ID,
+            'tenant_id' => self::TENANT_ID,
+            'title' => 'Test Meeting',
+        ]);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('listVotesWithoutAttendance')->willReturn([]);
+        $ballotRepo->method('listDuplicateVotes')->willReturn([]);
+        $ballotRepo->method('listWeightMismatches')->willReturn([]);
+        $ballotRepo->method('listUnjustifiedManualVotes')->willReturn([]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listOrphans')->willReturn([]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('listUnclosed')->willReturn([]);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            BallotRepository::class  => $ballotRepo,
+            ProxyRepository::class   => $proxyRepo,
+            MotionRepository::class  => $motionRepo,
+        ]);
+
+        $result = $this->callController(TrustController::class, 'anomalies');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('anomalies', $data);
+        $this->assertArrayHasKey('summary', $data);
+        $this->assertCount(0, $data['anomalies']);
+        $this->assertEquals(0, $data['summary']['total']);
+    }
+
+    public function testAnomaliesHappyPathWithAllAnomalyTypes(): void
+    {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING_ID,
+            'tenant_id' => self::TENANT_ID,
+            'title' => 'Test Meeting',
+        ]);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('listVotesWithoutAttendance')->willReturn([
+            ['member_id' => 'mem-1', 'full_name' => 'Alice', 'motion_title' => 'Res 1'],
+        ]);
+        $ballotRepo->method('listDuplicateVotes')->willReturn([
+            ['member_id' => 'mem-2', 'full_name' => 'Bob', 'motion_title' => 'Res 2', 'vote_count' => 2],
+        ]);
+        $ballotRepo->method('listWeightMismatches')->willReturn([
+            ['member_id' => 'mem-3', 'full_name' => 'Charlie', 'motion_title' => 'Res 3', 'actual_weight' => 1.5, 'expected_weight' => 1.0],
+        ]);
+        $ballotRepo->method('listUnjustifiedManualVotes')->willReturn([
+            ['id' => 'b-1', 'full_name' => 'Dave', 'motion_title' => 'Res 4'],
+        ]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listOrphans')->willReturn([
+            ['id' => 'prx-1', 'giver_name' => 'Eve', 'receiver_name' => 'Frank'],
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('listUnclosed')->willReturn([
+            ['id' => 'mot-1', 'title' => 'Pending Motion', 'opened_at' => '2024-01-01 10:00:00'],
+        ]);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            BallotRepository::class  => $ballotRepo,
+            ProxyRepository::class   => $proxyRepo,
+            MotionRepository::class  => $motionRepo,
+        ]);
+
+        $result = $this->callController(TrustController::class, 'anomalies');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertEquals(6, $data['summary']['total']);
+        $this->assertCount(6, $data['anomalies']);
+        $this->assertEquals(1, $data['summary']['danger']);
+        $this->assertEquals(4, $data['summary']['warning']); // vote_no_attendance + weight_mismatch + orphan + unjustified
+        $this->assertEquals(1, $data['summary']['info']);    // unclosed_motion
+
+        // Each anomaly must have required fields (including message/context aliases)
+        foreach ($data['anomalies'] as $anomaly) {
+            $this->assertArrayHasKey('id', $anomaly);
+            $this->assertArrayHasKey('type', $anomaly);
+            $this->assertArrayHasKey('severity', $anomaly);
+            $this->assertArrayHasKey('message', $anomaly);
+            $this->assertArrayHasKey('context', $anomaly);
+        }
+    }
+
+    // =========================================================================
+    // checks() – validation
+    // =========================================================================
+
+    public function testChecksMissingMeetingId(): void
+    {
+        $this->setQueryParams([]);
+        $result = $this->callController(TrustController::class, 'checks');
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    public function testAnomaliesRejectsPartialUuid(): void
+    public function testChecksInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234-1234'];
-
-        $result = $this->callControllerMethod('anomalies');
-
+        $this->setQueryParams(['meeting_id' => 'bad']);
+        $result = $this->callController(TrustController::class, 'checks');
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    public function testAnomaliesRejectsWhitespaceMeetingId(): void
+    public function testChecksMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '   '];
+        // checks() eagerly instantiates all repos before checking meeting existence,
+        // so ALL repos must be in the cache to avoid PDO exceptions.
+        $this->buildChecksRepos(meetingData: null);
+        // Override the meeting repo to return null
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
 
-        $result = $this->callControllerMethod('anomalies');
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $proxyRepo  = $this->createMock(ProxyRepository::class);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MemberRepository::class       => $memberRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
+            PolicyRepository::class       => $policyRepo,
+            ProxyRepository::class        => $proxyRepo,
+        ]);
+
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
 
-    public function testAnomaliesRejectsUuidWithoutDashes(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678123412341234123456789abc'];
+    private function buildChecksRepos(
+        ?array $meetingData = null,
+        int $presentCount = 10,
+        int $totalMembers = 15,
+        int $closedMotions = 3,
+        int $openMotions = 0,
+        int $totalMotions = 3,
+        array $closedWithoutVotes = [],
+        array $votesAfterClose = [],
+        ?array $quorumPolicy = null,
+        array $proxyCycles = []
+    ): void {
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData ?? [
+            'id'               => self::MEETING_ID,
+            'tenant_id'        => self::TENANT_ID,
+            'title'            => 'Test',
+            'president_name'   => 'M. President',
+            'quorum_policy_id' => null,
+            'vote_policy_id'   => 'vp-uuid-0000-1111-2222-333333333333',
+        ]);
 
-        $result = $this->callControllerMethod('anomalies');
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countPresent')->willReturn($presentCount);
+        $statsRepo->method('countMotions')->willReturn($totalMotions);
+        $statsRepo->method('countClosedMotions')->willReturn($closedMotions);
+        $statsRepo->method('countOpenMotions')->willReturn($openMotions);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn($totalMembers);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('listClosedWithoutVotes')->willReturn($closedWithoutVotes);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('listVotesAfterClose')->willReturn($votesAfterClose);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn($quorumPolicy);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('findCycles')->willReturn($proxyCycles);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MemberRepository::class       => $memberRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
+            PolicyRepository::class       => $policyRepo,
+            ProxyRepository::class        => $proxyRepo,
+        ]);
     }
 
-    public function testAnomaliesRejectsSpecialChars(): void
+    public function testChecksHappyPathAllPassing(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '<script>alert(1)</script>'];
+        $this->buildChecksRepos();
 
-        $result = $this->callControllerMethod('anomalies');
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('checks', $data);
+        $this->assertArrayHasKey('summary', $data);
+        $this->assertArrayHasKey('all_passed', $data);
+        $this->assertCount(10, $data['checks']);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // checks: INPUT VALIDATION - MISSING MEETING ID
-    // =========================================================================
-
-    public function testChecksRejectsMissingMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
-
-        $result = $this->callControllerMethod('checks');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testChecksRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
-
-        $result = $this->callControllerMethod('checks');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testChecksRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-valid-uuid'];
-
-        $result = $this->callControllerMethod('checks');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testChecksRejectsPartialUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234'];
-
-        $result = $this->callControllerMethod('checks');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testChecksRejectsWhitespaceMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '   '];
-
-        $result = $this->callControllerMethod('checks');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testChecksRejectsNumericMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345'];
-
-        $result = $this->callControllerMethod('checks');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // anomalies: ANOMALY TYPE AND SEVERITY CONSTANTS
-    // =========================================================================
-
-    public function testAnomalyTypesInSource(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
-
-        $expectedTypes = [
-            'vote_without_attendance',
-            'duplicate_vote',
-            'weight_mismatch',
-            'orphan_proxy',
-            'unclosed_motion',
-            'unjustified_manual_vote',
-        ];
-        foreach ($expectedTypes as $type) {
-            $this->assertStringContainsString(
-                "'{$type}'",
-                $source,
-                "anomalies() should detect '{$type}' anomaly type",
-            );
+        foreach ($data['checks'] as $check) {
+            $this->assertArrayHasKey('id', $check);
+            $this->assertArrayHasKey('label', $check);
+            $this->assertArrayHasKey('passed', $check);
+            $this->assertArrayHasKey('detail', $check);
         }
     }
 
-    public function testAnomalySeverityLevels(): void
+    public function testChecksWithCustomQuorumPolicyQuorumMet(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
+        $this->buildChecksRepos(
+            meetingData: [
+                'id'               => self::MEETING_ID,
+                'tenant_id'        => self::TENANT_ID,
+                'title'            => 'Test',
+                'president_name'   => 'Pres',
+                'quorum_policy_id' => 'qp-uuid-0000-1111-2222-333333333333',
+                'vote_policy_id'   => null,
+            ],
+            presentCount: 5,
+            totalMembers: 20,
+            quorumPolicy: ['threshold' => 0.25]
+        );
 
-        $this->assertStringContainsString("'danger'", $source);
-        $this->assertStringContainsString("'warning'", $source);
-        $this->assertStringContainsString("'info'", $source);
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        // Quorum at 25% of 20 = 5, present = 5, quorum_met passes
+        $quorumCheck = current(array_filter(
+            $result['body']['data']['checks'],
+            fn ($c) => $c['id'] === 'quorum_met'
+        ));
+        $this->assertTrue($quorumCheck['passed']);
     }
 
-    // =========================================================================
-    // anomalies: SUMMARY STRUCTURE
-    // =========================================================================
-
-    public function testAnomalySummaryBuilding(): void
+    public function testChecksWithProxyCyclesFailsCheck(): void
     {
-        $anomalies = [
-            ['severity' => 'danger'],
-            ['severity' => 'danger'],
-            ['severity' => 'warning'],
-            ['severity' => 'warning'],
-            ['severity' => 'warning'],
-            ['severity' => 'info'],
-        ];
+        $this->buildChecksRepos(
+            proxyCycles: [['cycle' => ['A', 'B', 'A']]]
+        );
 
-        $summary = [
-            'total' => count($anomalies),
-            'danger' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'danger')),
-            'warning' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'warning')),
-            'info' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'info')),
-        ];
-
-        $this->assertEquals(6, $summary['total']);
-        $this->assertEquals(2, $summary['danger']);
-        $this->assertEquals(3, $summary['warning']);
-        $this->assertEquals(1, $summary['info']);
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        $proxyCheck = current(array_filter(
+            $result['body']['data']['checks'],
+            fn ($c) => $c['id'] === 'proxies_valid'
+        ));
+        $this->assertFalse($proxyCheck['passed']);
     }
 
-    public function testAnomalySummaryEmptyAnomalies(): void
+    public function testChecksNoPresidentFails(): void
     {
-        $anomalies = [];
+        $this->buildChecksRepos(
+            meetingData: [
+                'id'              => self::MEETING_ID,
+                'tenant_id'       => self::TENANT_ID,
+                'title'           => 'Test',
+                'president_name'  => null,
+                'quorum_policy_id' => null,
+                'vote_policy_id'  => null,
+            ]
+        );
 
-        $summary = [
-            'total' => count($anomalies),
-            'danger' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'danger')),
-            'warning' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'warning')),
-            'info' => count(array_filter($anomalies, fn ($a) => $a['severity'] === 'info')),
-        ];
-
-        $this->assertEquals(0, $summary['total']);
-        $this->assertEquals(0, $summary['danger']);
-        $this->assertEquals(0, $summary['warning']);
-        $this->assertEquals(0, $summary['info']);
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        $presCheck = current(array_filter(
+            $result['body']['data']['checks'],
+            fn ($c) => $c['id'] === 'president_defined'
+        ));
+        $this->assertFalse($presCheck['passed']);
     }
 
-    // =========================================================================
-    // anomalies: FRONTEND ALIAS LOGIC
-    // =========================================================================
-
-    public function testAnomalyFrontendAliases(): void
+    public function testChecksOpenMotionsFailsAllMotionsClosed(): void
     {
-        $a = [
-            'description' => 'Some anomaly description',
-            'member_name' => 'John Doe',
-            'motion_title' => 'Budget Approval',
-        ];
+        $this->buildChecksRepos(closedMotions: 2, openMotions: 1, totalMotions: 3);
 
-        $a['message'] = $a['description'] ?? '';
-        $parts = [];
-        if (!empty($a['member_name'])) {
-            $parts[] = $a['member_name'];
-        }
-        if (!empty($a['motion_title'])) {
-            $parts[] = $a['motion_title'];
-        }
-        if (!empty($a['giver_name'])) {
-            $parts[] = $a['giver_name'] . ' -> ' . ($a['receiver_name'] ?? '');
-        }
-        $a['context'] = implode(' · ', $parts) ?: null;
-
-        $this->assertEquals('Some anomaly description', $a['message']);
-        $this->assertEquals('John Doe · Budget Approval', $a['context']);
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        $motionCheck = current(array_filter(
+            $result['body']['data']['checks'],
+            fn ($c) => $c['id'] === 'all_motions_closed'
+        ));
+        $this->assertFalse($motionCheck['passed']);
     }
 
-    public function testAnomalyFrontendAliasesWithProxy(): void
+    public function testChecksSummaryCountsPassedFailed(): void
     {
-        $a = [
-            'description' => 'Orphan proxy',
-            'giver_name' => 'Alice',
-            'receiver_name' => 'Bob',
-        ];
+        $this->buildChecksRepos();
 
-        $a['message'] = $a['description'] ?? '';
-        $parts = [];
-        if (!empty($a['member_name'])) {
-            $parts[] = $a['member_name'];
-        }
-        if (!empty($a['motion_title'])) {
-            $parts[] = $a['motion_title'];
-        }
-        if (!empty($a['giver_name'])) {
-            $parts[] = $a['giver_name'] . ' -> ' . ($a['receiver_name'] ?? '');
-        }
-        $a['context'] = implode(' · ', $parts) ?: null;
-
-        $this->assertEquals('Alice -> Bob', $a['context']);
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $summary = $data['summary'];
+        $this->assertEquals(10, $summary['total']);
+        $this->assertEquals($summary['passed'] + $summary['failed'], $summary['total']);
+        $this->assertEquals($data['all_passed'], $summary['failed'] === 0);
     }
 
-    public function testAnomalyFrontendAliasesEmptyContext(): void
+    public function testChecksVotesAfterCloseDetected(): void
     {
-        $a = ['description' => 'Some anomaly'];
+        $this->buildChecksRepos(
+            votesAfterClose: [['ballot_id' => 'b1', 'motion_id' => 'mot-1']]
+        );
 
-        $a['message'] = $a['description'] ?? '';
-        $parts = [];
-        if (!empty($a['member_name'])) {
-            $parts[] = $a['member_name'];
-        }
-        if (!empty($a['motion_title'])) {
-            $parts[] = $a['motion_title'];
-        }
-        if (!empty($a['giver_name'])) {
-            $parts[] = $a['giver_name'] . ' -> ' . ($a['receiver_name'] ?? '');
-        }
-        $a['context'] = implode(' · ', $parts) ?: null;
-
-        $this->assertNull($a['context']);
-    }
-
-    // =========================================================================
-    // checks: CHECK IDS IN SOURCE
-    // =========================================================================
-
-    public function testChecksHasExpectedCheckIds(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
-
-        $expectedCheckIds = [
-            'president_defined',
-            'members_present',
-            'quorum_met',
-            'all_motions_closed',
-            'has_closed_motions',
-            'proxies_valid',
-            'totals_consistent',
-            'no_votes_after_close',
-            'vote_policy_defined',
-            'quorum_policy_defined',
-        ];
-        foreach ($expectedCheckIds as $checkId) {
-            $this->assertStringContainsString(
-                "'{$checkId}'",
-                $source,
-                "checks() should include '{$checkId}' check",
-            );
-        }
-    }
-
-    // =========================================================================
-    // checks: SUMMARY BUILDING LOGIC
-    // =========================================================================
-
-    public function testChecksSummaryBuilding(): void
-    {
-        $checks = [
-            ['passed' => true],
-            ['passed' => true],
-            ['passed' => false],
-            ['passed' => true],
-            ['passed' => false],
-        ];
-
-        $passedCount = count(array_filter($checks, fn ($c) => $c['passed']));
-        $failedCount = count($checks) - $passedCount;
-
-        $this->assertEquals(3, $passedCount);
-        $this->assertEquals(2, $failedCount);
-        $this->assertFalse($failedCount === 0, 'all_passed should be false with failures');
-    }
-
-    public function testChecksSummaryAllPassed(): void
-    {
-        $checks = [
-            ['passed' => true],
-            ['passed' => true],
-            ['passed' => true],
-        ];
-
-        $passedCount = count(array_filter($checks, fn ($c) => $c['passed']));
-        $failedCount = count($checks) - $passedCount;
-
-        $this->assertEquals(3, $passedCount);
-        $this->assertEquals(0, $failedCount);
-        $this->assertTrue($failedCount === 0, 'all_passed should be true with no failures');
-    }
-
-    // =========================================================================
-    // CONTROLLER SOURCE VERIFICATION
-    // =========================================================================
-
-    public function testControllerUsesExpectedRepositories(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
-
-        $this->assertStringContainsString('repo()->ballot()', $source);
-        $this->assertStringContainsString('repo()->meeting()', $source);
-        $this->assertStringContainsString('repo()->meetingStats()', $source);
-        $this->assertStringContainsString('repo()->member()', $source);
-        $this->assertStringContainsString('repo()->motion()', $source);
-        $this->assertStringContainsString('repo()->policy()', $source);
-        $this->assertStringContainsString('repo()->proxy()', $source);
-    }
-
-    public function testControllerUsesApiCurrentTenantId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
-
-        $count = substr_count($source, 'api_current_tenant_id()');
-        $this->assertGreaterThanOrEqual(2, $count);
-    }
-
-    public function testAnomaliesResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
-
-        $expectedKeys = ['meeting_id', 'summary', 'anomalies'];
-        foreach ($expectedKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source);
-        }
-    }
-
-    public function testChecksResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/TrustController.php');
-
-        $expectedKeys = ['meeting_id', 'all_passed', 'summary', 'checks'];
-        foreach ($expectedKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source);
-        }
-    }
-
-    // =========================================================================
-    // HANDLE: UNKNOWN METHOD
-    // =========================================================================
-
-    public function testHandleUnknownMethodReturnsInternalError(): void
-    {
-        $controller = new TrustController();
-        try {
-            $controller->handle('nonExistentMethod');
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            $this->assertEquals(500, $e->getResponse()->getStatusCode());
-            $this->assertEquals('internal_error', $e->getResponse()->getBody()['error']);
-        }
-    }
-
-    // =========================================================================
-    // checks: QUORUM THRESHOLD CALCULATION LOGIC
-    // =========================================================================
-
-    public function testQuorumThresholdCalculation(): void
-    {
-        $totalMembers = 100;
-        $quorumThreshold = 0.5;
-        $quorumRequired = (int) ceil($totalMembers * $quorumThreshold);
-
-        $this->assertEquals(50, $quorumRequired);
-    }
-
-    public function testQuorumThresholdCustomValue(): void
-    {
-        $totalMembers = 100;
-        $quorumThreshold = 0.67;
-        $quorumRequired = (int) ceil($totalMembers * $quorumThreshold);
-
-        $this->assertEquals(67, $quorumRequired);
-    }
-
-    public function testQuorumMetCheck(): void
-    {
-        $presentCount = 51;
-        $quorumRequired = 50;
-
-        $this->assertTrue($presentCount >= $quorumRequired);
-    }
-
-    public function testQuorumNotMetCheck(): void
-    {
-        $presentCount = 49;
-        $quorumRequired = 50;
-
-        $this->assertFalse($presentCount >= $quorumRequired);
-    }
-
-    // =========================================================================
-    // anomalies: ACCEPTS VALID UUID FORMAT
-    // =========================================================================
-
-    public function testAnomaliesAcceptsValidUuidFormat(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234-1234-123456789abc'];
-
-        $result = $this->callControllerMethod('anomalies');
-
-        // Should pass validation and fail at DB, not at input validation
-        $this->assertNotEquals('missing_meeting_id', $result['body']['error'] ?? '');
-    }
-
-    public function testChecksAcceptsValidUuidFormat(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234-1234-123456789abc'];
-
-        $result = $this->callControllerMethod('checks');
-
-        // Should pass validation and fail at DB, not at input validation
-        $this->assertNotEquals('missing_meeting_id', $result['body']['error'] ?? '');
-    }
-
-    public function testAnomaliesAcceptsUppercaseUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'AABBCCDD-1122-3344-5566-778899AABBCC'];
-
-        $result = $this->callControllerMethod('anomalies');
-
-        $this->assertNotEquals('missing_meeting_id', $result['body']['error'] ?? '');
+        $result = $this->callController(TrustController::class, 'checks');
+        $this->assertEquals(200, $result['status']);
+        $noVotesCheck = current(array_filter(
+            $result['body']['data']['checks'],
+            fn ($c) => $c['id'] === 'no_votes_after_close'
+        ));
+        $this->assertFalse($noVotesCheck['passed']);
     }
 }

@@ -5,544 +5,532 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\MemberGroupsController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\MemberGroupRepository;
+use AgVote\Repository\MemberRepository;
 
 /**
  * Unit tests for MemberGroupsController.
  *
- * Tests the member groups CRUD + assignment endpoints including:
- *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (GET/POST/PATCH/PUT/DELETE)
- *  - UUID validation for group_id, member_id
- *  - Input validation for name, color, group_ids
- *  - InvalidArgumentException handling via AbstractController
- *  - Response structure and audit log verification
+ * Endpoints:
+ *  - list():          GET — list all groups OR single group with members
+ *  - create():        POST — create new group
+ *  - update():        PATCH — update group
+ *  - delete():        DELETE — delete group
+ *  - assign():        POST — assign member to group
+ *  - unassign():      DELETE (via query) — remove member from group
+ *  - setMemberGroups(): PUT — bulk set groups for a member
+ *
+ * Extends ControllerTestCase for RepositoryFactory injection.
  */
-class MemberGroupsControllerTest extends TestCase
+class MemberGroupsControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
+    private const TENANT_ID  = 'aa000004-0000-4000-a000-000000000004';
+    private const GROUP_ID   = 'aa000001-0000-4000-a000-000000000001';
+    private const MEMBER_ID  = 'aa000002-0000-4000-a000-000000000002';
+    private const USER_ID    = 'aa000003-0000-4000-a000-000000000003';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
+        $this->setAuth(self::USER_ID, 'admin', self::TENANT_ID);
     }
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new MemberGroupsController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // STRUCTURE TESTS
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(MemberGroupsController::class);
-        $this->assertTrue($ref->isFinal(), 'MemberGroupsController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new MemberGroupsController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, new MemberGroupsController());
     }
 
-    public function testControllerHasAllExpectedMethods(): void
+    public function testControllerHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(MemberGroupsController::class);
-
-        $expectedMethods = [
-            'list',
-            'create',
-            'update',
-            'delete',
-            'assign',
-            'unassign',
-            'setMemberGroups',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "MemberGroupsController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(MemberGroupsController::class);
-
-        $expectedMethods = [
-            'list',
-            'create',
-            'update',
-            'delete',
-            'assign',
-            'unassign',
-            'setMemberGroups',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "MemberGroupsController::{$method}() should be public",
-            );
+        foreach (['list', 'create', 'update', 'delete', 'assign', 'unassign', 'setMemberGroups'] as $m) {
+            $this->assertTrue($ref->hasMethod($m), "Missing method: {$m}");
         }
     }
 
     // =========================================================================
-    // list: UUID VALIDATION
+    // list() — no id param
     // =========================================================================
 
-    public function testListRejectsInvalidGroupId(): void
+    public function testListReturnsAllGroups(): void
     {
-        // list() calls api_current_tenant_id() then MemberGroupRepository before
-        // UUID validation. In test env (no DB), the repo throws RuntimeException
-        // caught as business_error. Verify UUID validation via source inspection.
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("api_fail('invalid_group_id', 400)", $source);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([
+            ['id' => self::GROUP_ID, 'name' => 'Board', 'member_count' => 3],
+            ['id' => 'bb000002-0000-4000-a000-000000000002', 'name' => 'Staff', 'member_count' => 5],
+        ]);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setQueryParams([]);
+        $result = $this->callController(MemberGroupsController::class, 'list');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('items', $data);
+        $this->assertArrayHasKey('total', $data);
+        $this->assertEquals(2, $data['total']);
     }
 
-    public function testListRejectsInvalidGroupIdUuidCheck(): void
+    public function testListWithIncludeInactive(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString('api_is_uuid($groupId)', $source);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setQueryParams(['include_inactive' => '1']);
+        $result = $this->callController(MemberGroupsController::class, 'list');
+        $this->assertEquals(200, $result['status']);
     }
 
     // =========================================================================
-    // create: METHOD ENFORCEMENT
+    // list() — with id param (single group)
     // =========================================================================
 
-    public function testCreateRejectsGetMethod(): void
+    public function testListSingleGroupInvalidId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
 
-        $result = $this->callControllerMethod('create');
+        $this->setQueryParams(['id' => 'not-a-uuid']);
+        $result = $this->callController(MemberGroupsController::class, 'list');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('invalid_group_id', $result['body']['error']);
+    }
 
+    public function testListSingleGroupNotFound(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(null);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setQueryParams(['id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'list');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('group_not_found', $result['body']['error']);
+    }
+
+    public function testListSingleGroupFound(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn([
+            'id' => self::GROUP_ID, 'name' => 'Board', 'tenant_id' => self::TENANT_ID,
+        ]);
+        $groupRepo->method('listMembersInGroup')->willReturn([
+            ['id' => self::MEMBER_ID, 'full_name' => 'Alice'],
+        ]);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setQueryParams(['id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'list');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('group', $data);
+        $this->assertArrayHasKey('members', $data['group']);
+        $this->assertCount(1, $data['group']['members']);
+    }
+
+    // =========================================================================
+    // create()
+    // =========================================================================
+
+    public function testCreateMethodEnforcement(): void
+    {
+        $this->setHttpMethod('GET');
+        $result = $this->callController(MemberGroupsController::class, 'create');
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    public function testCreateRejectsPutMethod(): void
+    public function testCreateMissingName(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
 
-        $result = $this->callControllerMethod('create');
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['name' => '']);
+        $result = $this->callController(MemberGroupsController::class, 'create');
+        // InvalidArgumentException → 422 invalid_request
+        $this->assertEquals(422, $result['status']);
+    }
 
+    public function testCreateNameTooLong(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('nameExists')->willReturn(false);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['name' => str_repeat('A', 101)]);
+        $result = $this->callController(MemberGroupsController::class, 'create');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testCreateInvalidColorFormat(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['name' => 'Test', 'color' => 'red']);
+        $result = $this->callController(MemberGroupsController::class, 'create');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testCreateDuplicateName(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('nameExists')->willReturn(true);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['name' => 'Board']);
+        $result = $this->callController(MemberGroupsController::class, 'create');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testCreateSuccess(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('nameExists')->willReturn(false);
+        $groupRepo->method('create')->willReturn([
+            'id' => self::GROUP_ID,
+            'name' => 'Board',
+            'tenant_id' => self::TENANT_ID,
+        ]);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['name' => 'Board', 'color' => '#FF0000']);
+        $result = $this->callController(MemberGroupsController::class, 'create');
+        $this->assertEquals(201, $result['status']);
+        $this->assertArrayHasKey('group', $result['body']['data']);
+    }
+
+    // =========================================================================
+    // update()
+    // =========================================================================
+
+    public function testUpdateMethodEnforcement(): void
+    {
+        $this->setHttpMethod('GET');
+        $result = $this->callController(MemberGroupsController::class, 'update');
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+    }
+
+    public function testUpdateInvalidGroupId(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody(['id' => 'bad-uuid', 'name' => 'Board']);
+        $result = $this->callController(MemberGroupsController::class, 'update');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testUpdateMissingName(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody(['id' => self::GROUP_ID, 'name' => '']);
+        $result = $this->callController(MemberGroupsController::class, 'update');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testUpdateGroupNotFound(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(null);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody(['id' => self::GROUP_ID, 'name' => 'Board']);
+        $result = $this->callController(MemberGroupsController::class, 'update');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('group_not_found', $result['body']['error']);
+    }
+
+    public function testUpdateSuccess(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(['id' => self::GROUP_ID, 'name' => 'OldName']);
+        $groupRepo->method('nameExists')->willReturn(false);
+        $groupRepo->method('update')->willReturn(['id' => self::GROUP_ID, 'name' => 'NewName']);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody(['id' => self::GROUP_ID, 'name' => 'NewName']);
+        $result = $this->callController(MemberGroupsController::class, 'update');
+        $this->assertEquals(200, $result['status']);
+        $this->assertArrayHasKey('group', $result['body']['data']);
     }
 
     // =========================================================================
-    // create: INPUT VALIDATION
+    // delete()
     // =========================================================================
 
-    /**
-     * create() instantiates MemberGroupRepository (which calls db()) before
-     * reaching input validation. In test env without DB, RuntimeException is
-     * caught by AbstractController as business_error (400). We verify input
-     * validation logic via source inspection and logic replication.
-     */
-    public function testCreateRequiresName(): void
+    public function testDeleteInvalidGroupId(): void
     {
-        $name = trim((string) (null ?? ''));
-        $this->assertEquals('', $name, 'Missing name should be empty after trim');
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setQueryParams(['id' => 'not-uuid']);
+        $result = $this->callController(MemberGroupsController::class, 'delete');
+        $this->assertEquals(422, $result['status']);
     }
 
-    public function testCreateRejectsEmptyNameLogic(): void
+    public function testDeleteGroupNotFound(): void
     {
-        $name = trim('');
-        $this->assertEquals('', $name);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(null);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
+
+        $this->setQueryParams(['id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'delete');
+        $this->assertEquals(404, $result['status']);
     }
 
-    public function testCreateRejectsWhitespaceOnlyNameLogic(): void
+    public function testDeleteSuccess(): void
     {
-        $name = trim('   ');
-        $this->assertEquals('', $name);
-    }
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(['id' => self::GROUP_ID, 'name' => 'Board', 'member_count' => 0]);
+        $groupRepo->method('delete')->willReturn(true);
+        $this->injectRepos([MemberGroupRepository::class => $groupRepo]);
 
-    public function testCreateRejectsNameOver100CharsLogic(): void
-    {
-        $name = str_repeat('A', 101);
-        $this->assertTrue(mb_strlen($name) > 100, 'Name over 100 chars should be rejected');
-    }
-
-    public function testCreateRejectsInvalidColorFormatLogic(): void
-    {
-        $invalidColors = ['red', '#FFF', 'invalid', '#GGGGGG'];
-        foreach ($invalidColors as $color) {
-            $this->assertFalse(
-                (bool) preg_match('/^#[0-9A-Fa-f]{6}$/', $color),
-                "Color '{$color}' should be invalid",
-            );
-        }
-    }
-
-    public function testCreateSourceValidatesName(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("Le nom du groupe est requis", $source);
-        $this->assertStringContainsString("Le nom ne peut pas depasser 100 caracteres", $source);
-    }
-
-    public function testCreateSourceValidatesColor(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("Format de couleur invalide", $source);
-        $this->assertStringContainsString('#RRGGBB', $source);
+        $this->setQueryParams(['id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'delete');
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['data']['deleted']);
     }
 
     // =========================================================================
-    // update: METHOD ENFORCEMENT
+    // assign()
     // =========================================================================
 
-    public function testUpdateRejectsGetMethod(): void
+    public function testAssignMethodEnforcement(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('update');
-
+        $this->setHttpMethod('GET');
+        $result = $this->callController(MemberGroupsController::class, 'assign');
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    public function testUpdateRejectsPostMethod(): void
+    public function testAssignInvalidMemberId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['id' => '12345678-1234-1234-1234-123456789abc', 'name' => 'Test']);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
 
-        $result = $this->callControllerMethod('update');
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['member_id' => 'bad', 'group_id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'assign');
+        $this->assertEquals(422, $result['status']);
+    }
 
+    public function testAssignInvalidGroupId(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_id' => 'bad']);
+        $result = $this->callController(MemberGroupsController::class, 'assign');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testAssignMemberNotFound(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'assign');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('member_not_found', $result['body']['error']);
+    }
+
+    public function testAssignGroupNotFound(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(null);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(['id' => self::MEMBER_ID, 'full_name' => 'Alice']);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'assign');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('group_not_found', $result['body']['error']);
+    }
+
+    public function testAssignSuccess(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(['id' => self::GROUP_ID, 'name' => 'Board']);
+        $groupRepo->method('assignMember')->willReturn(true);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(['id' => self::MEMBER_ID, 'full_name' => 'Alice']);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'assign');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertTrue($data['assigned']);
+        $this->assertEquals(self::MEMBER_ID, $data['member_id']);
+        $this->assertEquals(self::GROUP_ID, $data['group_id']);
+    }
+
+    // =========================================================================
+    // unassign()
+    // =========================================================================
+
+    public function testUnassignInvalidMemberId(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setQueryParams(['member_id' => 'bad', 'group_id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'unassign');
+        $this->assertEquals(422, $result['status']);
+    }
+
+    public function testUnassignSuccess(): void
+    {
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(['id' => self::GROUP_ID, 'name' => 'Board']);
+        $groupRepo->method('unassignMember')->willReturn(true);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(['id' => self::MEMBER_ID, 'full_name' => 'Alice']);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setQueryParams(['member_id' => self::MEMBER_ID, 'group_id' => self::GROUP_ID]);
+        $result = $this->callController(MemberGroupsController::class, 'unassign');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertTrue($data['removed']);
+    }
+
+    // =========================================================================
+    // setMemberGroups()
+    // =========================================================================
+
+    public function testSetMemberGroupsMethodEnforcement(): void
+    {
+        $this->setHttpMethod('POST');
+        $result = $this->callController(MemberGroupsController::class, 'setMemberGroups');
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // update: INPUT VALIDATION
-    // =========================================================================
-
-    /**
-     * update() instantiates repos before validation in test env.
-     * Verify validation logic via source inspection.
-     */
-    public function testUpdateSourceValidatesGroupId(): void
+    public function testSetMemberGroupsInvalidMemberId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("ID de groupe invalide", $source);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('PUT');
+        $this->injectJsonBody(['member_id' => 'bad', 'group_ids' => []]);
+        $result = $this->callController(MemberGroupsController::class, 'setMemberGroups');
+        $this->assertEquals(422, $result['status']);
     }
 
-    public function testUpdateSourceValidatesName(): void
+    public function testSetMemberGroupsMemberNotFound(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("Le nom du groupe est requis", $source);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('PUT');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_ids' => []]);
+        $result = $this->callController(MemberGroupsController::class, 'setMemberGroups');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('member_not_found', $result['body']['error']);
     }
 
-    public function testUpdateSourceValidatesNameLength(): void
+    public function testSetMemberGroupsSuccess(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("Le nom ne peut pas depasser 100 caracteres", $source);
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('findById')->willReturn(['id' => self::GROUP_ID, 'name' => 'Board']);
+        $groupRepo->method('setMemberGroups'); // void return
+        $groupRepo->method('listGroupsForMember')->willReturn([
+            ['id' => self::GROUP_ID, 'name' => 'Board'],
+        ]);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(['id' => self::MEMBER_ID, 'full_name' => 'Alice']);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
+
+        $this->setHttpMethod('PUT');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_ids' => [self::GROUP_ID]]);
+        $result = $this->callController(MemberGroupsController::class, 'setMemberGroups');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertEquals(self::MEMBER_ID, $data['member_id']);
+        $this->assertEquals(1, $data['total']);
     }
 
-    public function testUpdateSourceValidatesColor(): void
+    public function testSetMemberGroupsClearAllGroups(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("Format de couleur invalide", $source);
-    }
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('setMemberGroups'); // void return
+        $groupRepo->method('listGroupsForMember')->willReturn([]);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByIdForTenant')->willReturn(['id' => self::MEMBER_ID, 'full_name' => 'Alice']);
+        $this->injectRepos([
+            MemberGroupRepository::class => $groupRepo,
+            MemberRepository::class      => $memberRepo,
+        ]);
 
-    // =========================================================================
-    // delete: UUID VALIDATION
-    // =========================================================================
-
-    /**
-     * delete() calls api_current_tenant_id() and MemberGroupRepository before
-     * UUID validation. Verify via source inspection.
-     */
-    public function testDeleteSourceValidatesGroupId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        // delete() throws InvalidArgumentException for invalid group_id
-        $this->assertStringContainsString("'ID de groupe invalide'", $source);
-    }
-
-    public function testDeleteUuidCheckLogic(): void
-    {
-        $this->assertFalse(api_is_uuid('bad-uuid'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
-    }
-
-    // =========================================================================
-    // assign: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testAssignRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('assign');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // assign: INPUT VALIDATION
-    // =========================================================================
-
-    /**
-     * assign() calls api_current_tenant_id() and repos before UUID validation.
-     * Verify via source inspection.
-     */
-    public function testAssignSourceValidatesMemberId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'member_id invalide'", $source);
-    }
-
-    public function testAssignSourceValidatesGroupId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'group_id invalide'", $source);
-    }
-
-    public function testAssignValidationLogic(): void
-    {
-        $memberId = trim((string) ('bad-uuid'));
-        $this->assertFalse(api_is_uuid($memberId), 'Invalid member_id should be rejected');
-
-        $groupId = trim((string) ('bad-uuid'));
-        $this->assertFalse(api_is_uuid($groupId), 'Invalid group_id should be rejected');
-    }
-
-    // =========================================================================
-    // unassign: UUID VALIDATION
-    // =========================================================================
-
-    /**
-     * unassign() calls api_current_tenant_id() and repos before UUID validation.
-     * Verify via source inspection.
-     */
-    public function testUnassignSourceValidatesMemberId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        // unassign uses the same InvalidArgumentException messages
-        $this->assertStringContainsString("'member_id invalide'", $source);
-    }
-
-    public function testUnassignSourceValidatesGroupId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'group_id invalide'", $source);
-    }
-
-    // =========================================================================
-    // setMemberGroups: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testSetMemberGroupsRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('setMemberGroups');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testSetMemberGroupsRejectsPostMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([]);
-
-        $result = $this->callControllerMethod('setMemberGroups');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // setMemberGroups: INPUT VALIDATION
-    // =========================================================================
-
-    /**
-     * setMemberGroups() calls repos before validation.
-     * Verify via source inspection.
-     */
-    public function testSetMemberGroupsSourceValidatesMemberId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'member_id invalide'", $source);
-    }
-
-    public function testSetMemberGroupsSourceValidatesGroupIds(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-        $this->assertStringContainsString("'group_ids doit etre un tableau'", $source);
-    }
-
-    // =========================================================================
-    // COLOR VALIDATION LOGIC
-    // =========================================================================
-
-    public function testColorValidationRegex(): void
-    {
-        $validColors = ['#FF0000', '#00ff00', '#0000FF', '#123abc', '#AABBCC'];
-        foreach ($validColors as $color) {
-            $this->assertTrue(
-                (bool) preg_match('/^#[0-9A-Fa-f]{6}$/', $color),
-                "Color '{$color}' should be valid",
-            );
-        }
-
-        $invalidColors = ['red', '#FFF', 'FF0000', '#GGGGGG', '#12345', '#1234567'];
-        foreach ($invalidColors as $color) {
-            $this->assertFalse(
-                (bool) preg_match('/^#[0-9A-Fa-f]{6}$/', $color),
-                "Color '{$color}' should be invalid",
-            );
-        }
-    }
-
-    // =========================================================================
-    // NAME LENGTH VALIDATION LOGIC
-    // =========================================================================
-
-    public function testNameLengthBoundary(): void
-    {
-        $name100 = str_repeat('A', 100);
-        $this->assertFalse(mb_strlen($name100) > 100, 'Name of 100 chars should be accepted');
-
-        $name101 = str_repeat('A', 101);
-        $this->assertTrue(mb_strlen($name101) > 100, 'Name of 101 chars should be rejected');
-    }
-
-    // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCreateAuditsGroupCreation(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'member_group_created'", $source);
-    }
-
-    public function testUpdateAuditsGroupUpdate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'member_group_updated'", $source);
-    }
-
-    public function testDeleteAuditsGroupDeletion(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'member_group_deleted'", $source);
-    }
-
-    public function testAssignAuditsMemberAssigned(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'member_assigned_to_group'", $source);
-    }
-
-    public function testUnassignAuditsMemberRemoved(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'member_removed_from_group'", $source);
-    }
-
-    public function testSetMemberGroupsAuditsUpdate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'member_groups_updated'", $source);
-    }
-
-    // =========================================================================
-    // RESPONSE STRUCTURE VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCreateReturns201(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString('201', $source);
-    }
-
-    public function testAssignResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'assigned' => true", $source);
-        $this->assertStringContainsString("'member_id'", $source);
-        $this->assertStringContainsString("'group_id'", $source);
-    }
-
-    public function testUnassignResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'removed'", $source);
-    }
-
-    public function testDeleteResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MemberGroupsController.php');
-
-        $this->assertStringContainsString("'deleted'", $source);
+        $this->setHttpMethod('PUT');
+        $this->injectJsonBody(['member_id' => self::MEMBER_ID, 'group_ids' => []]);
+        $result = $this->callController(MemberGroupsController::class, 'setMemberGroups');
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(0, $result['body']['data']['total']);
     }
 }
