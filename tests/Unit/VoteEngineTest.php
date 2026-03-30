@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
 use AgVote\Service\VoteEngine;
 use PHPUnit\Framework\TestCase;
 
@@ -746,5 +751,413 @@ class VoteEngineTest extends TestCase {
         }
 
         return 'no_policy';
+    }
+
+    // =========================================================================
+    // VoteEngine::computeMotionResult() — MOCKED REPO TESTS
+    // =========================================================================
+
+    /**
+     * Build a VoteEngine with all repos mocked.
+     */
+    private function buildVoteEngine(array $overrides = []): VoteEngine {
+        $motionRepo     = $overrides['motionRepo']     ?? $this->createMock(MotionRepository::class);
+        $ballotRepo     = $overrides['ballotRepo']     ?? $this->createMock(BallotRepository::class);
+        $memberRepo     = $overrides['memberRepo']     ?? $this->createMock(MemberRepository::class);
+        $policyRepo     = $overrides['policyRepo']     ?? $this->createMock(PolicyRepository::class);
+        $attendanceRepo = $overrides['attendanceRepo'] ?? $this->createMock(AttendanceRepository::class);
+
+        return new VoteEngine($motionRepo, $ballotRepo, $memberRepo, $policyRepo, $attendanceRepo);
+    }
+
+    /**
+     * Helper: motion row with vote context.
+     */
+    private function makeMotionRow(array $overrides = []): array {
+        return array_merge([
+            'motion_id'                  => 'mot-1',
+            'motion_title'               => 'Test',
+            'meeting_id'                 => 'm-1',
+            'tenant_id'                  => 't-1',
+            'vote_policy_id'             => 'vp-1',
+            'quorum_policy_id'           => null,
+            'meeting_vote_policy_id'     => null,
+            'meeting_quorum_policy_id'   => null,
+            'secret'                     => false,
+        ], $overrides);
+    }
+
+    /**
+     * Helper: tally row with real votes.
+     */
+    private function makeTallyRow(array $overrides = []): array {
+        return array_merge([
+            'count_for'      => 10,
+            'weight_for'     => 60.0,
+            'count_against'  => 5,
+            'weight_against' => 30.0,
+            'count_abstain'  => 2,
+            'weight_abstain' => 10.0,
+            'count_nsp'      => 1,
+            'weight_nsp'     => 0.0,
+        ], $overrides);
+    }
+
+    /**
+     * Helper: standard expressed vote policy.
+     */
+    private function makeVotePolicy(array $overrides = []): array {
+        return array_merge([
+            'base'                 => 'expressed',
+            'threshold'            => 0.5,
+            'abstention_as_against' => false,
+        ], $overrides);
+    }
+
+    // --- Input validation ---
+
+    public function testComputeMotionResultEmptyIdThrows(): void {
+        $engine = $this->buildVoteEngine();
+        $this->expectException(\InvalidArgumentException::class);
+        $engine->computeMotionResult('');
+    }
+
+    public function testComputeMotionResultMotionNotFoundThrows(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn(null);
+
+        $engine = $this->buildVoteEngine(['motionRepo' => $motionRepo]);
+        $this->expectException(\RuntimeException::class);
+        $engine->computeMotionResult('mot-nonexistent', 't-1');
+    }
+
+    // --- Adopted scenario ---
+
+    public function testComputeMotionResultAdopted(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($this->makeMotionRow());
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow([
+            'count_for'      => 12,
+            'weight_for'     => 60.0,
+            'count_against'  => 6,
+            'weight_against' => 30.0,
+            'count_abstain'  => 2,
+            'weight_abstain' => 10.0,
+            'count_nsp'      => 0,
+            'weight_nsp'     => 0.0,
+        ]));
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findVotePolicy')->willReturn($this->makeVotePolicy([
+            'base'      => 'expressed',
+            'threshold' => 0.5,
+        ]));
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+            'policyRepo' => $policyRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        $this->assertEquals('adopted', $result['decision']['status']);
+        $this->assertTrue($result['majority']['met']);
+        $this->assertEquals(60.0, $result['tallies']['for']['weight']);
+        $this->assertEquals(30.0, $result['tallies']['against']['weight']);
+        $this->assertEquals(10.0, $result['tallies']['abstain']['weight']);
+    }
+
+    // --- Rejected scenario ---
+
+    public function testComputeMotionResultRejected(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($this->makeMotionRow());
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow([
+            'count_for'      => 6,
+            'weight_for'     => 30.0,
+            'count_against'  => 12,
+            'weight_against' => 60.0,
+            'count_abstain'  => 2,
+            'weight_abstain' => 10.0,
+            'count_nsp'      => 0,
+            'weight_nsp'     => 0.0,
+        ]));
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findVotePolicy')->willReturn($this->makeVotePolicy());
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+            'policyRepo' => $policyRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        $this->assertEquals('rejected', $result['decision']['status']);
+        $this->assertFalse($result['majority']['met']);
+    }
+
+    // --- No quorum blocks adoption ---
+
+    public function testComputeMotionResultNoQuorum(): void {
+        // Motion has a quorum policy, only 5 members expressed vs 20 eligible (needs 50% = 10)
+        $motionRow = $this->makeMotionRow(['quorum_policy_id' => 'qp-1']);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($motionRow);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow([
+            'count_for'      => 3,
+            'weight_for'     => 30.0,
+            'count_against'  => 1,
+            'weight_against' => 10.0,
+            'count_abstain'  => 1,
+            'weight_abstain' => 5.0,
+            'count_nsp'      => 0,
+            'weight_nsp'     => 0.0,
+        ]));
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicy')->willReturn([
+            'denominator' => 'eligible_members',
+            'threshold'   => 0.5,
+        ]);
+        $policyRepo->method('findVotePolicy')->willReturn($this->makeVotePolicy());
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+            'policyRepo' => $policyRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        // quorum not met → decision must be no_quorum
+        $this->assertEquals('no_quorum', $result['decision']['status']);
+        $this->assertFalse($result['quorum']['met']);
+    }
+
+    // --- No votes ---
+
+    public function testComputeMotionResultNoVotes(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($this->makeMotionRow());
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn([
+            'count_for'      => 0,
+            'weight_for'     => 0.0,
+            'count_against'  => 0,
+            'weight_against' => 0.0,
+            'count_abstain'  => 0,
+            'weight_abstain' => 0.0,
+            'count_nsp'      => 0,
+            'weight_nsp'     => 0.0,
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findVotePolicy')->willReturn($this->makeVotePolicy());
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+            'policyRepo' => $policyRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        $this->assertEquals('no_votes', $result['decision']['status']);
+    }
+
+    // --- No policy ---
+
+    public function testComputeMotionResultNoPolicy(): void {
+        // Motion has neither vote_policy_id nor meeting_vote_policy_id
+        $motionRow = $this->makeMotionRow([
+            'vote_policy_id'         => null,
+            'meeting_vote_policy_id' => null,
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($motionRow);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow());
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        $this->assertEquals('no_policy', $result['decision']['status']);
+    }
+
+    // --- Policy fallback to meeting level ---
+
+    public function testComputeMotionResultFallsBackToMeetingVotePolicy(): void {
+        // Motion has no direct vote_policy_id, but meeting has one
+        $motionRow = $this->makeMotionRow([
+            'vote_policy_id'         => null,
+            'meeting_vote_policy_id' => 'vp-meeting',
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($motionRow);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow());
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        // When called with 'vp-meeting' it returns the policy
+        $policyRepo->method('findVotePolicy')
+            ->with('vp-meeting')
+            ->willReturn($this->makeVotePolicy());
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+            'policyRepo' => $policyRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        // The meeting-level policy was used — result should not be no_policy
+        $this->assertNotEquals('no_policy', $result['decision']['status']);
+        $this->assertEquals('vp-meeting', $result['motion']['vote_policy_id']);
+    }
+
+    // --- Present base uses attendanceRepo.sumPresentWeight ---
+
+    public function testComputeMotionResultPresentBaseUsesAttendanceWeight(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($this->makeMotionRow());
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow([
+            'count_for'      => 10,
+            'weight_for'     => 60.0,
+            'count_against'  => 4,
+            'weight_against' => 20.0,
+            'count_abstain'  => 0,
+            'weight_abstain' => 0.0,
+            'count_nsp'      => 0,
+            'weight_nsp'     => 0.0,
+        ]));
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        // Vote policy with base='present'
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findVotePolicy')->willReturn($this->makeVotePolicy([
+            'base'      => 'present',
+            'threshold' => 0.5,
+        ]));
+
+        // attendanceRepo should be called to get present weight
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->expects($this->once())
+            ->method('sumPresentWeight')
+            ->willReturn(150.0);
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo'     => $motionRepo,
+            'ballotRepo'     => $ballotRepo,
+            'memberRepo'     => $memberRepo,
+            'policyRepo'     => $policyRepo,
+            'attendanceRepo' => $attendanceRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        // 60 / 150 = 0.4 < 0.5 → rejected
+        $this->assertEquals('rejected', $result['decision']['status']);
+        $this->assertEqualsWithDelta(0.4, $result['majority']['ratio'], 0.001);
+    }
+
+    // --- Full result structure check ---
+
+    public function testComputeMotionResultStructure(): void {
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findWithVoteContext')->willReturn($this->makeMotionRow());
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('tally')->willReturn($this->makeTallyRow());
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(20);
+        $memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findVotePolicy')->willReturn($this->makeVotePolicy());
+
+        $engine = $this->buildVoteEngine([
+            'motionRepo' => $motionRepo,
+            'ballotRepo' => $ballotRepo,
+            'memberRepo' => $memberRepo,
+            'policyRepo' => $policyRepo,
+        ]);
+
+        $result = $engine->computeMotionResult('mot-1', 't-1');
+
+        // All top-level keys must be present
+        foreach (['motion', 'tallies', 'eligible', 'expressed', 'quorum', 'majority', 'decision'] as $key) {
+            $this->assertArrayHasKey($key, $result, "Missing top-level key: {$key}");
+        }
+
+        // Nested keys
+        $this->assertArrayHasKey('id', $result['motion']);
+        $this->assertArrayHasKey('title', $result['motion']);
+        $this->assertArrayHasKey('meeting_id', $result['motion']);
+        $this->assertArrayHasKey('tenant_id', $result['motion']);
+        $this->assertArrayHasKey('secret', $result['motion']);
+
+        $this->assertArrayHasKey('for', $result['tallies']);
+        $this->assertArrayHasKey('against', $result['tallies']);
+        $this->assertArrayHasKey('abstain', $result['tallies']);
+        $this->assertArrayHasKey('nsp', $result['tallies']);
+
+        $this->assertArrayHasKey('status', $result['decision']);
+        $this->assertArrayHasKey('reason', $result['decision']);
     }
 }
