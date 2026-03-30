@@ -116,7 +116,10 @@ Plans:
   3. `vendor/bin/phpunit --filter ImportServiceTest` passes with tests covering valid CSV import, malformed rows, duplicate detection, and encoding edge cases
   4. `vendor/bin/phpunit --filter MeetingValidatorTest` passes with tests covering all valid and invalid meeting state transitions
   5. `vendor/bin/phpunit --filter NotificationsServiceTest` passes with tests covering notification creation, delivery dispatch, and failure handling
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 53-01-PLAN.md — VoteEngine computeMotionResult tests + ImportServiceTest + verify QuorumEngineTest
+- [ ] 53-02-PLAN.md — MeetingValidatorTest + NotificationsServiceTest
 
 ### Phase 54: Service Unit Tests Batch 2
 **Goal**: The remaining five services and the ResolutionDocumentController have unit tests — completing full service-layer coverage
@@ -171,7 +174,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
-| 53. Service Unit Tests Batch 1 | v5.0 | 0/? | Not started | - |
+| 53. Service Unit Tests Batch 1 | v5.0 | 0/2 | Planned | - |
 | 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
 | 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
