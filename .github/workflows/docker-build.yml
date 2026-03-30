@@ -95,6 +95,48 @@ jobs:
         run: npm run lint:ci
 
   # ---------------------------------------------------------------------------
+  # Migration syntax check: grep for SQLite patterns (no PostgreSQL needed)
+  # ---------------------------------------------------------------------------
+  migrate-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate migration syntax (no SQLite patterns)
+        run: bash scripts/validate-migrations.sh --syntax-only
+
+  # ---------------------------------------------------------------------------
+  # Coverage gate: PHPUnit Unit suite with pcov, enforces thresholds
+  # ---------------------------------------------------------------------------
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup PHP with pcov
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: intl, mbstring, zip, gd, pdo_pgsql, pcov
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --optimize-autoloader --no-interaction --no-progress
+
+      - name: Run coverage check (Services >= 90%, Controllers >= 60%)
+        run: bash scripts/coverage-check.sh
+
+  # ---------------------------------------------------------------------------
   # Docker build, smoke test, then push
   # ---------------------------------------------------------------------------
   # Two-step pattern: build+load for local smoke test, then push from cache.
@@ -102,7 +144,7 @@ jobs:
   # never push a broken image to the registry.
   # ---------------------------------------------------------------------------
   build:
-    needs: [validate, lint-js]
+    needs: [validate, lint-js, migrate-check, coverage]
     runs-on: ubuntu-latest
 
     permissions:
