@@ -4,12 +4,12 @@
 # Usage:
 #   bash scripts/coverage-check.sh [--services-threshold N] [--controllers-threshold N]
 #
-# Defaults (set from Phase 55 baseline):
-#   --services-threshold 80    (Services/ achieved 83% in Phase 55)
-#   --controllers-threshold 10 (Controllers/ at 10.39% baseline — needs Phase 56 controller tests)
+# Defaults (set after Phase 55 controller test rewrites):
+#   --services-threshold 90    (Services/ achieved 90.8% in Phase 55)
+#   --controllers-threshold 60 (Controllers/ at 64.6% after Phase 55 — DocContent/EmailTracking/VotePublic at 0% due to exit() are untestable)
 #
 # Override thresholds via env vars:
-#   COVERAGE_SERVICES_THRESHOLD=90 COVERAGE_CTRL_THRESHOLD=90 bash scripts/coverage-check.sh
+#   COVERAGE_SERVICES_THRESHOLD=95 COVERAGE_CTRL_THRESHOLD=90 bash scripts/coverage-check.sh
 #
 # Requirements:
 #   - pcov extension (loaded via PCOV_SO env var or auto-detected from /tmp/pcov-extract)
@@ -23,8 +23,8 @@
 set -euo pipefail
 
 # ── Threshold configuration ────────────────────────────────────────────────
-SERVICES_THRESHOLD="${COVERAGE_SERVICES_THRESHOLD:-80}"
-CTRL_THRESHOLD="${COVERAGE_CTRL_THRESHOLD:-10}"
+SERVICES_THRESHOLD="${COVERAGE_SERVICES_THRESHOLD:-90}"
+CTRL_THRESHOLD="${COVERAGE_CTRL_THRESHOLD:-60}"
 
 # Parse CLI flags
 while [[ $# -gt 0 ]]; do
