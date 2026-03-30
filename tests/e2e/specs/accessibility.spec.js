@@ -11,10 +11,13 @@ test.describe('Accessibility', () => {
   test('login page should have accessible form', async ({ page }) => {
     await page.goto('/login.html');
 
-    const input = page.locator('input[type="password"], input[name="api_key"]');
-    await expect(input).toBeVisible();
+    const emailInput = page.locator('#email');
+    await expect(emailInput).toBeVisible();
 
-    const submitBtn = page.locator('button[type="submit"]');
+    const passwordInput = page.locator('#password');
+    await expect(passwordInput).toBeVisible();
+
+    const submitBtn = page.locator('#submitBtn');
     await expect(submitBtn).toBeVisible();
     await expect(submitBtn).toBeEnabled();
   });

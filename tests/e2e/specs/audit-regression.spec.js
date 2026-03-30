@@ -175,9 +175,9 @@ test.describe('P3: Polish Fixes', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
 
-    // Eye icons should exist
-    const eyeOpen = page.locator('.toggle-visibility .eye-open');
-    const eyeClosed = page.locator('.toggle-visibility .eye-closed');
+    // Eye icons should exist (v4.3 uses .field-eye button containing .eye-open/.eye-closed)
+    const eyeOpen = page.locator('#togglePassword .eye-open, .field-eye .eye-open');
+    const eyeClosed = page.locator('#togglePassword .eye-closed, .field-eye .eye-closed');
 
     if (await eyeOpen.count() > 0) {
       await expect(eyeOpen).toBeVisible();
