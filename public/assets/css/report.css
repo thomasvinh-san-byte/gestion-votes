@@ -196,3 +196,80 @@
 .export-btn .export-label {
   font-size: var(--text-md);
 }
+
+/* =============================================================================
+   EXPORT GRID
+   ============================================================================= */
+
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+/* =============================================================================
+   IFRAME PV PREVIEW
+   ============================================================================= */
+
+.pv-preview iframe {
+  width: 100%;
+  min-height: 600px;
+  border: none;
+  display: block;
+}
+
+/* =============================================================================
+   PRINT STYLES — clean output at 880px for legal archives
+   ============================================================================= */
+
+@media print {
+  body {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  /* Hide interactive elements */
+  .app-sidebar,
+  .app-header,
+  .app-footer,
+  .email-form,
+  .pv-timeline,
+  .export-grid,
+  .pv-download-cta,
+  .drawer,
+  .drawer-backdrop,
+  [data-drawer],
+  #notif_box,
+  #meetingContext,
+  #notValidatedWarning,
+  .card-header .btn,
+  .btn-sm {
+    display: none !important;
+  }
+
+  /* Show only PV preview at full width */
+  .pv-preview {
+    min-height: 0;
+  }
+
+  .pv-preview iframe {
+    width: 100%;
+    min-height: 100vh;
+    border: none;
+  }
+
+  /* Remove card borders/shadows for print */
+  .card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .app-main {
+    padding: 0;
+  }
+
+  .container {
+    padding: 0;
+  }
+}
