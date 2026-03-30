@@ -101,7 +101,10 @@
   3. The health endpoint at `/health` returns a JSON object containing `database`, `redis`, and `filesystem` status fields with valid values
   4. A migration dry-run script exists that can be invoked to validate all `.sql` files against a fresh PostgreSQL database, reporting any incompatible syntax
   5. Zero occurrences of SQLite-specific syntax (`AUTOINCREMENT`, `datetime('now')`, `INTEGER PRIMARY KEY`) remain in any migration file
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 52-01-PLAN.md — Migration audit, dry-run script, idempotency verification
+- [ ] 52-02-PLAN.md — Docker healthcheck fix, nginx template, health endpoint enhancement
 
 ### Phase 53: Service Unit Tests Batch 1
 **Goal**: The five most business-critical services — QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService — have comprehensive unit tests covering happy paths, edge cases, and error conditions
@@ -167,7 +170,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 52. Infrastructure Foundations | v5.0 | 0/? | Not started | - |
+| 52. Infrastructure Foundations | v5.0 | 0/2 | Planned | - |
 | 53. Service Unit Tests Batch 1 | v5.0 | 0/? | Not started | - |
 | 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
 | 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
