@@ -145,7 +145,10 @@ Plans:
   2. The coverage report shows 90%+ line coverage for the `app/Services/` directory
   3. The coverage report shows 90%+ line coverage for the `app/Controller/` directory
   4. A PHPUnit configuration (phpunit.xml) enforces the 90% threshold — running the suite below threshold exits with a non-zero code
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
+- [ ] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
 
 ### Phase 56: E2E Test Updates
 **Goal**: All Playwright specs reflect the v4.3/v4.4 page rebuilds — every spec uses current selectors and passes on Chromium against the running Docker stack
@@ -179,6 +182,6 @@ Plans:
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
-| 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
+| 55. Coverage Target & Tooling | v5.0 | 0/2 | Not started | - |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
