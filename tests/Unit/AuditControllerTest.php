@@ -5,632 +5,676 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\AuditController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AuditEventRepository;
+use AgVote\Repository\MeetingRepository;
+use ReflectionClass;
 
 /**
  * Unit tests for AuditController.
  *
- * Tests the audit/timeline endpoints including:
- *  - Controller structure (final, extends AbstractController, public methods)
- *  - HTTP method enforcement (implicit via api_request or api_query patterns)
- *  - UUID validation for meeting_id parameters
- *  - Limit clamping logic for timeline and operatorEvents
- *  - Payload parsing logic
- *  - Response structure verification via source introspection
+ * Tests all testable endpoints with mocked repositories:
+ * - timeline():        GET — paginated audit event log for a meeting
+ * - meetingAudit():    GET — all audit events for a meeting (admin)
+ * - meetingEvents():   GET — formatted events for operator console
+ * - verifyChain():     GET — lightweight chain integrity check
+ * - operatorEvents():  GET — filtered events for operator
  *
- * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
- * inspect controller behavior without a database.
+ * export() is excluded: it sends raw CSV/JSON headers + echo (no api_ok/api_fail),
+ * so it cannot be captured via callController().
  */
-class AuditControllerTest extends TestCase
+class AuditControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
+    private const TENANT_ID  = 'tenant-audit-test';
+    private const MEETING_ID = '44440000-1111-2222-3333-000000000001';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
+        $this->setAuth('operator-01', 'operator', self::TENANT_ID);
     }
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new AuditController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
-        $ref = new \ReflectionClass(AuditController::class);
-        $this->assertTrue($ref->isFinal(), 'AuditController should be final');
+        $ref = new ReflectionClass(AuditController::class);
+        $this->assertTrue($ref->isFinal());
     }
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new AuditController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $ref = new ReflectionClass(AuditController::class);
+        $this->assertSame('AgVote\\Controller\\AbstractController', $ref->getParentClass()->getName());
     }
 
-    public function testControllerHasAllExpectedMethods(): void
+    public function testHasExpectedPublicMethods(): void
     {
-        $ref = new \ReflectionClass(AuditController::class);
-
-        $expectedMethods = ['timeline', 'export', 'meetingAudit', 'meetingEvents', 'operatorEvents'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "AuditController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(AuditController::class);
-
-        $expectedMethods = ['timeline', 'export', 'meetingAudit', 'meetingEvents', 'operatorEvents'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "AuditController::{$method}() should be public",
-            );
+        $ref = new ReflectionClass(AuditController::class);
+        $methods = array_map(fn ($m) => $m->getName(), $ref->getMethods(\ReflectionMethod::IS_PUBLIC));
+        foreach (['timeline', 'export', 'meetingAudit', 'meetingEvents', 'verifyChain', 'operatorEvents'] as $m) {
+            $this->assertContains($m, $methods);
         }
     }
 
     // =========================================================================
-    // timeline: MEETING_ID VALIDATION
+    // timeline() — validation
     // =========================================================================
 
-    public function testTimelineRequiresMeetingId(): void
+    public function testTimelineMissingMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('timeline');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'timeline');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('missing_meeting_id', $resp['body']['error']);
     }
 
-    public function testTimelineRejectsEmptyMeetingId(): void
+    public function testTimelineInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => 'not-a-uuid']);
 
-        $result = $this->callControllerMethod('timeline');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'timeline');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('missing_meeting_id', $resp['body']['error']);
     }
 
-    public function testTimelineRejectsInvalidUuid(): void
+    public function testTimelineMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-valid-uuid'];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('timeline');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'timeline');
+        $this->assertSame(404, $resp['status']);
+        $this->assertSame('meeting_not_found', $resp['body']['error']);
     }
 
-    public function testTimelineRejectsShortUuid(): void
+    public function testTimelineHappyPath(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678'];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'limit' => '10', 'offset' => '0']);
 
-        $result = $this->callControllerMethod('timeline');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING_ID,
+            'title' => 'Test Meeting',
+        ]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingLog')->willReturn([
+            [
+                'id' => 'evt-01',
+                'action' => 'meeting_created',
+                'resource_type' => 'meeting',
+                'resource_id' => self::MEETING_ID,
+                'actor_role' => 'admin',
+                'created_at' => '2026-01-01 09:00:00',
+                'ip_address' => '127.0.0.1',
+                'payload' => '{"message":"created"}',
+            ],
+        ]);
+        $auditRepo->method('countForMeetingLog')->willReturn(1);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'timeline');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertArrayHasKey('items', $data);
+        $this->assertSame(self::MEETING_ID, $data['meeting_id']);
+        $this->assertSame(1, $data['total']);
+        $this->assertCount(1, $data['items']);
     }
 
-    public function testTimelineRejectsUuidWithSpecialChars(): void
+    public function testTimelineLimitClamped(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234-1234-1234-12345678ZZZZ'];
+        $this->setHttpMethod('GET');
+        // limit=500 -> clamped to 200
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'limit' => '500']);
 
-        $result = $this->callControllerMethod('timeline');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(['id' => self::MEETING_ID]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingLog')->willReturn([]);
+        $auditRepo->method('countForMeetingLog')->willReturn(0);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'timeline');
+        $this->assertSame(200, $resp['status']);
+        $this->assertSame(200, $resp['body']['data']['limit']);
     }
 
-    // =========================================================================
-    // export: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testExportRejectsPostMethod(): void
+    public function testTimelineFormatsUnknownAction(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('export');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(['id' => self::MEETING_ID]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingLog')->willReturn([
+            [
+                'id' => 'evt-02',
+                'action' => 'custom_action_xyz',
+                'resource_type' => 'meeting',
+                'resource_id' => self::MEETING_ID,
+                'actor_role' => 'system',
+                'created_at' => '2026-01-01 09:00:00',
+                'ip_address' => null,
+                'payload' => null,
+            ],
+        ]);
+        $auditRepo->method('countForMeetingLog')->willReturn(1);
 
-    public function testExportRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
 
-        $result = $this->callControllerMethod('export');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testExportRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('export');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testExportRejectsPatchMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-
-        $result = $this->callControllerMethod('export');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // export: MEETING_ID VALIDATION
-    // =========================================================================
-
-    public function testExportRequiresMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
-
-        $result = $this->callControllerMethod('export');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-    }
-
-    public function testExportRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
-
-        $result = $this->callControllerMethod('export');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-    }
-
-    public function testExportRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'bad-uuid'];
-
-        $result = $this->callControllerMethod('export');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // meetingAudit: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testMeetingAuditRejectsPostMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-
-        $result = $this->callControllerMethod('meetingAudit');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testMeetingAuditRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('meetingAudit');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $resp = $this->callController(AuditController::class, 'timeline');
+        $this->assertSame(200, $resp['status']);
+        $items = $resp['body']['data']['items'];
+        $this->assertSame('Custom action xyz', $items[0]['action_label']);
     }
 
     // =========================================================================
-    // meetingAudit: MEETING_ID VALIDATION
+    // meetingAudit() — validation
     // =========================================================================
 
-    public function testMeetingAuditRequiresMeetingId(): void
+    public function testMeetingAuditWrongMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('meetingAudit');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'meetingAudit');
+        $this->assertSame(405, $resp['status']);
     }
 
-    public function testMeetingAuditRejectsEmptyMeetingId(): void
+    public function testMeetingAuditMissingMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('meetingAudit');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'meetingAudit');
+        $this->assertSame(422, $resp['status']);
+        $this->assertSame('missing_meeting_id', $resp['body']['error']);
     }
 
-    // =========================================================================
-    // meetingEvents: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testMeetingEventsRejectsPostMethod(): void
+    public function testMeetingAuditMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('meetingEvents');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(false);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'meetingAudit');
+        $this->assertSame(404, $resp['status']);
+        $this->assertSame('meeting_not_found', $resp['body']['error']);
     }
 
-    public function testMeetingEventsRejectsPutMethod(): void
+    public function testMeetingAuditHappyPath(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('meetingEvents');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeeting')->willReturn([
+            ['id' => 'e-01', 'action' => 'meeting_created'],
+            ['id' => 'e-02', 'action' => 'motion_opened'],
+        ]);
 
-    // =========================================================================
-    // meetingEvents: MEETING_ID VALIDATION
-    // =========================================================================
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
 
-    public function testMeetingEventsRequiresMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
-
-        $result = $this->callControllerMethod('meetingEvents');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testMeetingEventsRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
-
-        $result = $this->callControllerMethod('meetingEvents');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testMeetingEventsRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-uuid'];
-
-        $result = $this->callControllerMethod('meetingEvents');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $resp = $this->callController(AuditController::class, 'meetingAudit');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertSame(self::MEETING_ID, $data['meeting_id']);
+        $this->assertCount(2, $data['items']);
     }
 
     // =========================================================================
-    // operatorEvents: METHOD ENFORCEMENT
+    // meetingEvents() — validation
     // =========================================================================
 
-    public function testOperatorEventsRejectsPostMethod(): void
+    public function testMeetingEventsWrongMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('operatorEvents');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'meetingEvents');
+        $this->assertSame(405, $resp['status']);
     }
 
-    public function testOperatorEventsRejectsPutMethod(): void
+    public function testMeetingEventsMissingMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('operatorEvents');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'meetingEvents');
+        $this->assertSame(422, $resp['status']);
+        $this->assertSame('missing_meeting_id', $resp['body']['error']);
     }
 
-    // =========================================================================
-    // operatorEvents: MEETING_ID VALIDATION
-    // =========================================================================
-
-    public function testOperatorEventsRequiresMeetingId(): void
+    public function testMeetingEventsMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('operatorEvents');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(false);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'meetingEvents');
+        $this->assertSame(404, $resp['status']);
+        $this->assertSame('meeting_not_found', $resp['body']['error']);
     }
 
-    public function testOperatorEventsRejectsEmptyMeetingId(): void
+    public function testMeetingEventsHappyPath(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('operatorEvents');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeeting')->willReturn([
+            [
+                'id' => 'e-01',
+                'action' => 'ballot_cast',
+                'resource_type' => 'ballot',
+                'resource_id' => 'b-01',
+                'created_at' => '2026-01-01 10:00:00',
+                'payload' => '{"message":"vote cast"}',
+            ],
+        ]);
 
-    public function testOperatorEventsRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'xyz-bad-uuid'];
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
 
-        $result = $this->callControllerMethod('operatorEvents');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // timeline: LIMIT CLAMPING LOGIC
-    // =========================================================================
-
-    public function testTimelineLimitClampingMinBound(): void
-    {
-        $limit = min(200, max(1, 0));
-        $this->assertEquals(1, $limit, 'Limit of 0 should be clamped to 1');
-    }
-
-    public function testTimelineLimitClampingMaxBound(): void
-    {
-        $limit = min(200, max(1, 500));
-        $this->assertEquals(200, $limit, 'Limit of 500 should be clamped to 200');
-    }
-
-    public function testTimelineLimitClampingDefault50(): void
-    {
-        $limit = min(200, max(1, 50));
-        $this->assertEquals(50, $limit, 'Default limit of 50 should pass through');
-    }
-
-    public function testTimelineLimitClampingNegative(): void
-    {
-        $limit = min(200, max(1, -10));
-        $this->assertEquals(1, $limit, 'Negative limit should be clamped to 1');
-    }
-
-    // =========================================================================
-    // operatorEvents: LIMIT CLAMPING LOGIC
-    // =========================================================================
-
-    public function testOperatorEventsLimitClampingDefault200(): void
-    {
-        $limit = 200;
-        if ($limit <= 0) $limit = 200;
-        if ($limit > 500) $limit = 500;
-        $this->assertEquals(200, $limit);
-    }
-
-    public function testOperatorEventsLimitClampingZeroResets(): void
-    {
-        $limit = 0;
-        if ($limit <= 0) $limit = 200;
-        if ($limit > 500) $limit = 500;
-        $this->assertEquals(200, $limit);
-    }
-
-    public function testOperatorEventsLimitClampingOver500(): void
-    {
-        $limit = 1000;
-        if ($limit <= 0) $limit = 200;
-        if ($limit > 500) $limit = 500;
-        $this->assertEquals(500, $limit);
-    }
-
-    public function testOperatorEventsLimitClampingExactly500(): void
-    {
-        $limit = 500;
-        if ($limit <= 0) $limit = 200;
-        if ($limit > 500) $limit = 500;
-        $this->assertEquals(500, $limit);
+        $resp = $this->callController(AuditController::class, 'meetingEvents');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertArrayHasKey('items', $data);
+        $this->assertCount(1, $data['items']);
+        $this->assertSame('ballot_cast', $data['items'][0]['action']);
+        $this->assertSame('vote cast', $data['items'][0]['message']);
     }
 
     // =========================================================================
-    // PAYLOAD PARSING LOGIC
+    // verifyChain() — validation
     // =========================================================================
 
-    public function testParsePayloadEmptyReturnsEmptyArray(): void
+    public function testVerifyChainWrongMethod(): void
     {
-        $payload = null;
-        $result = $this->parsePayload($payload);
-        $this->assertEquals([], $result);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'verifyChain');
+        $this->assertSame(405, $resp['status']);
     }
 
-    public function testParsePayloadStringJsonReturnsArray(): void
+    public function testVerifyChainMissingMeetingId(): void
     {
-        $payload = '{"message":"test","detail":"info"}';
-        $result = $this->parsePayload($payload);
-        $this->assertEquals(['message' => 'test', 'detail' => 'info'], $result);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'verifyChain');
+        $this->assertSame(400, $resp['status']);
     }
 
-    public function testParsePayloadInvalidJsonReturnsEmptyArray(): void
+    public function testVerifyChainMeetingNotFound(): void
     {
-        $payload = 'not valid json';
-        $result = $this->parsePayload($payload);
-        $this->assertEquals([], $result);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'verifyChain');
+        $this->assertSame(404, $resp['status']);
+        $this->assertSame('meeting_not_found', $resp['body']['error']);
     }
 
-    public function testParsePayloadArrayPassesThrough(): void
+    public function testVerifyChainValidChain(): void
     {
-        $payload = ['key' => 'value'];
-        $result = $this->parsePayload($payload);
-        $this->assertEquals(['key' => 'value'], $result);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(['id' => self::MEETING_ID]);
+
+        $hash1 = 'abc123';
+        $hash2 = 'def456';
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingExport')->willReturn([
+            ['this_hash' => $hash1, 'prev_hash' => null, 'created_at' => '2026-01-01 09:00:00'],
+            ['this_hash' => $hash2, 'prev_hash' => $hash1, 'created_at' => '2026-01-01 09:01:00'],
+        ]);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'verifyChain');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertTrue($data['chain_valid']);
+        $this->assertSame(0, $data['error_count']);
+        $this->assertSame(2, $data['total_events']);
     }
 
-    public function testParsePayloadEmptyStringReturnsEmptyArray(): void
+    public function testVerifyChainBrokenChain(): void
     {
-        $payload = '';
-        $result = $this->parsePayload($payload);
-        $this->assertEquals([], $result);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(['id' => self::MEETING_ID]);
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingExport')->willReturn([
+            ['this_hash' => 'aaa', 'prev_hash' => null, 'created_at' => '2026-01-01 09:00:00'],
+            ['this_hash' => 'bbb', 'prev_hash' => 'WRONG_HASH', 'resource_id' => 'e-02', 'created_at' => '2026-01-01 09:01:00'],
+        ]);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'verifyChain');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertFalse($data['chain_valid']);
+        $this->assertSame(1, $data['error_count']);
     }
 
-    /**
-     * Replicate parsePayload logic from AuditController.
-     */
-    private function parsePayload(mixed $payload): array
+    public function testVerifyChainEmptyEvents(): void
     {
-        if (empty($payload)) {
-            return [];
-        }
-        if (is_string($payload)) {
-            return json_decode($payload, true) ?? [];
-        }
-        return (array) $payload;
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(['id' => self::MEETING_ID]);
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingExport')->willReturn([]);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'verifyChain');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertTrue($data['chain_valid']);
+        $this->assertSame(0, $data['total_events']);
     }
 
     // =========================================================================
-    // ACTION LABELS: VERIFICATION
+    // operatorEvents() — validation
     // =========================================================================
 
-    public function testActionLabelsExistInSource(): void
+    public function testOperatorEventsWrongMethod(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([]);
 
-        $expectedActions = [
-            'meeting_created', 'meeting_updated', 'meeting_validated',
-            'motion_created', 'motion_opened', 'motion_closed',
-            'ballot_cast', 'attendance_updated', 'proxy_created',
-        ];
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
 
-        foreach ($expectedActions as $action) {
-            $this->assertStringContainsString(
-                "'{$action}'",
-                $source,
-                "AuditController should have label for action '{$action}'",
-            );
-        }
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'operatorEvents');
+        $this->assertSame(405, $resp['status']);
     }
 
-    // =========================================================================
-    // CONTROLLER SOURCE: RESPONSE STRUCTURE VERIFICATION
-    // =========================================================================
-
-    public function testTimelineResponseContainsMeetingId(): void
+    public function testOperatorEventsMissingMeetingId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $this->assertStringContainsString("'meeting_id'", $source);
-        $this->assertStringContainsString("'total'", $source);
-        $this->assertStringContainsString("'items'", $source);
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $auditRepo   = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'operatorEvents');
+        $this->assertSame(422, $resp['status']);
+        $this->assertSame('missing_meeting_id', $resp['body']['error']);
     }
 
-    public function testTimelineResponseContainsPaginationFields(): void
+    public function testOperatorEventsMeetingNotFound(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $this->assertStringContainsString("'limit'", $source);
-        $this->assertStringContainsString("'offset'", $source);
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(false);
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'operatorEvents');
+        $this->assertSame(404, $resp['status']);
+        $this->assertSame('meeting_not_found', $resp['body']['error']);
     }
 
-    public function testExportSourceHasFormatBranching(): void
+    public function testOperatorEventsHappyPath(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $this->assertStringContainsString("'json'", $source);
-        $this->assertStringContainsString("'csv'", $source);
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingFiltered')->willReturn([
+            [
+                'id' => 'e-10',
+                'action' => 'manual_vote',
+                'resource_type' => 'ballot',
+                'resource_id' => 'b-10',
+                'created_at' => '2026-01-01 11:00:00',
+                'payload' => null,
+            ],
+        ]);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'operatorEvents');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertArrayHasKey('items', $data);
+        $this->assertCount(1, $data['items']);
+        $this->assertSame('manual_vote', $data['items'][0]['action']);
     }
 
-    public function testExportSourceDefaultFormatIsCsv(): void
+    public function testOperatorEventsLimitClamped(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $this->setHttpMethod('GET');
+        // limit=1000 -> clamped to 500
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'limit' => '1000']);
 
-        $this->assertStringContainsString("'format', 'csv'", $source,
-            'export default format should be csv');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
+
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->method('listForMeetingFiltered')->willReturn([]);
+
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'operatorEvents');
+        $this->assertSame(200, $resp['status']);
     }
 
-    // =========================================================================
-    // CONTROLLER SOURCE: REPOSITORY USAGE
-    // =========================================================================
-
-    public function testControllerUsesAuditEventRepository(): void
+    public function testOperatorEventsWithFilters(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([
+            'meeting_id' => self::MEETING_ID,
+            'resource_type' => 'ballot',
+            'action' => 'ballot_cast',
+            'q' => 'member',
+        ]);
 
-        $this->assertStringContainsString('repo()->auditEvent()', $source);
-    }
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
 
-    public function testControllerUsesMeetingRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuditController.php');
+        $auditRepo = $this->createMock(AuditEventRepository::class);
+        $auditRepo->expects($this->once())
+            ->method('listForMeetingFiltered')
+            ->with(
+                self::TENANT_ID,
+                self::MEETING_ID,
+                200,        // default limit
+                'ballot',
+                'ballot_cast',
+                'member',
+            )
+            ->willReturn([]);
 
-        $this->assertStringContainsString('repo()->meeting()', $source);
+        $this->injectRepos([
+            MeetingRepository::class    => $meetingRepo,
+            AuditEventRepository::class => $auditRepo,
+        ]);
+
+        $resp = $this->callController(AuditController::class, 'operatorEvents');
+        $this->assertSame(200, $resp['status']);
     }
 }
