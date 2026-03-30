@@ -331,4 +331,86 @@ class ImportServiceTest extends TestCase {
     public function testParseVotingPowerEmptyDefaultsToOne(): void {
         $this->assertEquals(1.0, ImportService::parseVotingPower(''));
     }
+
+    // =========================================================================
+    // validateUploadedFile — xlsx path (MIME type check)
+    // =========================================================================
+
+    public function testValidateUploadedFileXlsxWrongMimeType(): void {
+        // Create a file that looks like CSV (plain text) but has .xlsx extension
+        $path = $this->tmpDir . '/test.xlsx';
+        file_put_contents($path, "not,a,real,xlsx\n");
+
+        $file = [
+            'name'     => 'members.xlsx',
+            'tmp_name' => $path,
+            'error'    => UPLOAD_ERR_OK,
+            'size'     => filesize($path),
+        ];
+
+        $result = ImportService::validateUploadedFile($file, 'xlsx');
+
+        // The file is plain text, not a valid XLSX (application/zip) → MIME mismatch
+        $this->assertFalse($result['ok']);
+        $this->assertStringContainsString('MIME', $result['error']);
+    }
+
+    public function testValidateUploadedFileXlsxWrongExtension(): void {
+        $path = $this->tmpDir . '/test.csv';
+        file_put_contents($path, "nom,email\n");
+
+        $file = [
+            'name'     => 'members.csv', // .csv, but expected .xlsx
+            'tmp_name' => $path,
+            'error'    => UPLOAD_ERR_OK,
+            'size'     => filesize($path),
+        ];
+
+        $result = ImportService::validateUploadedFile($file, 'xlsx');
+
+        $this->assertFalse($result['ok']);
+        $this->assertStringContainsString('Extension attendue', $result['error']);
+    }
+
+    // =========================================================================
+    // readXlsxFile — error handling path
+    // =========================================================================
+
+    public function testReadXlsxFileNonExistentPathReturnsError(): void {
+        $result = ImportService::readXlsxFile('/nonexistent/path/no_file.xlsx');
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('headers', $result);
+        $this->assertArrayHasKey('rows', $result);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertNotNull($result['error']);
+        $this->assertEmpty($result['headers']);
+        $this->assertEmpty($result['rows']);
+    }
+
+    public function testReadXlsxFileInvalidFileReturnsError(): void {
+        // Create a file that is not a valid XLSX (PhpSpreadsheet will throw or not be available)
+        $path = $this->tmpDir . '/invalid.xlsx';
+        file_put_contents($path, 'this is not a valid xlsx file at all');
+
+        $result = ImportService::readXlsxFile($path);
+
+        // Either PhpSpreadsheet is not installed (FatalError caught by Throwable catch),
+        // or it IS installed but the file is invalid — either way, we get an error
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertNotNull($result['error']);
+    }
+
+    public function testReadXlsxFileReturnsStructuredResult(): void {
+        // Test that the return structure is always correct even on errors
+        $result = ImportService::readXlsxFile('/tmp/does_not_exist_at_all.xlsx', 0);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('headers', $result);
+        $this->assertArrayHasKey('rows', $result);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertIsArray($result['headers']);
+        $this->assertIsArray($result['rows']);
+    }
 }

@@ -405,6 +405,213 @@ class MeetingReportServiceTest extends TestCase
     }
 
     // =========================================================================
+    // renderHtml() — motion with vote policy lookup (lines 171, 175)
+    // =========================================================================
+
+    public function testRenderHtmlFetchesVotePolicyForMotion(): void
+    {
+        $this->meetingRepo->method('findByIdForTenant')->willReturn($this->buildMeeting());
+        $this->motionRepo->method('listForReport')->willReturn([
+            $this->buildMotion([
+                'vote_policy_id' => 'vp-001',  // Non-null → triggers policyRepo->findVotePolicy
+                'quorum_policy_id' => null,
+                'official_source' => 'manual',
+                'official_total' => 100,
+            ]),
+        ]);
+        $this->attendanceRepo->method('listForReport')->willReturn([]);
+        $this->manualActionRepo->method('listForMeeting')->willReturn([]);
+
+        // findVotePolicy called once for the motion
+        $this->policyRepo->expects($this->once())
+            ->method('findVotePolicy')
+            ->with('vp-001', self::TENANT_ID)
+            ->willReturn([
+                'base' => 'expressed',
+                'threshold' => 0.5,
+                'abstention_as_against' => false,
+            ]);
+
+        $html = $this->service->renderHtml(self::MEETING_ID, false, self::TENANT_ID);
+
+        $this->assertStringContainsString('Test Motion', $html);
+        $this->assertStringContainsString('Majorité:', $html);
+    }
+
+    public function testRenderHtmlFetchesQuorumPolicyForMotion(): void
+    {
+        $this->meetingRepo->method('findByIdForTenant')->willReturn($this->buildMeeting());
+        $this->motionRepo->method('listForReport')->willReturn([
+            $this->buildMotion([
+                'vote_policy_id' => null,
+                'quorum_policy_id' => 'qp-001', // Non-null → triggers policyRepo->findQuorumPolicy
+                'official_source' => 'manual',
+                'official_total' => 100,
+            ]),
+        ]);
+        $this->attendanceRepo->method('listForReport')->willReturn([]);
+        $this->manualActionRepo->method('listForMeeting')->willReturn([]);
+
+        $this->policyRepo->expects($this->once())
+            ->method('findQuorumPolicy')
+            ->with('qp-001', self::TENANT_ID)
+            ->willReturn([
+                'denominator' => 'eligible_members',
+                'threshold' => 0.5,
+            ]);
+
+        $html = $this->service->renderHtml(self::MEETING_ID, false, self::TENANT_ID);
+
+        $this->assertStringContainsString('Test Motion', $html);
+        $this->assertStringContainsString('Quorum:', $html);
+    }
+
+    public function testRenderHtmlPolicyLineWithVotePolicyAbstentionAsAgainst(): void
+    {
+        $this->meetingRepo->method('findByIdForTenant')->willReturn($this->buildMeeting());
+        $this->motionRepo->method('listForReport')->willReturn([
+            $this->buildMotion([
+                'vote_policy_id' => 'vp-001',
+                'official_source' => 'manual',
+                'official_total' => 100,
+            ]),
+        ]);
+        $this->attendanceRepo->method('listForReport')->willReturn([]);
+        $this->manualActionRepo->method('listForMeeting')->willReturn([]);
+
+        $this->policyRepo->method('findVotePolicy')->willReturn([
+            'base' => 'expressed',
+            'threshold' => 0.5,
+            'abstention_as_against' => true, // triggers '(abst→contre)' label
+        ]);
+
+        $html = $this->service->renderHtml(self::MEETING_ID, false, self::TENANT_ID);
+
+        $this->assertStringContainsString('abst', $html);
+    }
+
+    // =========================================================================
+    // renderHtml() — additional decision labels (no_quorum, no_votes, no_policy)
+    // =========================================================================
+
+    public function testRenderHtmlTranslatesNoQuorumDecision(): void
+    {
+        $this->meetingRepo->method('findByIdForTenant')->willReturn($this->buildMeeting());
+        $this->motionRepo->method('listForReport')->willReturn([
+            $this->buildMotion(['decision' => 'no_quorum', 'official_source' => 'manual', 'official_total' => 10]),
+        ]);
+        $this->attendanceRepo->method('listForReport')->willReturn([]);
+        $this->manualActionRepo->method('listForMeeting')->willReturn([]);
+
+        $html = $this->service->renderHtml(self::MEETING_ID, false, self::TENANT_ID);
+
+        $this->assertStringContainsString('Sans quorum', $html);
+    }
+
+    public function testRenderHtmlTranslatesNoVotesDecision(): void
+    {
+        $this->meetingRepo->method('findByIdForTenant')->willReturn($this->buildMeeting());
+        $this->motionRepo->method('listForReport')->willReturn([
+            $this->buildMotion(['decision' => 'no_votes', 'official_source' => 'manual', 'official_total' => 10]),
+        ]);
+        $this->attendanceRepo->method('listForReport')->willReturn([]);
+        $this->manualActionRepo->method('listForMeeting')->willReturn([]);
+
+        $html = $this->service->renderHtml(self::MEETING_ID, false, self::TENANT_ID);
+
+        $this->assertStringContainsString('Sans votes', $html);
+    }
+
+    public function testRenderHtmlTranslatesNoPolicyDecision(): void
+    {
+        $this->meetingRepo->method('findByIdForTenant')->willReturn($this->buildMeeting());
+        $this->motionRepo->method('listForReport')->willReturn([
+            $this->buildMotion(['decision' => 'no_policy', 'official_source' => 'manual', 'official_total' => 10]),
+        ]);
+        $this->attendanceRepo->method('listForReport')->willReturn([]);
+        $this->manualActionRepo->method('listForMeeting')->willReturn([]);
+
+        $html = $this->service->renderHtml(self::MEETING_ID, false, self::TENANT_ID);
+
+        $this->assertStringContainsString('Sans règle', $html);
+    }
+
+    // =========================================================================
+    // policyLine() and majorityLine() — tested via Reflection
+    // =========================================================================
+
+    public function testPolicyLineWithNoQuorumNoVotePolicy(): void
+    {
+        $ref = new \ReflectionClass(MeetingReportService::class);
+        $method = $ref->getMethod('policyLine');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(null, null, null);
+
+        $this->assertStringContainsString('Quorum: —', $result);
+        $this->assertStringContainsString('Majorité: —', $result);
+    }
+
+    public function testPolicyLineWithBothPolicies(): void
+    {
+        $ref = new \ReflectionClass(MeetingReportService::class);
+        $method = $ref->getMethod('policyLine');
+        $method->setAccessible(true);
+
+        $votePolicy = ['base' => 'expressed', 'threshold' => 0.5, 'abstention_as_against' => false];
+        $quorumPolicy = ['denominator' => 'eligible_members', 'threshold' => 0.3];
+
+        $result = $method->invoke(null, $votePolicy, $quorumPolicy);
+
+        $this->assertStringContainsString('Quorum:', $result);
+        $this->assertStringContainsString('Majorité:', $result);
+        $this->assertStringContainsString('eligible_members', $result);
+        $this->assertStringContainsString('expressed', $result);
+    }
+
+    public function testMajorityLineWithAllData(): void
+    {
+        $ref = new \ReflectionClass(MeetingReportService::class);
+        $method = $ref->getMethod('majorityLine');
+        $method->setAccessible(true);
+
+        $maj = ['base' => 'expressed', 'ratio' => 0.6, 'threshold' => 0.5];
+
+        $result = $method->invoke(null, $maj);
+
+        $this->assertNotNull($result);
+        $this->assertStringContainsString('expressed', $result);
+        $this->assertStringContainsString('0', $result); // ratio formatted
+    }
+
+    public function testMajorityLineWithMissingData(): void
+    {
+        $ref = new \ReflectionClass(MeetingReportService::class);
+        $method = $ref->getMethod('majorityLine');
+        $method->setAccessible(true);
+
+        // Missing threshold → returns null
+        $maj = ['base' => 'expressed', 'ratio' => 0.6];
+        $result = $method->invoke(null, $maj);
+
+        $this->assertNull($result);
+    }
+
+    public function testFmtDecimalValues(): void
+    {
+        $ref = new \ReflectionClass(MeetingReportService::class);
+        $method = $ref->getMethod('fmt');
+        $method->setAccessible(true);
+
+        // Integer (rounds to no decimal)
+        $this->assertSame('5', $method->invoke(null, 5.0));
+        // Decimal (with trailing zero stripping)
+        $decimal = $method->invoke(null, 5.5);
+        $this->assertStringContainsString('5', $decimal);
+        $this->assertStringContainsString('.', $decimal);
+    }
+
+    // =========================================================================
     // HELPER METHODS
     // =========================================================================
 

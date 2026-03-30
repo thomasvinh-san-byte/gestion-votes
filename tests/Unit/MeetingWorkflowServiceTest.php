@@ -602,4 +602,48 @@ class MeetingWorkflowServiceTest extends TestCase {
         $this->assertArrayHasKey('validated', $result['transitions']);
         $this->assertTrue($result['transitions']['validated']['can_proceed']);
     }
+
+    // =========================================================================
+    // issuesBeforeTransition() -- frozen → live (L93-96)
+    // =========================================================================
+
+    public function testIssuesBeforeTransitionFrozenToLiveCoveredQuorumCheck(): void {
+        // frozen → live transition: quorumMet() is called
+        // QuorumEngine needs DB → throws → catch returns true → no quorum warning
+        $this->meetingRepo->method('findByIdForTenant')
+            ->willReturn($this->meetingWithStatus('frozen'));
+
+        $result = $this->service->issuesBeforeTransition(self::MEETING, self::TENANT, 'live');
+
+        // No issues (quorumMet returns true because QuorumEngine throws → catch)
+        $this->assertSame([], $result['issues']);
+        // Warning array may be empty (quorum met = no warning)
+        $this->assertTrue($result['can_proceed']);
+    }
+
+    // =========================================================================
+    // quorumMet() -- returns true on exception (L175-178)
+    // =========================================================================
+
+    public function testQuorumMetReturnsTrueWhenQuorumEngineThrows(): void {
+        // QuorumEngine needs DB → throws RuntimeException → catch returns true
+        $result = $this->service->quorumMet(self::MEETING, self::TENANT);
+        $this->assertTrue($result);
+    }
+
+    // =========================================================================
+    // hasMotions() -- with empty tenantId (L147)
+    // =========================================================================
+
+    public function testHasMotionsUsesAuthMiddlewareTenantIdWhenEmpty(): void {
+        // When tenantId is empty, falls back to AuthMiddleware::getCurrentTenantId()
+        // In tests, AuthMiddleware returns the DEFAULT_TENANT_ID constant
+        $this->motionRepo->method('countForMeeting')
+            ->willReturn(2);
+
+        // Empty tenant forces AuthMiddleware lookup (L147)
+        $result = $this->service->hasMotions(self::MEETING, '');
+
+        $this->assertTrue($result);
+    }
 }

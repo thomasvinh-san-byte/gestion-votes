@@ -673,6 +673,293 @@ class OfficialResultsServiceTest extends TestCase {
     }
 
     // =========================================================================
+    // decideWithPolicies() — quorum not met WITH vote policy (lines 130-134)
+    // =========================================================================
+
+    public function testComputeOfficialTalliesManualVotePolicyAndQuorumNotMet(): void
+    {
+        // Set up: has both vote policy AND quorum policy, but quorum not met
+        $votePolicyId = 'vp-001';
+        $quorumPolicyId = 'qp-001';
+
+        $motion = $this->buildMotionContext([
+            'manual_total' => 10,    // Only 10 out of 200 eligible → quorum not met at 50%
+            'manual_for' => 6,
+            'manual_against' => 3,
+            'manual_abstain' => 1,
+            'vote_policy_id' => $votePolicyId,
+            'quorum_policy_id' => $quorumPolicyId,
+        ]);
+
+        $this->motionRepo->method('findWithOfficialContext')->willReturn($motion);
+        $this->memberRepo->method('countActive')->willReturn(200);
+        $this->memberRepo->method('sumActiveWeight')->willReturn(200.0);
+
+        $this->policyRepo->method('findVotePolicy')
+            ->with($votePolicyId)
+            ->willReturn([
+                'id' => $votePolicyId,
+                'base' => 'expressed',
+                'threshold' => 0.5,
+                'abstention_as_against' => false,
+            ]);
+
+        $this->policyRepo->method('findQuorumPolicy')
+            ->with($quorumPolicyId)
+            ->willReturn([
+                'id' => $quorumPolicyId,
+                'denominator' => 'eligible_members',
+                'threshold' => 0.5, // 50% of eligible — 10/200 = 5%, not met
+            ]);
+
+        $result = $this->service->computeOfficialTallies(self::MOTION_ID);
+
+        $this->assertSame('manual', $result['source']);
+        // Quorum not met → rejected regardless of vote counts
+        $this->assertStringContainsString('Quorum non atteint', $result['reason']);
+    }
+
+    public function testComputeOfficialTalliesManualVotePolicyAndQuorumNotMetEligibleWeight(): void
+    {
+        // Trigger the eligible_weight basis label
+        $votePolicyId = 'vp-002';
+        $quorumPolicyId = 'qp-002';
+
+        $motion = $this->buildMotionContext([
+            'manual_total' => 5,
+            'manual_for' => 3,
+            'manual_against' => 1,
+            'manual_abstain' => 1,
+            'vote_policy_id' => $votePolicyId,
+            'quorum_policy_id' => $quorumPolicyId,
+        ]);
+
+        $this->motionRepo->method('findWithOfficialContext')->willReturn($motion);
+        $this->memberRepo->method('countActive')->willReturn(100);
+        $this->memberRepo->method('sumActiveWeight')->willReturn(100.0);
+
+        $this->policyRepo->method('findVotePolicy')->willReturn([
+            'id' => $votePolicyId,
+            'base' => 'expressed',
+            'threshold' => 0.5,
+            'abstention_as_against' => false,
+        ]);
+
+        // Use eligible_weight denominator (not eligible_members) to hit that branch
+        $this->policyRepo->method('findQuorumPolicy')->willReturn([
+            'id' => $quorumPolicyId,
+            'denominator' => 'eligible_weight', // triggers 'du poids éligible' label
+            'threshold' => 0.5,
+        ]);
+
+        $result = $this->service->computeOfficialTallies(self::MOTION_ID);
+
+        $this->assertSame('manual', $result['source']);
+        $this->assertStringContainsString('Quorum non atteint', $result['reason']);
+        $this->assertStringContainsString('poids', $result['reason']);
+    }
+
+    public function testComputeOfficialTalliesManualVotePolicyRejected(): void
+    {
+        // Vote policy applied, quorum met (null = not applicable), but rejected by majority
+        $votePolicyId = 'vp-003';
+
+        $motion = $this->buildMotionContext([
+            'manual_total' => 100,
+            'manual_for' => 30,    // 30% < 50% threshold → rejected
+            'manual_against' => 60,
+            'manual_abstain' => 10,
+            'vote_policy_id' => $votePolicyId,
+        ]);
+
+        $this->motionRepo->method('findWithOfficialContext')->willReturn($motion);
+        $this->memberRepo->method('countActive')->willReturn(100);
+        $this->memberRepo->method('sumActiveWeight')->willReturn(100.0);
+
+        $this->policyRepo->method('findVotePolicy')->willReturn([
+            'id' => $votePolicyId,
+            'base' => 'expressed',
+            'threshold' => 0.5,
+            'abstention_as_against' => false,
+        ]);
+
+        $result = $this->service->computeOfficialTallies(self::MOTION_ID);
+
+        $this->assertSame('manual', $result['source']);
+        $this->assertSame('rejected', $result['decision']);
+        $this->assertStringContainsString('Majorit', $result['reason']);
+        $this->assertStringContainsString('non atteinte', $result['reason']);
+    }
+
+    // =========================================================================
+    // buildExplicitReasonFromVoteEngine() — tested via Reflection (private static)
+    // =========================================================================
+
+    public function testBuildExplicitReasonFromVoteEngineQuorumNotMet(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('buildExplicitReasonFromVoteEngine');
+        $method->setAccessible(true);
+
+        $result = [
+            'quorum' => ['applied' => true, 'met' => false, 'ratio' => 0.1, 'threshold' => 0.5, 'basis' => 'eligible_members'],
+            'majority' => ['applied' => true, 'met' => true, 'ratio' => 0.6, 'threshold' => 0.5, 'base' => 'expressed'],
+        ];
+
+        $reason = $method->invoke(null, $result, 6.0, 3.0, 'rejected');
+
+        $this->assertStringContainsString('Quorum non atteint', $reason);
+    }
+
+    public function testBuildExplicitReasonFromVoteEngineMajorityMet(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('buildExplicitReasonFromVoteEngine');
+        $method->setAccessible(true);
+
+        $result = [
+            'quorum' => ['applied' => false, 'met' => null],
+            'majority' => ['applied' => true, 'met' => true, 'ratio' => 0.6, 'threshold' => 0.5, 'base' => 'expressed'],
+        ];
+
+        $reason = $method->invoke(null, $result, 60.0, 40.0, 'adopted');
+
+        $this->assertStringContainsString('Majorit', $reason);
+        $this->assertStringContainsString('atteinte', $reason);
+    }
+
+    public function testBuildExplicitReasonFromVoteEngineMajorityNotMet(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('buildExplicitReasonFromVoteEngine');
+        $method->setAccessible(true);
+
+        $result = [
+            'quorum' => ['applied' => false, 'met' => null],
+            'majority' => ['applied' => true, 'met' => false, 'ratio' => 0.3, 'threshold' => 0.5, 'base' => 'eligible'],
+        ];
+
+        $reason = $method->invoke(null, $result, 30.0, 60.0, 'rejected');
+
+        $this->assertStringContainsString('non atteinte', $reason);
+    }
+
+    public function testBuildExplicitReasonFromVoteEngineNoVotes(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('buildExplicitReasonFromVoteEngine');
+        $method->setAccessible(true);
+
+        $result = [
+            'quorum' => ['applied' => false, 'met' => null],
+            'majority' => ['applied' => false, 'met' => false],
+        ];
+
+        $reason = $method->invoke(null, $result, 0.0, 0.0, 'no_votes');
+
+        $this->assertStringContainsString('Aucun bulletin', $reason);
+    }
+
+    public function testBuildExplicitReasonFromVoteEngineNoPolicy(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('buildExplicitReasonFromVoteEngine');
+        $method->setAccessible(true);
+
+        $result = [
+            'quorum' => ['applied' => false, 'met' => null],
+            'majority' => ['applied' => false],
+        ];
+
+        // no_votes path
+        $reasonNoVotes = $method->invoke(null, $result, 0.0, 0.0, 'no_votes');
+        $this->assertStringContainsString('Aucun bulletin', $reasonNoVotes);
+
+        // no_policy adopted path
+        $reasonAdopted = $method->invoke(null, $result, 60.0, 40.0, 'no_policy');
+        $this->assertStringContainsString('Pour:', $reasonAdopted);
+
+        // no_policy rejected path (against > for)
+        $reasonRejected = $method->invoke(null, $result, 40.0, 60.0, 'no_policy');
+        $this->assertStringContainsString('non atteinte', $reasonRejected);
+
+        // no_policy equality path
+        $reasonEqual = $method->invoke(null, $result, 50.0, 50.0, 'no_policy');
+        $this->assertStringContainsString('galit', $reasonEqual);
+
+        // Fallback for other status (adopted)
+        $reasonFallback = $method->invoke(null, $result, 60.0, 40.0, 'adopted');
+        $this->assertStringContainsString('Pour:', $reasonFallback);
+
+        // Fallback for other status (rejected) — covers L266
+        $reasonFallbackRejected = $method->invoke(null, $result, 40.0, 60.0, 'rejected');
+        $this->assertStringContainsString('non atteinte', $reasonFallbackRejected);
+    }
+
+    // =========================================================================
+    // formatPct() and formatWeight() — private static helpers via Reflection
+    // =========================================================================
+
+    public function testFormatPctWithNullReturnsZeroPercent(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('formatPct');
+        $method->setAccessible(true);
+
+        $this->assertSame('0%', $method->invoke(null, null));
+    }
+
+    public function testFormatPctWithIntegerValue(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('formatPct');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(null, 0.5);
+        $this->assertStringContainsString('50', $result);
+        $this->assertStringContainsString('%', $result);
+    }
+
+    public function testFormatPctWithDecimalValue(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('formatPct');
+        $method->setAccessible(true);
+
+        // Non-integer percentage (e.g., 33.33%)
+        $result = $method->invoke(null, 0.3333);
+        $this->assertStringContainsString('%', $result);
+        $this->assertStringContainsString('3', $result);
+    }
+
+    public function testFormatWeightWithDecimalValue(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('formatWeight');
+        $method->setAccessible(true);
+
+        // Non-integer weight (decimal) → triggers line 202
+        $result = $method->invoke(null, 33.33);
+        $this->assertStringContainsString('33', $result);
+    }
+
+    public function testBuildExplicitReasonFromVoteEngineQuorumNotMetEligibleWeight(): void
+    {
+        $ref = new \ReflectionClass(OfficialResultsService::class);
+        $method = $ref->getMethod('buildExplicitReasonFromVoteEngine');
+        $method->setAccessible(true);
+
+        $result = [
+            'quorum' => ['applied' => true, 'met' => false, 'ratio' => 0.05, 'threshold' => 0.3, 'basis' => 'eligible_weight'],
+            'majority' => ['applied' => true, 'met' => true],
+        ];
+
+        $reason = $method->invoke(null, $result, 5.0, 2.0, 'rejected');
+
+        $this->assertStringContainsString('poids', $reason);
+    }
+
+    // =========================================================================
     // HELPER METHODS
     // =========================================================================
 

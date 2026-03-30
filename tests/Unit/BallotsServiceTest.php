@@ -748,4 +748,174 @@ class BallotsServiceTest extends TestCase {
 
         $this->assertSame('for', $result['value']);
     }
+
+    // =========================================================================
+    // castBallot() -- in-transaction fresh context check (L168)
+    // =========================================================================
+
+    public function testCastBallotThrowsWhenMotionClosedBetweenCheckAndLock(): void {
+        // First call (initial validation): motion is open
+        // Second call (inside transaction): motion is closed → throws L168
+        $openContext = $this->validBallotContext();
+        $closedContext = array_merge($this->validBallotContext(), ['motion_closed_at' => '2026-01-01 12:00:00']);
+
+        $this->motionRepo->method('findWithBallotContext')
+            ->willReturnOnConsecutiveCalls($openContext, $closedContext);
+
+        $this->memberRepo->method('findByIdForTenant')
+            ->willReturn($this->activeMember());
+
+        $this->attendanceRepo->method('isPresentDirect')
+            ->willReturn(true);
+
+        $this->meetingRepo->method('lockForUpdate')
+            ->willReturn(['id' => self::MEETING, 'status' => 'live']);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("n'est pas ouverte au vote");
+
+        $this->service->castBallot($this->validData());
+    }
+
+    // =========================================================================
+    // castBallot() -- proxy revoked during lock (L174)
+    // =========================================================================
+
+    public function testCastBallotThrowsWhenProxyRevokedInsideTransaction(): void {
+        $proxyVoterId = 'eeeeeeee-1111-4222-a333-666666666666';
+
+        $this->motionRepo->method('findWithBallotContext')
+            ->willReturn($this->validBallotContext());
+
+        $this->memberRepo->method('findByIdForTenant')
+            ->willReturnCallback(function (string $id) use ($proxyVoterId): ?array {
+                return $this->activeMember();
+            });
+
+        // Proxy voter is present (no throw in this test)
+        $this->attendanceRepo->method('isPresentDirect')->willReturn(true);
+
+        // First call: proxy active, second call (inside transaction): revoked
+        $this->proxyRepo->method('hasActiveProxy')
+            ->willReturnOnConsecutiveCalls(true, false);
+
+        $this->meetingRepo->method('lockForUpdate')
+            ->willReturn(['id' => self::MEETING, 'status' => 'live']);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Procuration révoquée');
+
+        $this->service->castBallot($this->validData([
+            'is_proxy_vote' => true,
+            'proxy_source_member_id' => $proxyVoterId,
+        ]));
+    }
+
+    // =========================================================================
+    // castBallot() -- PDOException unique violation (L191-192) and rethrow (L194)
+    // =========================================================================
+
+    public function testCastBallotThrowsRuntimeExceptionOnDuplicateVotePdoException(): void {
+        // PDOException with SQLSTATE 23505 → DuplicateVote RuntimeException
+        $this->setupSuccessfulDirectVote();
+
+        $pdoEx = new \PDOException('unique constraint violated', 23505);
+        // PDOException code is the SQLSTATE
+        $reflEx = new \ReflectionClass(\PDOException::class);
+        $codeProp = $reflEx->getProperty('code');
+        $codeProp->setAccessible(true);
+        $codeProp->setValue($pdoEx, '23505');
+
+        $this->ballotRepo->method('castBallot')
+            ->willThrowException($pdoEx);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('déjà voté');
+
+        $this->service->castBallot($this->validData());
+    }
+
+    public function testCastBallotRethrowsPdoExceptionWithNonUniqueCode(): void {
+        // PDOException with non-23505 code → re-thrown as-is
+        $this->setupSuccessfulDirectVote();
+
+        $pdoEx = new \PDOException('connection failed', 2002);
+        $reflEx = new \ReflectionClass(\PDOException::class);
+        $codeProp = $reflEx->getProperty('code');
+        $codeProp->setAccessible(true);
+        $codeProp->setValue($pdoEx, '42000');
+
+        $this->ballotRepo->method('castBallot')
+            ->willThrowException($pdoEx);
+
+        $this->expectException(\PDOException::class);
+
+        $this->service->castBallot($this->validData());
+    }
+
+    public function testCastBallotRethrowsGenericThrowableFromTransaction(): void {
+        // Generic non-PDO Throwable with non-unique message → re-thrown
+        $this->setupSuccessfulDirectVote();
+
+        $this->ballotRepo->method('castBallot')
+            ->willThrowException(new \RuntimeException('some other db error'));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('some other db error');
+
+        $this->service->castBallot($this->validData());
+    }
+
+    // =========================================================================
+    // castBallot() -- excessive weight (L109)
+    // =========================================================================
+
+    public function testCastBallotThrowsOnExcessiveVotingPower(): void {
+        $this->motionRepo->method('findWithBallotContext')
+            ->willReturn($this->validBallotContext());
+
+        // Provide a member with voting_power > 1e6 (1,000,001 > 1,000,000)
+        $this->memberRepo->method('findByIdForTenant')
+            ->willReturn(array_merge($this->activeMember(1_000_001.0), ['tenant_id' => self::TENANT]));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Poids de vote excessif');
+
+        $this->service->castBallot($this->validData());
+    }
+
+    // =========================================================================
+    // castBallot() -- proxy vote: attendancesService throws (L132-133)
+    // =========================================================================
+
+    public function testCastBallotHandlesThrowableFromAttendancesServiceInProxyPath(): void {
+        $proxyVoterId = 'eeeeeeee-1111-4222-a333-555555555555';
+
+        $this->motionRepo->method('findWithBallotContext')
+            ->willReturn($this->validBallotContext());
+
+        $this->memberRepo->method('findByIdForTenant')
+            ->willReturnCallback(function (string $id) use ($proxyVoterId) {
+                if ($id === self::MEMBER) {
+                    return $this->activeMember();
+                }
+                if ($id === $proxyVoterId) {
+                    return $this->activeMember();
+                }
+                return null;
+            });
+
+        // attendanceRepo->isPresentDirect throws → catch (Throwable) at L132
+        // proxyModeOk stays false → throws RuntimeException about proxy not present
+        $this->attendanceRepo->method('isPresentDirect')
+            ->willThrowException(new \RuntimeException('DB error in attendance check'));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('non enregistré comme présent');
+
+        $this->service->castBallot($this->validData([
+            'is_proxy_vote' => true,
+            'proxy_source_member_id' => $proxyVoterId,
+        ]));
+    }
 }

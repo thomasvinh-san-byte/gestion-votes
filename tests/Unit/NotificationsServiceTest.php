@@ -540,4 +540,72 @@ class NotificationsServiceTest extends TestCase {
         $service = $this->buildService(['notifRepo' => $notifRepo]);
         $service->clear(self::MEETING, 'trust', self::TENANT);
     }
+
+    // =========================================================================
+    // readinessTemplate() — unknown code fallback (L150-158)
+    // =========================================================================
+
+    public function testEmitReadinessWithUnknownCodeUsesDefaultTemplate(): void {
+        // When codes array has an unknown code, readinessTemplate() falls through
+        // the switch and returns the default block (L150-158)
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($this->validMeetingRow());
+
+        $notifRepo = $this->createMock(NotificationRepository::class);
+        $notifRepo->method('findValidationState')->willReturn([
+            'ready' => false,
+            'codes' => json_encode([]),
+        ]);
+        $notifRepo->method('countRecentDuplicates')->willReturn(0);
+
+        $capturedSeverity = null;
+        $notifRepo->method('insert')
+            ->willReturnCallback(function (
+                string $tenantId,
+                string $meetingId,
+                string $severity,
+                string $code,
+            ) use (&$capturedSeverity): void {
+                // Capture the severity for the unknown code
+                if (str_starts_with($code, 'readiness_unknown_custom_code')) {
+                    $capturedSeverity = $severity;
+                }
+            });
+
+        $service = $this->buildService(compact('meetingRepo', 'notifRepo'));
+        // 'unknown_custom_code' is not in the switch cases → default return (L150-158)
+        $service->emitReadinessTransitions(
+            self::MEETING,
+            $this->notReadyValidation(['unknown_custom_code']),
+            self::TENANT,
+        );
+
+        // Default template returns 'warn' for added=true
+        $this->assertSame('warn', $capturedSeverity);
+    }
+
+    // =========================================================================
+    // emitReadinessTransitions() — L43: non-array codes (edge case)
+    // =========================================================================
+
+    public function testEmitReadinessHandlesNonArrayCodesInValidation(): void {
+        // If validation['codes'] is not an array, L43 resets it to []
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($this->validMeetingRow());
+
+        $notifRepo = $this->createMock(NotificationRepository::class);
+        $notifRepo->method('findValidationState')->willReturn(null); // no prev state
+
+        $service = $this->buildService(compact('meetingRepo', 'notifRepo'));
+
+        // Pass non-array codes to trigger L43
+        $result = $service->emitReadinessTransitions(
+            self::MEETING,
+            ['can' => false, 'codes' => 'not_an_array'],
+            self::TENANT,
+        );
+
+        // Should complete without error (codes normalized to [])
+        $this->assertNull($result);
+    }
 }

@@ -1082,4 +1082,52 @@ class QuorumEngineTest extends TestCase {
             $status,
         );
     }
+
+    // =========================================================================
+    // ratioBlock() — zero denominator guard (L248-257) via Reflection
+    // =========================================================================
+
+    public function testRatioBlockReturnsZeroRatioWhenDenominatorIsZero(): void {
+        // ratioBlock() is private static — invoke via Reflection
+        $ref = new \ReflectionClass(QuorumEngine::class);
+        $method = $ref->getMethod('ratioBlock');
+        $method->setAccessible(true);
+
+        // eligible_members basis with 0 eligible members → den=0 → guard fires (L248-257)
+        $result = $method->invoke(
+            null,
+            'eligible_members', // basis
+            0.5,                // threshold
+            0,                  // numMembers
+            0.0,                // numWeight
+            0,                  // eligibleMembers = 0 → den = 0
+            0.0,                // eligibleWeight
+        );
+
+        $this->assertFalse($result['met']);
+        $this->assertSame(0.0, $result['ratio']);
+        $this->assertSame(0.0, $result['denominator']);
+        $this->assertTrue($result['configured']);
+    }
+
+    public function testRatioBlockReturnsZeroRatioWhenEligibleWeightIsZero(): void {
+        // eligible_weight basis with 0 eligible weight → den=0 → guard fires (L248-257)
+        $ref = new \ReflectionClass(QuorumEngine::class);
+        $method = $ref->getMethod('ratioBlock');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(
+            null,
+            'eligible_weight', // basis
+            0.5,               // threshold
+            5,                 // numMembers
+            100.0,             // numWeight
+            5,                 // eligibleMembers
+            0.0,               // eligibleWeight = 0 → den = 0
+        );
+
+        $this->assertFalse($result['met']);
+        $this->assertSame(0.0, $result['ratio']);
+        $this->assertSame('eligible_weight', $result['basis']);
+    }
 }

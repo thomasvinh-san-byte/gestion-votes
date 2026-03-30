@@ -452,6 +452,57 @@ class EmailQueueServiceTest extends TestCase
         $this->assertSame(2, $result['skipped']); // Only 2 members considered
     }
 
+    public function testSendInvitationsNowWithTemplateIdRenderFailsFallsBackToDefaultSubject(): void
+    {
+        // templateId provided, but emailTemplateRepo->findById returns null
+        // => renderTemplate returns ['ok' => false], subject/body use fallback strings
+        // => mailer.send() with bad SMTP returns ['ok' => false] => error branch covered
+        $service = $this->buildServiceConfiguredBadSmtp();
+        $this->memberRepo->method('listActiveWithEmail')->willReturn([
+            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+        ]);
+        $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('pending');
+        // emailTemplateRepo->findById returns null → renderTemplate returns ok=false
+        $this->emailTemplateRepo->method('findById')->willReturn(null);
+        $this->invitationRepo->method('markBounced');
+
+        $result = $service->sendInvitationsNow(
+            self::TENANT_ID,
+            self::MEETING_ID,
+            'tmpl-001', // templateId provided
+            true,
+        );
+
+        // Mailer fails gracefully — result has errors
+        $this->assertSame(0, $result['sent']);
+        $this->assertNotEmpty($result['errors']);
+    }
+
+    public function testSendInvitationsNowWithNoTemplateIdAndNoOnlyUnsentFlagProcessesMember(): void
+    {
+        // templateId=null, onlyUnsent=false (skip status check)
+        // getVariables needs DB → throws, which propagates unless we handle it
+        // Instead: pass templateId='tmpl-X' where findById returns null
+        // This covers lines 330-342 (templateId path) + 350 (send) + 369-375 (error)
+        $service = $this->buildServiceConfiguredBadSmtp();
+        $this->memberRepo->method('listActiveWithEmail')->willReturn([
+            ['id' => 'm-002', 'email' => 'bob@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
+        ]);
+        // onlyUnsent=false → findStatusByMeetingAndMember NOT called
+        $this->invitationRepo->expects($this->never())->method('findStatusByMeetingAndMember');
+        $this->emailTemplateRepo->method('findById')->willReturn(null);
+        $this->invitationRepo->method('markBounced');
+
+        $result = $service->sendInvitationsNow(
+            self::TENANT_ID,
+            self::MEETING_ID,
+            'tmpl-001',
+            false, // onlyUnsent=false
+        );
+
+        $this->assertSame(0, $result['sent']);
+    }
+
     // =========================================================================
     // getQueueStats() / cancelMeetingEmails() / cleanup()
     // =========================================================================

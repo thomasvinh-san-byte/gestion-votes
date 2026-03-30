@@ -331,4 +331,50 @@ class SpeechServiceTest extends TestCase
 
         $this->assertArrayHasKey('queue', $result);
     }
+
+    // =========================================================================
+    // endCurrent() with current speaker — covers L195-198
+    // =========================================================================
+
+    public function testEndCurrentWithActiveSpeakerLogsPayload(): void
+    {
+        // findCurrentSpeaker returns a current speaker → L194 branch (cur is non-null)
+        // memberPayload is built with member_id + member_name (L195-198)
+        $speaker = ['id' => 'req-spk', 'member_id' => self::MEMBER, 'status' => 'speaking'];
+
+        $this->speechRepo->method('findCurrentSpeaker')->willReturn($speaker);
+        $this->speechRepo->method('finishAllSpeaking');
+        $this->speechRepo->method('listWaiting')->willReturn([]);
+
+        $result = $this->service->endCurrent(self::MEETING, self::TENANT);
+
+        $this->assertArrayHasKey('queue', $result);
+    }
+
+    // =========================================================================
+    // memberLabel() returns null when member not found — covers L39
+    // =========================================================================
+
+    public function testEndCurrentWithSpeakerAndMemberNotFoundUsesNullLabel(): void
+    {
+        // memberRepo returns null → memberLabel returns null (L39)
+        // endCurrent still works (payload member_name = null)
+        $memberRepoNull = $this->createMock(MemberRepository::class);
+        $memberRepoNull->method('findByIdForTenant')->willReturn(null);
+
+        $service = new SpeechService(
+            $this->speechRepo,
+            $this->meetingRepo,
+            $memberRepoNull,
+        );
+
+        $speaker = ['id' => 'req-spk2', 'member_id' => self::MEMBER, 'status' => 'speaking'];
+        $this->speechRepo->method('findCurrentSpeaker')->willReturn($speaker);
+        $this->speechRepo->method('finishAllSpeaking');
+        $this->speechRepo->method('listWaiting')->willReturn([]);
+
+        $result = $service->endCurrent(self::MEETING, self::TENANT);
+
+        $this->assertArrayHasKey('queue', $result);
+    }
 }

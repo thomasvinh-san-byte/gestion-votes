@@ -8,6 +8,7 @@ use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\SystemRepository;
+use AgVote\Repository\UserRepository;
 use AgVote\Repository\VoteTokenRepository;
 use AgVote\Service\MonitoringService;
 use PHPUnit\Framework\TestCase;
@@ -584,6 +585,232 @@ class MonitoringServiceTest extends TestCase
     // but we also test the low_disk alert which passes details[] to renderAlertEmail
     // =========================================================================
 
+    // =========================================================================
+    // sendAlertEmails() — SMTP not configured path (covers lines 194-204)
+    // =========================================================================
+
+    public function testCheckSendAlertEmailsReturnsZeroWhenSmtpNotConfigured(): void
+    {
+        // Set MONITOR_ALERT_EMAILS to trigger sendAlertEmails, but no SMTP config
+        putenv('MONITOR_ALERT_EMAILS=admin@test.com');
+
+        // Service has no SMTP in config (empty config) → isConfigured() returns false
+        $serviceNoSmtp = new MonitoringService(
+            ['default_tenant_id' => 'tenant-001', 'app_url' => 'https://votes.test'],
+            $this->repoFactory,
+        );
+
+        $this->sysRepo->method('dbPing')->willReturn(null); // → db_unreachable alert
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        $result = $serviceNoSmtp->check();
+
+        // Alert was created but notifications_sent = 0 (SMTP not configured)
+        $this->assertNotEmpty($result['alerts_created']);
+        $this->assertSame(0, $result['notifications_sent']);
+    }
+
+    // =========================================================================
+    // sendAlertEmails() — recipients + renderAlertEmail() path (lines 206-236)
+    // =========================================================================
+
+    public function testCheckSendAlertEmailsWithConfiguredSmtpAndExplicitRecipients(): void
+    {
+        // MONITOR_ALERT_EMAILS = explicit list; SMTP configured but unreachable
+        putenv('MONITOR_ALERT_EMAILS=admin@test.com,ops@test.com');
+
+        $serviceWithSmtp = new MonitoringService(
+            [
+                'default_tenant_id' => 'tenant-001',
+                'app_url' => 'https://votes.test',
+                'smtp' => [
+                    'host' => '127.0.0.1',
+                    'port' => 19999,   // unreachable port
+                    'tls' => 'none',
+                    'from_email' => 'noreply@test.local',
+                ],
+            ],
+            $this->repoFactory,
+        );
+
+        $this->sysRepo->method('dbPing')->willReturn(null); // → db_unreachable alert
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // Will try to send to 2 recipients but SMTP fails → 0 sent
+        $result = $serviceWithSmtp->check();
+
+        $this->assertNotEmpty($result['alerts_created']);
+        // notifications_sent = 0 because SMTP connection fails
+        $this->assertSame(0, $result['notifications_sent']);
+    }
+
+    public function testCheckSendAlertEmailsWithCriticalSeverityRendersEmail(): void
+    {
+        // Uses a single recipient — exercising renderAlertEmail with 'critical' severity
+        putenv('MONITOR_ALERT_EMAILS=admin@example.com');
+
+        $serviceWithSmtp = new MonitoringService(
+            [
+                'default_tenant_id' => 'tenant-001',
+                'app_url' => 'https://votes.test',
+                'smtp' => [
+                    'host' => '127.0.0.1',
+                    'port' => 19999,
+                    'tls' => 'none',
+                    'from_email' => 'noreply@test.local',
+                ],
+            ],
+            $this->repoFactory,
+        );
+
+        // Trigger slow_db (critical severity) to exercise critical path in renderAlertEmail
+        $this->sysRepo->method('dbPing')->willReturn(5000.0); // > 2000ms threshold
+        $this->sysRepo->method('dbActiveConnections')->willReturn(1);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        $result = $serviceWithSmtp->check();
+
+        $codes = array_column($result['alerts_created'], 'code');
+        $this->assertContains('slow_db', $codes);
+        $this->assertIsInt($result['notifications_sent']);
+    }
+
+    // =========================================================================
+    // getAlertRecipients() — 'auto' mode with repo fallback
+    // =========================================================================
+
+    public function testCheckSendAlertEmailsWithAutoRecipientsAutoMode(): void
+    {
+        // 'auto' triggers DB lookup of admin users
+        putenv('MONITOR_ALERT_EMAILS=auto');
+
+        $userRepo = $this->createMock(\AgVote\Repository\UserRepository::class);
+        $userRepo->method('listByTenant')->willReturn([]);
+
+        // Inject userRepo into the factory
+        $refFactory = new \ReflectionClass(RepositoryFactory::class);
+        $cacheProp = $refFactory->getProperty('cache');
+        $cacheProp->setAccessible(true);
+        $cache = $cacheProp->getValue($this->repoFactory);
+        $cache[\AgVote\Repository\UserRepository::class] = $userRepo;
+        $cacheProp->setValue($this->repoFactory, $cache);
+
+        $serviceWithSmtp = new MonitoringService(
+            [
+                'default_tenant_id' => 'tenant-001',
+                'app_url' => 'https://votes.test',
+                'smtp' => ['host' => 'smtp.example.com', 'port' => 587],
+            ],
+            $this->repoFactory,
+        );
+
+        $this->sysRepo->method('dbPing')->willReturn(null); // → db_unreachable alert
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // userRepo returns empty admin list → recipients = [] → 0 notifications
+        $result = $serviceWithSmtp->check();
+
+        $this->assertNotEmpty($result['alerts_created']);
+        $this->assertSame(0, $result['notifications_sent']);
+    }
+
+    // =========================================================================
+    // renderAlertEmail() — tested directly via Reflection (private method)
+    // =========================================================================
+
+    public function testRenderAlertEmailContainsAlertCode(): void
+    {
+        $ref = new \ReflectionClass(MonitoringService::class);
+        $method = $ref->getMethod('renderAlertEmail');
+        $method->setAccessible(true);
+
+        $alert = [
+            'code' => 'auth_failures',
+            'severity' => 'warn',
+            'message' => 'Too many auth failures',
+            'details' => ['count' => 10, 'threshold' => 5],
+        ];
+
+        $html = $method->invoke($this->service, $alert);
+
+        $this->assertStringContainsString('auth_failures', $html);
+        $this->assertStringContainsString('Too many auth failures', $html);
+        $this->assertStringContainsString('WARN', $html);
+        $this->assertStringContainsString('<!DOCTYPE html>', $html);
+    }
+
+    public function testRenderAlertEmailCriticalUsesRedColor(): void
+    {
+        $ref = new \ReflectionClass(MonitoringService::class);
+        $method = $ref->getMethod('renderAlertEmail');
+        $method->setAccessible(true);
+
+        $alert = [
+            'code' => 'db_unreachable',
+            'severity' => 'critical',
+            'message' => 'Database unreachable',
+            'details' => [],
+        ];
+
+        $html = $method->invoke($this->service, $alert);
+
+        $this->assertStringContainsString('CRITICAL', $html);
+        $this->assertStringContainsString('C42828', $html); // Red color for critical
+    }
+
+    public function testRenderAlertEmailWithDetailsTable(): void
+    {
+        $ref = new \ReflectionClass(MonitoringService::class);
+        $method = $ref->getMethod('renderAlertEmail');
+        $method->setAccessible(true);
+
+        $alert = [
+            'code' => 'slow_db',
+            'severity' => 'critical',
+            'message' => 'DB slow',
+            'details' => ['db_latency_ms' => 3000, 'threshold_ms' => 2000],
+        ];
+
+        $html = $method->invoke($this->service, $alert);
+
+        $this->assertStringContainsString('db_latency_ms', $html);
+        $this->assertStringContainsString('3000', $html);
+        $this->assertStringContainsString('<table', $html);
+    }
+
+    public function testRenderAlertEmailWithEmptyDetailsNoTable(): void
+    {
+        $ref = new \ReflectionClass(MonitoringService::class);
+        $method = $ref->getMethod('renderAlertEmail');
+        $method->setAccessible(true);
+
+        $alert = [
+            'code' => 'db_unreachable',
+            'severity' => 'critical',
+            'message' => 'DB gone',
+            'details' => [],
+        ];
+
+        $html = $method->invoke($this->service, $alert);
+
+        $this->assertStringNotContainsString('<table', $html);
+    }
+
     public function testCheckLowDiskAlertCreated(): void
     {
         // Force disk free pct to be very low by using a threshold that's impossibly high
@@ -606,5 +833,79 @@ class MonitoringServiceTest extends TestCase
         // disk_free_pct will be very low relative to threshold=99999 → low_disk alert
         $codes = array_column($result['alerts_created'], 'code');
         $this->assertContains('low_disk', $codes);
+    }
+
+    // =========================================================================
+    // createAlerts() catch Throwable — L156: insertSystemAlert throws
+    // =========================================================================
+
+    public function testCheckCatchesThrowableWhenInsertSystemAlertThrows(): void
+    {
+        // db_unreachable alert will be created → sysRepo->insertSystemAlert throws
+        // → catch (Throwable) at L156 is exercised → execution continues normally
+        $this->sysRepo->method('dbPing')->willReturn(null); // db_unreachable alert
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert')
+            ->willThrowException(new \RuntimeException('DB write error'));
+
+        // Should not throw — catch (Throwable) swallows the exception
+        $result = $this->service->check();
+
+        // Alert was in alertsToCreate but insertSystemAlert threw, so newAlerts = []
+        $this->assertSame(0, count($result['alerts_created']));
+        $this->assertIsArray($result['metrics']);
+    }
+
+    // =========================================================================
+    // getAlertRecipients() catch Throwable — L253-255: user repo throws
+    // =========================================================================
+
+    public function testCheckGetAlertRecipientsCatchesThrowableWhenUserRepoThrows(): void
+    {
+        // Configure SMTP + MONITOR_ALERT_EMAILS=auto → triggers getAlertRecipients('auto')
+        // UserRepository->listByTenant() throws → catch at L253-255 → returns []
+        putenv('MONITOR_ALERT_EMAILS=auto');
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('listByTenant')
+            ->willThrowException(new \RuntimeException('DB connection lost'));
+
+        // Update the repo factory cache to include UserRepository
+        $refFactory = new \ReflectionClass(RepositoryFactory::class);
+        $cacheProp = $refFactory->getProperty('cache');
+        $cacheProp->setAccessible(true);
+        $cacheProp->setValue($this->repoFactory, [
+            SystemRepository::class    => $this->sysRepo,
+            MeetingRepository::class   => $this->meetingRepo,
+            MotionRepository::class    => $this->motionRepo,
+            VoteTokenRepository::class => $this->voteTokenRepo,
+            UserRepository::class      => $userRepo,
+        ]);
+
+        $serviceWithSmtp = new MonitoringService(
+            [
+                'default_tenant_id' => 'tenant-001',
+                'app_url' => 'https://votes.test',
+                'smtp' => ['host' => '127.0.0.1', 'port' => 19999, 'tls' => 'none', 'from_email' => 'noreply@test.local'],
+            ],
+            $this->repoFactory,
+        );
+
+        $this->sysRepo->method('dbPing')->willReturn(null); // db_unreachable alert
+        $this->sysRepo->method('dbActiveConnections')->willReturn(null);
+        $this->sysRepo->method('countAuthFailures15m')->willReturn(0);
+        $this->sysRepo->method('countPendingEmails')->willReturn(0);
+        $this->sysRepo->method('findRecentAlert')->willReturn(false);
+        $this->sysRepo->method('insertSystemAlert');
+
+        // Should not throw — getAlertRecipients catches the exception and returns []
+        // sendAlertEmails returns 0 (no recipients), dispatchAlert returns 0
+        $result = $serviceWithSmtp->check();
+
+        $this->assertIsArray($result);
+        $this->assertIsInt($result['notifications_sent']);
     }
 }
