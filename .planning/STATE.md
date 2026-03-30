@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 55-02-PLAN.md
-last_updated: "2026-03-30T07:57:05.000Z"
-last_activity: "2026-03-30 — 55-02 complete: gap-filling tests for 6 services (Services 66.16% → 83.01%), coverage-check.sh enforcement script created"
+stopped_at: Completed 55-03-PLAN.md
+last_updated: "2026-03-30T08:55:00.000Z"
+last_activity: "2026-03-30 — 55-03 complete: ControllerTestCase base class created, Services aggregate 83.01% → 90.8% (COV-01 satisfied)"
 progress:
   total_phases: 6
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 ## Current Position
 
-Phase: 55 of 57 (Coverage Target Tooling) — COMPLETE
-Plan: 02 complete — Phase 56 (E2E Tests) is next
+Phase: 55 of 57 (Coverage Target Tooling)
+Plan: 03 complete — Plan 04 (Controller Tests Batch 1) is next
 Status: In progress
-Last activity: 2026-03-30 — 55-02 complete: Services aggregate 66.16% → 83.01%, QuorumEngine now above 90%, coverage-check.sh enforcement script created
+Last activity: 2026-03-30 — 55-03 complete: ControllerTestCase base class created, Services 83% → 90.8%, COV-01 satisfied, 3113 tests pass
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,10 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 55-coverage-target-tooling]: Services aggregate improved 66.16% → 83.01%; 90% aggregate not achievable due to final class constraints (MailerService, MonitoringService webhook path require real SMTP/HTTP)
 - [Phase 55-coverage-target-tooling]: coverage-check.sh thresholds set to achieved levels (Services 80%, Controllers 10%); raise after Phase 56 controller tests
 - [Phase 55-coverage-target-tooling]: PHPUnit 10.5 clover XML uses flat <project><file> structure (no <package> wrapper) — coverage-check.sh uses project->file iterator
+- [Phase 55-coverage-target-tooling 55-03]: ControllerTestCase uses Reflection to inject RepositoryFactory cache + instance; controller tests catch ApiResponseException for response inspection
+- [Phase 55-coverage-target-tooling 55-03]: ExportService (73.5%), ImportService (81.9%), MailerService (78.1%) remain below 90% individually — require PhpSpreadsheet/symfony/mailer not installed
+- [Phase 55-coverage-target-tooling 55-03]: EmailQueueService scheduleInvitations/sendInvitationsNow success path untestable in unit tests — requires EmailTemplateService::getVariables() DB access
+- [Phase 55-coverage-target-tooling 55-03]: Services aggregate COV-01 satisfied at 90.8% via broader coverage: BallotsService 99%, QuorumEngine 100%, SpeechService 100%
 
 ### Pending Todos
 
@@ -74,6 +78,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T07:57:05.000Z
-Stopped at: Completed 55-02-PLAN.md
+Last session: 2026-03-30T08:55:00.000Z
+Stopped at: Completed 55-03-PLAN.md
 Resume file: None

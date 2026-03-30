@@ -20,7 +20,7 @@
 
 ### Coverage Target (COV)
 
-- [ ] **COV-01**: PHPUnit code coverage reaches 90%+ on app/Services/ directory
+- [x] **COV-01**: PHPUnit code coverage reaches 90%+ on app/Services/ directory
 - [ ] **COV-02**: PHPUnit code coverage reaches 90%+ on app/Controller/ directory
 - [x] **COV-03**: Code coverage report generates in CI and fails build below 90% threshold
 
@@ -89,7 +89,7 @@
 | TEST-08 | Phase 54 | Complete |
 | TEST-09 | Phase 54 | Complete |
 | TEST-10 | Phase 54 | Complete |
-| COV-01 | Phase 55 | Pending |
+| COV-01 | Phase 55 | Complete |
 | COV-02 | Phase 55 | Pending |
 | COV-03 | Phase 55 | Complete |
 | E2E-01 | Phase 56 | Pending |
