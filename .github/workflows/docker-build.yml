@@ -212,3 +212,162 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
+
+  # ---------------------------------------------------------------------------
+  # E2E tests: Playwright against the full Docker stack (post-build)
+  # ---------------------------------------------------------------------------
+  e2e:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image from GHA cache (load locally as agvote:ci)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: agvote:ci
+          cache-from: type=gha
+
+      - name: Tag image for docker compose (COMPOSE_PROJECT_NAME=agvote expects agvote-app)
+        run: docker tag agvote:ci agvote-app
+
+      - name: Start Docker stack (db + redis + app using pre-built image)
+        run: |
+          export DB_PASS=ci-test-password
+          # Start db and redis first, wait for them to be healthy
+          COMPOSE_PROJECT_NAME=agvote docker compose up -d db redis
+          echo "Waiting for PostgreSQL..."
+          for i in $(seq 1 30); do
+            if COMPOSE_PROJECT_NAME=agvote docker compose exec -T db pg_isready -U vote_app 2>/dev/null; then
+              echo "PostgreSQL ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+          echo "Waiting for Redis..."
+          for i in $(seq 1 30); do
+            if COMPOSE_PROJECT_NAME=agvote docker compose exec -T redis redis-cli -a "agvote-redis-dev" ping 2>/dev/null | grep -q PONG; then
+              echo "Redis ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+          # Start app using pre-built image (no-build avoids rebuilding from Dockerfile)
+          COMPOSE_PROJECT_NAME=agvote docker compose up -d --no-build app
+          echo "Waiting for app to be healthy..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/api/v1/health.php > /dev/null 2>&1; then
+              echo "App healthy after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+        env:
+          DB_PASS: ci-test-password
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Playwright E2E tests (chromium only)
+        run: npx playwright test --project=chromium
+        working-directory: tests/e2e
+        env:
+          CI: "true"
+          BASE_URL: http://localhost:8080
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Cleanup Docker stack
+        if: always()
+        run: COMPOSE_PROJECT_NAME=agvote docker compose down -v 2>/dev/null || true
+        env:
+          DB_PASS: ci-test-password
+
+  # ---------------------------------------------------------------------------
+  # Integration tests: PHPUnit Integration suite against real Postgres + Redis
+  # ---------------------------------------------------------------------------
+  integration:
+    needs: [build]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.8-alpine3.21
+        env:
+          POSTGRES_DB: agvote_test
+          POSTGRES_USER: agvote
+          POSTGRES_PASSWORD: agvote
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agvote -d agvote_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7.4-alpine3.21
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: intl, mbstring, zip, gd, pdo_pgsql, redis
+          tools: composer:v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --optimize-autoloader --no-interaction --no-progress
+
+      - name: Load base schema
+        run: PGPASSWORD=agvote psql -h localhost -U agvote -d agvote_test -f database/schema-master.sql
+
+      - name: Apply migrations
+        run: |
+          for f in database/migrations/*.sql; do
+            echo "Applying: $(basename $f)"
+            PGPASSWORD=agvote psql -h localhost -U agvote -d agvote_test -f "$f"
+          done
+
+      - name: Run Integration tests
+        run: vendor/bin/phpunit --testsuite Integration --no-coverage
+        env:
+          DATABASE_URL: "pgsql:host=localhost;dbname=agvote_test;user=agvote;password=agvote"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
