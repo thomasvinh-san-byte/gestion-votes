@@ -4,7 +4,7 @@ milestone: v4.4
 milestone_name: Complete Rebuild
 status: Defining requirements
 stopped_at: Completed 51-01-PLAN.md (help/FAQ + email-templates page rebuild)
-last_updated: "2026-03-30T05:54:00.363Z"
+last_updated: "2026-03-30T05:59:46.638Z"
 last_activity: 2026-03-30 — Milestone v4.4 started
 progress:
   total_phases: 3
