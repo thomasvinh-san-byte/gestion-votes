@@ -7,10 +7,10 @@
 
 ### Secondary Page Rebuilds (REB)
 
-- [ ] **REB-01**: Post-session — complete HTML+CSS+JS rewrite, 4-step stepper functional, result cards with bar charts, PV generation wired
-- [ ] **REB-02**: Analytics/Statistics — complete HTML+CSS+JS rewrite, chart area + KPI grid, proper responsive layout
-- [ ] **REB-03**: Meetings list — complete HTML+CSS+JS rewrite, session cards with status badges, filters functional
-- [ ] **REB-04**: Archives — complete HTML+CSS+JS rewrite, table with sticky header, pagination, search
+- [x] **REB-01**: Post-session — complete HTML+CSS+JS rewrite, 4-step stepper functional, result cards with bar charts, PV generation wired
+- [x] **REB-02**: Analytics/Statistics — complete HTML+CSS+JS rewrite, chart area + KPI grid, proper responsive layout
+- [x] **REB-03**: Meetings list — complete HTML+CSS+JS rewrite, session cards with status badges, filters functional
+- [x] **REB-04**: Archives — complete HTML+CSS+JS rewrite, table with sticky header, pagination, search
 - [ ] **REB-05**: Audit — complete HTML+CSS+JS rewrite, timeline view, table view, CSV export functional
 - [ ] **REB-06**: Members — complete HTML+CSS+JS rewrite, card/table view, import CSV, role management
 - [ ] **REB-07**: Users — complete HTML+CSS+JS rewrite, table with CRUD, role assignment, pagination
@@ -26,8 +26,8 @@
 
 ### Backend Wiring (WIRE)
 
-- [ ] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data
-- [ ] **WIRE-02**: All form submissions verified — data persists correctly after page rebuild
+- [x] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data
+- [x] **WIRE-02**: All form submissions verified — data persists correctly after page rebuild
 
 ## v5+ Requirements (Deferred)
 
