@@ -12,7 +12,7 @@
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Gestion des templates email - AG-VOTE">
-  <title>Templates Email — AG-VOTE</title>
+  <title>Templates Email &mdash; AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,29 +30,42 @@
 
     <header class="app-header" role="banner">
       <div class="flex items-center gap-4">
-        <a href="/admin.htmx.html" class="text-muted hover:text-current">
+        <a href="/admin.htmx.html" class="btn-icon-ghost" aria-label="Retour &agrave; l'administration">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-left"></use></svg>
         </a>
-        <h1 class="page-title">Templates Email</h1>
+        <div>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <a href="/admin.htmx.html" class="bc-item">Administration</a>
+            <span class="bc-sep" aria-hidden="true">/</span>
+            <span class="bc-item bc-current" aria-current="page">Templates Email</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Templates Email
+          </h1>
+          <p class="page-sub">Personnalisez les messages envoy&eacute;s aux membres</p>
+        </div>
       </div>
     </header>
 
     <main class="app-main email-templates-main" id="main-content" role="main">
+
       <!-- Toolbar -->
-      <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
-        <div class="flex items-center gap-2">
+      <div class="email-templates-toolbar">
+        <div class="toolbar-left">
           <select class="form-input" id="filterType" aria-label="Filtrer par type de mod&egrave;le">
             <option value="">Tous les types</option>
             <option value="invitation">Invitation</option>
             <option value="reminder">Rappel</option>
             <option value="confirmation">Confirmation</option>
-            <option value="custom">Personnalisé</option>
+            <option value="custom">Personnalis&eacute;</option>
           </select>
         </div>
-        <div class="flex gap-2">
+        <div class="toolbar-right">
           <button class="btn btn-secondary" id="btnCreateDefaults">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh"></use></svg>
-            Créer templates par défaut
+            Cr&eacute;er templates par d&eacute;faut
           </button>
           <button class="btn btn-primary" id="btnNewTemplate">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
@@ -70,13 +83,15 @@
       <div id="emptyState" class="empty-state email-templates-empty" style="display: none;">
         <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
         <h2>Aucun template</h2>
-        <p class="text-muted">Créez des templates email pour personnaliser vos invitations.</p>
+        <p class="text-muted">Cr&eacute;ez des templates email pour personnaliser vos invitations.</p>
         <button class="btn btn-primary mt-4" id="btnEmptyCreate">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
-          Créer un template
+          Cr&eacute;er un template
         </button>
       </div>
+
     </main>
+
     <footer class="app-footer mobile-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
         <span class="logo-mark">
@@ -84,7 +99,7 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.4</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
       <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
@@ -96,12 +111,13 @@
     <div class="template-editor-content">
       <div class="template-editor-header">
         <h2 id="editorTitle">Nouveau template</h2>
-        <button class="btn btn-icon" id="btnCloseEditor" title="Fermer">
+        <button class="btn btn-icon" id="btnCloseEditor" aria-label="Fermer l'&eacute;diteur">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg>
         </button>
       </div>
 
       <div class="template-editor-body">
+        <!-- Left panel: form -->
         <div class="template-editor-form">
           <input type="hidden" id="templateId">
 
@@ -116,7 +132,7 @@
               <option value="invitation">Invitation</option>
               <option value="reminder">Rappel</option>
               <option value="confirmation">Confirmation</option>
-              <option value="custom">Personnalisé</option>
+              <option value="custom">Personnalis&eacute;</option>
             </select>
           </div>
 
@@ -126,33 +142,34 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Contenu HTML *</label>
+            <label class="form-label" for="templateBody">Contenu HTML *</label>
             <textarea class="form-textarea" id="templateBody" rows="12" placeholder="Contenu HTML du template..."></textarea>
           </div>
 
           <div class="form-group">
             <label class="form-label inline-flex items-center gap-2">
               <input type="checkbox" id="templateIsDefault">
-              <span>Template par défaut pour ce type</span>
+              <span>Template par d&eacute;faut pour ce type</span>
             </label>
           </div>
 
           <!-- Variables helper -->
           <div class="variables-section">
-            <h4>Variables disponibles (cliquez pour insérer)</h4>
+            <h4>Variables disponibles (cliquez pour ins&eacute;rer)</h4>
             <div id="variablesList">
               <!-- Rendered by JS -->
             </div>
           </div>
         </div>
 
+        <!-- Right panel: preview -->
         <div class="template-editor-preview">
           <div class="preview-header">
             <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-eye"></use></svg>
-            Prévisualisation
+            <span>Pr&eacute;visualisation</span>
             <button class="btn btn-sm btn-secondary ml-auto" id="btnRefreshPreview">Actualiser</button>
           </div>
-          <iframe class="preview-frame" id="previewFrame" sandbox="allow-same-origin"></iframe>
+          <iframe class="preview-frame" id="previewFrame" sandbox="allow-same-origin" title="Pr&eacute;visualisation du template email"></iframe>
         </div>
       </div>
 
