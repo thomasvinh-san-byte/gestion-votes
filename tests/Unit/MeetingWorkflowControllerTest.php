@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\MeetingWorkflowController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\UserRepository;
 
 /**
  * Unit tests for MeetingWorkflowController.
@@ -23,60 +28,15 @@ use PHPUnit\Framework\TestCase;
  * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
  * inspect controller behavior without a database.
  */
-class MeetingWorkflowControllerTest extends TestCase
+class MeetingWorkflowControllerTest extends ControllerTestCase
 {
     // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        // Reset cached raw body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
+    // HELPER: backward compat wrapper
     // =========================================================================
 
     private function callControllerMethod(string $method): array
     {
-        $controller = new MeetingWorkflowController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
+        return $this->callController(MeetingWorkflowController::class, $method);
     }
 
     /**
@@ -84,10 +44,7 @@ class MeetingWorkflowControllerTest extends TestCase
      */
     private function setJsonBody(array $data): void
     {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
+        $this->injectJsonBody($data);
     }
 
     // =========================================================================
@@ -2122,5 +2079,224 @@ class MeetingWorkflowControllerTest extends TestCase
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
 
         $this->assertStringContainsString("'meeting.transition'", $source);
+    }
+
+    // =========================================================================
+    // EXECUTION TESTS: TRANSITION — meeting lookup guards
+    // =========================================================================
+
+    public function testTransitionMeetingNotFoundReturns404(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'to_status' => 'live',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('transition');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testTransitionAlreadyInStatusReturns422(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'to_status' => 'live',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'live',
+            'title' => 'AG 2024',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('transition');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('already_in_status', $result['body']['error']);
+    }
+
+    public function testTransitionArchivedMeetingReturns403(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'to_status' => 'closed',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'archived',
+            'title' => 'AG 2024',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('transition');
+
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('archived_immutable', $result['body']['error']);
+    }
+
+    // =========================================================================
+    // EXECUTION TESTS: CONSOLIDATE — meeting lookup guards
+    // =========================================================================
+
+    public function testConsolidateMeetingNotFoundReturns404(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody(['meeting_id' => '11111111-1111-1111-1111-111111111111']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('consolidate');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testConsolidateInvalidStatusReturns422(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody(['meeting_id' => '11111111-1111-1111-1111-111111111111']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'live',
+            'title' => 'AG 2024',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('consolidate');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('invalid_status_for_consolidation', $result['body']['error']);
+    }
+
+    // =========================================================================
+    // EXECUTION TESTS: READY CHECK — meeting lookup guard
+    // =========================================================================
+
+    public function testReadyCheckMeetingNotFoundReturns404(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_GET = ['meeting_id' => '11111111-1111-1111-1111-111111111111'];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MotionRepository::class => $motionRepo,
+            AttendanceRepository::class => $attendanceRepo,
+            MemberRepository::class => $memberRepo,
+            BallotRepository::class => $ballotRepo,
+        ]);
+
+        $result = $this->callControllerMethod('readyCheck');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testReadyCheckHappyPathReturnsChecks(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_GET = ['meeting_id' => '11111111-1111-1111-1111-111111111111'];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'closed',
+            'president_name' => 'Jean Dupont',
+            'title' => 'AG 2024',
+        ]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countOpenMotions')->willReturn(0);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('listClosedForMeetingWithManualTally')->willReturn([]);
+
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $attendanceRepo->method('countEligible')->willReturn(10);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MotionRepository::class => $motionRepo,
+            AttendanceRepository::class => $attendanceRepo,
+            MemberRepository::class => $memberRepo,
+            BallotRepository::class => $ballotRepo,
+        ]);
+
+        $result = $this->callControllerMethod('readyCheck');
+
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('ready', $data);
+        $this->assertArrayHasKey('checks', $data);
+    }
+
+    // =========================================================================
+    // EXECUTION TESTS: RESET DEMO — meeting validated guard
+    // =========================================================================
+
+    public function testResetDemoMeetingValidatedReturns409(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'confirm' => 'RESET',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'validated',
+            'title' => 'AG 2024',
+            'validated_at' => '2024-01-15 10:00:00',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('resetDemo');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_validated', $result['body']['error']);
+    }
+
+    public function testResetDemoMeetingNotFoundReturns404(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'confirm' => 'RESET',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('resetDemo');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
 }
