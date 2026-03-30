@@ -14,9 +14,9 @@
 - [x] **TEST-05**: NotificationsService has unit tests covering notification creation and delivery logic
 - [x] **TEST-06**: EmailTemplateService has unit tests covering template rendering and variable substitution
 - [x] **TEST-07**: SpeechService has unit tests covering speech queue management and ordering
-- [ ] **TEST-08**: MonitoringService has unit tests covering health checks and metric collection
+- [x] **TEST-08**: MonitoringService has unit tests covering health checks and metric collection
 - [x] **TEST-09**: ErrorDictionary has unit tests covering error code lookup and message formatting
-- [ ] **TEST-10**: ResolutionDocumentController has unit tests covering upload, serve, and delete endpoints
+- [x] **TEST-10**: ResolutionDocumentController has unit tests covering upload, serve, and delete endpoints
 
 ### Coverage Target (COV)
 
@@ -86,9 +86,9 @@
 | TEST-05 | Phase 53 | Complete |
 | TEST-06 | Phase 54 | Complete |
 | TEST-07 | Phase 54 | Complete |
-| TEST-08 | Phase 54 | Pending |
+| TEST-08 | Phase 54 | Complete |
 | TEST-09 | Phase 54 | Complete |
-| TEST-10 | Phase 54 | Pending |
+| TEST-10 | Phase 54 | Complete |
 | COV-01 | Phase 55 | Pending |
 | COV-02 | Phase 55 | Pending |
 | COV-03 | Phase 55 | Pending |
