@@ -4,7 +4,7 @@ milestone: v4.4
 milestone_name: Complete Rebuild
 status: Defining requirements
 stopped_at: Completed 49-03-PLAN.md (meetings+archives rebuild)
-last_updated: "2026-03-30T05:03:31.473Z"
+last_updated: "2026-03-30T05:08:39.602Z"
 last_activity: 2026-03-30 — Milestone v4.4 started
 progress:
   total_phases: 3
