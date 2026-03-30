@@ -109,7 +109,11 @@ Plans:
   3. The public/projector display renders results in a projection-optimized layout at full screen — result cards are legible from a distance with large typography
   4. The report/PV page renders a print-ready layout at 880px — triggering browser print produces a clean output with no navigation chrome or broken layouts
   5. The trust/validate/docs pages display correct verification status fetched from the backend — no hardcoded or mock status values
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 51-01-PLAN.md — Help/FAQ + Email Templates rebuild (accordion, search, editor with preview)
+- [ ] 51-02-PLAN.md — Public/Projector + Report/PV rebuild (projection display, print layout, exports)
+- [ ] 51-03-PLAN.md — Trust + Validate + Docs rebuild (integrity dashboard, validation modal, docs viewer)
 
 ## Progress
 
@@ -119,4 +123,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 49. Secondary Pages Part 1 | 3/3 | Complete    | 2026-03-30 |
 | 50. Secondary Pages Part 2 | 4/4 | Complete    | 2026-03-30 |
-| 51. Utility Pages | 0/TBD | Not started | - |
+| 51. Utility Pages | 0/3 | Not started | - |
