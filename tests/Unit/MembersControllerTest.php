@@ -5,573 +5,332 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\MembersController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\MemberGroupRepository;
+use AgVote\Repository\MemberRepository;
 
 /**
  * Unit tests for MembersController.
  *
- * Tests the members CRUD endpoints including:
- *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (GET/POST/PATCH/PUT/DELETE)
- *  - UUID validation for member_id
- *  - Input validation via ValidationSchemas::member()
- *  - Legacy field name normalization (vote_weight -> voting_power)
- *  - Response structure and audit log verification
+ * Endpoints:
+ *  - index():        GET           — list all members
+ *  - create():       POST          — create a member
+ *  - updateMember(): PATCH or PUT  — update a member
+ *  - delete():       DELETE        — soft-delete a member
+ *  - presidents():   GET           — list members eligible as president
+ *
+ * Response structure:
+ *   - api_ok($data)  => body['data'][...] (wrapped in 'data' key)
+ *   - api_fail(...)  => body['error'] (direct)
+ *
+ * Pattern: extends ControllerTestCase, uses injectRepos() + callController().
  */
-class MembersControllerTest extends TestCase
+class MembersControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
+    private const TENANT    = 'tenant-uuid-001';
+    private const MEMBER_ID = 'aaaaaaaa-1111-2222-3333-000000000080';
+    private const USER_ID   = 'user-uuid-0080';
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new MembersController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(MembersController::class);
-        $this->assertTrue($ref->isFinal(), 'MembersController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
-    public function testControllerExtendsAbstractController(): void
+    public function testControllerHasRequiredMethods(): void
     {
-        $controller = new MembersController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
-    }
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
-        $ref = new \ReflectionClass(MembersController::class);
-
-        $expectedMethods = [
-            'index',
-            'create',
-            'updateMember',
-            'delete',
-            'presidents',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "MembersController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(MembersController::class);
-
-        $expectedMethods = [
-            'index',
-            'create',
-            'updateMember',
-            'delete',
-            'presidents',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "MembersController::{$method}() should be public",
-            );
+        foreach (['index', 'create', 'updateMember', 'delete', 'presidents'] as $method) {
+            $this->assertTrue(method_exists(MembersController::class, $method));
         }
     }
 
     // =========================================================================
-    // index: METHOD ENFORCEMENT
+    // index() — GET
     // =========================================================================
 
-    public function testIndexRejectsPostMethod(): void
+    public function testIndexRequiresGet(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('index');
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testIndexRejectsPutMethod(): void
+    public function testIndexReturnsMembers(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('index');
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('listAll')->willReturn([
+            ['id' => self::MEMBER_ID, 'full_name' => 'Alice Martin'],
+        ]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
+        $this->assertSame(self::MEMBER_ID, $res['body']['data']['items'][0]['id']);
     }
 
-    public function testIndexRejectsDeleteMethod(): void
+    public function testIndexWithIncludeGroupsFetchesGroups(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['include_groups' => '1']);
 
-        $result = $this->callControllerMethod('index');
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('listAll')->willReturn([
+            ['id' => self::MEMBER_ID, 'full_name' => 'Alice Martin'],
+        ]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listGroupsForMember')->willReturn([
+            ['id' => 'group-id-01', 'name' => 'Group A'],
+        ]);
 
-    // =========================================================================
-    // create: METHOD ENFORCEMENT
-    // =========================================================================
+        $this->injectRepos([
+            MemberRepository::class      => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
 
-    public function testCreateRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $res = $this->callController(MembersController::class, 'index');
 
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testCreateRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testCreateRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // create: INPUT VALIDATION (via ValidationSchemas::member())
-    // =========================================================================
-
-    public function testCreateValidationSchemaRequiresFullName(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::member();
-        $result = $schema->validate([]);
-
-        $this->assertFalse($result->isValid(), 'Validation should fail without full_name');
-        $errors = $result->errors();
-        $this->assertArrayHasKey('full_name', $errors, 'Errors should include full_name');
-    }
-
-    public function testCreateValidationSchemaAcceptsValidInput(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::member();
-        $result = $schema->validate(['full_name' => 'John Doe']);
-
-        $this->assertTrue($result->isValid(), 'Valid input should pass validation');
-    }
-
-    public function testCreateValidationSchemaAcceptsOptionalEmail(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::member();
-        $result = $schema->validate(['full_name' => 'John Doe', 'email' => 'john@example.com']);
-
-        $this->assertTrue($result->isValid(), 'Valid input with email should pass');
-    }
-
-    public function testCreateValidationSchemaDefaultVotingPower(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::member();
-        $result = $schema->validate(['full_name' => 'John Doe']);
-
-        $this->assertTrue($result->isValid());
-        $this->assertEquals(1, $result->get('voting_power'));
-    }
-
-    public function testCreateValidationSchemaDefaultIsActive(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::member();
-        $result = $schema->validate(['full_name' => 'John Doe']);
-
-        $this->assertTrue($result->isValid());
-        $this->assertTrue($result->get('is_active'));
+        $this->assertSame(200, $res['status']);
+        $items = $res['body']['data']['items'];
+        $this->assertCount(1, $items);
+        $this->assertArrayHasKey('groups', $items[0]);
+        $this->assertCount(1, $items[0]['groups']);
     }
 
     // =========================================================================
-    // create: LEGACY FIELD NORMALIZATION
+    // create() — POST
     // =========================================================================
 
-    public function testCreateNormalizesVoteWeightToVotingPower(): void
+    public function testCreateRequiresPost(): void
     {
-        $input = ['full_name' => 'John Doe', 'vote_weight' => 2.5];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
 
-        // Replicate the normalization logic
-        if (isset($input['vote_weight']) && !isset($input['voting_power'])) {
-            $input['voting_power'] = $input['vote_weight'];
-        }
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-        $this->assertEquals(2.5, $input['voting_power']);
+        $res = $this->callController(MembersController::class, 'create');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testCreateDoesNotOverrideExistingVotingPower(): void
+    public function testCreateValidationFailsWithMissingName(): void
     {
-        $input = ['full_name' => 'John Doe', 'vote_weight' => 2.5, 'voting_power' => 3.0];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['email' => 'alice@example.com']);
 
-        if (isset($input['vote_weight']) && !isset($input['voting_power'])) {
-            $input['voting_power'] = $input['vote_weight'];
-        }
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-        $this->assertEquals(3.0, $input['voting_power'], 'Existing voting_power should not be overridden');
+        $res = $this->callController(MembersController::class, 'create');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('validation_failed', $res['body']['error']);
+    }
+
+    public function testCreateSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'full_name' => 'Alice Martin',
+            'email'     => 'alice@example.com',
+        ]);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->expects($this->once())->method('create');
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'create');
+
+        $this->assertSame(201, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame('Alice Martin', $data['full_name']);
+        $this->assertArrayHasKey('member_id', $data);
     }
 
     // =========================================================================
-    // updateMember: METHOD ENFORCEMENT
+    // updateMember() — PATCH / PUT
     // =========================================================================
 
-    public function testUpdateMemberRejectsGetMethod(): void
+    public function testUpdateMemberMissingIdReturns422(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody(['full_name' => 'Updated Name']);
 
-        $result = $this->callControllerMethod('updateMember');
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(MembersController::class, 'updateMember');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('missing_member_id', $res['body']['error']);
     }
 
-    public function testUpdateMemberRejectsPostMethod(): void
+    public function testUpdateMemberNotFoundReturns404(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody(['id' => self::MEMBER_ID, 'full_name' => 'Alice']);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('existsForTenant')->willReturn(false);
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'updateMember');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('member_not_found', $res['body']['error']);
+    }
+
+    public function testUpdateMemberSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PATCH');
+        $this->injectJsonBody([
+            'id'        => self::MEMBER_ID,
+            'full_name' => 'Alice Updated',
+        ]);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('existsForTenant')->willReturn(true);
+        $repo->expects($this->once())->method('updateImport');
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'updateMember');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame(self::MEMBER_ID, $data['member_id']);
+        $this->assertSame('Alice Updated', $data['full_name']);
+    }
+
+    // =========================================================================
+    // delete() — DELETE
+    // =========================================================================
+
+    public function testDeleteRequiresDelete(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'delete');
+
+        $this->assertSame(405, $res['status']);
+    }
+
+    public function testDeleteMissingIdReturns422(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('updateMember');
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(MembersController::class, 'delete');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('missing_member_id', $res['body']['error']);
+    }
+
+    public function testDeleteNotFoundReturns404(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => self::MEMBER_ID]);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('existsForTenant')->willReturn(false);
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'delete');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('member_not_found', $res['body']['error']);
+    }
+
+    public function testDeleteSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => self::MEMBER_ID]);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('existsForTenant')->willReturn(true);
+        $repo->expects($this->once())->method('softDelete');
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'delete');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame(self::MEMBER_ID, $data['member_id']);
+        $this->assertTrue($data['deleted']);
     }
 
     // =========================================================================
-    // updateMember: INPUT VALIDATION
+    // presidents() — GET
     // =========================================================================
 
-    public function testUpdateMemberRequiresMemberId(): void
+    public function testPresidentsRequiresGet(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('updateMember');
+        $repo = $this->createMock(MemberRepository::class);
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
+        $res = $this->callController(MembersController::class, 'presidents');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testUpdateMemberRejectsEmptyMemberId(): void
+    public function testPresidentsReturnsItems(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-        $this->injectJsonBody(['id' => '']);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('updateMember');
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('listActiveForPresident')->willReturn([
+            ['id' => self::MEMBER_ID, 'full_name' => 'Alice Martin'],
+        ]);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
+        $this->injectRepos([MemberRepository::class => $repo]);
 
-    public function testUpdateMemberRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-        $this->injectJsonBody(['id' => 'not-a-uuid']);
+        $res = $this->callController(MembersController::class, 'presidents');
 
-        $result = $this->callControllerMethod('updateMember');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
-
-    public function testUpdateMemberRejectsWhitespaceMemberId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-        $this->injectJsonBody(['id' => '   ']);
-
-        $result = $this->callControllerMethod('updateMember');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
-
-    public function testUpdateMemberAcceptsMemberIdField(): void
-    {
-        // The controller accepts both 'id' and 'member_id'
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-        $this->assertStringContainsString("input['id']", $source);
-        $this->assertStringContainsString("input['member_id']", $source);
-    }
-
-    // =========================================================================
-    // delete: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testDeleteRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testDeleteRejectsPostMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([]);
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // delete: INPUT VALIDATION
-    // =========================================================================
-
-    public function testDeleteRequiresMemberId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody([]);
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
-
-    public function testDeleteRejectsEmptyMemberId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody(['id' => '']);
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
-
-    public function testDeleteRejectsInvalidUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody(['id' => 'bad-uuid']);
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
-
-    public function testDeleteRejectsPartialUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody(['id' => '12345678-1234']);
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('missing_member_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // presidents: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testPresidentsRejectsPostMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([]);
-
-        $result = $this->callControllerMethod('presidents');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testPresidentsRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('presidents');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // MEMBER ID TRIMMING LOGIC
-    // =========================================================================
-
-    public function testMemberIdTrimmingLogic(): void
-    {
-        $uuid = '12345678-1234-1234-1234-123456789abc';
-        $this->assertEquals($uuid, trim(" {$uuid} "));
-        $this->assertEquals('', trim(''));
-        $this->assertEquals('', trim('   '));
-        $this->assertEquals('', trim((string) null));
-    }
-
-    // =========================================================================
-    // RESPONSE STRUCTURE VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testIndexResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'items'", $source, "index() should return 'items'");
-    }
-
-    public function testCreateResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'member_id'", $source);
-        $this->assertStringContainsString("'full_name'", $source);
-        $this->assertStringContainsString('201', $source, 'create() should return 201');
-    }
-
-    public function testUpdateMemberResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'member_id'", $source);
-        $this->assertStringContainsString("'full_name'", $source);
-    }
-
-    public function testDeleteResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'deleted' => true", $source);
-    }
-
-    public function testPresidentsResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'items'", $source);
-    }
-
-    // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCreateAuditsMemberCreated(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'member_created'", $source);
-    }
-
-    public function testUpdateMemberAuditsMemberUpdated(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'member_updated'", $source);
-    }
-
-    public function testDeleteAuditsMemberDeleted(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString("'member_deleted'", $source);
-    }
-
-    // =========================================================================
-    // SOFT DELETE VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testDeleteUsesSoftDelete(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString('softDelete', $source, 'delete() should use softDelete');
-    }
-
-    // =========================================================================
-    // INCLUDE GROUPS FLAG
-    // =========================================================================
-
-    public function testIndexIncludeGroupsFlagParsing(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MembersController.php');
-
-        $this->assertStringContainsString('include_groups', $source);
-        $this->assertStringContainsString('repo()->memberGroup()', $source);
-    }
-
-    // =========================================================================
-    // UUID VALIDATION HELPER
-    // =========================================================================
-
-    public function testUuidValidationForMemberIds(): void
-    {
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
-        $this->assertTrue(api_is_uuid('00000000-0000-0000-0000-000000000000'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertFalse(api_is_uuid('not-a-uuid'));
-        $this->assertFalse(api_is_uuid('12345678-1234'));
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
     }
 }

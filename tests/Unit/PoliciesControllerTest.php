@@ -5,547 +5,349 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\PoliciesController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\PolicyRepository;
 
 /**
  * Unit tests for PoliciesController.
  *
- * Tests the policy endpoints (quorum + vote, public list + admin CRUD) including:
- *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (GET/POST)
- *  - UUID validation for policy id
- *  - Input validation via ValidationSchemas::quorumPolicy() and votePolicy()
- *  - Admin method dispatch (GET list, POST create/update/delete)
- *  - 405 for unsupported methods on admin endpoints
- *  - Response structure and audit log verification
+ * Endpoints:
+ *  - listQuorum():  GET  — public list of quorum policies
+ *  - listVote():    GET  — public list of vote policies
+ *  - adminQuorum(): GET/POST — admin CRUD for quorum policies
+ *  - adminVote():   GET/POST — admin CRUD for vote policies
+ *
+ * Response structure:
+ *   - api_ok($data)  => body['data'][...] (wrapped in 'data' key)
+ *   - api_fail(...)  => body['error'] (direct)
+ *
+ * Pattern: extends ControllerTestCase, uses injectRepos() + callController().
  */
-class PoliciesControllerTest extends TestCase
+class PoliciesControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
+    private const TENANT    = 'tenant-uuid-001';
+    private const POLICY_ID = 'aaaaaaaa-1111-2222-3333-000000000060';
+    private const USER_ID   = 'user-uuid-0060';
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new PoliciesController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(PoliciesController::class);
-        $this->assertTrue($ref->isFinal(), 'PoliciesController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
-    public function testControllerExtendsAbstractController(): void
+    public function testControllerHasRequiredMethods(): void
     {
-        $controller = new PoliciesController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
-    }
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
-        $ref = new \ReflectionClass(PoliciesController::class);
-
-        $expectedMethods = [
-            'listQuorum',
-            'listVote',
-            'adminQuorum',
-            'adminVote',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "PoliciesController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(PoliciesController::class);
-
-        $expectedMethods = [
-            'listQuorum',
-            'listVote',
-            'adminQuorum',
-            'adminVote',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "PoliciesController::{$method}() should be public",
-            );
+        foreach (['listQuorum', 'listVote', 'adminQuorum', 'adminVote'] as $method) {
+            $this->assertTrue(method_exists(PoliciesController::class, $method));
         }
     }
 
     // =========================================================================
-    // listQuorum: METHOD ENFORCEMENT
+    // listQuorum() — GET
     // =========================================================================
 
-    public function testListQuorumRejectsPostMethod(): void
+    public function testListQuorumRequiresGet(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('listQuorum');
+        $repo = $this->createMock(PolicyRepository::class);
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(PoliciesController::class, 'listQuorum');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testListQuorumRejectsPutMethod(): void
+    public function testListQuorumReturnsItems(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('listQuorum');
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->method('listQuorumPolicies')->willReturn([
+            ['id' => self::POLICY_ID, 'name' => 'Quorum 50%'],
+        ]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-    public function testListQuorumRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $res = $this->callController(PoliciesController::class, 'listQuorum');
 
-        $result = $this->callControllerMethod('listQuorum');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
+        $this->assertSame(self::POLICY_ID, $res['body']['data']['items'][0]['id']);
     }
 
     // =========================================================================
-    // listVote: METHOD ENFORCEMENT
+    // listVote() — GET
     // =========================================================================
 
-    public function testListVoteRejectsPostMethod(): void
+    public function testListVoteRequiresGet(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('listVote');
+        $repo = $this->createMock(PolicyRepository::class);
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(PoliciesController::class, 'listVote');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    public function testListVoteRejectsPutMethod(): void
+    public function testListVoteReturnsItems(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('listVote');
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->method('listVotePolicies')->willReturn([
+            ['id' => self::POLICY_ID, 'name' => 'Majorite simple'],
+        ]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-    public function testListVoteRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $res = $this->callController(PoliciesController::class, 'listVote');
 
-        $result = $this->callControllerMethod('listVote');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // adminQuorum: METHOD ENFORCEMENT
-    // =========================================================================
-
-    /**
-     * adminQuorum() creates PolicyRepository (calls db()) before the GET/POST
-     * dispatch. In test env without DB, RuntimeException is caught as
-     * business_error (400). Verify method enforcement via source inspection.
-     */
-    public function testAdminQuorumMethodEnforcementViaSource(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-        // adminQuorum falls through to method_not_allowed for unsupported methods
-        $this->assertStringContainsString("api_fail('method_not_allowed', 405)", $source);
-    }
-
-    public function testAdminQuorumNoDbReturnsBusinessError(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('adminQuorum');
-
-        // Repo instantiation fails before method dispatch
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
     }
 
     // =========================================================================
-    // adminQuorum POST: DELETE ACTION VALIDATION (source-level)
+    // adminQuorum() — GET
     // =========================================================================
 
-    public function testAdminQuorumDeleteActionSourceRequiresId(): void
+    public function testAdminQuorumGetReturnsItems(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-        $this->assertStringContainsString("api_fail('missing_id', 400)", $source);
-    }
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-    public function testAdminQuorumDeleteActionUuidLogic(): void
-    {
-        // Replicate: $id = trim((string) ($in['id'] ?? '')); if ($id === '' || !api_is_uuid($id))
-        $this->assertTrue('' === '' || !api_is_uuid(''), 'Empty id should trigger missing_id');
-        $this->assertTrue('bad-uuid' !== '' && !api_is_uuid('bad-uuid'), 'Invalid uuid should trigger missing_id');
-        $this->assertFalse('12345678-1234-1234-1234-123456789abc' === '' || !api_is_uuid('12345678-1234-1234-1234-123456789abc'), 'Valid uuid should pass');
-    }
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->method('listQuorumPolicies')->willReturn([
+            ['id' => self::POLICY_ID, 'name' => 'Quorum 33%', 'threshold' => 0.33],
+        ]);
 
-    // =========================================================================
-    // adminQuorum POST: UPDATE WITH INVALID ID (source-level)
-    // =========================================================================
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-    public function testAdminQuorumUpdateSourceValidatesId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-        $this->assertStringContainsString("api_fail('invalid_id', 400)", $source);
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
     }
 
     // =========================================================================
-    // adminVote: METHOD ENFORCEMENT
+    // adminQuorum() — POST delete action
     // =========================================================================
 
-    /**
-     * adminVote() also creates PolicyRepository before dispatch.
-     * Same pattern as adminQuorum.
-     */
-    public function testAdminVoteNoDbReturnsBusinessError(): void
+    public function testAdminQuorumDeleteMissingIdReturns400(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['action' => 'delete', 'id' => '']);
 
-        $result = $this->callControllerMethod('adminVote');
+        $repo = $this->createMock(PolicyRepository::class);
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_id', $res['body']['error']);
     }
 
-    public function testAdminVoteMethodEnforcementViaSource(): void
+    public function testAdminQuorumDeleteSucceeds(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-        // Both adminQuorum and adminVote end with the same 405 fallthrough
-        $this->assertStringContainsString("api_fail('method_not_allowed', 405)", $source);
-    }
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['action' => 'delete', 'id' => self::POLICY_ID]);
 
-    // =========================================================================
-    // adminVote POST: DELETE ACTION VALIDATION (source-level)
-    // =========================================================================
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->expects($this->once())->method('deleteQuorumPolicy');
 
-    public function testAdminVoteDeleteActionSourceRequiresId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-        // Both adminQuorum and adminVote use the same missing_id check
-        $this->assertStringContainsString("api_fail('missing_id', 400)", $source);
-    }
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-    public function testAdminVoteDeleteActionUuidLogic(): void
-    {
-        $this->assertTrue('' === '' || !api_is_uuid(''), 'Empty id should trigger missing_id');
-        $this->assertTrue(!api_is_uuid('not-a-uuid'), 'Invalid uuid should fail');
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'), 'Valid uuid should pass');
-    }
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
 
-    public function testAdminVoteUpdateSourceValidatesId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-        $this->assertStringContainsString("api_fail('invalid_id', 400)", $source);
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['deleted']);
     }
 
     // =========================================================================
-    // VALIDATION SCHEMA: quorumPolicy
+    // adminQuorum() — POST create/update
     // =========================================================================
 
-    public function testQuorumPolicySchemaRequiresName(): void
+    public function testAdminQuorumCreateValidationFailsWithMissingName(): void
     {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::quorumPolicy();
-        $result = $schema->validate([]);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'threshold' => 0.5,
+        ]);
 
-        $this->assertFalse($result->isValid(), 'Quorum policy should require name');
-        $errors = $result->errors();
-        $this->assertArrayHasKey('name', $errors);
+        $repo = $this->createMock(PolicyRepository::class);
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('validation_failed', $res['body']['error']);
     }
 
-    public function testQuorumPolicySchemaRequiresThreshold(): void
+    public function testAdminQuorumCreateSucceeds(): void
     {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::quorumPolicy();
-        $result = $schema->validate(['name' => 'Test Quorum']);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'      => 'Quorum 50%',
+            'threshold' => 0.5,
+        ]);
 
-        $this->assertFalse($result->isValid(), 'Quorum policy should require threshold');
-        $errors = $result->errors();
-        $this->assertArrayHasKey('threshold', $errors);
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->method('generateUuid')->willReturn(self::POLICY_ID);
+        $repo->expects($this->once())->method('createQuorumPolicy');
+
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['saved']);
+        $this->assertSame(self::POLICY_ID, $res['body']['data']['id']);
     }
 
-    public function testQuorumPolicySchemaAcceptsValidInput(): void
+    public function testAdminQuorumUpdateSucceeds(): void
     {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::quorumPolicy();
-        $result = $schema->validate(['name' => 'Test Quorum', 'threshold' => 0.33]);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'id'        => self::POLICY_ID,
+            'name'      => 'Quorum 60%',
+            'threshold' => 0.6,
+        ]);
 
-        $this->assertTrue($result->isValid(), 'Valid quorum policy should pass');
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->expects($this->once())->method('updateQuorumPolicy');
+
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['saved']);
     }
 
-    public function testQuorumPolicySchemaDefaultMode(): void
+    public function testAdminQuorumMethodNotAllowedReturns405(): void
     {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::quorumPolicy();
-        $result = $schema->validate(['name' => 'Test', 'threshold' => 0.5]);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
 
-        $this->assertTrue($result->isValid());
-        $this->assertEquals('single', $result->get('mode'));
-    }
+        $repo = $this->createMock(PolicyRepository::class);
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-    public function testQuorumPolicySchemaDefaultDenominator(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::quorumPolicy();
-        $result = $schema->validate(['name' => 'Test', 'threshold' => 0.5]);
+        $res = $this->callController(PoliciesController::class, 'adminQuorum');
 
-        $this->assertTrue($result->isValid());
-        $this->assertEquals('eligible_members', $result->get('denominator'));
-    }
-
-    // =========================================================================
-    // VALIDATION SCHEMA: votePolicy
-    // =========================================================================
-
-    public function testVotePolicySchemaRequiresName(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::votePolicy();
-        $result = $schema->validate([]);
-
-        $this->assertFalse($result->isValid(), 'Vote policy should require name');
-        $errors = $result->errors();
-        $this->assertArrayHasKey('name', $errors);
-    }
-
-    public function testVotePolicySchemaRequiresThreshold(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::votePolicy();
-        $result = $schema->validate(['name' => 'Test Vote']);
-
-        $this->assertFalse($result->isValid(), 'Vote policy should require threshold');
-        $errors = $result->errors();
-        $this->assertArrayHasKey('threshold', $errors);
-    }
-
-    public function testVotePolicySchemaAcceptsValidInput(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::votePolicy();
-        $result = $schema->validate(['name' => 'Test Vote', 'threshold' => 0.5]);
-
-        $this->assertTrue($result->isValid(), 'Valid vote policy should pass');
-    }
-
-    public function testVotePolicySchemaDefaultBase(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::votePolicy();
-        $result = $schema->validate(['name' => 'Test', 'threshold' => 0.5]);
-
-        $this->assertTrue($result->isValid());
-        $this->assertEquals('expressed', $result->get('base'));
-    }
-
-    public function testVotePolicySchemaDefaultAbstentionAsAgainst(): void
-    {
-        $schema = \AgVote\Core\Validation\Schemas\ValidationSchemas::votePolicy();
-        $result = $schema->validate(['name' => 'Test', 'threshold' => 0.5]);
-
-        $this->assertTrue($result->isValid());
-        $this->assertFalse($result->get('abstention_as_against'));
+        $this->assertSame(405, $res['status']);
     }
 
     // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
+    // adminVote() — GET
     // =========================================================================
 
-    public function testAdminQuorumAuditsSaved(): void
+    public function testAdminVoteGetReturnsItems(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $this->assertStringContainsString("'admin_quorum_policy_saved'", $source);
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->method('listVotePolicies')->willReturn([
+            ['id' => self::POLICY_ID, 'name' => 'Majorite 50%'],
+        ]);
+
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminVote');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
     }
 
-    public function testAdminQuorumAuditsDeleted(): void
+    public function testAdminVoteDeleteSucceeds(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['action' => 'delete', 'id' => self::POLICY_ID]);
 
-        $this->assertStringContainsString("'admin_quorum_policy_deleted'", $source);
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->expects($this->once())->method('deleteVotePolicy');
+
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminVote');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['deleted']);
     }
 
-    public function testAdminVoteAuditsSaved(): void
+    public function testAdminVoteCreateSucceeds(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'      => 'Majorite simple',
+            'threshold' => 0.5,
+        ]);
 
-        $this->assertStringContainsString("'admin_vote_policy_saved'", $source);
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->method('generateUuid')->willReturn(self::POLICY_ID);
+        $repo->expects($this->once())->method('createVotePolicy');
+
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminVote');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['saved']);
     }
 
-    public function testAdminVoteAuditsDeleted(): void
+    public function testAdminVoteUpdateSucceeds(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'id'        => self::POLICY_ID,
+            'name'      => 'Majorite qualifiee',
+            'threshold' => 0.67,
+        ]);
 
-        $this->assertStringContainsString("'admin_vote_policy_deleted'", $source);
+        $repo = $this->createMock(PolicyRepository::class);
+        $repo->expects($this->once())->method('updateVotePolicy');
+
+        $this->injectRepos([PolicyRepository::class => $repo]);
+
+        $res = $this->callController(PoliciesController::class, 'adminVote');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['saved']);
     }
 
-    // =========================================================================
-    // RESPONSE STRUCTURE VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testListQuorumResponseStructure(): void
+    public function testAdminVoteMethodNotAllowedReturns405(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
 
-        $this->assertStringContainsString("'items'", $source, "listQuorum() should return 'items'");
-    }
+        $repo = $this->createMock(PolicyRepository::class);
+        $this->injectRepos([PolicyRepository::class => $repo]);
 
-    public function testListVoteResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
+        $res = $this->callController(PoliciesController::class, 'adminVote');
 
-        $this->assertStringContainsString("'items'", $source, "listVote() should return 'items'");
-    }
-
-    public function testAdminQuorumDeleteResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString("'deleted' => true", $source);
-    }
-
-    public function testAdminQuorumSaveResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString("'saved' => true", $source);
-        $this->assertStringContainsString("'id'", $source);
-    }
-
-    // =========================================================================
-    // UUID VALIDATION HELPER
-    // =========================================================================
-
-    public function testUuidValidationForPolicyIds(): void
-    {
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
-        $this->assertTrue(api_is_uuid('00000000-0000-0000-0000-000000000000'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertFalse(api_is_uuid('not-a-uuid'));
-        $this->assertFalse(api_is_uuid('12345'));
-    }
-
-    // =========================================================================
-    // ADMIN DISPATCH: METHOD PATTERN
-    // =========================================================================
-
-    public function testAdminQuorumUsesApiMethod(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString('api_method()', $source, 'adminQuorum should use api_method() for dispatch');
-    }
-
-    public function testAdminVoteUsesApiMethod(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString('api_method()', $source, 'adminVote should use api_method() for dispatch');
-    }
-
-    public function testAdminQuorumFallsThrough405(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        // The controller should fall through to method_not_allowed for unsupported methods
-        $this->assertStringContainsString("api_fail('method_not_allowed', 405)", $source);
-    }
-
-    // =========================================================================
-    // QUORUM POLICY: DUAL CALL SUPPORT
-    // =========================================================================
-
-    public function testQuorumPolicySupportsMultipleCallModes(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString('threshold_call2', $source, 'Should support second-call threshold');
-        $this->assertStringContainsString('denominator2', $source, 'Should support second-call denominator');
-        $this->assertStringContainsString('threshold2', $source, 'Should support secondary threshold');
-    }
-
-    // =========================================================================
-    // QUORUM POLICY: INCLUDE PROXIES AND COUNT REMOTE
-    // =========================================================================
-
-    public function testQuorumPolicySupportsFlagFields(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString('include_proxies', $source);
-        $this->assertStringContainsString('count_remote', $source);
-    }
-
-    // =========================================================================
-    // VOTE POLICY: ABSTENTION AS AGAINST
-    // =========================================================================
-
-    public function testVotePolicySupportsAbstentionAsAgainst(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/PoliciesController.php');
-
-        $this->assertStringContainsString('abstention_as_against', $source);
+        $this->assertSame(405, $res['status']);
     }
 }

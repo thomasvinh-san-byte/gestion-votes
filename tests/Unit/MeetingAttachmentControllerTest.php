@@ -5,523 +5,272 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\MeetingAttachmentController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\MeetingAttachmentRepository;
+use AgVote\Repository\MeetingRepository;
 
 /**
  * Unit tests for MeetingAttachmentController.
  *
- * Tests the meeting attachment endpoints including:
- *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (GET vs POST vs DELETE)
- *  - UUID validation for meeting_id and attachment id
- *  - Input validation for upload and delete operations
- *  - Response structure verification via source introspection
- *  - Audit log verification
+ * Endpoints:
+ *  - listForMeeting(): GET    — list attachments for a meeting
+ *  - upload():         POST   — upload a PDF attachment (requires file)
+ *  - delete():         DELETE — delete an attachment
+ *
+ * Note: upload() uses finfo, move_uploaded_file(), filesystem ops.
+ * Only early validation paths (pre-file-access) can be tested without mocking
+ * the filesystem. File-related paths require integration environment.
+ *
+ * Response structure:
+ *   - api_ok($data)  => body['data'][...] (wrapped in 'data' key)
+ *   - api_fail(...)  => body['error'] (direct)
+ *
+ * Pattern: extends ControllerTestCase, uses injectRepos() + callController().
  */
-class MeetingAttachmentControllerTest extends TestCase
+class MeetingAttachmentControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        // Reset cached raw body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
+    private const TENANT     = 'tenant-uuid-001';
+    private const MEETING_ID = 'aaaaaaaa-1111-2222-3333-000000000070';
+    private const ATTACH_ID  = 'bbbbbbbb-1111-2222-3333-000000000070';
+    private const USER_ID    = 'user-uuid-0070';
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new MeetingAttachmentController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    /**
-     * Inject a JSON body for POST/DELETE requests via Request::$cachedRawBody.
-     */
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(MeetingAttachmentController::class);
-        $this->assertTrue($ref->isFinal(), 'MeetingAttachmentController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
-    public function testControllerExtendsAbstractController(): void
+    public function testControllerHasRequiredMethods(): void
     {
-        $controller = new MeetingAttachmentController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
-    }
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
-        $ref = new \ReflectionClass(MeetingAttachmentController::class);
-
-        $expectedMethods = [
-            'listForMeeting',
-            'upload',
-            'delete',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "MeetingAttachmentController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(MeetingAttachmentController::class);
-
-        $expectedMethods = [
-            'listForMeeting',
-            'upload',
-            'delete',
-        ];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "MeetingAttachmentController::{$method}() should be public",
-            );
+        foreach (['listForMeeting', 'upload', 'delete'] as $method) {
+            $this->assertTrue(method_exists(MeetingAttachmentController::class, $method));
         }
     }
 
     // =========================================================================
-    // listForMeeting: METHOD ENFORCEMENT
+    // listForMeeting() — GET
     // =========================================================================
 
-    public function testListForMeetingRejectsPostMethod(): void
+    public function testListForMeetingMissingIdReturns400(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('listForMeeting');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
 
-        $this->assertGreaterThanOrEqual(400, $result['status']);
+        $res = $this->callController(MeetingAttachmentController::class, 'listForMeeting');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_meeting_id', $res['body']['error']);
     }
 
-    // =========================================================================
-    // listForMeeting: MEETING_ID VALIDATION
-    // =========================================================================
-
-    public function testListForMeetingRequiresMeetingId(): void
+    public function testListForMeetingInvalidUuidReturns400(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => 'bad-uuid']);
 
-        $result = $this->callControllerMethod('listForMeeting');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $res = $this->callController(MeetingAttachmentController::class, 'listForMeeting');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_meeting_id', $res['body']['error']);
     }
 
-    public function testListForMeetingRejectsEmptyMeetingId(): void
+    public function testListForMeetingReturnsAttachments(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('listForMeeting');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('listForMeeting')->willReturn([
+            ['id' => self::ATTACH_ID, 'original_name' => 'convocation.pdf'],
+        ]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $res = $this->callController(MeetingAttachmentController::class, 'listForMeeting');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['attachments']);
+        $this->assertSame(self::ATTACH_ID, $res['body']['data']['attachments'][0]['id']);
     }
 
-    public function testListForMeetingRejectsInvalidUuid(): void
+    public function testListForMeetingReturnsEmptyArray(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-valid-uuid'];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('listForMeeting');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('listForMeeting')->willReturn([]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
 
-    public function testListForMeetingRejectsPartialUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345678-1234'];
+        $res = $this->callController(MeetingAttachmentController::class, 'listForMeeting');
 
-        $result = $this->callControllerMethod('listForMeeting');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    public function testListForMeetingRejectsNumericMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => '12345'];
-
-        $result = $this->callControllerMethod('listForMeeting');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // upload: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testUploadRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('upload');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testUploadRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('upload');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->assertSame(200, $res['status']);
+        $this->assertSame([], $res['body']['data']['attachments']);
     }
 
     // =========================================================================
-    // upload: MEETING_ID VALIDATION
+    // upload() — POST (early validation paths only)
+    // File processing (finfo, move_uploaded_file) requires real environment.
     // =========================================================================
 
-    public function testUploadRequiresMeetingId(): void
+    public function testUploadRequiresPost(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $res = $this->callController(MeetingAttachmentController::class, 'upload');
+
+        $this->assertSame(405, $res['status']);
+    }
+
+    public function testUploadMissingMeetingIdReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('upload');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $res = $this->callController(MeetingAttachmentController::class, 'upload');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_meeting_id', $res['body']['error']);
     }
 
-    public function testUploadRejectsEmptyMeetingId(): void
+    public function testUploadMeetingNotFoundReturns404(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['meeting_id' => '']);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('upload');
+        $attachRepo = $this->createMock(MeetingAttachmentRepository::class);
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(false);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $attachRepo,
+            MeetingRepository::class           => $meetingRepo,
+        ]);
+
+        $res = $this->callController(MeetingAttachmentController::class, 'upload');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('meeting_not_found', $res['body']['error']);
     }
 
-    public function testUploadRejectsInvalidMeetingUuid(): void
+    public function testUploadNoFileReturns400(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['meeting_id' => 'bad-uuid']);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('upload');
+        // No file in $_FILES — api_file() returns null
+        $_FILES = [];
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
+        $attachRepo = $this->createMock(MeetingAttachmentRepository::class);
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('existsForTenant')->willReturn(true);
 
-    public function testUploadRejectsWhitespaceMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['meeting_id' => '   ']);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $attachRepo,
+            MeetingRepository::class           => $meetingRepo,
+        ]);
 
-        $result = $this->callControllerMethod('upload');
+        $res = $this->callController(MeetingAttachmentController::class, 'upload');
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // delete: METHOD ENFORCEMENT
-    // =========================================================================
-
-    public function testDeleteRejectsGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testDeleteRejectsPostMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['id' => '12345678-1234-1234-1234-123456789abc']);
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('upload_error', $res['body']['error']);
     }
 
     // =========================================================================
-    // delete: ID VALIDATION
+    // delete() — DELETE
     // =========================================================================
 
-    public function testDeleteRequiresId(): void
+    public function testDeleteRequiresDelete(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $res = $this->callController(MeetingAttachmentController::class, 'delete');
+
+        $this->assertSame(405, $res['status']);
+    }
+
+    public function testDeleteMissingIdReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('delete');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_id', $result['body']['error']);
+        $res = $this->callController(MeetingAttachmentController::class, 'delete');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('missing_id', $res['body']['error']);
     }
 
-    public function testDeleteRejectsEmptyId(): void
+    public function testDeleteNotFoundReturns404(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody(['id' => '']);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => self::ATTACH_ID]);
 
-        $result = $this->callControllerMethod('delete');
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('findById')->willReturn(null);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_id', $result['body']['error']);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $res = $this->callController(MeetingAttachmentController::class, 'delete');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('not_found', $res['body']['error']);
     }
 
-    public function testDeleteRejectsInvalidUuid(): void
+    public function testDeleteSucceeds(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody(['id' => 'not-a-uuid']);
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => self::ATTACH_ID]);
 
-        $result = $this->callControllerMethod('delete');
+        // Use a non-existent file path so unlink is skipped
+        $att = [
+            'id'            => self::ATTACH_ID,
+            'meeting_id'    => self::MEETING_ID,
+            'stored_name'   => 'nonexistent-file.pdf',
+            'original_name' => 'convocation.pdf',
+        ];
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_id', $result['body']['error']);
-    }
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('findById')->willReturn($att);
+        $repo->expects($this->once())->method('delete');
 
-    public function testDeleteRejectsWhitespaceId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $this->injectJsonBody(['id' => '   ']);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
 
-        $result = $this->callControllerMethod('delete');
+        $res = $this->callController(MeetingAttachmentController::class, 'delete');
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // UPLOAD: FILE SIZE VALIDATION LOGIC
-    // =========================================================================
-
-    public function testUploadMaxFileSize10Mb(): void
-    {
-        $maxSize = 10 * 1024 * 1024;
-        $this->assertEquals(10485760, $maxSize, 'Max file size should be 10 MB');
-    }
-
-    public function testUploadFileSizeExceedsLimit(): void
-    {
-        $maxSize = 10 * 1024 * 1024;
-        $fileSize = 11 * 1024 * 1024;
-        $this->assertTrue($fileSize > $maxSize, 'File of 11 MB should exceed 10 MB limit');
-    }
-
-    public function testUploadFileSizeWithinLimit(): void
-    {
-        $maxSize = 10 * 1024 * 1024;
-        $fileSize = 5 * 1024 * 1024;
-        $this->assertFalse($fileSize > $maxSize, 'File of 5 MB should be within limit');
-    }
-
-    public function testUploadFileSizeExactlyAtLimit(): void
-    {
-        $maxSize = 10 * 1024 * 1024;
-        $fileSize = 10 * 1024 * 1024;
-        $this->assertFalse($fileSize > $maxSize, 'File of exactly 10 MB should be accepted');
-    }
-
-    // =========================================================================
-    // UPLOAD: ALLOWED MIME TYPE LOGIC
-    // =========================================================================
-
-    public function testUploadOnlyAllowsPdfMimeType(): void
-    {
-        $allowedMimes = ['application/pdf'];
-
-        $this->assertTrue(in_array('application/pdf', $allowedMimes, true));
-        $this->assertFalse(in_array('image/png', $allowedMimes, true));
-        $this->assertFalse(in_array('application/zip', $allowedMimes, true));
-        $this->assertFalse(in_array('text/plain', $allowedMimes, true));
-        $this->assertFalse(in_array('application/msword', $allowedMimes, true));
-    }
-
-    // =========================================================================
-    // UPLOAD: FILE EXTENSION VALIDATION LOGIC
-    // =========================================================================
-
-    public function testUploadAcceptsPdfExtension(): void
-    {
-        $ext = strtolower(pathinfo('document.pdf', PATHINFO_EXTENSION));
-        $this->assertEquals('pdf', $ext);
-    }
-
-    public function testUploadRejectsNonPdfExtension(): void
-    {
-        $ext = strtolower(pathinfo('document.docx', PATHINFO_EXTENSION));
-        $this->assertNotEquals('pdf', $ext);
-    }
-
-    public function testUploadRejectsUppercasePdfExtensionNormalized(): void
-    {
-        $ext = strtolower(pathinfo('document.PDF', PATHINFO_EXTENSION));
-        $this->assertEquals('pdf', $ext, 'Uppercase .PDF should be normalized to pdf');
-    }
-
-    public function testUploadRejectsNoExtension(): void
-    {
-        $ext = strtolower(pathinfo('document', PATHINFO_EXTENSION));
-        $this->assertNotEquals('pdf', $ext);
-    }
-
-    // =========================================================================
-    // RESPONSE STRUCTURE VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testUploadResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $expectedKeys = ['id', 'original_name', 'file_size', 'mime_type'];
-        foreach ($expectedKeys as $key) {
-            $this->assertStringContainsString(
-                "'{$key}'",
-                $source,
-                "upload() response should contain '{$key}'",
-            );
-        }
-    }
-
-    public function testUploadReturns201StatusCode(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $this->assertStringContainsString('201', $source, 'upload() should return 201 on success');
-    }
-
-    public function testDeleteResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $this->assertStringContainsString("'deleted' => true", $source, "delete() should return 'deleted' key");
-    }
-
-    public function testListForMeetingResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $this->assertStringContainsString("'attachments'", $source, "listForMeeting() should return 'attachments' key");
-    }
-
-    // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testUploadAuditsAttachmentUploaded(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $this->assertStringContainsString("'meeting_attachment_uploaded'", $source);
-    }
-
-    public function testDeleteAuditsAttachmentDeleted(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $this->assertStringContainsString("'meeting_attachment_deleted'", $source);
-    }
-
-    public function testUploadAuditIncludesMeetingId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingAttachmentController.php');
-
-        $this->assertStringContainsString("'meeting_id'", $source);
-        $this->assertStringContainsString("'original_name'", $source);
-        $this->assertStringContainsString("'file_size'", $source);
-    }
-
-    // =========================================================================
-    // UUID VALIDATION HELPER
-    // =========================================================================
-
-    public function testUuidValidationForAttachmentIds(): void
-    {
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
-        $this->assertTrue(api_is_uuid('00000000-0000-0000-0000-000000000000'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertFalse(api_is_uuid('not-a-uuid'));
-        $this->assertFalse(api_is_uuid('12345678-1234-1234-1234'));
-    }
-
-    // =========================================================================
-    // UPLOAD: STORED NAME GENERATION LOGIC
-    // =========================================================================
-
-    public function testStoredNameIsPdfWithUuid(): void
-    {
-        $id = '12345678-1234-1234-1234-123456789abc';
-        $storedName = $id . '.pdf';
-        $this->assertEquals('12345678-1234-1234-1234-123456789abc.pdf', $storedName);
-    }
-
-    public function testUploadDirectoryStructure(): void
-    {
-        $meetingId = '12345678-1234-1234-1234-123456789abc';
-        $uploadDir = '/some/root/storage/uploads/meetings/' . $meetingId;
-        $this->assertStringContainsString($meetingId, $uploadDir);
-        $this->assertStringEndsWith($meetingId, $uploadDir);
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['deleted']);
     }
 }

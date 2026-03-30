@@ -5,511 +5,449 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\ExportTemplatesController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\ExportTemplateRepository;
 
 /**
  * Unit tests for ExportTemplatesController.
  *
- * Tests the export template CRUD endpoints including:
- *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (create uses api_request('POST'))
- *  - Source-level validation verification
- *  - Name length validation logic
- *  - Export type validation logic
+ * Endpoints:
+ *  - list():   GET  — list templates, get one by id, or list available columns
+ *  - create(): POST — create template or duplicate action
+ *  - update(): PUT  — update a template
+ *  - delete(): DELETE — delete a template
  *
- * Note: list(), update(), delete() eagerly construct ExportTemplateRepository
- * (which calls db()) before any method or input checks. In test env (no DB),
- * the repo constructor throws RuntimeException, caught as business_error (400).
- * Input validation for these methods is verified at source level instead.
+ * Response structure:
+ *   - api_ok($data)  => body['data'][...] (wrapped in 'data' key)
+ *   - api_fail(...)  => body['error'] (direct)
+ *
+ * Pattern: extends ControllerTestCase, uses injectRepos() + callController().
  */
-class ExportTemplatesControllerTest extends TestCase
+class ExportTemplatesControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
+    private const TENANT  = 'tenant-uuid-001';
+    private const TPL_ID  = 'aaaaaaaa-1111-2222-3333-000000000050';
+    private const SRC_ID  = 'bbbbbbbb-1111-2222-3333-000000000050';
+    private const USER_ID = 'user-uuid-0050';
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new ExportTemplatesController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // CONTROLLER STRUCTURE
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(ExportTemplatesController::class);
-        $this->assertTrue($ref->isFinal(), 'ExportTemplatesController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
-    public function testControllerExtendsAbstractController(): void
+    public function testControllerHasRequiredMethods(): void
     {
-        $controller = new ExportTemplatesController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
-    }
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
-        $ref = new \ReflectionClass(ExportTemplatesController::class);
-
-        $expectedMethods = ['list', 'create', 'update', 'delete'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "ExportTemplatesController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(ExportTemplatesController::class);
-
-        $expectedMethods = ['list', 'create', 'update', 'delete'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "ExportTemplatesController::{$method}() should be public",
-            );
+        foreach (['list', 'create', 'update', 'delete'] as $method) {
+            $this->assertTrue(method_exists(ExportTemplatesController::class, $method));
         }
     }
 
     // =========================================================================
-    // list: EAGER REPO CONSTRUCTION IN NO-DB ENV
-    // list() eagerly creates ExportTemplateRepository which calls db(),
-    // throwing RuntimeException caught as business_error.
+    // list() — GET
     // =========================================================================
 
-    public function testListEagerRepoThrowsBusinessErrorInNoDbEnv(): void
+    public function testListReturnsAllTemplates(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
 
-        $result = $this->callControllerMethod('list');
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('listForTenant')->willReturn([
+            ['id' => self::TPL_ID, 'name' => 'Export membres'],
+        ]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'list');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['items'][0]['id']);
     }
 
-    public function testListNoMethodEnforcementPostReturnsBusinessError(): void
+    public function testListAvailableColumnsReturnsTypesAndColumns(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['available_columns' => '1']);
 
-        $result = $this->callControllerMethod('list');
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('getAvailableColumns')->willReturn(['id', 'full_name']);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'list');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertArrayHasKey('types', $data);
+        $this->assertArrayHasKey('columns_by_type', $data);
+    }
+
+    public function testListByIdInvalidUuidReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => 'not-a-uuid']);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'list');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_id', $res['body']['error']);
+    }
+
+    public function testListByIdNotFoundReturns404(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn(null);
+
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'list');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('template_not_found', $res['body']['error']);
+    }
+
+    public function testListByIdReturnsTemplate(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+
+        $tplData = [
+            'id' => self::TPL_ID,
+            'name' => 'Export membres',
+            'export_type' => 'members',
+        ];
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn($tplData);
+
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'list');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
     }
 
     // =========================================================================
-    // list: VALIDATION (source verification)
+    // create() — POST
     // =========================================================================
 
-    public function testListSourceValidatesInvalidTemplateId(): void
+    public function testCreateRequiresPost(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
 
-        $this->assertStringContainsString("api_is_uuid(\$id)", $source);
-        $this->assertStringContainsString("'invalid_template_id'", $source);
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(405, $res['status']);
     }
 
-    // =========================================================================
-    // create: METHOD ENFORCEMENT
-    // create() calls api_request('POST') before the repo constructor,
-    // so method enforcement works correctly.
-    // =========================================================================
-
-    public function testCreateRejectsGetMethod(): void
+    public function testCreateInvalidNameReturns422(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testCreateRejectsPutMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testCreateRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('create');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // create: REPO CONSTRUCTOR FIRES AFTER api_request('POST')
-    // In no-DB env, after passing method check, repo constructor fires
-    // and throws business_error.
-    // =========================================================================
-
-    public function testCreateWithValidMethodReturnsBusinessErrorNoDb(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([
-            'name' => 'Template Name',
+            'name'        => 'X',  // too short — less than 2 chars
             'export_type' => 'members',
         ]);
 
-        $result = $this->callControllerMethod('create');
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('invalid_name', $res['body']['error']);
+    }
+
+    public function testCreateInvalidTypeReturns422(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'        => 'My Export',
+            'export_type' => 'invalid_type',
+        ]);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('invalid_export_type', $res['body']['error']);
+    }
+
+    public function testCreateNameExistsReturns409(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'        => 'My Export',
+            'export_type' => 'members',
+        ]);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('nameExists')->willReturn(true);
+        $repo->method('getDefaultColumns')->willReturn(['id', 'full_name']);
+
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(409, $res['status']);
+        $this->assertSame('name_already_exists', $res['body']['error']);
+    }
+
+    public function testCreateSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'name'        => 'My Export',
+            'export_type' => 'members',
+            'columns'     => ['id', 'full_name'],
+        ]);
+
+        $tplData = ['id' => self::TPL_ID, 'name' => 'My Export'];
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('nameExists')->willReturn(false);
+        $repo->method('create')->willReturn($tplData);
+
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(201, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
+    }
+
+    public function testCreateDuplicateInvalidSourceIdReturns400(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action'    => 'duplicate',
+            'source_id' => 'not-a-uuid',
+            'new_name'  => 'Copy',
+        ]);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_source_id', $res['body']['error']);
+    }
+
+    public function testCreateDuplicateInvalidNameReturns422(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action'    => 'duplicate',
+            'source_id' => self::SRC_ID,
+            'new_name'  => '',
+        ]);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('invalid_name', $res['body']['error']);
+    }
+
+    public function testCreateDuplicateSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action'    => 'duplicate',
+            'source_id' => self::SRC_ID,
+            'new_name'  => 'Copy of Export',
+        ]);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('duplicate')->willReturn([
+            'id'   => self::TPL_ID,
+            'name' => 'Copy of Export',
+        ]);
+
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'create');
+
+        $this->assertSame(201, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
     }
 
     // =========================================================================
-    // create (duplicate): INPUT VALIDATION LOGIC (replicated)
+    // update() — PUT
+    // Note: update() checks id/findById BEFORE api_request('PUT').
     // =========================================================================
 
-    public function testCreateDuplicateSourceIdValidationLogic(): void
+    public function testUpdateInvalidIdReturns400(): void
     {
-        $this->assertFalse(api_is_uuid('not-a-uuid'));
-        $this->assertFalse(api_is_uuid(''));
-        $this->assertFalse(api_is_uuid('12345678-1234'));
-        $this->assertTrue(api_is_uuid('12345678-1234-1234-1234-123456789abc'));
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PUT');
+        $this->setQueryParams(['id' => 'bad-id']);
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'update');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_id', $res['body']['error']);
     }
 
-    public function testCreateDuplicateNewNameValidationLogic(): void
+    public function testUpdateNotFoundReturns404(): void
     {
-        $check = function (string $newName): bool {
-            return $newName === '' || mb_strlen($newName) < 2 || mb_strlen($newName) > 100;
-        };
-
-        $this->assertTrue($check(''));
-        $this->assertTrue($check('X'));
-        $this->assertTrue($check(str_repeat('A', 101)));
-        $this->assertFalse($check('AB'));
-        $this->assertFalse($check(str_repeat('A', 100)));
-        $this->assertFalse($check('Copy of Template'));
-    }
-
-    // =========================================================================
-    // create (standard): NAME VALIDATION LOGIC (replicated)
-    // =========================================================================
-
-    public function testCreateNameLengthBoundary(): void
-    {
-        $check = function (string $name): bool {
-            return $name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 100;
-        };
-
-        $this->assertTrue($check(''));
-        $this->assertTrue($check('X'));
-        $this->assertTrue($check(str_repeat('A', 101)));
-        $this->assertFalse($check('AB'));
-        $this->assertFalse($check(str_repeat('A', 100)));
-        $this->assertFalse($check('Valid Name'));
-    }
-
-    public function testCreateNameExactly2CharsPassesValidation(): void
-    {
-        $name = 'AB';
-        $invalid = $name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 100;
-        $this->assertFalse($invalid);
-    }
-
-    public function testCreateNameExactly100CharsPassesValidation(): void
-    {
-        $name = str_repeat('C', 100);
-        $invalid = $name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 100;
-        $this->assertFalse($invalid);
-    }
-
-    // =========================================================================
-    // create: EXPORT TYPE VALIDATION LOGIC (replicated)
-    // =========================================================================
-
-    public function testCreateExportTypeValidationLogic(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("'invalid_export_type'", $source);
-        $this->assertStringContainsString('ExportTemplateRepository::TYPES', $source);
-    }
-
-    // =========================================================================
-    // update/delete: EAGER REPO CONSTRUCTION IN NO-DB ENV
-    // =========================================================================
-
-    public function testUpdateEagerRepoThrowsBusinessErrorInNoDbEnv(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
-        $_GET = ['id' => '12345678-1234-1234-1234-123456789abc'];
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PUT');
+        $this->setQueryParams(['id' => self::TPL_ID]);
         $this->injectJsonBody(['name' => 'Updated']);
 
-        $result = $this->callControllerMethod('update');
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn(null);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'update');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('template_not_found', $res['body']['error']);
     }
 
-    public function testUpdateNoMethodEnforcementGetReturnsBusinessError(): void
+    public function testUpdateRequiresPut(): void
     {
-        // update() eagerly constructs repo before api_request('PUT')
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        // update() checks id/findById before api_request('PUT').
+        // Need valid id + existing template to reach 405 check.
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['id' => self::TPL_ID]);
 
-        $result = $this->callControllerMethod('update');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    public function testDeleteEagerRepoThrowsBusinessErrorInNoDbEnv(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $_GET = ['id' => '12345678-1234-1234-1234-123456789abc'];
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    public function testDeleteNoMethodEnforcementGetReturnsBusinessError(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('delete');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // update/delete: SOURCE-LEVEL VALIDATION VERIFICATION
-    // =========================================================================
-
-    public function testUpdateSourceValidatesTemplateId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("api_is_uuid(\$id)", $source);
-        $this->assertStringContainsString("'invalid_template_id'", $source);
-    }
-
-    public function testUpdateSourceUsesApiRequestPut(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("api_request('PUT')", $source);
-    }
-
-    public function testDeleteSourceValidatesTemplateId(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("api_is_uuid(\$id)", $source);
-        $this->assertStringContainsString("'invalid_template_id'", $source);
-    }
-
-    // =========================================================================
-    // CROSS-CUTTING: METHOD CHECK BEFORE BODY VALIDATION
-    // =========================================================================
-
-    public function testCreateMethodCheckBeforeBodyValidation(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $this->injectJsonBody([
-            'name' => 'Template',
+        $existing = [
+            'id'          => self::TPL_ID,
+            'name'        => 'Export membres',
             'export_type' => 'members',
+            'columns'     => ['id'],
+        ];
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn($existing);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'update');
+
+        $this->assertSame(405, $res['status']);
+    }
+
+    public function testUpdateSucceeds(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('PUT');
+        $this->setQueryParams(['id' => self::TPL_ID]);
+        $this->injectJsonBody(['name' => 'Updated Export']);
+
+        $existing = [
+            'id'          => self::TPL_ID,
+            'name'        => 'Old Export',
+            'export_type' => 'members',
+            'columns'     => ['id', 'full_name'],
+        ];
+
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn($existing);
+        $repo->method('nameExists')->willReturn(false);
+        $repo->method('update')->willReturn([
+            'id' => self::TPL_ID, 'name' => 'Updated Export',
         ]);
 
-        $result = $this->callControllerMethod('create');
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
+        $res = $this->callController(ExportTemplatesController::class, 'update');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertSame(self::TPL_ID, $res['body']['data']['template']['id']);
     }
 
     // =========================================================================
-    // RESPONSE STRUCTURE (source verification)
+    // delete() — DELETE
     // =========================================================================
 
-    public function testListResponseStructure(): void
+    public function testDeleteInvalidIdReturns400(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => 'not-a-uuid']);
 
-        $this->assertStringContainsString("'items'", $source);
-        $this->assertStringContainsString("'template'", $source);
-        $this->assertStringContainsString("'available_columns'", $source);
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'delete');
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('invalid_template_id', $res['body']['error']);
     }
 
-    public function testCreateResponseStructure(): void
+    public function testDeleteNotFoundReturns404(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => self::TPL_ID]);
 
-        $this->assertStringContainsString("'template'", $source);
-        $this->assertStringContainsString('201', $source);
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn(null);
+
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
+
+        $res = $this->callController(ExportTemplatesController::class, 'delete');
+
+        $this->assertSame(404, $res['status']);
+        $this->assertSame('template_not_found', $res['body']['error']);
     }
 
-    public function testDeleteResponseStructure(): void
+    public function testDeleteSucceeds(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('DELETE');
+        $this->setQueryParams(['id' => self::TPL_ID]);
 
-        $this->assertStringContainsString("'deleted' => true", $source);
-    }
+        $repo = $this->createMock(ExportTemplateRepository::class);
+        $repo->method('findById')->willReturn([
+            'id' => self::TPL_ID, 'name' => 'My Export', 'export_type' => 'members',
+        ]);
+        $repo->method('delete')->willReturn(true);
 
-    public function testListAvailableColumnsResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
+        $this->injectRepos([ExportTemplateRepository::class => $repo]);
 
-        $this->assertStringContainsString("'types'", $source);
-        $this->assertStringContainsString("'columns_by_type'", $source);
-    }
+        $res = $this->callController(ExportTemplatesController::class, 'delete');
 
-    // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCreateAuditsTemplateCreation(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("'export_template_create'", $source);
-    }
-
-    public function testUpdateAuditsTemplateUpdate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("'export_template_update'", $source);
-    }
-
-    public function testDeleteAuditsTemplateDeletion(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("'export_template_delete'", $source);
-    }
-
-    public function testDuplicateAuditsTemplateDuplicate(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("'export_template_duplicate'", $source);
-    }
-
-    // =========================================================================
-    // BUSINESS GUARD VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCreateChecksNameUniqueness(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString('name_already_exists', $source);
-        $this->assertStringContainsString('nameExists', $source);
-    }
-
-    public function testUpdateChecksNameUniqueness(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString('name_already_exists', $source);
-    }
-
-    // =========================================================================
-    // UNKNOWN METHOD HANDLING
-    // =========================================================================
-
-    public function testHandleUnknownMethodReturns500(): void
-    {
-        $result = $this->callControllerMethod('nonExistentMethod');
-
-        $this->assertEquals(500, $result['status']);
-        $this->assertEquals('internal_error', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // create: VALIDATION ORDER (source verification)
-    // =========================================================================
-
-    public function testCreateValidationOrderInSource(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $namePos = strpos($source, "'invalid_name'");
-        $typePos = strpos($source, "'invalid_export_type'");
-
-        $this->assertNotFalse($namePos, 'Source should contain invalid_name');
-        $this->assertNotFalse($typePos, 'Source should contain invalid_export_type');
-        $this->assertLessThan($typePos, $namePos, 'Name validation should come before export_type');
-    }
-
-    // =========================================================================
-    // create: DUPLICATE ACTION SOURCE VERIFICATION
-    // =========================================================================
-
-    public function testCreateSourceHandlesDuplicateAction(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ExportTemplatesController.php');
-
-        $this->assertStringContainsString("'duplicate'", $source);
-        $this->assertStringContainsString("'invalid_source_id'", $source);
-        $this->assertStringContainsString("'invalid_name'", $source);
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['body']['data']['deleted']);
     }
 }
