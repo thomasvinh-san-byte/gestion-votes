@@ -185,6 +185,19 @@ if (!class_exists('AuthMiddleware', false)) {
     class_alias(\AgVote\Core\Security\AuthMiddleware::class, 'AuthMiddleware');
 }
 
+// Stub api_file() for tests — replicates the behaviour from app/api.php.
+// Used by ResolutionDocumentController and other file upload endpoints.
+if (!function_exists('api_file')) {
+    function api_file(string ...$keys): ?array {
+        foreach ($keys as $key) {
+            if (!empty($_FILES[$key]) && ($_FILES[$key]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                return $_FILES[$key];
+            }
+        }
+        return null;
+    }
+}
+
 // Use namespaced classes
 use AgVote\Core\Security\RateLimiter;
 

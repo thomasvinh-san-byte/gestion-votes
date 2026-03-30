@@ -207,8 +207,8 @@ class ImportControllerTest extends TestCase
 
     // =========================================================================
     // membersCsv: FILE UPLOAD VALIDATION (no-DB env limitation)
-    // After api_request('POST'), membersCsv() calls api_file() which is not
-    // available in the test bootstrap, causing internal_error.
+    // After api_request('POST'), membersCsv() calls api_file() which returns
+    // null when no file is uploaded, then falls through to upload_error (400).
     // =========================================================================
 
     public function testMembersCsvNoApiFileReturnsInternalErrorInTestEnv(): void
@@ -218,9 +218,9 @@ class ImportControllerTest extends TestCase
 
         $result = $this->callControllerMethod('membersCsv');
 
-        // api_file() is not stubbed in test bootstrap, so this throws
-        $this->assertEquals(500, $result['status']);
-        $this->assertEquals('internal_error', $result['body']['error']);
+        // api_file() returns null (no file), no csv_content either -> upload_error 400
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('upload_error', $result['body']['error']);
     }
 
     // =========================================================================
@@ -239,8 +239,8 @@ class ImportControllerTest extends TestCase
 
     // =========================================================================
     // membersXlsx: FILE UPLOAD VALIDATION (no-DB env limitation)
-    // After api_request('POST'), membersXlsx() calls api_file() which is not
-    // available in the test bootstrap, causing internal_error.
+    // After api_request('POST'), membersXlsx() calls readImportFile('xlsx')
+    // which calls api_file() returning null -> upload_error (400).
     // =========================================================================
 
     public function testMembersXlsxNoApiFileReturnsInternalErrorInTestEnv(): void
@@ -250,8 +250,9 @@ class ImportControllerTest extends TestCase
 
         $result = $this->callControllerMethod('membersXlsx');
 
-        $this->assertEquals(500, $result['status']);
-        $this->assertEquals('internal_error', $result['body']['error']);
+        // api_file() returns null (no file) -> readImportFile -> upload_error 400
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('upload_error', $result['body']['error']);
     }
 
     // =========================================================================
