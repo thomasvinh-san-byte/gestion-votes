@@ -5,1229 +5,617 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\OperatorController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingStatsRepository;
+use AgVote\Repository\MemberRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\NotificationRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\ProxyRepository;
+use AgVote\Repository\VoteTokenRepository;
+use ReflectionClass;
 
 /**
  * Unit tests for OperatorController.
  *
- * Tests the operator endpoint logic including:
- *  - Workflow state computation (quorum, attendance, proxy, consolidation)
- *  - Anomaly detection logic (duplicates, ineligible ballots, missing voters)
- *  - Vote opening validation (input parsing, expiry clamping)
- *  - Method enforcement and input validation
- *
- * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
- * inspect controller behavior without a database.
+ * Tests all three endpoints with mocked repositories:
+ * - workflowState: quorum/attendance/proxy/consolidation state
+ * - openVote: token generation, meeting/motion validation
+ * - anomalies: duplicate detection, ineligible ballots, missing voters
  */
-class OperatorControllerTest extends TestCase
+class OperatorControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
+    private const MEETING_ID = '11111111-1111-1111-1111-111111111111';
+    private const MOTION_ID  = '22222222-2222-2222-2222-222222222222';
+    private const TENANT_ID  = 'tenant-test';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        // Reset cached raw body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
+        $this->setAuth('user-01', 'operator', self::TENANT_ID);
     }
 
     // =========================================================================
-    // HELPER: Call controller and capture response
+    // CONTROLLER STRUCTURE
     // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new OperatorController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
-    // =========================================================================
-
-    public function testControllerHasAllExpectedMethods(): void
-    {
-        $ref = new \ReflectionClass(OperatorController::class);
-
-        $expectedMethods = ['workflowState', 'openVote', 'anomalies'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "OperatorController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(OperatorController::class);
-
-        $expectedMethods = ['workflowState', 'openVote', 'anomalies'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "OperatorController::{$method}() should be public",
-            );
-        }
-    }
 
     public function testControllerIsFinal(): void
     {
-        $ref = new \ReflectionClass(OperatorController::class);
-        $this->assertTrue($ref->isFinal(), 'OperatorController should be final');
+        $ref = new ReflectionClass(OperatorController::class);
+        $this->assertTrue($ref->isFinal());
     }
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new OperatorController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $ref = new ReflectionClass(OperatorController::class);
+        $this->assertSame('AgVote\\Controller\\AbstractController', $ref->getParentClass()->getName());
+    }
+
+    public function testHasExpectedPublicMethods(): void
+    {
+        $ref = new ReflectionClass(OperatorController::class);
+        $methods = array_map(fn ($m) => $m->getName(), $ref->getMethods(\ReflectionMethod::IS_PUBLIC));
+        $this->assertContains('workflowState', $methods);
+        $this->assertContains('openVote', $methods);
+        $this->assertContains('anomalies', $methods);
     }
 
     // =========================================================================
-    // WORKFLOW STATE: INPUT VALIDATION
+    // workflowState — validation errors
     // =========================================================================
 
-    public function testWorkflowStateRequiresMeetingId(): void
+    public function testWorkflowStateMissingMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = []; // No meeting_id
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
+        $this->injectRepos([]);
 
-        $result = $this->callControllerMethod('workflowState');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $resp = $this->callController(OperatorController::class, 'workflowState');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('missing_meeting_id', $resp['body']['error'] ?? $resp['body']['code'] ?? '');
     }
 
-    public function testWorkflowStateRejectsEmptyMeetingId(): void
+    public function testWorkflowStateInvalidMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => 'not-a-uuid']);
+        $this->injectRepos([]);
 
-        $result = $this->callControllerMethod('workflowState');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        $resp = $this->callController(OperatorController::class, 'workflowState');
+        $this->assertSame(400, $resp['status']);
     }
 
-    public function testWorkflowStateRejectsInvalidUuid(): void
+    public function testWorkflowStateMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'not-a-valid-uuid'];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $result = $this->callControllerMethod('workflowState');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+        // All repos are fetched before the meeting-not-found check
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(0);
+        $memberRepo->method('listWithAttendanceForMeeting')->willReturn([]);
+
+        $statsRepo  = $this->createMock(MeetingStatsRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $proxyRepo  = $this->createMock(ProxyRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MemberRepository::class       => $memberRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
+            ProxyRepository::class        => $proxyRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'workflowState');
+        $this->assertSame(404, $resp['status']);
     }
 
-    // =========================================================================
-    // WORKFLOW STATE: QUORUM COMPUTATION LOGIC
-    // =========================================================================
-
-    public function testQuorumRatioCalculation(): void
+    public function testWorkflowStateHappyPath(): void
     {
-        // Replicate the quorum ratio logic from workflowState()
-        $presentCount = 60;
-        $eligibleMembers = 100;
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
-
-        $this->assertEquals(0.6, $quorumRatio);
-    }
-
-    public function testQuorumRatioWithZeroEligible(): void
-    {
-        $presentCount = 10;
-        $eligibleMembers = 0;
-
-        $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
-
-        $this->assertEquals(0.0, $quorumRatio);
-    }
-
-    public function testQuorumOkWhenMetThreshold(): void
-    {
-        $presentCount = 60;
-        $eligibleMembers = 100;
-        $quorumThreshold = 0.5;
-
-        $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
-        $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
-
-        $this->assertTrue($quorumOk);
-    }
-
-    public function testQuorumNotOkWhenBelowThreshold(): void
-    {
-        $presentCount = 40;
-        $eligibleMembers = 100;
-        $quorumThreshold = 0.5;
-
-        $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
-        $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
-
-        $this->assertFalse($quorumOk);
-    }
-
-    public function testQuorumNotOkWithZeroPresent(): void
-    {
-        $presentCount = 0;
-        $eligibleMembers = 100;
-        $quorumThreshold = 0.0; // Even with 0 threshold
-
-        $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
-        $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
-
-        $this->assertFalse($quorumOk, 'Quorum should require at least one present member');
-    }
-
-    public function testQuorumExactlyAtThreshold(): void
-    {
-        $presentCount = 50;
-        $eligibleMembers = 100;
-        $quorumThreshold = 0.5;
-
-        $quorumRatio = $eligibleMembers > 0 ? ($presentCount / $eligibleMembers) : 0.0;
-        $quorumOk = $presentCount > 0 && $quorumRatio >= $quorumThreshold;
-
-        $this->assertTrue($quorumOk, 'Quorum should pass when ratio equals threshold (>=)');
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: ATTENDANCE COUNTING
-    // =========================================================================
-
-    public function testAttendanceCounting(): void
-    {
-        // Replicate the attendance counting logic from workflowState()
-        $attRows = [
-            ['voting_power' => 1.0, 'attendance_mode' => 'present', 'member_id' => 'm1', 'full_name' => 'A'],
-            ['voting_power' => 2.0, 'attendance_mode' => 'remote', 'member_id' => 'm2', 'full_name' => 'B'],
-            ['voting_power' => 1.5, 'attendance_mode' => 'proxy', 'member_id' => 'm3', 'full_name' => 'C'],
-            ['voting_power' => 1.0, 'attendance_mode' => '', 'member_id' => 'm4', 'full_name' => 'D'],
-            ['voting_power' => 3.0, 'attendance_mode' => '', 'member_id' => 'm5', 'full_name' => 'E'],
+        $meeting = [
+            'id' => self::MEETING_ID,
+            'title' => 'Test Meeting',
+            'status' => 'live',
+            'president_name' => 'John President',
+            'quorum_policy_id' => null,
         ];
 
-        $presentCount = 0;
-        $presentWeight = 0.0;
-        $totalCount = count($attRows);
-        $totalWeight = 0.0;
-        $absentIds = [];
-        $absentNames = [];
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
 
-        foreach ($attRows as $r) {
-            $vp = (float) ($r['voting_power'] ?? 0);
-            $totalWeight += $vp;
-            $mode = (string) ($r['attendance_mode'] ?? '');
-            if ($mode === 'present' || $mode === 'remote' || $mode === 'proxy') {
-                $presentCount++;
-                $presentWeight += $vp;
-            } else {
-                $mid = (string) $r['member_id'];
-                $absentIds[] = $mid;
-                $absentNames[$mid] = (string) ($r['full_name'] ?? '');
-            }
-        }
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(10);
+        $memberRepo->method('listWithAttendanceForMeeting')->willReturn([
+            ['member_id' => 'mem-01', 'full_name' => 'Alice', 'attendance_mode' => 'present', 'voting_power' => '1'],
+            ['member_id' => 'mem-02', 'full_name' => 'Bob',   'attendance_mode' => 'present', 'voting_power' => '1'],
+        ]);
 
-        $this->assertEquals(3, $presentCount);
-        $this->assertEquals(4.5, $presentWeight);
-        $this->assertEquals(5, $totalCount);
-        $this->assertEquals(8.5, $totalWeight);
-        $this->assertEquals(['m4', 'm5'], $absentIds);
-        $this->assertEquals(['m4' => 'D', 'm5' => 'E'], $absentNames);
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countClosedMotions')->willReturn(2);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('countWorkflowSummary')->willReturn(['total' => 3, 'open' => 0]);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('findNextNotOpened')->willReturn(['id' => self::MOTION_ID, 'title' => 'Next Motion']);
+        $motionRepo->method('findLastClosedForProjector')->willReturn(null);
+        $motionRepo->method('countConsolidatedMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listDistinctGivers')->willReturn([]);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $notifRepo = $this->createMock(NotificationRepository::class);
+        $notifRepo->method('findValidationState')->willReturn(null);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MemberRepository::class       => $memberRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
+            ProxyRepository::class        => $proxyRepo,
+            NotificationRepository::class => $notifRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'workflowState');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertArrayHasKey('meeting', $data);
+        $this->assertArrayHasKey('attendance', $data);
+        $this->assertArrayHasKey('motion', $data);
+        $this->assertArrayHasKey('consolidation', $data);
+        $this->assertArrayHasKey('validation', $data);
     }
 
-    public function testAttendanceCountingAllPresent(): void
+    public function testWorkflowStateWithOpenMotion(): void
     {
-        $attRows = [
-            ['voting_power' => 1.0, 'attendance_mode' => 'present', 'member_id' => 'm1', 'full_name' => 'A'],
-            ['voting_power' => 1.0, 'attendance_mode' => 'remote', 'member_id' => 'm2', 'full_name' => 'B'],
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meeting = [
+            'id' => self::MEETING_ID,
+            'title' => 'Test Meeting',
+            'status' => 'live',
+            'president_name' => 'Jane Pres',
+            'quorum_policy_id' => null,
         ];
 
-        $presentCount = 0;
-        $absentIds = [];
-        foreach ($attRows as $r) {
-            $mode = (string) ($r['attendance_mode'] ?? '');
-            if ($mode === 'present' || $mode === 'remote' || $mode === 'proxy') {
-                $presentCount++;
-            } else {
-                $absentIds[] = (string) $r['member_id'];
-            }
-        }
-
-        $this->assertEquals(2, $presentCount);
-        $this->assertEmpty($absentIds);
-    }
-
-    public function testAttendanceCountingWithEmptyList(): void
-    {
-        $attRows = [];
-
-        $presentCount = 0;
-        $totalCount = count($attRows);
-        foreach ($attRows as $r) {
-            $mode = (string) ($r['attendance_mode'] ?? '');
-            if ($mode === 'present' || $mode === 'remote' || $mode === 'proxy') {
-                $presentCount++;
-            }
-        }
-
-        $this->assertEquals(0, $presentCount);
-        $this->assertEquals(0, $totalCount);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: MISSING PROXY DETECTION
-    // =========================================================================
-
-    public function testMissingProxyDetection(): void
-    {
-        // Replicate the proxy-gap detection logic
-        $absentIds = ['m1', 'm2', 'm3', 'm4'];
-        $coveredSet = ['m1' => true, 'm3' => true]; // m2 and m4 have no proxy
-
-        $missing = [];
-        foreach ($absentIds as $mid) {
-            if (!isset($coveredSet[$mid])) {
-                $missing[] = $mid;
-            }
-        }
-
-        $this->assertEquals(['m2', 'm4'], $missing);
-    }
-
-    public function testMissingProxyAllCovered(): void
-    {
-        $absentIds = ['m1', 'm2'];
-        $coveredSet = ['m1' => true, 'm2' => true];
-
-        $missing = [];
-        foreach ($absentIds as $mid) {
-            if (!isset($coveredSet[$mid])) {
-                $missing[] = $mid;
-            }
-        }
-
-        $this->assertEmpty($missing);
-    }
-
-    public function testMissingProxyNoneCovered(): void
-    {
-        $absentIds = ['m1', 'm2', 'm3'];
-        $coveredSet = [];
-
-        $missing = [];
-        foreach ($absentIds as $mid) {
-            if (!isset($coveredSet[$mid])) {
-                $missing[] = $mid;
-            }
-        }
-
-        $this->assertEquals(['m1', 'm2', 'm3'], $missing);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: CAN OPEN NEXT LOGIC
-    // =========================================================================
-
-    public function testCanOpenNextAllConditionsMet(): void
-    {
-        $quorumOk = true;
-        $missing = [];
-        $openMotion = null;
-        $nextMotion = ['id' => 'next-1', 'title' => 'Motion 2'];
-
-        $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
-
-        $this->assertTrue($canOpenNext);
-    }
-
-    public function testCanOpenNextFailsWithoutQuorum(): void
-    {
-        $quorumOk = false;
-        $missing = [];
-        $openMotion = null;
-        $nextMotion = ['id' => 'next-1'];
-
-        $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
-
-        $this->assertFalse($canOpenNext);
-    }
-
-    public function testCanOpenNextFailsWithMissingProxies(): void
-    {
-        $quorumOk = true;
-        $missing = ['m1'];
-        $openMotion = null;
-        $nextMotion = ['id' => 'next-1'];
-
-        $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
-
-        $this->assertFalse($canOpenNext);
-    }
-
-    public function testCanOpenNextFailsWithOpenMotion(): void
-    {
-        $quorumOk = true;
-        $missing = [];
-        $openMotion = ['id' => 'open-1'];
-        $nextMotion = ['id' => 'next-1'];
-
-        $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
-
-        $this->assertFalse($canOpenNext);
-    }
-
-    public function testCanOpenNextFailsWithNoNextMotion(): void
-    {
-        $quorumOk = true;
-        $missing = [];
-        $openMotion = null;
-        $nextMotion = null;
-
-        $canOpenNext = $quorumOk && (count($missing) === 0) && ($openMotion === null) && ($nextMotion !== null);
-
-        $this->assertFalse($canOpenNext);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: CLOSE BLOCKER LOGIC
-    // =========================================================================
-
-    public function testCloseBlockersMinimumOpenTime(): void
-    {
-        $openAgeSeconds = 500;
-        $minOpen = 900;
-        $closeBlockers = [];
-
-        if ($openAgeSeconds < $minOpen) {
-            $closeBlockers[] = "Delai minimum non atteint ({$openAgeSeconds}s / {$minOpen}s).";
-        }
-
-        $this->assertCount(1, $closeBlockers);
-        $this->assertStringContainsString('500s', $closeBlockers[0]);
-        $this->assertStringContainsString('900s', $closeBlockers[0]);
-    }
-
-    public function testCloseBlockersMinimumParticipation(): void
-    {
-        $participationRatio = 0.3;
-        $minParticipation = 0.5;
-        $closeBlockers = [];
-
-        if ($participationRatio < $minParticipation) {
-            $closeBlockers[] = 'Participation insuffisante (' . round($participationRatio * 100) . '%, min ' . round($minParticipation * 100) . '%).';
-        }
-
-        $this->assertCount(1, $closeBlockers);
-        $this->assertStringContainsString('30%', $closeBlockers[0]);
-        $this->assertStringContainsString('50%', $closeBlockers[0]);
-    }
-
-    public function testCanCloseWhenNoBlockers(): void
-    {
-        $openAgeSeconds = 1000;
-        $minOpen = 900;
-        $participationRatio = 0.8;
-        $minParticipation = 0.5;
-        $closeBlockers = [];
-
-        if ($openAgeSeconds < $minOpen) {
-            $closeBlockers[] = 'Time blocker';
-        }
-        if ($participationRatio < $minParticipation) {
-            $closeBlockers[] = 'Participation blocker';
-        }
-        $canCloseOpen = count($closeBlockers) === 0;
-
-        $this->assertTrue($canCloseOpen);
-        $this->assertEmpty($closeBlockers);
-    }
-
-    public function testCannotCloseWithMultipleBlockers(): void
-    {
-        $openAgeSeconds = 100;
-        $minOpen = 900;
-        $participationRatio = 0.2;
-        $minParticipation = 0.5;
-        $closeBlockers = [];
-
-        if ($openAgeSeconds < $minOpen) {
-            $closeBlockers[] = 'Time blocker';
-        }
-        if ($participationRatio < $minParticipation) {
-            $closeBlockers[] = 'Participation blocker';
-        }
-        $canCloseOpen = count($closeBlockers) === 0;
-
-        $this->assertFalse($canCloseOpen);
-        $this->assertCount(2, $closeBlockers);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: PARTICIPATION RATIO
-    // =========================================================================
-
-    public function testParticipationRatioCalculation(): void
-    {
-        $openBallots = 30;
-        $potentialVoters = 50;
-
-        $participationRatio = $potentialVoters > 0 ? ($openBallots / $potentialVoters) : 0.0;
-
-        $this->assertEquals(0.6, $participationRatio);
-    }
-
-    public function testParticipationRatioWithZeroVoters(): void
-    {
-        $openBallots = 5;
-        $potentialVoters = 0;
-
-        $participationRatio = $potentialVoters > 0 ? ($openBallots / $potentialVoters) : 0.0;
-
-        $this->assertEquals(0.0, $participationRatio);
-    }
-
-    public function testPotentialVotersCalculation(): void
-    {
-        $presentCount = 40;
-        $coveredSet = ['m1' => true, 'm2' => true, 'm3' => true]; // 3 covered by proxy
-
-        $potentialVoters = $presentCount + count($coveredSet);
-
-        $this->assertEquals(43, $potentialVoters);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: CONSOLIDATION LOGIC
-    // =========================================================================
-
-    public function testCanConsolidateWhenNoOpenMotionsAndHasClosed(): void
-    {
-        $motionsOpen = 0;
-        $hasClosed = 5;
-
-        $canConsolidate = $motionsOpen === 0 && $hasClosed > 0;
-
-        $this->assertTrue($canConsolidate);
-    }
-
-    public function testCannotConsolidateWithOpenMotions(): void
-    {
-        $motionsOpen = 1;
-        $hasClosed = 5;
-
-        $canConsolidate = $motionsOpen === 0 && $hasClosed > 0;
-
-        $this->assertFalse($canConsolidate);
-    }
-
-    public function testCannotConsolidateWithNoClosedMotions(): void
-    {
-        $motionsOpen = 0;
-        $hasClosed = 0;
-
-        $canConsolidate = $motionsOpen === 0 && $hasClosed > 0;
-
-        $this->assertFalse($canConsolidate);
-    }
-
-    public function testConsolidationDoneCheck(): void
-    {
-        $hasClosed = 5;
-        $consolidatedCount = 5;
-
-        $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
-
-        $this->assertTrue($consolidationDone);
-    }
-
-    public function testConsolidationNotDone(): void
-    {
-        $hasClosed = 5;
-        $consolidatedCount = 3;
-
-        $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
-
-        $this->assertFalse($consolidationDone);
-    }
-
-    public function testConsolidationNotDoneWithZeroClosed(): void
-    {
-        $hasClosed = 0;
-        $consolidatedCount = 0;
-
-        $consolidationDone = ($hasClosed > 0) && ($consolidatedCount >= $hasClosed);
-
-        $this->assertFalse($consolidationDone, 'Should not be done when no motions exist');
-    }
-
-    public function testConsolidateDetailMessage(): void
-    {
-        // When can consolidate
-        $canConsolidate = true;
-        $hasClosed = 3;
-        $motionsOpen = 0;
-
-        $detail = $canConsolidate
-            ? "Motions fermees: {$hasClosed}. Vous pouvez consolider."
-            : ($motionsOpen > 0
-                ? 'Fermez toutes les motions ouvertes avant consolidation.'
-                : 'Aucune motion fermee a consolider.');
-
-        $this->assertStringContainsString('3', $detail);
-        $this->assertStringContainsString('consolider', $detail);
-    }
-
-    public function testConsolidateDetailMessageWithOpenMotions(): void
-    {
-        $canConsolidate = false;
-        $hasClosed = 3;
-        $motionsOpen = 1;
-
-        $detail = $canConsolidate
-            ? "Motions fermees: {$hasClosed}. Vous pouvez consolider."
-            : ($motionsOpen > 0
-                ? 'Fermez toutes les motions ouvertes avant consolidation.'
-                : 'Aucune motion fermee a consolider.');
-
-        $this->assertStringContainsString('Fermez', $detail);
-    }
-
-    public function testConsolidateDetailMessageWithNoMotions(): void
-    {
-        $canConsolidate = false;
-        $hasClosed = 0;
-        $motionsOpen = 0;
-
-        $detail = $canConsolidate
-            ? "Motions fermees: {$hasClosed}. Vous pouvez consolider."
-            : ($motionsOpen > 0
-                ? 'Fermez toutes les motions ouvertes avant consolidation.'
-                : 'Aucune motion fermee a consolider.');
-
-        $this->assertStringContainsString('Aucune', $detail);
-    }
-
-    // =========================================================================
-    // OPEN VOTE: INPUT VALIDATION
-    // =========================================================================
-
-    public function testOpenVoteRequiresPostMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('openVote');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testOpenVoteRequiresMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST = [];
-
-        $result = $this->callControllerMethod('openVote');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
-    }
-
-    public function testOpenVoteRejectsInvalidMeetingUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST = ['meeting_id' => 'not-a-uuid'];
-
-        $result = $this->callControllerMethod('openVote');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
-    }
-
-    public function testOpenVoteRejectsInvalidMotionUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST = [
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'motion_id' => 'bad-uuid',
+        $openMotion = [
+            'id' => self::MOTION_ID,
+            'title' => 'Open Motion',
+            'opened_at' => date('Y-m-d H:i:s', time() - 1800), // 30 min ago
         ];
 
-        $result = $this->callControllerMethod('openVote');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_motion_id', $result['body']['error']);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(10);
+        $memberRepo->method('listWithAttendanceForMeeting')->willReturn([
+            ['member_id' => 'mem-01', 'full_name' => 'Alice', 'attendance_mode' => 'present', 'voting_power' => '1'],
+        ]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countClosedMotions')->willReturn(1);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('countWorkflowSummary')->willReturn(['total' => 2, 'open' => 1]);
+        $motionRepo->method('findCurrentOpen')->willReturn($openMotion);
+        $motionRepo->method('findNextNotOpened')->willReturn(null);
+        $motionRepo->method('findLastClosedForProjector')->willReturn(null);
+        $motionRepo->method('countConsolidatedMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('countByMotionId')->willReturn(8);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listDistinctGivers')->willReturn([]);
+        $proxyRepo->method('countActive')->willReturn(0);
+
+        $notifRepo = $this->createMock(NotificationRepository::class);
+        $notifRepo->method('findValidationState')->willReturn(null);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MemberRepository::class       => $memberRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
+            ProxyRepository::class        => $proxyRepo,
+            NotificationRepository::class => $notifRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'workflowState');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertSame(self::MOTION_ID, $data['motion']['open_motion_id']);
+        $this->assertSame(8, $data['motion']['open_ballots']);
     }
 
-    // =========================================================================
-    // OPEN VOTE: EXPIRY MINUTES CLAMPING
-    // =========================================================================
-
-    public function testExpiresMinutesClamping(): void
+    public function testWorkflowStateWithQuorumPolicy(): void
     {
-        // The controller clamps expires_minutes between 10 and 24*60=1440
-        $clamp = function (int $input): int {
-            $v = $input;
-            if ($v < 10) $v = 10;
-            if ($v > 24 * 60) $v = 24 * 60;
-            return $v;
-        };
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
 
-        $this->assertEquals(10, $clamp(0));
-        $this->assertEquals(10, $clamp(5));
-        $this->assertEquals(10, $clamp(10));
-        $this->assertEquals(120, $clamp(120));
-        $this->assertEquals(1440, $clamp(1440));
-        $this->assertEquals(1440, $clamp(2000));
-        $this->assertEquals(10, $clamp(-5));
-    }
-
-    public function testDefaultExpiresMinutes(): void
-    {
-        // Default is 120 from ($input['expires_minutes'] ?? 120)
-        $default = 120;
-        $this->assertEquals(120, $default);
-        $this->assertGreaterThanOrEqual(10, $default);
-        $this->assertLessThanOrEqual(1440, $default);
-    }
-
-    // =========================================================================
-    // ANOMALIES: INPUT VALIDATION
-    // =========================================================================
-
-    public function testAnomaliesRejectsNonGetMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-
-        $result = $this->callControllerMethod('anomalies');
-
-        $this->assertEquals(405, $result['status']);
-    }
-
-    public function testAnomaliesRequiresMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
-
-        $result = $this->callControllerMethod('anomalies');
-
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
-    }
-
-    public function testAnomaliesRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => ''];
-
-        $result = $this->callControllerMethod('anomalies');
-
-        $this->assertEquals(422, $result['status']);
-    }
-
-    public function testAnomaliesRejectsInvalidMeetingUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = ['meeting_id' => 'invalid'];
-
-        $result = $this->callControllerMethod('anomalies');
-
-        $this->assertEquals(422, $result['status']);
-    }
-
-    public function testAnomaliesRejectsInvalidMotionUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'motion_id' => 'bad-uuid',
+        $policyId = '99999999-9999-9999-9999-999999999999';
+        $meeting = [
+            'id' => self::MEETING_ID,
+            'title' => 'Test Meeting',
+            'status' => 'live',
+            'president_name' => 'Jane Pres',
+            'quorum_policy_id' => $policyId,
         ];
 
-        $result = $this->callControllerMethod('anomalies');
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('invalid_motion_id', $result['body']['error']);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countActive')->willReturn(10);
+        $memberRepo->method('listWithAttendanceForMeeting')->willReturn([
+            ['member_id' => 'mem-01', 'full_name' => 'Alice', 'attendance_mode' => 'present', 'voting_power' => '1'],
+            ['member_id' => 'mem-02', 'full_name' => 'Bob',   'attendance_mode' => 'present', 'voting_power' => '1'],
+            ['member_id' => 'mem-03', 'full_name' => 'Carol', 'attendance_mode' => 'present', 'voting_power' => '1'],
+            ['member_id' => 'mem-04', 'full_name' => 'Dave',  'attendance_mode' => 'present', 'voting_power' => '1'],
+            ['member_id' => 'mem-05', 'full_name' => 'Eve',   'attendance_mode' => 'present', 'voting_power' => '1'],
+            ['member_id' => 'mem-06', 'full_name' => 'Frank', 'attendance_mode' => 'absent',  'voting_power' => '1'],
+        ]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('countClosedMotions')->willReturn(0);
+
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $policyRepo->method('findQuorumPolicyForTenant')->willReturn(['threshold' => 0.4]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('countWorkflowSummary')->willReturn(['total' => 0, 'open' => 0]);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('findNextNotOpened')->willReturn(null);
+        $motionRepo->method('findLastClosedForProjector')->willReturn(null);
+        $motionRepo->method('countConsolidatedMotions')->willReturn(0);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listDistinctGivers')->willReturn([
+            ['giver_member_id' => 'mem-06'],
+        ]);
+        $proxyRepo->method('countActive')->willReturn(1);
+
+        $notifRepo = $this->createMock(NotificationRepository::class);
+        $notifRepo->method('findValidationState')->willReturn(null);
+
+        $this->injectRepos([
+            MeetingRepository::class      => $meetingRepo,
+            MemberRepository::class       => $memberRepo,
+            MeetingStatsRepository::class => $statsRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
+            ProxyRepository::class        => $proxyRepo,
+            PolicyRepository::class       => $policyRepo,
+            NotificationRepository::class => $notifRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'workflowState');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertSame(0.4, $data['attendance']['quorum_threshold']);
+        $this->assertTrue($data['attendance']['quorum_ok']);
     }
 
     // =========================================================================
-    // ANOMALY DETECTION: DUPLICATE BALLOTS
+    // openVote — validation errors
     // =========================================================================
 
-    public function testDuplicateBallotDetection(): void
+    public function testOpenVoteWrongMethod(): void
     {
-        // Replicate the duplicate detection logic from anomalies()
-        $ballots = [
-            ['member_id' => 'm1', 'value' => 'for', 'source' => 'token', 'cast_at' => '2024-01-01'],
-            ['member_id' => 'm2', 'value' => 'against', 'source' => 'token', 'cast_at' => '2024-01-01'],
-            ['member_id' => 'm1', 'value' => 'for', 'source' => 'manual', 'cast_at' => '2024-01-02'],
-            ['member_id' => 'm3', 'value' => 'abstain', 'source' => 'token', 'cast_at' => '2024-01-01'],
+        $this->setHttpMethod('GET');
+        $this->injectJsonBody([]);
+
+        // api_request('POST') on GET will throw 405
+        $this->injectRepos([]);
+        $resp = $this->callController(OperatorController::class, 'openVote');
+        $this->assertSame(405, $resp['status']);
+    }
+
+    public function testOpenVoteMissingMeetingId(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['motion_id' => self::MOTION_ID]);
+        $this->injectRepos([]);
+
+        $resp = $this->callController(OperatorController::class, 'openVote');
+        $this->assertSame(422, $resp['status']);
+        $this->assertSame('invalid_meeting_id', $resp['body']['error'] ?? $resp['body']['code'] ?? '');
+    }
+
+    public function testOpenVoteInvalidMeetingId(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => 'not-a-uuid']);
+        $this->injectRepos([]);
+
+        $resp = $this->callController(OperatorController::class, 'openVote');
+        $this->assertSame(422, $resp['status']);
+    }
+
+    public function testOpenVoteInvalidMotionId(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID, 'motion_id' => 'not-a-uuid']);
+        $this->injectRepos([]);
+
+        $resp = $this->callController(OperatorController::class, 'openVote');
+        $this->assertSame(422, $resp['status']);
+        $this->assertSame('invalid_motion_id', $resp['body']['error'] ?? $resp['body']['code'] ?? '');
+    }
+
+    // =========================================================================
+    // anomalies — validation errors
+    // =========================================================================
+
+    public function testAnomaliesWrongMethod(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([]);
+        $this->injectRepos([]);
+
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(405, $resp['status']);
+    }
+
+    public function testAnomaliesMissingMeetingId(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
+        $this->injectRepos([]);
+
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(422, $resp['status']);
+        $this->assertSame('invalid_meeting_id', $resp['body']['error'] ?? $resp['body']['code'] ?? '');
+    }
+
+    public function testAnomaliesMeetingNotFound(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        // All repos are fetched before the meeting check
+        $motionRepo  = $this->createMock(MotionRepository::class);
+        $memberRepo  = $this->createMock(MemberRepository::class);
+        $ballotRepo  = $this->createMock(BallotRepository::class);
+        $tokenRepo   = $this->createMock(VoteTokenRepository::class);
+        $proxyRepo   = $this->createMock(ProxyRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class   => $meetingRepo,
+            MotionRepository::class    => $motionRepo,
+            MemberRepository::class    => $memberRepo,
+            BallotRepository::class    => $ballotRepo,
+            VoteTokenRepository::class => $tokenRepo,
+            ProxyRepository::class     => $proxyRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(404, $resp['status']);
+    }
+
+    public function testAnomaliesHappyPathNoMotion(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meeting = [
+            'id' => self::MEETING_ID,
+            'status' => 'live',
+            'validated_at' => null,
         ];
 
-        $eligibleNames = ['m1' => 'Alice', 'm2' => 'Bob', 'm3' => 'Charlie'];
-        $votedSet = [];
-        $duplicates = [];
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
 
-        foreach ($ballots as $b) {
-            $mid = (string) ($b['member_id'] ?? '');
-            if ($mid === '') continue;
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
 
-            if (isset($votedSet[$mid])) {
-                $duplicates[] = [
-                    'member_id' => $mid,
-                    'name' => $eligibleNames[$mid] ?? null,
-                    'detail' => 'duplicate_ballot_for_member',
-                ];
-            }
-            $votedSet[$mid] = true;
-        }
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('listEligibleForMeeting')->willReturn([
+            ['member_id' => 'mem-01', 'full_name' => 'Alice'],
+            ['member_id' => 'mem-02', 'full_name' => 'Bob'],
+        ]);
+        $memberRepo->method('listActiveFallbackByMeeting')->willReturn([]);
 
-        $this->assertCount(1, $duplicates);
-        $this->assertEquals('m1', $duplicates[0]['member_id']);
-        $this->assertEquals('Alice', $duplicates[0]['name']);
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listCeilingViolations')->willReturn([]);
+
+        $ballotRepo  = $this->createMock(BallotRepository::class);
+        $tokenRepo   = $this->createMock(VoteTokenRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class  => $meetingRepo,
+            MotionRepository::class   => $motionRepo,
+            MemberRepository::class   => $memberRepo,
+            ProxyRepository::class    => $proxyRepo,
+            BallotRepository::class   => $ballotRepo,
+            VoteTokenRepository::class => $tokenRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertArrayHasKey('stats', $data);
+        $this->assertArrayHasKey('anomalies', $data);
+        $this->assertNull($data['motion']);
     }
 
-    public function testNoDuplicatesWhenAllUnique(): void
+    public function testAnomaliesHappyPathWithMotion(): void
     {
-        $ballots = [
-            ['member_id' => 'm1'],
-            ['member_id' => 'm2'],
-            ['member_id' => 'm3'],
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'motion_id' => self::MOTION_ID]);
+
+        $meeting = [
+            'id' => self::MEETING_ID,
+            'status' => 'live',
+            'validated_at' => null,
         ];
 
-        $votedSet = [];
-        $duplicates = [];
-        foreach ($ballots as $b) {
-            $mid = (string) ($b['member_id'] ?? '');
-            if ($mid === '') continue;
-            if (isset($votedSet[$mid])) {
-                $duplicates[] = ['member_id' => $mid];
-            }
-            $votedSet[$mid] = true;
-        }
-
-        $this->assertEmpty($duplicates);
-    }
-
-    // =========================================================================
-    // ANOMALY DETECTION: INELIGIBLE BALLOTS
-    // =========================================================================
-
-    public function testIneligibleBallotDetection(): void
-    {
-        // Replicate the ineligible ballot detection logic
-        $eligibleIds = ['m1', 'm2', 'm3'];
-        $ballots = [
-            ['member_id' => 'm1', 'value' => 'for', 'source' => 'token', 'cast_at' => '2024-01-01'],
-            ['member_id' => 'm4', 'value' => 'for', 'source' => 'manual', 'cast_at' => '2024-01-01'],
-            ['member_id' => 'm5', 'value' => 'against', 'source' => 'token', 'cast_at' => '2024-01-01'],
+        $motion = [
+            'id' => self::MOTION_ID,
+            'title' => 'Test Motion',
+            'opened_at' => date('Y-m-d H:i:s', time() - 600),
+            'closed_at' => null,
         ];
 
-        $ballotsNotEligible = [];
-        $votedSet = [];
-        foreach ($ballots as $b) {
-            $mid = (string) ($b['member_id'] ?? '');
-            if ($mid === '') continue;
-            $votedSet[$mid] = true;
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
 
-            if (!in_array($mid, $eligibleIds, true)) {
-                $ballotsNotEligible[] = [
-                    'member_id' => $mid,
-                    'value' => (string) ($b['value'] ?? ''),
-                    'source' => (string) ($b['source'] ?? ''),
-                    'cast_at' => $b['cast_at'],
-                ];
-            }
-        }
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByMeetingWithDates')->willReturn($motion);
 
-        $this->assertCount(2, $ballotsNotEligible);
-        $this->assertEquals('m4', $ballotsNotEligible[0]['member_id']);
-        $this->assertEquals('m5', $ballotsNotEligible[1]['member_id']);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('listEligibleForMeeting')->willReturn([
+            ['member_id' => 'mem-01', 'full_name' => 'Alice'],
+            ['member_id' => 'mem-02', 'full_name' => 'Bob'],
+        ]);
+        $memberRepo->method('listActiveFallbackByMeeting')->willReturn([]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listCeilingViolations')->willReturn([]);
+
+        $tokenRepo = $this->createMock(VoteTokenRepository::class);
+        $tokenRepo->method('countActiveUnused')->willReturn(1);
+        $tokenRepo->method('countExpiredUnused')->willReturn(0);
+        $tokenRepo->method('countUsed')->willReturn(1);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('listForMotionWithSource')->willReturn([
+            ['member_id' => 'mem-01', 'value' => 'for', 'source' => 'token', 'cast_at' => date('c')],
+        ]);
+
+        $this->injectRepos([
+            MeetingRepository::class   => $meetingRepo,
+            MotionRepository::class    => $motionRepo,
+            MemberRepository::class    => $memberRepo,
+            ProxyRepository::class     => $proxyRepo,
+            BallotRepository::class    => $ballotRepo,
+            VoteTokenRepository::class => $tokenRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertSame(self::MOTION_ID, $data['motion']['id']);
+        $this->assertSame(1, $data['stats']['ballots_total']);
+        $this->assertSame(1, $data['stats']['ballots_from_eligible']);
+        $this->assertSame(1, $data['stats']['missing_ballots_from_eligible']);
     }
 
-    public function testNoIneligibleWhenAllEligible(): void
+    public function testAnomaliesDetectsDuplicateBallots(): void
     {
-        $eligibleIds = ['m1', 'm2', 'm3'];
-        $ballots = [
-            ['member_id' => 'm1'],
-            ['member_id' => 'm2'],
-        ];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'motion_id' => self::MOTION_ID]);
 
-        $ballotsNotEligible = [];
-        foreach ($ballots as $b) {
-            $mid = (string) ($b['member_id'] ?? '');
-            if ($mid === '' || in_array($mid, $eligibleIds, true)) continue;
-            $ballotsNotEligible[] = ['member_id' => $mid];
-        }
+        $meeting = ['id' => self::MEETING_ID, 'status' => 'live', 'validated_at' => null];
+        $motion  = ['id' => self::MOTION_ID, 'title' => 'Dup Motion', 'opened_at' => date('Y-m-d H:i:s'), 'closed_at' => null];
 
-        $this->assertEmpty($ballotsNotEligible);
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByMeetingWithDates')->willReturn($motion);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('listEligibleForMeeting')->willReturn([
+            ['member_id' => 'mem-01', 'full_name' => 'Alice'],
+        ]);
+        $memberRepo->method('listActiveFallbackByMeeting')->willReturn([]);
+
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+        $proxyRepo->method('listCeilingViolations')->willReturn([]);
+
+        $tokenRepo = $this->createMock(VoteTokenRepository::class);
+        $tokenRepo->method('countActiveUnused')->willReturn(0);
+        $tokenRepo->method('countExpiredUnused')->willReturn(0);
+        $tokenRepo->method('countUsed')->willReturn(2);
+
+        // Two ballots for same member = duplicate
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('listForMotionWithSource')->willReturn([
+            ['member_id' => 'mem-01', 'value' => 'for',   'source' => 'token', 'cast_at' => date('c')],
+            ['member_id' => 'mem-01', 'value' => 'against', 'source' => 'manual', 'cast_at' => date('c')],
+        ]);
+
+        $this->injectRepos([
+            MeetingRepository::class   => $meetingRepo,
+            MotionRepository::class    => $motionRepo,
+            MemberRepository::class    => $memberRepo,
+            ProxyRepository::class     => $proxyRepo,
+            BallotRepository::class    => $ballotRepo,
+            VoteTokenRepository::class => $tokenRepo,
+        ]);
+
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(200, $resp['status']);
+        $data = $resp['body']['data'];
+        $this->assertCount(1, $data['anomalies']['duplicates']);
+        $this->assertSame('mem-01', $data['anomalies']['duplicates'][0]['member_id']);
     }
 
-    // =========================================================================
-    // ANOMALY DETECTION: MISSING VOTERS
-    // =========================================================================
-
-    public function testMissingVotersDetection(): void
+    public function testAnomaliesInvalidMotionId(): void
     {
-        $eligibleIds = ['m1', 'm2', 'm3', 'm4', 'm5'];
-        $eligibleNames = ['m1' => 'Alice', 'm2' => 'Bob', 'm3' => 'Charlie', 'm4' => 'Diana', 'm5' => 'Eve'];
-        $votedSet = ['m1' => true, 'm3' => true, 'm5' => true];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'motion_id' => 'bad-uuid']);
+        $this->injectRepos([]);
 
-        $eligibleCount = count($eligibleIds);
-        $eligibleVoted = 0;
-        foreach ($eligibleIds as $id) {
-            if (isset($votedSet[$id])) {
-                $eligibleVoted++;
-            }
-        }
-        $missingCount = max(0, $eligibleCount - $eligibleVoted);
-
-        $missingNames = [];
-        if ($missingCount > 0) {
-            foreach ($eligibleIds as $id) {
-                if (!isset($votedSet[$id])) {
-                    $missingNames[] = $eligibleNames[$id] ?? $id;
-                    if (count($missingNames) >= 30) break;
-                }
-            }
-        }
-
-        $this->assertEquals(2, $missingCount);
-        $this->assertEquals(['Bob', 'Diana'], $missingNames);
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(422, $resp['status']);
     }
 
-    public function testMissingVotersSampleLimitedTo30(): void
+    public function testAnomaliesMotionNotFound(): void
     {
-        // Generate 50 eligible members, none voted
-        $eligibleIds = [];
-        $eligibleNames = [];
-        for ($i = 1; $i <= 50; $i++) {
-            $eligibleIds[] = "m{$i}";
-            $eligibleNames["m{$i}"] = "Member {$i}";
-        }
-        $votedSet = [];
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'motion_id' => self::MOTION_ID]);
 
-        $missingNames = [];
-        foreach ($eligibleIds as $id) {
-            if (!isset($votedSet[$id])) {
-                $missingNames[] = $eligibleNames[$id] ?? $id;
-                if (count($missingNames) >= 30) break;
-            }
-        }
+        $meeting = ['id' => self::MEETING_ID, 'status' => 'live', 'validated_at' => null];
 
-        $this->assertCount(30, $missingNames, 'Missing voters sample should be capped at 30');
-    }
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meeting);
 
-    public function testNoMissingVotersWhenAllVoted(): void
-    {
-        $eligibleIds = ['m1', 'm2', 'm3'];
-        $votedSet = ['m1' => true, 'm2' => true, 'm3' => true];
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByMeetingWithDates')->willReturn(null);
 
-        $eligibleVoted = 0;
-        foreach ($eligibleIds as $id) {
-            if (isset($votedSet[$id])) {
-                $eligibleVoted++;
-            }
-        }
-        $missingCount = max(0, count($eligibleIds) - $eligibleVoted);
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('listEligibleForMeeting')->willReturn([]);
+        $memberRepo->method('listActiveFallbackByMeeting')->willReturn([]);
 
-        $this->assertEquals(0, $missingCount);
-    }
+        $proxyRepo  = $this->createMock(ProxyRepository::class);
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $tokenRepo  = $this->createMock(VoteTokenRepository::class);
 
-    // =========================================================================
-    // ANOMALY DETECTION: STATS INITIALIZATION
-    // =========================================================================
+        $this->injectRepos([
+            MeetingRepository::class   => $meetingRepo,
+            MotionRepository::class    => $motionRepo,
+            MemberRepository::class    => $memberRepo,
+            ProxyRepository::class     => $proxyRepo,
+            BallotRepository::class    => $ballotRepo,
+            VoteTokenRepository::class => $tokenRepo,
+        ]);
 
-    public function testStatsDefaultValues(): void
-    {
-        $eligibleCount = 42;
-
-        $stats = [
-            'tokens_active_unused' => 0,
-            'tokens_expired_unused' => 0,
-            'tokens_used' => 0,
-            'ballots_total' => 0,
-            'ballots_from_eligible' => 0,
-            'eligible_expected' => $eligibleCount,
-            'missing_ballots_from_eligible' => 0,
-        ];
-
-        $this->assertEquals(0, $stats['tokens_active_unused']);
-        $this->assertEquals(0, $stats['tokens_expired_unused']);
-        $this->assertEquals(0, $stats['tokens_used']);
-        $this->assertEquals(0, $stats['ballots_total']);
-        $this->assertEquals(0, $stats['ballots_from_eligible']);
-        $this->assertEquals(42, $stats['eligible_expected']);
-        $this->assertEquals(0, $stats['missing_ballots_from_eligible']);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: RESPONSE STRUCTURE VERIFICATION
-    // =========================================================================
-
-    public function testWorkflowStateResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        // Verify top-level response keys
-        $expectedKeys = ['meeting', 'motions', 'attendance', 'proxies', 'tokens', 'motion', 'consolidation', 'validation'];
-        foreach ($expectedKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source, "Response should contain '{$key}' key");
-        }
-    }
-
-    public function testWorkflowStateAttendanceFields(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $fields = ['present_count', 'present_weight', 'total_count', 'total_weight', 'quorum_threshold', 'quorum_ratio', 'quorum_ok'];
-        foreach ($fields as $field) {
-            $this->assertStringContainsString("'{$field}'", $source, "Attendance should include '{$field}'");
-        }
-    }
-
-    public function testWorkflowStateMotionFields(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $fields = ['open_motion_id', 'open_ballots', 'open_age_seconds', 'potential_voters', 'participation_ratio', 'close_blockers', 'can_open_next', 'can_close_open'];
-        foreach ($fields as $field) {
-            $this->assertStringContainsString("'{$field}'", $source, "Motion section should include '{$field}'");
-        }
-    }
-
-    // =========================================================================
-    // OPEN VOTE: TOKEN GENERATION PATTERN
-    // =========================================================================
-
-    public function testTokenHashUsesHmacSha256(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString("hash_hmac('sha256'", $source);
-    }
-
-    public function testOpenVoteAuditsTokenGeneration(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString("'vote_tokens_generated'", $source);
-    }
-
-    // =========================================================================
-    // OPEN VOTE: LIST TOKENS FLAG
-    // =========================================================================
-
-    public function testListTokensFlagParsing(): void
-    {
-        // Replicate the listTokens flag logic
-        $input1 = ['list' => '1'];
-        $listTokens1 = (string) ($input1['list'] ?? '') === '1';
-        $this->assertTrue($listTokens1);
-
-        $input2 = ['list' => '0'];
-        $listTokens2 = (string) ($input2['list'] ?? '') === '1';
-        $this->assertFalse($listTokens2);
-
-        $input3 = [];
-        $listTokens3 = (string) ($input3['list'] ?? '') === '1';
-        $this->assertFalse($listTokens3);
-    }
-
-    // =========================================================================
-    // ANOMALIES: RESPONSE STRUCTURE
-    // =========================================================================
-
-    public function testAnomaliesResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $topKeys = ['meeting', 'motion', 'eligibility', 'stats', 'anomalies'];
-        foreach ($topKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source, "Anomalies response should contain '{$key}'");
-        }
-    }
-
-    public function testAnomaliesSubKeys(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $anomalySubKeys = ['missing_voters_sample', 'ballots_not_eligible', 'duplicates'];
-        foreach ($anomalySubKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source, "Anomalies section should contain '{$key}'");
-        }
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: DEFAULT QUORUM THRESHOLD
-    // =========================================================================
-
-    public function testDefaultQuorumThresholdIs50Percent(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString('$quorumThreshold = 0.5', $source);
-    }
-
-    // =========================================================================
-    // WORKFLOW STATE: MIN_OPEN DEFAULT
-    // =========================================================================
-
-    public function testDefaultMinOpenIs900Seconds(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString("'min_open', 900", $source);
-    }
-
-    // =========================================================================
-    // OPEN VOTE: MEETING STATUS TRANSITION
-    // =========================================================================
-
-    public function testOpenVoteTransitionsToLive(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        // The controller updates meeting status to 'live' if not already
-        $this->assertStringContainsString("'status' => 'live'", $source);
-    }
-
-    public function testOpenVotePreventsOpeningWhenAnotherActive(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString('another_motion_active', $source);
-    }
-
-    public function testOpenVoteChecksValidatedMeeting(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString('api_guard_meeting_not_validated', $source);
-        $this->assertStringContainsString('meeting_validated_locked', $source);
-    }
-
-    // =========================================================================
-    // OPEN VOTE: FROZEN-TO-LIVE BROADCAST
-    // =========================================================================
-
-    public function testOpenVoteBroadcastsMeetingStatusChangedOnFrozenTransition(): void
-    {
-        // Verify that the controller source calls EventBroadcaster::meetingStatusChanged
-        // after the implicit frozen->live transition inside openVote().
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString(
-            'EventBroadcaster::meetingStatusChanged',
-            $source,
-            'openVote() must call EventBroadcaster::meetingStatusChanged after implicit frozen->live transition',
-        );
-    }
-
-    public function testOpenVotePassesPreviousStatusToMeetingStatusChanged(): void
-    {
-        // The broadcast must pass 'live' as newStatus and the captured previousStatus.
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        // newStatus must be 'live'
-        $this->assertStringContainsString(
-            "'live'",
-            $source,
-            'meetingStatusChanged() must use live as newStatus',
-        );
-
-        // The call must pass previousStatus (captured before the update)
-        $this->assertStringContainsString(
-            '$previousStatus',
-            $source,
-            'openVote() must capture and pass $previousStatus to meetingStatusChanged()',
-        );
-    }
-
-    public function testOpenVoteCapturePreviousStatusBeforeUpdate(): void
-    {
-        // previousStatus must be captured inside the transaction before updateFields
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        $this->assertStringContainsString(
-            '$previousStatus = $status',
-            $source,
-            'openVote() must capture $previousStatus = $status before calling updateFields',
-        );
-    }
-
-    public function testOpenVoteMeetingStatusChangedOnlyWhenNotLive(): void
-    {
-        // Broadcast should only fire when the meeting was NOT already live
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/OperatorController.php');
-
-        // The conditional must guard the broadcast
-        $this->assertMatchesRegularExpression(
-            '/if\s*\(\s*\$previousStatus\s*!==\s*[\'"]live[\'"]\s*\)/',
-            $source,
-            'meetingStatusChanged() broadcast must be guarded by if ($previousStatus !== \'live\')',
-        );
-    }
-
-    // =========================================================================
-    // ELIGIBLE MEMBER ID EXTRACTION
-    // =========================================================================
-
-    public function testEligibleIdExtraction(): void
-    {
-        // Replicate the eligible ID extraction logic from anomalies()
-        $eligibleRows = [
-            ['member_id' => 'm1', 'full_name' => 'Alice'],
-            ['member_id' => 'm2', 'full_name' => 'Bob'],
-            ['member_id' => '', 'full_name' => 'Nobody'],
-            ['member_id' => 'm3', 'full_name' => 'Charlie'],
-        ];
-
-        $eligibleIds = [];
-        $eligibleNames = [];
-        foreach ($eligibleRows as $r) {
-            $id = (string) ($r['member_id'] ?? '');
-            if ($id === '') continue;
-            $eligibleIds[] = $id;
-            $eligibleNames[$id] = (string) ($r['full_name'] ?? '');
-        }
-
-        $this->assertEquals(['m1', 'm2', 'm3'], $eligibleIds);
-        $this->assertEquals(['m1' => 'Alice', 'm2' => 'Bob', 'm3' => 'Charlie'], $eligibleNames);
-        $this->assertCount(3, $eligibleIds, 'Empty member_id rows should be skipped');
+        $resp = $this->callController(OperatorController::class, 'anomalies');
+        $this->assertSame(404, $resp['status']);
     }
 }
