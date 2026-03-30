@@ -9,7 +9,8 @@
 - ✅ **v4.1 Design Excellence** - Phases 30-34 (shipped 2026-03-19)
 - ✅ **v4.2 Visual Redesign** - Phases 35-41.5 (shipped 2026-03-20)
 - ✅ **v4.3 Ground-Up Rebuild** - Phases 42-48 (shipped 2026-03-22)
-- 🚧 **v4.4 Complete Rebuild** - Phases 49-51 (in progress)
+- ✅ **v4.4 Complete Rebuild** - Phases 49-51 (shipped 2026-03-30)
+- 🚧 **v5.0 Quality & Production Readiness** - Phases 52-57 (in progress)
 
 ---
 
@@ -48,79 +49,127 @@
 
 ---
 
-## 🚧 v4.4 Complete Rebuild (In Progress)
+## ✅ v4.4 Complete Rebuild (Shipped: 2026-03-30)
 
-**Milestone Goal:** Ground-up rebuild of all remaining pages (13 pages not rebuilt in v4.3) to the same top 1% quality standard — HTML+CSS+JS from scratch, backend wiring verified, browser tested.
+<details>
+<summary>3 phases, 10 plans — postsession, analytics, meetings, archives, audit, members, users, vote, help, email-templates, public, report, trust/validate/docs rebuilt</summary>
 
-**Approach:** Same as v4.3 — read existing JS first, rewrite HTML+CSS from scratch, update JS for new DOM, verify all API connections, browser test before marking done. No mock data. No dead endpoints.
+**Milestone Goal:** Ground-up rebuild of all remaining 13 pages to v4.3 quality standard — HTML+CSS+JS from scratch, backend wiring verified, browser tested.
 
-**Target pages:**
-- Secondary: postsession, analytics, meetings, archives, audit, members, users, vote/ballot
-- Utility: help, email-templates, public/projector, report/PV, trust/validate/docs
+### Phases
 
-## Phases
+- [x] **Phase 49: Secondary Pages Part 1** - Ground-up rebuild of postsession, analytics, meetings, archives (completed 2026-03-30)
+- [x] **Phase 50: Secondary Pages Part 2** - Ground-up rebuild of audit, members, users, vote/ballot (completed 2026-03-30)
+- [x] **Phase 51: Utility Pages** - Ground-up rebuild of help, email-templates, public, report/PV, trust/validate/docs (completed 2026-03-30)
 
-- [x] **Phase 49: Secondary Pages Part 1** - Ground-up rebuild of postsession, analytics, meetings, archives — all API connections verified (completed 2026-03-30)
-- [x] **Phase 50: Secondary Pages Part 2** - Ground-up rebuild of audit, members, users, vote/ballot — all API connections verified (completed 2026-03-30)
-- [x] **Phase 51: Utility Pages** - Ground-up rebuild of help, email-templates, public, report/PV, trust/validate/docs — print and projection layouts verified (completed 2026-03-30)
-
-## Phase Details
-
-### Phase 49: Secondary Pages Part 1
-**Goal**: Postsession, analytics, meetings list, and archives are fully rebuilt — each page has new HTML+CSS+JS from scratch, no legacy structure remaining, all data connections live
-**Depends on**: Phase 48 (v4.3 complete)
-**Requirements**: REB-01, REB-02, REB-03, REB-04, WIRE-01, WIRE-02
-**Success Criteria** (what must be TRUE):
-  1. The post-session stepper advances through all 4 steps (results, consolidation, PV PDF, archival) and each step triggers the correct backend operation — no dead buttons
-  2. The analytics page displays real statistics (vote counts, participation rates, trends) fetched from the backend — chart area and KPI grid render with live data
-  3. The meetings list renders session cards with correct status badges and filters — a user can filter by status and navigate to any session
-  4. The archives table has a sticky header, working search, and pagination — a user can find a past session and reach its detail view
-  5. No JS console errors on any of the 4 pages; all form submissions (PV generation, archival confirmation) persist data correctly
-**Plans**: 3 plans
-Plans:
-- [ ] 49-01-PLAN.md — Postsession page ground-up rebuild (HTML+CSS+JS wiring)
-- [ ] 49-02-PLAN.md — Analytics page ground-up rebuild (HTML+CSS+JS wiring)
-- [ ] 49-03-PLAN.md — Meetings + Archives pages ground-up rebuild (HTML+CSS+JS wiring)
-
-### Phase 50: Secondary Pages Part 2
-**Goal**: Audit log, members management, users management, and vote/ballot are fully rebuilt — CRUD operations functional, CSV exports working, ballot flow end-to-end verified
-**Depends on**: Phase 49
-**Requirements**: REB-05, REB-06, REB-07, REB-08, WIRE-01, WIRE-02
-**Success Criteria** (what must be TRUE):
-  1. The audit log displays events in both timeline and table view, and the CSV export downloads a valid file containing the displayed records
-  2. The members page supports card and table view toggle, CSV import creates real member records, and role assignment persists after page reload
-  3. The users table loads with pagination, and an admin can create, edit, and deactivate a user — changes reflect immediately without a full page reload
-  4. A voter on the ballot page can read the motion, cast a vote, receive optimistic feedback within 50ms, and view the PDF resolution document — the vote is recorded in the database
-  5. No JS console errors on any of the 4 pages; all API connections point to real endpoints with no mock data
-**Plans**: 4 plans
-Plans:
-- [ ] 50-01-PLAN.md — Audit page ground-up rebuild (timeline+table views, CSV export, detail modal)
-- [ ] 50-02-PLAN.md — Members page ground-up rebuild (card/table view, CSV import, groups, CRUD)
-- [ ] 50-03-PLAN.md — Users page ground-up rebuild (table CRUD, role filter, create/edit modal)
-- [ ] 50-04-PLAN.md — Vote/ballot page ground-up rebuild (full-screen ballot, confirmation, receipt)
-
-### Phase 51: Utility Pages
-**Goal**: Help/FAQ, email templates, public/projector display, report/PV, and trust/validate/docs are fully rebuilt — print layout correct, projection display optimized, all interactions functional
-**Depends on**: Phase 50
-**Requirements**: UTL-01, UTL-02, UTL-03, UTL-04, UTL-05, WIRE-01, WIRE-02
-**Success Criteria** (what must be TRUE):
-  1. The help/FAQ page renders all accordion sections with correct spacing and the search field filters visible FAQ items in real time — no JS errors
-  2. The email templates editor shows a live preview panel that updates as the user edits template content — saved templates persist after page reload
-  3. The public/projector display renders results in a projection-optimized layout at full screen — result cards are legible from a distance with large typography
-  4. The report/PV page renders a print-ready layout at 880px — triggering browser print produces a clean output with no navigation chrome or broken layouts
-  5. The trust/validate/docs pages display correct verification status fetched from the backend — no hardcoded or mock status values
-**Plans**: 3 plans
-Plans:
-- [ ] 51-01-PLAN.md — Help/FAQ + Email Templates rebuild (accordion, search, editor with preview)
-- [ ] 51-02-PLAN.md — Public/Projector + Report/PV rebuild (projection display, print layout, exports)
-- [ ] 51-03-PLAN.md — Trust + Validate + Docs rebuild (integrity dashboard, validation modal, docs viewer)
-
-## Progress
-
-**Execution Order:** 49 → 50 → 51
+### Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 49. Secondary Pages Part 1 | 3/3 | Complete    | 2026-03-30 |
-| 50. Secondary Pages Part 2 | 4/4 | Complete    | 2026-03-30 |
-| 51. Utility Pages | 3/3 | Complete    | 2026-03-30 |
+| 49. Secondary Pages Part 1 | 3/3 | Complete | 2026-03-30 |
+| 50. Secondary Pages Part 2 | 4/4 | Complete | 2026-03-30 |
+| 51. Utility Pages | 3/3 | Complete | 2026-03-30 |
+
+</details>
+
+---
+
+## 🚧 v5.0 Quality & Production Readiness (In Progress)
+
+**Milestone Goal:** Achieve 90%+ test coverage across all layers, fix infrastructure bugs, harden Docker/CI pipeline, and make AG-VOTE production-ready.
+
+**Approach:** Fix foundations first (migrations, Docker), then build test coverage bottom-up (unit tests → coverage tooling → E2E updates → CI wiring). Each phase delivers a verifiable quality gate.
+
+## Phases
+
+- [ ] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms
+- [ ] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services)
+- [ ] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController
+- [ ] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
+- [ ] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium
+- [ ] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions workflow
+
+## Phase Details
+
+### Phase 52: Infrastructure Foundations
+**Goal**: Docker runs correctly in all deployment scenarios and every migration file is clean PostgreSQL — no SQLite syntax, no runtime evaluation bugs
+**Depends on**: Nothing (first phase in milestone)
+**Requirements**: MIG-01, MIG-02, MIG-03, DOC-01, DOC-02, DOC-03
+**Success Criteria** (what must be TRUE):
+  1. Running all migrations twice against a clean PostgreSQL instance produces zero errors — no duplicate table or column creation failures
+  2. The Docker healthcheck correctly reads PORT at container runtime, not at image build time — changing PORT via environment variable takes effect without rebuilding the image
+  3. The health endpoint at `/health` returns a JSON object containing `database`, `redis`, and `filesystem` status fields with valid values
+  4. A migration dry-run script exists that can be invoked to validate all `.sql` files against a fresh PostgreSQL database, reporting any incompatible syntax
+  5. Zero occurrences of SQLite-specific syntax (`AUTOINCREMENT`, `datetime('now')`, `INTEGER PRIMARY KEY`) remain in any migration file
+**Plans**: TBD
+
+### Phase 53: Service Unit Tests Batch 1
+**Goal**: The five most business-critical services — QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService — have comprehensive unit tests covering happy paths, edge cases, and error conditions
+**Depends on**: Phase 52
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
+**Success Criteria** (what must be TRUE):
+  1. `vendor/bin/phpunit --filter QuorumEngineTest` passes with tests covering quorum calculation, threshold boundary conditions, and missing-attendance edge cases
+  2. `vendor/bin/phpunit --filter VoteEngineTest` passes with tests covering simple majority, absolute majority, weighted votes, and tie-breaking logic
+  3. `vendor/bin/phpunit --filter ImportServiceTest` passes with tests covering valid CSV import, malformed rows, duplicate detection, and encoding edge cases
+  4. `vendor/bin/phpunit --filter MeetingValidatorTest` passes with tests covering all valid and invalid meeting state transitions
+  5. `vendor/bin/phpunit --filter NotificationsServiceTest` passes with tests covering notification creation, delivery dispatch, and failure handling
+**Plans**: TBD
+
+### Phase 54: Service Unit Tests Batch 2
+**Goal**: The remaining five services and the ResolutionDocumentController have unit tests — completing full service-layer coverage
+**Depends on**: Phase 53
+**Requirements**: TEST-06, TEST-07, TEST-08, TEST-09, TEST-10
+**Success Criteria** (what must be TRUE):
+  1. `vendor/bin/phpunit --filter EmailTemplateServiceTest` passes with tests covering template rendering, variable substitution, and missing-variable fallback behavior
+  2. `vendor/bin/phpunit --filter SpeechServiceTest` passes with tests covering speech queue ordering, insertion, removal, and empty-queue edge cases
+  3. `vendor/bin/phpunit --filter MonitoringServiceTest` passes with tests covering health check responses for each subsystem (database, redis, filesystem)
+  4. `vendor/bin/phpunit --filter ErrorDictionaryTest` passes with tests covering known error code lookup, unknown code fallback, and message formatting with parameters
+  5. `vendor/bin/phpunit --filter ResolutionDocumentControllerTest` passes with tests covering upload validation, file serving with auth check, and delete authorization
+**Plans**: TBD
+
+### Phase 55: Coverage Target & Tooling
+**Goal**: Code coverage measurement is operational and the codebase meets 90%+ coverage on Services and Controllers — the gap between current state and target is closed
+**Depends on**: Phase 54
+**Requirements**: COV-01, COV-02, COV-03
+**Success Criteria** (what must be TRUE):
+  1. Running `vendor/bin/phpunit --coverage-html coverage/` generates an HTML report without errors — the report is readable in a browser
+  2. The coverage report shows 90%+ line coverage for the `app/Services/` directory
+  3. The coverage report shows 90%+ line coverage for the `app/Controller/` directory
+  4. A PHPUnit configuration (phpunit.xml) enforces the 90% threshold — running the suite below threshold exits with a non-zero code
+**Plans**: TBD
+
+### Phase 56: E2E Test Updates
+**Goal**: All Playwright specs reflect the v4.3/v4.4 page rebuilds — every spec uses current selectors and passes on Chromium against the running Docker stack
+**Depends on**: Phase 52
+**Requirements**: E2E-01, E2E-02, E2E-03, E2E-04, E2E-05, E2E-06
+**Success Criteria** (what must be TRUE):
+  1. `npx playwright test --project=chromium` runs all 18 specs to completion with zero failures — no stale selector errors, no timeout failures from missing elements
+  2. The auth spec successfully logs in using `#email`, `#password`, `#submitBtn` and toggles password visibility via `.field-eye` — matching the v4.3 login page DOM
+  3. The audit-regression spec correctly targets the v4.4 audit page structure — filter tabs, timeline view, and table view are all exercised without selector errors
+  4. The vote spec selects choices using French `data-choice` attribute values and interacts with the v4.4 ballot layout — the vote is submitted and confirmed without errors
+  5. Mobile viewport specs for the vote/ballot page pass on both `tablet` and `mobile-chrome` Playwright projects — no layout overflow or touch target failures
+**Plans**: TBD
+
+### Phase 57: CI/CD Pipeline
+**Goal**: Every quality gate runs automatically on every push — coverage, E2E, migration validation, and integration tests are all enforced in GitHub Actions
+**Depends on**: Phase 55, Phase 56
+**Requirements**: CI-01, CI-02, CI-03, CI-04
+**Success Criteria** (what must be TRUE):
+  1. A GitHub Actions workflow runs Playwright E2E tests after a successful Docker build — the workflow fails and reports spec-level errors if any E2E test fails
+  2. The CI workflow runs PHPUnit with coverage and fails the build if coverage drops below 90% on Services or Controllers — the failure message names the threshold breached
+  3. The CI workflow runs a migration validation step that checks all `.sql` files for PostgreSQL compatibility — a file containing SQLite syntax causes the step to fail with the offending filename
+  4. Integration tests run against a containerized PostgreSQL + Redis stack in CI — tests exercise real database and cache connections, not mocks
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:** 52 → 53 → 54 → 55 → 56 → 57 (56 can run in parallel with 53-55 after 52)
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 52. Infrastructure Foundations | v5.0 | 0/? | Not started | - |
+| 53. Service Unit Tests Batch 1 | v5.0 | 0/? | Not started | - |
+| 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
+| 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |
+| 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
+| 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |

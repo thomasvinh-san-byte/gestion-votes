@@ -79,41 +79,41 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
-| TEST-04 | — | Pending |
-| TEST-05 | — | Pending |
-| TEST-06 | — | Pending |
-| TEST-07 | — | Pending |
-| TEST-08 | — | Pending |
-| TEST-09 | — | Pending |
-| TEST-10 | — | Pending |
-| COV-01 | — | Pending |
-| COV-02 | — | Pending |
-| COV-03 | — | Pending |
-| E2E-01 | — | Pending |
-| E2E-02 | — | Pending |
-| E2E-03 | — | Pending |
-| E2E-04 | — | Pending |
-| E2E-05 | — | Pending |
-| E2E-06 | — | Pending |
-| CI-01 | — | Pending |
-| CI-02 | — | Pending |
-| CI-03 | — | Pending |
-| CI-04 | — | Pending |
-| MIG-01 | — | Pending |
-| MIG-02 | — | Pending |
-| MIG-03 | — | Pending |
-| DOC-01 | — | Pending |
-| DOC-02 | — | Pending |
-| DOC-03 | — | Pending |
+| TEST-01 | Phase 53 | Pending |
+| TEST-02 | Phase 53 | Pending |
+| TEST-03 | Phase 53 | Pending |
+| TEST-04 | Phase 53 | Pending |
+| TEST-05 | Phase 53 | Pending |
+| TEST-06 | Phase 54 | Pending |
+| TEST-07 | Phase 54 | Pending |
+| TEST-08 | Phase 54 | Pending |
+| TEST-09 | Phase 54 | Pending |
+| TEST-10 | Phase 54 | Pending |
+| COV-01 | Phase 55 | Pending |
+| COV-02 | Phase 55 | Pending |
+| COV-03 | Phase 55 | Pending |
+| E2E-01 | Phase 56 | Pending |
+| E2E-02 | Phase 56 | Pending |
+| E2E-03 | Phase 56 | Pending |
+| E2E-04 | Phase 56 | Pending |
+| E2E-05 | Phase 56 | Pending |
+| E2E-06 | Phase 56 | Pending |
+| CI-01 | Phase 57 | Pending |
+| CI-02 | Phase 57 | Pending |
+| CI-03 | Phase 57 | Pending |
+| CI-04 | Phase 57 | Pending |
+| MIG-01 | Phase 52 | Pending |
+| MIG-02 | Phase 52 | Pending |
+| MIG-03 | Phase 52 | Pending |
+| DOC-01 | Phase 52 | Pending |
+| DOC-02 | Phase 52 | Pending |
+| DOC-03 | Phase 52 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after initial definition*
+*Last updated: 2026-03-30 — all 29 requirements mapped to phases 52-57*
