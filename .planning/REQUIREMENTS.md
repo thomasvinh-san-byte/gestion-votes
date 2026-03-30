@@ -1,64 +1,119 @@
-# Requirements: AG-VOTE v4.4 "Complete Rebuild"
+# Requirements: AG-VOTE v5.0
 
 **Defined:** 2026-03-30
-**Core Value:** Every page in the app is rebuilt to the same top 1% quality as the v4.3 critical pages
+**Core Value:** Self-hosted voting platform with legal compliance — production-ready with 90%+ test coverage
 
-## v4.4 Requirements
+## v5.0 Requirements
 
-### Secondary Page Rebuilds (REB)
+### Unit Tests — Services (TEST)
 
-- [x] **REB-01**: Post-session — complete HTML+CSS+JS rewrite, 4-step stepper functional, result cards with bar charts, PV generation wired
-- [x] **REB-02**: Analytics/Statistics — complete HTML+CSS+JS rewrite, chart area + KPI grid, proper responsive layout
-- [x] **REB-03**: Meetings list — complete HTML+CSS+JS rewrite, session cards with status badges, filters functional
-- [x] **REB-04**: Archives — complete HTML+CSS+JS rewrite, table with sticky header, pagination, search
-- [x] **REB-05**: Audit — complete HTML+CSS+JS rewrite, timeline view, table view, CSV export functional
-- [x] **REB-06**: Members — complete HTML+CSS+JS rewrite, card/table view, import CSV, role management
-- [x] **REB-07**: Users — complete HTML+CSS+JS rewrite, table with CRUD, role assignment, pagination
-- [x] **REB-08**: Vote/Ballot — complete HTML+CSS+JS rewrite, full-screen mobile ballot, optimistic feedback, PDF consultation
+- [ ] **TEST-01**: QuorumEngine has unit tests covering quorum calculation, threshold logic, and edge cases
+- [ ] **TEST-02**: VoteEngine has unit tests covering vote tallying, majority rules, and weighted votes
+- [ ] **TEST-03**: ImportService has unit tests covering CSV parsing, validation, and error handling
+- [ ] **TEST-04**: MeetingValidator has unit tests covering all meeting state transition rules
+- [ ] **TEST-05**: NotificationsService has unit tests covering notification creation and delivery logic
+- [ ] **TEST-06**: EmailTemplateService has unit tests covering template rendering and variable substitution
+- [ ] **TEST-07**: SpeechService has unit tests covering speech queue management and ordering
+- [ ] **TEST-08**: MonitoringService has unit tests covering health checks and metric collection
+- [ ] **TEST-09**: ErrorDictionary has unit tests covering error code lookup and message formatting
+- [ ] **TEST-10**: ResolutionDocumentController has unit tests covering upload, serve, and delete endpoints
 
-### Utility Page Rebuilds (UTL)
+### Coverage Target (COV)
 
-- [x] **UTL-01**: Help/FAQ — complete HTML+CSS rewrite, accordion with proper spacing, search
-- [x] **UTL-02**: Email templates — complete HTML+CSS+JS rewrite, editor with preview panel
-- [x] **UTL-03**: Public/Projector display — complete HTML+CSS rewrite, projection-optimized results
-- [x] **UTL-04**: Report/PV page — complete HTML+CSS rewrite, print-ready layout at 880px
-- [x] **UTL-05**: Trust/Validate/Docs — complete HTML+CSS rewrite, verification status display
+- [ ] **COV-01**: PHPUnit code coverage reaches 90%+ on app/Services/ directory
+- [ ] **COV-02**: PHPUnit code coverage reaches 90%+ on app/Controller/ directory
+- [ ] **COV-03**: Code coverage report generates in CI and fails build below 90% threshold
 
-### Backend Wiring (WIRE)
+### E2E Tests (E2E)
 
-- [x] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data
-- [x] **WIRE-02**: All form submissions verified — data persists correctly after page rebuild
+- [ ] **E2E-01**: All 18 Playwright specs updated with correct selectors matching v4.3/v4.4 rebuilt pages
+- [ ] **E2E-02**: auth.spec.js uses v4.3 login page selectors (#email, #password, #submitBtn, .field-eye)
+- [ ] **E2E-03**: audit-regression.spec.js updated for v4.4 audit page structure (filter tabs, timeline/table views)
+- [ ] **E2E-04**: vote.spec.js updated for French data-choice attributes and v4.4 ballot layout
+- [ ] **E2E-05**: All E2E specs pass against running Docker stack on chromium
+- [ ] **E2E-06**: Mobile viewport specs pass for vote/ballot page on tablet and mobile-chrome projects
 
-## v5+ Requirements (Deferred)
+### CI/CD Pipeline (CI)
 
-- **DEF-01**: AI-assisted PV minutes generation
-- **DEF-02**: ClamAV virus scanning for uploaded PDFs
-- **DEF-03**: Per-tenant motion templates in database
-- **DEF-04**: Electronic signature upload/validation
-- **DEF-05**: Votes pour collectivités territoriales
+- [ ] **CI-01**: Playwright E2E tests run in GitHub Actions workflow after Docker build
+- [ ] **CI-02**: Code coverage gate enforced in CI — build fails below 90% threshold
+- [ ] **CI-03**: Migration syntax validation step in CI — all .sql files checked for PostgreSQL compatibility
+- [ ] **CI-04**: Integration tests run post-Docker-build against containerized PostgreSQL + Redis
+
+### Infrastructure — Migrations (MIG)
+
+- [ ] **MIG-01**: All migration files audited — zero SQLite syntax (AUTOINCREMENT, datetime('now'), etc.)
+- [ ] **MIG-02**: Migration dry-run validation script exists and runs all migrations against clean PostgreSQL
+- [ ] **MIG-03**: Migration idempotency verified — running all migrations twice produces no errors
+
+### Infrastructure — Docker (DOC)
+
+- [ ] **DOC-01**: Docker healthcheck uses runtime PORT variable correctly (not build-time evaluation)
+- [ ] **DOC-02**: Entrypoint handles custom PORT with read-only filesystem gracefully (nginx config template or fallback)
+- [ ] **DOC-03**: Health endpoint returns structured JSON with database, redis, and filesystem check results
+
+## v6.0 Requirements
+
+### Performance & Monitoring
+
+- **PERF-01**: Load testing suite for SSE connections (100+ concurrent voters)
+- **PERF-02**: Database query performance benchmarks for large tenants (1000+ members)
+- **MON-01**: Prometheus metrics endpoint for production monitoring
+
+### Security Hardening
+
+- **SEC-01**: ClamAV virus scanning for uploaded PDFs
+- **SEC-02**: Rate limiting integration tests under concurrent load
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| New functionality | v4.4 is rebuild only — no new features |
-| Framework migration | Vanilla stack is the identity |
-| Pages already rebuilt in v4.3 | Dashboard, login, wizard, operator, hub, settings/admin already done |
-| Mobile app | PWA approach maintained |
+| New voting modes | Quality milestone — no new features |
+| UI changes | v4.4 rebuilt all pages — no visual work needed |
+| Mobile native app | PWA approach maintained |
+| AI-assisted PV generation | Deferred to feature milestone |
+| Electronic signatures | Deferred to feature milestone |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REB-01..REB-04 | Phase 49 | Pending |
-| REB-05..REB-08 | Phase 50 | Pending |
-| UTL-01..UTL-05 | Phase 51 | Pending |
-| WIRE-01..WIRE-02 | Phases 49-51 (distributed) | Pending |
+| TEST-01 | — | Pending |
+| TEST-02 | — | Pending |
+| TEST-03 | — | Pending |
+| TEST-04 | — | Pending |
+| TEST-05 | — | Pending |
+| TEST-06 | — | Pending |
+| TEST-07 | — | Pending |
+| TEST-08 | — | Pending |
+| TEST-09 | — | Pending |
+| TEST-10 | — | Pending |
+| COV-01 | — | Pending |
+| COV-02 | — | Pending |
+| COV-03 | — | Pending |
+| E2E-01 | — | Pending |
+| E2E-02 | — | Pending |
+| E2E-03 | — | Pending |
+| E2E-04 | — | Pending |
+| E2E-05 | — | Pending |
+| E2E-06 | — | Pending |
+| CI-01 | — | Pending |
+| CI-02 | — | Pending |
+| CI-03 | — | Pending |
+| CI-04 | — | Pending |
+| MIG-01 | — | Pending |
+| MIG-02 | — | Pending |
+| MIG-03 | — | Pending |
+| DOC-01 | — | Pending |
+| DOC-02 | — | Pending |
+| DOC-03 | — | Pending |
 
 **Coverage:**
-- v4.4 requirements: 15 total (REB:8, UTL:5, WIRE:2)
-- Mapped to phases: 15
-- Unmapped: 0 ✓
+- v5.0 requirements: 29 total
+- Mapped to phases: 0
+- Unmapped: 29 ⚠️
 
 ---
 *Requirements defined: 2026-03-30*
+*Last updated: 2026-03-30 after initial definition*
