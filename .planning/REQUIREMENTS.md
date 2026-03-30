@@ -42,9 +42,9 @@
 
 ### Infrastructure — Migrations (MIG)
 
-- [ ] **MIG-01**: All migration files audited — zero SQLite syntax (AUTOINCREMENT, datetime('now'), etc.)
-- [ ] **MIG-02**: Migration dry-run validation script exists and runs all migrations against clean PostgreSQL
-- [ ] **MIG-03**: Migration idempotency verified — running all migrations twice produces no errors
+- [x] **MIG-01**: All migration files audited — zero SQLite syntax (AUTOINCREMENT, datetime('now'), etc.)
+- [x] **MIG-02**: Migration dry-run validation script exists and runs all migrations against clean PostgreSQL
+- [x] **MIG-03**: Migration idempotency verified — running all migrations twice produces no errors
 
 ### Infrastructure — Docker (DOC)
 
@@ -102,9 +102,9 @@
 | CI-02 | Phase 57 | Pending |
 | CI-03 | Phase 57 | Pending |
 | CI-04 | Phase 57 | Pending |
-| MIG-01 | Phase 52 | Pending |
-| MIG-02 | Phase 52 | Pending |
-| MIG-03 | Phase 52 | Pending |
+| MIG-01 | Phase 52 | Complete |
+| MIG-02 | Phase 52 | Complete |
+| MIG-03 | Phase 52 | Complete |
 | DOC-01 | Phase 52 | Pending |
 | DOC-02 | Phase 52 | Pending |
 | DOC-03 | Phase 52 | Pending |

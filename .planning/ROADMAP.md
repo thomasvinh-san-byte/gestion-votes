@@ -82,7 +82,7 @@
 
 ## Phases
 
-- [ ] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms
+- [x] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms (completed 2026-03-30)
 - [ ] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services)
 - [ ] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController
 - [ ] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
@@ -101,7 +101,7 @@
   3. The health endpoint at `/health` returns a JSON object containing `database`, `redis`, and `filesystem` status fields with valid values
   4. A migration dry-run script exists that can be invoked to validate all `.sql` files against a fresh PostgreSQL database, reporting any incompatible syntax
   5. Zero occurrences of SQLite-specific syntax (`AUTOINCREMENT`, `datetime('now')`, `INTEGER PRIMARY KEY`) remain in any migration file
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 52-01-PLAN.md — Migration audit, dry-run script, idempotency verification
 - [ ] 52-02-PLAN.md — Docker healthcheck fix, nginx template, health endpoint enhancement
@@ -170,7 +170,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 52. Infrastructure Foundations | v5.0 | 0/2 | Planned | - |
+| 52. Infrastructure Foundations | 2/2 | Complete   | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | v5.0 | 0/? | Not started | - |
 | 54. Service Unit Tests Batch 2 | v5.0 | 0/? | Not started | - |
 | 55. Coverage Target & Tooling | v5.0 | 0/? | Not started | - |

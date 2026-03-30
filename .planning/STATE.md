@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
-status: Ready to plan
-stopped_at: Roadmap created — 6 phases defined (52-57), 29 requirements mapped
-last_updated: "2026-03-30T12:00:00.000Z"
-last_activity: 2026-03-30 — v5.0 roadmap created, phases 52-57 defined
+status: planning
+stopped_at: Completed 52-01-PLAN.md — migration audit + validate-migrations.sh
+last_updated: "2026-03-30T06:46:10.965Z"
+last_activity: 2026-03-30 — Roadmap created, all 29 requirements mapped to phases 52-57
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -44,6 +45,8 @@ Progress: [░░░░░░░░░░] 0%
 ### Decisions
 
 - [Roadmap] Phase 56 (E2E) depends only on Phase 52, not the unit test phases — can parallelize after infrastructure is fixed
+- [Phase 52-infrastructure-foundations]: Used SERIAL PRIMARY KEY (not GENERATED ALWAYS AS IDENTITY) for tenant_settings to match existing schema-master.sql style
+- [Phase 52-infrastructure-foundations]: Migration idempotency test uses stderr grep for ERROR/FATAL rather than exit code, tolerating NOTICE-level idempotent patterns
 
 ### Pending Todos
 
@@ -55,6 +58,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30
-Stopped at: Roadmap created — next action is `/gsd:plan-phase 52`
+Last session: 2026-03-30T06:46:10.962Z
+Stopped at: Completed 52-01-PLAN.md — migration audit + validate-migrations.sh
 Resume file: None
