@@ -1,9 +1,22 @@
 /**
- * users.css - Users management page styles for AG-VOTE.
+ * users.css — Users management page styles for AG-VOTE v4.4.
  *
- * Styles extracted from admin.css and extended for the standalone users page.
- * Uses design tokens throughout — no hardcoded colors.
+ * Ground-up rebuild with v4.3 design language.
+ * All values via design tokens — no hardcoded colors.
  */
+
+/* =============================================================================
+   PAGE LAYOUT
+   ============================================================================= */
+
+.users-page {
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1200px;
+  width: 100%;
+}
 
 /* =============================================================================
    HEADER ACTIONS
@@ -11,114 +24,233 @@
 
 .users-header-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 
 /* =============================================================================
-   ROLE DISTRIBUTION PANEL (USR-01)
+   ROLE DISTRIBUTION PANEL
    ============================================================================= */
 
 .role-distribution-panel {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
 }
 
 .role-dist-card {
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border-subtle, var(--color-border));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: var(--space-1);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-fast);
+}
+
+.role-dist-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.role-dist-card[data-role="admin"] {
+  border-left: 3px solid var(--color-accent);
+}
+
+.role-dist-card[data-role="operator"] {
+  border-left: 3px solid var(--color-success);
+}
+
+.role-dist-card[data-role="auditor"] {
+  border-left: 3px solid var(--color-purple, #7c3aed);
+}
+
+.role-dist-card[data-role="viewer"] {
+  border-left: 3px solid var(--color-border-strong, var(--color-border));
+}
+
+.role-dist-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.role-dist-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.role-dist-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
 }
 
 .role-dist-count {
   font-family: var(--font-mono);
   font-size: var(--text-2xl);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.1;
+  color: var(--color-text);
 }
 
 .role-dist-desc {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--color-text-muted);
+  line-height: 1.3;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .role-distribution-panel {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
+@media (max-width: 480px) {
+  .role-distribution-panel {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+  }
+}
+
 /* =============================================================================
-   FORM LAYOUT UTILITIES
+   TOOLBAR — SEARCH + FILTER TABS
    ============================================================================= */
 
-.form-group-search {
-  min-width: 200px;
+.users-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
-.form-group-filter {
-  min-width: 150px;
+.users-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Filter-tab pill buttons (replaces select dropdown) */
+/* Search field with icon */
+.users-search-wrap {
+  position: relative;
+  min-width: 220px;
+  max-width: 320px;
+  flex: 1;
+}
+
+.users-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.users-search-input {
+  width: 100%;
+  padding-left: 2.375rem;
+}
+
+/* Filter tabs pill bar */
 .filter-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  gap: 0.25rem;
   align-items: center;
 }
 
 .filter-tab {
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.75rem;
+  padding: 0.3rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   background: var(--color-surface);
   font-size: 0.8rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: color var(--duration-fast), background-color var(--duration-fast), border-color var(--duration-fast);
   white-space: nowrap;
+  line-height: 1;
 }
 
 .filter-tab:hover {
   border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .filter-tab.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-primary-text);
+  color: var(--color-primary-text, #fff);
 }
 
 .users-count {
-  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* =============================================================================
-   USERS LIST — ROW LAYOUT (USR-02)
+   USERS CARD + LIST
    ============================================================================= */
 
+.users-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* Column header row */
+.users-list-header {
+  display: grid;
+  grid-template-columns: 44px 1fr 110px 80px 110px 110px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-subtle, var(--color-surface-alt));
+  font-size: 0.72rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* User rows list */
 .users-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  background: var(--color-border);
 }
 
 .user-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px 1fr 110px 80px 110px 110px;
   align-items: center;
-  gap: 0.875rem;
+  gap: 0.75rem;
   padding: 0.625rem 1.25rem;
   background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
   transition: background var(--duration-fast);
+}
+
+.user-row:last-child {
+  border-bottom: none;
 }
 
 .user-row:hover {
@@ -130,11 +262,10 @@
 }
 
 .user-row.is-inactive:hover {
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
-/* Avatar — circular with role-based color */
-
+/* Avatar */
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -148,19 +279,19 @@
   font-size: var(--text-xs);
   flex-shrink: 0;
   color: var(--color-text-secondary);
+  font-family: var(--font-mono);
 }
 
-/* Role-specific avatar colors */
 .user-avatar.avatar-admin {
   background: var(--color-accent-subtle);
   border-color: var(--color-accent);
-  color: var(--color-accent-text);
+  color: var(--color-accent-text, var(--color-accent));
 }
 
 .user-avatar.avatar-operator {
   background: var(--color-success-subtle);
   border-color: var(--color-success);
-  color: var(--color-success-text);
+  color: var(--color-success-text, var(--color-success));
 }
 
 .user-avatar.avatar-auditor {
@@ -170,37 +301,28 @@
 }
 
 .user-avatar.avatar-viewer {
-  background: var(--color-primary-subtle, rgba(74, 89, 64, 0.08));
+  background: var(--color-primary-subtle, rgba(22, 80, 224, 0.07));
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
 
-.user-row.is-active .user-avatar {
-  background: var(--color-primary-subtle, rgba(74, 89, 64, 0.08));
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
+/* User name + email */
 .user-row-body {
-  flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
 }
 
 .user-row-main {
-  min-width: 160px;
+  min-width: 0;
 }
 
 .user-row-name {
   display: block;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text);
 }
 
 .user-row-email {
@@ -210,64 +332,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.user-row-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-/* Last login column */
-
-.user-row-lastlogin {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Status / password indicators — labeled badges */
-
-.user-status-badge,
-.user-pw-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-full);
-  font-size: 0.65rem;
-  font-weight: 600;
-  white-space: nowrap;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-subtle);
-  color: var(--color-text-muted);
-}
-
-.user-status-badge.active {
-  background: var(--color-success-subtle, rgba(90, 122, 91, 0.1));
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
-
-.user-pw-badge.has-pw {
-  background: var(--color-primary-subtle, rgba(74, 89, 64, 0.08));
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  margin-top: 0.1rem;
 }
 
 /* Role badges */
-
 .role-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.5rem;
+  padding: 0.2rem 0.55rem;
   border-radius: var(--radius-full);
   font-size: 0.65rem;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   white-space: nowrap;
   border: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
@@ -277,13 +352,13 @@
 .role-badge.admin {
   background: var(--color-accent-subtle);
   border-color: var(--color-accent);
-  color: var(--color-accent-text);
+  color: var(--color-accent-text, var(--color-accent));
 }
 
 .role-badge.operator {
   background: var(--color-success-subtle);
   border-color: var(--color-success);
-  color: var(--color-success-text);
+  color: var(--color-success-text, var(--color-success));
 }
 
 .role-badge.auditor {
@@ -298,17 +373,47 @@
   color: var(--color-text-muted);
 }
 
-/* Actions: hover-reveal */
+/* Status badge */
+.user-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.65rem;
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
 
+.user-status-badge.active {
+  background: var(--color-success-subtle, rgba(90, 122, 91, 0.1));
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+/* Last login */
+.user-row-lastlogin {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Row actions — hover reveal */
 .user-row-actions {
   display: flex;
-  gap: 0.375rem;
+  gap: 0.25rem;
+  justify-content: flex-end;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity var(--duration-fast);
 }
 
-.user-row:hover .user-row-actions {
+.user-row:hover .user-row-actions,
+.user-row:focus-within .user-row-actions {
   opacity: 1;
 }
 
@@ -318,73 +423,45 @@
   }
 }
 
-/* Column header row */
-
-.users-list-header {
+/* Skeleton states */
+.skeleton-row {
   display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 0.5rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-subtle);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
 }
 
-.ulh-avatar {
-  width: 36px;
-  flex-shrink: 0;
-}
-
-.ulh-name {
+.skeleton-cell {
+  height: 20px;
+  border-radius: var(--radius-sm);
   flex: 1;
-  min-width: 160px;
 }
 
-.ulh-role {
-  min-width: 80px;
-  flex-shrink: 0;
+.skeleton-cell:first-child {
+  max-width: 36px;
+  border-radius: 50%;
+  height: 36px;
 }
 
-.ulh-status {
-  min-width: 60px;
-  flex-shrink: 0;
-}
+/* =============================================================================
+   COLUMN WIDTHS (grid matching header)
+   ============================================================================= */
 
-.ulh-lastlogin {
-  min-width: 90px;
-  flex-shrink: 0;
-}
+.ulh-avatar { /* 44px col */ }
+.ulh-name { /* 1fr col */ }
+.ulh-role { /* 110px col */ }
+.ulh-status { /* 80px col */ }
+.ulh-lastlogin { /* 110px col */ }
+.ulh-actions { /* 110px col */ text-align: right; }
 
-.ulh-actions {
-  min-width: 100px;
-  flex-shrink: 0;
-}
+/* =============================================================================
+   PAGINATION
+   ============================================================================= */
 
-@media (max-width: 768px) {
-  .user-row-meta {
-    display: none;
-  }
-
-  .user-row-lastlogin {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .user-row {
-    padding: 0.5rem 0.875rem;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .user-row-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
+.users-pagination {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2) 0 var(--space-4);
 }
 
 /* =============================================================================
@@ -394,8 +471,8 @@
 .password-strength {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.375rem;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .password-strength-bar {
@@ -413,14 +490,86 @@
   width: 0;
 }
 
-.password-strength-fill.weak { width: 25%; background: var(--color-danger); }
-.password-strength-fill.fair { width: 50%; background: var(--color-warning); }
-.password-strength-fill.good { width: 75%; background: var(--color-primary); }
-.password-strength-fill.strong { width: 100%; background: var(--color-success); }
+.password-strength-fill.weak  { width: 25%; background: var(--color-danger); }
+.password-strength-fill.fair  { width: 50%; background: var(--color-warning); }
+.password-strength-fill.good  { width: 75%; background: var(--color-primary); }
+.password-strength-fill.strong{ width: 100%; background: var(--color-success); }
 
 .password-strength-text {
   font-size: 0.7rem;
   font-weight: var(--font-semibold);
   white-space: nowrap;
-  min-width: 4rem;
+  min-width: 3.5rem;
+}
+
+/* =============================================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================================= */
+
+@media (max-width: 960px) {
+  .users-page {
+    padding: var(--space-4);
+  }
+
+  /* Collapse to simpler row layout on tablet */
+  .users-list-header,
+  .user-row {
+    grid-template-columns: 44px 1fr 100px 90px;
+  }
+
+  .ulh-lastlogin,
+  .ulh-actions,
+  .user-row-lastlogin,
+  .user-row-actions {
+    display: none;
+  }
+
+  .user-row:hover .user-row-actions {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .users-page {
+    padding: var(--space-3);
+  }
+
+  .users-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .users-toolbar-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .users-search-wrap {
+    max-width: 100%;
+  }
+
+  .users-list-header,
+  .user-row {
+    grid-template-columns: 36px 1fr 80px;
+  }
+
+  .ulh-status,
+  .user-status-badge {
+    display: none;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-row {
+    padding: 0.5rem 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .role-distribution-panel {
+    grid-template-columns: 1fr 1fr;
+  }
 }
