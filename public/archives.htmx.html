@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- GO-LIVE-STATUS: ready — Archives des séances (wireframe PageArchives). -->
+<!-- GO-LIVE-STATUS: ready — Archives des séances (rebuild v4.4). KPI row, filters, archive list, exports modal. -->
 <html lang="fr" data-page-role="viewer">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -12,8 +12,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Archives des séances - AG-VOTE">
-  <title>Archives — AG-VOTE</title>
+  <meta name="description" content="Archives des s&eacute;ances - AG-VOTE">
+  <title>Archives &mdash; AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,124 +24,144 @@
 <body>
   <!-- Skip links -->
   <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
 
   <div class="app-shell">
-        <!-- Sidebar -->
     <aside class="app-sidebar" data-include-sidebar data-page="archives"></aside>
 
     <!-- Header -->
     <header class="app-header" role="banner">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg> Archives</h1>
-          <p class="text-sm text-secondary">Séances validées et procès-verbaux</p>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <a class="bc-item" href="/dashboard.htmx.html">Tableau de bord</a>
+            <span class="bc-item bc-current" aria-current="page">Archives</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            Archives
+          </h1>
+          <p class="page-sub">S&eacute;ances valid&eacute;es et proc&egrave;s-verbaux</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-secondary" id="btnRefresh">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+        <button class="btn btn-secondary btn-sm" id="btnRefresh" type="button">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg>
+          Actualiser
         </button>
-        <button class="btn btn-ghost btn-icon" type="button" id="btnExportsModal" title="Exports" aria-label="Exports">
-          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+        <button class="btn btn-secondary btn-sm" type="button" id="btnExportsModal" title="Exports" aria-label="Exporter les donn&eacute;es">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          Exporter
         </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="infos" title="Informations séance" aria-label="Informations séance">
-          <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
-        </button>
-        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="Séance en cours" aria-label="Séance en cours">
+        <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="app-main" id="main-content" role="main">
-      <div class="table-page">
-        <!-- Notification area -->
-        <div id="notif_box" class="hidden"></div>
+    <main class="app-main archives-main" id="main-content" role="main">
 
-        <!-- Stats -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
-            <div class="kpi-value primary" id="kpiTotal">—</div>
-            <div class="kpi-label"><ag-tooltip text="Nombre total de seances validees ou archivees" position="top">S&eacute;ances archiv&eacute;es</ag-tooltip></div>
-          </div>
-          <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-            <div class="kpi-value success" id="kpiWithPV">—</div>
-            <div class="kpi-label"><ag-tooltip text="Seances ayant un proces-verbal genere" position="top">Avec PV</ag-tooltip></div>
-          </div>
-          <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
-            <div class="kpi-value" id="kpiThisYear">—</div>
-            <div class="kpi-label"><ag-tooltip text="Seances archivees depuis le 1er janvier de l'annee en cours" position="top">Cette ann&eacute;e</ag-tooltip></div>
-          </div>
-          <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-            <span class="kpi-value success" id="kpiAvgParticipation">—</span>
-            <span class="kpi-label"><ag-tooltip text="Taux moyen de participation aux votes sur l'ensemble des seances" position="top">Participation moy.</ag-tooltip></span>
-          </div>
-          <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
-            <span class="kpi-value" id="kpiDateRange">—</span>
-            <span class="kpi-label"><ag-tooltip text="Plage de dates couverte par les seances archivees" position="top">P&eacute;riode</ag-tooltip></span>
+      <!-- Notification area -->
+      <div id="notif_box" class="hidden"></div>
+
+      <!-- KPI grid — 5 cards -->
+      <div class="archives-kpi-grid">
+        <div class="kpi-card">
+          <svg class="icon kpi-icon" style="color:var(--color-primary)" aria-hidden="true"><use href="/assets/icons.svg#icon-archive"></use></svg>
+          <div class="kpi-value primary" id="kpiTotal">&mdash;</div>
+          <div class="kpi-label">
+            <ag-tooltip text="Nombre total de s&eacute;ances valid&eacute;es ou archiv&eacute;es" position="top">S&eacute;ances archiv&eacute;es</ag-tooltip>
           </div>
         </div>
-
-        <!-- Type filter chips -->
-        <div class="filter-tabs" id="archiveTypeFilter">
-          <button class="filter-tab active" data-type="">Toutes</button>
-          <button class="filter-tab" data-type="ag_ordinaire">AG Ord.</button>
-          <button class="filter-tab" data-type="ag_extraordinaire">AG Extra.</button>
-          <button class="filter-tab" data-type="conseil">Conseil</button>
-        </div>
-
-        <!-- Status filter chips -->
-        <div class="filter-tabs" id="archiveStatusFilter">
-          <button class="filter-tab active" data-status="">Tous statuts</button>
-          <button class="filter-tab" data-status="validated">Valid&eacute;e</button>
-          <button class="filter-tab" data-status="archived">Archiv&eacute;e</button>
-          <button class="filter-tab" data-status="pv_sent">PV envoy&eacute;</button>
-        </div>
-
-        <!-- Toolbar -->
-        <div class="table-toolbar">
-          <div>
-            <h3 class="card-title">S&eacute;ances archiv&eacute;es</h3>
-            <p class="card-description">Proc&egrave;s-verbaux fig&eacute;s et exports d'audit</p>
-          </div>
-          <div class="flex gap-2 items-center">
-            <select class="form-input year-select" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
-              <option value="">Toutes ann&eacute;es</option>
-            </select>
-            <input type="text" class="form-input archive-search-input" id="searchInput"
-                   placeholder="Rechercher...">
-            <div class="view-toggle">
-              <button class="view-toggle-btn active" data-view="cards" title="Vue cartes" aria-label="Vue cartes"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg></button>
-              <button class="view-toggle-btn" data-view="list" title="Vue liste" aria-label="Vue liste"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg></button>
-            </div>
+        <div class="kpi-card">
+          <svg class="icon kpi-icon" style="color:var(--color-success)" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          <div class="kpi-value success" id="kpiWithPV">&mdash;</div>
+          <div class="kpi-label">
+            <ag-tooltip text="S&eacute;ances ayant un proc&egrave;s-verbal g&eacute;n&eacute;r&eacute;" position="top">Avec PV</ag-tooltip>
           </div>
         </div>
-
-        <!-- Archives list card -->
-        <div class="table-card">
-          <div class="table-wrapper">
-            <div id="archivesList">
-              <div class="text-center p-6">
-                <div class="spinner"></div>
-              </div>
-            </div>
+        <div class="kpi-card">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-calendar"></use></svg>
+          <div class="kpi-value" id="kpiThisYear">&mdash;</div>
+          <div class="kpi-label">
+            <ag-tooltip text="S&eacute;ances archiv&eacute;es depuis le 1er janvier de l'ann&eacute;e en cours" position="top">Cette ann&eacute;e</ag-tooltip>
           </div>
         </div>
-
-        <!-- Pagination -->
-        <div class="table-pagination" id="archivesPagination">
-          <ag-pagination id="archivesPager" per-page="5"></ag-pagination>
+        <div class="kpi-card">
+          <svg class="icon kpi-icon" style="color:var(--color-success)" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+          <span class="kpi-value success" id="kpiAvgParticipation">&mdash;</span>
+          <span class="kpi-label">
+            <ag-tooltip text="Taux moyen de participation aux votes sur l'ensemble des s&eacute;ances" position="top">Participation moy.</ag-tooltip>
+          </span>
         </div>
-
+        <div class="kpi-card">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+          <span class="kpi-value" id="kpiDateRange">&mdash;</span>
+          <span class="kpi-label">
+            <ag-tooltip text="Plage de dates couverte par les s&eacute;ances archiv&eacute;es" position="top">P&eacute;riode</ag-tooltip>
+          </span>
+        </div>
       </div>
+
+      <!-- Type filter chips -->
+      <div class="filter-tabs" id="archiveTypeFilter" role="group" aria-label="Filtrer par type">
+        <button class="filter-tab active" data-type="">Toutes</button>
+        <button class="filter-tab" data-type="ag_ordinaire">AG Ord.</button>
+        <button class="filter-tab" data-type="ag_extraordinaire">AG Extra.</button>
+        <button class="filter-tab" data-type="conseil">Conseil</button>
+      </div>
+
+      <!-- Status filter chips -->
+      <div class="filter-tabs filter-tabs-secondary" id="archiveStatusFilter" role="group" aria-label="Filtrer par statut">
+        <button class="filter-tab active" data-status="">Tous statuts</button>
+        <button class="filter-tab" data-status="validated">Valid&eacute;e</button>
+        <button class="filter-tab" data-status="archived">Archiv&eacute;e</button>
+        <button class="filter-tab" data-status="pv_sent">PV envoy&eacute;</button>
+      </div>
+
+      <!-- Toolbar: title, year filter, search, view toggle -->
+      <div class="archives-toolbar">
+        <div class="archives-toolbar-left">
+          <h3 class="archives-toolbar-title">S&eacute;ances archiv&eacute;es</h3>
+          <p class="archives-toolbar-desc">Proc&egrave;s-verbaux fig&eacute;s et exports d'audit</p>
+        </div>
+        <div class="archives-toolbar-right">
+          <select class="form-input year-select" id="yearFilter" aria-label="Filtrer par ann&eacute;e">
+            <option value="">Toutes ann&eacute;es</option>
+          </select>
+          <input type="search" class="form-input archive-search-input" id="searchInput" placeholder="Rechercher..." aria-label="Rechercher dans les archives">
+          <div class="view-toggle" role="group" aria-label="Mode d'affichage">
+            <button class="view-toggle-btn active" data-view="cards" title="Vue cartes" aria-label="Vue cartes" aria-pressed="true">
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg>
+            </button>
+            <button class="view-toggle-btn" data-view="list" title="Vue liste" aria-label="Vue liste" aria-pressed="false">
+              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Archives list -->
+      <div class="table-card">
+        <div class="table-wrapper">
+          <div id="archivesList">
+            <div class="archives-loading">
+              <div class="spinner"></div>
+              <div class="mt-3 text-muted text-sm">Chargement des archives&hellip;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="table-pagination" id="archivesPagination">
+        <ag-pagination id="archivesPager" per-page="5"></ag-pagination>
+      </div>
+
     </main>
+
     <footer class="app-footer mobile-footer" role="contentinfo">
       <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
         <span class="logo-mark">
@@ -149,64 +169,77 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.4</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
+      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
     </footer>
   </div>
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu contextuel">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="drawerTitle">
     <div class="drawer-header">
       <div id="drawerTitle" class="font-semibold">Menu</div>
-      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">&#10005;</button>
     </div>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <!-- Exports Modal -->
+  <!-- Exports Modal (backdrop + dialog) -->
   <div class="modal-backdrop" id="exportsBackdrop" hidden></div>
   <div class="modal" id="exportsModal" role="dialog" aria-modal="true" aria-labelledby="exportsModalTitle" aria-hidden="true" hidden>
     <div class="modal-header">
-      <h3 class="modal-title" id="exportsModalTitle"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exports</h3>
-      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseExports" aria-label="Fermer">×</button>
+      <h3 class="modal-title" id="exportsModalTitle">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+        Exports
+      </h3>
+      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseExports" aria-label="Fermer">&#215;</button>
     </div>
     <div class="modal-body">
+      <!-- Meeting selector -->
       <div class="form-group mb-4">
-        <label class="form-label" for="exportMeetingSelect">Séance à exporter</label>
+        <label class="form-label" for="exportMeetingSelect">S&eacute;ance &agrave; exporter</label>
         <select class="form-input" id="exportMeetingSelect">
-          <option value="">— Sélectionner une séance —</option>
+          <option value="">&mdash; S&eacute;lectionner une s&eacute;ance &mdash;</option>
         </select>
       </div>
-      
+
+      <!-- Info alert -->
       <div class="alert alert-info mb-4">
         <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-info"></use></svg>
-        <span>Les exports ne sont disponibles que pour les séances validées.</span>
+        <span>Les exports ne sont disponibles que pour les s&eacute;ances valid&eacute;es.</span>
       </div>
 
+      <!-- Export buttons grid -->
       <div class="export-grid">
         <button class="btn btn-secondary" id="btnExportPV">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg> PV (HTML)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+          PV (HTML)
         </button>
         <button class="btn btn-secondary" id="btnExportAttendance">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Présences (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+          Pr&eacute;sences (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportVotes">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg> Votes (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+          Votes (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportMotions">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg> Résolutions (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
+          R&eacute;solutions (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportMembers">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg> Membres (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>
+          Membres (CSV)
         </button>
         <button class="btn btn-secondary" id="btnExportAudit">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg> Audit (CSV)
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg>
+          Audit (CSV)
         </button>
-        <button class="btn btn-primary" id="btnExportZip" title="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Archive ZIP
+        <button class="btn btn-primary exports-zip-btn" id="btnExportZip" title="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          Archive ZIP
         </button>
       </div>
     </div>
@@ -221,7 +254,6 @@
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
   <script src="/assets/js/services/meeting-context.js"></script>
-
   <script src="/assets/js/pages/archives.js"></script>
 </body>
 </html>
