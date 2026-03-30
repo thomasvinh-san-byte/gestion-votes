@@ -28,6 +28,12 @@ putenv('APP_ENV=testing');
 putenv('APP_DEBUG=1');
 putenv('APP_AUTH_ENABLED=0');
 
+// Define AG_UPLOAD_DIR for controller tests that handle file uploads/downloads.
+// Uses a temp directory that is safe to write to and never contains real uploads.
+if (!defined('AG_UPLOAD_DIR')) {
+    define('AG_UPLOAD_DIR', sys_get_temp_dir() . '/ag-vote-test-uploads');
+}
+
 // Stub db() for tests — prevents "Call to undefined function db()" errors
 // when repositories are instantiated without explicit PDO injection.
 if (!function_exists('db')) {

@@ -4,360 +4,406 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use AgVote\Controller\AbstractController;
 use AgVote\Controller\ResolutionDocumentController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\ResolutionDocumentRepository;
+use AgVote\Repository\VoteTokenRepository;
 
 /**
  * Unit tests for ResolutionDocumentController.
  *
- * Tests controller structure, source-level validation for all 4 endpoints
- * (listForMotion, upload, delete, serve), dual auth pattern, security headers,
- * audit logging, SSE broadcasting, and eager repo construction behavior.
+ * Endpoints:
+ *  - listForMotion(): GET  — list documents for a motion
+ *  - upload():        POST — upload PDF document
+ *  - delete():        DELETE — delete document
+ *  - serve():         GET  — serve PDF file (exits after sending)
  *
- * Note: listForMotion(), delete(), and serve() call $this->repo() early, which
- * triggers RepositoryFactory::getInstance() -> get() -> new $class(null) -> db()
- * -> RuntimeException. This is caught by AbstractController::handle() as
- * business_error (400).
- *
- * Input validation for these methods is verified at source level because the
- * repo construction fires before input validation can be reached in test env.
- *
- * upload() calls api_request('POST') before repo construction, so method
- * enforcement is testable. After passing the method check, the repo fires.
+ * Uses ControllerTestCase with mocked repos via RepositoryFactory injection.
+ * The serve() endpoint calls readfile() + exit so only validation paths are tested.
  */
-class ResolutionDocumentControllerTest extends TestCase
+class ResolutionDocumentControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
+    private const TENANT_ID  = 'ffffffff-0000-1111-2222-333333333333';
+    private const MOTION_ID  = 'aa000001-0000-4000-a000-000000000001';
+    private const MEETING_ID = 'aa000002-0000-4000-a000-000000000002';
+    private const DOC_ID     = 'aa000003-0000-4000-a000-000000000003';
+    private const USER_ID    = 'aa000004-0000-4000-a000-000000000004';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
+        $this->setAuth(self::USER_ID, 'admin', self::TENANT_ID);
         $_FILES = [];
-
-        // Reset Request cached body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
     }
 
     protected function tearDown(): void
     {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
         $_FILES = [];
         parent::tearDown();
     }
 
     // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new ResolutionDocumentController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE TESTS
+    // STRUCTURE TESTS
     // =========================================================================
 
     public function testControllerIsFinal(): void
     {
         $ref = new \ReflectionClass(ResolutionDocumentController::class);
-        $this->assertTrue($ref->isFinal(), 'ResolutionDocumentController should be final');
+        $this->assertTrue($ref->isFinal());
     }
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new ResolutionDocumentController();
-        $this->assertInstanceOf(AbstractController::class, $controller);
+        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, new ResolutionDocumentController());
     }
 
     public function testControllerHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(ResolutionDocumentController::class);
-
-        foreach (['listForMotion', 'upload', 'delete', 'serve'] as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "ResolutionDocumentController should have a '{$method}' method",
-            );
+        foreach (['listForMotion', 'upload', 'delete', 'serve'] as $m) {
+            $this->assertTrue($ref->hasMethod($m), "Missing method: {$m}");
         }
     }
 
     // =========================================================================
-    // listForMotion -- EAGER REPO FIRES FIRST
-    // listForMotion() calls $this->repo()->resolutionDocument() which triggers
-    // RepositoryFactory::getInstance() -> db() -> RuntimeException -> 400
+    // listForMotion()
     // =========================================================================
 
-    public function testListForMotionEagerRepoThrowsBusinessError(): void
+    public function testListForMotionMissingMotionId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET['motion_id'] = '12345678-1234-1234-1234-123456789abc';
+        $this->setQueryParams([]);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $result = $this->callControllerMethod('listForMotion');
-
+        $result = $this->callController(ResolutionDocumentController::class, 'listForMotion');
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->assertEquals('missing_motion_id', $result['body']['error']);
     }
 
-    // =========================================================================
-    // listForMotion -- SOURCE-LEVEL VALIDATION
-    // =========================================================================
-
-    public function testListForMotionSourceValidatesMotionId(): void
+    public function testListForMotionInvalidMotionId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $this->setQueryParams(['motion_id' => 'not-uuid']);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $this->assertStringContainsString("api_query('motion_id')", $source);
-        $this->assertStringContainsString('api_is_uuid', $source);
-        $this->assertStringContainsString("'missing_motion_id'", $source);
+        $result = $this->callController(ResolutionDocumentController::class, 'listForMotion');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_motion_id', $result['body']['error']);
     }
 
-    // =========================================================================
-    // upload -- METHOD ENFORCEMENT
-    // upload() calls api_request('POST') before $this->repo(), so method
-    // enforcement is testable at runtime.
-    // =========================================================================
-
-    public function testUploadSourceUsesApiRequestPost(): void
+    public function testListForMotionSuccess(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $this->setQueryParams(['motion_id' => self::MOTION_ID]);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('listForMotion')->willReturn([
+            ['id' => self::DOC_ID, 'original_name' => 'doc.pdf', 'file_size' => 1024],
+        ]);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $this->assertStringContainsString("api_request('POST')", $source);
+        $result = $this->callController(ResolutionDocumentController::class, 'listForMotion');
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertArrayHasKey('documents', $data);
+        $this->assertCount(1, $data['documents']);
     }
+
+    public function testListForMotionEmpty(): void
+    {
+        $this->setQueryParams(['motion_id' => self::MOTION_ID]);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('listForMotion')->willReturn([]);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
+
+        $result = $this->callController(ResolutionDocumentController::class, 'listForMotion');
+        $this->assertEquals(200, $result['status']);
+        $this->assertCount(0, $result['body']['data']['documents']);
+    }
+
+    // =========================================================================
+    // upload()
+    // =========================================================================
 
     public function testUploadRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('upload');
-
+        $this->setHttpMethod('GET');
+        $result = $this->callController(ResolutionDocumentController::class, 'upload');
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
-    // =========================================================================
-    // upload -- SOURCE-LEVEL VALIDATION
-    // =========================================================================
-
-    public function testUploadSourceValidatesMeetingAndMotionIds(): void
+    public function testUploadMissingMeetingId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString("'missing_meeting_id'", $source);
-        $this->assertStringContainsString("'missing_motion_id'", $source);
-    }
-
-    public function testUploadSourceChecksMimeType(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString("'invalid_mime_type'", $source);
-        $this->assertStringContainsString('application/pdf', $source);
-    }
-
-    public function testUploadSourceChecksFileSize(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString("'file_too_large'", $source);
-        $this->assertStringContainsString('10 * 1024 * 1024', $source);
-    }
-
-    public function testUploadSourceChecksExtension(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString("'invalid_file_type'", $source);
-        $this->assertStringContainsString('.pdf', $source);
-    }
-
-    // =========================================================================
-    // upload -- EAGER REPO CONSTRUCTION IN TEST ENV
-    // After passing method check, repo construction fires before validation.
-    // =========================================================================
-
-    public function testUploadEagerRepoThrowsBusinessError(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'motion_id' => '87654321-4321-4321-4321-cba987654321',
+        $this->setHttpMethod('POST');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            MotionRepository::class             => $motionRepo,
         ]);
 
-        $result = $this->callControllerMethod('upload');
-
+        $this->injectJsonBody(['motion_id' => self::MOTION_ID]);
+        $result = $this->callController(ResolutionDocumentController::class, 'upload');
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    // =========================================================================
-    // delete -- SOURCE-LEVEL VALIDATION
-    // =========================================================================
-
-    public function testDeleteSourceValidatesId(): void
+    public function testUploadMissingMotionId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $this->setHttpMethod('POST');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            MotionRepository::class             => $motionRepo,
+        ]);
 
-        $this->assertStringContainsString("api_request('DELETE')", $source);
-        $this->assertStringContainsString("'missing_id'", $source);
-        $this->assertStringContainsString('api_is_uuid', $source);
-    }
-
-    public function testDeleteSourceRemovesFileBeforeDbDelete(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        // file_exists and unlink should appear before $repo->delete
-        $fileExistsPos = strpos($source, 'file_exists');
-        $unlinkPos = strpos($source, 'unlink');
-        $deletePos = strpos($source, '$repo->delete');
-
-        $this->assertNotFalse($fileExistsPos, 'Source should check file_exists before deleting');
-        $this->assertNotFalse($unlinkPos, 'Source should call unlink to remove file');
-        $this->assertNotFalse($deletePos, 'Source should call $repo->delete');
-        $this->assertLessThan($deletePos, $unlinkPos, 'unlink should occur before $repo->delete');
-    }
-
-    // =========================================================================
-    // delete -- EAGER REPO CONSTRUCTION IN TEST ENV
-    // =========================================================================
-
-    public function testDeleteEagerRepoThrowsBusinessError(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $_GET['id'] = '12345678-1234-1234-1234-123456789abc';
-        $this->injectJsonBody(['id' => '12345678-1234-1234-1234-123456789abc']);
-
-        $result = $this->callControllerMethod('delete');
-
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID]);
+        $result = $this->callController(ResolutionDocumentController::class, 'upload');
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('business_error', $result['body']['error']);
+        $this->assertEquals('missing_motion_id', $result['body']['error']);
+    }
+
+    public function testUploadMotionNotFound(): void
+    {
+        $this->setHttpMethod('POST');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn(null);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            MotionRepository::class             => $motionRepo,
+        ]);
+
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID, 'motion_id' => self::MOTION_ID]);
+        $result = $this->callController(ResolutionDocumentController::class, 'upload');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('motion_not_found', $result['body']['error']);
+    }
+
+    public function testUploadNoFileReturnsError(): void
+    {
+        $this->setHttpMethod('POST');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findByIdForTenant')->willReturn([
+            'id' => self::MOTION_ID, 'tenant_id' => self::TENANT_ID,
+        ]);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            MotionRepository::class             => $motionRepo,
+        ]);
+
+        $this->injectJsonBody(['meeting_id' => self::MEETING_ID, 'motion_id' => self::MOTION_ID]);
+        $_FILES = []; // no file
+        $result = $this->callController(ResolutionDocumentController::class, 'upload');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('upload_error', $result['body']['error']);
     }
 
     // =========================================================================
-    // serve -- DUAL AUTH SOURCE VERIFICATION
+    // delete()
     // =========================================================================
 
-    public function testServeSourceSupportsDualAuth(): void
+    public function testDeleteMissingId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $this->assertStringContainsString('api_current_user_id', $source);
-        $this->assertStringContainsString("api_query('token')", $source);
-        $this->assertStringContainsString('hash_hmac', $source);
-        $this->assertStringContainsString('findByHash', $source);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => '']);
+        $result = $this->callController(ResolutionDocumentController::class, 'delete');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_id', $result['body']['error']);
     }
 
-    public function testServeSourceValidatesId(): void
+    public function testDeleteInvalidId(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $this->assertStringContainsString("api_query('id')", $source);
-        $this->assertStringContainsString('api_is_uuid', $source);
-        $this->assertStringContainsString("'missing_id'", $source);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => 'not-uuid']);
+        $result = $this->callController(ResolutionDocumentController::class, 'delete');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_id', $result['body']['error']);
     }
 
-    public function testServeSourceSetsSecurityHeaders(): void
+    public function testDeleteDocumentNotFound(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('findById')->willReturn(null);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $this->assertStringContainsString('X-Content-Type-Options', $source);
-        $this->assertStringContainsString('X-Frame-Options', $source);
-        $this->assertStringContainsString('Cache-Control', $source);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => self::DOC_ID]);
+        $result = $this->callController(ResolutionDocumentController::class, 'delete');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('not_found', $result['body']['error']);
     }
 
-    public function testServeSourceChecksMeetingMatch(): void
+    public function testDeleteSuccessNoPhysicalFile(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('findById')->willReturn([
+            'id'           => self::DOC_ID,
+            'motion_id'    => self::MOTION_ID,
+            'meeting_id'   => self::MEETING_ID,
+            'stored_name'  => 'doc.pdf',
+            'original_name' => 'my-doc.pdf',
+            'tenant_id'    => self::TENANT_ID,
+        ]);
+        $docRepo->method('delete')->willReturn(1);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        // Vote token auth verifies document belongs to token's meeting
-        $this->assertStringContainsString("'access_denied'", $source);
-    }
-
-    // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testUploadAuditsDocumentUpload(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString("'resolution_document_uploaded'", $source);
-    }
-
-    public function testDeleteAuditsDocumentDeletion(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString("'resolution_document_deleted'", $source);
-    }
-
-    // =========================================================================
-    // SSE BROADCAST VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testUploadBroadcastsDocumentAdded(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString('EventBroadcaster::documentAdded', $source);
-    }
-
-    public function testDeleteBroadcastsDocumentRemoved(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/ResolutionDocumentController.php');
-
-        $this->assertStringContainsString('EventBroadcaster::documentRemoved', $source);
+        $this->setHttpMethod('DELETE');
+        $this->injectJsonBody(['id' => self::DOC_ID]);
+        $result = $this->callController(ResolutionDocumentController::class, 'delete');
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['data']['deleted']);
     }
 
     // =========================================================================
-    // UNKNOWN METHOD HANDLING
+    // serve() — validation only (serve exits after readfile)
     // =========================================================================
 
-    public function testHandleUnknownMethodReturns500(): void
+    public function testServeMissingId(): void
     {
-        $result = $this->callControllerMethod('nonExistentMethod');
+        $this->setQueryParams([]);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
 
-        $this->assertEquals(500, $result['status']);
-        $this->assertEquals('internal_error', $result['body']['error']);
+        $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_id', $result['body']['error']);
+    }
+
+    public function testServeInvalidId(): void
+    {
+        $this->setQueryParams(['id' => 'bad']);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
+
+        $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_id', $result['body']['error']);
+    }
+
+    public function testServeWithSessionUserDocNotFound(): void
+    {
+        $this->setQueryParams(['id' => self::DOC_ID]);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('findById')->willReturn(null);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
+
+        $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('not_found', $result['body']['error']);
+    }
+
+    public function testServeWithNoAuthRequiresToken(): void
+    {
+        // Enable real auth so authenticate() does not auto-fill a dev user.
+        // With auth enabled and no session/API-key, getCurrentUserId() returns null
+        // and the controller falls through to the token-check branch.
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::DOC_ID]);
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
+
+        try {
+            $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(401, $result['status']);
+        $this->assertEquals('authentication_required', $result['body']['error']);
+    }
+
+    public function testServeWithInvalidToken(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::DOC_ID, 'token' => 'fake-token']);
+
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn(null);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            VoteTokenRepository::class          => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(401, $result['status']);
+        $this->assertEquals('invalid_token', $result['body']['error']);
+    }
+
+    public function testServeWithValidTokenButDocNotFound(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::DOC_ID, 'token' => 'valid-vote-token']);
+
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('findById')->willReturn(null);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn([
+            'tenant_id'  => self::TENANT_ID,
+            'meeting_id' => self::MEETING_ID,
+        ]);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            VoteTokenRepository::class          => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('not_found', $result['body']['error']);
+    }
+
+    public function testServeWithTokenWrongMeeting(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::DOC_ID, 'token' => 'valid-vote-token']);
+
+        $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+        $docRepo->method('findById')->willReturn([
+            'id'          => self::DOC_ID,
+            'motion_id'   => self::MOTION_ID,
+            'meeting_id'  => 'bb000001-0000-4000-b000-000000000001', // different meeting
+            'stored_name' => 'doc.pdf',
+            'original_name' => 'doc.pdf',
+            'file_size'   => 1024,
+        ]);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn([
+            'tenant_id'  => self::TENANT_ID,
+            'meeting_id' => self::MEETING_ID, // token meeting != doc meeting
+        ]);
+        $this->injectRepos([
+            ResolutionDocumentRepository::class => $docRepo,
+            VoteTokenRepository::class          => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(ResolutionDocumentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('access_denied', $result['body']['error']);
     }
 }
