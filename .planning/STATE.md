@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 55-05-PLAN.md
-last_updated: "2026-03-30T09:21:59.052Z"
-last_activity: "2026-03-30 — 55-04 complete: 5 largest controller tests rewritten with ControllerTestCase + mocked repos, 567 tests pass"
+stopped_at: Completed 55-06-PLAN.md
+last_updated: "2026-03-30T09:30:00.000Z"
+last_activity: "2026-03-30 — 55-06 complete: 8 mid-tier controllers rewritten with ControllerTestCase + mocked repos, 218 tests pass"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 ## Current Position
 
 Phase: 55 of 57 (Coverage Target Tooling)
-Plan: 04 complete — Plan 05 (Controller Tests Batch 2) is next
+Plan: 06 complete — Plan 07 (next) is next
 Status: In progress
-Last activity: 2026-03-30 — 55-04 complete: 5 largest controller tests rewritten with ControllerTestCase + mocked repos, 567 tests pass
+Last activity: 2026-03-30 — 55-06 complete: 8 mid-tier controllers (Trust+MemberGroups+Auth+Export+ResolutionDoc+Email+Doc+Devices) rewritten to ControllerTestCase, 218 tests pass
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -71,6 +71,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 55-coverage-target-tooling 55-08]: Source inspection approach used for controllers using exit() or plain-text (EmailTracking, DocContent) — cannot use callController() execution pattern
 - [Phase 55-coverage-target-tooling]: VoteEngine fetches policyRepo+attendanceRepo eagerly in constructor — all 5 repos must be injected in result() tests
 - [Phase 55-coverage-target-tooling]: AuditController::export() untestable via callController() (raw echo+headers, no api_ok/fail) — excluded from coverage
+- [Phase 55-coverage-target-tooling 55-06]: putenv(APP_AUTH_ENABLED=1) in try/finally for serve() unauthenticated tests — auth disabled env causes authenticate() to auto-fill dev-user, preventing null userId path
+- [Phase 55-coverage-target-tooling 55-06]: AG_UPLOAD_DIR now defined in tests/bootstrap.php — upload controller tests don't need per-test define() guards
+- [Phase 55-coverage-target-tooling 55-06]: EmailTemplateService preview happy path not testable in unit tests — instantiates DB connection inline; validated via source inspection
 
 ### Pending Todos
 
