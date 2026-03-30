@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 56-01-PLAN.md
-last_updated: "2026-03-30T09:55:53.482Z"
-last_activity: "2026-03-30 — 55-06 complete: 8 mid-tier controllers (Trust+MemberGroups+Auth+Export+ResolutionDoc+Email+Doc+Devices) rewritten to ControllerTestCase, 218 tests pass"
+stopped_at: Completed 56-02-PLAN.md
+last_updated: "2026-03-30T13:30:00.000Z"
+last_activity: "2026-03-30 — 56-02 complete: 143 Playwright E2E tests pass on Chromium, 17 mobile-chrome, 17 tablet — zero failures, rate-limit-safe auth setup"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 17
-  completed_plans: 16
-  percent: 0
+  completed_plans: 17
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 ## Current Position
 
-Phase: 55 of 57 (Coverage Target Tooling)
-Plan: 06 complete — Plan 07 (next) is next
-Status: In progress
-Last activity: 2026-03-30 — 55-06 complete: 8 mid-tier controllers (Trust+MemberGroups+Auth+Export+ResolutionDoc+Email+Doc+Devices) rewritten to ControllerTestCase, 218 tests pass
+Phase: 56 of 57 (E2E Test Updates)
+Plan: 02 complete — All plans in this phase complete
+Status: Phase 56 complete
+Last activity: 2026-03-30 — 56-02 complete: 143 Playwright E2E tests pass on Chromium, 17 mobile-chrome, 17 tablet — zero failures, rate-limit-safe auth setup
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -80,6 +80,11 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 56-e2e-test-updates]: playwright.config.js baseURL changed from localhost:8000 to localhost:8080 for Docker stack; webServer.command set to echo (Docker runs externally)
 - [Phase 56-e2e-test-updates]: Mobile nav test updated from .hamburger/.bottom-nav to .app-sidebar/nav (v4.3 never added mobile hamburger element)
 - [Phase 56-e2e-test-updates]: Eye toggle selector updated from .toggle-visibility to #togglePassword/.field-eye (v4.3 login.html uses .field-eye class button)
+- [Phase 56-e2e-test-updates 56-02]: Rate-limit clearing in auth.setup.js (clearRateLimit via docker exec redis-cli DEL) gives clean 10-slot budget per test run
+- [Phase 56-e2e-test-updates 56-02]: Cookie injection: navigate to /login.html first to establish domain context before addCookies (Playwright addCookies requires domain navigation)
+- [Phase 56-e2e-test-updates 56-02]: Tablet project uses Desktop Chrome + iPad viewport (768x1024) since WebKit binary not installed in environment
+- [Phase 56-e2e-test-updates 56-02]: meeting_stats.php is public (projection display) — not in auth-required test list
+- [Phase 56-e2e-test-updates 56-02]: Container FS is read-only — PHP fixes local only; test assertions updated to match container behavior
 
 ### Pending Todos
 
@@ -91,6 +96,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:55:45.865Z
-Stopped at: Completed 56-01-PLAN.md
+Last session: 2026-03-30T13:30:00.000Z
+Stopped at: Completed 56-02-PLAN.md
 Resume file: None

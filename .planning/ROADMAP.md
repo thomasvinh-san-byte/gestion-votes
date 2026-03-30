@@ -86,7 +86,7 @@
 - [x] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services) (completed 2026-03-30)
 - [x] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController (completed 2026-03-30)
 - [x] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
-- [ ] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium
+- [x] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium (completed 2026-03-30)
 - [ ] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions workflow
 
 ## Phase Details
@@ -167,7 +167,7 @@ Plans:
   3. The audit-regression spec correctly targets the v4.4 audit page structure — filter tabs, timeline view, and table view are all exercised without selector errors
   4. The vote spec selects choices using French `data-choice` attribute values and interacts with the v4.4 ballot layout — the vote is submitted and confirmed without errors
   5. Mobile viewport specs for the vote/ballot page pass on both `tablet` and `mobile-chrome` Playwright projects — no layout overflow or touch target failures
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 56-01-PLAN.md — Install Playwright, audit and fix all 18 specs for stale selectors
 - [ ] 56-02-PLAN.md — Run full suite on Chromium, fix failures iteratively, verify mobile viewports
@@ -193,5 +193,5 @@ Plans:
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
 | 55. Coverage Target & Tooling | 9/9 | Complete    | 2026-03-30 | 2026-03-30 |
-| 56. E2E Test Updates | 1/2 | In Progress|  | - |
+| 56. E2E Test Updates | 2/2 | Complete   | 2026-03-30 | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
