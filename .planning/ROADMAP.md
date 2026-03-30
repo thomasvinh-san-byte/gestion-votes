@@ -76,7 +76,11 @@
   3. The meetings list renders session cards with correct status badges and filters — a user can filter by status and navigate to any session
   4. The archives table has a sticky header, working search, and pagination — a user can find a past session and reach its detail view
   5. No JS console errors on any of the 4 pages; all form submissions (PV generation, archival confirmation) persist data correctly
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 49-01-PLAN.md — Postsession page ground-up rebuild (HTML+CSS+JS wiring)
+- [ ] 49-02-PLAN.md — Analytics page ground-up rebuild (HTML+CSS+JS wiring)
+- [ ] 49-03-PLAN.md — Meetings + Archives pages ground-up rebuild (HTML+CSS+JS wiring)
 
 ### Phase 50: Secondary Pages Part 2
 **Goal**: Audit log, members management, users management, and vote/ballot are fully rebuilt — CRUD operations functional, CSV exports working, ballot flow end-to-end verified
@@ -108,6 +112,6 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 49. Secondary Pages Part 1 | 0/TBD | Not started | - |
+| 49. Secondary Pages Part 1 | 0/3 | Planning complete | - |
 | 50. Secondary Pages Part 2 | 0/TBD | Not started | - |
 | 51. Utility Pages | 0/TBD | Not started | - |
