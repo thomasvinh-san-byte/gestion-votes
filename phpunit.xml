@@ -12,6 +12,7 @@
     <report>
       <html outputDirectory="coverage-report"/>
       <text outputFile="php://stdout" showUncoveredFiles="true"/>
+      <clover outputFile="coverage.xml"/>
     </report>
   </coverage>
   <php>
