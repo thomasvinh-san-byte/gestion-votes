@@ -1,67 +1,64 @@
-# Requirements: AG-VOTE v4.3 "Ground-Up Rebuild"
+# Requirements: AG-VOTE v4.4 "Complete Rebuild"
 
-**Defined:** 2026-03-20
-**Core Value:** Every critical page is rebuilt from scratch — HTML+CSS+JS together, top 1% design, zero regressions
+**Defined:** 2026-03-30
+**Core Value:** Every page in the app is rebuilt to the same top 1% quality as the v4.3 critical pages
 
-## v4.3 Requirements
+## v4.4 Requirements
 
-### Stabilization (FIX)
+### Secondary Page Rebuilds (REB)
 
-- [x] **FIX-01**: Fix all v4.2 visual regressions — broken layouts, misaligned elements, missing styles across all pages
-- [x] **FIX-02**: Fix all v4.2 JS regressions — broken event handlers, DOM selectors, HTMX targets caused by HTML restructuring
+- [ ] **REB-01**: Post-session — complete HTML+CSS+JS rewrite, 4-step stepper functional, result cards with bar charts, PV generation wired
+- [ ] **REB-02**: Analytics/Statistics — complete HTML+CSS+JS rewrite, chart area + KPI grid, proper responsive layout
+- [ ] **REB-03**: Meetings list — complete HTML+CSS+JS rewrite, session cards with status badges, filters functional
+- [ ] **REB-04**: Archives — complete HTML+CSS+JS rewrite, table with sticky header, pagination, search
+- [ ] **REB-05**: Audit — complete HTML+CSS+JS rewrite, timeline view, table view, CSV export functional
+- [ ] **REB-06**: Members — complete HTML+CSS+JS rewrite, card/table view, import CSV, role management
+- [ ] **REB-07**: Users — complete HTML+CSS+JS rewrite, table with CRUD, role assignment, pagination
+- [ ] **REB-08**: Vote/Ballot — complete HTML+CSS+JS rewrite, full-screen mobile ballot, optimistic feedback, PDF consultation
 
-### Ground-Up Page Rebuilds (REB)
+### Utility Page Rebuilds (UTL)
 
-- [x] **REB-01**: Dashboard — complete HTML+CSS rewrite, KPIs wired to backend, session list with live data, horizontal-first layout, JS verified
-- [x] **REB-02**: Login — complete HTML+CSS rewrite, auth flow wired, field validation, top 1% entry point
-- [x] **REB-03**: Wizard — complete HTML+CSS+JS rewrite, all 4 steps fit viewport, form submissions wired, stepper functional, horizontal fields
-- [x] **REB-04**: Operator console — complete HTML+CSS+JS rewrite, SSE wired, live vote panel functional, agenda sidebar, tooltips on all actions
-- [x] **REB-05**: Hub — complete HTML+CSS+JS rewrite, session lifecycle wired, quorum bar functional, checklist with real data
-- [x] **REB-06**: Settings/Admin — complete HTML+CSS+JS rewrite, all settings save correctly, admin KPIs wired, user management functional
+- [ ] **UTL-01**: Help/FAQ — complete HTML+CSS rewrite, accordion with proper spacing, search
+- [ ] **UTL-02**: Email templates — complete HTML+CSS+JS rewrite, editor with preview panel
+- [ ] **UTL-03**: Public/Projector display — complete HTML+CSS rewrite, projection-optimized results
+- [ ] **UTL-04**: Report/PV page — complete HTML+CSS rewrite, print-ready layout at 880px
+- [ ] **UTL-05**: Trust/Validate/Docs — complete HTML+CSS rewrite, verification status display
 
 ### Backend Wiring (WIRE)
 
-- [x] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data, no broken HTMX targets
-- [x] **WIRE-02**: SSE connections verified on operator and voter pages — live updates flow correctly
-- [x] **WIRE-03**: Form submissions verified — wizard creates sessions, settings save, user CRUD works
+- [ ] **WIRE-01**: Every rebuilt page has verified API connections — no dead endpoints, no mock data
+- [ ] **WIRE-02**: All form submissions verified — data persists correctly after page rebuild
 
-## v4.4+ Requirements (Deferred)
+## v5+ Requirements (Deferred)
 
-- **DEF-01**: Secondary page rebuilds (post-session, analytics, meetings, archives, audit, members, users)
-- **DEF-02**: Utility page rebuilds (help, email templates, landing, public/projector, report, trust/validate/doc)
-- **DEF-03**: AI-assisted PV minutes generation
-- **DEF-04**: ClamAV virus scanning for uploaded PDFs
+- **DEF-01**: AI-assisted PV minutes generation
+- **DEF-02**: ClamAV virus scanning for uploaded PDFs
+- **DEF-03**: Per-tenant motion templates in database
+- **DEF-04**: Electronic signature upload/validation
+- **DEF-05**: Votes pour collectivités territoriales
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| New functionality | v4.3 is rebuild + stabilization — no new features |
+| New functionality | v4.4 is rebuild only — no new features |
 | Framework migration | Vanilla stack is the identity |
-| Secondary page rebuilds | Deferred to v4.4 — critical pages first |
+| Pages already rebuilt in v4.3 | Dashboard, login, wizard, operator, hub, settings/admin already done |
 | Mobile app | PWA approach maintained |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 42 — Stabilization | Complete (2026-03-20) |
-| FIX-02 | Phase 42 — Stabilization | Complete (2026-03-20) |
-| REB-01 | Phase 43 — Dashboard Rebuild | Pending |
-| REB-02 | Phase 44 — Login Rebuild | Complete |
-| REB-03 | Phase 45 — Wizard Rebuild | Complete |
-| REB-04 | Phase 46 — Operator Console Rebuild | Complete |
-| REB-05 | Phase 47 — Hub Rebuild | Complete |
-| REB-06 | Phase 48 — Settings/Admin Rebuild | Complete |
-| WIRE-01 | Phases 43–48 (distributed across all rebuilds) | Complete |
-| WIRE-02 | Phase 46 — Operator Console Rebuild | Complete |
-| WIRE-03 | Phase 45 — Wizard Rebuild | Complete |
+| REB-01..REB-04 | Phase 49 | Pending |
+| REB-05..REB-08 | Phase 50 | Pending |
+| UTL-01..UTL-05 | Phase 51 | Pending |
+| WIRE-01..WIRE-02 | Phases 49-51 (distributed) | Pending |
 
 **Coverage:**
-- v4.3 requirements: 11 total (FIX:2, REB:6, WIRE:3)
-- Mapped to phases: 11
-- Unmapped: 0
+- v4.4 requirements: 15 total (REB:8, UTL:5, WIRE:2)
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-20*
-*Traceability updated: 2026-03-20*
+*Requirements defined: 2026-03-30*
