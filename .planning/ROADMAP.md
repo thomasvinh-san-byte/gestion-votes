@@ -85,7 +85,7 @@
 - [x] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms (completed 2026-03-30)
 - [x] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services) (completed 2026-03-30)
 - [x] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController (completed 2026-03-30)
-- [ ] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
+- [x] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
 - [ ] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium
 - [ ] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions workflow
 
@@ -148,7 +148,7 @@ Plans:
 **Plans:** 2 plans
 Plans:
 - [x] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
-- [ ] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
+- [x] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
 
 ### Phase 56: E2E Test Updates
 **Goal**: All Playwright specs reflect the v4.3/v4.4 page rebuilds — every spec uses current selectors and passes on Chromium against the running Docker stack
@@ -182,6 +182,6 @@ Plans:
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
-| 55. Coverage Target & Tooling | v5.0 | 1/2 | In progress | 2026-03-30 |
+| 55. Coverage Target & Tooling | v5.0 | 2/2 | Complete | 2026-03-30 |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
