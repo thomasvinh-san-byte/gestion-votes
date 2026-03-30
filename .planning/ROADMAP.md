@@ -167,7 +167,10 @@ Plans:
   3. The audit-regression spec correctly targets the v4.4 audit page structure — filter tabs, timeline view, and table view are all exercised without selector errors
   4. The vote spec selects choices using French `data-choice` attribute values and interacts with the v4.4 ballot layout — the vote is submitted and confirmed without errors
   5. Mobile viewport specs for the vote/ballot page pass on both `tablet` and `mobile-chrome` Playwright projects — no layout overflow or touch target failures
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 56-01-PLAN.md — Install Playwright, audit and fix all 18 specs for stale selectors
+- [ ] 56-02-PLAN.md — Run full suite on Chromium, fix failures iteratively, verify mobile viewports
 
 ### Phase 57: CI/CD Pipeline
 **Goal**: Every quality gate runs automatically on every push — coverage, E2E, migration validation, and integration tests are all enforced in GitHub Actions
@@ -190,5 +193,5 @@ Plans:
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
 | 55. Coverage Target & Tooling | 9/9 | Complete    | 2026-03-30 | 2026-03-30 |
-| 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
+| 56. E2E Test Updates | v5.0 | 0/2 | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |
