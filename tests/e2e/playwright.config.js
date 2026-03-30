@@ -14,7 +14,7 @@ module.exports = defineConfig({
   reporter: 'html',
 
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:8000',
+    baseURL: process.env.BASE_URL || 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -43,10 +43,11 @@ module.exports = defineConfig({
     },
   ],
 
-  // Local dev server
+  // Docker stack is expected to already be running at port 8080.
+  // Use `docker compose up -d` before running tests.
   webServer: {
-    command: 'php -S localhost:8000 -t public',
-    url: 'http://localhost:8000/login.html',
+    command: 'echo "Docker stack expected at port 8080"',
+    url: 'http://localhost:8080/login.html',
     reuseExistingServer: !process.env.CI,
     cwd: '../../',
   },
