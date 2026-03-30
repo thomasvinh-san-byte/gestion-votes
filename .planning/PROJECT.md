@@ -69,7 +69,13 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-No active milestone — v4.3 complete. Next: `/gsd:new-milestone` for v4.4.
+**Current Milestone: v4.4 "Complete Rebuild"**
+
+**Goal:** Ground-up rebuild of all remaining pages (13 pages not rebuilt in v4.3) to the same top 1% quality standard — HTML+CSS+JS from scratch, backend wiring verified, browser tested.
+
+**Target pages:**
+- Secondary: postsession, analytics, meetings, archives, audit, members, users, vote
+- Utility: help, email-templates, docs, public, report, trust, validate
 
 ### Out of Scope
 
