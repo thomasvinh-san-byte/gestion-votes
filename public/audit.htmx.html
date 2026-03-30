@@ -1,6 +1,6 @@
 <!doctype html>
-<!-- GO-LIVE-STATUS: ready — Audit et Conformité (wireframe PageAudit). -->
-<html lang="fr" data-page-role="viewer">
+<!-- GO-LIVE-STATUS: ready — Audit et Conformité (wireframe PageAudit). v4.3 rebuild. -->
+<html lang="fr" data-page-role="operator,admin">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
@@ -12,7 +12,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="Audit et Conformité - AG-VOTE">
+  <meta name="description" content="Audit et Conformité — Journal de traçabilité - AG-VOTE">
   <title>Audit — AG-VOTE</title>
   <script src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,27 +24,62 @@
 <body>
   <!-- Skip links -->
   <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-  <a href="#main-nav" class="skip-link">Aller à la navigation</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
 
   <div class="app-shell">
     <!-- Sidebar -->
     <aside class="app-sidebar" data-include-sidebar data-page="audit"></aside>
 
-    <!-- Header -->
-    <header class="app-header" role="banner">
+    <!-- Drawer -->
+    <div class="drawer-backdrop" data-drawer-close hidden></div>
+    <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Informations contextuelles">
+      <div class="drawer-header">
+        <h3 class="drawer-title" id="drawerTitle">Informations</h3>
+        <button class="btn btn-ghost btn-icon btn-sm" data-drawer-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+
+    <!-- Header with audit persona accent bar -->
+    <header class="app-header audit-header" role="banner">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-bold"><svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg> Audit et Conformit&eacute;</h1>
-          <p class="text-sm text-secondary">Journal de tra&ccedil;abilit&eacute;</p>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <span class="bc-item">Conformit&eacute;</span>
+            <span class="bc-sep">/</span>
+            <span class="bc-item bc-current" aria-current="page">Audit</span>
+          </nav>
+          <h1 class="page-title">
+            <span class="bar"></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            Audit et Conformit&eacute;
+          </h1>
+          <p class="page-sub">Journal de tra&ccedil;abilit&eacute; et int&eacute;grit&eacute; des donn&eacute;es</p>
         </div>
       </div>
       <div class="flex items-center gap-2 audit-header-actions">
-        <button class="btn btn-secondary" id="btnExportSelection" hidden>
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exporter la s&eacute;lection
+        <button class="btn btn-secondary btn-sm" id="btnExportSelection" hidden>
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          Exporter la s&eacute;lection
         </button>
-        <button class="btn btn-secondary" id="btnExportAll">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Tout exporter
+        <button class="btn btn-secondary btn-sm" id="btnExportAll">
+          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+          Tout exporter
         </button>
+        <ag-popover trigger="click" position="bottom" width="320">
+          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
+            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+            Aide
+          </button>
+          <div slot="content">
+            <strong>Audit &mdash; Comment &ccedil;a marche</strong>
+            <ul class="onboarding-tips">
+              <li>Chaque action est horodat&eacute;e et hach&eacute;e SHA-256</li>
+              <li>Utilisez les filtres pour isoler un type d'&eacute;v&eacute;nement</li>
+              <li>L'export CSV permet la v&eacute;rification l&eacute;gale externe</li>
+            </ul>
+          </div>
+        </ag-popover>
         <button class="btn btn-ghost btn-icon" type="button" data-drawer="context" title="S&eacute;ance en cours" aria-label="S&eacute;ance en cours">
           <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-menu"></use></svg>
         </button>
@@ -53,108 +88,127 @@
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
-      <div class="table-page">
-        <!-- Notification area -->
-        <div id="notif_box" class="hidden"></div>
+      <div class="audit-page">
 
         <!-- KPI Cards -->
-        <div class="kpi-grid">
+        <div class="kpi-grid" role="region" aria-label="Indicateurs d'audit">
           <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
+            <div class="kpi-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            </div>
             <div class="kpi-value" id="kpiIntegrity">—</div>
-            <div class="kpi-label"><ag-tooltip text="Pourcentage d'evenements avec hash SHA-256 valide" position="top">Int&eacute;grit&eacute;</ag-tooltip></div>
+            <div class="kpi-label"><ag-tooltip text="Pourcentage d'&eacute;v&eacute;nements avec hash SHA-256 valide" position="bottom">Int&eacute;grit&eacute;</ag-tooltip></div>
           </div>
           <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-activity"></use></svg>
+            <div class="kpi-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
             <div class="kpi-value" id="kpiEvents">—</div>
-            <div class="kpi-label"><ag-tooltip text="Nombre total d'evenements enregistres dans le journal" position="top">&Eacute;v&eacute;nements</ag-tooltip></div>
+            <div class="kpi-label"><ag-tooltip text="Nombre total d'&eacute;v&eacute;nements enregistr&eacute;s dans le journal" position="bottom">&Eacute;v&eacute;nements</ag-tooltip></div>
           </div>
           <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+            <div class="kpi-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+            </div>
             <div class="kpi-value" id="kpiAnomalies">—</div>
-            <div class="kpi-label"><ag-tooltip text="Nombre d'evenements avec hash invalide ou manquant" position="top">Anomalies</ag-tooltip></div>
+            <div class="kpi-label"><ag-tooltip text="Nombre d'&eacute;v&eacute;nements avec hash invalide ou manquant" position="bottom">Anomalies</ag-tooltip></div>
           </div>
           <div class="kpi-card">
-            <svg class="icon kpi-icon" aria-hidden="true"><use href="/assets/icons.svg#icon-clock"></use></svg>
+            <div class="kpi-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
             <div class="kpi-value" id="kpiLastSession">—</div>
-            <div class="kpi-label"><ag-tooltip text="Date de la derniere seance ayant genere des evenements" position="top">Derni&egrave;re s&eacute;ance</ag-tooltip></div>
+            <div class="kpi-label"><ag-tooltip text="Date de la derni&egrave;re s&eacute;ance ayant g&eacute;n&eacute;r&eacute; des &eacute;v&eacute;nements" position="bottom">Derni&egrave;re s&eacute;ance</ag-tooltip></div>
           </div>
         </div>
 
-        <!-- Filter Pills -->
-        <div class="filter-tabs" id="auditTypeFilter">
-          <button class="filter-tab active" data-type="">Tous</button>
-          <button class="filter-tab" data-type="votes">Votes</button>
-          <button class="filter-tab" data-type="presences">Pr&eacute;sences</button>
-          <button class="filter-tab" data-type="securite">S&eacute;curit&eacute;</button>
-          <button class="filter-tab" data-type="systeme">Syst&egrave;me</button>
-        </div>
+        <!-- Toolbar: filters + search + sort + view toggle -->
+        <div class="audit-toolbar">
+          <!-- Type filter tabs -->
+          <div class="audit-filter-tabs" id="auditTypeFilter" role="tablist" aria-label="Filtrer par cat&eacute;gorie">
+            <button class="filter-tab active" data-type="" role="tab" aria-selected="true">Tous</button>
+            <button class="filter-tab" data-type="votes" role="tab" aria-selected="false">Votes</button>
+            <button class="filter-tab" data-type="presences" role="tab" aria-selected="false">Pr&eacute;sences</button>
+            <button class="filter-tab" data-type="securite" role="tab" aria-selected="false">S&eacute;curit&eacute;</button>
+            <button class="filter-tab" data-type="systeme" role="tab" aria-selected="false">Syst&egrave;me</button>
+          </div>
 
-        <!-- Toolbar -->
-        <div class="table-toolbar">
-          <div class="flex items-center gap-2">
-            <input type="text" class="form-input audit-search-input" id="auditSearch"
-                   placeholder="Rechercher...">
+          <!-- Search + sort + view toggle -->
+          <div class="audit-toolbar-right">
+            <input type="search" class="form-input audit-search-input" id="auditSearch"
+                   placeholder="Rechercher un &eacute;v&eacute;nement..." aria-label="Rechercher">
             <select class="form-input audit-sort-select" id="auditSort" aria-label="Trier par">
               <option value="date-desc">Plus r&eacute;cent</option>
               <option value="date-asc">Plus ancien</option>
               <option value="severity-desc">Gravit&eacute; (haute)</option>
               <option value="severity-asc">Gravit&eacute; (basse)</option>
             </select>
-          </div>
-          <div class="view-toggle">
-            <button class="view-toggle-btn active" data-view="table" id="btnViewTable" title="Vue tableau" aria-label="Vue tableau">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-grid"></use></svg>
-            </button>
-            <button class="view-toggle-btn" data-view="timeline" id="btnViewTimeline" title="Vue chronologie" aria-label="Vue chronologie">
-              <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-list"></use></svg>
-            </button>
+            <div class="view-toggle" role="group" aria-label="Mode d'affichage">
+              <button class="view-toggle-btn active" data-view="table" title="Vue tableau" aria-label="Vue tableau">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </button>
+              <button class="view-toggle-btn" data-view="timeline" title="Vue chronologie" aria-label="Vue chronologie">
+                <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Table Card -->
-        <div class="table-card">
+        <!-- Table View -->
+        <div class="table-card" id="auditTableView">
           <div class="table-wrapper">
-            <!-- Table View -->
-            <div id="auditTableView">
-              <table class="table audit-table" id="auditTable">
-                <thead>
-                  <tr>
-                    <th class="audit-col-check">
-                      <input type="checkbox" id="selectAll" aria-label="S&eacute;lectionner tout">
-                    </th>
-                    <th class="audit-col-num"><ag-tooltip text="Numero sequentiel de l'evenement" position="bottom">#</ag-tooltip></th>
-                    <th class="audit-col-timestamp"><ag-tooltip text="Date et heure precise de l'evenement (UTC)" position="bottom">Horodatage</ag-tooltip></th>
-                    <th class="audit-col-event"><ag-tooltip text="Type et description de l'action enregistree" position="bottom">&Eacute;v&eacute;nement</ag-tooltip></th>
-                    <th class="audit-col-user"><ag-tooltip text="Compte utilisateur a l'origine de l'action" position="bottom">Utilisateur</ag-tooltip></th>
-                    <th class="audit-col-hash"><ag-tooltip text="Hash SHA-256 garantissant l'integrite de l'entree" position="bottom">Empreinte</ag-tooltip></th>
-                  </tr>
-                </thead>
-                <tbody id="auditTableBody">
-                  <tr>
-                    <td colspan="6" class="text-center p-6">
-                      <div class="spinner"></div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <table class="table audit-table">
+              <thead>
+                <tr>
+                  <th class="audit-col-check">
+                    <input type="checkbox" id="selectAll" aria-label="S&eacute;lectionner tout">
+                  </th>
+                  <th class="audit-col-num">
+                    <ag-tooltip text="Num&eacute;ro s&eacute;quentiel de l'&eacute;v&eacute;nement" position="bottom">#</ag-tooltip>
+                  </th>
+                  <th class="audit-col-timestamp">
+                    <ag-tooltip text="Date et heure pr&eacute;cise de l'&eacute;v&eacute;nement (UTC)" position="bottom">Horodatage</ag-tooltip>
+                  </th>
+                  <th class="audit-col-event">
+                    <ag-tooltip text="Type et description de l'action enregistr&eacute;e" position="bottom">&Eacute;v&eacute;nement</ag-tooltip>
+                  </th>
+                  <th class="audit-col-user">
+                    <ag-tooltip text="Compte utilisateur &agrave; l'origine de l'action" position="bottom">Utilisateur</ag-tooltip>
+                  </th>
+                  <th class="audit-col-hash">
+                    <ag-tooltip text="Hash SHA-256 garantissant l'int&eacute;grit&eacute; de l'entr&eacute;e" position="bottom">Empreinte</ag-tooltip>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody">
+                <tr>
+                  <td colspan="6" class="text-center" style="padding: var(--space-8);">
+                    <div class="spinner" aria-label="Chargement..."></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-            <!-- Timeline View -->
-            <div id="auditTimelineView" hidden>
-              <div class="audit-timeline" id="auditTimeline">
-                <div class="text-center p-6">
-                  <div class="spinner"></div>
-                </div>
-              </div>
+        <!-- Timeline View -->
+        <div class="table-card" id="auditTimelineView" hidden>
+          <div class="audit-timeline" id="auditTimeline" aria-live="polite">
+            <div class="text-center" style="padding: var(--space-8);">
+              <div class="spinner" aria-label="Chargement..."></div>
             </div>
           </div>
         </div>
 
         <!-- Pagination -->
-        <div class="table-pagination" id="auditPagination"></div>
+        <div class="audit-pagination-wrap" id="auditPagination" role="navigation" aria-label="Pagination"></div>
 
-      </div>
+        <!-- Retry button — shown by JS on API error -->
+        <div class="text-center" hidden>
+          <button class="btn btn-primary" id="auditRetryBtn" hidden>R&eacute;essayer</button>
+        </div>
+
+      </div><!-- .audit-page -->
     </main>
 
     <footer class="app-footer mobile-footer" role="contentinfo">
@@ -164,32 +218,22 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">v4.3</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
-      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted mobile-footer-link">Accessibilite</a>
+      <a href="/admin.htmx.html?tab=settings#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
     </footer>
-  </div>
+  </div><!-- .app-shell -->
 
-  <!-- Drawer -->
-  <div class="drawer-backdrop" data-drawer-close></div>
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu contextuel">
-    <div class="drawer-header">
-      <div id="drawerTitle" class="font-semibold">Menu</div>
-      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-drawer-close aria-label="Fermer le panneau">✕</button>
-    </div>
-    <div class="drawer-body" id="drawerBody"></div>
-  </aside>
-
-  <!-- Event Detail Modal (legacy — replaced by inline row expansion) -->
-  <div class="modal-backdrop" id="auditDetailBackdrop" style="display: none;" data-legacy="true"></div>
-  <div class="modal" id="auditDetailModal" role="dialog" aria-modal="true" aria-labelledby="auditDetailModalTitle" aria-hidden="true" style="display: none;" data-legacy="true">
+  <!-- Event Detail Modal -->
+  <div class="modal-backdrop" id="auditDetailBackdrop" hidden aria-hidden="true"></div>
+  <div class="modal" id="auditDetailModal" role="dialog" aria-modal="true" aria-labelledby="auditDetailModalTitle" aria-hidden="true" hidden>
     <div class="modal-header">
       <h3 class="modal-title" id="auditDetailModalTitle">
         <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
         D&eacute;tail de l&apos;&eacute;v&eacute;nement
       </h3>
-      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseAuditDetail" aria-label="Fermer">×</button>
+      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseAuditDetail" aria-label="Fermer">&times;</button>
     </div>
     <div class="modal-body">
       <!-- 2x2 Metadata Grid -->
@@ -211,16 +255,10 @@
           <div class="audit-detail-value" id="detailSeverity">—</div>
         </div>
       </div>
-
       <!-- Description -->
-      <div class="audit-detail-description" id="detailDescription">
-        —
-      </div>
-
+      <div class="audit-detail-description" id="detailDescription">—</div>
       <!-- SHA-256 Hash -->
-      <div class="audit-detail-hash" id="detailHash">
-        —
-      </div>
+      <div class="audit-detail-hash" id="detailHash">—</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="btnCloseAuditDetail2">Fermer</button>
@@ -237,7 +275,6 @@
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/core/shell.js"></script>
   <script src="/assets/js/services/meeting-context.js"></script>
-
   <script src="/assets/js/pages/audit.js"></script>
 </body>
 </html>

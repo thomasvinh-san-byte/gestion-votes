@@ -1,19 +1,180 @@
 /**
- * audit.css - Audit page styles for AG-VOTE.
+ * audit.css — Audit page styles for AG-VOTE v4.3
  *
- * Styles for the audit page including the event table, timeline,
- * severity indicators, event detail modal, and pagination.
- * All colors use design system tokens — no hardcoded hex values.
+ * Complete v4.3 rebuild: gradient accent header, shadow-md cards, token-based dark mode.
+ * All values via design tokens — no hardcoded hex colors.
+ * Covers: KPI bar, toolbar, filter tabs, view toggle, table, timeline, modal, pagination.
  */
 
 /* =============================================================================
-   HEADER ACTIONS
+   PAGE LAYOUT
    ============================================================================= */
+
+.audit-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  max-width: 1400px;
+}
+
+/* =============================================================================
+   HEADER
+   ============================================================================= */
+
+.audit-header {
+  border-bottom: 2px solid var(--color-primary);
+}
 
 .audit-header-actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* =============================================================================
+   KPI GRID — 4 columns desktop, 2 tablet, 1 mobile
+   ============================================================================= */
+
+/* KPI icon container */
+.kpi-card .kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-3);
+  flex-shrink: 0;
+}
+
+/* KPI anomalies red indicator when count > 0 */
+.kpi-card .kpi-value[data-anomaly="true"] {
+  color: var(--color-danger);
+}
+
+/* =============================================================================
+   TOOLBAR — filters + search + sort + view toggle
+   ============================================================================= */
+
+.audit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Type filter tabs — horizontal scrollable pill bar */
+.audit-filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.audit-filter-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.filter-tab:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+.filter-tab.active {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast, #fff);
+  border-color: var(--color-primary);
+}
+
+.filter-tab .count {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.filter-tab.active .count {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+}
+
+/* Toolbar right side: search + sort + view toggle */
+.audit-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Search input */
+.audit-search-input {
+  width: 220px;
+}
+
+/* Sort select */
+.audit-sort-select {
+  width: 170px;
+}
+
+/* View toggle — pill-shaped button group */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.view-toggle-btn:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.view-toggle-btn.active {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast, #fff);
 }
 
 /* =============================================================================
@@ -34,17 +195,20 @@
 }
 
 .audit-table th {
-  font-weight: var(--font-semibold, 600);
+  font-weight: var(--font-semibold);
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--color-text-muted);
-  /* background, position: sticky, top, z-index now inherited from .table-card .table thead th */
+  background: var(--color-bg-subtle);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-raised, 10);
 }
 
 .audit-table tbody tr {
   cursor: pointer;
-  transition: background var(--duration-fast, 100ms);
+  transition: background var(--duration-fast);
 }
 
 .audit-table tbody tr:hover td {
@@ -56,7 +220,6 @@
   width: 40px;
 }
 
-/* Scoped selector overrides the general text-align:left rule without !important */
 .audit-table .audit-col-check,
 .audit-table td.audit-col-check {
   text-align: center;
@@ -64,21 +227,25 @@
 
 .audit-col-num {
   width: 48px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
 }
 
 .audit-col-timestamp {
   white-space: nowrap;
+  width: 180px;
 }
 
 .audit-col-hash {
   max-width: 160px;
 }
 
-/* Timestamp cell */
+/* Monospace timestamp */
 .audit-timestamp {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   white-space: nowrap;
+  color: var(--color-text-secondary);
 }
 
 /* Event cell with severity dot */
@@ -88,7 +255,7 @@
   gap: var(--space-2);
 }
 
-/* Severity dot — upgraded to 8px with box-shadow ring */
+/* Severity dot — 8px with ring glow */
 .audit-severity-dot {
   width: 8px;
   height: 8px;
@@ -99,7 +266,7 @@
 }
 
 .audit-severity-dot.info {
-  background: var(--color-accent, var(--color-primary));
+  background: var(--color-primary);
 }
 
 .audit-severity-dot.success {
@@ -114,7 +281,7 @@
   background: var(--color-warning);
 }
 
-/* Hash cell */
+/* Hash cell — monospace truncated */
 .audit-hash-cell {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -123,24 +290,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* KPI icon sizing */
-.kpi-card .kpi-icon {
-  width: 24px;
-  height: 24px;
-}
-
-/* KPI anomalies red indicator when count > 0 */
-.kpi-card .kpi-value[data-anomaly="true"] {
-  color: var(--color-danger);
+  display: inline-block;
 }
 
 /* User cell with initials avatar */
 .audit-user-cell {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .audit-user-avatar {
@@ -150,15 +307,15 @@
   background: var(--color-primary-subtle);
   color: var(--color-primary);
   font-size: 0.625rem;
-  font-weight: 700;
+  font-weight: var(--font-bold);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-/* Inline detail row (replaces modal interaction) */
-.audit-detail-inline td {
+/* Inline detail row (row click expansion) */
+tr.audit-detail-inline td {
   padding: 0 !important;
   background: var(--color-bg-subtle);
   border-bottom: 2px solid var(--color-primary);
@@ -186,11 +343,12 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--space-1);
 }
 
 .audit-detail-panel .audit-detail-value {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
 }
 
 .audit-detail-panel .audit-detail-description {
@@ -198,27 +356,18 @@
   padding: var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .audit-detail-panel .audit-detail-hash {
   grid-column: 1 / -1;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   word-break: break-all;
   padding: var(--space-2);
   background: var(--color-bg-subtle);
   border-radius: var(--radius-sm);
-}
-
-/* Search and sort inputs */
-.audit-search-input {
-  width: 200px;
-}
-
-.audit-sort-select {
-  width: 160px;
 }
 
 /* =============================================================================
@@ -227,13 +376,13 @@
 
 .audit-timeline {
   position: relative;
-  padding-left: 32px;
+  padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-8) + var(--space-4));
 }
 
 .audit-timeline::before {
   content: '';
   position: absolute;
-  left: 14px;
+  left: calc(var(--space-4) + 14px);
   top: 0;
   bottom: 0;
   width: 2px;
@@ -243,12 +392,12 @@
 .audit-timeline-item {
   position: relative;
   padding: var(--space-4) 0;
-  padding-left: var(--space-4);
+  cursor: pointer;
 }
 
 .audit-timeline-dot {
   position: absolute;
-  left: -22px;
+  left: calc(-1 * var(--space-8) - 6px);
   top: calc(var(--space-4) + 8px);
   width: 12px;
   height: 12px;
@@ -259,7 +408,7 @@
 }
 
 .audit-timeline-dot.info {
-  background: var(--color-accent, var(--color-primary));
+  background: var(--color-primary);
 }
 
 .audit-timeline-dot.success {
@@ -278,7 +427,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-left: 3px solid var(--color-border);
-  border-radius: var(--radius-lg, 12px);
+  border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
   position: relative;
   transition: box-shadow var(--duration-fast), border-color var(--duration-fast);
@@ -289,7 +438,7 @@
   border-color: var(--color-border-strong);
 }
 
-/* Severity-specific timeline left-border colors */
+/* Severity-specific left border colors */
 .audit-timeline-item[data-severity="high"] .audit-timeline-content {
   border-left-color: var(--color-danger);
 }
@@ -306,7 +455,7 @@
   border-left-color: var(--color-success);
 }
 
-/* Keep severity border on hover (override generic hover border-color) */
+/* Keep severity border on hover */
 .audit-timeline-item[data-severity="high"] .audit-timeline-content:hover {
   border-left-color: var(--color-danger);
 }
@@ -328,8 +477,9 @@
 }
 
 .audit-timeline-title {
-  font-weight: var(--font-semibold, 600);
+  font-weight: var(--font-semibold);
   font-size: var(--text-sm);
+  color: var(--color-text);
 }
 
 .audit-timeline-time {
@@ -348,24 +498,21 @@
   color: var(--color-text-muted);
 }
 
-.audit-timeline-hash {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 120px;
-  display: inline-block;
-}
-
 .audit-timeline-chevron {
   position: absolute;
   right: var(--space-3);
   top: 50%;
   transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
   color: var(--color-text-muted);
-  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity var(--duration-fast), transform var(--duration-fast);
+}
+
+.audit-timeline-item:hover .audit-timeline-chevron {
+  opacity: 1;
+  transform: translateY(-50%) translateX(2px);
 }
 
 /* =============================================================================
@@ -381,37 +528,41 @@
 
 .audit-detail-item {
   padding: var(--space-3);
-  background: var(--color-surface-raised); /* QA-02: elevated detail field above modal surface */
-  border-radius: var(--radius, 8px);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
 }
 
 .audit-detail-label {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   margin-bottom: var(--space-1);
 }
 
 .audit-detail-value {
-  font-weight: var(--font-semibold, 600);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  color: var(--color-text);
 }
 
 .audit-detail-description {
   padding: var(--space-4);
   background: var(--color-bg-subtle);
-  border-radius: var(--radius, 8px);
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
   font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed, 1.6);
 }
 
 .audit-detail-hash {
   padding: var(--space-3);
   background: var(--color-bg-subtle);
-  border-radius: var(--radius, 8px);
+  border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-accent, var(--color-primary));
+  color: var(--color-primary);
   word-break: break-all;
 }
 
@@ -419,12 +570,63 @@
    PAGINATION
    ============================================================================= */
 
-.audit-pagination {
+.audit-pagination-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-4) 0;
+  flex-wrap: wrap;
+}
+
+/* =============================================================================
+   MODAL BACKDROP — centered overlay with backdrop blur
+   ============================================================================= */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-modal-backdrop, 40);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-modal, 50);
+  width: min(560px, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+}
+
+/* =============================================================================
+   RESPONSIVE — Tablet (max-width: 1024px)
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .audit-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .audit-toolbar-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .audit-search-input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
 }
 
 /* =============================================================================
@@ -432,7 +634,12 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
-  /* Hide Empreinte column on tablet/mobile */
+  .audit-page {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+
+  /* Hide Empreinte column */
   .audit-table .audit-col-hash,
   .audit-table td:nth-child(6) {
     display: none;
@@ -445,24 +652,20 @@
 
   /* Reduce timeline indent */
   .audit-timeline {
-    padding-left: 24px;
+    padding-left: calc(var(--space-6) + var(--space-2));
   }
 
   .audit-timeline::before {
-    left: 10px;
+    left: var(--space-4);
   }
 
   .audit-timeline-dot {
-    left: -18px;
+    left: calc(-1 * var(--space-6) + 2px);
   }
 
-  /* Search input full width */
-  .audit-search-input {
-    width: 140px;
-  }
-
+  /* Sort select hidden to save space */
   .audit-sort-select {
-    width: 130px;
+    display: none;
   }
 }
 
@@ -477,18 +680,12 @@
     display: none;
   }
 
-  /* Stack card header controls vertically */
   .audit-search-input {
     width: 100%;
   }
 
-  .audit-sort-select {
-    width: 100%;
-  }
-
-  /* Pagination wraps on small screens */
-  .audit-pagination {
-    flex-wrap: wrap;
+  /* Pagination wraps */
+  .audit-pagination-wrap {
     gap: var(--space-1);
     padding: var(--space-3) 0;
   }
