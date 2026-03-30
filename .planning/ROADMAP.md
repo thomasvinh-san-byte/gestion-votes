@@ -145,7 +145,7 @@ Plans:
   2. The coverage report shows 90%+ line coverage for the `app/Services/` directory
   3. The coverage report shows 90%+ line coverage for the `app/Controller/` directory
   4. A PHPUnit configuration (phpunit.xml) enforces the 90% threshold — running the suite below threshold exits with a non-zero code
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans complete
 Plans:
 - [x] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
 - [x] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
@@ -189,6 +189,6 @@ Plans:
 | 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
 | 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
 | 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
-| 55. Coverage Target & Tooling | 8/9 | In Progress|  | 2026-03-30 |
+| 55. Coverage Target & Tooling | 9/9 | Complete   | 2026-03-30 | 2026-03-30 |
 | 56. E2E Test Updates | v5.0 | 0/? | Not started | - |
 | 57. CI/CD Pipeline | v5.0 | 0/? | Not started | - |

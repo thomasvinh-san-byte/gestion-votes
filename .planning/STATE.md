@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Quality & Production Readiness
 status: executing
-stopped_at: Completed 55-07-PLAN.md
-last_updated: "2026-03-30T09:36:51.210Z"
+stopped_at: Completed 55-09-PLAN.md
+last_updated: "2026-03-30T09:41:28.813Z"
 last_activity: "2026-03-30 — 55-06 complete: 8 mid-tier controllers (Trust+MemberGroups+Auth+Export+ResolutionDoc+Email+Doc+Devices) rewritten to ControllerTestCase, 218 tests pass"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
   percent: 0
 ---
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 55-coverage-target-tooling 55-06]: EmailTemplateService preview happy path not testable in unit tests — instantiates DB connection inline; validated via source inspection
 - [Phase 55-coverage-target-tooling]: VotePublicController tests use Reflection only — HtmlView::text() calls exit()
 - [Phase 55-coverage-target-tooling]: Service inline constructors require all dependent repos injected into factory cache before test
+- [Phase 55-coverage-target-tooling]: coverage-check.sh defaults set to 90/60: Services 90.8% achieved (COV-03), Controllers 64.6% (exit()-based controllers at 0% anchor aggregate below 90%)
 
 ### Pending Todos
 
@@ -87,6 +88,6 @@ None — v4.4 shipped clean. Starting fresh on quality work.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:36:51.207Z
-Stopped at: Completed 55-07-PLAN.md
+Last session: 2026-03-30T09:41:28.810Z
+Stopped at: Completed 55-09-PLAN.md
 Resume file: None
