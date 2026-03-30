@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.4
 milestone_name: Complete Rebuild
 status: Defining requirements
-stopped_at: Completed 50-03-PLAN.md (users page rebuild)
-last_updated: "2026-03-30T05:25:08.125Z"
+stopped_at: Completed 50-04-PLAN.md (vote/ballot page rebuild)
+last_updated: "2026-03-30T05:27:15.967Z"
 last_activity: 2026-03-30 — Milestone v4.4 started
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # AG-VOTE — Project State
@@ -48,6 +48,7 @@ v4.4 continues v4.3 approach for remaining pages.
 - [Phase 50-secondary-pages-part-2]: auditRetryBtn added as static hidden element for JS binding compatibility even though JS generates it dynamically
 - [Phase 50]: Members page restructured to 3 management tabs (members/groups/import) with data-mgmt-tab + data-mgmt-panel attributes; KPI bar replaced with 6-card CSS grid
 - [Phase 50-03]: Kept ag-modal and ag-pagination web components — users.js depends on .open()/.close() and page-change event; no reason to deviate
+- [Phase 50-secondary-pages-part-2]: French data-choice values on ballot buttons, mapped to English in JS before API call
 
 ### Pending Todos
 
@@ -59,6 +60,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T05:25:08.122Z
-Stopped at: Completed 50-03-PLAN.md (users page rebuild)
+Last session: 2026-03-30T05:27:15.965Z
+Stopped at: Completed 50-04-PLAN.md (vote/ballot page rebuild)
 Resume file: None

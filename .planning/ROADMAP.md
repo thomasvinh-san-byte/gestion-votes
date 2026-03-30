@@ -61,7 +61,7 @@
 ## Phases
 
 - [x] **Phase 49: Secondary Pages Part 1** - Ground-up rebuild of postsession, analytics, meetings, archives — all API connections verified (completed 2026-03-30)
-- [ ] **Phase 50: Secondary Pages Part 2** - Ground-up rebuild of audit, members, users, vote/ballot — all API connections verified
+- [x] **Phase 50: Secondary Pages Part 2** - Ground-up rebuild of audit, members, users, vote/ballot — all API connections verified (completed 2026-03-30)
 - [ ] **Phase 51: Utility Pages** - Ground-up rebuild of help, email-templates, public, report/PV, trust/validate/docs — print and projection layouts verified
 
 ## Phase Details
@@ -118,5 +118,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 49. Secondary Pages Part 1 | 3/3 | Complete    | 2026-03-30 |
-| 50. Secondary Pages Part 2 | 3/4 | In Progress|  |
+| 50. Secondary Pages Part 2 | 4/4 | Complete   | 2026-03-30 |
 | 51. Utility Pages | 0/TBD | Not started | - |
