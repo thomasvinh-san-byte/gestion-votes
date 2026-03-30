@@ -48,9 +48,9 @@
 
 ### Infrastructure — Docker (DOC)
 
-- [ ] **DOC-01**: Docker healthcheck uses runtime PORT variable correctly (not build-time evaluation)
-- [ ] **DOC-02**: Entrypoint handles custom PORT with read-only filesystem gracefully (nginx config template or fallback)
-- [ ] **DOC-03**: Health endpoint returns structured JSON with database, redis, and filesystem check results
+- [x] **DOC-01**: Docker healthcheck uses runtime PORT variable correctly (not build-time evaluation)
+- [x] **DOC-02**: Entrypoint handles custom PORT with read-only filesystem gracefully (nginx config template or fallback)
+- [x] **DOC-03**: Health endpoint returns structured JSON with database, redis, and filesystem check results
 
 ## v6.0 Requirements
 
@@ -105,9 +105,9 @@
 | MIG-01 | Phase 52 | Complete |
 | MIG-02 | Phase 52 | Complete |
 | MIG-03 | Phase 52 | Complete |
-| DOC-01 | Phase 52 | Pending |
-| DOC-02 | Phase 52 | Pending |
-| DOC-03 | Phase 52 | Pending |
+| DOC-01 | Phase 52 | Complete |
+| DOC-02 | Phase 52 | Complete |
+| DOC-03 | Phase 52 | Complete |
 
 **Coverage:**
 - v5.0 requirements: 29 total
