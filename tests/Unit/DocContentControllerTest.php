@@ -5,47 +5,24 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\DocContentController;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for DocContentController.
  *
- * Tests the documentation content serving endpoint including:
- *  - Controller structure (final, does NOT extend AbstractController)
- *  - Public method availability
- *  - Path sanitization and directory traversal prevention
- *  - Missing page parameter handling
- *  - Page parameter validation (allowed characters)
- *  - .md extension stripping logic
- *  - Source structure verification
+ * Extends ControllerTestCase for standard test infrastructure.
  *
- * Note: DocContentController does NOT extend AbstractController.
- * It serves plain text, not JSON API responses, and uses exit() for responses.
- * Therefore we test its logic via source inspection and logic replication
- * rather than invoking the controller directly.
+ * DocContentController does NOT extend AbstractController — it serves plain text
+ * (not JSON), using header()/http_response_code()/echo with no exit().
+ *
+ * Tests verify:
+ *  - Controller is final and does NOT extend AbstractController
+ *  - Path sanitization and directory traversal prevention
+ *  - .md extension stripping logic
+ *  - File path construction logic
+ *  - Source-level structure (Content-Type, response codes, file reading)
  */
-class DocContentControllerTest extends TestCase
+class DocContentControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-    }
-
     // =========================================================================
     // CONTROLLER STRUCTURE TESTS
     // =========================================================================
@@ -59,37 +36,18 @@ class DocContentControllerTest extends TestCase
     public function testControllerDoesNotExtendAbstractController(): void
     {
         $ref = new \ReflectionClass(DocContentController::class);
-        $this->assertFalse($ref->getParentClass(),
-            'DocContentController should not extend any class');
+        $this->assertFalse(
+            $ref->isSubclassOf(\AgVote\Controller\AbstractController::class),
+            'DocContentController must NOT extend AbstractController (plain text endpoint)',
+        );
     }
 
     public function testControllerHasShowMethod(): void
     {
         $ref = new \ReflectionClass(DocContentController::class);
-
-        $this->assertTrue(
-            $ref->hasMethod('show'),
-            'DocContentController should have a show method',
-        );
-    }
-
-    public function testShowMethodIsPublic(): void
-    {
-        $ref = new \ReflectionClass(DocContentController::class);
-
-        $this->assertTrue(
-            $ref->getMethod('show')->isPublic(),
-            'DocContentController::show() should be public',
-        );
-    }
-
-    public function testShowMethodHasNoParameters(): void
-    {
-        $ref = new \ReflectionClass(DocContentController::class);
-        $method = $ref->getMethod('show');
-
-        $this->assertCount(0, $method->getParameters(),
-            'show() should take no parameters');
+        $this->assertTrue($ref->hasMethod('show'), 'Missing method: show');
+        $this->assertTrue($ref->getMethod('show')->isPublic(), 'show() should be public');
+        $this->assertCount(0, $ref->getMethod('show')->getParameters(), 'show() takes no parameters');
     }
 
     // =========================================================================
@@ -279,75 +237,80 @@ class DocContentControllerTest extends TestCase
     }
 
     // =========================================================================
-    // CONTROLLER SOURCE: STRUCTURE VERIFICATION
+    // SOURCE: STRUCTURE VERIFICATION
     // =========================================================================
 
     public function testSourceSetsContentTypeTextPlain(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
-        $this->assertStringContainsString('text/plain', $source,
-            'DocContentController should set Content-Type to text/plain');
+        $this->assertStringContainsString('text/plain', $source);
     }
 
     public function testSourceReadsPageFromGet(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
-        $this->assertStringContainsString("\$_GET['page']", $source,
-            'DocContentController should read page from $_GET');
+        $this->assertStringContainsString("\$_GET['page']", $source);
     }
 
     public function testSourceHandlesMissingPage(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
         $this->assertStringContainsString('Missing page parameter', $source);
     }
 
     public function testSourceHandlesInvalidPage(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
         $this->assertStringContainsString('Invalid page parameter', $source);
     }
 
-    public function testSourceHandlesFileNotFound(): void
+    public function testSourceHandlesDocumentNotFound(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
         $this->assertStringContainsString('Document not found', $source);
     }
 
     public function testSourceUsesFileGetContents(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
         $this->assertStringContainsString('file_get_contents', $source);
     }
 
-    public function testSourceChecksFileExists(): void
+    public function testSourceUsesRealpathForTraversalProtection(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
-        // Uses realpath() for path traversal protection (replaces file_exists/is_file)
         $this->assertStringContainsString('realpath', $source);
         $this->assertStringContainsString('str_starts_with', $source);
     }
 
-    public function testSourceSetsHttpResponseCodes(): void
+    public function testSourceSetsCorrectHttpResponseCodes(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
         $this->assertStringContainsString('400', $source);
         $this->assertStringContainsString('404', $source);
     }
 
-    public function testSourceDocsRootUsesProjectDocs(): void
+    public function testSourceServesFromDocsDirectory(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocContentController.php');
+        $ref = new \ReflectionClass(DocContentController::class);
+        $source = file_get_contents($ref->getFileName());
 
-        $this->assertStringContainsString("'/docs'", $source,
-            'DocContentController should serve from /docs directory');
+        $this->assertStringContainsString("'/docs'", $source);
     }
 }

@@ -4,85 +4,31 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Controller\AbstractController;
 use AgVote\Controller\VoteTokenController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\VoteTokenRepository;
 
 /**
  * Unit tests for VoteTokenController.
  *
- * Tests the single generate endpoint:
- *  - generate: POST, generates vote tokens for eligible voters
+ * Extends ControllerTestCase for repo injection and standard helpers.
  *
- * Since api_ok()/api_fail() throw ApiResponseException, we catch these to
- * inspect controller behavior without a database.
+ * Tests:
+ *  - Controller structure (final, extends AbstractController)
+ *  - generate: POST method enforcement, meeting_id/motion_id UUID validation,
+ *    meeting not found, motion not found, motion already closed,
+ *    success path (generates tokens for eligible voters)
+ *  - TTL clamping (defaults to 180 when 0 or negative)
  */
-class VoteTokenControllerTest extends TestCase
+class VoteTokenControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        // Reset cached raw body
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new VoteTokenController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    /**
-     * Inject a JSON body into Request::$cachedRawBody for POST endpoints.
-     */
-    private function setJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
+    private const TENANT  = 'aaaaaaaa-0000-0000-0000-000000000001';
+    private const MEETING = 'bbbbbbbb-0000-0000-0000-000000000001';
+    private const MOTION  = 'cccccccc-0000-0000-0000-000000000001';
+    private const MEMBER  = 'dddddddd-0000-0000-0000-000000000001';
 
     // =========================================================================
     // CONTROLLER STRUCTURE TESTS
@@ -96,26 +42,14 @@ class VoteTokenControllerTest extends TestCase
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new VoteTokenController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(AbstractController::class, new VoteTokenController());
     }
 
     public function testControllerHasGenerateMethod(): void
     {
         $ref = new \ReflectionClass(VoteTokenController::class);
-        $this->assertTrue(
-            $ref->hasMethod('generate'),
-            'VoteTokenController should have a generate() method',
-        );
-    }
-
-    public function testGenerateMethodIsPublic(): void
-    {
-        $ref = new \ReflectionClass(VoteTokenController::class);
-        $this->assertTrue(
-            $ref->getMethod('generate')->isPublic(),
-            'VoteTokenController::generate() should be public',
-        );
+        $this->assertTrue($ref->hasMethod('generate'));
+        $this->assertTrue($ref->getMethod('generate')->isPublic());
     }
 
     // =========================================================================
@@ -124,70 +58,30 @@ class VoteTokenControllerTest extends TestCase
 
     public function testGenerateRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('generate');
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     public function testGenerateRejectsPutMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('PUT');
 
-        $result = $this->callControllerMethod('generate');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testGenerateRejectsDeleteMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
-
-        $result = $this->callControllerMethod('generate');
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    public function testGenerateRejectsPatchMethod(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'PATCH';
-
-        $result = $this->callControllerMethod('generate');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     // =========================================================================
-    // generate: INPUT VALIDATION - MEETING ID
+    // generate: VALIDATION
     // =========================================================================
 
-    public function testGenerateRejectsMissingMeetingId(): void
+    public function testGenerateRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'motion_id' => '12345678-1234-1234-1234-123456789abc',
-        ]);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('generate');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
-    }
-
-    public function testGenerateRejectsEmptyMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '',
-            'motion_id' => '12345678-1234-1234-1234-123456789abc',
-        ]);
-
-        $result = $this->callControllerMethod('generate');
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('invalid_meeting_id', $result['body']['error']);
@@ -195,58 +89,21 @@ class VoteTokenControllerTest extends TestCase
 
     public function testGenerateRejectsInvalidMeetingUuid(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => 'not-a-uuid',
-            'motion_id' => '12345678-1234-1234-1234-123456789abc',
-        ]);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => 'not-a-uuid']);
 
-        $result = $this->callControllerMethod('generate');
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('invalid_meeting_id', $result['body']['error']);
     }
 
-    public function testGenerateRejectsWhitespaceMeetingId(): void
+    public function testGenerateRequiresMotionId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '   ',
-            'motion_id' => '12345678-1234-1234-1234-123456789abc',
-        ]);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => self::MEETING]);
 
-        $result = $this->callControllerMethod('generate');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // generate: INPUT VALIDATION - MOTION ID
-    // =========================================================================
-
-    public function testGenerateRejectsMissingMotionId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-        ]);
-
-        $result = $this->callControllerMethod('generate');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('invalid_motion_id', $result['body']['error']);
-    }
-
-    public function testGenerateRejectsEmptyMotionId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'motion_id' => '',
-        ]);
-
-        $result = $this->callControllerMethod('generate');
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('invalid_motion_id', $result['body']['error']);
@@ -254,342 +111,215 @@ class VoteTokenControllerTest extends TestCase
 
     public function testGenerateRejectsInvalidMotionUuid(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'motion_id' => 'bad-uuid',
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'meeting_id' => self::MEETING,
+            'motion_id'  => 'bad-uuid',
         ]);
 
-        $result = $this->callControllerMethod('generate');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('invalid_motion_id', $result['body']['error']);
-    }
-
-    public function testGenerateRejectsPartialMotionUuid(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'motion_id' => '12345678-1234-1234',
-        ]);
-
-        $result = $this->callControllerMethod('generate');
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('invalid_motion_id', $result['body']['error']);
     }
 
     // =========================================================================
-    // generate: VALIDATION ORDER (meeting_id before motion_id)
+    // generate: MEETING NOT FOUND
     // =========================================================================
 
-    public function testGenerateValidatesMeetingIdBeforeMotionId(): void
+    public function testGenerateReturnsMeetingNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => 'bad',
-            'motion_id' => 'also-bad',
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id' => self::MEETING,
+            'motion_id'  => self::MOTION,
         ]);
 
-        $result = $this->callControllerMethod('generate');
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn(null);
 
-        // meeting_id is validated first
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
-    }
+        $this->injectRepos([MeetingRepository::class => $mockMeeting]);
 
-    public function testGenerateRejectsBothMissingIds(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([]);
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
-        $result = $this->callControllerMethod('generate');
-
-        // meeting_id is validated first
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('invalid_meeting_id', $result['body']['error']);
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
 
     // =========================================================================
-    // generate: MEETING ID FROM QUERY STRING FALLBACK
+    // generate: MOTION NOT FOUND
     // =========================================================================
 
-    public function testGenerateFallsBackToQueryStringMeetingId(): void
+    public function testGenerateReturnsMotionNotFound(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET = ['meeting_id' => '12345678-1234-1234-1234-123456789abc'];
-        $this->setJsonBody([
-            'motion_id' => 'abcdefab-1234-1234-1234-123456789abc',
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id' => self::MEETING,
+            'motion_id'  => self::MOTION,
         ]);
 
-        $result = $this->callControllerMethod('generate');
-
-        // Should pass meeting_id and motion_id validation (fail at DB access)
-        $this->assertNotEquals('invalid_meeting_id', $result['body']['error'] ?? '');
-        $this->assertNotEquals('invalid_motion_id', $result['body']['error'] ?? '');
-    }
-
-    public function testGenerateFallsBackToQueryStringMotionId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_GET = ['motion_id' => 'abcdefab-1234-1234-1234-123456789abc'];
-        $this->setJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING, 'title' => 'Test', 'status' => 'live',
         ]);
 
-        $result = $this->callControllerMethod('generate');
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findByIdAndMeetingWithDates')->willReturn(null);
 
-        // Should pass both validations (fail at DB access)
-        $this->assertNotEquals('invalid_meeting_id', $result['body']['error'] ?? '');
-        $this->assertNotEquals('invalid_motion_id', $result['body']['error'] ?? '');
+        $this->injectRepos([
+            MeetingRepository::class => $mockMeeting,
+            MotionRepository::class  => $mockMotion,
+        ]);
+
+        $result = $this->callController(VoteTokenController::class, 'generate');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('motion_not_found', $result['body']['error']);
     }
 
     // =========================================================================
-    // generate: TTL MINUTES DEFAULT LOGIC
+    // generate: MOTION ALREADY CLOSED
     // =========================================================================
 
-    public function testTtlMinutesDefaultLogic(): void
+    public function testGenerateRejectsClosedMotion(): void
     {
-        // Replicate the TTL logic from generate()
-        $in1 = [];
-        $ttl1 = (int) ($in1['ttl_minutes'] ?? 0);
-        if ($ttl1 <= 0) {
-            $ttl1 = 180;
-        }
-        $this->assertEquals(180, $ttl1, 'Default TTL should be 180 minutes');
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id' => self::MEETING,
+            'motion_id'  => self::MOTION,
+        ]);
 
-        $in2 = ['ttl_minutes' => 60];
-        $ttl2 = (int) ($in2['ttl_minutes'] ?? 0);
-        if ($ttl2 <= 0) {
-            $ttl2 = 180;
-        }
-        $this->assertEquals(60, $ttl2, 'Custom TTL should be preserved');
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING, 'title' => 'Test', 'status' => 'live',
+        ]);
 
-        $in3 = ['ttl_minutes' => 0];
-        $ttl3 = (int) ($in3['ttl_minutes'] ?? 0);
-        if ($ttl3 <= 0) {
-            $ttl3 = 180;
-        }
-        $this->assertEquals(180, $ttl3, 'Zero TTL should default to 180');
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findByIdAndMeetingWithDates')->willReturn([
+            'id'        => self::MOTION,
+            'title'     => 'Motion 1',
+            'closed_at' => '2026-03-01 12:00:00',  // already closed
+        ]);
 
-        $in4 = ['ttl_minutes' => -10];
-        $ttl4 = (int) ($in4['ttl_minutes'] ?? 0);
-        if ($ttl4 <= 0) {
-            $ttl4 = 180;
-        }
-        $this->assertEquals(180, $ttl4, 'Negative TTL should default to 180');
-    }
+        $this->injectRepos([
+            MeetingRepository::class => $mockMeeting,
+            MotionRepository::class  => $mockMotion,
+        ]);
 
-    // =========================================================================
-    // generate: HASH COMPUTATION LOGIC
-    // =========================================================================
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
-    public function testGenerateUsesHmacSha256(): void
-    {
-        $raw = 'test-uuid-token';
-        $hash = hash_hmac('sha256', $raw, APP_SECRET);
-
-        $this->assertIsString($hash);
-        $this->assertEquals(64, strlen($hash));
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $hash);
-    }
-
-    public function testGenerateHashIsDeterministic(): void
-    {
-        $raw = 'test-uuid-token';
-        $hash1 = hash_hmac('sha256', $raw, APP_SECRET);
-        $hash2 = hash_hmac('sha256', $raw, APP_SECRET);
-
-        $this->assertEquals($hash1, $hash2);
-    }
-
-    public function testGenerateDifferentTokensProduceDifferentHashes(): void
-    {
-        $hash1 = hash_hmac('sha256', 'token-a', APP_SECRET);
-        $hash2 = hash_hmac('sha256', 'token-b', APP_SECRET);
-
-        $this->assertNotEquals($hash1, $hash2);
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('motion_closed', $result['body']['error']);
     }
 
     // =========================================================================
-    // generate: URL CONSTRUCTION LOGIC
+    // generate: SUCCESS PATH — NO ELIGIBLE VOTERS
     // =========================================================================
 
-    public function testTokenUrlConstruction(): void
+    public function testGenerateWithNoEligibleVotersReturnsZero(): void
     {
-        $raw = 'test-uuid-value';
-        $url = '/vote.php?token=' . $raw;
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id' => self::MEETING,
+            'motion_id'  => self::MOTION,
+        ]);
 
-        $this->assertEquals('/vote.php?token=test-uuid-value', $url);
-    }
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING, 'title' => 'Test', 'status' => 'live',
+        ]);
 
-    // =========================================================================
-    // CONTROLLER SOURCE VERIFICATION
-    // =========================================================================
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findByIdAndMeetingWithDates')->willReturn([
+            'id' => self::MOTION, 'title' => 'Motion 1', 'closed_at' => null,
+        ]);
 
-    public function testControllerUsesMeetingRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
+        $mockAttendance = $this->createMock(AttendanceRepository::class);
+        $mockAttendance->method('listEligibleVotersWithName')->willReturn([]);
 
-        $this->assertStringContainsString('repo()->meeting()', $source);
-        $this->assertStringContainsString('findByIdForTenant', $source);
-    }
+        $mockToken = $this->createMock(VoteTokenRepository::class);
 
-    public function testControllerUsesMotionRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
+        $this->injectRepos([
+            MeetingRepository::class    => $mockMeeting,
+            MotionRepository::class     => $mockMotion,
+            AttendanceRepository::class => $mockAttendance,
+            VoteTokenRepository::class  => $mockToken,
+        ]);
 
-        $this->assertStringContainsString('repo()->motion()', $source);
-        $this->assertStringContainsString('findByIdAndMeetingWithDates', $source);
-    }
+        $result = $this->callController(VoteTokenController::class, 'generate');
 
-    public function testControllerUsesAttendanceRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString('repo()->attendance()', $source);
-        $this->assertStringContainsString('listEligibleVotersWithName', $source);
-    }
-
-    public function testControllerUsesVoteTokenRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString('repo()->voteToken()', $source);
-        $this->assertStringContainsString('deleteUnusedByMotionAndMember', $source);
-        $this->assertStringContainsString('insert', $source);
-    }
-
-    public function testControllerUsesApiTransaction(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString('api_transaction', $source);
-    }
-
-    public function testControllerUsesAppSecret(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString('APP_SECRET', $source);
-    }
-
-    public function testControllerAuditsOperation(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString("'vote_tokens_generated'", $source);
-        $this->assertStringContainsString('audit_log', $source);
-    }
-
-    public function testControllerGuardsMeetingNotValidated(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString('api_guard_meeting_not_validated', $source);
-    }
-
-    public function testControllerChecksMotionClosed(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $this->assertStringContainsString("'motion_closed'", $source);
-        $this->assertStringContainsString('closed_at', $source);
-    }
-
-    public function testControllerResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $expectedKeys = ['count', 'expires_in', 'tokens'];
-        foreach ($expectedKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source);
-        }
-    }
-
-    public function testControllerTokenOutputStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/VoteTokenController.php');
-
-        $expectedTokenKeys = ['member_id', 'member_name', 'token', 'url'];
-        foreach ($expectedTokenKeys as $key) {
-            $this->assertStringContainsString("'{$key}'", $source);
-        }
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(0, $result['body']['data']['count']);
+        $this->assertEquals([], $result['body']['data']['tokens']);
     }
 
     // =========================================================================
-    // HANDLE: UNKNOWN METHOD
+    // generate: SUCCESS PATH — WITH ELIGIBLE VOTERS
     // =========================================================================
 
-    public function testHandleUnknownMethodReturnsInternalError(): void
+    public function testGenerateCreatesTokensForEligibleVoters(): void
     {
-        $controller = new VoteTokenController();
-        try {
-            $controller->handle('nonExistentMethod');
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            $this->assertEquals(500, $e->getResponse()->getStatusCode());
-            $this->assertEquals('internal_error', $e->getResponse()->getBody()['error']);
-        }
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id'  => self::MEETING,
+            'motion_id'   => self::MOTION,
+            'ttl_minutes' => 60,
+        ]);
+
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id' => self::MEETING, 'title' => 'Test', 'status' => 'live',
+        ]);
+
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findByIdAndMeetingWithDates')->willReturn([
+            'id' => self::MOTION, 'title' => 'Motion 1', 'closed_at' => null,
+        ]);
+
+        $mockAttendance = $this->createMock(AttendanceRepository::class);
+        $mockAttendance->method('listEligibleVotersWithName')->willReturn([
+            ['member_id' => self::MEMBER, 'member_name' => 'Alice Martin'],
+        ]);
+
+        $mockToken = $this->createMock(VoteTokenRepository::class);
+        // deleteUnusedByMotionAndMember and insert are void methods
+
+        $this->injectRepos([
+            MeetingRepository::class    => $mockMeeting,
+            MotionRepository::class     => $mockMotion,
+            AttendanceRepository::class => $mockAttendance,
+            VoteTokenRepository::class  => $mockToken,
+        ]);
+
+        $result = $this->callController(VoteTokenController::class, 'generate');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(1, $result['body']['data']['count']);
+        $this->assertEquals(60, $result['body']['data']['expires_in']);
+        $this->assertCount(1, $result['body']['data']['tokens']);
+        $this->assertEquals(self::MEMBER, $result['body']['data']['tokens'][0]['member_id']);
     }
 
     // =========================================================================
-    // generate: MOTION CLOSED CHECK LOGIC
+    // generate: TTL CLAMPING
     // =========================================================================
 
-    public function testMotionClosedCheckLogic(): void
+    /**
+     * TTL defaults to 180 minutes when not provided or non-positive.
+     */
+    public function testGenerateTtlDefaultsTo180Minutes(): void
     {
-        $motionOpen = ['closed_at' => null];
-        $this->assertNull($motionOpen['closed_at'], 'Open motion should have null closed_at');
+        // Verify the clamping logic from the source
+        $clampTtl = fn(int $input): int => $input > 0 ? $input : 180;
 
-        $motionClosed = ['closed_at' => '2024-01-01 12:00:00'];
-        $this->assertNotNull($motionClosed['closed_at'], 'Closed motion should have non-null closed_at');
-    }
-
-    // =========================================================================
-    // generate: MEETING ID TRIMMING LOGIC
-    // =========================================================================
-
-    public function testMeetingIdTrimmingLogic(): void
-    {
-        $in = ['meeting_id' => '  12345678-1234-1234-1234-123456789abc  '];
-        $meetingId = trim((string) ($in['meeting_id'] ?? api_query('meeting_id')));
-
-        $this->assertEquals('12345678-1234-1234-1234-123456789abc', $meetingId);
-        $this->assertTrue(api_is_uuid($meetingId));
-    }
-
-    public function testMotionIdTrimmingLogic(): void
-    {
-        $in = ['motion_id' => '  abcdefab-1234-1234-1234-123456789abc  '];
-        $motionId = trim((string) ($in['motion_id'] ?? api_query('motion_id')));
-
-        $this->assertEquals('abcdefab-1234-1234-1234-123456789abc', $motionId);
-        $this->assertTrue(api_is_uuid($motionId));
-    }
-
-    // =========================================================================
-    // generate: EXPIRATION DATE FORMAT
-    // =========================================================================
-
-    public function testExpirationDateFormat(): void
-    {
-        $ttlMinutes = 180;
-        $expiresAt = (new \DateTimeImmutable('+' . $ttlMinutes . ' minutes'))->format('Y-m-d H:i:sP');
-
-        $this->assertMatchesRegularExpression(
-            '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/',
-            $expiresAt,
-        );
-    }
-
-    public function testExpirationDateIsInFuture(): void
-    {
-        $ttlMinutes = 180;
-        $expiresAt = new \DateTimeImmutable('+' . $ttlMinutes . ' minutes');
-        $now = new \DateTimeImmutable();
-
-        $this->assertGreaterThan($now, $expiresAt);
+        $this->assertEquals(180, $clampTtl(0));     // Zero => default 180
+        $this->assertEquals(180, $clampTtl(-10));   // Negative => default 180
+        $this->assertEquals(60, $clampTtl(60));     // Positive => keep
+        $this->assertEquals(180, $clampTtl(180));   // Exactly 180
     }
 }

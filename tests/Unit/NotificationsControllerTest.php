@@ -4,75 +4,27 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Controller\AbstractController;
 use AgVote\Controller\NotificationsController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AuditEventRepository;
 
 /**
  * Unit tests for NotificationsController.
  *
- * Tests the notification endpoints:
+ * Extends ControllerTestCase for repo injection and standard helpers.
+ *
+ * Tests:
  *  - Controller structure (final, extends AbstractController)
- *  - list() limit clamping (1–50, default 20)
- *  - markRead() returns zero-count acknowledgement
+ *  - NOTIF_ACTIONS constant completeness
+ *  - list(): limit clamping (1-50, default 20), success path with mocked repo
+ *  - markRead(): returns marked=0 acknowledgement
  */
-class NotificationsControllerTest extends TestCase
+class NotificationsControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
+    private const TENANT = 'aaaaaaaa-0000-0000-0000-000000000001';
 
     // =========================================================================
-    // HELPER
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new NotificationsController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    // =========================================================================
-    // CONTROLLER STRUCTURE
+    // CONTROLLER STRUCTURE TESTS
     // =========================================================================
 
     public function testControllerIsFinal(): void
@@ -83,33 +35,16 @@ class NotificationsControllerTest extends TestCase
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new NotificationsController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(AbstractController::class, new NotificationsController());
     }
 
     public function testControllerHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(NotificationsController::class);
 
-        $expected = ['list', 'markRead'];
-        foreach ($expected as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "NotificationsController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(NotificationsController::class);
-
-        $expected = ['list', 'markRead'];
-        foreach ($expected as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "NotificationsController::{$method}() should be public",
-            );
+        foreach (['list', 'markRead'] as $method) {
+            $this->assertTrue($ref->hasMethod($method), "Missing method: {$method}");
+            $this->assertTrue($ref->getMethod($method)->isPublic(), "{$method} should be public");
         }
     }
 
@@ -125,52 +60,102 @@ class NotificationsControllerTest extends TestCase
         $actions = $ref->getConstant('NOTIF_ACTIONS');
         $this->assertIsArray($actions);
         $this->assertNotEmpty($actions);
+    }
 
-        // Key lifecycle actions must be present
-        $this->assertContains('meeting_created', $actions);
-        $this->assertContains('motion_opened', $actions);
-        $this->assertContains('motion_closed', $actions);
+    public function testNotifActionsContainsLifecycleEvents(): void
+    {
+        $ref = new \ReflectionClass(NotificationsController::class);
+        $actions = $ref->getConstant('NOTIF_ACTIONS');
+
+        $required = ['meeting_created', 'meeting_launched', 'meeting_closed',
+                     'motion_opened', 'motion_closed'];
+        foreach ($required as $action) {
+            $this->assertContains($action, $actions, "Missing lifecycle action: {$action}");
+        }
     }
 
     // =========================================================================
     // list(): LIMIT CLAMPING LOGIC
     // =========================================================================
 
-    public function testListLimitDefaultsTo20(): void
-    {
-        // Inspect the source to verify default limit logic
-        $ref = new \ReflectionClass(NotificationsController::class);
-        $source = file_get_contents($ref->getFileName());
-
-        // Verify the clamping pattern: min(max(limit, 1), 50) with default 20
-        $this->assertStringContainsString("'limit'", $source);
-        $this->assertStringContainsString('20', $source);
-        $this->assertStringContainsString('50', $source);
-    }
-
     public function testListLimitClampingLogic(): void
     {
-        // Test via source inspection: min(max(int($limit ?: 20), 1), 50)
+        // Source logic: min(max((int) ($limit ?: 20), 1), 50)
         $clamp = fn(string $input): int => min(max((int) ($input ?: 20), 1), 50);
 
         $this->assertEquals(20, $clamp(''));       // Default
-        $this->assertEquals(20, $clamp('0'));      // Zero → default
+        $this->assertEquals(20, $clamp('0'));      // Zero => default
         $this->assertEquals(1, $clamp('1'));       // Min boundary
         $this->assertEquals(50, $clamp('50'));     // Max boundary
-        $this->assertEquals(50, $clamp('100'));    // Over max → clamped
-        $this->assertEquals(1, $clamp('-5'));      // Negative → clamped
+        $this->assertEquals(50, $clamp('100'));    // Over max => clamped
+        $this->assertEquals(1, $clamp('-5'));      // Negative => clamped
         $this->assertEquals(25, $clamp('25'));     // Normal value
     }
 
     // =========================================================================
-    // markRead(): RESPONSE STRUCTURE
+    // list(): REQUIRES AUTH
+    // =========================================================================
+
+    public function testListRequiresAuthentication(): void
+    {
+        // Without auth, api_current_tenant_id() fails
+        $result = $this->callController(NotificationsController::class, 'list');
+
+        $this->assertGreaterThanOrEqual(400, $result['status']);
+    }
+
+    // =========================================================================
+    // list(): SUCCESS PATH
+    // =========================================================================
+
+    public function testListReturnsNotifications(): void
+    {
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->setQueryParams(['limit' => '5']);
+
+        $mockAudit = $this->createMock(AuditEventRepository::class);
+        $mockAudit->method('listRecentByActions')->willReturn([
+            ['id' => 1, 'action' => 'meeting_created', 'created_at' => '2026-03-01'],
+            ['id' => 2, 'action' => 'motion_opened', 'created_at' => '2026-03-02'],
+        ]);
+
+        $this->injectRepos([AuditEventRepository::class => $mockAudit]);
+
+        $result = $this->callController(NotificationsController::class, 'list');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertArrayHasKey('notifications', $result['body']['data']);
+        $this->assertArrayHasKey('unread_count', $result['body']['data']);
+        $this->assertEquals(2, $result['body']['data']['unread_count']);
+        $this->assertCount(2, $result['body']['data']['notifications']);
+    }
+
+    public function testListWithEmptyResultReturnsZeroCount(): void
+    {
+        $this->setAuth('user-1', 'admin', self::TENANT);
+
+        $mockAudit = $this->createMock(AuditEventRepository::class);
+        $mockAudit->method('listRecentByActions')->willReturn([]);
+
+        $this->injectRepos([AuditEventRepository::class => $mockAudit]);
+
+        $result = $this->callController(NotificationsController::class, 'list');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(0, $result['body']['data']['unread_count']);
+        $this->assertEquals([], $result['body']['data']['notifications']);
+    }
+
+    // =========================================================================
+    // markRead(): SUCCESS PATH
     // =========================================================================
 
     public function testMarkReadReturnsZeroCount(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('PUT');
+        $this->setAuth('user-1', 'admin', self::TENANT);
 
-        $result = $this->callControllerMethod('markRead');
+        $result = $this->callController(NotificationsController::class, 'markRead');
 
         $this->assertEquals(200, $result['status']);
         $this->assertTrue($result['body']['ok']);
@@ -178,19 +163,14 @@ class NotificationsControllerTest extends TestCase
         $this->assertEquals(0, $result['body']['data']['marked']);
     }
 
-    // =========================================================================
-    // list(): REQUIRES AUTH (no tenant_id without auth → error)
-    // =========================================================================
-
-    public function testListRequiresAuthentication(): void
+    public function testMarkReadWorksWithGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET = [];
+        // markRead doesn't call api_request() with method enforcement
+        $this->setAuth('user-1', 'admin', self::TENANT);
 
-        // Without auth, api_current_tenant_id() will fail
-        $result = $this->callControllerMethod('list');
+        $result = $this->callController(NotificationsController::class, 'markRead');
 
-        // Should fail with auth or tenant error (not 200)
-        $this->assertGreaterThanOrEqual(400, $result['status']);
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(0, $result['body']['data']['marked']);
     }
 }

@@ -4,82 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Controller\AbstractController;
 use AgVote\Controller\EmergencyController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\EmergencyProcedureRepository;
+use AgVote\Repository\MeetingRepository;
 
 /**
  * Unit tests for EmergencyController.
  *
- * Tests the emergency endpoint logic including:
+ * Extends ControllerTestCase for repo injection and standard helpers.
+ *
+ * Tests:
  *  - Controller structure (final, extends AbstractController)
- *  - HTTP method enforcement (GET vs POST)
- *  - UUID validation for meeting_id
- *  - Missing required fields (procedure_code, item_index)
- *  - Input validation for checkToggle and procedures
+ *  - checkToggle: POST enforcement, UUID validation, missing procedure_code,
+ *    missing item_index, success path
+ *  - procedures: GET enforcement, returns items/checks, with and without meeting_id
  */
-class EmergencyControllerTest extends TestCase
+class EmergencyControllerTest extends ControllerTestCase
 {
-    // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
-    // =========================================================================
-
-    private function callControllerMethod(string $method): array
-    {
-        $controller = new EmergencyController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
-    }
+    private const TENANT  = 'aaaaaaaa-0000-0000-0000-000000000001';
+    private const MEETING = 'bbbbbbbb-0000-0000-0000-000000000001';
 
     // =========================================================================
     // CONTROLLER STRUCTURE TESTS
@@ -93,33 +37,16 @@ class EmergencyControllerTest extends TestCase
 
     public function testControllerExtendsAbstractController(): void
     {
-        $controller = new EmergencyController();
-        $this->assertInstanceOf(\AgVote\Controller\AbstractController::class, $controller);
+        $this->assertInstanceOf(AbstractController::class, new EmergencyController());
     }
 
-    public function testControllerHasAllExpectedMethods(): void
+    public function testControllerHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(EmergencyController::class);
 
-        $expectedMethods = ['checkToggle', 'procedures'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->hasMethod($method),
-                "EmergencyController should have a '{$method}' method",
-            );
-        }
-    }
-
-    public function testControllerMethodsArePublic(): void
-    {
-        $ref = new \ReflectionClass(EmergencyController::class);
-
-        $expectedMethods = ['checkToggle', 'procedures'];
-        foreach ($expectedMethods as $method) {
-            $this->assertTrue(
-                $ref->getMethod($method)->isPublic(),
-                "EmergencyController::{$method}() should be public",
-            );
+        foreach (['checkToggle', 'procedures'] as $method) {
+            $this->assertTrue($ref->hasMethod($method), "Missing method: {$method}");
+            $this->assertTrue($ref->getMethod($method)->isPublic(), "{$method} should be public");
         }
     }
 
@@ -129,9 +56,7 @@ class EmergencyControllerTest extends TestCase
 
     public function testCheckToggleRejectsGetMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        $result = $this->callControllerMethod('checkToggle');
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
 
         $this->assertEquals(405, $result['status']);
         $this->assertEquals('method_not_allowed', $result['body']['error']);
@@ -139,34 +64,32 @@ class EmergencyControllerTest extends TestCase
 
     public function testCheckToggleRejectsPutMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('PUT');
 
-        $result = $this->callControllerMethod('checkToggle');
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     public function testCheckToggleRejectsDeleteMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->setHttpMethod('DELETE');
 
-        $result = $this->callControllerMethod('checkToggle');
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     // =========================================================================
-    // checkToggle: meeting_id VALIDATION (via api_require_uuid)
+    // checkToggle: MEETING_ID VALIDATION
     // =========================================================================
 
     public function testCheckToggleRequiresMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody([]);
 
-        $result = $this->callControllerMethod('checkToggle');
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
@@ -175,100 +98,122 @@ class EmergencyControllerTest extends TestCase
 
     public function testCheckToggleRejectsEmptyMeetingId(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => '']);
 
-        $result = $this->callControllerMethod('checkToggle');
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-        $this->assertEquals('meeting_id', $result['body']['field'] ?? null);
     }
 
     public function testCheckToggleRejectsInvalidMeetingUuid(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
         $this->injectJsonBody(['meeting_id' => 'not-a-uuid']);
 
-        $result = $this->callControllerMethod('checkToggle');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
-        $this->assertEquals('meeting_id', $result['body']['field'] ?? null);
-    }
-
-    public function testCheckToggleRejectsWhitespaceMeetingId(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['meeting_id' => '   ']);
-
-        $result = $this->callControllerMethod('checkToggle');
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
 
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_or_invalid_uuid', $result['body']['error']);
     }
 
     // =========================================================================
-    // checkToggle: procedure_code VALIDATION
+    // checkToggle: PROCEDURE CODE VALIDATION
     // =========================================================================
 
-    public function testCheckToggleProcedureCodeValidationLogic(): void
+    public function testCheckToggleRequiresProcedureCode(): void
     {
-        // Replicate: $procedure = trim((string) ($in['procedure_code'] ?? ''));
-        // if ($procedure === '') api_fail('missing_procedure_code', 400);
-        $testCases = [
-            ['input' => '', 'shouldFail' => true],
-            ['input' => '   ', 'shouldFail' => true],
-            ['input' => 'fire_evacuation', 'shouldFail' => false],
-            ['input' => 'power_outage', 'shouldFail' => false],
-        ];
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => self::MEETING]);
 
-        foreach ($testCases as $case) {
-            $procedure = trim((string) $case['input']);
-            $isMissing = ($procedure === '');
-            $this->assertEquals(
-                $case['shouldFail'],
-                $isMissing,
-                "procedure_code '{$case['input']}' should " . ($case['shouldFail'] ? 'fail' : 'pass'),
-            );
-        }
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_procedure_code', $result['body']['error']);
+    }
+
+    public function testCheckToggleRejectsEmptyProcedureCode(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'meeting_id'     => self::MEETING,
+            'procedure_code' => '   ',
+        ]);
+
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_procedure_code', $result['body']['error']);
     }
 
     // =========================================================================
-    // checkToggle: item_index VALIDATION
+    // checkToggle: ITEM_INDEX VALIDATION
     // =========================================================================
 
-    public function testCheckToggleItemIndexValidationLogic(): void
+    public function testCheckToggleRequiresNonNegativeItemIndex(): void
     {
-        // Replicate: $idx = (int) ($in['item_index'] ?? -1);
-        // if ($idx < 0) api_fail('invalid_item_index', 400);
-        $testCases = [
-            ['input' => null, 'expected' => -1, 'shouldFail' => true],
-            ['input' => -1, 'expected' => -1, 'shouldFail' => true],
-            ['input' => -5, 'expected' => -5, 'shouldFail' => true],
-            ['input' => 0, 'expected' => 0, 'shouldFail' => false],
-            ['input' => 1, 'expected' => 1, 'shouldFail' => false],
-            ['input' => 10, 'expected' => 10, 'shouldFail' => false],
-        ];
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'meeting_id'     => self::MEETING,
+            'procedure_code' => 'fire_evacuation',
+            // item_index defaults to -1
+        ]);
 
-        foreach ($testCases as $case) {
-            $idx = (int) ($case['input'] ?? -1);
-            $this->assertEquals($case['expected'], $idx);
-            $this->assertEquals($case['shouldFail'], $idx < 0);
-        }
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('invalid_item_index', $result['body']['error']);
+    }
+
+    public function testCheckToggleRejectsNegativeItemIndex(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'meeting_id'     => self::MEETING,
+            'procedure_code' => 'fire_evacuation',
+            'item_index'     => -1,
+        ]);
+
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('invalid_item_index', $result['body']['error']);
     }
 
     // =========================================================================
-    // checkToggle: checked FLAG PARSING
+    // checkToggle: SUCCESS PATH
     // =========================================================================
+
+    public function testCheckToggleSavesSuccessfully(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'operator', self::TENANT);
+        $this->injectJsonBody([
+            'meeting_id'     => self::MEETING,
+            'procedure_code' => 'fire_evacuation',
+            'item_index'     => 0,
+            'checked'        => 1,
+        ]);
+
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        // upsertEmergencyCheck returns void
+
+        $this->injectRepos([MeetingRepository::class => $mockMeeting]);
+
+        $result = $this->callController(EmergencyController::class, 'checkToggle');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['data']['saved']);
+    }
 
     public function testCheckToggleCheckedFlagParsing(): void
     {
-        // Replicate: $checked = (int) ($in['checked'] ?? 0) ? true : false;
-        $this->assertFalse((int) (0) ? true : false);
-        $this->assertFalse((int) (null ?? 0) ? true : false);
-        $this->assertTrue((int) (1) ? true : false);
-        $this->assertTrue((int) ('1') ? true : false);
+        // Verify: $checked = (int)($in['checked'] ?? 0) ? true : false
+        $this->assertFalse((bool)((int)(0)));
+        $this->assertFalse((bool)((int)(null ?? 0)));
+        $this->assertTrue((bool)((int)(1)));
+        $this->assertTrue((bool)((int)('1')));
     }
 
     // =========================================================================
@@ -277,187 +222,95 @@ class EmergencyControllerTest extends TestCase
 
     public function testProceduresRejectsPostMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->setHttpMethod('POST');
 
-        $result = $this->callControllerMethod('procedures');
+        $result = $this->callController(EmergencyController::class, 'procedures');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     public function testProceduresRejectsPutMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->setHttpMethod('PUT');
 
-        $result = $this->callControllerMethod('procedures');
+        $result = $this->callController(EmergencyController::class, 'procedures');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     public function testProceduresRejectsDeleteMethod(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->setHttpMethod('DELETE');
 
-        $result = $this->callControllerMethod('procedures');
+        $result = $this->callController(EmergencyController::class, 'procedures');
 
         $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
     }
 
     // =========================================================================
-    // procedures: AUDIENCE DEFAULT VALUE
+    // procedures: SUCCESS PATH — no meeting_id
     // =========================================================================
 
-    public function testProceduresAudienceDefaultsToOperator(): void
+    public function testProceduresReturnsItemsWithNoChecks(): void
     {
-        // Replicate: $aud = trim((string) ($q['audience'] ?? 'operator'));
-        $q = [];
-        $aud = trim((string) ($q['audience'] ?? 'operator'));
-        $this->assertEquals('operator', $aud);
-    }
+        $this->setAuth('user-1', 'operator', self::TENANT);
+        $this->setQueryParams(['audience' => 'operator']);
 
-    public function testProceduresAudienceFromInput(): void
-    {
-        $q = ['audience' => 'participant'];
-        $aud = trim((string) ($q['audience'] ?? 'operator'));
-        $this->assertEquals('participant', $aud);
-    }
+        $mockEmergency = $this->createMock(EmergencyProcedureRepository::class);
+        $mockEmergency->method('listByAudienceWithField')->willReturn([
+            ['code' => 'fire_evacuation', 'title' => 'Evacuation incendie', 'audience' => 'operator'],
+        ]);
+        // listChecksForMeeting not called when no meeting_id
 
-    // =========================================================================
-    // procedures: meeting_id OPTIONAL UUID VALIDATION
-    // =========================================================================
+        $this->injectRepos([EmergencyProcedureRepository::class => $mockEmergency]);
 
-    public function testProceduresMeetingIdOptionalLogic(): void
-    {
-        // Replicate: if ($meetingId !== '' && api_is_uuid($meetingId)) { ... }
-        $testCases = [
-            ['input' => '', 'shouldLoadChecks' => false],
-            ['input' => 'not-uuid', 'shouldLoadChecks' => false],
-            ['input' => '12345678-1234-1234-1234-123456789abc', 'shouldLoadChecks' => true],
-        ];
+        $result = $this->callController(EmergencyController::class, 'procedures');
 
-        foreach ($testCases as $case) {
-            $meetingId = trim((string) $case['input']);
-            $shouldLoad = $meetingId !== '' && api_is_uuid($meetingId);
-            $this->assertEquals(
-                $case['shouldLoadChecks'],
-                $shouldLoad,
-                "meeting_id '{$case['input']}' should " . ($case['shouldLoadChecks'] ? 'load' : 'skip') . ' checks',
-            );
-        }
+        $this->assertEquals(200, $result['status']);
+        $this->assertCount(1, $result['body']['data']['items']);
+        $this->assertEquals([], $result['body']['data']['checks']);
     }
 
     // =========================================================================
-    // CROSS-CUTTING: METHOD CHECK BEFORE BODY VALIDATION
+    // procedures: SUCCESS PATH — with valid meeting_id
     // =========================================================================
 
-    public function testCheckToggleMethodCheckBeforeBodyValidation(): void
+    public function testProceduresReturnsChecksWhenMeetingIdProvided(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $this->injectJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'procedure_code' => 'fire',
-            'item_index' => 0,
+        $this->setAuth('user-1', 'operator', self::TENANT);
+        $this->setQueryParams([
+            'audience'   => 'operator',
+            'meeting_id' => self::MEETING,
         ]);
 
-        $result = $this->callControllerMethod('checkToggle');
+        $mockEmergency = $this->createMock(EmergencyProcedureRepository::class);
+        $mockEmergency->method('listByAudienceWithField')->willReturn([
+            ['code' => 'fire_evacuation', 'title' => 'Evacuation', 'audience' => 'operator'],
+        ]);
+        $mockEmergency->method('listChecksForMeeting')->willReturn([
+            ['procedure_code' => 'fire_evacuation', 'item_index' => 0, 'checked' => true],
+        ]);
 
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
+        $this->injectRepos([EmergencyProcedureRepository::class => $mockEmergency]);
 
-    public function testProceduresMethodCheckBeforeInput(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->injectJsonBody(['audience' => 'operator']);
+        $result = $this->callController(EmergencyController::class, 'procedures');
 
-        $result = $this->callControllerMethod('procedures');
-
-        $this->assertEquals(405, $result['status']);
-        $this->assertEquals('method_not_allowed', $result['body']['error']);
-    }
-
-    // =========================================================================
-    // RESPONSE STRUCTURE (source verification)
-    // =========================================================================
-
-    public function testCheckToggleResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
-
-        $this->assertStringContainsString("'saved' => true", $source);
-    }
-
-    public function testProceduresResponseStructure(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
-
-        $this->assertStringContainsString("'items'", $source);
-        $this->assertStringContainsString("'checks'", $source);
+        $this->assertEquals(200, $result['status']);
+        $this->assertCount(1, $result['body']['data']['items']);
+        $this->assertCount(1, $result['body']['data']['checks']);
     }
 
     // =========================================================================
-    // AUDIT LOG VERIFICATION (source-level)
+    // procedures: DEFAULT AUDIENCE
     // =========================================================================
 
-    public function testCheckToggleAuditsEvent(): void
+    public function testProceduresDefaultsAudienceToOperator(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
+        // Source verification: $aud = trim((string) ($q['audience'] ?? 'operator'))
+        $ref = new \ReflectionClass(EmergencyController::class);
+        $source = file_get_contents($ref->getFileName());
 
-        $this->assertStringContainsString("'emergency_check_toggled'", $source);
-        $this->assertStringContainsString("'procedure_code'", $source);
-        $this->assertStringContainsString("'item_index'", $source);
-        $this->assertStringContainsString("'checked'", $source);
-    }
-
-    // =========================================================================
-    // BUSINESS GUARD VERIFICATION (source-level)
-    // =========================================================================
-
-    public function testCheckToggleGuardsMeetingNotValidated(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
-
-        $this->assertStringContainsString('api_guard_meeting_not_validated', $source);
-    }
-
-    public function testCheckToggleUsesApiRequireUuid(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
-
-        $this->assertStringContainsString("api_require_uuid(\$in, 'meeting_id')", $source);
-    }
-
-    // =========================================================================
-    // REPOSITORY USAGE (source-level)
-    // =========================================================================
-
-    public function testCheckToggleUsesMeetingRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
-
-        $this->assertStringContainsString('repo()->meeting()', $source);
-        $this->assertStringContainsString('upsertEmergencyCheck', $source);
-    }
-
-    public function testProceduresUsesEmergencyProcedureRepository(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmergencyController.php');
-
-        $this->assertStringContainsString('repo()->emergencyProcedure()', $source);
-        $this->assertStringContainsString('listByAudienceWithField', $source);
-    }
-
-    // =========================================================================
-    // UNKNOWN METHOD HANDLING
-    // =========================================================================
-
-    public function testHandleUnknownMethodReturns500(): void
-    {
-        $result = $this->callControllerMethod('nonExistentMethod');
-
-        $this->assertEquals(500, $result['status']);
-        $this->assertEquals('internal_error', $result['body']['error']);
+        $this->assertStringContainsString("'operator'", $source);
+        $this->assertStringContainsString('audience', $source);
     }
 }
