@@ -71,7 +71,17 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-No active milestone — v4.4 complete. Next: `/gsd:new-milestone` for v5.0.
+## Current Milestone: v5.0 Quality & Production Readiness
+
+**Goal:** Achieve 90%+ test coverage across all layers, fix infrastructure bugs, harden Docker/CI pipeline, and make AG-VOTE production-ready.
+
+**Target features:**
+- PHPUnit test coverage to 90%+ (services, controllers, repositories)
+- E2E test suite updated for v4.3/v4.4 page rebuilds
+- Playwright E2E integrated into CI pipeline
+- Docker infrastructure hardening (migration validation, healthcheck fixes)
+- Migration audit (fix SQLite-isms, validate all SQL against PostgreSQL)
+- CI pipeline improvements (E2E in GitHub Actions, integration tests post-build)
 
 ### Out of Scope
 
@@ -87,9 +97,10 @@ The codebase uses Bricolage Grotesque (body), Fraunces (display, h1 only), JetBr
 
 Known technical debt:
 - admin.js KPI load failure catch is silent (non-blocking, admin-only page)
-- v4.2 visual redesign introduced regressions — HTML restructuring broke some JS interactions and some layouts
-- Next milestone must rebuild each page from the ground up (HTML+CSS+JS together) rather than patching existing structure
-- Design is not yet top 1% — incremental CSS edits on old HTML structure cannot achieve this; full page rewrites needed
+- 10 services without unit tests (QuorumEngine, VoteEngine, ImportService, etc.)
+- E2E specs have stale selectors after v4.3/v4.4 page rebuilds
+- Playwright E2E not in CI pipeline
+- Docker healthcheck PORT variable evaluated at build time, not runtime
 
 Deferred ideas:
 - AI-assisted PV minutes generation
@@ -123,5 +134,7 @@ Deferred ideas:
 | v4.1 CSS infrastructure first | Token hierarchy + component specs + layout grids before visual redesign | ⚠️ Revisit — infrastructure delivered but no visible visual impact; page-by-page redesign needed |
 | PC-first approach | Optimize for 1024px+, mobile only for voter screen | ✓ Good — matches use case |
 
+| v5.0 quality milestone | Production readiness requires 90%+ test coverage before new features | — Pending |
+
 ---
-*Last updated: 2026-03-19 after v4.2 milestone started*
+*Last updated: 2026-03-30 after v5.0 milestone started*
