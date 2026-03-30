@@ -3,10 +3,10 @@
 -- Purpose: Per-tenant key/value settings store for settings page persistence
 
 CREATE TABLE IF NOT EXISTS tenant_settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     tenant_id TEXT NOT NULL,
     key TEXT NOT NULL,
     value TEXT,
-    updated_at TEXT DEFAULT (datetime('now')),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(tenant_id, key)
 );
