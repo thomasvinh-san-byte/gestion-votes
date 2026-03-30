@@ -67,15 +67,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v4.3: Ground-up rebuild of 6 critical pages (dashboard, login, wizard, operator console, hub, settings/admin). v4.2 regressions fixed. All pages rewritten HTML+CSS+JS from scratch. Backend wiring verified — dead endpoints fixed, SSE confirmed, admin_settings.php created. Floating labels on login, slide transitions on wizard, two-panel operator console, hero card hub, sidebar-tab settings.
 
+- v4.4: Ground-up rebuild of remaining 13 pages (postsession, analytics, meetings, archives, audit, members, users, vote, help, email-templates, public, report, trust/validate/docs). All JS selectors verified, zero hardcoded hex, token-based CSS throughout. Vote page French data-choice mapping. Print styles for report. FAQ accordion animation.
+
 ### Active
 
-**Current Milestone: v4.4 "Complete Rebuild"**
-
-**Goal:** Ground-up rebuild of all remaining pages (13 pages not rebuilt in v4.3) to the same top 1% quality standard — HTML+CSS+JS from scratch, backend wiring verified, browser tested.
-
-**Target pages:**
-- Secondary: postsession, analytics, meetings, archives, audit, members, users, vote
-- Utility: help, email-templates, docs, public, report, trust, validate
+No active milestone — v4.4 complete. Next: `/gsd:new-milestone` for v5.0.
 
 ### Out of Scope
 

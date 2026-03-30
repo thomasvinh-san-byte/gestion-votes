@@ -1,5 +1,25 @@
 # Milestones
 
+## v4.4 Complete Rebuild (Shipped: 2026-03-30)
+
+**Scope:** Ground-up rebuild of all remaining 13 pages to v4.3 quality standard
+**Phases:** 3 phases (49-51), 10 plans
+**Requirements:** 15/15 complete
+
+**Key accomplishments:**
+1. Postsession page — v4.3 header pattern, all 42 JS selectors verified, last hardcoded hex removed
+2. Analytics page — verified + minor fix pass (already built from prior phase 41.5), missing CSS class added
+3. Meetings + Archives — complete HTML+CSS rewrite, filter pills, KPI grids, modals, pagination, 67 JS selectors verified
+4. Audit page — timeline + table views rebuilt, 30 DOM IDs verified, CSV export wired
+5. Members page — 3-tab structure, 6-card KPI grid, 318 token usages, 41 JS selectors verified
+6. Users page — role distribution cards, CRUD modal, 117 token usages, 31 JS selectors verified
+7. Vote/ballot page — French data-choice attributes, PDF viewer, cast() API mapping, 343 token usages
+8. Help/FAQ — v4.3 header, FAQ accordion with smooth animation, 25 items preserved
+9. Email templates — v4.3 header, two-panel editor, 21 DOM IDs preserved
+10. Public/Report/Trust/Validate/Docs — verified correct, print styles added, htmx vendor removed
+
+---
+
 ## v4.3 Ground-Up Rebuild (Shipped: 2026-03-22)
 
 **Phases completed:** 7 phases, 14 plans, 2 tasks
