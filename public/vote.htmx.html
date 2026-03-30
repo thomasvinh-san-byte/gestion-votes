@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- GO-LIVE-STATUS: ready — Interface votant tablette (wireframe PageVotant).
      Vote sécurisé par VoteToken, auth sans session, CSRF via token one-time. -->
-<html lang="fr" data-page-role="voter,operator">
+<html lang="fr" data-page-role="voter">
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
@@ -36,6 +36,16 @@
     </div>
   </noscript>
 
+  <!-- Blocked overlay — shown when device is blocked by operator (also created by vote.js as fallback) -->
+  <div id="blockedOverlay" class="blocked-overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="blockedTitle">
+    <div class="blocked-overlay-inner">
+      <div class="blocked-overlay-icon" aria-hidden="true">&#9888;</div>
+      <div class="blocked-overlay-title" id="blockedTitle">Accès suspendu</div>
+      <div id="blockedMsg" class="blocked-overlay-msg">Cet appareil a été temporairement bloqué par l'opérateur.</div>
+      <div class="blocked-overlay-note">Restez sur cet écran. L'accès sera rétabli automatiquement.<br>Si le problème persiste, adressez-vous à l'opérateur de séance.</div>
+    </div>
+  </div>
+
   <div class="vote-app" id="voteApp" data-vote-state="waiting">
     <!-- Page header -->
     <header class="page-header" role="banner">
@@ -59,6 +69,7 @@
       <div>
         <div class="identity-name" id="identityName">—</div>
         <div class="identity-meeting" id="identityMeeting">—</div>
+        <div class="identity-subtitle text-muted text-sm" id="voteSubtitle"></div>
       </div>
     </div>
 
@@ -183,6 +194,8 @@
             <svg class="icon icon-text" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
             Consulter le document
           </button>
+          <!-- PDF viewer — shown by vote.js when document is available -->
+          <ag-pdf-viewer id="resoPdfViewer" hidden aria-label="Visionneuse de document PDF"></ag-pdf-viewer>
         </div>
       </section>
       <!-- Vote section -->
@@ -196,19 +209,19 @@
         <div class="vote-section-body">
           <p class="vote-irreversible-notice" id="voteIrreversibleNotice">Votre vote sera d&#233;finitif et irr&#233;versible.</p>
           <div class="vote-buttons" role="group" aria-label="Choix de vote">
-            <button class="vote-btn vote-btn-for" id="btnFor" data-choice="for" disabled aria-pressed="false" aria-describedby="motionTitle">
+            <button class="vote-btn vote-btn-for" id="btnFor" data-choice="pour" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">1</span>
               <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-up"></use></svg></span>
               <span>Pour</span>
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
-            <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="against" disabled aria-pressed="false" aria-describedby="motionTitle">
+            <button class="vote-btn vote-btn-against" id="btnAgainst" data-choice="contre" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">2</span>
               <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-thumbs-down"></use></svg></span>
               <span>Contre</span>
               <span class="vote-btn-hint">Confirmation requise</span>
             </button>
-            <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstain" disabled aria-pressed="false" aria-describedby="motionTitle">
+            <button class="vote-btn vote-btn-abstain" id="btnAbstain" data-choice="abstention" disabled aria-pressed="false" aria-describedby="motionTitle">
               <span class="vote-btn-kbd" aria-hidden="true">3</span>
               <span class="vote-btn-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="/assets/icons.svg#icon-hand"></use></svg></span>
               <span>Abstention</span>

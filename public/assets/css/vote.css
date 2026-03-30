@@ -71,7 +71,7 @@
   height: 100dvh; /* dynamic viewport height — accounts for mobile browser chrome */
   background: var(--color-bg);
   font-size: clamp(0.875rem, 2.5vw, 1.125rem);
-  --color-surface: var(--color-surface-alt, #f8f9fa); /* slightly warm/cool surface in light mode */
+  --color-surface: var(--color-surface-alt, var(--color-surface)); /* slightly warm/cool surface in light mode */
 }
 
 [data-theme="dark"] .vote-app {
@@ -1949,4 +1949,75 @@
 /* Dark mode: waiting pulse uses primary subtle which adapts */
 [data-theme="dark"] .vote-waiting-pulse {
   background: var(--color-primary-subtle);
+}
+
+/* =============================================================================
+   BLOCKED OVERLAY — static HTML version (vote.js also creates one dynamically)
+   ============================================================================= */
+
+.blocked-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blocked-overlay[hidden] {
+  display: none;
+}
+
+.blocked-overlay-inner {
+  max-width: 520px;
+  width: 90%;
+  padding: var(--space-8, 2rem);
+  text-align: center;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-xl, 0 25px 50px rgb(0 0 0 / 0.25));
+  border: 1px solid var(--color-border);
+}
+
+.blocked-overlay-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-4, 1rem);
+  color: var(--color-warning);
+}
+
+.blocked-overlay-title {
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: 700;
+  margin-bottom: var(--space-3, 0.75rem);
+  color: var(--color-text);
+}
+
+.blocked-overlay-msg {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  font-size: var(--text-base, 1rem);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.blocked-overlay-note {
+  opacity: 0.7;
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* =============================================================================
+   IDENTITY SUBTITLE
+   ============================================================================= */
+
+.identity-subtitle {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-muted);
+  margin-top: 0.125rem;
+}
+
+/* Remove hex fallback in --color-surface reassignment */
+.vote-app {
+  --color-surface: var(--color-surface-alt, var(--color-surface));
 }
