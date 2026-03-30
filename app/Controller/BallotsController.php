@@ -39,6 +39,17 @@ final class BallotsController extends AbstractController {
     public function cast(): void {
         $data = api_request('POST');
 
+        // Early UUID validation to prevent PostgreSQL errors on malformed input.
+        // Returns 422 instead of 500 when motion_id or member_id are not valid UUIDs.
+        $motionId = trim((string) ($data['motion_id'] ?? ''));
+        $memberId = trim((string) ($data['member_id'] ?? ''));
+        if ($motionId !== '' && !api_is_uuid($motionId)) {
+            api_fail('invalid_motion_id', 422, ['detail' => 'motion_id doit être un UUID valide.']);
+        }
+        if ($memberId !== '' && !api_is_uuid($memberId)) {
+            api_fail('invalid_member_id', 422, ['detail' => 'member_id doit être un UUID valide.']);
+        }
+
         $idempotencyKey = $_SERVER['HTTP_X_IDEMPOTENCY_KEY'] ?? null;
         if ($idempotencyKey) {
             $data['_idempotency_key'] = $idempotencyKey;

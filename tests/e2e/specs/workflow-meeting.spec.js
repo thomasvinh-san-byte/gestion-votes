@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loginWithEmail, loginAsOperator, loginAsAdmin, authStatePath, CREDENTIALS } = require('../helpers');
 
 /**
  * Meeting Lifecycle Workflow E2E Tests
@@ -11,22 +12,10 @@ const { test, expect } = require('@playwright/test');
  */
 
 const E2E_MEETING_TITLE = 'Conseil Municipal';
-const OPERATOR_EMAIL = 'operator@ag-vote.local';
-const OPERATOR_PASSWORD = 'Operator2026!';
-const ADMIN_EMAIL = 'admin@ag-vote.local';
-const ADMIN_PASSWORD = 'Admin2026!';
-
-/**
- * Login via the real login form (email + password).
- */
-async function loginWithCredentials(page, email, password) {
-  await page.goto('/login.html');
-  await page.fill('#email', email);
-  await page.fill('#password', password);
-  await page.click('#submitBtn');
-  // Wait for redirect away from login
-  await page.waitForURL(/(?!.*login).*\.htmx\.html/, { timeout: 10000 });
-}
+const OPERATOR_EMAIL = CREDENTIALS.operator.email;
+const OPERATOR_PASSWORD = CREDENTIALS.operator.password;
+const ADMIN_EMAIL = CREDENTIALS.admin.email;
+const ADMIN_PASSWORD = CREDENTIALS.admin.password;
 
 // ---------------------------------------------------------------------------
 // 1. Login Flow
@@ -55,14 +44,16 @@ test.describe('Login Flow', () => {
   });
 
   test('should login with valid operator credentials', async ({ page }) => {
-    await loginWithCredentials(page, OPERATOR_EMAIL, OPERATOR_PASSWORD);
+    // Test the actual login form flow (not injected cookies)
+    await loginWithEmail(page, OPERATOR_EMAIL, OPERATOR_PASSWORD);
 
     // Should navigate to a protected page
     await expect(page).not.toHaveURL(/login/);
   });
 
   test('should login with valid admin credentials', async ({ page }) => {
-    await loginWithCredentials(page, ADMIN_EMAIL, ADMIN_PASSWORD);
+    // Test the actual login form flow (not injected cookies)
+    await loginWithEmail(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
     await expect(page).not.toHaveURL(/login/);
   });
@@ -74,7 +65,8 @@ test.describe('Login Flow', () => {
 test.describe('Operator Meeting Management', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginWithCredentials(page, OPERATOR_EMAIL, OPERATOR_PASSWORD);
+    // Use cached auth state (no rate-limit hit)
+    await loginAsOperator(page);
   });
 
   test('should load operator page and show meeting selector', async ({ page }) => {
@@ -144,15 +136,33 @@ test.describe('Operator Meeting Management', () => {
 // ---------------------------------------------------------------------------
 test.describe('Meeting API Workflow', () => {
 
-  test('should return meeting list from API', async ({ request }) => {
-    // Login first to get session
-    const loginResp = await request.post('/api/v1/auth_login', {
-      data: { email: OPERATOR_EMAIL, password: OPERATOR_PASSWORD },
-    });
-    expect(loginResp.ok()).toBeTruthy();
+  /**
+   * Inject saved operator session cookie into the request context.
+   * This avoids a fresh auth_login call (rate-limit risk).
+   */
+  async function getAuthCookie() {
+    const fs   = require('fs');
+    const path = require('path');
+    const stateFile = path.join(__dirname, '..', '.auth', 'operator.json');
+    if (!fs.existsSync(stateFile)) return null;
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+    const phpSession = (state.cookies || []).find(c => c.name === 'PHPSESSID');
+    return phpSession ? `PHPSESSID=${phpSession.value}` : null;
+  }
 
-    // Get meetings list
-    const meetingsResp = await request.get('/api/v1/meetings');
+  test('should return meeting list from API', async ({ request }) => {
+    const cookie = await getAuthCookie();
+    const headers = cookie ? { Cookie: cookie } : {};
+
+    // If no cached auth, fall back to login (acceptable for first run)
+    if (!cookie) {
+      const loginResp = await request.post('/api/v1/auth_login', {
+        data: { email: OPERATOR_EMAIL, password: OPERATOR_PASSWORD },
+      });
+      expect(loginResp.ok()).toBeTruthy();
+    }
+
+    const meetingsResp = await request.get('/api/v1/meetings', { headers });
     expect(meetingsResp.ok()).toBeTruthy();
 
     const body = await meetingsResp.json();
@@ -160,13 +170,20 @@ test.describe('Meeting API Workflow', () => {
   });
 
   test('should return workflow readiness check', async ({ request }) => {
-    // Login
-    await request.post('/api/v1/auth_login', {
-      data: { email: OPERATOR_EMAIL, password: OPERATOR_PASSWORD },
-    });
+    const cookie = await getAuthCookie();
+    const headers = cookie ? { Cookie: cookie } : {};
+
+    if (!cookie) {
+      await request.post('/api/v1/auth_login', {
+        data: { email: OPERATOR_EMAIL, password: OPERATOR_PASSWORD },
+      });
+    }
 
     // Check workflow readiness for E2E meeting
-    const resp = await request.get('/api/v1/meeting_workflow_check?meeting_id=eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001');
+    const resp = await request.get(
+      '/api/v1/meeting_workflow_check?meeting_id=eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001',
+      { headers },
+    );
 
     // Should return 200 with readiness info (may or may not be ready)
     expect(resp.status()).toBeLessThan(500);
@@ -184,12 +201,16 @@ test.describe('Meeting API Workflow', () => {
 test.describe('Vote Interface', () => {
 
   test('should load vote page and show meeting selector', async ({ page }) => {
+    // Voter login via cached auth state
+    const { loginAsVoter } = require('../helpers');
+    await loginAsVoter(page);
+
     await page.goto('/vote.htmx.html');
     await page.waitForLoadState('networkidle');
 
     // Vote page should have a meeting selector
-    const meetingSelect = page.locator('#meetingSelect, select[name="meeting_id"], ag-searchable-select');
-    await expect(meetingSelect.first()).toBeVisible({ timeout: 5000 });
+    const meetingSelect = page.locator('#meetingSelect, ag-searchable-select');
+    await expect(meetingSelect.first()).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -199,7 +220,7 @@ test.describe('Vote Interface', () => {
 test.describe('Dashboard', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginWithCredentials(page, OPERATOR_EMAIL, OPERATOR_PASSWORD);
+    await loginAsOperator(page);
   });
 
   test('should load dashboard with KPI cards', async ({ page }) => {
@@ -219,7 +240,7 @@ test.describe('Dashboard', () => {
 test.describe('Admin Panel', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginWithCredentials(page, ADMIN_EMAIL, ADMIN_PASSWORD);
+    await loginAsAdmin(page);
   });
 
   test('should load admin page', async ({ page }) => {

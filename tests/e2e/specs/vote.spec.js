@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { E2E_MOTION_1 } = require('../helpers');
+const { E2E_MOTION_1, loginAsVoter } = require('../helpers');
 
 /**
  * Vote E2E Tests
@@ -15,10 +15,14 @@ const { E2E_MOTION_1 } = require('../helpers');
 test.describe('Voter Interface', () => {
 
   test('should show meeting selector', async ({ page }) => {
-    await page.goto('/vote.htmx.html');
+    // Vote page requires auth (redirects to login without a session or inv token).
+    await loginAsVoter(page);
 
-    const meetingSelect = page.locator('#meetingSelect, select[name="meeting_id"], ag-searchable-select');
-    await expect(meetingSelect.first()).toBeVisible({ timeout: 5000 });
+    await page.goto('/vote.htmx.html');
+    await page.waitForLoadState('networkidle');
+
+    const meetingSelect = page.locator('#meetingSelect, ag-searchable-select');
+    await expect(meetingSelect.first()).toBeVisible({ timeout: 10000 });
   });
 
 });

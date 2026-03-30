@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "PHPSESSID",
+      "value": "3cb7375841e3c3cdbdf9b92fb9c25b9c",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

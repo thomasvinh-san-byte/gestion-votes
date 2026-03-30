@@ -13,6 +13,10 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
 
+  // Global setup: authenticate once per role to avoid auth_login rate limits
+  // when running tests in parallel.
+  globalSetup: require.resolve('./setup/auth.setup.js'),
+
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:8080',
     trace: 'on-first-retry',
@@ -38,8 +42,14 @@ module.exports = defineConfig({
       use: { ...devices['Pixel 5'] },
     },
     {
+      // Tablet viewport using Chromium (WebKit/iPad device not available in this env).
+      // Simulates iPad-sized viewport (768x1024) on Chromium for responsive testing.
       name: 'tablet',
-      use: { ...devices['iPad (gen 7)'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 768, height: 1024 },
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1',
+      },
     },
   ],
 
