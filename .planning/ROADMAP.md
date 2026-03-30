@@ -92,7 +92,12 @@ Plans:
   3. The users table loads with pagination, and an admin can create, edit, and deactivate a user — changes reflect immediately without a full page reload
   4. A voter on the ballot page can read the motion, cast a vote, receive optimistic feedback within 50ms, and view the PDF resolution document — the vote is recorded in the database
   5. No JS console errors on any of the 4 pages; all API connections point to real endpoints with no mock data
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 50-01-PLAN.md — Audit page ground-up rebuild (timeline+table views, CSV export, detail modal)
+- [ ] 50-02-PLAN.md — Members page ground-up rebuild (card/table view, CSV import, groups, CRUD)
+- [ ] 50-03-PLAN.md — Users page ground-up rebuild (table CRUD, role filter, create/edit modal)
+- [ ] 50-04-PLAN.md — Vote/ballot page ground-up rebuild (full-screen ballot, confirmation, receipt)
 
 ### Phase 51: Utility Pages
 **Goal**: Help/FAQ, email templates, public/projector display, report/PV, and trust/validate/docs are fully rebuilt — print layout correct, projection display optimized, all interactions functional
@@ -113,5 +118,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 49. Secondary Pages Part 1 | 3/3 | Complete    | 2026-03-30 |
-| 50. Secondary Pages Part 2 | 0/TBD | Not started | - |
+| 50. Secondary Pages Part 2 | 0/4 | Not started | - |
 | 51. Utility Pages | 0/TBD | Not started | - |
