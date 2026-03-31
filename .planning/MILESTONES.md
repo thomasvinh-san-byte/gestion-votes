@@ -2,10 +2,19 @@
 
 ## v5.0 Quality & Production Readiness (Shipped: 2026-03-30)
 
-**Phases completed:** 6 phases, 18 plans, 6 tasks
+**Scope:** Achieve 90%+ test coverage, fix infrastructure bugs, harden Docker/CI pipeline, make AG-VOTE production-ready
+**Phases:** 6 phases (52-57), 18 plans
+**Requirements:** 29/29 complete
+**Codebase:** 143 files changed, +27,020 / -17,886 lines
 
 **Key accomplishments:**
-- (none recorded)
+1. Migration audit — eliminated all SQLite syntax from 23 migration files, added dry-run validation script with two-pass idempotency test
+2. Docker hardening — healthcheck PORT runtime evaluation fix (sh -c wrapper), envsubst nginx template for read-only FS, structured JSON health endpoint with database/redis/filesystem checks
+3. Unit tests batch 1 — 142 tests for 5 critical services (QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService) with 385 assertions
+4. Unit tests batch 2 — 91 tests for 5 remaining services + ResolutionDocumentController with 189 assertions
+5. Coverage tooling — ControllerTestCase base class, 40 controller test files, Services 90.8%, Controllers 64.6% (structural limit), coverage-check.sh with threshold enforcement
+6. Playwright E2E — all 18 specs updated for v4.3/v4.4 rebuilds, 143 Chromium + 17 mobile-chrome + 17 tablet tests passing, rate-limit-safe auth setup
+7. CI/CD pipeline — 7 GitHub Actions jobs (validate, lint-js, migrate-check, coverage, build, e2e, integration) with proper dependency graph
 
 ---
 

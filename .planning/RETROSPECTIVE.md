@@ -98,6 +98,52 @@
 
 ---
 
+## Milestone: v5.0 — Quality & Production Readiness
+
+**Shipped:** 2026-03-30
+**Phases:** 6 | **Plans:** 18 | **Requirements:** 29/29
+
+### What Was Built
+- Migration audit: all 23 SQL files cleaned of SQLite syntax, dry-run validation script with --syntax-only mode and two-pass idempotency test
+- Docker hardening: healthcheck PORT runtime fix (sh -c), envsubst nginx template, structured JSON health endpoint
+- 233+ unit tests for 10 services with 574+ assertions; ControllerTestCase base class for execution-based controller testing
+- 40 controller test files; Services 90.8%, Controllers 64.6% (structural limit from exit()-based controllers)
+- 18 Playwright E2E specs updated for v4.3/v4.4 rebuilds; 177 total tests (chromium + mobile + tablet)
+- 7-job CI/CD pipeline: validate, lint-js, migrate-check, coverage, build, e2e, integration
+
+### What Worked
+- **ControllerTestCase pattern** — Base class with `injectRepos()` + `callController()` enabled rapid test creation for 40 controllers. Reflection-based RepositoryFactory injection solved the "final class" constraint.
+- **Coverage-driven gap filling** — Measuring baseline first (Services 66%, Controllers 10%) then targeting specific gaps was more efficient than writing tests blind.
+- **Parallel E2E + unit test tracks** — Phase 56 (E2E) ran independently from phases 53-55 (unit tests) since both depended only on Phase 52 infrastructure.
+- **Rate-limit-safe auth setup** — clearRateLimit via docker exec redis-cli DEL before test runs eliminated flaky auth failures in E2E.
+- **Single-day milestone execution** — All 6 phases with 18 plans completed in one day. Quality/test milestones execute faster than feature milestones because the scope is well-defined and testable.
+
+### What Was Inefficient
+- **9 plans for Phase 55** — Coverage gap-filling required iterative plan creation as new gaps were discovered. Should have run a coverage measurement pass before planning to know the full scope.
+- **COV-02 90% target was unrealistic** — 3 controllers using exit() made 90% architecturally impossible. Should have audited exit()-usage before setting the target. Settled at 64.6% with documented rationale.
+- **Phase SUMMARY one-liners not populated** — SUMMARY.md files lacked one_liner field, requiring manual extraction of accomplishments at milestone completion.
+- **Nyquist validation completely skipped** — All 6 phases missing VALIDATION.md. The workflow was available but never invoked.
+
+### Patterns Established
+- **ControllerTestCase** base class with Reflection-based RepositoryFactory injection for all controller tests
+- **coverage-check.sh** script with configurable thresholds for CI enforcement
+- **Source inspection approach** for controllers using exit() or raw binary output (untestable via PHPUnit execution)
+- **Rate-limit clearing** in Playwright globalSetup before auth runs
+- **Cookie injection** via navigate-then-addCookies pattern for Playwright session auth
+
+### Key Lessons
+1. **Measure before planning coverage work** — Running baseline coverage measurement should be Plan 01 of any coverage phase. Knowing the gap map avoids iterative re-planning.
+2. **Audit architectural constraints before setting targets** — exit()-based controllers made 90% impossible. Check for structural blockers before committing to numeric thresholds.
+3. **Quality milestones are fast** — Well-defined success criteria (test pass/fail) enable rapid execution. 6 phases in 1 day vs v4.3's 7 phases over 2 days.
+4. **Populate SUMMARY one-liners** — Missing one_liner fields created manual work at milestone completion. Executors should fill this field.
+
+### Cost Observations
+- Model mix: ~10% opus (orchestration), ~85% sonnet (execution, verification), ~5% haiku
+- All 18 plans completed in single session
+- Notable: Phase 55 had 9 plans (most in milestone) due to iterative coverage gap discovery
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -107,14 +153,18 @@
 | v1.1-v1.5 | 1-3 | ~15 | Sequential execution, manual verification |
 | v2.0 | 4-15 | 37 | Wave-based parallel execution, automated verification, milestone audit |
 | v3.0 | 16-24 | 37 | Integration checker, iterative audit-fix-reaudit, tiny gap closure phases |
+| v4.0-v4.4 | 25-51 | ~80 | Ground-up page rebuilds, ControllerTestCase pattern, design system enforcement |
+| v5.0 | 52-57 | 18 | Coverage-driven testing, CI pipeline wiring, single-day quality sprint |
 
 ### Cumulative Quality
 
-| Milestone | Requirements | Coverage | Gap Closure Phases |
-|-----------|-------------|----------|-------------------|
-| v1.5 | ~20 | 100% | 0 |
-| v2.0 | 54 | 100% | 3 (Phase 14, 15x2) |
-| v3.0 | 26 | 100% | 2 (Phase 23, 24) |
+| Milestone | Requirements | Coverage | Gap Closure Phases | Test Count |
+|-----------|-------------|----------|-------------------|------------|
+| v1.5 | ~20 | 100% | 0 | — |
+| v2.0 | 54 | 100% | 3 (Phase 14, 15x2) | — |
+| v3.0 | 26 | 100% | 2 (Phase 23, 24) | — |
+| v4.0-v4.4 | ~70 | 100% | 0 | — |
+| v5.0 | 29 | 100% | 0 | 2305 unit + 177 E2E |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -123,3 +173,5 @@
 3. A single wireframe/spec as source of truth eliminates design ambiguity
 4. Iterative audit-fix-reaudit converges fast — 2 iterations closed all v3.0 gaps
 5. Tiny gap closure phases (1-2 tasks) are more effective than bundled remediation
+6. Measure baseline before planning coverage work — avoids iterative re-planning (v5.0: 9 plans in Phase 55)
+7. Quality milestones execute fastest — well-defined pass/fail criteria enable single-day completion (v5.0: 6 phases, 18 plans, 1 day)
