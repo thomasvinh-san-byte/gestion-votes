@@ -1010,4 +1010,101 @@ class ImportControllerTest extends ControllerTestCase
         $this->assertTrue(filter_var('true', FILTER_VALIDATE_BOOLEAN));
         $this->assertTrue(filter_var(true, FILTER_VALIDATE_BOOLEAN));
     }
+
+    // =========================================================================
+    // DUPLICATE EMAIL PRE-SCAN (IMP-02)
+    // =========================================================================
+
+    public function testMembersCsvDuplicateEmails(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        // Two rows with the same email address
+        $csvContent = "name,email\nJean Dupont,jean@example.com\nPierre Dupont,jean@example.com\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('duplicate_emails', $result['body']['error']);
+        $this->assertArrayHasKey('duplicate_emails', $result['body']);
+        $this->assertContains('jean@example.com', $result['body']['duplicate_emails']);
+    }
+
+    public function testMembersCsvDuplicateEmailsCaseInsensitive(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        // Same email with different casing — should be treated as duplicate
+        $csvContent = "name,email\nJean Dupont,Jean@Test.fr\nPierre Dupont,jean@test.fr\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('duplicate_emails', $result['body']['error']);
+        $this->assertArrayHasKey('duplicate_emails', $result['body']);
+        $this->assertContains('jean@test.fr', $result['body']['duplicate_emails']);
+    }
+
+    public function testMembersCsvEmptyEmailsNotFalseDuplicate(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        // Multiple rows with empty email — should NOT trigger duplicate detection
+        $csvContent = "name,email\nJean Dupont,\nPierre Dupont,\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->method('createImport')->willReturn('new-member-uuid');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $this->injectRepos([
+            MemberRepository::class => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        // Should not return 422 duplicate error — empty emails are skipped
+        $this->assertNotEquals(422, $result['status'], 'Empty emails must not trigger duplicate detection');
+        if ($result['status'] !== 422) {
+            $this->assertNotEquals('duplicate_emails', $result['body']['error'] ?? null);
+        }
+    }
+
+    public function testMembersCsvUniqueEmailsPass(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+
+        // All unique emails — should proceed normally without 422
+        $csvContent = "name,email\nJean Dupont,jean@example.com\nPierre Martin,pierre@example.com\n";
+        $this->injectJsonBody(['csv_content' => $csvContent]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->method('createImport')->willReturn('new-member-uuid');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $this->injectRepos([
+            MemberRepository::class => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $result = $this->callController(ImportController::class, 'membersCsv');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertEquals(2, $result['body']['data']['imported']);
+    }
 }
