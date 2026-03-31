@@ -1337,7 +1337,7 @@ class MotionsControllerTest extends ControllerTestCase
     }
 
     // =========================================================================
-    // WEBSOCKET EVENT VERIFICATION (source-level)
+    // SSE EVENT VERIFICATION (source-level)
     // =========================================================================
 
     public function testOpenBroadcastsMotionOpenedEvent(): void

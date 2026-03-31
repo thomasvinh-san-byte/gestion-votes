@@ -142,12 +142,12 @@
 
 .wiz-step-item.active .wiz-snum {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-on-primary, #fff);
 }
 
 .wiz-step-item.done .wiz-snum {
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-text-on-primary, #fff);
 }
 
 /* =============================================================================
@@ -691,7 +691,7 @@ input[type="time"].field-input {
 
 .chip.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-on-primary, #fff);
   border-color: var(--color-primary);
 }
 
