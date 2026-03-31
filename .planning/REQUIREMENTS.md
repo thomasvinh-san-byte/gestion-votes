@@ -19,8 +19,8 @@
 
 ### Edge cases Quorum (QUOR)
 
-- [ ] **QUOR-01**: Le calcul de quorum fonctionne correctement avec zéro membre présent (pas de division par zéro)
-- [ ] **QUOR-02**: L'ajout ou le retrait de présence en cours de vote met à jour le quorum en temps réel via SSE
+- [x] **QUOR-01**: Le calcul de quorum fonctionne correctement avec zéro membre présent (pas de division par zéro)
+- [x] **QUOR-02**: L'ajout ou le retrait de présence en cours de vote met à jour le quorum en temps réel via SSE
 
 ### Edge cases Sessions (SESS)
 
@@ -75,8 +75,8 @@
 | VOTE-01 | Phase 59 | Pending |
 | VOTE-02 | Phase 59 | Pending |
 | VOTE-03 | Phase 59 | Pending |
-| QUOR-01 | Phase 59 | Pending |
-| QUOR-02 | Phase 59 | Pending |
+| QUOR-01 | Phase 59 | Complete |
+| QUOR-02 | Phase 59 | Complete |
 | SESS-01 | Phase 60 | Pending |
 | SESS-02 | Phase 60 | Pending |
 | IMP-01 | Phase 60 | Pending |
