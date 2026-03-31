@@ -174,8 +174,8 @@ final class ImportService {
      * @return array ['headers' => array, 'rows' => array, 'separator' => string, 'error' => ?string]
      */
     public static function readCsvFile(string $filePath): array {
-        $handle = @fopen($filePath, 'r');
-        if (!$handle) {
+        $content = @file_get_contents($filePath);
+        if ($content === false) {
             return [
                 'headers' => [],
                 'rows' => [],
@@ -184,41 +184,63 @@ final class ImportService {
             ];
         }
 
-        // Detect separator
-        $firstLine = fgets($handle);
-        rewind($handle);
-        $separator = ($firstLine !== false && strpos($firstLine, ';') !== false) ? ';' : ',';
+        // Detect and normalize encoding before fgetcsv (which is not encoding-aware)
+        $encoding = mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-1'], true);
+        if ($encoding !== false && $encoding !== 'UTF-8') {
+            $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+        }
 
-        // Read headers
-        $headers = fgetcsv($handle, 0, $separator);
-        if (!$headers) {
-            fclose($handle);
+        // Write normalized content to temp file for fgetcsv
+        $tmpPath = tempnam(sys_get_temp_dir(), 'csv_enc_');
+        file_put_contents($tmpPath, $content);
+        $handle = @fopen($tmpPath, 'r');
+        if (!$handle) {
+            @unlink($tmpPath);
             return [
                 'headers' => [],
                 'rows' => [],
-                'separator' => $separator,
-                'error' => 'En-têtes CSV invalides.',
+                'separator' => ',',
+                'error' => 'Impossible d\'ouvrir le fichier.',
             ];
         }
 
-        $headers = array_map(fn ($h) => strtolower(trim($h)), $headers);
+        try {
+            // Detect separator
+            $firstLine = fgets($handle);
+            rewind($handle);
+            $separator = ($firstLine !== false && strpos($firstLine, ';') !== false) ? ';' : ',';
 
-        // Read rows
-        $rows = [];
-        while (($row = fgetcsv($handle, 0, $separator)) !== false) {
-            if (!empty(array_filter($row))) {
-                $rows[] = $row;
+            // Read headers
+            $headers = fgetcsv($handle, 0, $separator);
+            if (!$headers) {
+                return [
+                    'headers' => [],
+                    'rows' => [],
+                    'separator' => $separator,
+                    'error' => 'En-têtes CSV invalides.',
+                ];
             }
+
+            $headers = array_map(fn ($h) => strtolower(trim($h)), $headers);
+
+            // Read rows
+            $rows = [];
+            while (($row = fgetcsv($handle, 0, $separator)) !== false) {
+                if (!empty(array_filter($row))) {
+                    $rows[] = $row;
+                }
+            }
+
+            return [
+                'headers' => $headers,
+                'rows' => $rows,
+                'separator' => $separator,
+                'error' => null,
+            ];
+        } finally {
+            fclose($handle);
+            @unlink($tmpPath);
         }
-
-        fclose($handle);
-
-        return [
-            'headers' => $headers,
-            'rows' => $rows,
-            'separator' => $separator,
-            'error' => null,
-        ];
     }
 
     // ========================================================================
