@@ -89,6 +89,12 @@ final class Application {
         DatabaseProvider::connect(self::$config['db'] ?? [], self::$debug);
         RedisProvider::configure(self::$config['redis'] ?? []);
         self::initEventDispatcher();
+
+        // Define global helpers needed by repositories (db(), config(), etc.)
+        // In web context these are defined by bootstrap.php; in CLI we define them here.
+        if (!function_exists('db')) {
+            require_once dirname(__DIR__) . '/bootstrap.php';
+        }
     }
 
     /**
