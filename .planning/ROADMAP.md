@@ -155,7 +155,12 @@ Plans:
   4. Uploading a CSV that contains two rows with the same email address produces a validation error listing the duplicate emails — no silent creation of duplicate member records occurs
   5. Accessing any authenticated page with an expired session redirects to /login with a visible message explaining the session has expired — no blank page or raw PHP error is shown
   6. After a configurable number of consecutive failed login attempts from the same IP, further attempts are blocked and an entry recording the IP and attempt count is written to the audit trail
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 60-01-PLAN.md — Enrich invalid transition error message (SESS-01) and add live-session delete guard (SESS-02)
+- [ ] 60-02-PLAN.md — Add encoding detection to ImportService::readCsvFile() (IMP-01) and duplicate email pre-scan to ImportController (IMP-02)
+- [ ] 60-03-PLAN.md — Differentiate session expiry in AuthMiddleware (AUTH-01) and add configurable rate limiting with audit to AuthController (AUTH-02)
 
 ### Phase 61: Dead Code Cleanup
 **Goal**: The codebase contains no controller stubs, no copropriete/syndic vocabulary in demo data, and no unaddressed dead files — every file either works or is documented as intentionally deferred
@@ -174,6 +179,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 58. WebSocket to SSE Rename | 2/2 | Complete    | 2026-03-31 |
-| 59. Vote and Quorum Edge Cases | 2/2 | Complete   | 2026-03-31 |
-| 60. Session, Import, and Auth Edge Cases | 0/TBD | Not started | - |
+| 59. Vote and Quorum Edge Cases | 2/2 | Complete    | 2026-03-31 |
+| 60. Session, Import, and Auth Edge Cases | 0/3 | Not started | - |
 | 61. Dead Code Cleanup | 0/TBD | Not started | - |
