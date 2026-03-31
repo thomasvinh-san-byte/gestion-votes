@@ -9,7 +9,7 @@
 
 - [x] **SSE-01**: Le namespace `AgVote\WebSocket` est renommé en `AgVote\SSE` dans tous les fichiers
 - [x] **SSE-02**: `WebSocketListener` est renommé en `SseListener`, tous les commentaires "WebSocket" corrigés
-- [ ] **SSE-03**: Zéro occurrence de "WebSocket" dans le code PHP (hors vendor/)
+- [x] **SSE-03**: Zéro occurrence de "WebSocket" dans le code PHP (hors vendor/)
 
 ### Edge cases Vote (VOTE)
 
@@ -71,7 +71,7 @@
 |-------------|-------|--------|
 | SSE-01 | Phase 58 | Complete |
 | SSE-02 | Phase 58 | Complete |
-| SSE-03 | Phase 58 | Pending |
+| SSE-03 | Phase 58 | Complete |
 | VOTE-01 | Phase 59 | Pending |
 | VOTE-02 | Phase 59 | Pending |
 | VOTE-03 | Phase 59 | Pending |
