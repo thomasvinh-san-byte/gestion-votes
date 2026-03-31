@@ -61,6 +61,9 @@ final class AuthMiddleware {
     private static bool $debug = false;
     private static array $accessLog = [];
 
+    /** True when the last authenticate() call detected an expired session (not just missing). */
+    private static bool $sessionExpired = false;
+
     // =========================================================================
     // INIT / CONFIG
     // =========================================================================
@@ -304,6 +307,7 @@ final class AuthMiddleware {
                     ));
                     $_SESSION = [];
                     session_destroy();
+                    self::$sessionExpired = true;
                     return null;
                 }
 
@@ -511,9 +515,10 @@ final class AuthMiddleware {
     public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void {
         $allowed = Permissions::TRANSITIONS[$fromStatus] ?? [];
         if (!isset($allowed[$toStatus])) {
-            self::deny('invalid_transition', 422, [
-                'from' => $fromStatus,
-                'to' => $toStatus,
+            api_fail('invalid_transition', 422, [
+                'detail' => "Transition '{$fromStatus}' \u2192 '{$toStatus}' non autoris\u00e9e.",
+                'from_status' => $fromStatus,
+                'to_status' => $toStatus,
                 'allowed' => array_keys($allowed),
             ]);
         }
@@ -667,6 +672,12 @@ final class AuthMiddleware {
     }
 
     private static function deny(string $code, int $httpCode = 401, array $extra = []): never {
+        // Differentiate expired sessions from never-authenticated
+        if ($code === 'authentication_required' && self::$sessionExpired) {
+            $code = 'session_expired';
+            self::$sessionExpired = false; // consume the flag
+        }
+
         self::logAuthFailure($code);
 
         $body = ['ok' => false, 'error' => $code];
@@ -767,5 +778,6 @@ final class AuthMiddleware {
         self::$currentMeetingId = null;
         self::$currentMeetingRoles = null;
         self::$accessLog = [];
+        self::$sessionExpired = false;
     }
 }

@@ -371,6 +371,7 @@ window.Utils = window.Utils || {};
     'csrf_token_invalid': 'Session expirée. Rechargez la page.',
     'csrf_token_expired': 'Session expirée. Rechargez la page.',
     'authentication_required': 'Authentification requise.',
+    'session_expired': 'Votre session a expire. Veuillez vous reconnecter.',
     'forbidden': 'Accès refusé.',
     'method_not_allowed': 'Méthode non autorisée.',
     'missing_credentials': 'Email et mot de passe requis.',

@@ -193,4 +193,70 @@ class AuthMiddlewareTest extends TestCase {
         // Le test vérifie que l'init ne plante pas
         $this->assertTrue(true);
     }
+
+    // =========================================================================
+    // Session expiry differentiation (AUTH-01)
+    // =========================================================================
+
+    public function testExpiredSessionReturnsSessionExpiredCode(): void {
+        // Set the sessionExpired flag via Reflection (simulates authenticate() having detected expiry)
+        $ref = new ReflectionClass(AuthMiddleware::class);
+        $prop = $ref->getProperty('sessionExpired');
+        $prop->setAccessible(true);
+        $prop->setValue(null, true);
+
+        // Trigger deny('authentication_required') via requireRole with no user
+        // deny() is private, so we trigger it through the public API
+        // requireRole with throw=true calls deny() when auth is enabled and no user
+        putenv('APP_AUTH_ENABLED=1');
+
+        $exception = null;
+        try {
+            AuthMiddleware::requireRole('admin');
+        } catch (\AgVote\Core\Http\ApiResponseException $e) {
+            $exception = $e;
+        }
+
+        $this->assertNotNull($exception, 'Expected ApiResponseException');
+        $body = $exception->getResponse()->getBody();
+        $this->assertEquals('session_expired', $body['error'],
+            'Expired session must return session_expired, not authentication_required');
+    }
+
+    public function testNonExpiredSessionReturnsAuthenticationRequired(): void {
+        // Ensure sessionExpired flag is NOT set
+        $ref = new ReflectionClass(AuthMiddleware::class);
+        $prop = $ref->getProperty('sessionExpired');
+        $prop->setAccessible(true);
+        $prop->setValue(null, false);
+
+        putenv('APP_AUTH_ENABLED=1');
+
+        $exception = null;
+        try {
+            AuthMiddleware::requireRole('admin');
+        } catch (\AgVote\Core\Http\ApiResponseException $e) {
+            $exception = $e;
+        }
+
+        $this->assertNotNull($exception, 'Expected ApiResponseException');
+        $body = $exception->getResponse()->getBody();
+        $this->assertEquals('authentication_required', $body['error'],
+            'Non-expired unauthenticated request must return authentication_required');
+    }
+
+    public function testResetClearsSessionExpiredFlag(): void {
+        // Set the sessionExpired flag
+        $ref = new ReflectionClass(AuthMiddleware::class);
+        $prop = $ref->getProperty('sessionExpired');
+        $prop->setAccessible(true);
+        $prop->setValue(null, true);
+
+        // Call reset()
+        AuthMiddleware::reset();
+
+        // Verify flag is cleared
+        $value = $prop->getValue(null);
+        $this->assertFalse($value, 'reset() must clear the sessionExpired flag');
+    }
 }

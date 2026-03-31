@@ -511,6 +511,13 @@
   async function boot() {
     var { status, body: data } = await api('/api/v1/whoami.php');
 
+    // Detect session expiry — redirect to login with expired flag before processing
+    if (data && data.error === 'session_expired') {
+      window.location.href = '/login.html?expired=1&redirect=' +
+        encodeURIComponent(window.location.pathname + window.location.search);
+      return;
+    }
+
     if (status === 0) {
       // Network/timeout failure
       window.Auth.enabled = true;

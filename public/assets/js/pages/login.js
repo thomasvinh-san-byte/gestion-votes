@@ -9,6 +9,13 @@
   const spinner = document.getElementById('loginSpinner');
   const btnText = submitBtn.querySelector('.login-btn-text');
 
+  // Show session expired message if redirected from an expired session
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('expired') === '1' && successBox) {
+    successBox.textContent = 'Votre session a expire. Veuillez vous reconnecter.';
+    successBox.style.display = 'block';
+  }
+
   // Floating label support: toggle .has-value on .field-group when input has content.
   // Email field can rely on CSS :not(:placeholder-shown) for the direct-sibling case,
   // but password needs JS because its label is a sibling of .field-input-wrap (not input).
