@@ -577,7 +577,7 @@ table {
 
   /* Component dimension aliases */
   --btn-height: 36px;
-  --input-height: 36px;
+  --input-height: 44px;
   --toast-width: 356px;
   --toast-accent-width: 3px;
   --stepper-dot-size: 28px;

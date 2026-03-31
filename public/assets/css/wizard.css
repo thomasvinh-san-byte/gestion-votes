@@ -340,31 +340,25 @@
 }
 
 /* =============================================================================
-   TIME INPUT
+   DATE + TIME ROW — side by side, time takes less space
    ============================================================================= */
 
-.time-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.wiz-date-time-row {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 12px;
 }
 
-.time-input-hh,
-.time-input-mm {
-  width: 48px;
-  text-align: center;
-  min-height: 42px;
-  font-size: 15px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 10px 8px;
+@media (max-width: 480px) {
+  .wiz-date-time-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.time-sep {
-  font-weight: 600;
-  color: var(--color-text-muted);
-  user-select: none;
+/* Native time input — match field-input height */
+input[type="time"].field-input {
+  font-family: var(--font-mono, monospace);
+  font-variant-numeric: tabular-nums;
 }
 
 /* =============================================================================

@@ -139,8 +139,7 @@
           title:  (getId('wizTitle').value || ''),
           type:   (getId('wizType').value || ''),
           date:   (getId('wizDate').value || ''),
-          hh:     (getId('wizTimeHH').value || ''),
-          mm:     (getId('wizTimeMM').value || ''),
+          time:   (getId('wizTime').value || ''),
           place:  (getId('wizPlace').value || ''),
           addr:   (getId('wizAddr').value || ''),
           quorum: (getId('wizQuorum').value || ''),
@@ -164,8 +163,9 @@
       if (s1.title)      { var t = document.getElementById('wizTitle');      if (t) t.value = s1.title; }
       if (s1.type)       { var ty = document.getElementById('wizType');      if (ty) ty.value = s1.type; }
       if (s1.date)       { var d = document.getElementById('wizDate');       if (d) d.value = s1.date; }
-      if (s1.hh)         { var hh = document.getElementById('wizTimeHH');    if (hh) hh.value = s1.hh; }
-      if (s1.mm)         { var mm = document.getElementById('wizTimeMM');    if (mm) mm.value = s1.mm; }
+      if (s1.time)       { var ti = document.getElementById('wizTime');      if (ti) ti.value = s1.time; }
+      // Legacy draft compat: convert hh+mm to time
+      if (!s1.time && s1.hh) { var ti2 = document.getElementById('wizTime'); if (ti2) ti2.value = (s1.hh || '18') + ':' + (s1.mm || '00'); }
       if (s1.place)      { var p = document.getElementById('wizPlace');      if (p) p.value = s1.place; }
       if (s1.addr)       { var a = document.getElementById('wizAddr');       if (a) a.value = s1.addr; }
       if (s1.quorum)     { var q = document.getElementById('wizQuorum');     if (q) q.value = s1.quorum; }
@@ -193,13 +193,11 @@
     if (n === 0) {
       var title = (document.getElementById('wizTitle') || {}).value || '';
       var date  = (document.getElementById('wizDate') || {}).value || '';
-      var hh    = (document.getElementById('wizTimeHH') || {}).value || '';
-      var mm    = (document.getElementById('wizTimeMM') || {}).value || '';
+      var time  = (document.getElementById('wizTime') || {}).value || '';
       return (
         title.trim().length > 0 &&
         date.length > 0 &&
-        hh.length === 2 && parseInt(hh, 10) >= 0 && parseInt(hh, 10) <= 23 &&
-        mm.length === 2 && parseInt(mm, 10) >= 0 && parseInt(mm, 10) <= 59
+        /^\d{2}:\d{2}$/.test(time)
       );
     }
     if (n === 1) { return true; }
@@ -211,36 +209,30 @@
     if (n === 0) {
       var title = (document.getElementById('wizTitle') || {}).value || '';
       var date  = (document.getElementById('wizDate') || {}).value || '';
-      var hh    = (document.getElementById('wizTimeHH') || {}).value || '';
-      var mm    = (document.getElementById('wizTimeMM') || {}).value || '';
+      var time  = (document.getElementById('wizTime') || {}).value || '';
 
       var titleEl = document.getElementById('wizTitle');
       var errTitle = document.getElementById('errWizTitle');
       var dateEl = document.getElementById('wizDate');
       var errDate = document.getElementById('errWizDate');
-      var hhEl = document.getElementById('wizTimeHH');
-      var mmEl = document.getElementById('wizTimeMM');
+      var timeEl = document.getElementById('wizTime');
       var errTime = document.getElementById('errWizTime');
 
       var titleOk = title.trim().length > 0;
       var dateOk  = date.length > 0;
-      var timeOk  = hh.length === 2 && mm.length === 2 &&
-                    parseInt(hh, 10) >= 0 && parseInt(hh, 10) <= 23 &&
-                    parseInt(mm, 10) >= 0 && parseInt(mm, 10) <= 59;
+      var timeOk  = /^\d{2}:\d{2}$/.test(time);
 
       if (titleEl)  titleEl.classList.toggle('field-error', !titleOk);
       if (errTitle) errTitle.classList.toggle('visible', !titleOk);
       if (dateEl)   dateEl.classList.toggle('field-error', !dateOk);
       if (errDate)  errDate.classList.toggle('visible', !dateOk);
-      if (hhEl)     hhEl.classList.toggle('field-error', !timeOk);
-      if (mmEl)     mmEl.classList.toggle('field-error', !timeOk);
+      if (timeEl)   timeEl.classList.toggle('field-error', !timeOk);
       if (errTime)  errTime.classList.toggle('visible', !timeOk);
 
-      // Populate and show/hide the step-level error banner
       var errors = [];
       if (!titleOk) errors.push('Le titre est obligatoire');
       if (!dateOk)  errors.push('La date est obligatoire');
-      if (!timeOk)  errors.push("L'heure est obligatoire (HH:MM)");
+      if (!timeOk)  errors.push("L'heure est obligatoire");
       var banner0 = document.getElementById('errBannerStep0');
       var bannerText0 = document.getElementById('errBannerStep0Text');
       if (errors.length > 0) {
@@ -265,7 +257,7 @@
 
   function clearFieldErrors(n) {
     if (n === 0) {
-      var fields = ['wizTitle', 'wizDate', 'wizTimeHH', 'wizTimeMM'];
+      var fields = ['wizTitle', 'wizDate', 'wizTime'];
       fields.forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.classList.remove('field-error');
@@ -281,40 +273,11 @@
   /* ── Time input behavior ─────────────────────────── */
 
   function setupTimeInput() {
-    var hh = document.getElementById('wizTimeHH');
-    var mm = document.getElementById('wizTimeMM');
-    if (!hh || !mm) return;
-
-    hh.addEventListener('input', function () {
-      var v = hh.value.replace(/\D/g, '').slice(0, 2);
-      hh.value = v;
-      if (v.length === 2) {
-        if (parseInt(v, 10) > 23) { hh.value = v.slice(0, 1); return; }
-        mm.focus();
-      }
-    });
-
-    mm.addEventListener('input', function () {
-      var v = mm.value.replace(/\D/g, '').slice(0, 2);
-      mm.value = v;
-      if (v.length === 2 && parseInt(v, 10) > 59) {
-        mm.value = v.slice(0, 1);
-      }
-    });
-
-    mm.addEventListener('keydown', function (e) {
-      if (e.key === 'Backspace' && mm.value === '') hh.focus();
-    });
-
-    hh.addEventListener('blur', function () {
-      if (hh.value.length === 1) hh.value = hh.value.padStart(2, '0');
-      saveDraft();
-    });
-
-    mm.addEventListener('blur', function () {
-      if (mm.value.length === 1) mm.value = mm.value.padStart(2, '0');
-      saveDraft();
-    });
+    // Native <input type="time"> — no custom logic needed
+    var timeEl = document.getElementById('wizTime');
+    if (timeEl) {
+      timeEl.addEventListener('change', saveDraft);
+    }
   }
 
   /* ── Step 1 field blur listeners for auto-save ───── */
@@ -808,8 +771,9 @@
     var title  = getId('wizTitle').value || '(non renseign\u00e9)';
     var type   = getId('wizType').value  || '';
     var date   = getId('wizDate').value  || '';
-    var hh     = getId('wizTimeHH').value || '';
-    var mm     = getId('wizTimeMM').value || '';
+    var timeVal = getId('wizTime').value || '';
+    var hh = timeVal.split(':')[0] || '';
+    var mm = timeVal.split(':')[1] || '';
     var place  = getId('wizPlace').value  || '';
     var addr   = getId('wizAddr').value   || '';
     var dateStr = date ? date + (hh && mm ? ' \u00e0 ' + hh + ':' + mm : '') : '(non renseign\u00e9e)';
@@ -895,7 +859,7 @@
       title:       getId('wizTitle').value  || '',
       type:        getId('wizType').value   || '',
       date:        getId('wizDate').value   || '',
-      time:        (getId('wizTimeHH').value || '00') + ':' + (getId('wizTimeMM').value || '00'),
+      time:        getId('wizTime').value || '18:00',
       place:       getId('wizPlace').value  || '',
       address:     getId('wizAddr').value   || '',
       quorum:      getId('wizQuorum').value || '',
@@ -1034,10 +998,8 @@
         var d = String(today.getDate()).padStart(2, '0');
         dateEl.value = y + '-' + m + '-' + d;
       }
-      var hhEl = document.getElementById('wizTimeHH');
-      var mmEl = document.getElementById('wizTimeMM');
-      if (hhEl && !hhEl.value) hhEl.value = '18';
-      if (mmEl && !mmEl.value) mmEl.value = '00';
+      var timeEl = document.getElementById('wizTime');
+      if (timeEl && !timeEl.value) timeEl.value = '18:00';
       showStep(0, true);
     }
   }
