@@ -23,6 +23,13 @@ abstract class AbstractRepository {
     }
 
     /**
+     * Expose PDO for cross-table queries (e.g., notification reads).
+     */
+    public function getPdo(): PDO {
+        return $this->pdo;
+    }
+
+    /**
      * Executes a query and returns a single row (or null).
      */
     protected function selectOne(string $sql, array $params = []): ?array {

@@ -234,8 +234,8 @@ INSERT INTO motions (
   '66666666-6666-6666-6666-666666666004',
   'aaaaaaaa-1111-2222-3333-444444444444',
   '44444444-4444-4444-4444-444444444001',
-  'Changement de syndic',
-  'Vote sur la resolution de changement de syndic.',
+  'Renouvellement du bureau',
+  'Vote sur le renouvellement des membres du bureau.',
   false, 4,
   (SELECT id FROM vote_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité absolue' LIMIT 1),
   now(), now()

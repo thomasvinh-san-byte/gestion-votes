@@ -163,14 +163,13 @@ class NotificationsControllerTest extends ControllerTestCase
         $this->assertEquals(0, $result['body']['data']['marked']);
     }
 
-    public function testMarkReadWorksWithGetMethod(): void
+    public function testMarkReadRejectsGetMethod(): void
     {
-        // markRead doesn't call api_request() with method enforcement
+        // markRead enforces PUT/POST methods
         $this->setAuth('user-1', 'admin', self::TENANT);
 
         $result = $this->callController(NotificationsController::class, 'markRead');
 
-        $this->assertEquals(200, $result['status']);
-        $this->assertEquals(0, $result['body']['data']['marked']);
+        $this->assertEquals(405, $result['status']);
     }
 }

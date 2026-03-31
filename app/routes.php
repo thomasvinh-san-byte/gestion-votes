@@ -57,6 +57,7 @@ use AgVote\Controller\ProjectorController;
 use AgVote\Controller\ProxiesController;
 use AgVote\Controller\QuorumController;
 use AgVote\Controller\ReminderController;
+use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\TrustController;
 use AgVote\Controller\VotePublicController;
@@ -317,6 +318,9 @@ return function (Router $router): void {
         'POST' => [ReminderController::class, 'upsert',         $opAdm],
         'DELETE' => [ReminderController::class, 'delete',          $opAdm],
     ]);
+
+    // ── Settings ──
+    $router->mapAny("{$prefix}/admin_settings", SettingsController::class, 'settings', $admin);
 
     // ── Speech ──
     $router->mapAny("{$prefix}/speech_cancel", SpeechController::class, 'cancel', ['role' => ['operator', 'trust', 'president', 'admin']]);

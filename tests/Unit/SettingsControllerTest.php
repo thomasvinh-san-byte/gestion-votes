@@ -101,63 +101,33 @@ class SettingsControllerTest extends ControllerTestCase
     }
 
     // =========================================================================
-    // settings(): stub actions (get_template, save_template, test_smtp, reset_templates)
+    // settings(): removed stub actions now return unknown_action error
+    // (email templates handled by EmailTemplatesController)
     // =========================================================================
 
-    public function testGetTemplateActionReturnsStub(): void
+    /** @dataProvider removedActionsProvider */
+    public function testRemovedActionsReturnUnknownAction(string $action): void
     {
         $this->setAuth('user-1', 'admin', self::TENANT);
-        $this->injectJsonBody(['action' => 'get_template']);
+        $this->injectJsonBody(['action' => $action]);
 
         $mockSettings = $this->createMock(SettingsRepository::class);
         $this->injectRepos([SettingsRepository::class => $mockSettings]);
 
         $result = $this->callController(SettingsController::class, 'settings');
 
-        $this->assertEquals(200, $result['status']);
-        $this->assertArrayHasKey('data', $result['body']['data']);
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('unknown_action', $result['body']['error']);
     }
 
-    public function testSaveTemplateActionReturnsStub(): void
+    public static function removedActionsProvider(): array
     {
-        $this->setAuth('user-1', 'admin', self::TENANT);
-        $this->injectJsonBody(['action' => 'save_template']);
-
-        $mockSettings = $this->createMock(SettingsRepository::class);
-        $this->injectRepos([SettingsRepository::class => $mockSettings]);
-
-        $result = $this->callController(SettingsController::class, 'settings');
-
-        $this->assertEquals(200, $result['status']);
-        $this->assertTrue($result['body']['data']['saved']);
-    }
-
-    public function testTestSmtpActionReturnsStub(): void
-    {
-        $this->setAuth('user-1', 'admin', self::TENANT);
-        $this->injectJsonBody(['action' => 'test_smtp']);
-
-        $mockSettings = $this->createMock(SettingsRepository::class);
-        $this->injectRepos([SettingsRepository::class => $mockSettings]);
-
-        $result = $this->callController(SettingsController::class, 'settings');
-
-        $this->assertEquals(200, $result['status']);
-        $this->assertTrue($result['body']['data']['sent']);
-    }
-
-    public function testResetTemplatesActionReturnsStub(): void
-    {
-        $this->setAuth('user-1', 'admin', self::TENANT);
-        $this->injectJsonBody(['action' => 'reset_templates']);
-
-        $mockSettings = $this->createMock(SettingsRepository::class);
-        $this->injectRepos([SettingsRepository::class => $mockSettings]);
-
-        $result = $this->callController(SettingsController::class, 'settings');
-
-        $this->assertEquals(200, $result['status']);
-        $this->assertTrue($result['body']['data']['reset']);
+        return [
+            'get_template' => ['get_template'],
+            'save_template' => ['save_template'],
+            'test_smtp' => ['test_smtp'],
+            'reset_templates' => ['reset_templates'],
+        ];
     }
 
     // =========================================================================

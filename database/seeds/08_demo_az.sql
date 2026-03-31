@@ -137,7 +137,7 @@ INSERT INTO motions (
   'aaaaaaaa-1111-2222-3333-444444444444',
   'deadbeef-0001-4a00-8000-000000000001',
   'Resolution 1 — Approbation des comptes 2025',
-  'Approbation des comptes annuels de l''exercice clos le 31 decembre 2025, tels que presentes par le conseil syndical.',
+  'Approbation des comptes annuels de l''exercice clos le 31 decembre 2025, tels que presentes par le tresorier.',
   false, 1,
   (SELECT id FROM vote_policies  WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Majorité simple'         LIMIT 1),
   (SELECT id FROM quorum_policies WHERE tenant_id='aaaaaaaa-1111-2222-3333-444444444444' AND name='Quorum 50% (personnes)' LIMIT 1),
