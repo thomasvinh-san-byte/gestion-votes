@@ -89,3 +89,73 @@
 | 61. Dead Code Cleanup | 1/1 | Complete | 2026-03-31 |
 
 </details>
+
+---
+
+### v6.0 Production & Email (In Progress)
+
+**Milestone Goal:** Deliver functional email communication (invitations, reminders, results) via SMTP with customizable templates, plus real-time in-app notifications via bell icon and SSE toasts.
+
+## Phases
+
+- [ ] **Phase 62: SMTP & Template Engine** - Wire Symfony Mailer SMTP config and make email templates editable from admin UI
+- [ ] **Phase 63: Email Sending Workflows** - Operator sends invitations/reminders, system sends results after session close
+- [ ] **Phase 64: In-App Notifications** - Bell badge with notification list and real-time SSE toasts
+
+## Phase Details
+
+### Phase 62: SMTP & Template Engine
+**Goal**: Administrators can configure SMTP delivery and customize email templates so the application is ready to send real emails
+**Depends on**: Nothing (first phase of v6.0)
+**Requirements**: EMAIL-04, EMAIL-05
+**Success Criteria** (what must be TRUE):
+  1. Administrator can enter SMTP credentials (host, port, user, password, encryption) in the settings page and the configuration persists across sessions
+  2. A test email can be sent from the settings page to verify SMTP configuration works before any real sends
+  3. Administrator can edit email template subject and HTML body for each template type (invitation, reminder, results) with variable placeholders
+  4. Template preview shows rendered output with sample data before saving
+**Plans**: TBD
+
+Plans:
+- [ ] 62-01: SMTP configuration persistence and Symfony Mailer transport wiring
+- [ ] 62-02: Email template CRUD editor in admin UI with live preview
+
+### Phase 63: Email Sending Workflows
+**Goal**: Operators can trigger invitation and reminder emails to meeting participants, and results emails are sent automatically after session close
+**Depends on**: Phase 62
+**Requirements**: EMAIL-01, EMAIL-02, EMAIL-03
+**Success Criteria** (what must be TRUE):
+  1. Operator clicks "Envoyer les invitations" on a session and each member receives an email containing a personalized link to their vote page
+  2. Operator clicks "Envoyer un rappel" on a session and each member receives an email with the session date, location, and a link to the hub
+  3. After an operator closes a session, each participant automatically receives a results email with a link to view the results page
+  4. Emails are queued via EmailQueueService and processed reliably -- failed sends are logged and the operator can see send status
+**Plans**: TBD
+
+Plans:
+- [ ] 63-01: Invitation email flow (operator trigger, queue processing, member-specific vote links)
+- [ ] 63-02: Reminder and results email flows (operator-triggered reminder, automatic post-close results)
+
+### Phase 64: In-App Notifications
+**Goal**: Users receive real-time awareness of important events through a persistent notification bell and transient toast messages
+**Depends on**: Phase 62 (notifications reference the same event types as emails)
+**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03
+**Success Criteria** (what must be TRUE):
+  1. A bell icon in the app shell header displays a badge with the count of unread notifications, updating without page refresh
+  2. Clicking the bell opens a panel listing recent notifications (vote opened, session starting soon, results available) with timestamps and links
+  3. Marking a notification as read decrements the badge count; marking all as read clears the badge
+  4. When a relevant event fires (vote opened, quorum reached, session started), an ag-toast appears in real-time via SSE without any user action
+**Plans**: TBD
+
+Plans:
+- [ ] 64-01: Notification persistence, bell badge wiring, and notification list panel
+- [ ] 64-02: SSE event broadcasting and real-time ag-toast delivery
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 62 -> 63 -> 64
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 62. SMTP & Template Engine | 0/2 | Not started | - |
+| 63. Email Sending Workflows | 0/2 | Not started | - |
+| 64. In-App Notifications | 0/2 | Not started | - |

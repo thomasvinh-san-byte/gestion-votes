@@ -9,38 +9,38 @@ Requirements for v6.0 Production & Email milestone. Each maps to roadmap phases.
 
 ### Email
 
-- [ ] **EMAIL-01**: L'opérateur peut envoyer une invitation par email aux membres d'une séance — l'email contient un lien qui amène le destinataire vers la page de vote
-- [ ] **EMAIL-02**: L'opérateur peut envoyer un rappel par email avant une séance — l'email contient la date, le lieu et un lien vers le hub
-- [ ] **EMAIL-03**: Après clôture d'une séance, un email de résultats est envoyé aux participants avec un lien vers les résultats
+- [ ] **EMAIL-01**: L'operateur peut envoyer une invitation par email aux membres d'une seance — l'email contient un lien qui amene le destinataire vers la page de vote
+- [ ] **EMAIL-02**: L'operateur peut envoyer un rappel par email avant une seance — l'email contient la date, le lieu et un lien vers le hub
+- [ ] **EMAIL-03**: Apres cloture d'une seance, un email de resultats est envoye aux participants avec un lien vers les resultats
 - [ ] **EMAIL-04**: Les templates d'emails sont personnalisables depuis l'interface admin (sujet, corps HTML avec variables)
-- [ ] **EMAIL-05**: L'envoi utilise SMTP générique (Symfony Mailer) — compatible Mailgun, SendGrid, OVH, Gmail
+- [ ] **EMAIL-05**: L'envoi utilise SMTP generique (Symfony Mailer) — compatible Mailgun, SendGrid, OVH, Gmail
 
 ### Notifications
 
-- [ ] **NOTIF-01**: Une icône cloche dans le header affiche un badge avec le nombre de notifications non lues
-- [ ] **NOTIF-02**: Cliquer sur la cloche affiche la liste des notifications récentes (nouveau vote ouvert, séance bientôt, résultats disponibles)
-- [ ] **NOTIF-03**: Un toast apparaît en temps réel via SSE quand un événement important survient (vote ouvert, quorum atteint, séance démarrée)
+- [ ] **NOTIF-01**: Une icone cloche dans le header affiche un badge avec le nombre de notifications non lues
+- [ ] **NOTIF-02**: Cliquer sur la cloche affiche la liste des notifications recentes (nouveau vote ouvert, seance bientot, resultats disponibles)
+- [ ] **NOTIF-03**: Un toast apparait en temps reel via SSE quand un evenement important survient (vote ouvert, quorum atteint, seance demarree)
 
 ## Future Requirements
 
-### Déploiement (deferred to v6.1+)
+### Deploiement (deferred to v6.1+)
 
-- **DEPLOY-01**: Déploiement Render (web service Docker + PostgreSQL managé + Redis)
-- **DEPLOY-02**: Page /status santé (DB, Redis, filesystem)
-- **DEPLOY-03**: HTTPS + domaine personnalisé
-- **DEPLOY-04**: Variables d'environnement production documentées
+- **DEPLOY-01**: Deploiement Render (web service Docker + PostgreSQL manage + Redis)
+- **DEPLOY-02**: Page /status sante (DB, Redis, filesystem)
+- **DEPLOY-03**: HTTPS + domaine personnalise
+- **DEPLOY-04**: Variables d'environnement production documentees
 
 ### PV & Compliance (deferred)
 
-- **PV-01**: Génération PV finalisée et testée
-- **PV-02**: Export PDF conforme aux exigences légales françaises
+- **PV-01**: Generation PV finalisee et testee
+- **PV-02**: Export PDF conforme aux exigences legales francaises
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Réception d'emails entrants (webhook inbound) | Pas nécessaire — les emails contiennent des liens, pas de réponse à traiter |
-| Monitoring avancé (dashboard, graphiques) | Trop ambitieux pour ce milestone |
+| Reception d'emails entrants (webhook inbound) | Pas necessaire — les emails contiennent des liens, pas de reponse a traiter |
+| Monitoring avance (dashboard, graphiques) | Trop ambitieux pour ce milestone |
 | Framework migration | Vanilla stack is the identity |
 | Nouveaux modes de vote | Functional parity first |
 | App mobile native | PWA approach maintained |
@@ -49,20 +49,20 @@ Requirements for v6.0 Production & Email milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EMAIL-01 | TBD | Pending |
-| EMAIL-02 | TBD | Pending |
-| EMAIL-03 | TBD | Pending |
-| EMAIL-04 | TBD | Pending |
-| EMAIL-05 | TBD | Pending |
-| NOTIF-01 | TBD | Pending |
-| NOTIF-02 | TBD | Pending |
-| NOTIF-03 | TBD | Pending |
+| EMAIL-01 | Phase 63 | Pending |
+| EMAIL-02 | Phase 63 | Pending |
+| EMAIL-03 | Phase 63 | Pending |
+| EMAIL-04 | Phase 62 | Pending |
+| EMAIL-05 | Phase 62 | Pending |
+| NOTIF-01 | Phase 64 | Pending |
+| NOTIF-02 | Phase 64 | Pending |
+| NOTIF-03 | Phase 64 | Pending |
 
 **Coverage:**
 - v6.0 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-31*
-*Last updated: 2026-03-31 after milestone v6.0 start*
+*Last updated: 2026-03-31 after roadmap creation*

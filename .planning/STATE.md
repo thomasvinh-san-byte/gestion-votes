@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-03-31T12:00:00.000Z"
-last_activity: "2026-03-31 — Milestone v6.0 started: Production & Email"
+last_updated: "2026-03-31T14:00:00.000Z"
+last_activity: "2026-03-31 — Roadmap created: 3 phases (62-64), 6 plans, 8 requirements mapped"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 6
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v6.0 Production & Email — deploy to Render, send emails with links, in-app notifications
+**Current focus:** v6.0 Production & Email — SMTP emails (invitations, reminders, results), customizable templates, in-app notifications (bell + SSE toasts)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-31 — Milestone v6.0 started
+Phase: 62 of 64 (SMTP & Template Engine) — ready to plan
+Plan: --
+Status: Ready to plan Phase 62
+Last activity: 2026-03-31 — Roadmap created for v6.0
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -36,32 +36,25 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- [v5.1 roadmap]: Phase 59 and 60 can run in parallel after 58 — they target independent subsystems (vote/quorum vs. session/import/auth)
-- [v5.1 roadmap]: Phase 61 depends on both 59 and 60 to be complete before cleanup
-- [Phase 58-websocket-to-sse-rename]: Renamed Redis queue keys from ws:event_queue to sse:event_queue for consistent terminology
-- [Phase 58-websocket-to-sse-rename]: bootstrap.php WEBSOCKET AUTH TOKEN section header renamed to SSE AUTH TOKEN (residual auto-fixed during final grep verification)
-- [Phase 59-vote-and-quorum-edge-cases]: QUOR-01 already test-locked pre-execution — no changes to QuorumEngineTest.php required
-- [Phase 59-vote-and-quorum-edge-cases]: QUOR-02: SSE broadcast verified via 200 response — broadcast silently fails in test env, 200 proves path ran without blocking HTTP response
-- [Phase 59-01]: audit_log('vote_token_reuse') fires for both token_expired and token_already_used — covers all suspicious reuse patterns
-- [Phase 59-01]: BallotsService constructor dependencies (AttendancesService, ProxiesService) require their repos injected in unit tests to avoid null-PDO RuntimeException
-- [Phase 60-02]: Empty emails skipped in duplicate detection — blank field is not an address, avoids false-positive 422
-- [Phase 60-02]: mb_detect_encoding strict mode with ['UTF-8','Windows-1252','ISO-8859-1'] order ensures UTF-8 preferred; temp file (csv_enc_ prefix) preserves fgetcsv API
-- [Phase 60-02]: checkDuplicateEmails extracted to private static helper shared by membersCsv and membersXlsx
-- [Phase 60-01]: api_fail() preferred over self::deny() in requireTransition() — deny() hides extras behind debug flag, api_fail() always includes structured fields
-- [Phase 60-01]: Invalid transitions are not audit-logged (normal user input errors, not security events)
-- [Phase 60-01]: live-specific meeting_live_cannot_delete guard precedes generic meeting_not_draft check in deleteMeeting()
-- [Phase 60-03]: session_expired uses static flag in AuthMiddleware consumed in deny() — avoids parameter chain changes
-- [Phase 60-03]: ApiResponseException used directly in login() for 429 — api_fail() cannot set custom Retry-After header
-- [Phase 60-03]: ControllerTestCase::setUp() now resets APP_AUTH_ENABLED=0 to prevent env var leakage from AuthMiddlewareTest
-- [Phase 61-dead-code-cleanup]: app/Command CLI tools retained without unit tests — documented via inline comments
-- [Phase 61-dead-code-cleanup]: phpunit.xml app/WebSocket corrected to app/SSE (Phase 58 rename artifact)
-- [Phase 61-dead-code-cleanup]: CLEAN-01 was pre-satisfied: zero stubs in 41 controller files, no changes required
+- [v6.0 roadmap]: 3 phases derived from 8 requirements — SMTP/templates foundation, email workflows, in-app notifications
+- [v6.0 roadmap]: Phase 62 groups EMAIL-04 + EMAIL-05 (template editing + SMTP config) as foundation before any sends
+- [v6.0 roadmap]: Phase 63 groups EMAIL-01 + EMAIL-02 + EMAIL-03 (invitation, reminder, results) as the three email workflows
+- [v6.0 roadmap]: Phase 64 groups NOTIF-01 + NOTIF-02 + NOTIF-03 (bell, list, toast) as the notification system
+
+### Existing Infrastructure
+
+- Symfony Mailer already installed (composer.json: symfony/mailer ^8.0)
+- EmailTemplateService exists with DEFAULT_INVITATION_TEMPLATE and DEFAULT_REMINDER_TEMPLATE
+- EmailQueueService exists for queuing emails
+- SSE infrastructure exists (EventBroadcaster, SseListener, Redis fan-out)
+- Shell has notification bell UI (shell.js notifPanel code)
+- ag-toast Web Component already exists
 
 ### Known Tech Debt Carried Forward
+
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
 - CI e2e job runs chromium only; mobile-chrome/tablet are local-only
 - Migration idempotency check is local-only, not CI-gated
-- 04_e2e.sql seed data not loaded in CI e2e job
 
 ### Pending Todos
 
@@ -87,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T10:27:53.314Z
-Stopped at: Completed 61-01-PLAN.md
+Last session: 2026-03-31
+Stopped at: Roadmap created for v6.0 milestone
 Resume file: None
