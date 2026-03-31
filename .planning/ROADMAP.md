@@ -170,7 +170,10 @@ Plans:
   1. Every controller method that previously returned a stub response (e.g., `["status" => "not implemented"]` or similar placeholder) either has a real implementation or has been removed — zero stubs remain in production controller code
   2. All demo seed files contain no references to "copropriete", "syndic", "lot", "copropriétaire", or equivalent vocabulary — seeds use AG/assembly terminology exclusively
   3. All files identified during the dead code audit are either deleted (with no test regressions) or have a code comment explaining why they are retained — no undocumented dead files remain
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 61-01-PLAN.md — Purge copropriete/syndic vocabulary from docs, fix phpunit.xml stale WebSocket path, verify zero controller stubs
 
 ## Progress
 
@@ -180,5 +183,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 58. WebSocket to SSE Rename | 2/2 | Complete    | 2026-03-31 |
 | 59. Vote and Quorum Edge Cases | 2/2 | Complete    | 2026-03-31 |
-| 60. Session, Import, and Auth Edge Cases | 3/3 | Complete   | 2026-03-31 |
-| 61. Dead Code Cleanup | 0/TBD | Not started | - |
+| 60. Session, Import, and Auth Edge Cases | 3/3 | Complete    | 2026-03-31 |
+| 61. Dead Code Cleanup | 0/1 | Not started | - |
