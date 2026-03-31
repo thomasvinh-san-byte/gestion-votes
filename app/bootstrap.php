@@ -29,7 +29,7 @@ if (file_exists($autoload)) {
             'AgVote\\Repository\\' => __DIR__ . '/Repository/',
             'AgVote\\Service\\' => __DIR__ . '/Services/',
             'AgVote\\View\\' => __DIR__ . '/View/',
-            'AgVote\\WebSocket\\' => __DIR__ . '/WebSocket/',
+            'AgVote\\SSE\\' => __DIR__ . '/SSE/',
         ];
         foreach ($map as $prefix => $dir) {
             $len = strlen($prefix);
@@ -116,7 +116,7 @@ function api_uuid4(): string {
 // =============================================================================
 
 /**
- * Generate an HMAC-signed token for WebSocket authentication.
+ * Generate an HMAC-signed token for SSE authentication.
  */
 function ws_auth_token(?string $tenantId = null, ?string $userId = null): string {
     $tenantId = $tenantId ?: (\AgVote\Core\Security\AuthMiddleware::getCurrentTenantId() ?: DEFAULT_TENANT_ID);

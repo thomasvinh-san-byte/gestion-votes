@@ -11,7 +11,7 @@ use AgVote\Core\Providers\SecurityProvider;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\CsrfMiddleware;
 use AgVote\Core\Security\RateLimiter;
-use AgVote\Event\Listener\WebSocketListener;
+use AgVote\Event\Listener\SseListener;
 use RuntimeException;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -195,7 +195,7 @@ final class Application {
             return;
         }
         self::$dispatcher = new EventDispatcher();
-        WebSocketListener::subscribe(self::$dispatcher);
+        SseListener::subscribe(self::$dispatcher);
     }
 
     private static function configureErrors(): void {
