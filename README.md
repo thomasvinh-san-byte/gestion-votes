@@ -2,7 +2,7 @@
 
 AG-Vote est une plateforme web de gestion de votes en assemblée générale. Elle accompagne l'organisateur à chaque étape : création de la séance, envoi des convocations, conduite des votes en direct, suivi du quorum, et génération du procès-verbal officiel.
 
-L'application s'adresse aux associations, syndicats de copropriété et toute organisation tenue de respecter les règles de vote du droit français.
+L'application s'adresse aux associations, collectivités et toute organisation tenue de respecter les règles de vote du droit français.
 
 **Essayer la démo :** [ag-vote.onrender.com](https://ag-vote.onrender.com/)
 Identifiants de test : `admin@ag-vote.local` / `Admin2026!`
