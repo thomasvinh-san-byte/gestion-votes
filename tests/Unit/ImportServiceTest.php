@@ -416,4 +416,80 @@ class ImportServiceTest extends TestCase {
         $this->assertIsArray($result['headers']);
         $this->assertIsArray($result['rows']);
     }
+
+    // =========================================================================
+    // readCsvFile — encoding detection tests (IMP-01)
+    // =========================================================================
+
+    public function testReadCsvFileWindows1252(): void {
+        // Build CSV content with Windows-1252 encoding:
+        // Header: "nom,email"
+        // Row 1: "Dupré,dupre@example.com"  — é = \xE9 in Win-1252
+        // Row 2: "Müller,muller@example.com" — ü = \xFC in Win-1252
+        $utf8Content = "nom,email\nDupr\xC3\xA9,dupre@example.com\nM\xC3\xBCller,muller@example.com\n";
+        $win1252Content = mb_convert_encoding($utf8Content, 'Windows-1252', 'UTF-8');
+
+        $path = $this->tmpDir . '/windows1252.csv';
+        file_put_contents($path, $win1252Content);
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error'], 'Should parse without error');
+        $this->assertCount(2, $result['rows'], 'Should have 2 data rows');
+        // Row 0, column 0 should be the correctly decoded UTF-8 name
+        $this->assertStringContainsString('Dupr', $result['rows'][0][0]);
+        $this->assertTrue(
+            mb_check_encoding($result['rows'][0][0], 'UTF-8'),
+            'Row 0 col 0 must be valid UTF-8'
+        );
+        $this->assertTrue(
+            mb_check_encoding($result['rows'][1][0], 'UTF-8'),
+            'Row 1 col 0 must be valid UTF-8'
+        );
+        // The decoded accented chars must match what we originally put in
+        $this->assertEquals('Dupré', $result['rows'][0][0]);
+        $this->assertEquals('Müller', $result['rows'][1][0]);
+    }
+
+    public function testReadCsvFileIso88591(): void {
+        // Same test but using ISO-8859-1 encoding
+        $utf8Content = "nom,email\nGérard,gerard@example.com\nÉlodie,elodie@example.com\n";
+        $iso88591Content = mb_convert_encoding($utf8Content, 'ISO-8859-1', 'UTF-8');
+
+        $path = $this->tmpDir . '/iso88591.csv';
+        file_put_contents($path, $iso88591Content);
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error'], 'Should parse without error');
+        $this->assertCount(2, $result['rows']);
+        $this->assertEquals('Gérard', $result['rows'][0][0]);
+        $this->assertEquals('Élodie', $result['rows'][1][0]);
+    }
+
+    public function testReadCsvFileUtf8Unchanged(): void {
+        // UTF-8 files must continue to work without regression
+        $path = $this->tmpDir . '/utf8.csv';
+        file_put_contents($path, "nom,email\nJean-François,jf@example.com\nÄnne,anne@example.com\n");
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error']);
+        $this->assertCount(2, $result['rows']);
+        $this->assertEquals('Jean-François', $result['rows'][0][0]);
+        $this->assertEquals('Änne', $result['rows'][1][0]);
+    }
+
+    public function testReadCsvFileAsciiOnlyUnchanged(): void {
+        // ASCII-only CSV must still work correctly (no regression)
+        $path = $this->tmpDir . '/ascii.csv';
+        file_put_contents($path, "name,email\nAlice,alice@example.com\nBob,bob@example.com\n");
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error']);
+        $this->assertCount(2, $result['rows']);
+        $this->assertEquals('Alice', $result['rows'][0][0]);
+        $this->assertEquals('Bob', $result['rows'][1][0]);
+    }
 }
