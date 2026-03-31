@@ -1023,7 +1023,7 @@
                 type: 'success'
               }));
             } catch (e) {}
-            window.location.href = '/hub.htmx.html?id=' + (d.meeting_id || '');
+            window.location.href = '/hub/' + (d.meeting_id || '');
           })
           .catch(function(err) {
             btnCreate.disabled = false;

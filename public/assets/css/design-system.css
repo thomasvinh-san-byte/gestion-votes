@@ -524,7 +524,7 @@ table {
 
   /* Component radius aliases */
   --radius-btn:     var(--radius-md);   /* 6px */
-  --radius-input:   var(--radius-md);   /* 6px */
+  --radius-input:   var(--radius-lg);   /* 8px — softer corners */
   --radius-badge:   var(--radius-full); /* pill */
   --radius-chip:    var(--radius-full);
   --radius-card:    var(--radius-xl);   /* 12px */

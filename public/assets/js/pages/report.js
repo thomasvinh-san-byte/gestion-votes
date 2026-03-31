@@ -5,7 +5,7 @@
   let currentMeetingId = MeetingContext.get();
   if (!currentMeetingId) {
     setNotif('error', 'Aucune séance sélectionnée');
-    setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    setTimeout(() => window.location.href = '/meetings', 2000);
   }
 
   // Setup URLs
@@ -45,7 +45,7 @@
 
     // Navigation link
     var archiveLink = document.getElementById('reportToArchives');
-    if (archiveLink) archiveLink.href = `/archives.htmx.html?meeting_id=${encodeURIComponent(currentMeetingId)}`;
+    if (archiveLink) archiveLink.href = `/archives/${encodeURIComponent(currentMeetingId)}`;
   }
 
   // Disable export buttons

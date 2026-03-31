@@ -19,13 +19,13 @@
   /* ── Status maps ──────────────────────────────────────── */
 
   var STATUS_CTA = {
-    'draft':     { label: 'Compl\u00e9ter \u2192',                   href: '/wizard.htmx.html',       live: false },
-    'scheduled': { label: 'Enregistrer les pr\u00e9sences \u2192',   href: '/hub.htmx.html',          live: false },
-    'frozen':    { label: 'Ouvrir la console \u2192',                href: '/operator.htmx.html',     live: false },
-    'live':      { label: '\u25cf En cours \u2014 Rejoindre \u2192', href: '/operator.htmx.html',     live: true  },
-    'paused':    { label: '\u25cf En cours \u2014 Rejoindre \u2192', href: '/operator.htmx.html',     live: true  },
-    'closed':    { label: 'G\u00e9n\u00e9rer le PV \u2192',         href: '/postsession.htmx.html',  live: false },
-    'validated': { label: 'Archiver \u2192',                         href: '/postsession.htmx.html',  live: false },
+    'draft':     { label: 'Compl\u00e9ter \u2192',                   href: '/hub',          live: false },
+    'scheduled': { label: 'Enregistrer les pr\u00e9sences \u2192',   href: '/hub',          live: false },
+    'frozen':    { label: 'Ouvrir la console \u2192',                href: '/operator',     live: false },
+    'live':      { label: '\u25cf En cours \u2014 Rejoindre \u2192', href: '/operator',     live: true  },
+    'paused':    { label: '\u25cf En cours \u2014 Rejoindre \u2192', href: '/operator',     live: true  },
+    'closed':    { label: 'G\u00e9n\u00e9rer le PV \u2192',         href: '/postsession',  live: false },
+    'validated': { label: 'Archiver \u2192',                         href: '/postsession',  live: false },
     'archived':  { label: null,                                       href: null,                      live: false }
   };
 
@@ -46,7 +46,7 @@
 
   function renderSessionCard(s) {
     var cta = STATUS_CTA[s.status] || STATUS_CTA['draft'];
-    var href = cta.href ? cta.href + '?meeting_id=' + encodeURIComponent(s.id) : null;
+    var href = cta.href ? cta.href + '/' + encodeURIComponent(s.id) : null;
     var isLive = cta.live;
     var isMuted = s.status === 'archived';
     var dateStr = s.date_time || s.scheduled_at || '';
@@ -131,7 +131,7 @@
           var liveMeeting = live.length > 0 ? live[0] : null;
           if (liveMeeting && urgentCard) {
             urgentCard.hidden = false;
-            urgentCard.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(liveMeeting.id);
+            urgentCard.href = '/operator/' + encodeURIComponent(liveMeeting.id);
             var uTitle = document.getElementById('urgentTitle');
             var uSub = document.getElementById('urgentSub');
             if (uTitle) uTitle.textContent = 'S\u00e9ance en cours';
@@ -143,7 +143,7 @@
           var prochaines = document.getElementById('prochaines');
           if (prochaines) {
             if (meetings.length === 0) {
-              prochaines.innerHTML = '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour g\u00e9rer vos assembl\u00e9es g\u00e9n\u00e9rales." action-label="Nouvelle s\u00e9ance" action-href="/wizard.htmx.html"></ag-empty-state>';
+              prochaines.innerHTML = '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour g\u00e9rer vos assembl\u00e9es g\u00e9n\u00e9rales." action-label="Nouvelle s\u00e9ance" action-href="/wizard"></ag-empty-state>';
             } else {
               var sorted = meetings.slice().sort(function (a, b) {
                 var ai = STATUS_PRIORITY.indexOf(a.status);

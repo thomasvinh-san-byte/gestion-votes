@@ -106,18 +106,18 @@
     var isPresident = mr.some(function(r) { return r.role === 'president'; });
     var isVoter = mr.some(function(r) { return r.role === 'voter'; });
     if (isPresident) {
-      window.location.href = '/operator.htmx.html?mode=president';
+      window.location.href = '/operator?mode=president';
     } else if (isVoter) {
-      window.location.href = '/vote.htmx.html';
+      window.location.href = '/vote';
     } else {
       var role = user.role || 'viewer';
       var defaultPage = {
-        admin: '/admin.htmx.html',
-        operator: '/meetings.htmx.html',
-        auditor: '/trust.htmx.html',
-        viewer: '/meetings.htmx.html'
+        admin: '/admin',
+        operator: '/meetings',
+        auditor: '/trust',
+        viewer: '/meetings'
       };
-      window.location.href = defaultPage[role] || '/meetings.htmx.html';
+      window.location.href = defaultPage[role] || '/meetings';
     }
   }
 

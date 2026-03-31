@@ -82,7 +82,7 @@
             var isActive = (item.page === currentPage) ? ' class="active"' : '';
             // Encode each path segment but keep slashes readable
             var encodedPage = item.page.split('/').map(encodeURIComponent).join('/');
-            html += '<li' + isActive + '><a href="/docs.htmx.html?file=docs/'
+            html += '<li' + isActive + '><a href="/docs?file=docs/'
                 + encodedPage + '.md">'
                 + esc(item.label) + '</a></li>';
           });
@@ -186,7 +186,7 @@
         if (!resolved.startsWith('docs/')) {
           resolved = 'docs/' + resolved;
         }
-        link.setAttribute('href', '/docs.htmx.html?file=' + encodeURIComponent(resolved));
+        link.setAttribute('href', '/docs?file=' + encodeURIComponent(resolved));
         link.removeAttribute('target');
         return;
       }
@@ -276,7 +276,7 @@
             '<div class="doc-not-found">' +
             '<h2>Document non disponible</h2>' +
             '<p>' + esc(err.message) + '</p>' +
-            '<a href="/help.htmx.html" class="btn btn-primary">Retour \u00e0 l\'aide</a>' +
+            '<a href="/help" class="btn btn-primary">Retour \u00e0 l\'aide</a>' +
             '</div>';
         document.getElementById('docTocRail').style.display = 'none';
       });

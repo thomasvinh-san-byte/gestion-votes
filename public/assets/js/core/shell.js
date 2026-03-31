@@ -224,6 +224,10 @@
     if (input && input.value) return input.value;
     const params = new URLSearchParams(window.location.search);
     if (params.get('meeting_id')) return params.get('meeting_id');
+    if (params.get('id')) return params.get('id');
+    // Clean URL: /page/UUID
+    var pathMatch = window.location.pathname.match(/^\/[a-z-]+\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+    if (pathMatch) return pathMatch[1];
     return '';
   }
 

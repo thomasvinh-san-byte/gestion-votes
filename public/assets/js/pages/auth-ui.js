@@ -280,7 +280,7 @@
     // Not logged in - redirect to login (unless invitation token present on vote page)
     if (!window.Auth.user) {
       var hasInvToken = window.location.search.indexOf('token=') !== -1;
-      var isVotePage = window.location.pathname === '/vote.htmx.html';
+      var isVotePage = window.location.pathname === '/vote.htmx.html' || window.location.pathname === '/vote';
       if (hasInvToken && isVotePage) {
         // Allow unauthenticated access — invitation token handles identity
         return;
@@ -325,7 +325,7 @@
 
   /**
    * Voters (meeting role only, no elevated system role) are confined to
-   * /vote.htmx.html and /public.htmx.html. Redirect elsewhere → vote page.
+   * /vote and /public pages. Redirect elsewhere → vote page.
    */
   function enforceVoterConfinement(systemRole, meetingRoles) {
     if (!meetingRoles || !meetingRoles.length) return;
@@ -346,13 +346,13 @@
 
     // Allowed pages for voters
     var path = window.location.pathname;
-    var allowed = ['/vote.htmx.html', '/public.htmx.html', '/help.htmx.html', '/docs.htmx.html'];
+    var allowed = ['/vote.htmx.html', '/vote', '/public.htmx.html', '/public', '/help.htmx.html', '/help', '/docs.htmx.html', '/docs'];
     for (var i = 0; i < allowed.length; i++) {
       if (path === allowed[i]) return;
     }
 
     // Redirect to vote page
-    window.location.href = '/vote.htmx.html' + window.location.search;
+    window.location.href = '/vote' + window.location.search;
   }
 
   // =========================================================================

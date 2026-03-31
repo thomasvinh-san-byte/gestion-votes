@@ -1,0 +1,11 @@
+nom;email;ponderation;actif;groupes
+Martin Dupont;martin.dupont@example.com;1;oui;Bureau
+Sophie Laurent;sophie.laurent@example.com;1;oui;Collège A
+Jean-Pierre Moreau;jp.moreau@example.com;3;oui;Collège B|Bureau
+Claire Petit;claire.petit@example.com;1;oui;Collège A
+François Roux;francois.roux@example.com;2;oui;Collège B
+Émilie Garnier;emilie.garnier@example.com;1;oui;Collège A
+David Bernard;david.bernard@example.com;1;oui;Collège B
+Nathalie Lefevre;nathalie.lefevre@example.com;1;non;Collège A
+Philippe Dubois;philippe.dubois@example.com;2;oui;Collège B|Bureau
+Isabelle Thomas;isabelle.thomas@example.com;1;oui;Collège A

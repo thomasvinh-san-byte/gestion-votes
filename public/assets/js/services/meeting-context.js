@@ -29,14 +29,18 @@ const MeetingContext = (function() {
   function init() {
     if (_initialized) return _meetingId;
 
-    // Priority: URL param > sessionStorage > hidden input
+    // Priority: URL param > clean URL path > sessionStorage > hidden input
     const urlParams = new URLSearchParams(window.location.search);
-    const urlId = urlParams.get('meeting_id');
+    const urlId = urlParams.get('meeting_id') || urlParams.get('id');
+    // Clean URL: /page/UUID
+    let pathId = null;
+    const pathMatch = window.location.pathname.match(/^\/[a-z-]+\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+    if (pathMatch) pathId = pathMatch[1];
     const storedId = sessionStorage.getItem(STORAGE_KEY);
     const inputEl = document.querySelector('input[name="meeting_id"]');
     const inputId = inputEl?.value || null;
 
-    _meetingId = urlId || storedId || inputId || null;
+    _meetingId = urlId || pathId || storedId || inputId || null;
 
     // Persist to sessionStorage if we got it from URL
     if (_meetingId) {
@@ -137,6 +141,10 @@ const MeetingContext = (function() {
   // ─── Private helpers ───────────────────────────────────
 
   function _syncToUrl(id) {
+    // If already on a clean URL /page/UUID, don't add query params
+    const cleanMatch = window.location.pathname.match(/^\/([a-z-]+)\/[0-9a-f-]+$/i);
+    if (cleanMatch && id) return; // URL already encodes the meeting ID
+
     const url = new URL(window.location.href);
     if (id) {
       url.searchParams.set('meeting_id', id);
@@ -150,17 +158,27 @@ const MeetingContext = (function() {
   function _propagateToLinks(meetingId) {
     if (!meetingId) return;
 
+    // Pages that accept meeting context via clean URL /page/UUID
+    const cleanUrlPages = ['wizard', 'hub', 'operator', 'postsession', 'vote', 'validate', 'archives', 'meetings', 'audit', 'members', 'analytics'];
+
     document.querySelectorAll('a[href]').forEach(function(a) {
       const href = a.getAttribute('href');
       if (!href) return;
       // Skip external links
       if (href.startsWith('http') && !href.startsWith(window.location.origin)) return;
-      // Only process .htmx.html and .php pages
-      if (!href.endsWith('.htmx.html') && !href.endsWith('.php')) return;
-      // Skip vote token links (they use their own token)
-      if (href.startsWith('/vote.php')) return;
       // Skip admin pages (they don't need meeting context)
       if (href.includes('admin')) return;
+
+      // Handle clean URLs: /page → /page/UUID
+      const cleanMatch = href.match(/^\/([a-z-]+)\/?$/);
+      if (cleanMatch && cleanUrlPages.includes(cleanMatch[1])) {
+        a.setAttribute('href', '/' + cleanMatch[1] + '/' + meetingId);
+        return;
+      }
+
+      // Handle .htmx.html and .php pages (legacy)
+      if (!href.endsWith('.htmx.html') && !href.endsWith('.php')) return;
+      if (href.startsWith('/vote.php')) return;
 
       try {
         const u = new URL(href, window.location.origin);

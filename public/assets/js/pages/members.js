@@ -150,7 +150,7 @@
       if (hasMembers) {
         onbStepMeeting.classList.remove('pending');
         onbStepMeeting.classList.add('action');
-        onbStepMeeting.innerHTML = '<span class="onboarding-step-num">→</span> <a href="/operator.htmx.html">Préparer une séance</a>';
+        onbStepMeeting.innerHTML = '<span class="onboarding-step-num">→</span> <a href="/operator">Préparer une séance</a>';
       } else {
         onbStepMeeting.classList.remove('action');
         onbStepMeeting.classList.add('pending');

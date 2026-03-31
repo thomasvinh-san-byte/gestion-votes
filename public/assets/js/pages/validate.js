@@ -6,7 +6,7 @@
   let isReady = false;
   if (!currentMeetingId) {
     setNotif('error', 'Aucune séance sélectionnée');
-    setTimeout(() => window.location.href = '/meetings.htmx.html', 2000);
+    setTimeout(() => window.location.href = '/meetings', 2000);
   }
 
   // Charger les informations de la séance
@@ -44,7 +44,7 @@
           Cette séance a été validée et archivée.<br>
           Consultez les exports dans les Archives.
         </div>
-        <a class="btn btn-primary" href="/archives.htmx.html${currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : ''}">
+        <a class="btn btn-primary" href="/archives${currentMeetingId ? '/' + encodeURIComponent(currentMeetingId) : ''}">
           ${icon('archive', 'icon-sm icon-text')}Voir les archives
         </a>
       `;
@@ -118,7 +118,7 @@
           // P5-3: Add remediation link for failed checks
           let remedLink = '';
           if (!check.passed && currentMeetingId) {
-            const opUrl = `/operator.htmx.html?meeting_id=${encodeURIComponent(currentMeetingId)}`;
+            const opUrl = `/operator/${encodeURIComponent(currentMeetingId)}`;
             remedLink = `<a href="${opUrl}" class="text-xs text-primary" style="display:inline-flex;align-items:center;gap:0.25rem;margin-top:0.25rem">${icon('external-link', 'icon-xs icon-text')} Corriger dans l'opérateur</a>`;
           }
           return `
@@ -246,8 +246,8 @@
           var meetingParam = currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '';
           msgDiv.innerHTML = `${icon('check-circle', 'icon-md icon-success')} Séance validée et archivée avec succès !`
               + '<div class="flex gap-2 mt-3">'
-              + `<a href="/postsession.htmx.html${meetingParam}" class="btn btn-primary btn-sm">${icon('check-square', 'icon-sm icon-text')} Clôture &amp; PV</a>`
-              + `<a href="/archives.htmx.html${meetingParam}" class="btn btn-secondary btn-sm">${icon('archive', 'icon-sm icon-text')} Archives</a>`
+              + `<a href="/postsession${currentMeetingId ? '/' + encodeURIComponent(currentMeetingId) : ''}" class="btn btn-primary btn-sm">${icon('check-square', 'icon-sm icon-text')} Clôture &amp; PV</a>`
+              + `<a href="/archives${currentMeetingId ? '/' + encodeURIComponent(currentMeetingId) : ''}" class="btn btn-secondary btn-sm">${icon('archive', 'icon-sm icon-text')} Archives</a>`
               + '</div>';
 
           setNotif('success', 'Séance validée !');
@@ -256,7 +256,7 @@
 
           // Redirection vers les archives après 3s
           setTimeout(() => {
-            window.location.href = '/archives.htmx.html' + (currentMeetingId ? '?meeting_id=' + encodeURIComponent(currentMeetingId) : '');
+            window.location.href = '/archives' + (currentMeetingId ? '/' + encodeURIComponent(currentMeetingId) : '');
           }, 3000);
         } else {
           Shared.show(msgDiv, 'block');

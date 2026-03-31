@@ -590,6 +590,10 @@
       var params = new URLSearchParams(window.location.search);
       meetingId = params.get('meeting_id');
     }
+    if (!meetingId) {
+      var pathMatch = window.location.pathname.match(/^\/postsession\/([0-9a-f-]+)$/i);
+      if (pathMatch) meetingId = pathMatch[1];
+    }
 
     if (!meetingId) {
       // Show meeting picker with available closed/validated meetings
@@ -611,7 +615,7 @@
               }).join('');
             selectEl.addEventListener('change', function () {
               if (selectEl.value) {
-                window.location.href = '/postsession.htmx.html?meeting_id=' + encodeURIComponent(selectEl.value);
+                window.location.href = '/postsession/' + encodeURIComponent(selectEl.value);
               }
             });
           } else if (selectEl) {

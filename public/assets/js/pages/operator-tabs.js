@@ -1531,7 +1531,7 @@ window.OpS = { fn: {} };
       const d = body?.data || {};
 
       const checks = [
-        { done: d.members_count > 0, text: 'Membres ajoutés', link: '/members.htmx.html' },
+        { done: d.members_count > 0, text: 'Membres ajoutés', link: '/members' },
         { done: d.present_count > 0, text: 'Présences pointées', link: '#tab-presences' },
         { done: d.motions_total > 0, text: 'Résolutions créées', link: '#tab-resolutions' },
         { done: d.has_president, text: 'Président assigné', optional: true },

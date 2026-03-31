@@ -179,7 +179,7 @@
         links.push(`<span class="text-xs">${icon('user', 'icon-xs icon-text')} ${escapeHtml(a.member_name)}</span>`);
       }
       if (a.motion_id && a.motion_title && currentMeetingId) {
-        links.push(`<a href="/operator.htmx.html?meeting_id=${encodeURIComponent(currentMeetingId)}" class="text-xs text-primary" style="text-decoration:underline">${icon('clipboard-list', 'icon-xs icon-text')} ${escapeHtml(a.motion_title)}</a>`);
+        links.push(`<a href="/operator/${encodeURIComponent(currentMeetingId)}" class="text-xs text-primary" style="text-decoration:underline">${icon('clipboard-list', 'icon-xs icon-text')} ${escapeHtml(a.motion_title)}</a>`);
       }
       if (links.length) {
         drillLinks = `<div class="flex flex-wrap gap-2 mt-1">${links.join('')}</div>`;

@@ -191,7 +191,7 @@
     if (!motions || !motions.length) { section.setAttribute('hidden', ''); return; }
     section.removeAttribute('hidden');
     if (countEl) countEl.textContent = String(motions.length);
-    if (voirTout) voirTout.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(meetingId);
+    if (voirTout) voirTout.href = '/operator/' + encodeURIComponent(meetingId);
     // Display first 3 motions only
     var displayMotions = motions.slice(0, 3);
     var html = '';
@@ -352,7 +352,7 @@
     // Wire operator button
     var operatorBtn = document.getElementById('hubOperatorBtn');
     if (operatorBtn) {
-      operatorBtn.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(sessionId);
+      operatorBtn.href = '/operator/' + encodeURIComponent(sessionId);
     }
 
     // Wire main CTA button based on meeting status
@@ -369,11 +369,11 @@
         mainBtn.setAttribute('data-action', 'open');
       } else if (status === 'live' || status === 'paused') {
         mainBtn.textContent = 'Aller \u00e0 la console';
-        mainBtn.href = '/operator.htmx.html?meeting_id=' + encodeURIComponent(sessionId);
+        mainBtn.href = '/operator/' + encodeURIComponent(sessionId);
         mainBtn.removeAttribute('data-action');
       } else if (status === 'closed' || status === 'validated' || status === 'archived') {
         mainBtn.textContent = 'Voir l\u2019archive';
-        mainBtn.href = '/postsession.htmx.html?meeting_id=' + encodeURIComponent(sessionId);
+        mainBtn.href = '/postsession/' + encodeURIComponent(sessionId);
         mainBtn.removeAttribute('data-action');
       } else {
         mainBtn.textContent = 'Ouvrir la s\u00e9ance';
@@ -498,12 +498,17 @@
   async function loadData() {
     var params = new URLSearchParams(window.location.search);
     var sessionId = params.get('id') || params.get('meeting_id');
+    // Clean URL: /hub/UUID
+    if (!sessionId) {
+      var pathMatch = window.location.pathname.match(/^\/hub\/([0-9a-f-]+)$/i);
+      if (pathMatch) sessionId = pathMatch[1];
+    }
 
     if (!sessionId) {
       sessionStorage.setItem('ag-vote-toast', JSON.stringify({
         msg: 'Identifiant de s\u00e9ance manquant', type: 'error'
       }));
-      window.location.href = '/dashboard.htmx.html';
+      window.location.href = '/dashboard';
       return;
     }
 
@@ -544,7 +549,7 @@
           sessionStorage.setItem('ag-vote-toast', JSON.stringify({
             msg: 'S\u00e9ance introuvable', type: 'error'
           }));
-          window.location.href = '/dashboard.htmx.html';
+          window.location.href = '/dashboard';
           return;
         }
         throw new Error('invalid_response');

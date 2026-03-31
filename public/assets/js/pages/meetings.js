@@ -283,9 +283,9 @@
 
   function getCtaHref(status, id) {
     if (status === 'closed' || status === 'validated' || status === 'archived' || status === 'pv_sent') {
-      return '/postsession.htmx.html?meeting_id=' + id;
+      return '/postsession/' + id;
     }
-    return '/hub.htmx.html?meeting_id=' + id;
+    return '/hub/' + id;
   }
 
   function formatQuorum(m) {
@@ -301,7 +301,7 @@
 
   function renderEmptyState(filter) {
     if (filter === 'all' && allMeetings.length === 0) {
-      return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour commencer." action-label="Nouvelle s\u00e9ance" action-href="/wizard.htmx.html"></ag-empty-state>';
+      return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour commencer." action-label="Nouvelle s\u00e9ance" action-href="/wizard"></ag-empty-state>';
     }
     if (filter === 'upcoming') {
       return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance \u00e0 venir" description="Toutes vos s\u00e9ances sont termin\u00e9es ou en cours."></ag-empty-state>';
@@ -397,7 +397,7 @@
     var id = m.id || m.meeting_id;
     switch (action) {
       case 'view':
-        location.href = '/hub.htmx.html?meeting_id=' + id;
+        location.href = '/hub/' + id;
         break;
       case 'edit':
         openEditModal(id);
@@ -623,7 +623,7 @@
           if (evtClass === 'upcoming') calClass = 'scheduled';
           else if (evtClass === 'live') calClass = 'live';
           else if (evtClass === 'completed') calClass = 'draft'; // re-use neutral for completed
-          html += '<a class="calendar-event ' + calClass + '" href="/hub.htmx.html?meeting_id=' + (dayMeetings[e].id || dayMeetings[e].meeting_id) + '">' +
+          html += '<a class="calendar-event ' + calClass + '" href="/hub/' + (dayMeetings[e].id || dayMeetings[e].meeting_id) + '">' +
             Utils.escapeHtml(dayMeetings[e].title || '') + '</a>';
         }
         if (dayMeetings.length > 3) {
@@ -676,7 +676,7 @@
         var dotClass = DOT_CLASS_MAP[m.status || 'draft'] || 'draft';
         var id = m.id || m.meeting_id;
         var time = m.scheduled_at ? Utils.formatDate(m.scheduled_at) : '';
-        popHtml += '<a class="calendar-popover-item" href="/hub.htmx.html?meeting_id=' + id + '">' +
+        popHtml += '<a class="calendar-popover-item" href="/hub/' + id + '">' +
           '<span class="session-dot ' + dotClass + '" style="width:8px;height:8px;"></span>' +
           '<span>' + Utils.escapeHtml(m.title || '') + '</span>' +
           '<span style="color:var(--color-text-muted);font-size:11px;margin-left:auto;">' + Utils.escapeHtml(time) + '</span>' +
