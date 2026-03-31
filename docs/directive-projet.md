@@ -55,7 +55,7 @@ Le wireframe référence explicitement ces textes. L'application **doit** les im
 | Régime | Règle de calcul | Cas d'usage |
 |--------|----------------|-------------|
 | **Majorité simple (art. 24)** | >50% des voix des présents et représentés | Approbation comptes, budget prévisionnel |
-| **Majorité absolue (art. 25)** | >50% des voix de tous les membres | Élection syndic, travaux importants |
+| **Majorité absolue (art. 25)** | >50% des voix de tous les membres | Élection du président, travaux importants |
 | **Double majorité (art. 26)** | ≥2/3 des voix de tous les membres | Modification règlement, vente parties communes |
 | **Unanimité (art. 26-1)** | 100% des voix de tous les membres | Aliénation parties communes, changement destination |
 | **Passerelle art. 25-1** | Si art. 25 échoue mais ≥1/3 des voix → 2nd vote en art. 24 | Renvoi automatique proposé par l'opérateur |
@@ -150,7 +150,7 @@ Utilisateur
 └── actif (bool)
 
 Séance
-├── id, titre, type (enum: AG ordinaire, AG extra, conseil syndical)
+├── id, titre, type (enum: AG ordinaire, AG extraordinaire, conseil d'administration)
 ├── date_heure, lieu, fuseau_horaire (parmi 60 fuseaux dont DOM-TOM)
 ├── statut (enum: brouillon, convocations, en_cours, clôturée, pv_envoyé, archivée)
 ├── quorum_requis (nombre), quorum_type (enum: standard, réduit_2e_convocation)

@@ -26,7 +26,7 @@
       <directory suffix=".php">app/Core</directory>
       <directory suffix=".php">app/Services</directory>
       <directory suffix=".php">app/Repository</directory>
-      <directory suffix=".php">app/WebSocket</directory>
+      <directory suffix=".php">app/SSE</directory>
       <directory suffix=".php">app/Templates</directory>
       <directory suffix=".php">app/Controller</directory>
     </include>
