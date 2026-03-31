@@ -5,8 +5,14 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use AgVote\Controller\MeetingReportsController;
-use AgVote\Core\Http\ApiResponseException;
-use PHPUnit\Framework\TestCase;
+use AgVote\Repository\AttendanceRepository;
+use AgVote\Repository\BallotRepository;
+use AgVote\Repository\InvitationRepository;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MeetingReportRepository;
+use AgVote\Repository\MotionRepository;
+use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\ProxyRepository;
 
 /**
  * Unit tests for MeetingReportsController.
@@ -16,69 +22,18 @@ use PHPUnit\Framework\TestCase;
  *  - HTTP method enforcement for report, generatePdf, generateReport, sendReport, exportPvHtml
  *  - UUID validation for meeting_id
  *  - Input validation for sendReport (email, meeting_id)
+ *  - Execution-based tests with mocked repos for error paths
  *  - Response structure and audit log verification via source introspection
  */
-class MeetingReportsControllerTest extends TestCase
+class MeetingReportsControllerTest extends ControllerTestCase
 {
     // =========================================================================
-    // SETUP / TEARDOWN
-    // =========================================================================
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_GET = [];
-        $_POST = [];
-        $_REQUEST = [];
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        \AgVote\Core\Security\AuthMiddleware::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        \AgVote\Core\Security\AuthMiddleware::reset();
-
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, null);
-
-        parent::tearDown();
-    }
-
-    // =========================================================================
-    // HELPER: Call controller and capture response
+    // HELPER: backward compat wrapper
     // =========================================================================
 
     private function callControllerMethod(string $method): array
     {
-        $controller = new MeetingReportsController();
-        try {
-            $controller->handle($method);
-            $this->fail('Expected ApiResponseException was not thrown');
-        } catch (ApiResponseException $e) {
-            return [
-                'status' => $e->getResponse()->getStatusCode(),
-                'body' => $e->getResponse()->getBody(),
-            ];
-        }
-        return ['status' => 500, 'body' => []];
-    }
-
-    private function injectJsonBody(array $data): void
-    {
-        $ref = new \ReflectionClass(\AgVote\Core\Http\Request::class);
-        $prop = $ref->getProperty('cachedRawBody');
-        $prop->setAccessible(true);
-        $prop->setValue(null, json_encode($data));
+        return $this->callController(MeetingReportsController::class, $method);
     }
 
     // =========================================================================
@@ -615,5 +570,166 @@ class MeetingReportsControllerTest extends TestCase
         $this->assertFalse(api_is_uuid(''));
         $this->assertFalse(api_is_uuid('not-a-uuid'));
         $this->assertFalse(api_is_uuid('12345'));
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED: report() error paths with mocked repos
+    // =========================================================================
+
+    public function testReportMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+
+        // report() accesses many repos — inject all needed
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $attendanceRepo = $this->createMock(AttendanceRepository::class);
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $policyRepo = $this->createMock(PolicyRepository::class);
+        $invitationRepo = $this->createMock(InvitationRepository::class);
+        $meetingReportRepo = $this->createMock(MeetingReportRepository::class);
+        $meetingReportRepo->method('findSnapshot')->willReturn(null);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+            AttendanceRepository::class => $attendanceRepo,
+            BallotRepository::class => $ballotRepo,
+            PolicyRepository::class => $policyRepo,
+            InvitationRepository::class => $invitationRepo,
+            MeetingReportRepository::class => $meetingReportRepo,
+        ]);
+
+        $result = $this->callController(MeetingReportsController::class, 'report');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED: generatePdf() error paths
+    // =========================================================================
+
+    public function testGeneratePdfMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findWithValidator')->willReturn(null);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(MeetingReportsController::class, 'generatePdf');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testGeneratePdfMeetingNotValidatedReturns409(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findWithValidator')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'tenant_id' => 'tenant-1',
+            'title' => 'Test Meeting',
+            'validated_at' => null,
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callController(MeetingReportsController::class, 'generatePdf');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_not_validated', $result['body']['error']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED: generateReport() error paths
+    // =========================================================================
+
+    public function testGenerateReportMeetingNotFoundReturns404(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findWithValidator')->willReturn(null);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+        ]);
+
+        $result = $this->callController(MeetingReportsController::class, 'generateReport');
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    public function testGenerateReportMeetingNotValidatedReturns409(): void
+    {
+        $this->setHttpMethod('GET');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->setQueryParams(['meeting_id' => '12345678-1234-1234-1234-123456789abc']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findWithValidator')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'title' => 'Test Meeting',
+            'validated_at' => null,
+        ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+
+        $this->injectRepos([
+            MeetingRepository::class => $meetingRepo,
+            MotionRepository::class => $motionRepo,
+        ]);
+
+        $result = $this->callController(MeetingReportsController::class, 'generateReport');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_not_validated', $result['body']['error']);
+    }
+
+    // =========================================================================
+    // EXECUTION-BASED: sendReport() error paths with mocked repos
+    // =========================================================================
+
+    public function testSendReportSmtpNotConfiguredReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', 'tenant-1');
+        $this->injectJsonBody([
+            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            'email' => 'test@example.com',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id' => '12345678-1234-1234-1234-123456789abc',
+            'title' => 'Test Meeting',
+        ]);
+
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        // MailerService with no config is not configured → 400 smtp_not_configured
+        $result = $this->callController(MeetingReportsController::class, 'sendReport');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('smtp_not_configured', $result['body']['error']);
     }
 }
