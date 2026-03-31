@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: executing
-stopped_at: Completed 60-02-PLAN.md
-last_updated: "2026-03-31T10:00:27.401Z"
-last_activity: "2026-03-31 — Phase 59 Plan 01 complete: BallotsController vote edge cases hardened, 5 unit tests added"
+stopped_at: Completed 60-01-PLAN.md
+last_updated: "2026-03-31T10:15:00.000Z"
+last_activity: "2026-03-31 — Phase 60 Plan 01 complete: Invalid transition returns 422 with structured detail; live-session delete returns 409 with close-first hint"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 ## Current Position
 
-Phase: 59 of 61 (Vote and Quorum Edge Cases) — IN PROGRESS
-Plan: 01 complete — 59-02 next (or Phase 60 in parallel)
+Phase: 60 of 61 (Session Import and Auth Edge Cases) — IN PROGRESS
+Plan: 01 complete — 60-02 and beyond continuing
 Status: In progress
-Last activity: 2026-03-31 — Phase 59 Plan 01 complete: BallotsController vote edge cases hardened, 5 unit tests added
+Last activity: 2026-03-31 — Phase 60 Plan 01 complete: Invalid transition returns 422 with structured detail; live-session delete returns 409 with close-first hint
 
 Progress: [██████████] 100%
 
@@ -47,6 +47,9 @@ Progress: [██████████] 100%
 - [Phase 60-02]: Empty emails skipped in duplicate detection — blank field is not an address, avoids false-positive 422
 - [Phase 60-02]: mb_detect_encoding strict mode with ['UTF-8','Windows-1252','ISO-8859-1'] order ensures UTF-8 preferred; temp file (csv_enc_ prefix) preserves fgetcsv API
 - [Phase 60-02]: checkDuplicateEmails extracted to private static helper shared by membersCsv and membersXlsx
+- [Phase 60-01]: api_fail() preferred over self::deny() in requireTransition() — deny() hides extras behind debug flag, api_fail() always includes structured fields
+- [Phase 60-01]: Invalid transitions are not audit-logged (normal user input errors, not security events)
+- [Phase 60-01]: live-specific meeting_live_cannot_delete guard precedes generic meeting_not_draft check in deleteMeeting()
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
@@ -73,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T10:00:27.398Z
-Stopped at: Completed 60-02-PLAN.md
+Last session: 2026-03-31T10:15:00.000Z
+Stopped at: Completed 60-01-PLAN.md
 Resume file: None

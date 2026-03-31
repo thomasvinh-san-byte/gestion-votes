@@ -24,8 +24,8 @@
 
 ### Edge cases Sessions (SESS)
 
-- [ ] **SESS-01**: Les transitions d'état invalides (ex: draft vers validated) sont rejetées avec message explicite
-- [ ] **SESS-02**: La suppression d'une séance en cours (live) est interdite
+- [x] **SESS-01**: Les transitions d'état invalides (ex: draft vers validated) sont rejetées avec message explicite
+- [x] **SESS-02**: La suppression d'une séance en cours (live) est interdite
 
 ### Edge cases Import (IMP)
 
@@ -77,8 +77,8 @@
 | VOTE-03 | Phase 59 | Complete |
 | QUOR-01 | Phase 59 | Complete |
 | QUOR-02 | Phase 59 | Complete |
-| SESS-01 | Phase 60 | Pending |
-| SESS-02 | Phase 60 | Pending |
+| SESS-01 | Phase 60 | Complete |
+| SESS-02 | Phase 60 | Complete |
 | IMP-01 | Phase 60 | Complete |
 | IMP-02 | Phase 60 | Complete |
 | AUTH-01 | Phase 60 | Pending |

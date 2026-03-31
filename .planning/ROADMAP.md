@@ -180,5 +180,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 58. WebSocket to SSE Rename | 2/2 | Complete    | 2026-03-31 |
 | 59. Vote and Quorum Edge Cases | 2/2 | Complete    | 2026-03-31 |
-| 60. Session, Import, and Auth Edge Cases | 1/3 | In Progress|  |
+| 60. Session, Import, and Auth Edge Cases | 2/3 | In Progress|  |
 | 61. Dead Code Cleanup | 0/TBD | Not started | - |
