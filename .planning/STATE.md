@@ -83,6 +83,7 @@ None.
 | 260331-ffw | Full project audit — gitignore, env, CSS tokens, git hygiene | 2026-03-31 | 4625f6ca | [260331-ffw-full-project-audit-bugs-cleanup-config-i](./quick/260331-ffw-full-project-audit-bugs-cleanup-config-i/) |
 | 260331-fya | Second pass audit — remaining CSS tokens, route cleanup | 2026-03-31 | 00fe92f5 | [260331-fya-second-pass-audit-remaining-issues](./quick/260331-fya-second-pass-audit-remaining-issues/) |
 | 260331-g8a | Critical path audit — API functional, operator null guards | 2026-03-31 | 3d504fe2 | [260331-g8a-critical-path-audit-functional-visual-on](./quick/260331-g8a-critical-path-audit-functional-visual-on/) |
+| 260331-gj6 | Low-priority fixes — null guards, login CSS classes, wizard responsive | 2026-03-31 | 11f18eb4 | [260331-gj6-fix-remaining-low-priority-items-null-gu](./quick/260331-gj6-fix-remaining-low-priority-items-null-gu/) |
 
 ## Session Continuity
 
