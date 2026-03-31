@@ -66,18 +66,6 @@
     if (titleEl) titleEl.focus();
   }
 
-  /* ── Voting power progressive disclosure ──────────── */
-
-  function toggleVotingPower(show) {
-    var toggle = document.getElementById('wizVotingPowerToggle');
-    if (toggle) toggle.checked = show;
-    var vpField = document.getElementById('wizMemberVpField');
-    if (vpField) vpField.style.display = show ? '' : 'none';
-    document.querySelectorAll('.member-votes').forEach(function(el) {
-      el.style.display = show ? '' : 'none';
-    });
-  }
-
   /* ── Step labels (subtitle + counter) ────────────── */
 
   var STEP_LABELS = [
@@ -156,8 +144,7 @@
           place:  (getId('wizPlace').value || ''),
           addr:   (getId('wizAddr').value || ''),
           quorum: (getId('wizQuorum').value || ''),
-          defaultMaj: (getId('wizDefaultMaj').value || ''),
-          votingPowerEnabled: (document.getElementById('wizVotingPowerToggle') || {}).checked || false
+          defaultMaj: (getId('wizDefaultMaj').value || '')
         },
         members: members,
         resolutions: resolutions
@@ -183,7 +170,6 @@
       if (s1.addr)       { var a = document.getElementById('wizAddr');       if (a) a.value = s1.addr; }
       if (s1.quorum)     { var q = document.getElementById('wizQuorum');     if (q) q.value = s1.quorum; }
       if (s1.defaultMaj) { var dm = document.getElementById('wizDefaultMaj'); if (dm) dm.value = s1.defaultMaj; }
-      if (s1.votingPowerEnabled) toggleVotingPower(true);
 
       // Restore arrays
       members = Array.isArray(draft.members) ? draft.members : [];
@@ -385,7 +371,6 @@
     members.forEach(function(m, i) {
       html += '<div class="member-row">' +
         '<span class="member-name">' + escapeHtml(m.name || m.nom || '') + '</span>' +
-        '<span class="member-votes">' + escapeHtml(String(m.voix || 1)) + ' voix</span>' +
         '<span class="member-actions">' +
           '<button class="btn btn-sm" type="button" onclick="(function(){window._wizRemoveMember(' + i + ');})()" aria-label="Supprimer">' +
             '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
@@ -472,21 +457,18 @@
       btnInline.addEventListener('click', function() {
         var nameEl = document.getElementById('wizMemberName');
         var emailEl = document.getElementById('wizMemberEmail');
-        var vpEl = document.getElementById('wizMemberVp');
         var name = nameEl ? nameEl.value.trim() : '';
         if (!name) {
           if (nameEl) nameEl.classList.add('field-error');
           return;
         }
         if (nameEl) nameEl.classList.remove('field-error');
-        var voix = vpEl && vpEl.offsetParent !== null ? (parseInt(vpEl.value, 10) || 1) : 1;
         var email = emailEl ? emailEl.value.trim() : '';
-        members.push({ nom: name, name: name, email: email, voix: voix });
+        members.push({ nom: name, name: name, email: email, voix: 1 });
         renderMembersList();
         saveDraft();
         if (nameEl) { nameEl.value = ''; nameEl.focus(); }
         if (emailEl) emailEl.value = '';
-        if (vpEl) vpEl.value = '1';
       });
     }
   }
@@ -987,15 +969,6 @@
         if (tpl) applyTemplate(tpl);
       });
     });
-
-    // Wire voting power toggle
-    var vpToggle = document.getElementById('wizVotingPowerToggle');
-    if (vpToggle) {
-      vpToggle.addEventListener('change', function() {
-        toggleVotingPower(vpToggle.checked);
-        saveDraft();
-      });
-    }
 
     var btnCreate = document.getElementById('btnCreate');
     if (btnCreate) {

@@ -45,12 +45,6 @@
   const paginInfo = document.getElementById('paginInfo');
   const paginSizeSelect = document.getElementById('paginSize');
 
-  // Format voting power (avoid showing 1.0000, show 1 for integers)
-  function formatVotingPower(vp) {
-    const val = parseFloat(vp) || 1;
-    return Number.isInteger(val) ? val : val.toFixed(2).replace(/\.?0+$/, '');
-  }
-
   // Management tabs switching
   document.querySelectorAll('.mgmt-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -81,26 +75,10 @@
     const total = members.length;
     const active = members.filter(m => m.is_active).length;
     const inactive = total - active;
-    const power = members.filter(m => m.is_active).reduce((sum, m) => {
-      const vp = parseFloat(m.voting_power) || 1;
-      return sum + vp;
-    }, 0);
 
     document.getElementById('kpiTotal').textContent = total;
     document.getElementById('kpiActive').textContent = active;
     document.getElementById('kpiInactive').textContent = inactive;
-    document.getElementById('kpiPower').textContent = Number.isInteger(power) ? power : power.toFixed(2);
-
-    // Average voting power per active member
-    var kpiAvgPower = document.getElementById('kpiAvgPower');
-    if (kpiAvgPower) {
-      if (active > 0) {
-        var avg = power / active;
-        kpiAvgPower.textContent = Number.isInteger(avg) ? avg : avg.toFixed(2);
-      } else {
-        kpiAvgPower.textContent = '\u2014';
-      }
-    }
 
     // Email coverage (active members with email / active members)
     var kpiEmailCoverage = document.getElementById('kpiEmailCoverage');
@@ -121,11 +99,6 @@
 
     var hasMembers = allMembers.length > 0;
     var activeMembers = allMembers.filter(function(m) { return m.is_active; });
-    var hasCustomWeights = activeMembers.some(function(m) {
-      var vp = parseFloat(m.voting_power) || 1;
-      return vp !== 1;
-    });
-    var allWeightOne = activeMembers.length > 0 && !hasCustomWeights;
     var hasGroups = allGroups.length > 0;
 
     // Show onboarding strip when setup is incomplete
@@ -136,10 +109,10 @@
     setStepState(onbStepMembers, hasMembers,
       hasMembers ? activeMembers.length + ' membre' + (activeMembers.length > 1 ? 's' : '') + ' actif' + (activeMembers.length > 1 ? 's' : '') : 'Ajouter des membres');
 
-    // Step 2: Weights — done if either custom weights exist or if user acknowledged all-1
-    // We mark it done if members exist (user can always come back to adjust)
+    // Step 2: Emails — done if members have email addresses
+    var withEmail = activeMembers.filter(function(m) { return m.email; }).length;
     setStepState(onbStepWeights, hasMembers,
-      hasMembers ? (allWeightOne ? 'Toutes à 1 voix' : 'Pondérées') : 'Vérifier les pondérations');
+      hasMembers ? withEmail + '/' + activeMembers.length + ' avec email' : 'Vérifier les emails');
 
     // Step 3: Groups (optional)
     setStepState(onbStepGroups, hasGroups,
@@ -232,8 +205,6 @@
 
     if (v === 'nameAsc') copy.sort((a, b) => norm(a.full_name || a.name).localeCompare(norm(b.full_name || b.name)));
     if (v === 'nameDesc') copy.sort((a, b) => norm(b.full_name || b.name).localeCompare(norm(a.full_name || a.name)));
-    if (v === 'powerDesc') copy.sort((a, b) => (parseFloat(b.voting_power) || 1) - (parseFloat(a.voting_power) || 1));
-    if (v === 'powerAsc') copy.sort((a, b) => (parseFloat(a.voting_power) || 1) - (parseFloat(b.voting_power) || 1));
 
     return copy;
   }
@@ -482,10 +453,6 @@
     : '<span class="text-muted">Non renseigné</span>'}</div>
         </div>
         <div class="detail-field">
-          <div class="detail-label">Nombre de voix</div>
-          <div class="detail-value detail-value-mono">${formatVotingPower(m.voting_power)}</div>
-        </div>
-        <div class="detail-field">
           <div class="detail-label">Identifiant</div>
           <div class="detail-value detail-value-mono detail-value-id">${escapeHtml(m.id)}</div>
         </div>
@@ -600,7 +567,6 @@
         ? '<span class="badge badge-success badge-sm">Actif</span>'
         : '<span class="badge badge-neutral badge-sm">Inactif</span>';
       const groupBadges = getMemberGroupBadges(m.id);
-      const vp = formatVotingPower(m.voting_power);
 
       return `
         <article class="member-card ${cardClass}" data-member-id="${escapeHtml(m.id)}" data-action="open-detail" data-id="${escapeHtml(m.id)}" aria-label="${escapeHtml(name)}">
@@ -611,7 +577,6 @@
               ${m.email ? '<span class="member-email">' + escapeHtml(m.email) + '</span>' : ''}
             </div>
             <div class="member-card-meta">
-              <span class="member-weight" title="Nombre de voix">${vp} voix</span>
               ${statusBadge}
               ${groupBadges}
             </div>
@@ -662,7 +627,6 @@
   // Live inline validation on create form
   var mNameInput = document.getElementById('mName');
   var mEmailInput = document.getElementById('mEmail');
-  var mPowerInput = document.getElementById('mPower');
 
   Shared.liveValidate(mNameInput, [
     { test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }
@@ -670,25 +634,18 @@
   Shared.liveValidate(mEmailInput, [
     { test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }
   ]);
-  Shared.liveValidate(mPowerInput, [
-    { test: function(v) { return v !== '' && parseFloat(v) >= 0; }, msg: 'Le nombre de voix doit \u00eatre \u2265 0' }
-  ]);
-
   document.getElementById('btnCreate').addEventListener('click', async () => {
     var nameInput = document.getElementById('mName');
     var emailInput = document.getElementById('mEmail');
-    var powerInput = document.getElementById('mPower');
 
     var valid = Shared.validateAll([
       { input: nameInput, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
-      { input: emailInput, rules: [{ test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }] },
-      { input: powerInput, rules: [{ test: function(v) { return v !== '' && parseFloat(v) >= 0; }, msg: 'Le nombre de voix doit \u00eatre \u2265 0' }] }
+      { input: emailInput, rules: [{ test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }] }
     ]);
     if (!valid) return;
 
     const full_name = nameInput.value.trim();
     const email = emailInput.value.trim();
-    const voting_power = parseFloat(powerInput.value) || 1;
     const is_active = document.getElementById('mActive').checked;
 
     const btn = document.getElementById('btnCreate');
@@ -698,7 +655,6 @@
       const { body } = await api('/api/v1/members.php', {
         full_name,
         email: email || null,
-        voting_power,
         is_active
       });
 
@@ -706,11 +662,9 @@
         setNotif('success', 'Membre ajout\u00e9');
         document.getElementById('mName').value = '';
         document.getElementById('mEmail').value = '';
-        document.getElementById('mPower').value = '1';
         document.getElementById('mActive').checked = true;
         Shared.fieldClear(nameInput);
         Shared.fieldClear(emailInput);
-        Shared.fieldClear(powerInput);
         await fetchMembers();
       } else {
         setNotif('error', body?.detail || body?.error || 'Erreur');
@@ -735,7 +689,6 @@
         member_id: memberId,
         full_name: member.full_name || member.name,
         email: member.email || '',
-        voting_power: member.voting_power || 1,
         is_active: newStatus
       }, 'PATCH');
 
@@ -814,10 +767,6 @@
           <input class="form-input" type="email" id="editMemberEmail" value="${escapeHtml(member.email || '')}" placeholder="jean@exemple.com">
         </div>
         <div class="form-group mb-3">
-          <label class="form-label">Nombre de voix</label>
-          <input class="form-input" type="number" id="editMemberPower" value="${member.voting_power || 1}" min="0" step="1">
-        </div>
-        <div class="form-group mb-3">
           <label class="flex items-center gap-2">
             <input type="checkbox" id="editMemberActive" ${member.is_active ? 'checked' : ''}>
             <span>Membre actif</span>
@@ -829,18 +778,15 @@
       onConfirm: async function(modal) {
         var editNameEl = modal.querySelector('#editMemberName');
         var editEmailEl = modal.querySelector('#editMemberEmail');
-        var editPowerEl = modal.querySelector('#editMemberPower');
 
         var valid = Shared.validateAll([
           { input: editNameEl, rules: [{ test: function(v) { return v.length > 0; }, msg: 'Le nom est requis' }] },
-          { input: editEmailEl, rules: [{ test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }] },
-          { input: editPowerEl, rules: [{ test: function(v) { return v !== '' && parseFloat(v) >= 0; }, msg: 'Nombre de voix invalide' }] }
+          { input: editEmailEl, rules: [{ test: function(v) { return !v || Utils.isValidEmail(v); }, msg: 'Format d\u2019email invalide' }] }
         ]);
         if (!valid) return false;
 
         const newName = editNameEl.value.trim();
         const newEmail = editEmailEl.value.trim();
-        const newPower = parseFloat(editPowerEl.value) || 1;
         const newActive = modal.querySelector('#editMemberActive').checked;
 
         const selectedGroups = Array.from(modal.querySelectorAll('input[name="memberGroup"]:checked')).map(cb => cb.value);
@@ -850,7 +796,6 @@
             member_id: memberId,
             full_name: newName,
             email: newEmail || null,
-            voting_power: newPower,
             is_active: newActive
           }, 'PATCH');
 

@@ -164,8 +164,8 @@
       <div style="background:var(--color-surface);border-radius:12px;padding:1.5rem;max-width:600px;width:90%;max-height:90vh;overflow:auto;">
         <h3 style="margin:0 0 1rem;"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer des membres (CSV)</h3>
         <p class="text-muted text-sm mb-3">
-          Format attendu: <code>name,email,voting_power</code> (en-tête requis).<br>
-          L'email et le nombre de voix sont optionnels.
+          Format attendu: <code>name,email</code> (en-tête requis).<br>
+          L'email est optionnel.
         </p>
         <div class="form-group mb-3">
           <label class="form-label">Fichier CSV</label>
@@ -173,7 +173,7 @@
         </div>
         <div class="form-group mb-3">
           <label class="form-label">Ou coller le contenu</label>
-          <textarea class="form-textarea" id="csvTextInput" rows="4" placeholder="name,email,voting_power\nJean Dupont,jean@exemple.com,1\nMarie Martin,,2"></textarea>
+          <textarea class="form-textarea" id="csvTextInput" rows="4" placeholder="name,email\nJean Dupont,jean@exemple.com\nMarie Martin,"></textarea>
         </div>
         <div id="csvPreviewContainer" style="display:none;" class="mb-4"></div>
         <div class="flex gap-2 justify-end">

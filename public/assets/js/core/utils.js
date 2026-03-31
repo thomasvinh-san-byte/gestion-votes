@@ -455,7 +455,7 @@ window.Utils = window.Utils || {};
     const headerLine = hasHeader ? lines[0] : null;
     const headers = headerLine
       ? Utils.parseCSVLine(headerLine, delimiter)
-      : ['name', 'email', 'voting_power'];
+      : ['name', 'email'];
 
     // Parse data rows
     const dataLines = hasHeader ? lines.slice(1) : lines;
@@ -576,7 +576,7 @@ window.Utils = window.Utils || {};
     // Preview table
     html += '<div class="table-container" style="max-height:300px;overflow:auto;">';
     html += '<table class="table table-sm">';
-    html += '<thead><tr><th>#</th><th>Name</th><th>Email</th><th>Weight</th></tr></thead>';
+    html += '<thead><tr><th>#</th><th>Name</th><th>Email</th></tr></thead>';
     html += '<tbody>';
 
     const displayRows = rows.slice(0, maxRows);
@@ -586,12 +586,11 @@ window.Utils = window.Utils || {};
       html += `<td class="text-muted">${idx + 1}</td>`;
       html += `<td>${Utils.escapeHtml(row.name) || '<span class="text-danger">—</span>'}</td>`;
       html += `<td class="${emailClass}">${Utils.escapeHtml(row.email) || '—'}</td>`;
-      html += `<td>${row.voting_power}</td>`;
       html += '</tr>';
     });
 
     if (rows.length > maxRows) {
-      html += `<tr><td colspan="4" class="text-center text-muted">... and ${rows.length - maxRows} other(s)</td></tr>`;
+      html += `<tr><td colspan="3" class="text-center text-muted">... and ${rows.length - maxRows} other(s)</td></tr>`;
     }
 
     html += '</tbody></table></div>';
