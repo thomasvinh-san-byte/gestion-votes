@@ -17,7 +17,7 @@ Le wireframe est la **seule référence**. Toute page, composant, interaction, f
 | 1 | Analyse du wireframe | `ag_vote_v3_19_2.html` | Spécifications fonctionnelles (ce document) |
 | 2 | Architecture frontend | Spécifications | Arborescence composants, choix techniques |
 | 3 | Modèles de données | Spécifications | Schéma BDD, migrations |
-| 4 | API backend | Modèles + flux wireframe | Endpoints REST + WebSocket |
+| 4 | API backend | Modeles + flux wireframe | Endpoints REST + SSE (temps reel) |
 | 5 | Implémentation frontend | Wireframe + API | Pages et composants React |
 | 6 | Validation | Wireframe vs rendu | Recette visuelle et fonctionnelle |
 
@@ -177,7 +177,7 @@ Participant
 
 Membre
 ├── id, nom, prénom, email, téléphone
-├── lot(s), tantièmes, quote_part
+├── lot(s), quote_part
 ├── actif (bool)
 └── importé_le, source (enum: manuel, csv)
 
@@ -299,7 +299,7 @@ Le wireframe montre explicitement un toggle « Séparation identité / bulletin 
 | POST | `/api/resolutions/:id/proclaim` | Proclamer le résultat |
 | POST | `/api/resolutions/:id/passerelle-25-1` | Déclencher le 2nd vote en art. 24 |
 | POST | `/api/resolutions/:id/comptage-manuel` | Saisir résultat manuel |
-| **WS** | `/ws/seances/:id/live` | **WebSocket** — diffusion temps réel : progression votes, quorum, résultats, demandes de parole |
+| GET | `/api/bus/stream` | **SSE (Server-Sent Events)** : diffusion temps reel des votes, quorum, resultats, demandes de parole |
 
 ### 6.7 Procès-verbal
 
@@ -370,17 +370,17 @@ Le wireframe montre 5 templates éditables dans les Paramètres :
 
 ---
 
-## 9. Temps réel (WebSocket)
+## 9. Temps reel (SSE)
 
-Le wireframe montre des interactions en temps réel sur 3 pages simultanées :
+Le wireframe montre des interactions en temps reel sur 3 pages simultanees :
 
-| Page | Données temps réel |
+| Page | Donnees temps reel |
 |------|-------------------|
 | **Operator** | Progression votes (jauge), votes entrants, demandes de parole |
-| **Votant** | Timer dégressif, état du vote (ouvert/fermé), résolution en cours |
-| **Ecran** | Résultats en direct, barre quorum, animation résultat proclamé |
+| **Votant** | Timer degressif, etat du vote (ouvert/ferme), resolution en cours |
+| **Ecran** | Resultats en direct, barre quorum, animation resultat proclame |
 
-**Événements WebSocket** à implémenter :
+**Evenements SSE** a implementer :
 
 ```
 vote:open        → { resolutionId, timer }
@@ -532,8 +532,8 @@ Le wireframe utilise React + Babel. Stack recommandée pour la production :
 | **Frontend** | React 18+ (Vite) | Cohérence avec le wireframe |
 | **Style** | CSS Modules ou Tailwind | Reproduire les 52 tokens du design system |
 | **État** | Zustand ou React Context | État global léger (auth, thème, notifications) |
-| **Temps réel** | Socket.IO ou native WebSocket | Vote en direct, 3 écrans simultanés |
-| **Backend** | Node.js (Express/Fastify) ou Django/FastAPI | API REST + WebSocket |
+| **Temps reel** | SSE (Server-Sent Events) | Vote en direct, 3 ecrans simultanes |
+| **Backend** | PHP 8.4 (sans framework) | API REST + SSE |
 | **BDD** | PostgreSQL | Relations complexes, intégrité transactionnelle |
 | **Auth** | JWT (access + refresh) | Session timeout visible dans le wireframe |
 | **Crypto** | Node `crypto` / Python `hashlib` | SHA-256 bulletins et audit |
@@ -586,6 +586,6 @@ Pour chaque page, vérifier :
 | Multi-organisations | Une seule entité visible | V1 mono-organisation, préparer multi |
 | Drag & drop résolutions | Absent du wireframe | Non implémenté en V1 (réordonner via boutons ↑↓) |
 | Hors-ligne | Absent du wireframe | Non implémenté en V1 |
-| Notifications push | Polling simulé dans le wireframe | WebSocket en production |
+| Notifications push | Polling simule dans le wireframe | SSE (Server-Sent Events) en production |
 | Tri tableaux | Absent du wireframe (en-têtes non cliquables) | Non implémenté en V1 sauf si trivial |
 | Données de démo | Noms fictifs (« Utilisateur A ») | Remplacer par seed de données réalistes |

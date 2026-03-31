@@ -234,20 +234,20 @@ CORS_ALLOWED_ORIGINS=http://localhost:8080,http://192.168.1.50:8080
 | Interface | URL | Rôle cible |
 |-----------|-----|------------|
 | Connexion | `/login.html` | Tous |
-| Tableau de bord | `/dashboard.htmx.html` | operator |
-| Séances | `/meetings.htmx.html` | operator |
-| Création de séance | `/wizard.htmx.html` | operator |
-| Hub de séance | `/hub.htmx.html` | operator, president |
-| Console opérateur | `/operator.htmx.html` | operator |
-| Vote (tablette) | `/vote.htmx.html` | voter (rôle de séance) |
-| Post-séance | `/postsession.htmx.html` | operator |
-| Contrôle et audit | `/trust.htmx.html` | auditor |
-| Administration | `/admin.htmx.html` | admin |
-| Membres | `/members.htmx.html` | operator |
-| Archives | `/archives.htmx.html` | operator, auditor |
-| Statistiques | `/analytics.htmx.html` | operator |
-| Écran public | `/public.htmx.html` | public |
-| Aide | `/help.htmx.html` | Tous |
+| Tableau de bord | `/dashboard` | operator |
+| Seances | `/meetings` | operator |
+| Creation de seance | `/wizard` | operator |
+| Hub de seance | `/hub` | operator, president |
+| Console operateur | `/operator/{uuid}` | operator |
+| Vote (tablette) | `/vote` | voter (role de seance) |
+| Post-seance | `/postsession` | operator |
+| Controle et audit | `/audit` | auditor |
+| Administration | `/admin` | admin |
+| Membres | `/members` | operator |
+| Archives | `/archives` | operator, auditor |
+| Statistiques | `/analytics` | operator |
+| Ecran public | `/public` | public |
+| Aide | `/help` | Tous |
 
 ---
 

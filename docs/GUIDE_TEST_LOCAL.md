@@ -91,7 +91,7 @@ Les données de démo sont chargées automatiquement (`LOAD_SEED_DATA=1`).
 
 - 1 assemblée générale en cours (statut **LIVE**)
 - 1 assemblée en brouillon (dans 14 jours)
-- 12 membres avec pondérations variées (35–120 tantièmes)
+- 12 membres avec poids de vote varies (35 a 120)
 - 5 résolutions à différents statuts
 - 5 politiques de quorum + 4 politiques de vote
 
@@ -138,9 +138,9 @@ Suivre le parcours complet décrit dans `docs/RECETTE_DEMO.md` (environ 10 minut
 ### 6.1 Préparation
 
 1. Ouvrir les interfaces dans le navigateur :
-   - `/operator.htmx.html` — Interface opérateur
-   - `/hub.htmx.html` — Interface hub/président
-   - `/trust.htmx.html` — Interface auditeur
+   - `/operator/{uuid}` : interface operateur
+   - `/hub` : interface hub/president
+   - `/audit` : interface auditeur
 2. Vérifier les présences des membres
 3. Saisir au moins une procuration
 
@@ -151,7 +151,7 @@ Suivre le parcours complet décrit dans `docs/RECETTE_DEMO.md` (environ 10 minut
 3. Vérifier la mise à jour en temps réel côté Opérateur et Président
 4. Clôturer la résolution et vérifier :
    - le calcul de quorum,
-   - la pondération des tantièmes,
+   - le calcul de majorite,
    - le résultat juridique (ADOPTÉE / REJETÉE / NON VALABLE)
 
 ### 6.3 Incidents et mode dégradé
@@ -217,8 +217,8 @@ Lors des tests, voici les éléments à vérifier et documenter en cas d'anomali
 | Connexion / déconnexion par rôle | Accès conforme aux permissions |
 | Cycle de vie d'une AG | scheduled → frozen → live → closed → validated |
 | Lancement et déroulement d'un vote | Tokens générés, votes enregistrés, résultat calculé |
-| Quorum et majorité pondérée | Calculs corrects selon les tantièmes |
-| Procurations | Impact sur la pondération, visible en audit |
+| Quorum et majorité pondérée | Calculs corrects selon les poids de vote |
+| Procurations | Impact sur le quorum et la majorite, visible en audit |
 | Verrouillage post-validation | Toute modification refusée (HTTP 409) |
 | Exports PDF / CSV | Fichiers générés, contenu cohérent |
 

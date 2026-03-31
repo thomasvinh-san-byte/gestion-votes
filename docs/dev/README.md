@@ -1,4 +1,4 @@
-# Documentation technique — AG-Vote
+# Documentation technique : AG-Vote
 
 ---
 

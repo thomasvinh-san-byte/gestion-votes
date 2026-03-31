@@ -30,8 +30,8 @@ Reprise et consolidation d’une solution existante de gestion d’assemblées d
 
 * **Backend :** PHP (architecture modulaire, sans framework lourd)
 * **Base de données :** PostgreSQL
-* **Frontend :** HTML + HTMX + JavaScript minimal (vanilla)
-* **Rafraîchissement temps réel :** Polling HTMX (pas de WebSockets)
+* **Frontend :** HTML + JavaScript vanilla + Web Components
+* **Rafraichissement temps reel :** SSE (Server-Sent Events)
 
 ### 1.3 Contraintes et exclusions
 
@@ -62,14 +62,14 @@ contraintes:
 
 ### 2.1 Mission
 
-Concevoir, piloter, sécuriser et archiver une séance décisionnelle de bout en bout en intégrant les réalités opérationnelles : absences, retards, procurations, pondération des voix, quorum variables et contraintes juridiques.
+Concevoir, piloter, securiser et archiver une seance decisionnelle de bout en bout en integrant les realites operationnelles : absences, retards, procurations, quorum variables et contraintes juridiques.
 
 ### 2.2 Périmètre fonctionnel
 
 * Cycle de vie complet d’une séance (création → conduite → consolidation → validation → archivage)
 * Gestion des cas réels : absences, retardataires, sorties temporaires/définitives
 * Procurations (globale/limitée) avec traçabilité
-* Pondération des voix (tantièmes / voting power)
+* Poids de vote parametre par membre
 * Moteur de quorum paramétrable et justifiable (y compris double / évolutif / par motion)
 * Vote tablette sécurisé (token) + mode hors-ligne et signalement incident
 * Mode dégradé : saisie manuelle + bulletins papier + réconciliation
@@ -128,10 +128,10 @@ Exigences :
 
 | Rôle                   | Périmètre     | Responsabilités clés                             | Interface                 |
 | ---------------------- | ------------- | ------------------------------------------------ | ------------------------- |
-| **ADMIN**              | Global        | paramétrage (policies), monitoring, utilisateurs | `admin.htmx.html`         |
-| **OPÉRATEUR**          | Séance        | préparation, conduite, incidents, consolidation  | `operator.htmx.html` |
-| **PRÉSIDENT (TRUST)**  | Séance        | pilotage, validation, archivage                  | `trust.htmx.html`         |
-| **LECTURE / CONTRÔLE** | Lecture seule | archives, PV, export audit                       | `archives.htmx.html`      |
+| **ADMIN**              | Global        | parametrage (policies), monitoring, utilisateurs | `/admin`         |
+| **OPERATEUR**          | Seance        | preparation, conduite, incidents, consolidation  | `/operator/{uuid}` |
+| **PRESIDENT (TRUST)**  | Seance        | pilotage, validation, archivage                  | `/audit`         |
+| **LECTURE / CONTROLE** | Lecture seule | archives, PV, export audit                       | `/archives`      |
 
 ### 4.2 Authentification (direction actuelle)
 
@@ -172,7 +172,7 @@ Objectif : faciliter lecture/navigation **sans dépendre de l’opacité**.
 
 1. **Métadonnées** : type, dates, lieu
 2. **Membres** : CRUD + import CSV
-3. **Pondérations** : voting power / tantièmes
+3. **Poids de vote** : configuration par membre
 4. **Ordre du jour** : structuration
 5. **Résolutions** : création, description, ordre
 6. **Choix politiques par défaut** : quorum + majorité
@@ -193,7 +193,7 @@ id,nom,prenom,email,ponderation,type,adresse
 ### 6.3 Checklist readiness (bloquante)
 
 * membres importés
-* pondérations cohérentes
+* poids de vote coherents
 * motions créées
 * politiques quorum/vote définies
 * aucune motion ouverte
@@ -245,7 +245,7 @@ Sortie :
 ### 9.1 Modèles fournis
 
 * Quorum simple (personnes)
-* Quorum pondéré (tantièmes)
+* Quorum pondere (par poids de vote)
 * Double quorum
 * Quorum évolutif (1re / 2e convocation)
 * Quorum dynamique par motion
@@ -364,9 +364,9 @@ Objectif : lecture immédiate de l’état de séance.
 
 ### 16.1 Rafraîchissement temps réel (polling)
 
-* `hx-trigger="every 3s"` sur composants critiques
-* fréquence adaptative (votes actifs → plus rapide)
-* composants ciblés (fragments)
+* SSE (Server-Sent Events) pour les mises a jour en temps reel
+* frequence adaptative (votes actifs : plus rapide)
+* composants cibles (fragments)
 
 ### 16.2 Sécurité
 
