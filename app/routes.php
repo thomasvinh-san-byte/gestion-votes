@@ -94,7 +94,7 @@ return function (Router $router): void {
 
     // ── Auth (controller handles its own auth) ──
     $router->mapAny("{$prefix}/auth_csrf", AuthController::class, 'csrf', ['rate_limit' => ['auth_csrf', 30, 60]]);
-    $router->mapAny("{$prefix}/auth_login", AuthController::class, 'login', ['rate_limit' => ['auth_login', 10, 300]]);
+    $router->mapAny("{$prefix}/auth_login", AuthController::class, 'login');
     $router->mapAny("{$prefix}/auth_logout", AuthController::class, 'logout', ['rate_limit' => ['auth_logout', 10, 60]]);
     $router->mapAny("{$prefix}/ping", AuthController::class, 'ping'); /* [backend] health check */
     $router->mapAny("{$prefix}/whoami", AuthController::class, 'whoami', ['rate_limit' => ['whoami', 30, 60]]);
