@@ -39,9 +39,9 @@
 
 ### Nettoyage code mort (CLEAN)
 
-- [ ] **CLEAN-01**: Les stubs restants dans les controllers sont supprimés ou implémentés
-- [ ] **CLEAN-02**: Les seeds de démo ne contiennent aucune référence copropriété ou syndic
-- [ ] **CLEAN-03**: Les fichiers dead code identifiés sont nettoyés ou documentés
+- [x] **CLEAN-01**: Les stubs restants dans les controllers sont supprimés ou implémentés
+- [x] **CLEAN-02**: Les seeds de démo ne contiennent aucune référence copropriété ou syndic
+- [x] **CLEAN-03**: Les fichiers dead code identifiés sont nettoyés ou documentés
 
 ## v6.0 Requirements
 
@@ -83,9 +83,9 @@
 | IMP-02 | Phase 60 | Complete |
 | AUTH-01 | Phase 60 | Complete |
 | AUTH-02 | Phase 60 | Complete |
-| CLEAN-01 | Phase 61 | Pending |
-| CLEAN-02 | Phase 61 | Pending |
-| CLEAN-03 | Phase 61 | Pending |
+| CLEAN-01 | Phase 61 | Complete |
+| CLEAN-02 | Phase 61 | Complete |
+| CLEAN-03 | Phase 61 | Complete |
 
 **Coverage:**
 - v5.1 requirements: 17 total

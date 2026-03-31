@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: executing
-stopped_at: Completed 60-03-PLAN.md
-last_updated: "2026-03-31T10:03:11.380Z"
+stopped_at: Completed 61-01-PLAN.md
+last_updated: "2026-03-31T10:27:53.317Z"
 last_activity: "2026-03-31 — Phase 60 Plan 01 complete: Invalid transition returns 422 with structured detail; live-session delete returns 409 with close-first hint"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -53,6 +53,9 @@ Progress: [██████████] 100%
 - [Phase 60-03]: session_expired uses static flag in AuthMiddleware consumed in deny() — avoids parameter chain changes
 - [Phase 60-03]: ApiResponseException used directly in login() for 429 — api_fail() cannot set custom Retry-After header
 - [Phase 60-03]: ControllerTestCase::setUp() now resets APP_AUTH_ENABLED=0 to prevent env var leakage from AuthMiddlewareTest
+- [Phase 61-dead-code-cleanup]: app/Command CLI tools retained without unit tests — documented via inline comments
+- [Phase 61-dead-code-cleanup]: phpunit.xml app/WebSocket corrected to app/SSE (Phase 58 rename artifact)
+- [Phase 61-dead-code-cleanup]: CLEAN-01 was pre-satisfied: zero stubs in 41 controller files, no changes required
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
@@ -79,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T10:03:11.378Z
-Stopped at: Completed 60-03-PLAN.md
+Last session: 2026-03-31T10:27:53.314Z
+Stopped at: Completed 61-01-PLAN.md
 Resume file: None
