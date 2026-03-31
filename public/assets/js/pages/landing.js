@@ -53,7 +53,7 @@
           // Role-aware redirect after login
             var user = data.user || (data.data && data.data.user) || {};
             var role = user.role || 'viewer';
-            var dest = { admin: '/admin', operator: '/meetings', auditor: '/trust', viewer: '/meetings' };
+            var dest = { admin: '/dashboard', operator: '/dashboard', auditor: '/trust', viewer: '/meetings' };
             // Fetch meeting roles to detect voter/president
             fetch('/api/v1/whoami.php').then(function(r) { return r.json(); }).then(function(who) {
               var mr = (who.data && who.data.meeting_roles) || [];

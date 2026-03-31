@@ -112,8 +112,8 @@
     } else {
       var role = user.role || 'viewer';
       var defaultPage = {
-        admin: '/admin',
-        operator: '/meetings',
+        admin: '/dashboard',
+        operator: '/dashboard',
         auditor: '/trust',
         viewer: '/meetings'
       };
