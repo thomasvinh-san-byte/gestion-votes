@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\ApiResponseException;
+use AgVote\Core\Http\JsonResponse;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Core\Security\CsrfMiddleware;
+use AgVote\Core\Security\RateLimiter;
 use AgVote\Core\Security\SessionHelper;
 use Throwable;
 
@@ -20,6 +23,35 @@ final class AuthController extends AbstractController {
         if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
             api_fail('method_not_allowed', 405);
         }
+
+        // ── Rate limiting with audit (AUTH-02) ──
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $maxAttempts = (int) (getenv('APP_LOGIN_MAX_ATTEMPTS') ?: 5);
+        $windowSeconds = (int) (getenv('APP_LOGIN_WINDOW') ?: 300);
+
+        if (RateLimiter::isLimited('auth_login', $ip, $maxAttempts, $windowSeconds)) {
+            try {
+                audit_log('auth_rate_limited', 'security', null, [
+                    'ip' => $ip,
+                    'attempt_count' => $maxAttempts,
+                    'window' => $windowSeconds,
+                ]);
+            } catch (Throwable) { /* best effort */ }
+            $retryMinutes = (int) ceil($windowSeconds / 60);
+            throw new ApiResponseException(
+                new JsonResponse(429, [
+                    'ok' => false,
+                    'error' => 'rate_limit_exceeded',
+                    'detail' => "Trop de tentatives. R\u{00E9}essayez dans {$retryMinutes} minutes.",
+                    'retry_after' => $windowSeconds,
+                ], [
+                    'Retry-After' => (string) $windowSeconds,
+                ]),
+            );
+        }
+
+        // Increment attempt counter (non-strict — blocking handled above)
+        RateLimiter::check('auth_login', $ip, $maxAttempts, $windowSeconds, false);
 
         $rawBody = \AgVote\Core\Http\Request::getRawBody();
         $input = json_decode($rawBody, true);

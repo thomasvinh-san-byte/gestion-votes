@@ -35,11 +35,19 @@ class AuthControllerTest extends ControllerTestCase
         parent::setUp();
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit/TestRunner';
         $_SESSION = [];
+        // Reset rate limit state for the default test IP to prevent cross-test leakage
+        \AgVote\Core\Security\RateLimiter::reset('auth_login', '127.0.0.1');
     }
 
     protected function tearDown(): void
     {
         $_SESSION = [];
+        // Clean up any rate limit state set during the test
+        \AgVote\Core\Security\RateLimiter::reset('auth_login', '127.0.0.1');
+        \AgVote\Core\Security\RateLimiter::reset('auth_login', '10.1.1.100');
+        \AgVote\Core\Security\RateLimiter::reset('auth_login', '10.1.1.101');
+        putenv('APP_LOGIN_MAX_ATTEMPTS=');
+        putenv('APP_LOGIN_WINDOW=');
         parent::tearDown();
     }
 
@@ -419,5 +427,90 @@ class AuthControllerTest extends ControllerTestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
         $this->assertStringContainsString('password_needs_rehash(', $source);
+    }
+
+    // =========================================================================
+    // login() — rate limiting with audit log (AUTH-02)
+    // =========================================================================
+
+    public function testLoginRateLimitAudits(): void
+    {
+        // Set very low threshold via env vars (1 attempt, 60s window)
+        putenv('APP_LOGIN_MAX_ATTEMPTS=1');
+        putenv('APP_LOGIN_WINDOW=60');
+
+        $this->setHttpMethod('POST');
+        $userRepo = $this->createMock(UserRepository::class);
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        // Use a unique IP to avoid collisions with other tests
+        $_SERVER['REMOTE_ADDR'] = '10.1.1.100';
+
+        // First attempt increments counter (passes isLimited since count=0 < 1)
+        // Second attempt: count=1 >= 1 → should be blocked
+        $this->injectJsonBody(['email' => 'x@x.com', 'password' => 'pass']);
+        @$this->callController(AuthController::class, 'login'); // first attempt (may fail creds, but increments)
+
+        // Reset user repo inject (callController may have reset factory)
+        $this->injectRepos([UserRepository::class => $userRepo]);
+        $this->injectJsonBody(['email' => 'x@x.com', 'password' => 'pass']);
+
+        $result = @$this->callController(AuthController::class, 'login');
+        $this->assertEquals(429, $result['status']);
+        $this->assertEquals('rate_limit_exceeded', $result['body']['error']);
+        $this->assertArrayHasKey('retry_after', $result['body']);
+
+        // Cleanup: reset rate limit for this IP
+        \AgVote\Core\Security\RateLimiter::reset('auth_login', '10.1.1.100');
+        putenv('APP_LOGIN_MAX_ATTEMPTS=');
+        putenv('APP_LOGIN_WINDOW=');
+    }
+
+    public function testLoginRateLimitReadsEnvVars(): void
+    {
+        putenv('APP_LOGIN_MAX_ATTEMPTS=2');
+        putenv('APP_LOGIN_WINDOW=60');
+
+        $this->setHttpMethod('POST');
+        $userRepo = $this->createMock(UserRepository::class);
+        $_SERVER['REMOTE_ADDR'] = '10.1.1.101';
+
+        // 3 attempts — 3rd should be rate-limited
+        for ($i = 1; $i <= 2; $i++) {
+            $this->injectRepos([UserRepository::class => $userRepo]);
+            $this->injectJsonBody(['email' => 'y@y.com', 'password' => 'pass']);
+            @$this->callController(AuthController::class, 'login'); // first 2 pass through
+        }
+
+        $this->injectRepos([UserRepository::class => $userRepo]);
+        $this->injectJsonBody(['email' => 'y@y.com', 'password' => 'pass']);
+        $result = @$this->callController(AuthController::class, 'login');
+
+        $this->assertEquals(429, $result['status'], '3rd attempt must be rate-limited with MAX=2');
+
+        \AgVote\Core\Security\RateLimiter::reset('auth_login', '10.1.1.101');
+        putenv('APP_LOGIN_MAX_ATTEMPTS=');
+        putenv('APP_LOGIN_WINDOW=');
+    }
+
+    public function testLoginRateLimitReturnsRetryAfterHeader(): void
+    {
+        // Source-level check: Retry-After header is set
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        $this->assertStringContainsString('Retry-After', $source);
+    }
+
+    public function testLoginRateLimitUsesAuditLog(): void
+    {
+        // Source-level check: audit_log called with auth_rate_limited
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        $this->assertStringContainsString("audit_log('auth_rate_limited'", $source);
+    }
+
+    public function testLoginRateLimitUsesEnvVarThresholds(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/AuthController.php');
+        $this->assertStringContainsString('APP_LOGIN_MAX_ATTEMPTS', $source);
+        $this->assertStringContainsString('APP_LOGIN_WINDOW', $source);
     }
 }

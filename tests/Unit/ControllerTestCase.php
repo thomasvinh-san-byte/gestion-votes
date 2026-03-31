@@ -60,6 +60,9 @@ abstract class ControllerTestCase extends TestCase
 
         // Reset AuthMiddleware state
         AuthMiddleware::reset();
+
+        // Ensure auth is disabled for controller tests (mirrors bootstrap.php)
+        putenv('APP_AUTH_ENABLED=0');
     }
 
     protected function tearDown(): void
