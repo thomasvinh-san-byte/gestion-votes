@@ -122,7 +122,11 @@
   2. The class formerly named `WebSocketListener` is now named `SseListener` and all references to it (instantiation, type hints, comments) use the new name
   3. Running `grep -ri "websocket" src/ app/` (excluding vendor/) returns zero results — no stale comments, docblocks, or identifiers remain
   4. The application boots and SSE connections function correctly after the rename — no autoload or routing breakage
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 58-01-PLAN.md — Rename app/WebSocket/ to app/SSE/, WebSocketListener to SseListener, update bootstrap.php autoloader and Application.php wiring
+- [ ] 58-02-PLAN.md — Update use statements and inline comments in 6 controllers, 2 services, 1 repository, 1 test file; verify PHPUnit passes
 
 ### Phase 59: Vote and Quorum Edge Cases
 **Goal**: The voting and quorum subsystems handle all failure modes explicitly — no silent failures, no 500 errors, no division-by-zero panics, with anomalies logged to the audit trail
@@ -143,7 +147,7 @@
 **Success Criteria** (what must be TRUE):
   1. Attempting an invalid session state transition (e.g., draft directly to validated) returns an explicit error message naming the disallowed transition — the session state is not changed
   2. Attempting to delete a session whose status is "live" is rejected with a clear message — the session is not deleted and the operator is informed
-  3. Uploading a CSV file encoded in Windows-1252 or ISO-8859-1 produces a correctly imported member list — names with accented characters (e.g., "Dupré", "Müller") are stored correctly in UTF-8
+  3. Uploading a CSV file encoded in Windows-1252 or ISO-8859-1 produces a correctly imported member list — names with accented characters (e.g., "Dupre", "Muller") are stored correctly in UTF-8
   4. Uploading a CSV that contains two rows with the same email address produces a validation error listing the duplicate emails — no silent creation of duplicate member records occurs
   5. Accessing any authenticated page with an expired session redirects to /login with a visible message explaining the session has expired — no blank page or raw PHP error is shown
   6. After a configurable number of consecutive failed login attempts from the same IP, further attempts are blocked and an entry recording the IP and attempt count is written to the audit trail
@@ -165,7 +169,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 58. WebSocket to SSE Rename | 0/TBD | Not started | - |
+| 58. WebSocket to SSE Rename | 0/2 | Not started | - |
 | 59. Vote and Quorum Edge Cases | 0/TBD | Not started | - |
 | 60. Session, Import, and Auth Edge Cases | 0/TBD | Not started | - |
 | 61. Dead Code Cleanup | 0/TBD | Not started | - |
