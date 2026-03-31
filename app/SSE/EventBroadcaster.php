@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AgVote\WebSocket;
+namespace AgVote\SSE;
 
 use AgVote\Core\Logger;
 use AgVote\Core\Providers\RedisProvider;
@@ -10,14 +10,14 @@ use Redis;
 use Throwable;
 
 /**
- * EventBroadcaster - Service pour envoyer des evenements au serveur WebSocket.
+ * EventBroadcaster - Service pour envoyer des evenements SSE (Server-Sent Events) via Redis.
  *
  * Uses Redis LPUSH/LRANGE+DEL when available, falls back to file-based queue.
  */
 class EventBroadcaster {
-    private const QUEUE_KEY = 'ws:event_queue';
-    private const QUEUE_FILE = '/tmp/agvote-ws-queue.json';
-    private const LOCK_FILE = '/tmp/agvote-ws-queue.lock';
+    private const QUEUE_KEY = 'sse:event_queue';
+    private const QUEUE_FILE = '/tmp/agvote-sse-queue.json';
+    private const LOCK_FILE = '/tmp/agvote-sse-queue.lock';
     private const MAX_QUEUE_SIZE = 1000;
 
     /**
@@ -274,7 +274,7 @@ class EventBroadcaster {
 
     /**
      * Recupere et vide les evenements de la queue.
-     * Utilise par le serveur WebSocket.
+     * Utilise par le serveur SSE.
      */
     public static function dequeue(): array {
         if (self::useRedis()) {
@@ -284,7 +284,7 @@ class EventBroadcaster {
     }
 
     /**
-     * Verifie si le serveur WebSocket est actif.
+     * Verifie si le serveur SSE est actif.
      */
     public static function isServerRunning(): bool {
         $pidFile = '/tmp/agvote-ws.pid';
