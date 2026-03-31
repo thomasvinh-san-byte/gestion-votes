@@ -1,33 +1,10 @@
 # AG-Vote
 
-Application web de gestion de séances de vote avec vote électronique sécurisé.
+Plateforme de vote en assemblée générale — de la convocation au procès-verbal.
 
-Assemblées générales, conseils syndicaux, réunions formelles — préparation, conduite en direct, vote, résultats, PV.
+Créez une séance, invitez les membres, conduisez les votes en direct, générez le PV officiel. Conçu pour les associations, syndicats de copropriété et organisations soumises au droit français.
 
-**Démo en ligne : https://ag-vote.onrender.com/**
-
-> Compte test : `admin@ag-vote.local` / `Admin2026!`
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/thomasvinh-san-byte/gestion-votes)
-
-## Prérequis
-
-L'application tourne dans **Docker**, ce qui évite d'installer PHP, PostgreSQL ou Nginx manuellement.
-
-| Système | Ce qu'il faut installer |
-|---------|------------------------|
-| **macOS** | [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) — télécharger, glisser dans Applications, lancer. Choisir *Apple Chip* (M1–M4) ou *Intel* selon votre Mac. Détails : [guide complet](docs/INSTALL_MAC.md) |
-| **Windows** | [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) — installer, activer WSL 2 si proposé, relancer |
-| **Linux** | Docker Engine + Docker Compose — voir [guide Linux](docs/DOCKER_INSTALL.md) |
-
-Vérifier que tout est prêt :
-
-```bash
-docker --version          # Docker version 27.x.x
-docker compose version    # Docker Compose version v2.x.x
-```
-
-> Si `docker` n'est pas reconnu après installation, fermez et rouvrez votre terminal.
+**Démo :** [ag-vote.onrender.com](https://ag-vote.onrender.com/) — `admin@ag-vote.local` / `Admin2026!`
 
 ## Démarrage rapide
 
@@ -37,52 +14,57 @@ cd gestion-votes
 ./bin/dev.sh
 ```
 
-Le script crée `.env`, lance Docker, attend le healthcheck et affiche l'URL + les identifiants de test.
+Ouvrir **http://localhost:8080** — premier lancement ~3 min, les suivants ~5s.
 
-Premier lancement : 3–5 min (téléchargement des images). Les suivants : ~5 secondes.
-
-Ouvrir **http://localhost:8080** — compte test : `admin@ag-vote.local` / `Admin2026!`
-
-### Commandes du quotidien
-
-| Commande | Description |
-|----------|-------------|
-| `make dev` | Démarrer l'environnement Docker dev |
-| `make test` | Lancer les tests PHPUnit |
-| `make logs` | Suivre les logs (Ctrl+C pour quitter) |
-| `make status` | État complet du stack |
-| `make rebuild` | Rebuild + restart |
-| `make` | Afficher toutes les commandes disponibles |
-
-> Les scripts `bin/*.sh` sont aussi utilisables directement : `./bin/dev.sh`, `./bin/test.sh`, etc.
+> Prérequis : [Docker Desktop](https://www.docker.com/products/docker-desktop/) (macOS/Windows) ou Docker Engine (Linux). Voir [installation macOS](docs/INSTALL_MAC.md) · [installation Linux](docs/DOCKER_INSTALL.md).
 
 ## Fonctionnalités
 
-- **Séances** — machine à états complète (draft → live → validated → archived)
-- **Vote électronique** — token unique, anti-rejeu, QR code, mode dégradé
-- **Quorum & pondération** — tantièmes, politiques configurables par résolution
-- **Présences & procurations** — pointage, plafond, impact automatique sur le quorum
-- **Audit** — journal append-only avec chaîne de hachage SHA256, traçabilité complète
-- **Livrables** — PV (HTML/PDF), exports CSV, verrouillage post-validation
-- **Temps réel** — WebSocket pour synchronisation opérateur/votants
+| Domaine | Description |
+|---------|-------------|
+| **Séances** | Machine à états complète : brouillon → planifiée → gelée → en cours → clôturée → validée → archivée |
+| **Vote électronique** | Token unique par votant, anti-rejeu, QR code, scrutin secret ou public |
+| **Quorum** | Politiques configurables (50%+1, 1/3, personnalisé), calcul automatique en temps réel |
+| **Présences & procurations** | Pointage en direct, plafond de procurations, impact automatique sur le quorum |
+| **Temps réel** | SSE (Server-Sent Events) avec fan-out Redis — synchronisation opérateur/votants instantanée |
+| **Audit** | Journal append-only, chaîne de hachage SHA-256, export CSV, traçabilité complète |
+| **PV officiel** | Procès-verbal HTML et PDF (Dompdf), consolidation des résultats, verrouillage post-validation |
+| **Import** | CSV et XLSX — membres, présences, résolutions, procurations |
 
-## Stack
+## Stack technique
 
-PHP 8.4 · PostgreSQL 16 · JavaScript vanilla · HTMX · Docker · Nginx · WebSocket
+| Couche | Technologie |
+|--------|-------------|
+| Backend | PHP 8.4 (no-framework), PostgreSQL 16, Redis 7 |
+| Frontend | JavaScript vanilla, Web Components, CSS custom properties |
+| Infra | Docker (nginx + php-fpm + supervisord), GitHub Actions CI |
+| Tests | 2 300+ tests PHPUnit (90% couverture services), 177 tests E2E Playwright |
+
+## Commandes
+
+| Commande | Description |
+|----------|-------------|
+| `make dev` | Démarrer le stack Docker |
+| `make test` | Lancer les tests PHPUnit |
+| `make rebuild` | Rebuild + restart |
+| `make logs` | Suivre les logs |
+| `make status` | État du stack |
+| `make` | Toutes les commandes |
+
+> `bin/*.sh` utilisables directement : `./bin/dev.sh`, `./bin/test.sh`, `./bin/rebuild.sh`
 
 ## Documentation
 
 | Guide | |
 |-------|---|
-| [Installation macOS](docs/INSTALL_MAC.md) | Docker Desktop sur Mac |
-| [Installation Linux](docs/DOCKER_INSTALL.md) | Docker sur Debian/Ubuntu |
-| [Guide opérateur](docs/UTILISATION_LIVE.md) | Conduite d'une séance |
+| [Guide fonctionnel](docs/GUIDE_FONCTIONNEL.md) | Parcours utilisateur complet |
+| [Guide opérateur](docs/UTILISATION_LIVE.md) | Conduite d'une séance en direct |
 | [Démo guidée](docs/RECETTE_DEMO.md) | Scénario de test (~10 min) |
 | [FAQ](docs/FAQ.md) | Questions fréquentes |
-| [Deploiement Docker](docs/DEPLOIEMENT_DOCKER.md) | Docker local (dev et production) |
-| [Deploiement Render](docs/DEPLOIEMENT_RENDER.md) | Deployer sur Render (demo et production) |
+| [Déploiement Docker](docs/DEPLOIEMENT_DOCKER.md) | Production avec Docker Compose |
+| [Déploiement Render](docs/DEPLOIEMENT_RENDER.md) | PaaS cloud (démo ou production) |
 
-Documentation technique : [Architecture](docs/dev/ARCHITECTURE.md) · [API](docs/dev/API.md) · [Sécurité](docs/dev/SECURITY.md) · [Tests](docs/dev/TESTS.md)
+**Documentation technique :** [Architecture](docs/dev/ARCHITECTURE.md) · [API](docs/dev/API.md) · [Sécurité](docs/dev/SECURITY.md) · [Tests](docs/dev/TESTS.md) · [Web Components](docs/dev/WEB_COMPONENTS.md)
 
 ## Licence
 
