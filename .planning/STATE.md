@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: executing
-stopped_at: Completed 59-01-PLAN.md
-last_updated: "2026-03-31T09:45:00.000Z"
+stopped_at: Completed 60-02-PLAN.md
+last_updated: "2026-03-31T10:00:27.401Z"
 last_activity: "2026-03-31 — Phase 59 Plan 01 complete: BallotsController vote edge cases hardened, 5 unit tests added"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 5
   percent: 100
 ---
 
@@ -44,6 +44,9 @@ Progress: [██████████] 100%
 - [Phase 59-vote-and-quorum-edge-cases]: QUOR-02: SSE broadcast verified via 200 response — broadcast silently fails in test env, 200 proves path ran without blocking HTTP response
 - [Phase 59-01]: audit_log('vote_token_reuse') fires for both token_expired and token_already_used — covers all suspicious reuse patterns
 - [Phase 59-01]: BallotsService constructor dependencies (AttendancesService, ProxiesService) require their repos injected in unit tests to avoid null-PDO RuntimeException
+- [Phase 60-02]: Empty emails skipped in duplicate detection — blank field is not an address, avoids false-positive 422
+- [Phase 60-02]: mb_detect_encoding strict mode with ['UTF-8','Windows-1252','ISO-8859-1'] order ensures UTF-8 preferred; temp file (csv_enc_ prefix) preserves fgetcsv API
+- [Phase 60-02]: checkDuplicateEmails extracted to private static helper shared by membersCsv and membersXlsx
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
@@ -70,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T09:16:53.019Z
-Stopped at: Completed 59-02-PLAN.md
+Last session: 2026-03-31T10:00:27.398Z
+Stopped at: Completed 60-02-PLAN.md
 Resume file: None

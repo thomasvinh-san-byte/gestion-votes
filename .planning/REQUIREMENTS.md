@@ -29,8 +29,8 @@
 
 ### Edge cases Import (IMP)
 
-- [ ] **IMP-01**: Un CSV avec encodage Windows-1252 ou ISO-8859-1 est détecté et converti correctement
-- [ ] **IMP-02**: Les doublons par email sont détectés et signalés (pas de création silencieuse)
+- [x] **IMP-01**: Un CSV avec encodage Windows-1252 ou ISO-8859-1 est détecté et converti correctement
+- [x] **IMP-02**: Les doublons par email sont détectés et signalés (pas de création silencieuse)
 
 ### Edge cases Auth (AUTH)
 
@@ -79,8 +79,8 @@
 | QUOR-02 | Phase 59 | Complete |
 | SESS-01 | Phase 60 | Pending |
 | SESS-02 | Phase 60 | Pending |
-| IMP-01 | Phase 60 | Pending |
-| IMP-02 | Phase 60 | Pending |
+| IMP-01 | Phase 60 | Complete |
+| IMP-02 | Phase 60 | Complete |
 | AUTH-01 | Phase 60 | Pending |
 | AUTH-02 | Phase 60 | Pending |
 | CLEAN-01 | Phase 61 | Pending |
