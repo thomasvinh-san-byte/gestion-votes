@@ -6,15 +6,15 @@ namespace AgVote\Event\Listener;
 
 use AgVote\Event\AppEvent;
 use AgVote\Event\VoteEvents;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 
 /**
- * Listens to domain events and broadcasts them via WebSocket.
+ * Listens to domain events and broadcasts them via SSE.
  *
- * This decouples controllers from the WebSocket layer:
+ * This decouples controllers from the SSE layer:
  * controllers dispatch events, this listener handles the broadcast.
  */
-final class WebSocketListener {
+final class SseListener {
     public function onVoteCast(AppEvent $event): void {
         EventBroadcaster::voteCast(
             $event->meetingId,
