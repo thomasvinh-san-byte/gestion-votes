@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use finfo;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 
 /**
  * Consolidates resolution_documents endpoints.

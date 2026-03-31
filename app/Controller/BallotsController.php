@@ -8,7 +8,7 @@ use AgVote\Core\BallotSource;
 use AgVote\Service\BallotsService;
 use AgVote\Service\VoteEngine;
 use AgVote\Service\VoteTokenService;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use Throwable;
 
 /**
@@ -183,7 +183,7 @@ final class BallotsController extends AbstractController {
                 'member_id' => $memberId,
             ]);
         } catch (Throwable $e) {
-            error_log('[WebSocket] Broadcast failed after ballot cancel: ' . $e->getMessage());
+            error_log('[SSE] Broadcast failed after ballot cancel: ' . $e->getMessage());
         }
 
         api_ok([

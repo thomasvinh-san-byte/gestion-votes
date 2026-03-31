@@ -6,7 +6,7 @@ namespace AgVote\Controller;
 
 use AgVote\Service\AttendancesService;
 use AgVote\Service\QuorumEngine;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use Throwable;
 
 /**
@@ -145,7 +145,7 @@ final class AttendancesController extends AbstractController {
             $quorumResult = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
             EventBroadcaster::quorumUpdated($meetingId, $quorumResult);
         } catch (Throwable $e) {
-            error_log('[WebSocket] Broadcast failed after attendance update: ' . $e->getMessage());
+            error_log('[SSE] Broadcast failed after attendance update: ' . $e->getMessage());
         }
 
         api_ok([

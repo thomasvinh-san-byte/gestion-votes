@@ -7,7 +7,7 @@ namespace AgVote\Controller;
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Service\MeetingWorkflowService;
 use AgVote\Service\OfficialResultsService;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use Throwable;
 
 /**
@@ -177,7 +177,7 @@ final class MeetingWorkflowController extends AbstractController {
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
         } catch (Throwable $e) {
-            error_log('[WebSocket] Broadcast failed after meeting transition: ' . $e->getMessage());
+            error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage());
         }
 
         api_ok([
@@ -289,7 +289,7 @@ final class MeetingWorkflowController extends AbstractController {
         try {
             EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $txResult['fromStatus']);
         } catch (Throwable $e) {
-            error_log('[WebSocket] Broadcast failed after meeting launch: ' . $e->getMessage());
+            error_log('[SSE] Broadcast failed after meeting launch: ' . $e->getMessage());
         }
 
         api_ok([

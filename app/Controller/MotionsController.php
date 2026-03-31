@@ -8,7 +8,7 @@ use AgVote\Core\Validation\InputValidator;
 use AgVote\Service\NotificationsService;
 use AgVote\Service\OfficialResultsService;
 use AgVote\Service\VoteTokenService;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use Throwable;
 
 /**
@@ -486,7 +486,7 @@ final class MotionsController extends AbstractController {
                 'secret' => $txResult['secret'],
             ]);
         } catch (Throwable) {
-            // Non-critical: WebSocket broadcast failure doesn't affect the response
+            // Non-critical: SSE broadcast failure doesn't affect the response
         }
 
         api_ok([
@@ -562,7 +562,7 @@ final class MotionsController extends AbstractController {
                 'reason' => $o['reason'] ?? null,
             ]);
         } catch (Throwable) {
-            // Non-critical: WebSocket broadcast failure doesn't affect the response
+            // Non-critical: SSE broadcast failure doesn't affect the response
         }
 
         $eligibleCount = 0;

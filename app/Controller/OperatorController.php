@@ -6,7 +6,7 @@ namespace AgVote\Controller;
 
 use AgVote\Service\MeetingValidator;
 use AgVote\Service\NotificationsService;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use Throwable;
 
 /**
