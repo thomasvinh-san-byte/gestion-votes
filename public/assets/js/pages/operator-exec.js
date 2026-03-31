@@ -1,3 +1,4 @@
+/* global anime, Node */
 /**
  * operator-exec.js — Execution mode + live view for the operator console.
  * Requires: utils.js, shared.js, operator-tabs.js (OpS bridge)

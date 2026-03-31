@@ -3241,13 +3241,13 @@ window.OpS = { fn: {} };
         if (file.size > 10 * 1024 * 1024) {
           window.AgToast
             ? window.AgToast.show('Le fichier depasse 10 Mo', 'error')
-            : notify('error', 'Le fichier depasse 10 Mo');
+            : setNotif('error', 'Le fichier depasse 10 Mo');
           return;
         }
         if (file.type !== 'application/pdf') {
           window.AgToast
             ? window.AgToast.show('Seuls les fichiers PDF sont acceptes', 'error')
-            : notify('error', 'Seuls les fichiers PDF sont acceptes');
+            : setNotif('error', 'Seuls les fichiers PDF sont acceptes');
           return;
         }
 
@@ -3269,16 +3269,16 @@ window.OpS = { fn: {} };
           .then(function(resp) {
             if (resp && resp.ok) {
               var msg = 'Document ajoute';
-              window.AgToast ? window.AgToast.show(msg, 'success') : notify('success', msg);
+              window.AgToast ? window.AgToast.show(msg, 'success') : setNotif('success', msg);
               updateOperatorDocBadge(cardEl, motionId);
             } else {
               var errMsg = (resp && resp.error) ? resp.error : 'Erreur';
-              window.AgToast ? window.AgToast.show(errMsg, 'error') : notify('error', errMsg);
+              window.AgToast ? window.AgToast.show(errMsg, 'error') : setNotif('error', errMsg);
             }
           })
           .catch(function() {
             var errMsg = 'Erreur reseau';
-            window.AgToast ? window.AgToast.show(errMsg, 'error') : notify('error', errMsg);
+            window.AgToast ? window.AgToast.show(errMsg, 'error') : setNotif('error', errMsg);
           });
       });
       input.click();

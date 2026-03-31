@@ -1,3 +1,4 @@
+/* global FilePond, FilePondPluginFileValidateType, FilePondPluginFileValidateSize */
 /* GO-LIVE-STATUS: ready — Wizard JS. Navigation 4 étapes, validation formulaire,
    localStorage draft, drag-drop résolutions, API wire. */
 /**
