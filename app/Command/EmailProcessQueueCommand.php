@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Command;
 
+// CLI tool — intentionally retained, no unit test required
+
 use AgVote\Core\Application;
 use AgVote\Service\EmailQueueService;
 use Symfony\Component\Console\Attribute\AsCommand;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Command;
 
+// CLI tool — intentionally retained, no unit test required
+
 use AgVote\Core\Providers\RedisProvider;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
