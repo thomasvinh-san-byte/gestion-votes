@@ -309,6 +309,10 @@
   margin-left: var(--space-2);
 }
 
+.login-spinner.visible {
+  display: inline-block;
+}
+
 @keyframes login-spin {
   to { transform: rotate(360deg); }
 }

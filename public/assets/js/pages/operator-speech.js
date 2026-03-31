@@ -68,7 +68,8 @@
     Shared.hide(noSpeaker);
     Shared.show(activeSpeaker, 'block');
 
-    document.getElementById('currentSpeakerName').textContent = O.currentSpeakerCache.full_name || '—';
+    const nameEl = document.getElementById('currentSpeakerName');
+    if (nameEl) nameEl.textContent = O.currentSpeakerCache.full_name || '—';
 
     // Start timer
     const startTime = O.currentSpeakerCache.updated_at ? new Date(O.currentSpeakerCache.updated_at).getTime() : Date.now();
@@ -228,7 +229,7 @@
       `
     });
 
-    document.getElementById('btnCancelAddSpeech').addEventListener('click', () => O.closeModal(modal));
+    document.getElementById('btnCancelAddSpeech')?.addEventListener('click', () => O.closeModal(modal));
 
     const btnConfirm = document.getElementById('btnConfirmAddSpeech');
     if (btnConfirm) {

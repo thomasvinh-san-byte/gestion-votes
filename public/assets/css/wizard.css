@@ -932,6 +932,26 @@ input[type="time"].field-input {
    RESPONSIVE
    ============================================================================= */
 
+/* Tablet / landscape (600-1024px) — keep horizontal, tighten spacing */
+@media (max-width: 1024px) and (min-width: 601px) {
+  .wiz-step-body {
+    padding: 1.25rem;
+  }
+
+  .wiz-template-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wiz-member-add-row .field--flex {
+    flex: 1 1 180px;
+  }
+
+  .step-nav {
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* Mobile (< 768px) — stack vertically */
 @media (max-width: 768px) {
   .wiz-template-grid {
     grid-template-columns: 1fr;

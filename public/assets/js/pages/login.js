@@ -12,8 +12,8 @@
   // Show session expired message if redirected from an expired session
   var params = new URLSearchParams(window.location.search);
   if (params.get('expired') === '1' && successBox) {
-    successBox.textContent = 'Votre session a expire. Veuillez vous reconnecter.';
-    successBox.style.display = 'block';
+    successBox.textContent = 'Votre session a expiré. Veuillez vous reconnecter.';
+    successBox.classList.add('visible');
   }
 
   // Floating label support: toggle .has-value on .field-group when input has content.
@@ -52,14 +52,14 @@
     var eyeClosed = toggleBtn.querySelector('.eye-closed');
     if (passwordInput.type === 'password') {
       passwordInput.type = 'text';
-      if (eyeOpen) eyeOpen.style.display = 'none';
-      if (eyeClosed) eyeClosed.style.display = '';
+      if (eyeOpen) eyeOpen.classList.add('hidden');
+      if (eyeClosed) eyeClosed.classList.remove('hidden');
       toggleBtn.setAttribute('aria-label', 'Masquer le mot de passe');
       toggleBtn.setAttribute('aria-pressed', 'true');
     } else {
       passwordInput.type = 'password';
-      if (eyeOpen) eyeOpen.style.display = '';
-      if (eyeClosed) eyeClosed.style.display = 'none';
+      if (eyeOpen) eyeOpen.classList.remove('hidden');
+      if (eyeClosed) eyeClosed.classList.add('hidden');
       toggleBtn.setAttribute('aria-label', 'Afficher le mot de passe');
       toggleBtn.setAttribute('aria-pressed', 'false');
     }
@@ -160,7 +160,7 @@
 
     submitBtn.disabled = true;
     btnText.textContent = 'Connexion...';
-    spinner.style.display = 'inline-block';
+    spinner.classList.add('visible');
     errorBox.classList.remove('visible');
     successBox.classList.remove('visible');
 
@@ -171,7 +171,7 @@
       showError(body.message || 'Erreur réseau. Vérifiez votre connexion.');
       submitBtn.disabled = false;
       btnText.textContent = 'Se connecter';
-      spinner.style.display = 'none';
+      spinner.classList.remove('visible');
       return;
     }
 
@@ -179,7 +179,7 @@
       var user = body.user || (body.data && body.data.user) || {};
       showSuccess('Connecté en tant que ' + (user.name || user.email || '') + ' (' + (roleLabel[user.role] || user.role) + ')');
       btnText.textContent = 'Connecté';
-      spinner.style.display = 'none';
+      spinner.classList.remove('visible');
 
       setTimeout(function() {
         api('/api/v1/whoami.php')
@@ -213,7 +213,7 @@
 
       submitBtn.disabled = false;
       btnText.textContent = 'Se connecter';
-      spinner.style.display = 'none';
+      spinner.classList.remove('visible');
     }
   });
 
