@@ -107,7 +107,7 @@
 ## Phases
 
 - [x] **Phase 58: WebSocket to SSE Rename** - Rename the `AgVote\WebSocket` namespace and `WebSocketListener` class to `AgVote\SSE` and `SseListener`; eliminate all "WebSocket" terminology from PHP source (completed 2026-03-31)
-- [ ] **Phase 59: Vote and Quorum Edge Cases** - Enforce explicit error responses for expired tokens, double votes, closed-motion votes, zero-member quorum, and real-time quorum updates via SSE
+- [x] **Phase 59: Vote and Quorum Edge Cases** - Enforce explicit error responses for expired tokens, double votes, closed-motion votes, zero-member quorum, and real-time quorum updates via SSE (completed 2026-03-31)
 - [ ] **Phase 60: Session, Import, and Auth Edge Cases** - Enforce invalid state transitions and live-session deletion guard; handle non-UTF-8 CSV encodings and email duplicates; guarantee redirect-with-message on session expiry and brute-force blocking
 - [ ] **Phase 61: Dead Code Cleanup** - Remove or implement controller stubs; purge copropriete/syndic vocabulary from demo seeds; audit and document or delete identified dead files
 
@@ -174,6 +174,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 58. WebSocket to SSE Rename | 2/2 | Complete    | 2026-03-31 |
-| 59. Vote and Quorum Edge Cases | 1/2 | In Progress|  |
+| 59. Vote and Quorum Edge Cases | 2/2 | Complete   | 2026-03-31 |
 | 60. Session, Import, and Auth Edge Cases | 0/TBD | Not started | - |
 | 61. Dead Code Cleanup | 0/TBD | Not started | - |

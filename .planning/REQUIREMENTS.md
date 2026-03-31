@@ -13,9 +13,9 @@
 
 ### Edge cases Vote (VOTE)
 
-- [ ] **VOTE-01**: Un vote avec un token expiré ou déjà utilisé retourne une erreur claire (pas 500)
-- [ ] **VOTE-02**: Un double vote avec le même token est rejeté et l'anomalie est loguée en audit
-- [ ] **VOTE-03**: Un vote sur une motion fermée retourne une erreur explicite
+- [x] **VOTE-01**: Un vote avec un token expiré ou déjà utilisé retourne une erreur claire (pas 500)
+- [x] **VOTE-02**: Un double vote avec le même token est rejeté et l'anomalie est loguée en audit
+- [x] **VOTE-03**: Un vote sur une motion fermée retourne une erreur explicite
 
 ### Edge cases Quorum (QUOR)
 
@@ -72,9 +72,9 @@
 | SSE-01 | Phase 58 | Complete |
 | SSE-02 | Phase 58 | Complete |
 | SSE-03 | Phase 58 | Complete |
-| VOTE-01 | Phase 59 | Pending |
-| VOTE-02 | Phase 59 | Pending |
-| VOTE-03 | Phase 59 | Pending |
+| VOTE-01 | Phase 59 | Complete |
+| VOTE-02 | Phase 59 | Complete |
+| VOTE-03 | Phase 59 | Complete |
 | QUOR-01 | Phase 59 | Complete |
 | QUOR-02 | Phase 59 | Complete |
 | SESS-01 | Phase 60 | Pending |

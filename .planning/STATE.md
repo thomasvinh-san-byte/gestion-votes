@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: executing
-stopped_at: Completed 59-02-PLAN.md
-last_updated: "2026-03-31T09:16:53.022Z"
-last_activity: "2026-03-31 — Phase 58 Plan 02 complete: all controllers/services/tests renamed to SSE"
+stopped_at: Completed 59-01-PLAN.md
+last_updated: "2026-03-31T09:45:00.000Z"
+last_activity: "2026-03-31 — Phase 59 Plan 01 complete: BallotsController vote edge cases hardened, 5 unit tests added"
 progress:
   total_phases: 4
   completed_phases: 1
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 ## Current Position
 
-Phase: 58 of 61 (WebSocket to SSE Rename) — COMPLETE
-Plan: 02 complete — Phase 59/60 next
+Phase: 59 of 61 (Vote and Quorum Edge Cases) — IN PROGRESS
+Plan: 01 complete — 59-02 next (or Phase 60 in parallel)
 Status: In progress
-Last activity: 2026-03-31 — Phase 58 Plan 02 complete: all controllers/services/tests renamed to SSE
+Last activity: 2026-03-31 — Phase 59 Plan 01 complete: BallotsController vote edge cases hardened, 5 unit tests added
 
 Progress: [██████████] 100%
 
@@ -42,6 +42,8 @@ Progress: [██████████] 100%
 - [Phase 58-websocket-to-sse-rename]: bootstrap.php WEBSOCKET AUTH TOKEN section header renamed to SSE AUTH TOKEN (residual auto-fixed during final grep verification)
 - [Phase 59-vote-and-quorum-edge-cases]: QUOR-01 already test-locked pre-execution — no changes to QuorumEngineTest.php required
 - [Phase 59-vote-and-quorum-edge-cases]: QUOR-02: SSE broadcast verified via 200 response — broadcast silently fails in test env, 200 proves path ran without blocking HTTP response
+- [Phase 59-01]: audit_log('vote_token_reuse') fires for both token_expired and token_already_used — covers all suspicious reuse patterns
+- [Phase 59-01]: BallotsService constructor dependencies (AttendancesService, ProxiesService) require their repos injected in unit tests to avoid null-PDO RuntimeException
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
