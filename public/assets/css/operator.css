@@ -1668,8 +1668,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.vote-results-live .for     { color: #22c55e; }
-.vote-results-live .against { color: #ef4444; }
+.vote-results-live .for     { color: var(--color-success); }
+.vote-results-live .against { color: var(--color-danger); }
 .vote-results-live .abstain { color: var(--color-text-muted); }
 
 .vote-controls-wrapper {

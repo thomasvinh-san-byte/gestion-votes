@@ -139,7 +139,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .analytics-period-pill.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-on-primary, #fff);
   box-shadow: none;
 }
 
@@ -628,7 +628,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   padding: 0 5px;
   border-radius: var(--radius-full);
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-text-on-primary, #fff);
   font-size: 11px;
   font-weight: 700;
   margin-left: var(--space-2);

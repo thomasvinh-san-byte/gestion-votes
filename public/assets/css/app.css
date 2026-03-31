@@ -789,7 +789,7 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
-  color: #fff;
+  color: var(--color-text-on-primary, #fff);
 }
 
 /* ── Dashboard panel / shortcut margins ── */
