@@ -66,9 +66,20 @@ final class BallotsController extends AbstractController {
             $tokenService = new VoteTokenService();
             $tokenResult = $tokenService->validateAndConsume($voteToken, api_current_tenant_id());
             if (!$tokenResult['valid']) {
+                $reason = $tokenResult['reason'] ?? 'unknown';
+                // Audit double-vote / expired-token attempts BEFORE api_fail (api_fail exits)
+                if (in_array($reason, ['token_already_used', 'token_expired'], true)) {
+                    audit_log('vote_token_reuse', 'motion', $motionId ?: null, [
+                        'token_hash' => $tokenResult['token_hash'] ?? null,
+                        'timestamp'  => date('c'),
+                        'ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+                        'member_id'  => $memberId ?: null,
+                        'reason'     => $reason,
+                    ]);
+                }
                 api_fail('invalid_vote_token', 401, [
                     'detail' => 'Token de vote invalide ou expiré.',
-                    'reason' => $tokenResult['reason'] ?? 'unknown',
+                    'reason' => $reason,
                 ]);
             }
             // Verify token matches the requested motion/member
@@ -88,7 +99,22 @@ final class BallotsController extends AbstractController {
             $data['_token_hash'] = $tokenHash;
         }
 
-        $ballot = (new BallotsService())->castBallot($data);
+        try {
+            $ballot = (new BallotsService())->castBallot($data);
+        } catch (\RuntimeException $e) {
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'n\'est pas ouverte au vote') || str_contains($msg, 'motion_closed')) {
+                audit_log('vote_rejected', 'motion', $motionId ?: null, [
+                    'reason'    => 'motion_closed',
+                    'member_id' => $memberId ?: null,
+                ]);
+                api_fail('motion_closed', 409, [
+                    'detail'        => 'Cette résolution n\'est plus ouverte au vote.',
+                    'motion_status' => 'closed',
+                ]);
+            }
+            api_fail('vote_rejected', 422, ['detail' => $msg]);
+        }
 
         $motionId = $data['motion_id'] ?? $ballot['motion_id'] ?? null;
         $meetingId = $ballot['meeting_id'] ?? $data['meeting_id'] ?? null;
