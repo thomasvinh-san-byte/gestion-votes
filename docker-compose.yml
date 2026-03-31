@@ -67,6 +67,7 @@ services:
       - /var/log/nginx:size=10M,uid=82,gid=82
       - /var/lib/nginx/tmp:size=64M,uid=82,gid=82
       - /var/lib/nginx/logs:size=1M,uid=82,gid=82
+      - /etc/nginx/http.d:size=1M,uid=82,gid=82
     security_opt:
       - no-new-privileges:true
     networks:
