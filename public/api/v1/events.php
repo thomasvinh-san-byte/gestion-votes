@@ -23,7 +23,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../../app/bootstrap.php';
 
 use AgVote\Core\Providers\RedisProvider;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 
 // ── Auth check (reuse session middleware logic) ──────────────────────────
 $authEnabled = getenv('APP_AUTH_ENABLED');
@@ -90,7 +90,7 @@ ignore_user_abort(false);
 // The broadcaster also publishes to a channel (we add this capability).
 
 $channelKey = "sse:meeting:{$meetingId}";
-$fallbackKey = 'ws:event_queue'; // Original queue key for fallback
+$fallbackKey = 'sse:event_queue'; // Fallback queue key
 
 // Send initial connection event
 sendEvent('connected', ['meeting_id' => $meetingId, 'server_time' => date('c')]);

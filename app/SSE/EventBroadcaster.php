@@ -287,7 +287,7 @@ class EventBroadcaster {
      * Verifie si le serveur SSE est actif.
      */
     public static function isServerRunning(): bool {
-        $pidFile = '/tmp/agvote-ws.pid';
+        $pidFile = '/tmp/agvote-sse.pid';
         if (!file_exists($pidFile)) {
             return false;
         }
