@@ -1,4 +1,4 @@
-# Guide de test local — AG-Vote
+# Guide de test local : AG-Vote
 
 Ce document décrit la **marche à suivre complète** pour lancer, tester et valider le projet AG-Vote en local via Docker. Il s'adresse aux développeurs et testeurs souhaitant vérifier le bon fonctionnement de l'application avant une mise en production ou une démonstration.
 
@@ -230,8 +230,8 @@ Lors des tests, voici les éléments à vérifier et documenter en cas d'anomali
 | Aucune erreur dans les logs | `make logs-err` (aucune ligne ne doit apparaître) |
 | Temps de réponse | Les pages chargent en < 2 s |
 | Temps réel (SSE) | Les votes et présences se mettent à jour sans recharger |
-| Tests PHPUnit | `make test` — tous les tests passent |
-| Smoke test | `bash scripts/smoke_test.sh` — 0 échec |
+| Tests PHPUnit | `make test` : tous les tests passent |
+| Smoke test | `bash scripts/smoke_test.sh` : 0 echec |
 
 ### Sécurité (test optionnel avec auth activée)
 
@@ -313,8 +313,8 @@ Pour relancer plus tard : `make dev`
 
 ## Références
 
-- [Scénario de recette complet](RECETTE_DEMO.md) — Parcours démo chronométré (10 min)
-- [Guide d'utilisation live](UTILISATION_LIVE.md) — Guide opérateur en séance
-- [Guide fonctionnel](GUIDE_FONCTIONNEL.md) — Présentation fonctionnelle de l'application
-- [FAQ](FAQ.md) — Questions fréquentes
-- [Architecture technique](dev/ARCHITECTURE.md) — Architecture du système
+- [Scenario de recette complet](RECETTE_DEMO.md) : parcours demo chronometre (10 min)
+- [Guide d'utilisation live](UTILISATION_LIVE.md) : guide operateur en seance
+- [Guide fonctionnel](GUIDE_FONCTIONNEL.md) : presentation fonctionnelle de l'application
+- [FAQ](FAQ.md) : questions frequentes
+- [Architecture technique](dev/ARCHITECTURE.md) : architecture du systeme

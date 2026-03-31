@@ -1,4 +1,4 @@
-# AG-Vote — Directive de projet
+# AG-Vote : Directive de projet
 
 > **Source de vérité** : (wireframe interactif React, 2 829 lignes, 16 pages, 203 interactions)
 
@@ -23,7 +23,7 @@ Le wireframe est la **seule référence**. Toute page, composant, interaction, f
 
 ### 1.3 Règles impératives
 
-- **Fidélité absolue** au wireframe — pas de créativité graphique non justifiée.
+- **Fidelite absolue** au wireframe, pas de creativite graphique non justifiee.
 - **Exception unique** : la page d'accueil nécessite de vrais champs utilisateur / mot de passe (le wireframe simule un `onLogin`).
 - **Traçabilité** : chaque ambiguïté du wireframe est documentée avec l'interprétation retenue.
 - **Cohérence** : les 16 pages partagent le même design system, la même sidebar, le même header.
@@ -45,7 +45,7 @@ Le wireframe référence explicitement ces textes. L'application **doit** les im
 |-------|-------|---------------------|
 | **Loi du 10 juillet 1965** (art. 22, 24, 25, 25-1, 26, 26-1) | Régimes de majorité | Wizard, Operator, Hub, Aide |
 | **Décret du 17 mars 1967** (art. 9, 47) | Délais convocations (21 jours), formalités | Wizard, Séances |
-| **Délibération CNIL n°2019-053** | Vote électronique — 3 niveaux de sécurité, séparation identité/bulletin | Paramètres, Aide, FAQ |
+| **Deliberation CNIL n 2019-053** | Vote electronique, 3 niveaux de securite, separation identite/bulletin | Parametres, Aide, FAQ |
 | **Règlement eIDAS** | Signature électronique (avancée / qualifiée) | PostSession (signature PV) |
 | **Loi n°2005-102, Décret n°2019-768** (art. 47) | Accessibilité numérique, déclaration obligatoire | Paramètres (déclaration RGAA) |
 | **RGPD** | Protection des données personnelles | Paramètres, mentions légales |
@@ -114,11 +114,11 @@ Le wireframe expose ces rôles dans la sidebar, les paramètres et les écrans d
 
 ```
 Créer séance (Wizard 4 étapes)
-    → Fiche séance (Hub — 6 étapes guidées)
+    → Fiche seance (Hub, 6 etapes guidees)
         → 1. Préparer (résolutions, documents)
         → 2. Convoquer (envoi, suivi, rappels)
         → 3. Émargement (présences, procurations, quorum)
-        → 4. Voter (pilotage en direct — PageOperator)
+        → 4. Voter (pilotage en direct, PageOperator)
             ↳ Ouvrir le vote → Attendre → Fermer → Proclamer
             ↳ Passerelle art. 25-1 si applicable
             ↳ Comptage manuel si nécessaire
@@ -173,7 +173,7 @@ Participant
 ├── statut_présence (enum: absent, présent, procuration, correspondance)
 ├── procuration_vers (nullable → Participant)
 ├── heure_émargement, signature_émargement
-└── voix (nombre — clé de répartition)
+└── voix (nombre, cle de repartition)
 
 Membre
 ├── id, nom, prénom, email, téléphone
@@ -185,7 +185,7 @@ Vote (bulletin)
 ├── id, résolution_id (→ Résolution)
 ├── choix (enum: pour, contre, abstention)
 ├── horodatage, empreinte_sha256
-├── participant_id (→ Participant) — SÉPARÉ (CNIL : séparation identité/bulletin)
+├── participant_id (→ Participant) SEPARE (CNIL : separation identite/bulletin)
 └── type (enum: direct, correspondance, procuration)
 
 ProcèsVerbal
@@ -228,7 +228,7 @@ TemplateCourriel
 
 ### 5.2 Point critique : séparation identité / bulletin (CNIL)
 
-Le wireframe montre explicitement un toggle « Séparation identité / bulletin — Activée (CNIL) ». Cela implique :
+Le wireframe montre explicitement un toggle "Separation identite / bulletin, Activee (CNIL)". Cela implique :
 
 - La table `Vote` ne doit **pas** contenir de FK directe vers `Participant` en mode activé
 - Utiliser une table intermédiaire d'émargement (`a_voté` : oui/non) sans lien avec le choix
@@ -236,7 +236,7 @@ Le wireframe montre explicitement un toggle « Séparation identité / bulletin 
 
 ---
 
-## 6. API — Endpoints
+## 6. API : Endpoints
 
 ### 6.1 Authentification
 
@@ -436,7 +436,7 @@ Le wireframe définit un design system complet avec 52 tokens CSS :
 | **Sémantique** | Danger `#C42828`, Succès `#0B7A40`, Warning `#B56700`, Purple `#5038C0` |
 | **Ombres** | 4 niveaux (xs → lg) + focus ring |
 | **Rayons** | 6px, 8px, 10px, 999px (pill) |
-| **Mode sombre** | Complet — tous les tokens redéfinis sous `[data-theme="dark"]` |
+| **Mode sombre** | Complet, tous les tokens redefinis sous `[data-theme="dark"]` |
 
 ### 11.2 Composants réutilisables (22)
 
@@ -490,10 +490,10 @@ Le wireframe implémente déjà 97% de conformité RGAA. Le code production doit
 
 | Critère | Implémentation wireframe |
 |---------|-------------------------|
-| RGAA 3.1 — Couleur seule | Icônes systématiques sur chaque tag statut |
-| WCAG 2.4.13 — Focus visible | Double anneau (surface + accent) en mode clair et sombre |
-| WCAG 2.3.3 — Reduced motion | `prefers-reduced-motion` désactive toutes animations |
-| WCAG 1.3.5 — Champs requis | `aria-required="true"` sur les 13+ champs obligatoires |
+| RGAA 3.1, Couleur seule | Icones systematiques sur chaque tag statut |
+| WCAG 2.4.13, Focus visible | Double anneau (surface + accent) en mode clair et sombre |
+| WCAG 2.3.3, Reduced motion | `prefers-reduced-motion` desactive toutes animations |
+| WCAG 1.3.5, Champs requis | `aria-required="true"` sur les 13+ champs obligatoires |
 | Focus trap | Toutes les modales piègent le focus |
 | Skip link | Lien « Aller au contenu principal » |
 | aria-live | Régions polite sur toasts et résultats temps réel |

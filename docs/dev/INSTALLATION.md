@@ -74,7 +74,7 @@ Structure attendue :
 ```
 gestion-votes/
   app/        # logique métier, services, bootstrap, config
-  public/     # racine web (HTML, HTMX, API)
+  public/     # racine web (HTML, JS, API)
   database/   # schéma SQL, seeds, migrations, setup.sh
   scripts/    # install-deps.sh (dépendances système)
   docs/       # documentation

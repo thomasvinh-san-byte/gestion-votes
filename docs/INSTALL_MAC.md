@@ -1,4 +1,4 @@
-# Installation sur macOS — AG-VOTE
+# Installation sur macOS : AG-VOTE
 
 Guide pas-à-pas pour installer et lancer **AG-VOTE** sur un Mac (Intel ou Apple Silicon).
 
@@ -134,7 +134,7 @@ docker compose logs -f app
 
 Attendez de voir :
 ```
-[INFO] AG-VOTE ready — http://0.0.0.0:8080
+[INFO] AG-VOTE ready : http://0.0.0.0:8080
 ```
 
 Appuyez sur `Ctrl+C` pour quitter les logs (l'application continue de tourner).

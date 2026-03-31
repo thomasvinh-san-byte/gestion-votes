@@ -1,4 +1,4 @@
-# Sécurité — AG-VOTE
+# Securite : AG-VOTE
 
 ## Table des matières
 

@@ -1,4 +1,4 @@
-# Installation Docker — AG-VOTE
+# Installation Docker : AG-VOTE
 
 Ce guide explique comment installer et lancer **AG-VOTE** via Docker sur une machine **Debian 12+ / Ubuntu 22.04+**.
 
@@ -114,7 +114,7 @@ C'est le mode adapté pour tester l'application. Aucune modification n'est néce
 
 ```bash
 cp .env.example .env
-# Prêt — aucune autre modification requise pour le test
+# Pret, aucune autre modification requise pour le test
 ```
 
 ### Mode production
@@ -127,17 +127,17 @@ APP_AUTH_ENABLED=1
 CSRF_ENABLED=1
 RATE_LIMIT_ENABLED=1
 
-# OBLIGATOIRE en production — générer un secret unique
+# OBLIGATOIRE en production, generer un secret unique
 APP_SECRET=$(openssl rand -hex 32)
 
-# Mot de passe de la base de données — changer impérativement
+# Mot de passe de la base de donnees, changer imperativement
 DB_PASS=un_vrai_mot_de_passe_fort
 
 # Environnement
 APP_ENV=production
 APP_DEBUG=0
 
-# CORS — adapter à votre nom de domaine ou IP
+# CORS, adapter a votre nom de domaine ou IP
 CORS_ALLOWED_ORIGINS=http://votre-serveur:8080
 ```
 
@@ -244,7 +244,7 @@ Vérifiez le mode réseau de la VM :
 
 | Mode réseau | Accès depuis l'hôte | Configuration |
 |---|---|---|
-| **Bridge** (recommandé) | `http://<IP_VM>:8080` | Aucune — la VM obtient sa propre IP sur le LAN |
+| **Bridge** (recommande) | `http://<IP_VM>:8080` | Aucune configuration necessaire. La VM obtient sa propre IP sur le LAN |
 | **NAT + port forwarding** | `http://localhost:8080` | Rediriger le port 8080 du host vers le port 8080 de la VM |
 | **Host-only** | `http://<IP_VM>:8080` | L'IP est sur le réseau host-only (ex : 192.168.56.x) |
 
