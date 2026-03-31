@@ -691,10 +691,10 @@ window.OpS = { fn: {} };
     const btnCancel = document.getElementById('btnCancelMember');
     const btnConfirm = document.getElementById('btnConfirmMember');
 
-    btnCancel.addEventListener('click', () => closeModal(modal));
-    btnConfirm.addEventListener('click', async () => {
-      const name = document.getElementById('newMemberName').value.trim();
-      const email = document.getElementById('newMemberEmail').value.trim();
+    if (btnCancel) btnCancel.addEventListener('click', () => closeModal(modal));
+    if (btnConfirm) btnConfirm.addEventListener('click', async () => {
+      const name = (document.getElementById('newMemberName')?.value || '').trim();
+      const email = (document.getElementById('newMemberEmail')?.value || '').trim();
 
       if (!name) {
         setNotif('error', 'Le nom est requis');
@@ -1106,21 +1106,28 @@ window.OpS = { fn: {} };
       const motionDiv = document.getElementById('dashCurrentMotion');
       if (d.current_motion) {
         Shared.show(motionDiv, 'block');
-        document.getElementById('dashMotionTitle').textContent = d.current_motion.title || '—';
+        const titleEl = document.getElementById('dashMotionTitle');
+        if (titleEl) titleEl.textContent = d.current_motion.title || '—';
         const votes = d.current_motion_votes || {};
-        document.getElementById('dashVoteFor').textContent = Shared.formatWeight(votes.weight_for ?? 0);
-        document.getElementById('dashVoteAgainst').textContent = Shared.formatWeight(votes.weight_against ?? 0);
-        document.getElementById('dashVoteAbstain').textContent = Shared.formatWeight(votes.weight_abstain ?? 0);
+        const vFor = document.getElementById('dashVoteFor');
+        const vAgainst = document.getElementById('dashVoteAgainst');
+        const vAbstain = document.getElementById('dashVoteAbstain');
+        if (vFor) vFor.textContent = Shared.formatWeight(votes.weight_for ?? 0);
+        if (vAgainst) vAgainst.textContent = Shared.formatWeight(votes.weight_against ?? 0);
+        if (vAbstain) vAbstain.textContent = Shared.formatWeight(votes.weight_abstain ?? 0);
       } else {
         Shared.hide(motionDiv);
       }
 
       // Ready to sign
       const ready = d.ready_to_sign || {};
-      if (ready.can) { Shared.show(document.getElementById('dashReadySign'), 'block'); } else { Shared.hide(document.getElementById('dashReadySign')); }
-      if (ready.can) { Shared.hide(document.getElementById('dashNotReadySign')); } else { Shared.show(document.getElementById('dashNotReadySign'), 'block'); }
+      const readyEl = document.getElementById('dashReadySign');
+      const notReadyEl = document.getElementById('dashNotReadySign');
+      if (ready.can) { Shared.show(readyEl, 'block'); } else { Shared.hide(readyEl); }
+      if (ready.can) { Shared.hide(notReadyEl); } else { Shared.show(notReadyEl, 'block'); }
       if (!ready.can && ready.reasons?.length) {
-        document.getElementById('dashReadyReasons').innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+        const reasonsEl = document.getElementById('dashReadyReasons');
+        if (reasonsEl) reasonsEl.innerHTML = ready.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('');
       }
     } catch (err) {
       setNotif('error', 'Erreur chargement tableau de bord');
