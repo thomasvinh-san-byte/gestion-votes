@@ -4,7 +4,7 @@ milestone: v5.1
 milestone_name: Operational Hardening
 status: executing
 stopped_at: Completed 61-01-PLAN.md
-last_updated: "2026-03-31T10:27:53.317Z"
+last_updated: "2026-03-31T10:37:05.399Z"
 last_activity: "2026-03-31 — Phase 60 Plan 01 complete: Invalid transition returns 422 with structured detail; live-session delete returns 409 with close-first hint"
 progress:
   total_phases: 4

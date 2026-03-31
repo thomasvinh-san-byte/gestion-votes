@@ -1,5 +1,14 @@
 # Milestones
 
+## v5.1 Operational Hardening (Shipped: 2026-03-31)
+
+**Phases completed:** 4 phases, 8 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v5.0 Quality & Production Readiness (Shipped: 2026-03-30)
 
 **Scope:** Achieve 90%+ test coverage, fix infrastructure bugs, harden Docker/CI pipeline, make AG-VOTE production-ready

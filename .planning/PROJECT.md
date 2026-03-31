@@ -29,11 +29,11 @@ A **self-hosted, open-source** alternative to commercial voting platforms for or
 ## Current State
 
 AG-VOTE is a **brownfield project** with a self-explanatory UX and full session lifecycle:
-- 38 PHP controllers, 30+ repositories, 18 services
+- 41 PHP controllers, 30+ repositories, 18 services
 - 23 custom Web Components (ag-pdf-viewer, ag-empty-state, + 21 originals), 29 page JS modules
 - Design system with structured CSS token hierarchy (primitive → semantic → component aliases), @layer (base/components/v4), three-depth background model (bg/surface/raised), dark/light parity
 - ~95,000 LOC (30k JS, 30k PHP, 35k CSS)
-- PHPUnit: 2241 unit tests (90.8% service coverage, 64.6% controller coverage), 64 integration tests
+- PHPUnit: 2331 unit tests (90.8% service coverage, 64.6% controller coverage), 64 integration tests
 - Playwright E2E: 18 specs, 177 tests (chromium + mobile-chrome + tablet)
 - CI pipeline: 7 GitHub Actions jobs (validate, lint, migrate-check, coverage, build, e2e, integration)
 - "Officiel et confiance" visual identity — bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono
@@ -73,9 +73,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v5.0: Quality & Production Readiness — 2241 PHPUnit tests (Services 90.8%, Controllers 64.6%), 177 Playwright E2E tests, Docker healthcheck/entrypoint fixes, migration audit (zero SQLite syntax), CI pipeline with 7 jobs (coverage gate, E2E, integration, migration validation). ControllerTestCase base class for execution-based controller testing.
 
+- v5.1: Operational Hardening — WebSocket→SSE namespace rename, vote/quorum edge cases (token reuse audit, closed-motion 409, zero-member safety), session/import/auth hardening (CSV encoding detection, duplicate email pre-scan, session expiry redirect, configurable rate limiting with audit), dead code cleanup (vocabulary purge, Command file documentation). 2331 PHPUnit tests, 0 failures.
+
 ### Active
 
-**v5.1 Operational Hardening** : boucher tous les trous logiques, renommer WebSocket→SSE, auditer les edge cases sur l'ensemble du domaine (vote, quorum, sessions, import, auth), nettoyer le code mort et les incohérences.
+(No active milestone — ready for next milestone planning)
 
 ### Out of Scope
 
