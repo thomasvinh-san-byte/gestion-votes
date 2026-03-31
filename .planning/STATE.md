@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 Phase: All 6 phases complete (52-57)
 Plan: All 18 plans complete
 Status: Milestone v5.0 shipped and archived
-Last activity: 2026-03-31 — Completed quick task 260331-854: Wizard field layout and time input modernization
+Last activity: 2026-03-31 : Completed quick task 260331-901: Modernize all documentation files
 
 Progress: [██████████] 100%
 
@@ -65,6 +65,7 @@ None.
 | 260331-7s9 | Remove voting weight/ponderation from UI and sample CSV | 2026-03-31 | 7cb5378 | [260331-7s9-remove-voting-weight-ponderation-from-ui](./quick/260331-7s9-remove-voting-weight-ponderation-from-ui/) |
 | 260331-854 | Wizard field layout and time input modernization | 2026-03-31 | e655a46 | [260331-854-wizard-field-layout-and-time-input-moder](./quick/260331-854-wizard-field-layout-and-time-input-moder/) |
 | 260331-8wf | Modernize project README.md | 2026-03-31 | 868c43a | [260331-8wf-modernize-project-readme-md](./quick/260331-8wf-modernize-project-readme-md/) |
+| 260331-901 | Modernize all documentation files | 2026-03-31 | c4e68b1 | [260331-901-modernize-all-docs-rich-french-no-em-das](./quick/260331-901-modernize-all-docs-rich-french-no-em-das/) |
 
 ## Session Continuity
 
