@@ -75,7 +75,7 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-No active milestone — v5.0 complete. Next: `/gsd:new-milestone` for v5.1 or v6.0.
+**v5.1 Operational Hardening** : boucher tous les trous logiques, renommer WebSocket→SSE, auditer les edge cases sur l'ensemble du domaine (vote, quorum, sessions, import, auth), nettoyer le code mort et les incohérences.
 
 ### Out of Scope
 
@@ -130,4 +130,4 @@ Deferred ideas:
 | v5.0 quality milestone | Production readiness requires 90%+ test coverage before new features | ✓ Good — Services 90.8%, 2241 unit + 177 E2E tests, full CI pipeline |
 
 ---
-*Last updated: 2026-03-30 after v5.0 milestone complete*
+*Last updated: 2026-03-31 after v5.1 milestone started*
