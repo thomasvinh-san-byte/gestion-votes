@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: executing
-stopped_at: Completed 60-01-PLAN.md
-last_updated: "2026-03-31T10:15:00.000Z"
+stopped_at: Completed 60-03-PLAN.md
+last_updated: "2026-03-31T10:03:11.380Z"
 last_activity: "2026-03-31 — Phase 60 Plan 01 complete: Invalid transition returns 422 with structured detail; live-session delete returns 409 with close-first hint"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 100
 ---
 
@@ -50,6 +50,9 @@ Progress: [██████████] 100%
 - [Phase 60-01]: api_fail() preferred over self::deny() in requireTransition() — deny() hides extras behind debug flag, api_fail() always includes structured fields
 - [Phase 60-01]: Invalid transitions are not audit-logged (normal user input errors, not security events)
 - [Phase 60-01]: live-specific meeting_live_cannot_delete guard precedes generic meeting_not_draft check in deleteMeeting()
+- [Phase 60-03]: session_expired uses static flag in AuthMiddleware consumed in deny() — avoids parameter chain changes
+- [Phase 60-03]: ApiResponseException used directly in login() for 429 — api_fail() cannot set custom Retry-After header
+- [Phase 60-03]: ControllerTestCase::setUp() now resets APP_AUTH_ENABLED=0 to prevent env var leakage from AuthMiddlewareTest
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
@@ -76,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T10:15:00.000Z
-Stopped at: Completed 60-01-PLAN.md
+Last session: 2026-03-31T10:03:11.378Z
+Stopped at: Completed 60-03-PLAN.md
 Resume file: None

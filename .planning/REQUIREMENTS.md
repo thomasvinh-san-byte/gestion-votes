@@ -34,8 +34,8 @@
 
 ### Edge cases Auth (AUTH)
 
-- [ ] **AUTH-01**: Une session expirée redirige vers /login avec un message clair (pas de page blanche)
-- [ ] **AUTH-02**: Les tentatives de brute force sont bloquées et l'IP est loguée dans l'audit trail
+- [x] **AUTH-01**: Une session expirée redirige vers /login avec un message clair (pas de page blanche)
+- [x] **AUTH-02**: Les tentatives de brute force sont bloquées et l'IP est loguée dans l'audit trail
 
 ### Nettoyage code mort (CLEAN)
 
@@ -81,8 +81,8 @@
 | SESS-02 | Phase 60 | Complete |
 | IMP-01 | Phase 60 | Complete |
 | IMP-02 | Phase 60 | Complete |
-| AUTH-01 | Phase 60 | Pending |
-| AUTH-02 | Phase 60 | Pending |
+| AUTH-01 | Phase 60 | Complete |
+| AUTH-02 | Phase 60 | Complete |
 | CLEAN-01 | Phase 61 | Pending |
 | CLEAN-02 | Phase 61 | Pending |
 | CLEAN-03 | Phase 61 | Pending |
