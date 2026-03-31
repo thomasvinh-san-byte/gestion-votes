@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
-status: in_progress
-stopped_at: Completed 58-01-PLAN.md
-last_updated: "2026-03-31T08:02:19.869Z"
-last_activity: "2026-03-31 — Phase 58 Plan 01 complete: WebSocket to SSE core rename"
+status: executing
+stopped_at: Completed 58-02-PLAN.md
+last_updated: "2026-03-31T08:06:58.799Z"
+last_activity: "2026-03-31 — Phase 58 Plan 01 complete: core SSE infrastructure renamed"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 25
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 58 — WebSocket to SSE Rename (Plan 01 complete, Plan 02 next)
+**Current focus:** Phase 58 complete — Phase 59/60 next (parallel: vote/quorum + session/import/auth)
 
 ## Current Position
 
-Phase: 58 of 61 (WebSocket to SSE Rename)
-Plan: 01 complete — Plan 02 next
+Phase: 58 of 61 (WebSocket to SSE Rename) — COMPLETE
+Plan: 02 complete — Phase 59/60 next
 Status: In progress
-Last activity: 2026-03-31 — Phase 58 Plan 01 complete: core SSE infrastructure renamed
+Last activity: 2026-03-31 — Phase 58 Plan 02 complete: all controllers/services/tests renamed to SSE
 
-Progress: [██░░░░░░░░] 25%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -39,6 +39,7 @@ Progress: [██░░░░░░░░] 25%
 - [v5.1 roadmap]: Phase 59 and 60 can run in parallel after 58 — they target independent subsystems (vote/quorum vs. session/import/auth)
 - [v5.1 roadmap]: Phase 61 depends on both 59 and 60 to be complete before cleanup
 - [Phase 58-websocket-to-sse-rename]: Renamed Redis queue keys from ws:event_queue to sse:event_queue for consistent terminology
+- [Phase 58-websocket-to-sse-rename]: bootstrap.php WEBSOCKET AUTH TOKEN section header renamed to SSE AUTH TOKEN (residual auto-fixed during final grep verification)
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
@@ -65,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T08:02:19.866Z
-Stopped at: Completed 58-01-PLAN.md
+Last session: 2026-03-31T08:06:54.813Z
+Stopped at: Completed 58-02-PLAN.md
 Resume file: None
