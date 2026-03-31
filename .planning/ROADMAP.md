@@ -138,7 +138,11 @@ Plans:
   3. Submitting a vote on a motion whose status is "closed" returns an explicit error message stating the motion is no longer accepting votes — the vote is not recorded
   4. The quorum calculation function returns 0% (or equivalent zero-safe value) when zero members are present — no division-by-zero exception is raised
   5. When an operator adds or removes an attendee while a vote is open, the quorum percentage displayed in the operator console updates in real time via an SSE event without requiring a page reload
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 59-01-PLAN.md — Add audit_log calls for token reuse/expiry and try/catch RuntimeException for closed-motion in BallotsController::cast(), plus unit tests for VOTE-01/02/03
+- [ ] 59-02-PLAN.md — Verify QUOR-01 zero-member test lock exists, add QUOR-02 quorum broadcast tests to AttendancesControllerTest
 
 ### Phase 60: Session, Import, and Auth Edge Cases
 **Goal**: Sessions enforce their state machine, CSV import handles encoding and duplicates gracefully, and authentication failures always produce informative user-facing responses
@@ -170,6 +174,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 58. WebSocket to SSE Rename | 2/2 | Complete    | 2026-03-31 |
-| 59. Vote and Quorum Edge Cases | 0/TBD | Not started | - |
+| 59. Vote and Quorum Edge Cases | 0/2 | Not started | - |
 | 60. Session, Import, and Auth Edge Cases | 0/TBD | Not started | - |
 | 61. Dead Code Cleanup | 0/TBD | Not started | - |
