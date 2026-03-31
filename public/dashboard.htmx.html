@@ -57,7 +57,7 @@
             </ul>
           </div>
         </ag-popover>
-        <a class="btn btn-primary btn-sm" href="/wizard.htmx.html">
+        <a class="btn btn-primary btn-sm" href="/wizard">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
           Nouvelle s&eacute;ance
         </a>
@@ -68,7 +68,7 @@
       <div class="dashboard-content">
 
         <!-- Urgent Banner — hidden by default, JS reveals when live session exists -->
-        <a href="/hub.htmx.html" class="dashboard-urgent" id="actionUrgente" hidden>
+        <a href="/hub" class="dashboard-urgent" id="actionUrgente" hidden>
           <div class="dashboard-urgent__icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
           </div>
@@ -85,7 +85,7 @@
         <!-- KPI Row — 4 cards filling width -->
         <div class="dashboard-kpis">
           <ag-tooltip text="Sessions AG planifi&eacute;es ou en pr&eacute;paration" position="bottom">
-            <a href="/meetings.htmx.html" class="kpi-card kpi-card--1" aria-label="AG &agrave; venir">
+            <a href="/meetings" class="kpi-card kpi-card--1" aria-label="AG &agrave; venir">
               <div class="kpi-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
               </div>
@@ -94,7 +94,7 @@
             </a>
           </ag-tooltip>
           <ag-tooltip text="Sessions en cours de vote en direct" position="bottom">
-            <a href="/operator.htmx.html" class="kpi-card kpi-card--2" aria-label="En cours">
+            <a href="/operator" class="kpi-card kpi-card--2" aria-label="En cours">
               <div class="kpi-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
               </div>
@@ -103,7 +103,7 @@
             </a>
           </ag-tooltip>
           <ag-tooltip text="Convocations en attente d'envoi" position="bottom">
-            <a href="/hub.htmx.html" class="kpi-card kpi-card--3" aria-label="Convocations en attente">
+            <a href="/hub" class="kpi-card kpi-card--3" aria-label="Convocations en attente">
               <div class="kpi-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
               </div>
@@ -112,7 +112,7 @@
             </a>
           </ag-tooltip>
           <ag-tooltip text="Proc&egrave;s-verbaux &agrave; finaliser et envoyer" position="bottom">
-            <a href="/postsession.htmx.html" class="kpi-card kpi-card--4" aria-label="PV &agrave; envoyer">
+            <a href="/postsession" class="kpi-card kpi-card--4" aria-label="PV &agrave; envoyer">
               <div class="kpi-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
               </div>
@@ -132,7 +132,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
                 S&eacute;ances
               </h2>
-              <a class="btn btn-sm btn-ghost" href="/meetings.htmx.html">
+              <a class="btn btn-sm btn-ghost" href="/meetings">
                 Tout voir
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
               </a>
@@ -149,7 +149,7 @@
           <aside class="dashboard-aside">
             <h2 class="dashboard-aside__title">Acc&egrave;s rapides</h2>
             <ag-tooltip text="Cr&eacute;er une nouvelle session en 4 &eacute;tapes" position="left">
-              <a href="/wizard.htmx.html" class="shortcut-card">
+              <a href="/wizard" class="shortcut-card">
                 <div class="shortcut-card-icon accent">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 </div>
@@ -160,7 +160,7 @@
               </a>
             </ag-tooltip>
             <ag-tooltip text="Acc&eacute;der &agrave; la console op&eacute;rateur pour piloter un vote en direct" position="left">
-              <a href="/operator.htmx.html" class="shortcut-card">
+              <a href="/operator" class="shortcut-card">
                 <div class="shortcut-card-icon danger">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
                 </div>
@@ -171,7 +171,7 @@
               </a>
             </ag-tooltip>
             <ag-tooltip text="Voir le journal de tra&ccedil;abilit&eacute; et l'historique des actions" position="left">
-              <a href="/trust.htmx.html" class="shortcut-card">
+              <a href="/trust" class="shortcut-card">
                 <div class="shortcut-card-icon muted">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
                 </div>
@@ -189,7 +189,7 @@
     </main>
 
     <footer class="app-footer mobile-footer" role="contentinfo">
-      <a href="/dashboard.htmx.html" class="logo" aria-label="AG-VOTE">
+      <a href="/dashboard" class="logo" aria-label="AG-VOTE">
         <span class="logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
@@ -197,8 +197,8 @@
       </a>
       <span class="text-muted">v3.19</span>
       <span class="mobile-footer-spacer"></span>
-      <a href="/help.htmx.html" class="text-muted mobile-footer-link">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
+      <a href="/help" class="text-muted mobile-footer-link">Aide</a>
+      <a href="/settings#accessibilite" class="text-muted mobile-footer-link">Accessibilit&eacute;</a>
     </footer>
   </div>
 

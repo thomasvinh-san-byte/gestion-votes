@@ -563,7 +563,7 @@
       '{{date}}': '15/04/2026',
       '{{heure}}': '14h00',
       '{{lieu}}': 'Salle du Conseil',
-      '{{syndic}}': 'Syndic Exemple SARL',
+      '{{organisation}}': 'Association Exemple',
       '{{lien_vote}}': 'https://vote.example.com/abc123'
     };
     Object.keys(samples).forEach(function(k) {

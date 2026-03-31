@@ -36,11 +36,17 @@
         // Propagate meeting_id to sidebar nav links using MeetingContext
         const mid = (typeof MeetingContext !== 'undefined') ? MeetingContext.get() : null;
         if (mid) {
+          // Pages that accept meeting context via clean URL /page/UUID
+          var meetingPages = ['hub', 'operator', 'postsession', 'vote', 'validate', 'public', 'trust', 'audit', 'analytics'];
           sidebar.querySelectorAll('a.nav-item[href]').forEach(function (a) {
-            const href = a.getAttribute('href') || '';
-            // Skip archives and admin — they don't need meeting context
-            if (href.indexOf('admin') !== -1 || href.indexOf('archives') !== -1) return;
-            a.href = href.split('?')[0] + '?meeting_id=' + encodeURIComponent(mid);
+            var href = a.getAttribute('href') || '';
+            // Skip admin/archives/settings/help — no meeting context needed
+            if (href.indexOf('admin') !== -1 || href.indexOf('archives') !== -1 || href.indexOf('settings') !== -1 || href.indexOf('help') !== -1) return;
+            // Extract page name from clean URL /page
+            var match = href.match(/^\/([a-z-]+)$/);
+            if (match && meetingPages.indexOf(match[1]) !== -1) {
+              a.href = '/' + match[1] + '/' + encodeURIComponent(mid);
+            }
           });
         }
       })

@@ -346,10 +346,13 @@
 
     // Allowed pages for voters
     var path = window.location.pathname;
-    var allowed = ['/vote.htmx.html', '/vote', '/public.htmx.html', '/public', '/help.htmx.html', '/help', '/docs.htmx.html', '/docs'];
-    for (var i = 0; i < allowed.length; i++) {
-      if (path === allowed[i]) return;
+    // Allowed pages for voters (exact match or /page/UUID pattern)
+    var allowedExact = ['/vote.htmx.html', '/vote', '/public.htmx.html', '/public', '/help.htmx.html', '/help', '/docs.htmx.html', '/docs'];
+    for (var i = 0; i < allowedExact.length; i++) {
+      if (path === allowedExact[i]) return;
     }
+    // Clean URLs with UUID: /vote/UUID, /public/UUID
+    if (/^\/(vote|public|help|docs)\/[0-9a-f-]+$/i.test(path)) return;
 
     // Redirect to vote page
     window.location.href = '/vote' + window.location.search;

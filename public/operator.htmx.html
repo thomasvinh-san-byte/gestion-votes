@@ -96,7 +96,7 @@
         <ag-tooltip text="Disponible après ajout des membres, enregistrement des présences et configuration du vote" position="bottom">
           <button class="btn btn-sm btn-primary" id="btnPrimary" disabled>Ouvrir la séance</button>
         </ag-tooltip>
-        <a class="btn btn-sm btn-secondary" id="btnProjector" href="/public.htmx.html" target="_blank" data-meeting-link>
+        <a class="btn btn-sm btn-secondary" id="btnProjector" href="/public" target="_blank" data-meeting-link>
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
         </a>
       </div>
@@ -189,7 +189,7 @@
           <svg class="icon icon-3x" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
           <h2>Sélectionnez une séance</h2>
           <p>Choisissez une séance dans la liste ci-dessus pour accéder à la gestion complète.</p>
-          <a href="/meetings.htmx.html" class="btn btn-primary mt-4">Voir toutes les séances</a>
+          <a href="/meetings" class="btn btn-primary mt-4">Voir toutes les séances</a>
         </div>
 
         <!-- ============================================================
@@ -413,7 +413,7 @@
             <div class="tab-content" id="tab-seance" role="tabpanel" aria-labelledby="tab-btn-seance" tabindex="0">
               <div id="noMembersHint" class="alert alert-info mb-4" hidden>
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-                <span>Aucun membre enregistré. <a href="/members.htmx.html">Ajoutez des membres</a> pour pouvoir gérer les présences et lancer la séance.</span>
+                <span>Aucun membre enregistré. <a href="/members">Ajoutez des membres</a> pour pouvoir gérer les présences et lancer la séance.</span>
               </div>
               <div class="settings-grid">
                 <div class="settings-section">
@@ -560,7 +560,7 @@
                   <strong>Aucun membre enregistré</strong>
                   <p>Ajoutez des membres dans le registre avant de pouvoir gérer les présences.</p>
                 </div>
-                <a href="/members.htmx.html" class="btn btn-primary btn-sm">
+                <a href="/members" class="btn btn-primary btn-sm">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg>
                   Gérer les membres
                 </a>
@@ -605,7 +605,7 @@
 
               <div class="readiness-strip" data-readiness-strip></div>
               <div class="tab-footer-actions">
-                <a href="/members.htmx.html" class="btn btn-secondary">Gestion avancée des membres</a>
+                <a href="/members" class="btn btn-secondary">Gestion avancée des membres</a>
                 <button class="btn btn-secondary" data-tab-switch="ordre-du-jour">Étape suivante : Ordre du jour <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-arrow-right"></use></svg></button>
               </div>
             </div>
@@ -775,7 +775,7 @@
                       </button>
                     </ag-popover>
                     <ag-popover title="Templates d'email" content="Personnalisez le contenu des emails envoyés." position="top">
-                      <a slot="trigger" href="/email-templates.htmx.html" class="btn btn-sm btn-secondary">
+                      <a slot="trigger" href="/email-templates" class="btn btn-sm btn-secondary">
                         <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-settings"></use></svg>
                       </a>
                     </ag-popover>
@@ -963,7 +963,7 @@
                  =========================================================== -->
             <div class="tab-content" id="tab-vote" role="tabpanel" aria-labelledby="tab-btn-vote" tabindex="0">
               <div class="tab-toolbar mb-4">
-                <a href="/public.htmx.html" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
+                <a href="/public" target="_blank" class="btn btn-secondary" id="btnOpenPublicScreen" data-meeting-link>
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-external-link"></use></svg> Écran de projection
                 </a>
                 <button class="btn btn-secondary" id="btnGenerateTokens">
@@ -1085,7 +1085,7 @@
                     <p>Détail par résolution</p>
                   </div>
                 </a>
-                <a href="/report.htmx.html" class="export-card" id="exportReport" data-meeting-link>
+                <a href="/report" class="export-card" id="exportReport" data-meeting-link>
                   <span class="export-icon"><svg class="icon icon-lg" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg></span>
                   <div class="export-info">
                     <h4>Rapport complet</h4>
@@ -1114,10 +1114,10 @@
                 <div class="close-session-next" id="closeSessionNext" hidden>
                   <p class="text-sm text-muted mb-3">Séance clôturée. Poursuivez le parcours :</p>
                   <div class="flex gap-2 flex-wrap">
-                    <a href="/postsession.htmx.html" class="btn btn-primary">
+                    <a href="/postsession" class="btn btn-primary">
                       <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-square"></use></svg> Clôture &amp; PV
                     </a>
-                    <a href="/validate.htmx.html" class="btn btn-secondary">
+                    <a href="/validate" class="btn btn-secondary">
                       <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield-check"></use></svg> Validation
                     </a>
                   </div>
@@ -1144,7 +1144,7 @@
             </div>
             <div class="op-exec-header-right">
               <span class="op-live-chrono" id="opExecTimer">00:00:00</span>
-              <a class="btn btn-sm btn-secondary" id="opBtnRoomDisplay" href="/public.htmx.html" target="_blank" data-meeting-link>
+              <a class="btn btn-sm btn-secondary" id="opBtnRoomDisplay" href="/public" target="_blank" data-meeting-link>
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
               </a>
               <ag-tooltip text="Clôturer la séance en cours" position="bottom">
@@ -1515,7 +1515,7 @@
     </div><!-- /op-body -->
 
     <footer class="app-footer" role="contentinfo">
-      <a href="/dashboard.htmx.html" class="logo footer-logo" aria-label="AG-VOTE">
+      <a href="/dashboard" class="logo footer-logo" aria-label="AG-VOTE">
         <span class="logo-mark footer-logo-mark">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         </span>
@@ -1523,8 +1523,8 @@
       </a>
       <span class="text-muted">v4.3</span>
       <span class="flex-spacer"></span>
-      <a href="/help.htmx.html" class="text-muted footer-link">Aide</a>
-      <a href="/settings.htmx.html#accessibilite" class="text-muted footer-link">Accessibilité</a>
+      <a href="/help" class="text-muted footer-link">Aide</a>
+      <a href="/settings#accessibilite" class="text-muted footer-link">Accessibilité</a>
     </footer>
 
   </div><!-- /app-shell -->

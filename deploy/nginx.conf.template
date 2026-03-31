@@ -159,8 +159,13 @@ server {
         rewrite ^ /$1.htmx.html last;
     }
 
+    # ── Clean URLs: /login → login.html (special case: no .htmx suffix) ──
+    location = /login {
+        rewrite ^ /login.html last;
+    }
+
     # ── Clean URLs: /page → page.htmx.html ─────────────────────────────
-    location ~ ^/(dashboard|wizard|hub|operator|postsession|vote|validate|archives|meetings|audit|members|users|analytics|settings|admin|help|email-templates|public|report|trust|docs|login)/?$ {
+    location ~ ^/(dashboard|wizard|hub|operator|postsession|vote|validate|archives|meetings|audit|members|users|analytics|settings|admin|help|email-templates|public|report|trust|docs)/?$ {
         rewrite ^ /$1.htmx.html last;
     }
 
