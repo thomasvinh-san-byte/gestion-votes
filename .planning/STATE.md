@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v5.1
-milestone_name: Operational Hardening
-status: executing
-stopped_at: Completed 61-01-PLAN.md
-last_updated: "2026-03-31T10:37:05.399Z"
-last_activity: "2026-03-31 — Phase 60 Plan 01 complete: Invalid transition returns 422 with structured detail; live-session delete returns 409 with close-first hint"
+milestone: v6.0
+milestone_name: Production & Email
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-31T12:00:00.000Z"
+last_activity: "2026-03-31 — Milestone v6.0 started: Production & Email"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 58 complete — Phase 59/60 next (parallel: vote/quorum + session/import/auth)
+**Current focus:** v6.0 Production & Email — deploy to Render, send emails with links, in-app notifications
 
 ## Current Position
 
-Phase: 60 of 61 (Session Import and Auth Edge Cases) — IN PROGRESS
-Plan: 01 complete — 60-02 and beyond continuing
-Status: In progress
-Last activity: 2026-03-31 — Fixed admin login: removed duplicate rate limit on auth_login route (Phase 60 regression)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-31 — Milestone v6.0 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
