@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: in_progress
-stopped_at: Roadmap created — ready to plan Phase 58
-last_updated: "2026-03-31T00:00:00.000Z"
-last_activity: "2026-03-31 — v5.1 roadmap created (4 phases, 17 requirements mapped)"
+stopped_at: Completed 58-01-PLAN.md
+last_updated: "2026-03-31T08:02:19.869Z"
+last_activity: "2026-03-31 — Phase 58 Plan 01 complete: WebSocket to SSE core rename"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 25
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 58 — WebSocket to SSE Rename (ready to plan)
+**Current focus:** Phase 58 — WebSocket to SSE Rename (Plan 01 complete, Plan 02 next)
 
 ## Current Position
 
 Phase: 58 of 61 (WebSocket to SSE Rename)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-31 — v5.1 roadmap created; 4 phases, 17 requirements mapped
+Plan: 01 complete — Plan 02 next
+Status: In progress
+Last activity: 2026-03-31 — Phase 58 Plan 01 complete: core SSE infrastructure renamed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 25%
 
 ## Accumulated Context
 
@@ -38,6 +38,7 @@ Progress: [░░░░░░░░░░] 0%
 
 - [v5.1 roadmap]: Phase 59 and 60 can run in parallel after 58 — they target independent subsystems (vote/quorum vs. session/import/auth)
 - [v5.1 roadmap]: Phase 61 depends on both 59 and 60 to be complete before cleanup
+- [Phase 58-websocket-to-sse-rename]: Renamed Redis queue keys from ws:event_queue to sse:event_queue for consistent terminology
 
 ### Known Tech Debt Carried Forward
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
@@ -64,6 +65,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31
-Stopped at: v5.1 roadmap written — Phase 58 ready to plan
+Last session: 2026-03-31T08:02:19.866Z
+Stopped at: Completed 58-01-PLAN.md
 Resume file: None

@@ -169,7 +169,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 58. WebSocket to SSE Rename | 0/2 | Not started | - |
+| 58. WebSocket to SSE Rename | 1/2 | In Progress|  |
 | 59. Vote and Quorum Edge Cases | 0/TBD | Not started | - |
 | 60. Session, Import, and Auth Edge Cases | 0/TBD | Not started | - |
 | 61. Dead Code Cleanup | 0/TBD | Not started | - |
