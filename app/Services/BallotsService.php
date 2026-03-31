@@ -9,7 +9,7 @@ use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
@@ -201,12 +201,12 @@ final class BallotsService {
             throw $e;
         }
 
-        // Broadcast WebSocket event with updated tally (outside transaction)
+        // Broadcast SSE event with updated tally (outside transaction)
         try {
             $tally = $this->ballotRepo->tally($motionId, $tenantId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
-            error_log('[WebSocket] Broadcast failed after vote cast: ' . $e->getMessage());
+            error_log('[SSE] Broadcast failed after vote cast: ' . $e->getMessage());
         }
 
         $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);

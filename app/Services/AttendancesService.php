@@ -8,7 +8,7 @@ use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
-use AgVote\WebSocket\EventBroadcaster;
+use AgVote\SSE\EventBroadcaster;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
@@ -148,14 +148,14 @@ final class AttendancesService {
     }
 
     /**
-     * Broadcast attendance stats via WebSocket.
+     * Broadcast attendance stats via SSE.
      */
     private function broadcastAttendanceStats(string $meetingId, string $tenantId): void {
         try {
             $stats = $this->attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
         } catch (Throwable $e) {
-            error_log('[WebSocket] Broadcast failed after bulk attendance update: ' . $e->getMessage());
+            error_log('[SSE] Broadcast failed after bulk attendance update: ' . $e->getMessage());
         }
     }
 }

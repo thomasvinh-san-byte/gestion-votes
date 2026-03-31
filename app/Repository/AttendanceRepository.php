@@ -113,7 +113,7 @@ class AttendanceRepository extends AbstractRepository {
     }
 
     /**
-     * Statistics par mode de presence (pour WebSocket broadcast).
+     * Statistics par mode de presence (pour SSE broadcast).
      */
     public function getStatsByMode(string $meetingId, string $tenantId): array {
         $row = $this->selectOne(
