@@ -267,16 +267,8 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
               <div>
                 <div class="upload-zone-title">Glissez votre fichier</div>
-                <div class="muted">Colonnes attendues : Nom, Courriel, Poids de vote</div>
+                <div class="muted">Colonnes attendues : Nom, Courriel</div>
               </div>
-            </div>
-
-            <!-- Voting power toggle -->
-            <div class="wiz-toggle-row">
-              <label class="toggle-label" for="wizVotingPowerToggle">
-                <input type="checkbox" id="wizVotingPowerToggle" role="switch">
-                Activer la pond&eacute;ration des voix
-              </label>
             </div>
 
             <!-- Member add form — single horizontal row -->
@@ -288,10 +280,6 @@
               <div class="field field--flex">
                 <label class="field-label" for="wizMemberEmail">Courriel</label>
                 <input class="field-input" id="wizMemberEmail" type="email" placeholder="adresse@exemple.fr" maxlength="200" autocomplete="off">
-              </div>
-              <div class="field field--w-narrow" id="wizMemberVpField" style="display:none;">
-                <label class="field-label" for="wizMemberVp">Poids</label>
-                <input class="field-input" id="wizMemberVp" type="number" min="1" value="1" autocomplete="off">
               </div>
               <button class="btn btn-primary btn-sm wiz-member-add-btn" type="button" id="btnAddMemberInline">
                 + Ajouter

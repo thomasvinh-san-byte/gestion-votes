@@ -41,7 +41,7 @@
             <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Membres
           </h1>
-          <p class="page-sub">Gestion des participants et pondération des voix</p>
+          <p class="page-sub">Gestion des participants</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -59,7 +59,7 @@
             <ul class="onboarding-tips">
               <li>Importez un CSV pour ajouter des membres en masse</li>
               <li>Chaque membre re&ccedil;oit un lien de vote unique</li>
-              <li>La colonne Poids d&eacute;finit le droit de vote pond&eacute;r&eacute;</li>
+              <li>Organisez les membres en groupes pour filtrer et g&eacute;rer</li>
             </ul>
           </div>
         </ag-popover>
@@ -89,16 +89,6 @@
           <div class="members-kpi-label">Inactifs</div>
         </div>
         <div class="members-kpi-card">
-          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          <div class="members-kpi-value" id="kpiPower">&mdash;</div>
-          <div class="members-kpi-label">Voix totales</div>
-        </div>
-        <div class="members-kpi-card">
-          <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          <div class="members-kpi-value" id="kpiAvgPower">&mdash;</div>
-          <div class="members-kpi-label">Pouvoir moyen</div>
-        </div>
-        <div class="members-kpi-card">
           <svg class="members-kpi-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           <div class="members-kpi-value" id="kpiEmailCoverage">&mdash;</div>
           <div class="members-kpi-label">Couv. email</div>
@@ -115,7 +105,7 @@
           <span class="onboarding-arrow">›</span>
           <span class="onboarding-step pending" id="onbStepWeights">
             <span class="onboarding-step-num">2</span>
-            Vérifier les pondérations
+            Vérifier les emails
           </span>
           <span class="onboarding-arrow">›</span>
           <span class="onboarding-step pending" id="onbStepGroups" data-scroll-to="groups-panel">
@@ -167,13 +157,6 @@
               <div class="form-group">
                 <label for="mEmail">Email</label>
                 <input class="form-input" type="email" id="mEmail" placeholder="jean@exemple.com">
-              </div>
-              <div class="form-group">
-                <label for="mPower">
-                  Nombre de voix
-                  <ag-popover title="Nombre de voix" content="Nombre de voix que ce membre représente. La valeur par défaut est 1. Pour une pondération, utilisez un nombre supérieur (ex: 2 = 2 voix)." position="top"></ag-popover>
-                </label>
-                <input class="form-input" type="number" id="mPower" value="1" min="0" step="1">
               </div>
               <div class="form-group">
                 <label>&nbsp;</label>
@@ -232,8 +215,6 @@
                   <select class="form-input" id="sortSelect">
                     <option value="nameAsc">Nom (A → Z)</option>
                     <option value="nameDesc">Nom (Z → A)</option>
-                    <option value="powerDesc">Nombre de voix (décroissant)</option>
-                    <option value="powerAsc">Nombre de voix (croissant)</option>
                   </select>
                 </div>
               </div>
@@ -298,8 +279,8 @@
         <!-- IMPORT TAB PANEL -->
         <div class="mgmt-tab-panel" id="importPanel" data-mgmt-panel="import" role="tabpanel" style="display: none;">
           <div class="import-card-desc">
-            Colonnes : <code>nom</code>, <code>email</code>, <code>ponderation</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
-            <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;1;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
+            Colonnes : <code>nom</code>, <code>email</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
+            <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
           </div>
           <div class="import-template-link flex gap-3 flex-wrap">
             <a href="/assets/modele_import_membres.csv" download class="btn btn-ghost btn-sm">
