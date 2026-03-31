@@ -1,4 +1,4 @@
-# Tests — AG-VOTE
+# Tests : AG-VOTE
 
 Ce document consolide la documentation des tests unitaires et end-to-end.
 
@@ -223,6 +223,6 @@ Ouvrir `coverage-report/index.html` dans un navigateur.
 
 ## Références
 
-- `database/seeds/02_test_users.sql` — Comptes de test
-- `database/seeds/04_e2e.sql` — Données du scénario E2E
-- `tests/e2e/playwright.config.js` — Configuration Playwright
+- `database/seeds/02_test_users.sql` : comptes de test
+- `database/seeds/04_e2e.sql` : donnees du scenario E2E
+- `tests/e2e/playwright.config.js` : configuration Playwright

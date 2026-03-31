@@ -1,4 +1,4 @@
-# Web Components — Guide pour AG-VOTE
+# Web Components : Guide pour AG-VOTE
 
 ## Qu'est-ce qu'un Web Component ?
 
@@ -136,7 +136,7 @@ customElements.define('ag-toast', AgToast);
 
 Les composants suivants sont disponibles dans `public/assets/js/components/` :
 
-### 1. `<ag-kpi>` — Carte KPI
+### 1. `<ag-kpi>` :Carte KPI
 
 ```html
 <ag-kpi value="42" label="Présents" variant="success" icon="users"></ag-kpi>
@@ -144,7 +144,7 @@ Les composants suivants sont disponibles dans `public/assets/js/components/` :
 
 **Attributs** : `value`, `label`, `variant` (success/warning/danger/primary), `icon`, `size` (sm/md/lg)
 
-### 2. `<ag-badge>` — Badge de statut
+### 2. `<ag-badge>` :Badge de statut
 
 ```html
 <ag-badge variant="live">En cours</ag-badge>
@@ -154,7 +154,7 @@ Les composants suivants sont disponibles dans `public/assets/js/components/` :
 
 **Variantes** : success, warning, danger, live, draft, info, muted
 
-### 3. `<ag-spinner>` — Indicateur de chargement
+### 3. `<ag-spinner>` :Indicateur de chargement
 
 ```html
 <ag-spinner size="md"></ag-spinner>
@@ -163,7 +163,7 @@ Les composants suivants sont disponibles dans `public/assets/js/components/` :
 
 **Attributs** : `size` (sm/md/lg/xl), `variant` (primary/muted)
 
-### 4. `<ag-toast>` — Notifications toast
+### 4. `<ag-toast>` :Notifications toast
 
 ```html
 <!-- Utilisation programmatique (recommandée) -->
@@ -176,7 +176,7 @@ AgToast.show('info', 'Chargement en cours...', 10000); // 10s
 
 **Types** : success, error, warning, info
 
-### 5. `<ag-quorum-bar>` — Barre de progression quorum
+### 5. `<ag-quorum-bar>` :Barre de progression quorum
 
 ```html
 <ag-quorum-bar value="67" threshold="50" label="Quorum atteint"></ag-quorum-bar>
@@ -184,7 +184,7 @@ AgToast.show('info', 'Chargement en cours...', 10000); // 10s
 
 **Attributs** : `value` (0-100), `threshold`, `label`, `show-percentage`
 
-### 6. `<ag-vote-button>` — Boutons de vote
+### 6. `<ag-vote-button>` :Boutons de vote
 
 ```html
 <ag-vote-button value="for">Pour</ag-vote-button>
@@ -360,7 +360,7 @@ export default AgKpi;
 
 - [MDN Web Components Guide](https://developer.mozilla.org/en-US/docs/Web/API/Web_components)
 - [web.dev Custom Elements](https://web.dev/articles/custom-elements-v1)
-- [Lit (librairie légère)](https://lit.dev/) — Optionnel, simplifie l'écriture
+- [Lit (librairie legere)](https://lit.dev/) : optionnel, simplifie l'ecriture
 
 ---
 
@@ -368,10 +368,10 @@ export default AgKpi;
 
 Les Web Components d'AG-VOTE apportent :
 
-1. **Réutilisabilité** — Composants utilisables dans toutes les pages
-2. **Encapsulation** — Styles isolés via Shadow DOM
-3. **Standardisation** — Interface cohérente garantie
-4. **Maintenance simplifiée** — Modifier un fichier impacte toutes les pages
+1. **Reutilisabilite** : composants utilisables dans toutes les pages
+2. **Encapsulation** : styles isoles via Shadow DOM
+3. **Standardisation** : interface coherente garantie
+4. **Maintenance simplifiee** : modifier un fichier impacte toutes les pages
 
 ### Composants disponibles
 

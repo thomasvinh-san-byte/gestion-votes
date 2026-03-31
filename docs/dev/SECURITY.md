@@ -120,17 +120,7 @@ APP_SECRET=...        # Secret 64+ caractères, unique par instance
 </form>
 ```
 
-### Intégration HTMX
-
-Le snippet JS configure automatiquement HTMX :
-```javascript
-// Ajouté automatiquement par CsrfMiddleware::jsSnippet()
-document.body.addEventListener('htmx:configRequest', function(e) {
-    e.detail.headers['X-CSRF-Token'] = csrfToken;
-});
-```
-
-### Intégration API (fetch/axios)
+### Intégration API (fetch)
 
 ```javascript
 // Utiliser le wrapper sécurisé

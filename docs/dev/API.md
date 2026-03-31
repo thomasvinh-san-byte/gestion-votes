@@ -1,4 +1,4 @@
-# Référence API — AG-Vote
+# Reference API : AG-Vote
 
 ## Conventions
 
