@@ -390,16 +390,21 @@
   // EMAIL TEMPLATES
   // ═══════════════════════════════════════════════════════
   var _currentTemplate = null;
+  var _currentTemplateId = null;
 
   function loadTemplate(key) {
     _currentTemplate = key;
-    api('/api/v1/admin_settings.php', { action: 'get_template', key: key })
+    api('/api/v1/email_templates?type=' + encodeURIComponent(key) + '&include_variables=1')
       .then(function(r) {
         if (r.body && r.body.ok && r.body.data) {
+          var items = r.body.data.items || [];
+          var tpl = items[0] || {};
           var subjectEl = document.getElementById('templateSubject');
           var bodyEl = document.getElementById('templateBody');
-          if (subjectEl) subjectEl.value = r.body.data.subject || '';
-          if (bodyEl) bodyEl.value = r.body.data.body || '';
+          if (subjectEl) subjectEl.value = tpl.subject || '';
+          if (bodyEl) bodyEl.value = tpl.body || '';
+          // Store template ID for save/update
+          _currentTemplateId = tpl.id || null;
         }
       })
       .catch(function() { console.warn('Template load failed'); });
@@ -422,12 +427,12 @@
       btnSave.addEventListener('click', function() {
         var subject = document.getElementById('templateSubject');
         var body = document.getElementById('templateBody');
-        api('/api/v1/admin_settings.php', {
-          action: 'save_template',
-          key: _currentTemplate,
+        api('/api/v1/email_templates', {
+          id: _currentTemplateId,
+          type: _currentTemplate,
           subject: subject ? subject.value : '',
           body: body ? body.value : ''
-        })
+        }, 'PUT')
           .then(function(r) {
             if (r.body && r.body.ok) {
               AgToast.show('Template enregistr\u00e9', 'success');
@@ -447,7 +452,7 @@
           confirmText: 'R\u00e9initialiser',
           confirmClass: 'btn btn-warning',
           onConfirm: function() {
-            api('/api/v1/admin_settings.php', { action: 'reset_templates' })
+            api('/api/v1/email_templates', { action: 'create_defaults' }, 'POST')
               .then(function(r) {
                 if (r.body && r.body.ok) {
                   AgToast.show('Templates r\u00e9initialis\u00e9s', 'success');
@@ -470,7 +475,7 @@
     if (!btnTest) return;
     btnTest.addEventListener('click', function() {
       Shared.btnLoading(btnTest, true);
-      api('/api/v1/admin_settings.php', { action: 'test_smtp' })
+      api('/api/v1/email_templates_preview', { action: 'test_smtp', dry_run: true })
         .then(function(r) {
           if (r.body && r.body.ok) {
             AgToast.show('Connexion SMTP r\u00e9ussie', 'success');
@@ -601,9 +606,9 @@
     if (btnTest) {
       btnTest.addEventListener('click', function() {
         AgToast.show('Envoi d\'un email de test...', 'info');
-        api('/api/v1/admin_settings.php', {
-          action: 'test_template',
-          key: _currentTemplate,
+        api('/api/v1/email_templates_preview', {
+          template_id: _currentTemplateId,
+          type: _currentTemplate,
           subject: (document.getElementById('templateSubject') || {}).value || '',
           body: (document.getElementById('templateBody') || {}).value || ''
         })
