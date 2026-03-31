@@ -554,9 +554,16 @@ final class MeetingsController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
+        if ((string) $current['status'] === 'live') {
+            api_fail('meeting_live_cannot_delete', 409, [
+                'detail' => "Fermez d'abord la s\u00e9ance avant de la supprimer.",
+                'status' => $current['status'],
+            ]);
+        }
         if ((string) $current['status'] !== 'draft') {
             api_fail('meeting_not_draft', 409, [
-                'detail' => 'Seules les séances en brouillon peuvent être supprimées.',
+                'detail' => 'Seules les s\u00e9ances en brouillon peuvent \u00eatre supprim\u00e9es.',
+                'status' => $current['status'],
             ]);
         }
 

@@ -66,6 +66,9 @@ final class ImportController extends AbstractController {
             api_fail('missing_name_column', 400, ['detail' => 'Colonne "name" ou "first_name"+"last_name" requise.', 'found' => $headers]);
         }
 
+        // Duplicate email pre-scan (IMP-02) — before any DB transaction
+        self::checkDuplicateEmails($rows, $colIndex);
+
         $tenantId = api_current_tenant_id();
         $imported = 0;
         $skipped = 0;
@@ -96,6 +99,9 @@ final class ImportController extends AbstractController {
         if (!$hasName && !$hasFirstLast) {
             api_fail('missing_name_column', 400, ['detail' => 'Colonne "name" ou "first_name"+"last_name" requise.', 'found' => $headers]);
         }
+
+        // Duplicate email pre-scan (IMP-02) — before any DB transaction
+        self::checkDuplicateEmails($rows, $colIndex);
 
         $tenantId = api_current_tenant_id();
         $imported = 0;
@@ -853,6 +859,43 @@ final class ImportController extends AbstractController {
                 $motionRepo->updatePosition($motionId, $tenantId, $position);
             }
             $imported++;
+        }
+    }
+
+    /**
+     * Pre-scan rows for duplicate email addresses (IMP-02).
+     *
+     * Called before any DB transaction so no partial inserts occur.
+     * Case-insensitive. Empty emails are skipped (not treated as duplicates).
+     * Calls api_fail() with 422 if any duplicates are found.
+     *
+     * @param array[] $rows     CSV/XLSX rows as indexed arrays
+     * @param array   $colIndex Column index map from ImportService::mapColumns()
+     */
+    private static function checkDuplicateEmails(array $rows, array $colIndex): void {
+        if (!isset($colIndex['email'])) {
+            return;
+        }
+        $emailIdx = $colIndex['email'];
+        $seen = [];
+        $duplicates = [];
+        foreach ($rows as $row) {
+            $raw = strtolower(trim((string) ($row[$emailIdx] ?? '')));
+            if ($raw === '') {
+                continue; // skip blank emails per decision
+            }
+            if (isset($seen[$raw])) {
+                $duplicates[] = $raw;
+            } else {
+                $seen[$raw] = true;
+            }
+        }
+        $duplicates = array_values(array_unique($duplicates));
+        if (!empty($duplicates)) {
+            api_fail('duplicate_emails', 422, [
+                'detail' => 'Le fichier contient des adresses email en double.',
+                'duplicate_emails' => $duplicates,
+            ]);
         }
     }
 }

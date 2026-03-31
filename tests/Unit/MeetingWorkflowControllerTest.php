@@ -2145,6 +2145,33 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         $this->assertEquals('archived_immutable', $result['body']['error']);
     }
 
+    public function testInvalidTransitionReturnsDetailMessage(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'to_status' => 'validated',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'draft',
+            'title' => 'AG 2024',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('transition');
+
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('invalid_transition', $result['body']['error']);
+        $this->assertArrayHasKey('from_status', $result['body']);
+        $this->assertArrayHasKey('to_status', $result['body']);
+        $this->assertEquals('draft', $result['body']['from_status']);
+        $this->assertEquals('validated', $result['body']['to_status']);
+        $this->assertArrayHasKey('detail', $result['body']);
+        $this->assertStringContainsString('non autoris', $result['body']['detail']);
+    }
+
     // =========================================================================
     // EXECUTION TESTS: CONSOLIDATE — meeting lookup guards
     // =========================================================================

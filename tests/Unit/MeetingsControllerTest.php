@@ -2264,7 +2264,45 @@ class MeetingsControllerTest extends ControllerTestCase
 
         $meetingRepo = $this->createMock(MeetingRepository::class);
         $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'scheduled',
+            'title' => 'AG 2024',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('deleteMeeting');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_not_draft', $result['body']['error']);
+    }
+
+    public function testDeleteLiveMeetingReturns409WithHint(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody(['meeting_id' => '11111111-1111-1111-1111-111111111111']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
             'status' => 'live',
+            'title' => 'AG 2024',
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('deleteMeeting');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_live_cannot_delete', $result['body']['error']);
+        $this->assertArrayHasKey('detail', $result['body']);
+        $this->assertStringContainsString("Fermez d'abord", $result['body']['detail']);
+    }
+
+    public function testDeleteClosedMeetingStillRejects(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody(['meeting_id' => '11111111-1111-1111-1111-111111111111']);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'status' => 'closed',
             'title' => 'AG 2024',
         ]);
         $this->injectRepos([MeetingRepository::class => $meetingRepo]);
