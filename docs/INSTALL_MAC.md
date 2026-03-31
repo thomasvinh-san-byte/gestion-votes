@@ -153,8 +153,8 @@ Vous verrez la page d'accueil d'AG-VOTE.
 |-----|------|
 | http://localhost:8080 | Accueil |
 | http://localhost:8080/login.html | Connexion |
-| http://localhost:8080/help.htmx.html | Aide & FAQ |
-| http://localhost:8080/docs.htmx.html | Documentation |
+| http://localhost:8080/help | Aide & FAQ |
+| http://localhost:8080/docs | Documentation |
 
 ---
 

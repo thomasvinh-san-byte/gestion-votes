@@ -1,53 +1,53 @@
-# Recette & démonstration (≈10 minutes)
+# Recette & demonstration (environ 10 minutes)
 
-Ce document décrit un **scénario de démonstration complet, chronométré et reproductible** permettant de valider le fonctionnement de l’application **Gestion des votes** de bout en bout.
+Ce document decrit un scenario de demonstration complet, chronometre et reproductible permettant de valider le fonctionnement de l'application AG-VOTE de bout en bout.
 
-Il est conçu pour :
+Il est concu pour :
 * une **recette fonctionnelle**,
-* une **démonstration client ou décideur**,
-* une **lecture par un auditeur** souhaitant comprendre la chaîne de preuves.
+* une **demonstration client ou decideur**,
+* une **lecture par un auditeur** souhaitant comprendre la chaine de preuves.
 
 ---
 
 ## Objectifs de la recette
 
-À l’issue de ce scénario, on doit avoir démontré :
-* l’ouverture et la conduite d’une séance,
-* le vote électronique par token,
-* les calculs de quorum et de pondération,
-* la gestion d’incidents et du mode dégradé,
+A l'issue de ce scenario, on doit avoir demontre :
+* l'ouverture et la conduite d'une seance,
+* le vote electronique par token,
+* les calculs de quorum et de majorite,
+* la gestion d'incidents et du mode degrade,
 * la validation finale et le verrouillage,
 * la production des livrables (PV, exports).
 
-Le scénario est volontairement **court**, mais couvre **tous les points critiques**.
+Le scenario est volontairement court, mais couvre tous les points critiques.
 
 ---
 
-## Pré-requis (1 minute)
+## Pre-requis (1 minute)
 
 Avant de commencer :
-* l’application est lancée (`php -S 0.0.0.0:8000 -t public`),
-* la base est initialisée,
-* une séance de démonstration est disponible (via un script de seed ou des données existantes).
+* l'application est lancee (`php -S 0.0.0.0:8000 -t public`),
+* la base est initialisee,
+* une seance de demonstration est disponible (via un script de seed ou des donnees existantes).
 
 Pages ouvertes dans le navigateur :
-* `/operator.htmx.html`
-* `/hub.htmx.html`
-* `/trust.htmx.html`
+* `/operator/{uuid}`
+* `/hub`
+* `/audit`
 
 ---
 
-## Préparation de la séance (2 minutes)
+## Preparation de la seance (2 minutes)
 
-### 1.1 Vérification des présences
+### 1.1 Verification des presences
 
-Depuis l’interface **Operator** :
+Depuis l'interface **Operator** :
 
-* vérifier que plusieurs membres sont :
-  * présents ou distants,
+* verifier que plusieurs membres sont :
+  * presents ou distants,
   * au moins un membre absent (optionnel).
 
-À montrer :
+A montrer :
 * impact direct sur les compteurs,
 * base du calcul de quorum.
 
@@ -57,102 +57,101 @@ Depuis l’interface **Operator** :
 
 Saisir au moins **une procuration**.
 
-À montrer :
+A montrer :
 * lien mandant / mandataire,
-* prise en compte immédiate dans la pondération,
-* visibilité dans la vue **Auditor**.
+* prise en compte immediate dans les calculs,
+* visibilite dans la vue **Auditor**.
 
 ---
 
-## Vote électronique — Résolution 1 (3 minutes)
+## Vote electronique, Resolution 1 (3 minutes)
 
-### 2.1 Ouverture de la résolution
+### 2.1 Ouverture de la resolution
 
 Depuis **Operator** :
-* ouvrir une résolution.
+* ouvrir une resolution.
 
-À expliquer :
-* génération automatique des tokens,
-* impossibilité d’ouvrir deux résolutions simultanément.
+A expliquer :
+* generation automatique des tokens,
+* impossibilite d'ouvrir deux resolutions simultanement.
 
 ---
 
 ### 2.2 Vote par tablette / mobile
 
 Depuis deux navigateurs ou appareils :
-* accéder à `/vote.php?token=…`,
+* acceder a `/vote?token=...`,
 * voter (ex. POUR et CONTRE),
 * confirmer le vote.
 
-À montrer :
+A montrer :
 * confirmation obligatoire,
 * consommation du token,
-* mise à jour en temps réel côté Operator / Président.
+* mise a jour en temps reel cote Operator / President.
 
 ---
 
-### 2.3 Déclaration d’incident (CDC)
+### 2.3 Declaration d'incident (CDC)
 
-Déclarer un incident volontairement :
-* type : réseau / matériel,
-* description : “incident de démonstration”.
+Declarer un incident volontairement :
+* type : reseau / materiel,
+* description : "incident de demonstration".
 
-À expliquer :
-* l’incident est horodaté,
-* il est conservé,
-* il apparaîtra dans le PV.
+A expliquer :
+* l'incident est horodate,
+* il est conserve,
+* il apparaitra dans le PV.
 
 ---
 
-### 2.4 Mode dégradé (optionnel mais recommandé)
+### 2.4 Mode degrade (optionnel mais recommande)
 
-Simuler un vote impossible électroniquement :
+Simuler un vote impossible electroniquement :
 * saisir un vote manuel,
 * fournir une justification explicite.
 
-À expliquer :
-* traçabilité renforcée,
-* distinction claire avec les votes électroniques.
+A expliquer :
+* tracabilite renforcee,
+* distinction claire avec les votes electroniques.
 
 ---
 
-### 2.5 Clôture de la résolution
+### 2.5 Cloture de la resolution
 
-Depuis **Président** :
-* clôturer la résolution.
+Depuis **President** :
+* cloturer la resolution.
 
-À montrer :
+A montrer :
 * calcul automatique :
-  * pondération (tantièmes),
-  * quorum par résolution,
-  * majorité pondérée,
-* résultat juridique explicite :
-  * ADOPTÉE / REJETÉE / NON VALABLE.
+  * quorum par resolution,
+  * majorite,
+* resultat juridique explicite :
+  * ADOPTEE / REJETEE / NON VALABLE.
 
 ---
 
-## Vote rapide — Résolution 2 (1 minute)
-* ouvrir une deuxième résolution,
+## Vote rapide, Resolution 2 (1 minute)
+* ouvrir une deuxieme resolution,
 * exprimer un seul vote,
-* clôturer immédiatement.
+* cloturer immediatement.
 
 Objectif :
-* montrer la répétabilité du cycle,
-* confirmer l’absence d’effets de bord.
+* montrer la repetabilite du cycle,
+* confirmer l'absence d'effets de bord.
 
 ---
 
-## Contrôles et anomalies (1 minute)
+## Controles et anomalies (1 minute)
 
 Depuis l'interface **Auditor** :
-* vérifier :
-  * votes manquants = 0 (ou expliqués),
+* verifier :
+  * votes manquants = 0 (ou expliques),
   * procurations conformes,
-  * absence d’anomalies bloquantes.
+  * absence d'anomalies bloquantes.
 
-À expliquer :
+A expliquer :
 * les anomalies sont visibles,
-* elles servent à décider ou à justifier.
+* elles servent a decider ou a justifier.
 
 ---
 
@@ -160,84 +159,83 @@ Depuis l'interface **Auditor** :
 
 ### 5.1 Ready-check
 
-Depuis l’interface **Validation** :
+Depuis l'interface **Validation** :
 
-* vérifier que la séance est “prête” :
-  * aucune résolution ouverte,
-  * toutes les décisions clôturées.
+* verifier que la seance est "prete" :
+  * aucune resolution ouverte,
+  * toutes les decisions cloturees.
 
 ---
 
 ### 5.2 Validation
 
-Depuis **Président** :
-* valider la séance.
+Depuis **President** :
+* valider la seance.
 
-À montrer :
+A montrer :
 * horodatage,
-* responsabilité engagée,
-* **verrouillage immédiat**.
+* responsabilite engagee,
+* **verrouillage immediat**.
 
 ---
 
 ### 5.3 Preuve du verrouillage
 
 Tenter volontairement :
-* de modifier une présence,
-* d’ouvrir une résolution.
+* de modifier une presence,
+* d'ouvrir une resolution.
 
-Résultat attendu :
+Resultat attendu :
 * refus explicite (HTTP 409),
 * message clair.
 
 ---
 
-## Livrables post-séance (1 minute)
+## Livrables post-seance (1 minute)
 
-### 6.1 Procès-verbal
+### 6.1 Proces-verbal
 
 Ouvrir le **PV** :
 
-À vérifier :
+A verifier :
 * participants et procurations,
-* résolutions et résultats pondérés,
-* quorum par résolution,
+* resolutions et resultats,
+* quorum par resolution,
 * incidents et votes manuels,
-* règles appliquées.
+* regles appliquees.
 
 ---
 
 ### 6.2 Exports CSV
 
-Télécharger les exports :
-* présences,
+Telecharger les exports :
+* presences,
 * votes,
-* résultats,
+* resultats,
 * audit.
 
-À rappeler :
-* exports autorisés **uniquement après validation**.
+A rappeler :
+* exports autorises **uniquement apres validation**.
 
 ---
 
-## Points clés à faire passer pendant la démo
+## Points cles a faire passer pendant la demo
 
-* Rien n’est modifiable après validation
-* Les règles sont appliquées automatiquement
-* Les exceptions sont documentées, pas masquées
+* Rien n'est modifiable apres validation
+* Les regles sont appliquees automatiquement
+* Les exceptions sont documentees, pas masquees
 * Les calculs sont rejouables
-* Le PV est la synthèse juridique finale
+* Le PV est la synthese juridique finale
 
 ---
 
-## ✔️ Conclusion
+## Conclusion
 
-En moins de 10 minutes, ce scénario démontre :
+En moins de 10 minutes, ce scenario demontre :
 
-* la maîtrise opérationnelle du live,
+* la maitrise operationnelle du live,
 * la robustesse des calculs,
-* la traçabilité complète,
-* la conformité CDC sur le périmètre annoncé.
+* la tracabilite complete,
+* la conformite CDC sur le perimetre annonce.
 
-Pour le cadre juridique détaillé, voir **[directive-projet.md](directive-projet.md)**.
-
+Pour le cadre juridique detaille, voir **[directive-projet.md](directive-projet.md)**.

@@ -1,4 +1,4 @@
-# Deploiement Docker local — AG-VOTE
+# Deploiement Docker local : AG-VOTE
 
 Guide complet pour deployer et exploiter AG-VOTE en local avec Docker Compose.
 
@@ -97,7 +97,7 @@ docker compose up -d
 Premier lancement : 3-5 min (telechargement images + compilation extensions PHP).
 Lancements suivants : ~5 secondes.
 
-Ouvrir **http://localhost:8080** — compte test : `admin@ag-vote.local` / `Admin2026!`
+Ouvrir **http://localhost:8080**. Compte test : `admin@ag-vote.local` / `Admin2026!`
 
 ---
 
@@ -190,7 +190,7 @@ Toutes les variables sont definies dans `.env` (copie de `.env.example`).
 |----------|--------|-------------|
 | `APP_ENV` | `development` | Environnement : `development`, `demo`, `production` |
 | `APP_DEBUG` | `1` | Activer les logs detailles (`0` en prod) |
-| `APP_SECRET` | *(dev placeholder)* | Secret cryptographique pour HMAC/sessions — **64 chars hex en prod** |
+| `APP_SECRET` | *(dev placeholder)* | Secret cryptographique pour HMAC/sessions. **64 chars hex en prod** |
 | `APP_PORT` | `8080` | Port HTTP expose sur le host |
 
 ### Base de donnees
@@ -199,7 +199,7 @@ Toutes les variables sont definies dans `.env` (copie de `.env.example`).
 |----------|--------|-------------|
 | `DB_DSN` | `pgsql:host=localhost;port=5432;dbname=vote_app` | DSN PDO (surcharge par docker-compose) |
 | `DB_USER` | `vote_app` | Utilisateur PostgreSQL |
-| `DB_PASS` | **obligatoire** | Mot de passe PostgreSQL — docker-compose refuse de demarrer sans |
+| `DB_PASS` | **obligatoire** | Mot de passe PostgreSQL. Docker Compose refuse de demarrer sans cette variable |
 | `DB_DATABASE` | `vote_app` | Nom de la base |
 | `DB_EXTERNAL_PORT` | `5433` | Port PostgreSQL expose sur localhost |
 
@@ -363,7 +363,7 @@ La base sera recreee a partir du schema + seeds au prochain demarrage.
 # Arrete les conteneurs ET supprime les volumes
 docker compose down -v
 
-# Relancer — base recreee from scratch
+# Relancer (base recreee from scratch)
 docker compose up -d
 ```
 
@@ -591,12 +591,12 @@ Le projet fournit des scripts `bin/` et un `Makefile` pour les operations couran
 | `make logs-err` | `./bin/logs.sh err` | Filtrer erreurs/warnings |
 | `make status` | `./bin/status.sh` | Etat complet du stack |
 | `make check-prod` | `./bin/check-prod-readiness.sh` | Verifier la conformite production |
-| `make shell` | — | Shell dans le conteneur app |
-| `make db` | — | Console PostgreSQL |
-| `make redis` | — | Console Redis |
-| `make clean` | — | Arreter les services (conserve les donnees) |
-| `make reset` | — | Tout supprimer (conteneurs + volumes + donnees) |
-| `make` | — | Afficher toutes les commandes |
+| `make shell` | *(direct)* | Shell dans le conteneur app |
+| `make db` | *(direct)* | Console PostgreSQL |
+| `make redis` | *(direct)* | Console Redis |
+| `make clean` | *(direct)* | Arreter les services (conserve les donnees) |
+| `make reset` | *(direct)* | Tout supprimer (conteneurs + volumes + donnees) |
+| `make` | *(direct)* | Afficher toutes les commandes |
 
 ### Cycle de vie (Docker direct)
 
@@ -664,7 +664,7 @@ docker compose logs app
 
 | Symptome | Cause | Solution |
 |----------|-------|----------|
-| `DB_PASS requis — definir dans .env` | `.env` manquant ou `DB_PASS` non defini | `cp .env.example .env` |
+| `DB_PASS requis, definir dans .env` | `.env` manquant ou `DB_PASS` non defini | `cp .env.example .env` |
 | `[FATAL] APP_SECRET non configure` | Mode production sans `APP_SECRET` | Generer : `openssl rand -hex 32` et ajouter dans `.env` |
 | `[FATAL] APP_AUTH_ENABLED doit etre 1` | Mode production avec auth desactivee | `APP_AUTH_ENABLED=1` dans `.env` |
 | `[FATAL] CSRF_ENABLED doit etre 1` | Mode production avec CSRF desactive | `CSRF_ENABLED=1` dans `.env` |
@@ -720,7 +720,7 @@ Le entrypoint echoue aux verifications de securite, le conteneur sort en `exit 1
 ### Tout reinitialiser
 
 ```bash
-# Supprime conteneurs, volumes, donnees — repart de zero
+# Supprime conteneurs, volumes, donnees (repart de zero)
 docker compose down -v
 docker compose up -d --build
 ```

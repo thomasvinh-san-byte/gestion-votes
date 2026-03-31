@@ -180,7 +180,7 @@ Au premier lancement, l'entrypoint :
 1. Attend que PostgreSQL soit prêt
 2. Applique le schéma SQL + migrations
 3. Charge les données de démo (si `LOAD_SEED_DATA=1`)
-4. Démarre Nginx + PHP-FPM + WebSocket
+4. Démarre Nginx + PHP-FPM via supervisord
 
 > Le premier build prend 2-5 minutes (compilation des extensions PHP).
 > Les lancements suivants sont quasi-instantanés.
@@ -235,7 +235,7 @@ Créés automatiquement par les seeds (si `LOAD_SEED_DATA=1`) :
 
 ## 7. Accès réseau (LAN / VM)
 
-Les ports HTTP et WebSocket écoutent sur **`0.0.0.0`** (toutes les interfaces).
+Le port HTTP écoute sur **`0.0.0.0`** (toutes les interfaces).
 L'application est donc accessible depuis n'importe quelle machine du réseau local ou depuis l'hôte d'une VM.
 
 ### Depuis une VM (VirtualBox, VMware, Proxmox…)
@@ -279,11 +279,8 @@ docker compose restart app
 ```bash
 # Debian/Ubuntu (ufw)
 sudo ufw allow 8080/tcp comment "AG-VOTE HTTP"
-sudo ufw allow 8081/tcp comment "AG-VOTE WebSocket"
-
 # Ou avec iptables
 sudo iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 8081 -j ACCEPT
 ```
 
 ### PostgreSQL : accès restreint
@@ -477,8 +474,7 @@ docker compose restart app
 │  │                                              │    │
 │  │  supervisord                                 │    │
 │  │   ├── nginx        (:8080) ───► HTTP         │    │
-│  │   ├── php-fpm      (:9000)   (interne)       │    │
-│  │   └── websocket    (:8081) ───► WS           │    │
+│  │   └── php-fpm      (:9000)   (interne)       │    │
 │  │                                              │    │
 │  │  Volume: /tmp/ag-vote (logs, cache, fonts)   │    │
 │  └──────────────┬───────────────────────────────┘    │

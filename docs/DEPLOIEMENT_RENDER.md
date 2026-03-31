@@ -1,4 +1,4 @@
-# Deploiement sur Render — AG-VOTE
+# Deploiement sur Render : AG-VOTE
 
 Guide complet pour deployer AG-VOTE sur [Render](https://render.com), en mode **demo** ou **production**.
 
@@ -47,7 +47,7 @@ Aucune configuration supplementaire requise. Les donnees de test sont chargees a
 
 ## Deploiement production
 
-### Etape 1 — Creer les services
+### Etape 1 : Creer les services
 
 Dans le dashboard Render :
 1. **New** > **Blueprint**
@@ -55,7 +55,7 @@ Dans le dashboard Render :
 3. Selectionner le fichier **`render-production.yaml`** comme blueprint
 4. Render cree automatiquement le service web + la base PostgreSQL
 
-### Etape 2 — Configurer les variables obligatoires
+### Etape 2 : Configurer les variables obligatoires
 
 Apres la creation, aller dans **Dashboard** > **ag-vote** > **Environment** et ajouter manuellement :
 
@@ -65,7 +65,7 @@ Apres la creation, aller dans **Dashboard** > **ag-vote** > **Environment** et a
 | `CORS_ALLOWED_ORIGINS` | `https://vote.mondomaine.fr` | Restreindre les origines CORS a votre domaine |
 | `DEFAULT_TENANT_ID` | UUID de votre organisation | Identifiant du tenant principal |
 
-### Etape 3 — Redemarrer le service
+### Etape 3 : Redemarrer le service
 
 Apres avoir ajoute les variables, cliquer **Manual Deploy** > **Deploy latest commit** pour que le conteneur redemarre avec la nouvelle configuration.
 
@@ -197,15 +197,15 @@ curl https://votre-app.onrender.com/api/v1/health.php
 ### Tests de securite
 
 ```bash
-# Test CSRF — doit retourner 403
+# Test CSRF (doit retourner 403)
 curl -X POST https://votre-app.onrender.com/api/v1/meetings.php \
   -H "Content-Type: application/json" \
   -d '{"title":"Test"}'
 
-# Test Auth — doit retourner 401
+# Test Auth (doit retourner 401)
 curl https://votre-app.onrender.com/api/v1/meetings.php
 
-# Test Rate Limit — doit retourner 429 apres 5 tentatives
+# Test Rate Limit (doit retourner 429 apres 5 tentatives)
 for i in $(seq 1 10); do
   curl -s -o /dev/null -w "%{http_code}\n" \
     -X POST https://votre-app.onrender.com/api/v1/login.php
@@ -250,7 +250,7 @@ Verifier les logs pour un message `[FATAL]`. Le conteneur quitte avec `exit 1` s
 
 - Verifier que la base `ag-vote-db` est bien creee dans Render
 - Verifier que les variables `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` sont bien injectees (elles le sont automatiquement via `fromDatabase` dans le blueprint)
-- Si la base est sur le plan free, elle peut etre suspendue apres inactivite — la reactiver dans le dashboard
+- Si la base est sur le plan free, elle peut etre suspendue apres inactivite. La reactiver dans le dashboard
 
 ### Les migrations echouent
 

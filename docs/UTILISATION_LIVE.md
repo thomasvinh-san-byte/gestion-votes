@@ -1,84 +1,84 @@
-# Utilisation en séance (Live)
+# Utilisation en seance (Live)
 
-Ce document décrit **le déroulé opérationnel complet d’une séance**, depuis la préparation jusqu’à la validation finale, tel qu’il se déroule **le jour J**.
+Ce document decrit le deroule operationnel complet d'une seance, depuis la preparation jusqu'a la validation finale, tel qu'il se deroule le jour J.
 
-Il est destiné :
-* à l’**opérateur** qui conduit la séance,
-* au **président** qui engage la responsabilité juridique,
-* au rôle **auditor / contrôle**,
+Il est destine :
+* a l'**operateur** qui conduit la seance,
+* au **president** qui engage la responsabilite juridique,
+* au role **auditor / controle**,
 * et, indirectement, aux **auditeurs**.
 
 ---
 
-## Périmètre de ce document
+## Perimetre de ce document
 
 Ce document couvre :
 
-* la conduite d’une séance en conditions réelles,
-* les actions attendues par rôle,
-* les contrôles automatiques et garde-fous,
-* la gestion des incidents et cas dégradés.
+* la conduite d'une seance en conditions reelles,
+* les actions attendues par role,
+* les controles automatiques et garde-fous,
+* la gestion des incidents et cas degrades.
 
-L’installation technique est décrite dans `INSTALLATION.md`
-La démonstration guidée est décrite dans `RECETTE_DEMO.md`.
+L'installation technique est decrite dans `INSTALLATION.md`.
+La demonstration guidee est decrite dans `RECETTE_DEMO.md`.
 
 ---
 
-## Rôles et responsabilités
+## Roles et responsabilites
 
-### Operator (opérateur de séance)
+### Operator (operateur de seance)
 
-* prépare la séance,
-* ouvre les résolutions,
-* surveille le bon déroulement du vote,
-* assiste le président.
+* prepare la seance,
+* ouvre les resolutions,
+* surveille le bon deroulement du vote,
+* assiste le president.
 
-### Président
+### President
 
-* clôture les votes,
-* valide la séance,
-* engage la responsabilité juridique.
+* cloture les votes,
+* valide la seance,
+* engage la responsabilite juridique.
 
-### Auditor (contrôle)
+### Auditor (controle)
 
-* observe la cohérence des données,
-* vérifie les anomalies,
+* observe la coherence des donnees,
+* verifie les anomalies,
 * documente les incidents.
 
 ### Votant
 
 * exprime son vote via tablette ou mobile,
-* n’a accès qu’à l’interface de vote.
+* n'a acces qu'a l'interface de vote.
 
 ---
 
-## Interfaces utilisées
+## Interfaces utilisees
 
-| Rôle        | Interface              |
-| ----------- | ---------------------- |
-| Operator    | `/operator.htmx.html`  |
-| Président   | `/hub.htmx.html`       |
-| Auditor     | `/trust.htmx.html`     |
-| Vote        | `/vote.htmx.html`      |
-| Validation  | `/validate.htmx.html`  |
-| PV / Export | `/report.htmx.html`    |
+| Role        | Interface           |
+| ----------- | ------------------- |
+| Operator    | `/operator/{uuid}`  |
+| President   | `/hub`              |
+| Auditor     | `/audit`            |
+| Vote        | `/vote`             |
+| Validation  | `/validate`         |
+| PV / Export | `/report`           |
 
 ---
 
-## Phase de préparation (avant le live)
+## Phase de preparation (avant le live)
 
-### 1.1 Présences
+### 1.1 Presences
 
-L’opérateur saisit ou vérifie :
+L'operateur saisit ou verifie :
 
-* les membres **présents**,
+* les membres **presents**,
 * les membres **distants**,
 * les **absents**.
 
-Les présences conditionnent :
+Les presences conditionnent :
 
 * le quorum,
-* les éligibilités au vote,
+* les eligibilites au vote,
 * les attentes de ballots.
 
 ---
@@ -87,140 +87,139 @@ Les présences conditionnent :
 
 Les procurations sont saisies avant le vote.
 
-Contrôles automatiques :
+Controles automatiques :
 
 * plafond de procurations par mandataire,
-* impossibilité de chaînes de procuration,
-* impact immédiat sur pondération et quorum.
+* impossibilite de chaines de procuration,
+* impact immediat sur le quorum.
 
 Toute anomalie est visible dans l'interface **Auditor**.
 
 ---
 
-### 1.3 Vérification de l’état “Ready”
+### 1.3 Verification de l'etat "Ready"
 
 Avant de passer en live :
 
-* aucune résolution ouverte,
-* données cohérentes (présences, procurations),
+* aucune resolution ouverte,
+* donnees coherentes (presences, procurations),
 * aucun verrouillage actif.
 
-L’état global est visible via les indicateurs de readiness.
+L'etat global est visible via les indicateurs de readiness.
 
 ---
 
 ## Conduite du vote (Live)
 
-### 2.1 Ouverture d’une résolution (Operator)
+### 2.1 Ouverture d'une resolution (Operator)
 
-L’opérateur ouvre une résolution.
+L'operateur ouvre une resolution.
 
 Effets automatiques :
 
-* génération des tokens de vote (idempotente),
-* une seule résolution ouverte à la fois,
-* horodatage d’ouverture.
+* generation des tokens de vote (idempotente),
+* une seule resolution ouverte a la fois,
+* horodatage d'ouverture.
 
-Si une résolution est déjà ouverte, l’action est refusée.
+Si une resolution est deja ouverte, l'action est refusee.
 
 ---
 
-### 2.2 Vote électronique (Votants)
+### 2.2 Vote electronique (Votants)
 
-Les votants accèdent à l’interface via :
+Les votants accedent a l'interface via :
 
 ```
-/vote.htmx.html
+/vote
 ```
 
 Garanties :
 
 * token unique et non rejouable,
 * confirmation obligatoire,
-* enregistrement immédiat du ballot.
+* enregistrement immediat du ballot.
 
-L’opérateur et le président voient :
+L'operateur et le president voient :
 
-* le nombre de votes reçus,
+* le nombre de votes recus,
 * les votes manquants,
-* les anomalies éventuelles.
+* les anomalies eventuelles.
 
 ---
 
-### 2.3 Déclaration d’incident (CDC)
+### 2.3 Declaration d'incident (CDC)
 
-À tout moment, l'opérateur, le président ou l'auditeur peuvent déclarer un incident :
+A tout moment, l'operateur, le president ou l'auditeur peuvent declarer un incident :
 
-* problème réseau,
-* matériel défaillant,
-* décision exceptionnelle.
+* probleme reseau,
+* materiel defaillant,
+* decision exceptionnelle.
 
 Chaque incident :
 
-* est horodaté,
-* est tracé,
-* apparaît dans le PV final (annexe).
+* est horodate,
+* est trace,
+* apparait dans le PV final (annexe).
 
 ---
 
-### 2.4 Mode dégradé (si nécessaire)
+### 2.4 Mode degrade (si necessaire)
 
-En cas d’impossibilité de vote électronique :
+En cas d'impossibilite de vote electronique :
 
-* un vote manuel peut être saisi,
+* un vote manuel peut etre saisi,
 * une justification est obligatoire,
-* l’action est auditée.
+* l'action est auditee.
 
-Le mode dégradé est **visible et documenté**, jamais silencieux.
+Le mode degrade est **visible et documente**, jamais silencieux.
 
 ---
 
-### 2.5 Clôture du vote (Président)
+### 2.5 Cloture du vote (President)
 
-Le président clôt la résolution.
+Le president clot la resolution.
 
 Effets automatiques :
 
-* fermeture définitive de la résolution,
+* fermeture definitive de la resolution,
 * calculs :
-  * pondération (tantièmes),
-  * quorum par résolution,
-  * majorité pondérée,
-* détermination du résultat juridique :
-  * **ADOPTÉE**
-  * **REJETÉE**
+  * quorum par resolution,
+  * majorite,
+* determination du resultat juridique :
+  * **ADOPTEE**
+  * **REJETEE**
   * **NON VALABLE (quorum)**
 
-Les résultats sont persistés et auditables.
+Les resultats sont persistes et auditables.
 
 ---
 
-## Répétition du cycle
+## Repetition du cycle
 
-Les étapes **2.1 à 2.5** sont répétées pour chaque résolution
-de l’ordre du jour.
+Les etapes **2.1 a 2.5** sont repetees pour chaque resolution
+de l'ordre du jour.
 
-À tout instant :
-* une seule résolution peut être ouverte,
-* l’état global reste visible.
+A tout instant :
+* une seule resolution peut etre ouverte,
+* l'etat global reste visible.
 
 ---
 
-## Contrôles et anomalies
+## Controles et anomalies
 
 ### 4.1 Vue anomalies (Auditor)
 
-La vue de contrôle permet de détecter :
+La vue de controle permet de detecter :
 
 * votes manquants,
-* tokens expirés ou non utilisés,
+* tokens expires ou non utilises,
 * votes hors statut,
-* dépassements de procurations.
+* depassements de procurations.
 
 Ces informations servent :
-* à décider d’attendre,
-* à documenter un incident,
-* ou à justifier une décision.
+* a decider d'attendre,
+* a documenter un incident,
+* ou a justifier une decision.
 
 ---
 
@@ -228,62 +227,62 @@ Ces informations servent :
 
 Avant validation finale :
 
-* toutes les résolutions doivent être clôturées,
+* toutes les resolutions doivent etre cloturees,
 * aucune anomalie bloquante ne doit subsister
-  (ou être explicitement justifiée).
+  (ou etre explicitement justifiee).
 
-L’interface **Validation** indique clairement si la séance est prête.
+L'interface **Validation** indique clairement si la seance est prete.
 
 ---
 
-## Validation finale (Président)
+## Validation finale (President)
 
 La validation :
 
-* engage juridiquement la séance,
-* horodate la décision,
-* **verrouille définitivement** la base.
+* engage juridiquement la seance,
+* horodate la decision,
+* **verrouille definitivement** la base.
 
-Après validation :
+Apres validation :
 
-* toute modification est refusée (HTTP 409),
-* seuls la consultation, le PV et les exports sont autorisés.
+* toute modification est refusee (HTTP 409),
+* seuls la consultation, le PV et les exports sont autorises.
 
 ---
 
-## Post-séance
+## Post-seance
 
-Après validation, il est possible de :
+Apres validation, il est possible de :
 * consulter le **PV**,
-* exporter les données (CSV),
+* exporter les donnees (CSV),
 * archiver les documents.
 
 Le PV inclut notamment :
 * participants et procurations,
-* résolutions et résultats pondérés,
-* quorum par résolution,
+* resolutions et resultats,
+* quorum par resolution,
 * incidents et actions manuelles,
-* règle appliquée pour chaque décision.
+* regle appliquee pour chaque decision.
 
 ---
 
-## Principes clés à retenir
+## Principes cles a retenir
 
-* Une seule résolution ouverte à la fois
-* Aucun calcul caché (tout est traçable)
-* Les incidents sont documentés, pas ignorés
-* La validation est irréversible
-* Le PV est la synthèse juridique finale
+* Une seule resolution ouverte a la fois
+* Aucun calcul cache (tout est tracable)
+* Les incidents sont documentes, pas ignores
+* La validation est irreversible
+* Le PV est la synthese juridique finale
 
 ---
 
-## ✔️ Conclusion
+## Conclusion
 
-Ce déroulé garantit :
+Ce deroule garantit :
 
-* une séance fluide,
-* des décisions explicites,
-* une traçabilité complète,
-* un niveau de conformité CDC assumé.
+* une seance fluide,
+* des decisions explicites,
+* une tracabilite complete,
+* un niveau de conformite CDC assume.
 
-Pour un déroulé chronométré et reproductible, voir **RECETTE_DEMO.md**.
+Pour un deroule chronometre et reproductible, voir **RECETTE_DEMO.md**.
