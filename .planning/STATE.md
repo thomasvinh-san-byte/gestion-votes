@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v5.1
 milestone_name: Operational Hardening
 status: in_progress
-stopped_at: Defining requirements
-last_updated: "2026-03-31T07:00:00.000Z"
-last_activity: "2026-03-31 — Milestone v5.1 started"
+stopped_at: Roadmap created — ready to plan Phase 58
+last_updated: "2026-03-31T00:00:00.000Z"
+last_activity: "2026-03-31 — v5.1 roadmap created (4 phases, 17 requirements mapped)"
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,34 +21,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Planning next milestone — `/gsd:new-milestone`
+**Current focus:** Phase 58 — WebSocket to SSE Rename (ready to plan)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-31 — Milestone v5.1 started
+Phase: 58 of 61 (WebSocket to SSE Rename)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-31 — v5.1 roadmap created; 4 phases, 17 requirements mapped
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
-(Clean slate for next milestone)
-- v5.0 shipped: 2305 PHPUnit tests (90.8% Services, 64.6% Controllers), 177 Playwright E2E tests, 7-job CI pipeline
-- Codebase: 73K PHP, 30K JS, 24K CSS (~127K LOC)
-- All 19+ pages rebuilt in v4.3/v4.4, all selectors verified in E2E specs
+### Decisions
 
-### Known Tech Debt
-- Controller coverage at 64.6% (3 exit()-based controllers cap aggregate)
-- coverage-check.sh comment references php8.3-pcov (stale — uses PHP 8.4)
+- [v5.1 roadmap]: Phase 59 and 60 can run in parallel after 58 — they target independent subsystems (vote/quorum vs. session/import/auth)
+- [v5.1 roadmap]: Phase 61 depends on both 59 and 60 to be complete before cleanup
+
+### Known Tech Debt Carried Forward
+- Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
 - CI e2e job runs chromium only; mobile-chrome/tablet are local-only
 - Migration idempotency check is local-only, not CI-gated
 - 04_e2e.sql seed data not loaded in CI e2e job
-
-### Decisions
-
-(Cleared — see .planning/milestones/v5.0-ROADMAP.md for v5.0 decisions)
 
 ### Pending Todos
 
@@ -70,5 +65,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-31
-Stopped at: Milestone v5.0 archived
+Stopped at: v5.1 roadmap written — Phase 58 ready to plan
 Resume file: None

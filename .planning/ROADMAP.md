@@ -11,17 +11,14 @@
 - ✅ **v4.3 Ground-Up Rebuild** - Phases 42-48 (shipped 2026-03-22)
 - ✅ **v4.4 Complete Rebuild** - Phases 49-51 (shipped 2026-03-30)
 - ✅ **v5.0 Quality & Production Readiness** - Phases 52-57 (shipped 2026-03-30)
+- 🚧 **v5.1 Operational Hardening** - Phases 58-61 (in progress)
 
 ---
 
-## ✅ v4.3 Ground-Up Rebuild (Shipped: 2026-03-22)
-
 <details>
-<summary>7 phases, 14 plans — dashboard, login, wizard, operator, hub, settings/admin rebuilt from scratch</summary>
+<summary>✅ v4.3 Ground-Up Rebuild (Shipped: 2026-03-22) — 7 phases, 14 plans</summary>
 
 **Milestone Goal:** Rebuild every critical page from scratch — HTML+CSS+JS together in one commit, fix all v4.2 regressions, wire backend properly, achieve genuine top 1% design quality.
-
-**Approach:** Read existing JS before touching HTML. Rewrite HTML+CSS. Update JS if DOM changes. Verify backend connections. Test in browser before marking done. No broken intermediate states.
 
 ### Phases
 
@@ -49,10 +46,8 @@
 
 ---
 
-## ✅ v4.4 Complete Rebuild (Shipped: 2026-03-30)
-
 <details>
-<summary>3 phases, 10 plans — postsession, analytics, meetings, archives, audit, members, users, vote, help, email-templates, public, report, trust/validate/docs rebuilt</summary>
+<summary>✅ v4.4 Complete Rebuild (Shipped: 2026-03-30) — 3 phases, 10 plans</summary>
 
 **Milestone Goal:** Ground-up rebuild of all remaining 13 pages to v4.3 quality standard — HTML+CSS+JS from scratch, backend wiring verified, browser tested.
 
@@ -74,126 +69,103 @@
 
 ---
 
-## ✅ v5.0 Quality & Production Readiness (Shipped: 2026-03-30)
+<details>
+<summary>✅ v5.0 Quality & Production Readiness (Shipped: 2026-03-30) — 6 phases, 18 plans</summary>
 
 **Milestone Goal:** Achieve 90%+ test coverage across all layers, fix infrastructure bugs, harden Docker/CI pipeline, and make AG-VOTE production-ready.
 
-**Approach:** Fix foundations first (migrations, Docker), then build test coverage bottom-up (unit tests -> coverage tooling -> E2E updates -> CI wiring). Each phase delivers a verifiable quality gate.
+### Phases
+
+- [x] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms (completed 2026-03-30)
+- [x] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (completed 2026-03-30)
+- [x] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, ResolutionDocumentController (completed 2026-03-30)
+- [x] **Phase 55: Coverage Target & Tooling** - Install pcov, measure baseline, fill gaps to 90%+ on Services and Controllers (completed 2026-03-30)
+- [x] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs for v4.3/v4.4 rebuilds; all specs pass on Chromium (completed 2026-03-30)
+- [x] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions (completed 2026-03-30)
+
+### Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 52. Infrastructure Foundations | 2/2 | Complete | 2026-03-30 |
+| 53. Service Unit Tests Batch 1 | 2/2 | Complete | 2026-03-30 |
+| 54. Service Unit Tests Batch 2 | 2/2 | Complete | 2026-03-30 |
+| 55. Coverage Target & Tooling | 9/9 | Complete | 2026-03-30 |
+| 56. E2E Test Updates | 2/2 | Complete | 2026-03-30 |
+| 57. CI/CD Pipeline | 1/1 | Complete | 2026-03-30 |
+
+</details>
+
+---
+
+## 🚧 v5.1 Operational Hardening (In Progress)
+
+**Milestone Goal:** Close all logical holes in the domain layer — rename WebSocket to SSE throughout the codebase, harden vote/quorum/session/import/auth edge cases with explicit error handling and audit logging, and eliminate dead code and vocabulary inconsistencies.
+
+**Approach:** Rename first (clean foundation), then harden domain edge cases by category, then clean up dead code. Each phase delivers verifiable behavioral guarantees, not just code changes.
 
 ## Phases
 
-- [x] **Phase 52: Infrastructure Foundations** - Fix Docker healthcheck, entrypoint PORT handling, health endpoint JSON response, and all migration SQLite-isms (completed 2026-03-30)
-- [x] **Phase 53: Service Unit Tests Batch 1** - Write unit tests for QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService (5 business-critical services) (completed 2026-03-30)
-- [x] **Phase 54: Service Unit Tests Batch 2** - Write unit tests for EmailTemplateService, SpeechService, MonitoringService, ErrorDictionary, and ResolutionDocumentController (completed 2026-03-30)
-- [x] **Phase 55: Coverage Target & Tooling** - Install pcov/xdebug coverage driver, measure baseline, fill gaps to reach 90%+ on Services and Controllers
-- [x] **Phase 56: E2E Test Updates** - Update all 18 stale Playwright specs with selectors matching v4.3/v4.4 rebuilt pages; all specs pass on Chromium (completed 2026-03-30)
-- [x] **Phase 57: CI/CD Pipeline** - Wire PHPUnit coverage gate, E2E suite, migration validation, and integration tests into GitHub Actions workflow (completed 2026-03-30)
+- [ ] **Phase 58: WebSocket to SSE Rename** - Rename the `AgVote\WebSocket` namespace and `WebSocketListener` class to `AgVote\SSE` and `SseListener`; eliminate all "WebSocket" terminology from PHP source
+- [ ] **Phase 59: Vote and Quorum Edge Cases** - Enforce explicit error responses for expired tokens, double votes, closed-motion votes, zero-member quorum, and real-time quorum updates via SSE
+- [ ] **Phase 60: Session, Import, and Auth Edge Cases** - Enforce invalid state transitions and live-session deletion guard; handle non-UTF-8 CSV encodings and email duplicates; guarantee redirect-with-message on session expiry and brute-force blocking
+- [ ] **Phase 61: Dead Code Cleanup** - Remove or implement controller stubs; purge copropriete/syndic vocabulary from demo seeds; audit and document or delete identified dead files
 
 ## Phase Details
 
-### Phase 52: Infrastructure Foundations
-**Goal**: Docker runs correctly in all deployment scenarios and every migration file is clean PostgreSQL — no SQLite syntax, no runtime evaluation bugs
+### Phase 58: WebSocket to SSE Rename
+**Goal**: The codebase accurately reflects its transport mechanism — SSE, not WebSockets — with zero terminology drift between namespace, class names, comments, and documentation
 **Depends on**: Nothing (first phase in milestone)
-**Requirements**: MIG-01, MIG-02, MIG-03, DOC-01, DOC-02, DOC-03
+**Requirements**: SSE-01, SSE-02, SSE-03
 **Success Criteria** (what must be TRUE):
-  1. Running all migrations twice against a clean PostgreSQL instance produces zero errors — no duplicate table or column creation failures
-  2. The Docker healthcheck correctly reads PORT at container runtime, not at image build time — changing PORT via environment variable takes effect without rebuilding the image
-  3. The health endpoint at `/health` returns a JSON object containing `database`, `redis`, and `filesystem` status fields with valid values
-  4. A migration dry-run script exists that can be invoked to validate all `.sql` files against a fresh PostgreSQL database, reporting any incompatible syntax
-  5. Zero occurrences of SQLite-specific syntax (`AUTOINCREMENT`, `datetime('now')`, `INTEGER PRIMARY KEY`) remain in any migration file
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 52-01-PLAN.md — Migration audit, dry-run script, idempotency verification
-- [ ] 52-02-PLAN.md — Docker healthcheck fix, nginx template, health endpoint enhancement
+  1. `grep -r "AgVote\\WebSocket" src/` (or equivalent PHP source directories) returns zero results — the namespace does not exist anywhere outside vendor/
+  2. The class formerly named `WebSocketListener` is now named `SseListener` and all references to it (instantiation, type hints, comments) use the new name
+  3. Running `grep -ri "websocket" src/ app/` (excluding vendor/) returns zero results — no stale comments, docblocks, or identifiers remain
+  4. The application boots and SSE connections function correctly after the rename — no autoload or routing breakage
+**Plans**: TBD
 
-### Phase 53: Service Unit Tests Batch 1
-**Goal**: The five most business-critical services — QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService — have comprehensive unit tests covering happy paths, edge cases, and error conditions
-**Depends on**: Phase 52
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
+### Phase 59: Vote and Quorum Edge Cases
+**Goal**: The voting and quorum subsystems handle all failure modes explicitly — no silent failures, no 500 errors, no division-by-zero panics, with anomalies logged to the audit trail
+**Depends on**: Phase 58
+**Requirements**: VOTE-01, VOTE-02, VOTE-03, QUOR-01, QUOR-02
 **Success Criteria** (what must be TRUE):
-  1. `vendor/bin/phpunit --filter QuorumEngineTest` passes with tests covering quorum calculation, threshold boundary conditions, and missing-attendance edge cases
-  2. `vendor/bin/phpunit --filter VoteEngineTest` passes with tests covering simple majority, absolute majority, weighted votes, and tie-breaking logic
-  3. `vendor/bin/phpunit --filter ImportServiceTest` passes with tests covering valid CSV import, malformed rows, duplicate detection, and encoding edge cases
-  4. `vendor/bin/phpunit --filter MeetingValidatorTest` passes with tests covering all valid and invalid meeting state transitions
-  5. `vendor/bin/phpunit --filter NotificationsServiceTest` passes with tests covering notification creation, delivery dispatch, and failure handling
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 53-01-PLAN.md — VoteEngine computeMotionResult tests + ImportServiceTest + verify QuorumEngineTest
-- [ ] 53-02-PLAN.md — MeetingValidatorTest + NotificationsServiceTest
+  1. Submitting a vote with an expired or already-used token returns an HTTP 4xx response with a clear error message — the server does not return 500 and does not crash
+  2. Submitting a second vote with the same token is rejected, and an audit trail entry is created recording the double-vote attempt (token, timestamp, IP)
+  3. Submitting a vote on a motion whose status is "closed" returns an explicit error message stating the motion is no longer accepting votes — the vote is not recorded
+  4. The quorum calculation function returns 0% (or equivalent zero-safe value) when zero members are present — no division-by-zero exception is raised
+  5. When an operator adds or removes an attendee while a vote is open, the quorum percentage displayed in the operator console updates in real time via an SSE event without requiring a page reload
+**Plans**: TBD
 
-### Phase 54: Service Unit Tests Batch 2
-**Goal**: The remaining five services and the ResolutionDocumentController have unit tests — completing full service-layer coverage
-**Depends on**: Phase 53
-**Requirements**: TEST-06, TEST-07, TEST-08, TEST-09, TEST-10
+### Phase 60: Session, Import, and Auth Edge Cases
+**Goal**: Sessions enforce their state machine, CSV import handles encoding and duplicates gracefully, and authentication failures always produce informative user-facing responses
+**Depends on**: Phase 58
+**Requirements**: SESS-01, SESS-02, IMP-01, IMP-02, AUTH-01, AUTH-02
 **Success Criteria** (what must be TRUE):
-  1. `vendor/bin/phpunit --filter EmailTemplateServiceTest` passes with tests covering template rendering, variable substitution, and missing-variable fallback behavior
-  2. `vendor/bin/phpunit --filter SpeechServiceTest` passes with tests covering speech queue ordering, insertion, removal, and empty-queue edge cases
-  3. `vendor/bin/phpunit --filter MonitoringServiceTest` passes with tests covering health check responses for each subsystem (database, redis, filesystem)
-  4. `vendor/bin/phpunit --filter ErrorDictionaryTest` passes with tests covering known error code lookup, unknown code fallback, and message formatting with parameters
-  5. `vendor/bin/phpunit --filter ResolutionDocumentControllerTest` passes with tests covering upload validation, file serving with auth check, and delete authorization
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 54-01-PLAN.md — ErrorDictionary + EmailTemplateService + SpeechService unit tests
-- [ ] 54-02-PLAN.md — MonitoringService + ResolutionDocumentController unit tests
+  1. Attempting an invalid session state transition (e.g., draft directly to validated) returns an explicit error message naming the disallowed transition — the session state is not changed
+  2. Attempting to delete a session whose status is "live" is rejected with a clear message — the session is not deleted and the operator is informed
+  3. Uploading a CSV file encoded in Windows-1252 or ISO-8859-1 produces a correctly imported member list — names with accented characters (e.g., "Dupré", "Müller") are stored correctly in UTF-8
+  4. Uploading a CSV that contains two rows with the same email address produces a validation error listing the duplicate emails — no silent creation of duplicate member records occurs
+  5. Accessing any authenticated page with an expired session redirects to /login with a visible message explaining the session has expired — no blank page or raw PHP error is shown
+  6. After a configurable number of consecutive failed login attempts from the same IP, further attempts are blocked and an entry recording the IP and attempt count is written to the audit trail
+**Plans**: TBD
 
-### Phase 55: Coverage Target & Tooling
-**Goal**: Code coverage measurement is operational and the codebase meets 90%+ coverage on Services and Controllers — the gap between current state and target is closed
-**Depends on**: Phase 54
-**Requirements**: COV-01, COV-02, COV-03
+### Phase 61: Dead Code Cleanup
+**Goal**: The codebase contains no controller stubs, no copropriete/syndic vocabulary in demo data, and no unaddressed dead files — every file either works or is documented as intentionally deferred
+**Depends on**: Phase 59, Phase 60
+**Requirements**: CLEAN-01, CLEAN-02, CLEAN-03
 **Success Criteria** (what must be TRUE):
-  1. Running `vendor/bin/phpunit --coverage-html coverage/` generates an HTML report without errors — the report is readable in a browser
-  2. The coverage report shows 90%+ line coverage for the `app/Services/` directory
-  3. The coverage report shows 90%+ line coverage for the `app/Controller/` directory
-  4. A PHPUnit configuration (phpunit.xml) enforces the 90% threshold — running the suite below threshold exits with a non-zero code
-**Plans:** 9/9 plans complete
-Plans:
-- [x] 55-01-PLAN.md — Install pcov, fix phpunit.xml source includes, measure baseline coverage
-- [x] 55-02-PLAN.md — Fill coverage gaps, add 90% threshold enforcement script
-- [ ] 55-03-PLAN.md — ControllerTestCase base class + service gap-filling to 90%
-- [ ] 55-04-PLAN.md — Controller tests: Import, Motions, MeetingReports, Meetings, MeetingWorkflow
-- [ ] 55-05-PLAN.md — Controller tests: Operator, Admin, Analytics, Ballots, Audit
-- [ ] 55-06-PLAN.md — Controller tests: Trust, MemberGroups, Auth, Export, ResolutionDocument, Email, Doc, Devices
-- [ ] 55-07-PLAN.md — Controller tests: Dashboard, EmailTemplates, Quorum, Speech, Attendances, Invitations, ExportTemplates, Policies, VotePublic, MeetingAttachment, Members, Agenda
-- [ ] 55-08-PLAN.md — Controller tests: Proxies, EmailTracking, Reminder, DevSeed, Projector, VoteToken, Settings, Emergency, DocContent, Notifications
-- [ ] 55-09-PLAN.md — Update coverage-check.sh thresholds to 90/90 and final validation
-
-### Phase 56: E2E Test Updates
-**Goal**: All Playwright specs reflect the v4.3/v4.4 page rebuilds — every spec uses current selectors and passes on Chromium against the running Docker stack
-**Depends on**: Phase 52
-**Requirements**: E2E-01, E2E-02, E2E-03, E2E-04, E2E-05, E2E-06
-**Success Criteria** (what must be TRUE):
-  1. `npx playwright test --project=chromium` runs all 18 specs to completion with zero failures — no stale selector errors, no timeout failures from missing elements
-  2. The auth spec successfully logs in using `#email`, `#password`, `#submitBtn` and toggles password visibility via `.field-eye` — matching the v4.3 login page DOM
-  3. The audit-regression spec correctly targets the v4.4 audit page structure — filter tabs, timeline view, and table view are all exercised without selector errors
-  4. The vote spec selects choices using French `data-choice` attribute values and interacts with the v4.4 ballot layout — the vote is submitted and confirmed without errors
-  5. Mobile viewport specs for the vote/ballot page pass on both `tablet` and `mobile-chrome` Playwright projects — no layout overflow or touch target failures
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 56-01-PLAN.md — Install Playwright, audit and fix all 18 specs for stale selectors
-- [ ] 56-02-PLAN.md — Run full suite on Chromium, fix failures iteratively, verify mobile viewports
-
-### Phase 57: CI/CD Pipeline
-**Goal**: Every quality gate runs automatically on every push — coverage, E2E, migration validation, and integration tests are all enforced in GitHub Actions
-**Depends on**: Phase 55, Phase 56
-**Requirements**: CI-01, CI-02, CI-03, CI-04
-**Success Criteria** (what must be TRUE):
-  1. A GitHub Actions workflow runs Playwright E2E tests after a successful Docker build — the workflow fails and reports spec-level errors if any E2E test fails
-  2. The CI workflow runs PHPUnit with coverage and fails the build if coverage drops below 90% on Services or Controllers — the failure message names the threshold breached
-  3. The CI workflow runs a migration validation step that checks all `.sql` files for PostgreSQL compatibility — a file containing SQLite syntax causes the step to fail with the offending filename
-  4. Integration tests run against a containerized PostgreSQL + Redis stack in CI — tests exercise real database and cache connections, not mocks
-**Plans:** 1/1 plans complete
-Plans:
-- [ ] 57-01-PLAN.md — Add migrate-check, coverage, e2e, and integration jobs to GitHub Actions workflow
+  1. Every controller method that previously returned a stub response (e.g., `["status" => "not implemented"]` or similar placeholder) either has a real implementation or has been removed — zero stubs remain in production controller code
+  2. All demo seed files contain no references to "copropriete", "syndic", "lot", "copropriétaire", or equivalent vocabulary — seeds use AG/assembly terminology exclusively
+  3. All files identified during the dead code audit are either deleted (with no test regressions) or have a code comment explaining why they are retained — no undocumented dead files remain
+**Plans**: TBD
 
 ## Progress
 
-**Execution Order:** 52 -> 53 -> 54 -> 55 -> 56 -> 57 (56 can run in parallel with 53-55 after 52)
+**Execution Order:** 58 -> 59 (parallel with 60) -> 61
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 52. Infrastructure Foundations | 2/2 | Complete    | 2026-03-30 | - |
-| 53. Service Unit Tests Batch 1 | 2/2 | Complete    | 2026-03-30 | - |
-| 54. Service Unit Tests Batch 2 | 2/2 | Complete    | 2026-03-30 | - |
-| 55. Coverage Target & Tooling | 9/9 | Complete    | 2026-03-30 | 2026-03-30 |
-| 56. E2E Test Updates | 2/2 | Complete    | 2026-03-30 | - |
-| 57. CI/CD Pipeline | 1/1 | Complete    | 2026-03-30 | - |
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 58. WebSocket to SSE Rename | 0/TBD | Not started | - |
+| 59. Vote and Quorum Edge Cases | 0/TBD | Not started | - |
+| 60. Session, Import, and Auth Edge Cases | 0/TBD | Not started | - |
+| 61. Dead Code Cleanup | 0/TBD | Not started | - |
