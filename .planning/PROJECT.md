@@ -77,7 +77,7 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-**v6.0 Production & Email** : Déployer AG-VOTE sur Render (Docker + PostgreSQL managé + Redis, HTTPS auto, page /status), envoyer des emails fonctionnels via SMTP (invitations avec lien vers l'app, rappels, résultats), notifications in-app (cloche + toasts SSE).
+**v6.0 Production & Email** : Envoyer des emails fonctionnels via SMTP (invitations avec lien vers l'app, rappels, résultats), templates personnalisables, notifications in-app (cloche + toasts SSE temps réel).
 
 ### Out of Scope
 
