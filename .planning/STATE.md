@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 Phase: All 6 phases complete (52-57)
 Plan: All 18 plans complete
 Status: Milestone v5.0 shipped and archived
-Last activity: 2026-03-31 — Completed quick task 260331-7s9: Remove voting weight/ponderation from UI
+Last activity: 2026-03-31 — Completed quick task 260331-854: Wizard field layout and time input modernization
 
 Progress: [██████████] 100%
 
@@ -63,6 +63,7 @@ None.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260331-7s9 | Remove voting weight/ponderation from UI and sample CSV | 2026-03-31 | 7cb5378 | [260331-7s9-remove-voting-weight-ponderation-from-ui](./quick/260331-7s9-remove-voting-weight-ponderation-from-ui/) |
+| 260331-854 | Wizard field layout and time input modernization | 2026-03-31 | e655a46 | [260331-854-wizard-field-layout-and-time-input-moder](./quick/260331-854-wizard-field-layout-and-time-input-moder/) |
 
 ## Session Continuity
 
