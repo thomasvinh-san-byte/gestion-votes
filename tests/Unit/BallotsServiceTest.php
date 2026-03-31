@@ -701,14 +701,14 @@ class BallotsServiceTest extends TestCase {
     }
 
     // =========================================================================
-    // castBallot() -- WebSocket broadcast failure does not break vote
+    // castBallot() -- SSE broadcast failure does not break vote
     // =========================================================================
 
     public function testCastBallotSucceedsEvenWhenBroadcastFails(): void {
         $this->setupSuccessfulDirectVote();
 
         $this->ballotRepo->method('tally')
-            ->willThrowException(new RuntimeException('WebSocket down'));
+            ->willThrowException(new RuntimeException('SSE down'));
 
         $this->ballotRepo->method('findByMotionAndMember')
             ->willReturn([
