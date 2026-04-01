@@ -163,5 +163,5 @@ Phases execute in numeric order: 65 → 66
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Attachment Upload & Serve | 0/2 | Not started | - |
+| 65. Attachment Upload & Serve | 1/2 | In Progress|  |
 | 66. Voter Document Access | 0/1 | Not started | - |

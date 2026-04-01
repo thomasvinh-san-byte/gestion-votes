@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v6.1
-milestone_name: "PDF & Preparation de Seance"
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-01T13:00:00.000Z"
-last_activity: "2026-04-01 — Roadmap created for v6.1 (2 phases, 5 requirements)"
+milestone_name: PDF & Preparation de Seance
+status: planning
+stopped_at: Completed 65-01-PLAN.md — serve() endpoint + 7 unit tests
+last_updated: "2026-04-01T08:23:38.028Z"
+last_activity: 2026-04-01 — Roadmap created for v6.1
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -42,6 +42,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v6.1 roadmap]: Reuse ag-pdf-viewer (inline/sheet/panel modes) for voter document viewing
 - [v6.1 roadmap]: Mirror wizard step 2 FilePond pattern in step 1 for meeting attachments
 - [v6.1 roadmap]: Mirror hub resolution doc badges pattern for meeting attachments section
+- [Phase 65-01]: Reuse doc_serve rate limit bucket for meeting_attachment_serve (same use case, 120/60s)
+- [Phase 65-01]: serve() uses meetingAttachment() repo path (AG_UPLOAD_DIR/meetings/{meeting_id}/) — not resolutions/
 
 ### Existing Infrastructure
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01
-Stopped at: Roadmap created for v6.1, ready to plan Phase 65
+Last session: 2026-04-01T08:23:38.025Z
+Stopped at: Completed 65-01-PLAN.md — serve() endpoint + 7 unit tests
 Resume file: None

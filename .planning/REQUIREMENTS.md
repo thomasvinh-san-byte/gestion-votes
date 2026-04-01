@@ -13,7 +13,7 @@ Requirements for v6.1 PDF & Preparation de Seance milestone.
 - [ ] **ATTACH-02**: L'operateur peut gerer (voir, ajouter, supprimer) les pieces jointes depuis la console operateur
 - [ ] **ATTACH-03**: Les votants peuvent consulter les pieces jointes de la seance depuis le hub (section "Documents de la seance" avec ag-pdf-viewer)
 - [ ] **ATTACH-04**: Les votants peuvent consulter les pieces jointes de la seance depuis la page de vote (bouton "Documents" avec ag-pdf-viewer)
-- [ ] **ATTACH-05**: Un endpoint serve securise permet aux votants d'acceder aux fichiers PDF (authentification session OU token de vote)
+- [x] **ATTACH-05**: Un endpoint serve securise permet aux votants d'acceder aux fichiers PDF (authentification session OU token de vote)
 
 ## Future Requirements
 
@@ -44,7 +44,7 @@ Requirements for v6.1 PDF & Preparation de Seance milestone.
 | ATTACH-02 | Phase 65 | Pending |
 | ATTACH-03 | Phase 66 | Pending |
 | ATTACH-04 | Phase 66 | Pending |
-| ATTACH-05 | Phase 65 | Pending |
+| ATTACH-05 | Phase 65 | Complete |
 
 **Coverage:**
 - v6.1 requirements: 5 total
