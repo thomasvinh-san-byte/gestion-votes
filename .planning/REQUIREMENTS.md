@@ -51,23 +51,23 @@ Requirements for v7.0 Production Essentials milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PV-01 | TBD | Pending |
-| PV-02 | TBD | Pending |
-| PV-03 | TBD | Pending |
-| QUEUE-01 | TBD | Pending |
-| QUEUE-02 | TBD | Pending |
-| SETUP-01 | TBD | Pending |
-| SETUP-02 | TBD | Pending |
-| SETUP-03 | TBD | Pending |
-| RESET-01 | TBD | Pending |
-| RESET-02 | TBD | Pending |
-| RESET-03 | TBD | Pending |
+| PV-01 | Phase 67 | Pending |
+| PV-02 | Phase 67 | Pending |
+| PV-03 | Phase 67 | Pending |
+| QUEUE-01 | Phase 68 | Pending |
+| QUEUE-02 | Phase 68 | Pending |
+| SETUP-01 | Phase 69 | Pending |
+| SETUP-02 | Phase 69 | Pending |
+| SETUP-03 | Phase 69 | Pending |
+| RESET-01 | Phase 70 | Pending |
+| RESET-02 | Phase 70 | Pending |
+| RESET-03 | Phase 70 | Pending |
 
 **Coverage:**
 - v7.0 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after milestone v7.0 start*
+*Last updated: 2026-04-01 after roadmap creation*

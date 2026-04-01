@@ -14,6 +14,7 @@
 - ✅ **v5.1 Operational Hardening** - Phases 58-61 (shipped 2026-03-31)
 - ✅ **v6.0 Production & Email** - Phases 62-64 (shipped 2026-04-01)
 - ✅ **v6.1 PDF & Preparation de Seance** - Phases 65-66 (shipped 2026-04-01)
+- 🚧 **v7.0 Production Essentials** - Phases 67-70 (in progress)
 
 ---
 
@@ -125,7 +126,7 @@
 ### Phases
 
 - [x] **Phase 65: Attachment Upload & Serve** — Wizard FilePond upload, operator console management, dual-auth serve endpoint (completed 2026-04-01)
-- [x] **Phase 66: Voter Document Access** — Hub "Documents de la séance" section, vote page "Documents" button with ag-pdf-viewer (completed 2026-04-01)
+- [x] **Phase 66: Voter Document Access** — Hub "Documents de la seance" section, vote page "Documents" button with ag-pdf-viewer (completed 2026-04-01)
 
 ### Progress
 
@@ -135,3 +136,85 @@
 | 66. Voter Document Access | 1/1 | Complete | 2026-04-01 |
 
 </details>
+
+---
+
+### 🚧 v7.0 Production Essentials (In Progress)
+
+**Milestone Goal:** Deliver four production-essential features: official PV PDF generation for legal compliance, cron-based email queue worker for reliable delivery, browser-based initial setup for new deployments, and secure password reset via email.
+
+## Phases
+
+- [ ] **Phase 67: PV Officiel PDF** - Generate legally compliant proces-verbal PDF with asso loi 1901 template
+- [ ] **Phase 68: Email Queue Worker** - Cron-based queue processor in Docker with retry and failure handling
+- [ ] **Phase 69: Initial Setup** - First-run /setup page to create tenant and admin account
+- [ ] **Phase 70: Reset Password** - Secure token-based password reset flow via email
+
+## Phase Details
+
+### Phase 67: PV Officiel PDF
+**Goal**: Operators can generate a legally compliant official PV after validating a session
+**Depends on**: Nothing (builds on existing MeetingReportService + Dompdf)
+**Requirements**: PV-01, PV-02, PV-03
+**Success Criteria** (what must be TRUE):
+  1. After validating a session, the operator clicks "Generer PV" and receives a PDF containing: organization header (name, date, location), attendance list (present and represented members), quorum confirmation, each resolution with detailed vote counts (pour/contre/abstention), and signature blocks for president and secretary
+  2. The generated PDF follows the standard asso loi 1901 proces-verbal template layout
+  3. The PV PDF is viewable inline and downloadable from the post-session page
+**Plans**: TBD
+
+Plans:
+- [ ] 67-01: PV template and generation logic
+- [ ] 67-02: Post-session integration and download UI
+
+### Phase 68: Email Queue Worker
+**Goal**: Queued emails are processed automatically without manual intervention
+**Depends on**: Nothing (builds on existing EmailQueueService::processQueue())
+**Requirements**: QUEUE-01, QUEUE-02
+**Success Criteria** (what must be TRUE):
+  1. A cron job inside the Docker container calls processQueue() every minute without operator action
+  2. Emails that fail to send are retried with exponential backoff (not immediately re-sent in a tight loop)
+  3. After max retries, permanently failed emails are marked as "failed" in the queue table and stop being retried
+**Plans**: TBD
+
+Plans:
+- [ ] 68-01: Cron worker setup and retry logic
+
+### Phase 69: Initial Setup
+**Goal**: A new deployment can be bootstrapped through a browser-based setup page
+**Depends on**: Nothing (independent feature)
+**Requirements**: SETUP-01, SETUP-02, SETUP-03
+**Success Criteria** (what must be TRUE):
+  1. Navigating to /setup when no admin user exists shows a setup form with organization name, admin email, and admin password fields
+  2. Submitting the form creates the first tenant and first admin user in the database
+  3. After setup completes, the browser redirects to /login and /setup returns a redirect (or 404) for all future requests
+**Plans**: TBD
+
+Plans:
+- [ ] 69-01: Setup controller, page, and guard logic
+
+### Phase 70: Reset Password
+**Goal**: Users who forget their password can securely reset it via email
+**Depends on**: Phase 68 (email queue ensures reset emails are delivered reliably)
+**Requirements**: RESET-01, RESET-02, RESET-03
+**Success Criteria** (what must be TRUE):
+  1. The login page displays a "Mot de passe oublie" link that opens a form where the user enters their email address
+  2. Submitting the form sends an email containing a secure token link that expires after 1 hour
+  3. Clicking the link opens a new-password form; submitting it updates the password hash in the database and the user can immediately log in with the new password
+  4. Expired or already-used tokens are rejected with a clear French error message
+**Plans**: TBD
+
+Plans:
+- [ ] 70-01: Token generation, email sending, and reset endpoint
+- [ ] 70-02: Reset UI pages (request form and new password form)
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 67 → 68 → 69 → 70
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 67. PV Officiel PDF | 0/2 | Not started | - |
+| 68. Email Queue Worker | 0/1 | Not started | - |
+| 69. Initial Setup | 0/1 | Not started | - |
+| 70. Reset Password | 0/2 | Not started | - |
