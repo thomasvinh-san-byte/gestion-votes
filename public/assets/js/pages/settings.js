@@ -402,7 +402,7 @@
           var subjectEl = document.getElementById('templateSubject');
           var bodyEl = document.getElementById('templateBody');
           if (subjectEl) subjectEl.value = tpl.subject || '';
-          if (bodyEl) bodyEl.value = tpl.body || '';
+          if (bodyEl) bodyEl.value = tpl.body_html || '';
           // Store template ID for save/update
           _currentTemplateId = tpl.id || null;
         }
@@ -429,9 +429,9 @@
         var body = document.getElementById('templateBody');
         api('/api/v1/email_templates', {
           id: _currentTemplateId,
-          type: _currentTemplate,
+          template_type: _currentTemplate,
           subject: subject ? subject.value : '',
-          body: body ? body.value : ''
+          body_html: body ? body.value : ''
         }, 'PUT')
           .then(function(r) {
             if (r.body && r.body.ok) {
@@ -553,8 +553,10 @@
   // ═══════════════════════════════════════════════════════
   // TEMPLATE PREVIEW + VARIABLE TAG INSERTION
   // ═══════════════════════════════════════════════════════
+  var _previewDebounce = null;
   function updateTemplatePreview() {
     var body = document.getElementById('templateBody');
+    var subject = document.getElementById('templateSubject');
     var preview = document.getElementById('templatePreviewRender');
     if (!body || !preview) return;
     var text = body.value || '';
@@ -562,19 +564,25 @@
       preview.innerHTML = '<span style="color: var(--color-text-muted); font-style: italic; font-family: var(--font-sans);">Commencez \u00e0 saisir le corps du message pour voir l\'aper\u00e7u ici.</span>';
       return;
     }
-    // Replace variables with sample values for preview
-    var samples = {
-      '{{nom}}': 'Jean Dupont',
-      '{{date}}': '15/04/2026',
-      '{{heure}}': '14h00',
-      '{{lieu}}': 'Salle du Conseil',
-      '{{organisation}}': 'Association Exemple',
-      '{{lien_vote}}': 'https://vote.example.com/abc123'
-    };
-    Object.keys(samples).forEach(function(k) {
-      text = text.split(k).join('<strong>' + samples[k] + '</strong>');
-    });
-    preview.innerHTML = text.replace(/\n/g, '<br>');
+    // Debounce server calls 400ms
+    clearTimeout(_previewDebounce);
+    _previewDebounce = setTimeout(function() {
+      api('/api/v1/email_templates_preview', {
+        body_html: text,
+        subject: subject ? subject.value : ''
+      })
+        .then(function(r) {
+          if (r.body && r.body.ok && r.body.data) {
+            preview.innerHTML = r.body.data.preview_html || text;
+          } else {
+            // Fallback: show raw text
+            preview.innerHTML = text.replace(/\n/g, '<br>');
+          }
+        })
+        .catch(function() {
+          preview.innerHTML = text.replace(/\n/g, '<br>');
+        });
+    }, 400);
   }
 
   function initTemplatePreview() {
