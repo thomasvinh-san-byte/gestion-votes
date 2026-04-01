@@ -201,11 +201,11 @@ Plans:
   2. Submitting the form sends an email containing a secure token link that expires after 1 hour
   3. Clicking the link opens a new-password form; submitting it updates the password hash in the database and the user can immediately log in with the new password
   4. Expired or already-used tokens are rejected with a clear French error message
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 70-01: Token generation, email sending, and reset endpoint
-- [ ] 70-02: Reset UI pages (request form and new password form)
+- [ ] 70-01-PLAN.md — Backend: migration, repository, service, controller, routes, templates, unit tests
+- [ ] 70-02-PLAN.md — Wire login page forgot link to /reset-password + human verification
 
 ## Progress
 
@@ -216,5 +216,5 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 |-------|----------------|--------|-----------|
 | 67. PV Officiel PDF | 2/2 | Complete    | 2026-04-01 |
 | 68. Email Queue Worker | 1/1 | Complete    | 2026-04-01 |
-| 69. Initial Setup | 1/1 | Complete   | 2026-04-01 |
+| 69. Initial Setup | 1/1 | Complete    | 2026-04-01 |
 | 70. Reset Password | 0/2 | Not started | - |
