@@ -46,7 +46,7 @@ class MeetingAttachmentControllerTest extends ControllerTestCase
 
     public function testControllerHasRequiredMethods(): void
     {
-        foreach (['listForMeeting', 'upload', 'delete', 'serve'] as $method) {
+        foreach (['listForMeeting', 'upload', 'delete', 'serve', 'listPublic'] as $method) {
             $this->assertTrue(method_exists(MeetingAttachmentController::class, $method));
         }
     }
@@ -418,5 +418,193 @@ class MeetingAttachmentControllerTest extends ControllerTestCase
         }
         $this->assertEquals(403, $result['status']);
         $this->assertEquals('access_denied', $result['body']['error']);
+    }
+
+    // =========================================================================
+    // listPublic() — GET (dual-auth: session OR vote token)
+    // =========================================================================
+
+    public function testListPublicWithSessionAuth(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('listForMeeting')->willReturn([
+            [
+                'id'           => self::ATTACH_ID,
+                'original_name' => 'ordre-du-jour.pdf',
+                'file_size'    => 2048,
+                'created_at'   => '2026-04-01T08:00:00Z',
+                'stored_name'  => 'should-be-stripped.pdf',
+            ],
+        ]);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+
+        $this->assertEquals(200, $result['status']);
+        $attachments = $result['body']['data']['attachments'];
+        $this->assertCount(1, $attachments);
+        $this->assertSame(self::ATTACH_ID, $attachments[0]['id']);
+    }
+
+    public function testListPublicWithValidToken(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'token' => 'valid-vote-token']);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('listForMeeting')->willReturn([
+            [
+                'id'           => self::ATTACH_ID,
+                'original_name' => 'convocation.pdf',
+                'file_size'    => 1024,
+                'created_at'   => '2026-04-01T08:00:00Z',
+                'stored_name'  => 'hidden-stored-name.pdf',
+            ],
+        ]);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn([
+            'tenant_id'  => self::TENANT,
+            'meeting_id' => self::MEETING_ID,
+        ]);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $repo,
+            VoteTokenRepository::class         => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+
+        $this->assertEquals(200, $result['status']);
+        $attachments = $result['body']['data']['attachments'];
+        $this->assertCount(1, $attachments);
+    }
+
+    public function testListPublicNoAuth(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+
+        $this->assertEquals(401, $result['status']);
+        $this->assertEquals('authentication_required', $result['body']['error']);
+    }
+
+    public function testListPublicInvalidToken(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'token' => 'bad-token']);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn(null);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $repo,
+            VoteTokenRepository::class         => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+
+        $this->assertEquals(401, $result['status']);
+        $this->assertEquals('invalid_token', $result['body']['error']);
+    }
+
+    public function testListPublicWrongMeeting(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID, 'token' => 'valid-vote-token']);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn([
+            'tenant_id'  => self::TENANT,
+            'meeting_id' => 'different-meeting-uuid', // token meeting != requested meeting
+        ]);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $repo,
+            VoteTokenRepository::class         => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('access_denied', $result['body']['error']);
+    }
+
+    public function testListPublicExcludesStoredName(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('listForMeeting')->willReturn([
+            [
+                'id'           => self::ATTACH_ID,
+                'original_name' => 'rapport.pdf',
+                'file_size'    => 512,
+                'created_at'   => '2026-04-01T08:00:00Z',
+                'stored_name'  => 'internal-uuid-filename.pdf',
+                'tenant_id'    => self::TENANT,
+            ],
+        ]);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+
+        $this->assertEquals(200, $result['status']);
+        $attachments = $result['body']['data']['attachments'];
+        $this->assertCount(1, $attachments);
+        $this->assertArrayNotHasKey('stored_name', $attachments[0]);
+        $this->assertArrayNotHasKey('tenant_id', $attachments[0]);
+        $this->assertArrayHasKey('id', $attachments[0]);
+        $this->assertArrayHasKey('original_name', $attachments[0]);
+        $this->assertArrayHasKey('file_size', $attachments[0]);
+        $this->assertArrayHasKey('created_at', $attachments[0]);
+    }
+
+    public function testListPublicMissingMeetingId(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $result = $this->callController(MeetingAttachmentController::class, 'listPublic');
+
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 }

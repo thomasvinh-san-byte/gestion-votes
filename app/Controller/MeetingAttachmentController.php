@@ -130,6 +130,56 @@ final class MeetingAttachmentController extends AbstractController {
         api_ok(['deleted' => true]);
     }
 
+    public function listPublic(): void
+    {
+        $meetingId = api_query('meeting_id');
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 400);
+        }
+
+        // Dual auth: session users (operator/admin) OR vote token holders (voters)
+        $userId = api_current_user_id();
+
+        if ($userId !== null) {
+            // Session-authenticated user — use their tenant
+            $tenantId = api_current_tenant_id();
+        } else {
+            // No session — require a vote token via ?token= query param
+            $rawToken = api_query('token');
+            if ($rawToken === '') {
+                api_fail('authentication_required', 401);
+            }
+
+            // Hash and look up the token
+            $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
+            $tokenRow = $this->repo()->voteToken()->findByHash($tokenHash);
+            if ($tokenRow === null) {
+                api_fail('invalid_token', 401);
+            }
+
+            // Verify token belongs to the requested meeting
+            if ($tokenRow['meeting_id'] !== $meetingId) {
+                api_fail('access_denied', 403);
+            }
+
+            $tenantId = $tokenRow['tenant_id'];
+        }
+
+        $items = $this->repo()->meetingAttachment()->listForMeeting($meetingId, $tenantId);
+
+        // Map to safe-fields-only — never expose stored_name to clients
+        $safe = array_map(static function (array $att): array {
+            return [
+                'id'            => $att['id'],
+                'original_name' => $att['original_name'],
+                'file_size'     => $att['file_size'],
+                'created_at'    => $att['created_at'],
+            ];
+        }, $items);
+
+        api_ok(['attachments' => $safe]);
+    }
+
     public function serve(): void
     {
         $id = api_query('id');

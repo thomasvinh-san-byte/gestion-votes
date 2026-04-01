@@ -234,6 +234,10 @@ return function (Router $router): void {
         MeetingAttachmentController::class, 'serve',
         ['role' => 'public', 'rate_limit' => ['doc_serve', 120, 60]]
     );
+    $router->map('GET', "{$prefix}/meeting_attachments_public",
+        MeetingAttachmentController::class, 'listPublic',
+        ['role' => 'public', 'rate_limit' => ['doc_serve', 120, 60]]
+    );
 
     // ── Resolution documents ──
     $router->mapMulti("{$prefix}/resolution_documents", [
