@@ -167,6 +167,15 @@
                 </div>
 
                 <div class="field-group-h">
+                  <label for="settSmtpTls">Chiffrement</label>
+                  <select id="settSmtpTls" class="form-input">
+                    <option value="starttls">STARTTLS (port 587)</option>
+                    <option value="ssl">SSL/TLS (port 465)</option>
+                    <option value="none">Aucun</option>
+                  </select>
+                </div>
+
+                <div class="field-group-h">
                   <label for="settSmtpUser">Utilisateur SMTP</label>
                   <input id="settSmtpUser" class="form-input" type="email" placeholder="user@example.com">
                 </div>
