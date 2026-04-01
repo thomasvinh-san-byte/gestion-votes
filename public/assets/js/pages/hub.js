@@ -303,6 +303,66 @@
     }
   }
 
+  /* ── Meeting attachments ─────────────────────────── */
+
+  function loadMeetingAttachments(sessionId) {
+    window.api('/api/v1/meeting_attachments_public?meeting_id=' + encodeURIComponent(sessionId))
+      .then(function(resp) {
+        renderMeetingAttachments(resp && resp.attachments ? resp.attachments : []);
+      })
+      .catch(function() {
+        renderMeetingAttachments([]);
+      });
+  }
+
+  function renderMeetingAttachments(attachments) {
+    var section = document.getElementById('hubAttachmentsSection');
+    var list = document.getElementById('hubAttachmentsList');
+    var count = document.getElementById('hubAttachmentsCount');
+    if (!section || !list) return;
+
+    if (!attachments || attachments.length === 0) {
+      section.hidden = true;
+      return;
+    }
+
+    section.hidden = false;
+    if (count) count.textContent = String(attachments.length);
+
+    var html = '';
+    attachments.forEach(function(att) {
+      html += '<div class="hub-attachment-row" data-attach-id="' + escapeHtml(att.id) + '"' +
+        ' data-attach-name="' + escapeHtml(att.original_name || 'document.pdf') + '">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>' +
+        '<path d="M14 2v4a2 2 0 0 0 2 2h4"/>' +
+        '</svg>' +
+        '<span class="hub-attachment-name">' + escapeHtml(att.original_name || 'document.pdf') + '</span>' +
+        '</div>';
+    });
+    list.innerHTML = html;
+
+    list.querySelectorAll('.hub-attachment-row').forEach(function(row) {
+      row.addEventListener('click', function() {
+        openAttachmentViewer(this.dataset.attachId, this.dataset.attachName);
+      });
+    });
+  }
+
+  function openAttachmentViewer(attachId, attachName) {
+    var viewer = document.getElementById('meetingAttachViewer');
+    if (!viewer) {
+      viewer = document.createElement('ag-pdf-viewer');
+      viewer.setAttribute('id', 'meetingAttachViewer');
+      viewer.setAttribute('mode', 'panel');
+      viewer.setAttribute('allow-download', '');
+      document.body.appendChild(viewer);
+    }
+    viewer.setAttribute('src', '/api/v1/meeting_attachment_serve?id=' + encodeURIComponent(attachId));
+    viewer.setAttribute('filename', attachName || 'document.pdf');
+    if (typeof viewer.open === 'function') viewer.open();
+  }
+
   /* ── Load invitation stats ───────────────────────── */
 
   function loadInvitationStats(meetingId) {
@@ -543,6 +603,7 @@
               renderMotionsList([], sessionId);
             });
           setupConvocationBtn(invitationStats, sessionId);
+          loadMeetingAttachments(sessionId);
           return;
         }
         if (res && res.body && res.body.error === 'meeting_not_found') {

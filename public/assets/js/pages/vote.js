@@ -493,6 +493,7 @@
     sessionStorage.setItem('public.meeting_id', sel.value || '');
     await loadMembers();
     await refresh();
+    loadMeetingAttachments(selectedMeetingId());
   }
 
   /**
@@ -897,6 +898,72 @@
     });
   }
 
+  // ── Meeting attachment consultation (meeting-scoped, not motion-scoped) ───
+
+  var _meetingAttachments = [];
+
+  function loadMeetingAttachments(meetingId) {
+    _meetingAttachments = [];
+    var btn = document.getElementById('btnMeetingDocs');
+    if (btn) btn.hidden = true;
+
+    if (!meetingId) return;
+
+    var url = '/api/v1/meeting_attachments_public?meeting_id=' + encodeURIComponent(meetingId);
+    var urlToken = new URLSearchParams(window.location.search).get('token');
+    if (urlToken) {
+      url += '&token=' + encodeURIComponent(urlToken);
+    }
+
+    window.api(url).then(function(resp) {
+      if (resp && resp.attachments && resp.attachments.length > 0) {
+        _meetingAttachments = resp.attachments;
+        var docsBtn = document.getElementById('btnMeetingDocs');
+        if (docsBtn) {
+          docsBtn.hidden = false;
+          if (resp.attachments.length > 1) {
+            docsBtn.textContent = 'Documents (' + resp.attachments.length + ')';
+          }
+        }
+      }
+    }).catch(function() {
+      // Silently fail — documents are supplementary, do not block voting UX
+    });
+  }
+
+  function wireMeetingDocsBtn() {
+    var btn = document.getElementById('btnMeetingDocs');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      if (_meetingAttachments.length === 0) return;
+      openMeetingAttachViewer(
+        _meetingAttachments[0].id,
+        _meetingAttachments[0].original_name || 'document.pdf'
+      );
+    });
+  }
+
+  function openMeetingAttachViewer(attachId, attachName) {
+    var viewer = document.getElementById('meetingAttachViewer');
+    if (!viewer) {
+      viewer = document.createElement('ag-pdf-viewer');
+      viewer.setAttribute('id', 'meetingAttachViewer');
+      viewer.setAttribute('mode', 'sheet');
+      // Voter is read-only (PDF-10) — download intentionally not permitted
+      document.body.appendChild(viewer);
+    }
+    var serveUrl = '/api/v1/meeting_attachment_serve?id=' + encodeURIComponent(attachId);
+    var urlToken = new URLSearchParams(window.location.search).get('token');
+    if (urlToken) {
+      serveUrl += '&token=' + encodeURIComponent(urlToken);
+    }
+    viewer.setAttribute('src', serveUrl);
+    viewer.setAttribute('filename', attachName || 'document.pdf');
+    if (typeof viewer.open === 'function') viewer.open();
+  }
+
+  // ── End meeting attachment consultation ────────────────────────────
+
   /**
    * Clear document state and close viewer when a motion closes or ends.
    */
@@ -1165,6 +1232,7 @@
       document.dispatchEvent(new CustomEvent('vote:meeting-changed'));
       await loadMembers();
       await refresh();
+      loadMeetingAttachments(newId);
     });
     $('#memberSelect')?.addEventListener('change', () => {
       var presenceToggle = document.getElementById('btnPresence');
@@ -1179,6 +1247,7 @@
 
     // Wire document consultation button (PDF-08 / PDF-10)
     wireConsultDocBtn();
+    wireMeetingDocsBtn();
 
     // Wire vote buttons to optimistic flow (VOT-02, VOT-03, VOT-05)
     // This replaces the confirmation overlay flow — buttons use castVoteOptimistic directly.
