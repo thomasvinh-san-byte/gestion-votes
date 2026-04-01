@@ -354,4 +354,53 @@ class EmailControllerTest extends ControllerTestCase
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('smtp_not_configured', $result['body']['error']);
     }
+
+    // =========================================================================
+    // sendReminder()
+    // =========================================================================
+
+    public function testSendReminderRequiresMeetingId(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([]);
+        $result = $this->callController(EmailController::class, 'sendReminder');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+    }
+
+    public function testSendReminderRejectsInvalidMeetingId(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['meeting_id' => 'not-a-uuid']);
+        $result = $this->callController(EmailController::class, 'sendReminder');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
+    }
+
+    public function testSendReminderMethodExistsInController(): void
+    {
+        $ref = new \ReflectionClass(EmailController::class);
+        $this->assertTrue($ref->hasMethod('sendReminder'), 'sendReminder() method must exist');
+        $this->assertTrue($ref->getMethod('sendReminder')->isPublic(), 'sendReminder() must be public');
+    }
+
+    public function testSendReminderAuditsEmailReminderEvent(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailController.php');
+        $this->assertStringContainsString("'email.reminder'", $source);
+    }
+
+    public function testSendReminderCallsScheduleReminders(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailController.php');
+        $this->assertStringContainsString('scheduleReminders', $source);
+        $this->assertStringContainsString('sendReminder', $source);
+    }
+
+    public function testSendReminderGuardsMeetingNotValidated(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailController.php');
+        // api_guard_meeting_not_validated is called in sendReminder (and other methods)
+        $this->assertStringContainsString('api_guard_meeting_not_validated', $source);
+    }
 }

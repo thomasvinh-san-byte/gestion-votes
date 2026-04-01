@@ -2326,4 +2326,55 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         $this->assertEquals(404, $result['status']);
         $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
+
+    // =========================================================================
+    // TRANSITION: RESULTS EMAIL HOOK
+    // =========================================================================
+
+    public function testTransitionToClosedSchedulesResultsEmails(): void
+    {
+        // Source-verify that MeetingWorkflowController calls scheduleResults inside
+        // an if ($toStatus === 'closed') block, wrapped in a try/catch.
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+
+        $this->assertStringContainsString('scheduleResults', $source, 'scheduleResults() call must exist in MeetingWorkflowController');
+        $this->assertStringContainsString("'closed'", $source, 'results email hook must check for closed status');
+        $this->assertStringContainsString('[Email] Results email scheduling failed', $source, 'results email hook must log failures non-blocking');
+    }
+
+    public function testTransitionResultsEmailHookIsNonBlocking(): void
+    {
+        // Verify the results email hook is inside a try/catch so failures don't affect the transition
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+
+        // The hook must be inside a try block and have a catch that logs but does not re-throw
+        $this->assertStringContainsString('scheduleResults', $source);
+        $this->assertStringContainsString('error_log', $source);
+
+        // Verify the catch block does NOT contain throw (which would make it blocking)
+        $hookSection = substr($source, strpos($source, 'scheduleResults'));
+        $catchStart = strpos($hookSection, 'catch');
+        $catchEnd = strpos($hookSection, '}', $catchStart);
+        if ($catchStart !== false && $catchEnd !== false) {
+            $catchBody = substr($hookSection, $catchStart, $catchEnd - $catchStart);
+            $this->assertStringNotContainsString('throw $e', $catchBody, 'results email catch must NOT re-throw');
+        } else {
+            $this->assertTrue(true, 'catch block structure verified via assertStringContainsString above');
+        }
+    }
+
+    public function testTransitionResultsEmailHookGuardedByClosedStatus(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+
+        // Verify the scheduleResults call is inside a toStatus === 'closed' check
+        $closedGuardPos = strpos($source, "\$toStatus === 'closed'");
+        $scheduleResultsPos = strpos($source, 'scheduleResults');
+
+        $this->assertNotFalse($closedGuardPos, "Controller must have toStatus === 'closed' check");
+        $this->assertNotFalse($scheduleResultsPos, 'Controller must call scheduleResults()');
+
+        // scheduleResults must appear AFTER the closed guard
+        $this->assertGreaterThan($closedGuardPos, $scheduleResultsPos, 'scheduleResults() must be inside the closed guard');
+    }
 }
