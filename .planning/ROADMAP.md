@@ -117,7 +117,7 @@
 
 ---
 
-### 🚧 v6.1 PDF & Preparation de Seance (In Progress)
+### v6.1 PDF & Preparation de Seance (In Progress)
 
 **Milestone Goal:** Make meeting-level PDF attachments accessible to voters through the hub and vote page. Operators upload in the wizard and manage from the console. A dual-auth serve endpoint (session OR vote token) secures file access.
 
@@ -137,10 +137,11 @@
   2. Operator can view the list of existing attachments, add new ones, and delete existing ones from the operator console
   3. The serve endpoint returns the PDF file with correct Content-Type when accessed with a valid session OR a valid vote token (dual auth mirroring ResolutionDocumentController::serve())
   4. Unauthenticated or unauthorized requests to the serve endpoint receive 401/403
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 65-01: Wizard FilePond integration, operator console attachment panel, dual-auth serve endpoint
+- [ ] 65-01-PLAN.md — Dual-auth serve() endpoint, route registration, and unit tests (ATTACH-05)
+- [ ] 65-02-PLAN.md — Wizard post-creation FilePond upload and operator console attachment management (ATTACH-01, ATTACH-02)
 
 ### Phase 66: Voter Document Access
 **Goal**: Voters can consult all meeting attachments from the hub and from the vote page using ag-pdf-viewer
@@ -162,5 +163,5 @@ Phases execute in numeric order: 65 → 66
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Attachment Upload & Serve | 0/1 | Not started | - |
+| 65. Attachment Upload & Serve | 0/2 | Not started | - |
 | 66. Voter Document Access | 0/1 | Not started | - |
