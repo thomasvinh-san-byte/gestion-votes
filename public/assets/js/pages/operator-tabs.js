@@ -490,6 +490,9 @@ window.OpS = { fn: {} };
       loadQuorumStatus()
     ]);
 
+    // Load meeting attachments for tab-seance and hub accordion
+    if (currentMeetingId) loadMeetingAttachments(currentMeetingId);
+
     // Log any failures but continue
     results.forEach((result, idx) => {
       if (result.status === 'rejected') {
@@ -3401,5 +3404,118 @@ window.OpS = { fn: {} };
   // Expose document upload functions so operator-motions.js can wire them in
   OpS.fn.addDocUploadToMotionCard = addDocUploadToMotionCard;
   OpS.fn.updateOperatorDocBadge = updateOperatorDocBadge;
+
+  /* ── Meeting attachment management ─────────────────────────────────────── */
+
+  function loadMeetingAttachments(meetingId) {
+    if (!meetingId) return;
+    window.api('/api/v1/meeting_attachments?meeting_id=' + encodeURIComponent(meetingId))
+      .then(function(resp) {
+        var attachments = resp && resp.body && resp.body.data && resp.body.data.attachments
+          ? resp.body.data.attachments : [];
+        renderMeetingAttachments(attachments);
+        updateHubDocuments(attachments);
+      }).catch(function() {});
+  }
+
+  function renderMeetingAttachments(attachments) {
+    var listEl = document.getElementById('meetingAttachmentList');
+    if (!listEl) return;
+    var noMsg = document.getElementById('noAttachmentsMsg');
+
+    listEl.innerHTML = '';
+    if (attachments.length === 0) {
+      if (noMsg) { listEl.appendChild(noMsg); noMsg.hidden = false; }
+      return;
+    }
+    if (noMsg) noMsg.hidden = true;
+
+    attachments.forEach(function(att) {
+      var card = document.createElement('div');
+      card.className = 'doc-card';
+      card.dataset.attId = att.id;
+      var sizeKb = Math.round((att.file_size || 0) / 1024);
+      var sizeLabel = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' Mo' : sizeKb + ' Ko';
+      card.innerHTML =
+        '<span class="doc-card__icon">&#128196;</span>' +
+        '<span class="doc-card__name">' + escapeHtml(att.original_name || '') + '</span>' +
+        '<span class="doc-card__size">' + escapeHtml(sizeLabel) + '</span>' +
+        '<button class="doc-card__delete btn btn--ghost btn--sm btn--danger" title="Supprimer" type="button">' +
+          '<span class="icon">&times;</span>' +
+        '</button>';
+      card.querySelector('.doc-card__delete').addEventListener('click', function() {
+        deleteMeetingAttachment(att.id, att.original_name);
+      });
+      listEl.appendChild(card);
+    });
+  }
+
+  function updateHubDocuments(attachments) {
+    var hubDocs = document.getElementById('hubDocuments');
+    if (!hubDocs) return;
+    if (attachments.length === 0) {
+      hubDocs.innerHTML = '<p class="text-sm text-muted">Aucun document attach\u00e9.</p>';
+    } else {
+      hubDocs.innerHTML = '<p class="text-sm text-muted">' + attachments.length +
+        ' pi\u00e8ce(s) jointe(s)</p>';
+    }
+  }
+
+  function deleteMeetingAttachment(id, name) {
+    if (!confirm('Supprimer "' + (name || 'ce document') + '" ?')) return;
+    window.api('/api/v1/meeting_attachments', { id: id }, 'DELETE')
+      .then(function(resp) {
+        if (resp && resp.body && resp.body.data && resp.body.data.deleted) {
+          var card = document.querySelector('[data-att-id="' + id + '"]');
+          if (card) card.remove();
+          if (window.AgToast) window.AgToast.show('Pi\u00e8ce jointe supprim\u00e9e', 'success');
+          if (currentMeetingId) loadMeetingAttachments(currentMeetingId);
+        }
+      }).catch(function() {
+        if (window.AgToast) window.AgToast.show('Erreur lors de la suppression', 'error');
+      });
+  }
+
+  // Wire meeting attachment file input
+  var attInput = document.getElementById('meetingAttachmentFileInput');
+  if (attInput) {
+    attInput.addEventListener('change', function() {
+      var file = attInput.files[0];
+      if (!file) return;
+      if (file.type !== 'application/pdf') {
+        if (window.AgToast) window.AgToast.show('Seuls les fichiers PDF sont accept\u00e9s', 'error');
+        attInput.value = '';
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        if (window.AgToast) window.AgToast.show('Le fichier d\u00e9passe 10 Mo', 'error');
+        attInput.value = '';
+        return;
+      }
+      var formData = new FormData();
+      formData.append('file', file);  // CRITICAL: field name 'file' matches MeetingAttachmentController
+      formData.append('meeting_id', currentMeetingId || '');
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      var headers = { 'X-Requested-With': 'XMLHttpRequest' };
+      if (meta) headers['X-CSRF-Token'] = meta.content;
+      fetch('/api/v1/meeting_attachments', { method: 'POST', headers: headers, body: formData })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            if (window.AgToast) window.AgToast.show(data.error, 'error');
+          } else {
+            if (window.AgToast) window.AgToast.show('Pi\u00e8ce jointe ajout\u00e9e', 'success');
+            if (currentMeetingId) loadMeetingAttachments(currentMeetingId);
+          }
+          attInput.value = '';
+        }).catch(function() {
+          if (window.AgToast) window.AgToast.show('Erreur lors de l\'envoi', 'error');
+          attInput.value = '';
+        });
+    });
+  }
+
+  // Expose meeting attachment functions
+  OpS.fn.loadMeetingAttachments = loadMeetingAttachments;
 
 })();
