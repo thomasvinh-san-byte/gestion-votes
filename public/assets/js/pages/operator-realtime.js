@@ -123,6 +123,11 @@
       schedulePoll(200);
       break;
     }
+
+    // Forward to notification toast system
+    if (window.Notifications && window.Notifications.handleSseEvent) {
+      window.Notifications.handleSseEvent(type, data);
+    }
   }
 
   function schedulePoll(ms) {

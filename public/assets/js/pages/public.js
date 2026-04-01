@@ -524,12 +524,16 @@ document.addEventListener('DOMContentLoaded', function() {
     EventStream.connect(MEETING_ID, {
       onConnect: function() { _sseActive = true; },
       onDisconnect: function() { _sseActive = false; },
-      onEvent: function(type) {
+      onEvent: function(type, data) {
         if (type === 'vote.cast' || type === 'vote.updated' ||
             type === 'motion.opened' || type === 'motion.closed' ||
             type === 'motion.updated' || type === 'quorum.updated' ||
             type === 'attendance.updated' || type === 'meeting.status_changed') {
           refresh();
+        }
+        // Forward to notification toast system
+        if (window.Notifications && window.Notifications.handleSseEvent) {
+          window.Notifications.handleSseEvent(type, data);
         }
       },
     });
