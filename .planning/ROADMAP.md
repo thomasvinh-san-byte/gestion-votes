@@ -145,7 +145,7 @@
 
 ## Phases
 
-- [ ] **Phase 67: PV Officiel PDF** - Generate legally compliant proces-verbal PDF with asso loi 1901 template
+- [x] **Phase 67: PV Officiel PDF** - Generate legally compliant proces-verbal PDF with asso loi 1901 template (completed 2026-04-01)
 - [ ] **Phase 68: Email Queue Worker** - Cron-based queue processor in Docker with retry and failure handling
 - [ ] **Phase 69: Initial Setup** - First-run /setup page to create tenant and admin account
 - [ ] **Phase 70: Reset Password** - Secure token-based password reset flow via email
@@ -214,7 +214,7 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 67. PV Officiel PDF | 1/2 | In Progress|  |
+| 67. PV Officiel PDF | 2/2 | Complete   | 2026-04-01 |
 | 68. Email Queue Worker | 0/1 | Not started | - |
 | 69. Initial Setup | 0/1 | Not started | - |
 | 70. Reset Password | 0/2 | Not started | - |
