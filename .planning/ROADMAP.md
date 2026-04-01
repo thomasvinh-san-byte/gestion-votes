@@ -160,11 +160,11 @@
   1. After validating a session, the operator clicks "Generer PV" and receives a PDF containing: organization header (name, date, location), attendance list (present and represented members), quorum confirmation, each resolution with detailed vote counts (pour/contre/abstention), and signature blocks for president and secretary
   2. The generated PDF follows the standard asso loi 1901 proces-verbal template layout
   3. The PV PDF is viewable inline and downloadable from the post-session page
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 67-01: PV template and generation logic
-- [ ] 67-02: Post-session integration and download UI
+- [ ] 67-01-PLAN.md — Upgrade generatePdf() to loi 1901 template with org header, quorum block, dual signatures, inline mode
+- [ ] 67-02-PLAN.md — Wire post-session Step 3 inline PDF preview and download UI
 
 ### Phase 68: Email Queue Worker
 **Goal**: Queued emails are processed automatically without manual intervention
