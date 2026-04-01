@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v6.1
 milestone_name: PDF & Preparation de Seance
-status: in-progress
-stopped_at: Completed 66-01 tasks 1-2 — awaiting checkpoint:human-verify (Task 3)
-last_updated: "2026-04-01T08:42:00.000Z"
-last_activity: 2026-04-01 — Executed 66-01 (listPublic endpoint + hub/vote page wiring)
+status: executing
+stopped_at: Completed 66-01-PLAN.md — Task 3 visual verification deferred by user
+last_updated: "2026-04-01T09:01:53.306Z"
+last_activity: 2026-04-01 — Executed 66-01 tasks 1+2, awaiting visual verification
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
   completed_plans: 3
   percent: 75
@@ -52,6 +52,7 @@ Progress: [███████░░░] 75%
 - [Phase 66-01]: getElementById('meetingAttachViewer') used — never querySelector to avoid collision with resoPdfViewer
 - [Phase 66-01]: vote page viewer has no allow-download — voter is read-only (PDF-10)
 - [Phase 66-01]: loadMeetingAttachments is meeting-scoped, called on meeting context change not per-motion refresh
+- [Phase 66-voter-document-access]: Task 3 visual verification deferred by user — all code shipped, verification can be done manually when a meeting with attachments is available
 
 ### Existing Infrastructure
 
@@ -92,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T08:42:00.000Z
-Stopped at: Completed 66-01 tasks 1+2 — checkpoint:human-verify pending for Task 3 visual verification
+Last session: 2026-04-01T09:01:46.682Z
+Stopped at: Completed 66-01-PLAN.md — Task 3 visual verification deferred by user
 Resume file: None

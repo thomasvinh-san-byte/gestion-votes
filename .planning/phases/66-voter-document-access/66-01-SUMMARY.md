@@ -58,7 +58,7 @@ completed: 2026-04-01
 - **Duration:** ~12 min
 - **Started:** 2026-04-01T08:30:00Z
 - **Completed:** 2026-04-01T08:42:00Z
-- **Tasks:** 2 of 3 complete (Task 3 is checkpoint:human-verify — awaiting visual verification)
+- **Tasks:** 2 of 3 complete (Task 3 is checkpoint:human-verify — deferred by user, no visual verification performed)
 - **Files modified:** 8
 
 ## Accomplishments
@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Backend listPublic() endpoint + unit tests** - `af88fa40` (feat + test — TDD)
 2. **Task 2: Hub attachments section + vote page Documents button** - `596f7dcd` (feat)
 
-*Task 3 (checkpoint:human-verify) — pending visual verification by human*
+*Task 3 (checkpoint:human-verify) — deferred by user ("Continue without verifying")*
 
 ## Files Created/Modified
 
@@ -108,7 +108,7 @@ None — plan executed exactly as written.
 
 - listPublic() endpoint is live and tested — voter attachment access is functional
 - Hub and vote page have all necessary HTML/JS/CSS wired
-- Checkpoint Task 3 requires visual verification: upload a PDF attachment via Phase 65 operator UI, then verify hub card and vote page button appear correctly
+- Checkpoint Task 3 (visual verification) was deferred by user — when ready, upload a PDF attachment via Phase 65 operator UI and verify the hub card and vote page button appear and behave correctly
 
 ## Self-Check: PASSED
 
