@@ -246,6 +246,196 @@ final class EmailQueueService {
     }
 
     /**
+     * Schedules reminder emails for a meeting (sent to all active members with email).
+     */
+    public function scheduleReminders(
+        string $tenantId,
+        string $meetingId,
+        ?string $templateId = null,
+    ): array {
+        $result = [
+            'scheduled' => 0,
+            'skipped' => 0,
+            'errors' => [],
+        ];
+
+        $members = $this->memberRepo->listActiveWithEmail($tenantId);
+
+        // Default reminder template if not specified
+        if (!$templateId) {
+            $defaultTemplate = $this->emailTemplateRepo
+                ->findDefault($tenantId, 'reminder');
+            $templateId = $defaultTemplate['id'] ?? null;
+        }
+
+        foreach ($members as $member) {
+            $memberId = (string) $member['id'];
+            $email = trim((string) ($member['email'] ?? ''));
+
+            // Defense-in-depth: skip members from other tenants
+            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
+                $result['skipped']++;
+                continue;
+            }
+
+            if ($email === '') {
+                $result['skipped']++;
+                continue;
+            }
+
+            // Render template
+            if ($templateId) {
+                $rendered = $this->templateService->renderTemplate(
+                    $tenantId,
+                    $templateId,
+                    $meetingId,
+                    $memberId,
+                    '',
+                );
+                if (!$rendered['ok']) {
+                    $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
+                    $subject = $this->templateService->render('Rappel : {{meeting_title}}', $variables);
+                    $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
+                } else {
+                    $subject = $rendered['subject'];
+                    $bodyHtml = $rendered['body_html'];
+                }
+            } else {
+                $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
+                $subject = $this->templateService->render('Rappel : {{meeting_title}}', $variables);
+                $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
+            }
+
+            // Add to queue
+            $queued = $this->queueRepo->enqueue(
+                $tenantId,
+                $email,
+                $subject,
+                $bodyHtml,
+                null,
+                null,
+                $meetingId,
+                $memberId,
+                null,
+                $templateId,
+                $member['full_name'] ?? null,
+            );
+
+            if ($queued) {
+                $this->eventRepo->logEvent(
+                    $tenantId,
+                    'queued',
+                    null,
+                    $queued['id'],
+                );
+                $result['scheduled']++;
+            } else {
+                $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Schedules results emails for a meeting (fired on session close).
+     * Silent no-op when SMTP is not configured.
+     */
+    public function scheduleResults(
+        string $tenantId,
+        string $meetingId,
+        ?string $templateId = null,
+    ): array {
+        $result = [
+            'scheduled' => 0,
+            'skipped' => 0,
+            'errors' => [],
+        ];
+
+        // Guard: silent return if SMTP not configured
+        if (!$this->mailer->isConfigured()) {
+            return $result;
+        }
+
+        $members = $this->memberRepo->listActiveWithEmail($tenantId);
+
+        // Default results template if not specified
+        if (!$templateId) {
+            $defaultTemplate = $this->emailTemplateRepo
+                ->findDefault($tenantId, 'results');
+            $templateId = $defaultTemplate['id'] ?? null;
+        }
+
+        foreach ($members as $member) {
+            $memberId = (string) $member['id'];
+            $email = trim((string) ($member['email'] ?? ''));
+
+            // Defense-in-depth: skip members from other tenants
+            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
+                $result['skipped']++;
+                continue;
+            }
+
+            if ($email === '') {
+                $result['skipped']++;
+                continue;
+            }
+
+            // Render template (empty token — results emails have no vote token)
+            if ($templateId) {
+                $rendered = $this->templateService->renderTemplate(
+                    $tenantId,
+                    $templateId,
+                    $meetingId,
+                    $memberId,
+                    '',
+                );
+                if (!$rendered['ok']) {
+                    $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
+                    $subject = $this->templateService->render('Resultats de la seance - {{meeting_title}}', $variables);
+                    $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
+                } else {
+                    $subject = $rendered['subject'];
+                    $bodyHtml = $rendered['body_html'];
+                }
+            } else {
+                $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
+                $subject = $this->templateService->render('Resultats de la seance - {{meeting_title}}', $variables);
+                $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
+            }
+
+            // Add to queue (no invitation_id for results emails)
+            $queued = $this->queueRepo->enqueue(
+                $tenantId,
+                $email,
+                $subject,
+                $bodyHtml,
+                null,
+                null,
+                $meetingId,
+                $memberId,
+                null,
+                $templateId,
+                $member['full_name'] ?? null,
+            );
+
+            if ($queued) {
+                $this->eventRepo->logEvent(
+                    $tenantId,
+                    'queued',
+                    null,
+                    $queued['id'],
+                );
+                $result['scheduled']++;
+            } else {
+                $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Processes scheduled reminders.
      */
     public function processReminders(): array {

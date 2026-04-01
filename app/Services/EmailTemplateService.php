@@ -36,6 +36,8 @@ final class EmailTemplateService {
         '{{meeting_location}}' => 'Lieu de la seance',
         '{{meeting_status}}' => 'Statut de la seance',
         '{{vote_url}}' => 'Lien de vote complet',
+        '{{results_url}}' => 'Lien vers les resultats de la seance',
+        '{{hub_url}}' => 'Lien vers le hub de la seance',
         '{{app_url}}' => 'URL de l\'application',
         '{{token}}' => 'Token d\'authentification',
         '{{motions_count}}' => 'Nombre de resolutions',
@@ -141,10 +143,10 @@ final class EmailTemplateService {
               </div>
 
               <div style="margin-top:18px;">
-                <a href="{{vote_url}}"
+                <a href="{{hub_url}}"
                    style="display:inline-block; background:#dc2626; color:#ffffff; text-decoration:none;
                           padding:10px 16px; border-radius:10px; font:600 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
-                  Acceder au vote maintenant
+                  Acceder au hub de la seance
                 </a>
               </div>
 
@@ -152,6 +154,59 @@ final class EmailTemplateService {
 
               <div style="color:#6b7280; font:12px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
                 Ce lien est personnel. Ne le partagez pas.
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+        HTML;
+
+    /**
+     * Default HTML template for results emails (sent on session close).
+     */
+    public const DEFAULT_RESULTS_TEMPLATE = <<<'HTML'
+        <!doctype html>
+        <html lang="fr">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Resultats : {{meeting_title}}</title>
+        </head>
+        <body style="margin:0; padding:0; background:#f3f4f6;">
+          <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+            Les resultats de la seance {{meeting_title}} sont disponibles
+          </div>
+
+          <div style="max-width:640px; margin:0 auto; padding:24px;">
+            <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; padding:22px;">
+              <div style="font:700 18px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial; color:#059669;">
+                Resultats de la seance
+              </div>
+              <div style="margin-top:6px; color:#6b7280; font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
+                Seance : <strong>{{meeting_title}}</strong>
+              </div>
+
+              <div style="margin-top:14px; font:14px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
+                Bonjour <strong>{{member_name}}</strong>,
+              </div>
+
+              <div style="margin-top:10px; color:#111827; font:14px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
+                La seance <strong>{{meeting_title}}</strong> du <strong>{{meeting_date}}</strong>
+                est maintenant cloturee. Les resultats sont disponibles.
+              </div>
+
+              <div style="margin-top:18px;">
+                <a href="{{results_url}}"
+                   style="display:inline-block; background:#059669; color:#ffffff; text-decoration:none;
+                          padding:10px 16px; border-radius:10px; font:600 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
+                  Voir les resultats
+                </a>
+              </div>
+
+              <hr style="border:none; border-top:1px solid #e5e7eb; margin:18px 0;">
+
+              <div style="color:#6b7280; font:12px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial;">
+                Envoye par {{tenant_name}} - {{app_url}}
               </div>
             </div>
           </div>
@@ -220,6 +275,8 @@ final class EmailTemplateService {
             '{{meeting_location}}' => (string) ($meeting['location'] ?? ''),
             '{{meeting_status}}' => $this->translateStatus((string) ($meeting['status'] ?? '')),
             '{{vote_url}}' => $voteUrl,
+            '{{results_url}}' => rtrim($this->appUrl, '/') . '/postsession.htmx.html?meeting_id=' . rawurlencode($meetingId),
+            '{{hub_url}}' => rtrim($this->appUrl, '/') . '/hub.htmx.html?meeting_id=' . rawurlencode($meetingId),
             '{{app_url}}' => $this->appUrl,
             '{{token}}' => $token,
             '{{motions_count}}' => (string) $motionsCount,
