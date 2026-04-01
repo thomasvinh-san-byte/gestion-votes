@@ -1,10 +1,26 @@
 # Milestones
 
+## v7.0 Production Essentials (Shipped: 2026-04-01)
+
+**Phases completed:** 4 phases, 6 plans, 10 tasks
+
+**Key accomplishments:**
+
+- generatePdf() upgraded to asso loi 1901 standard with org header from tenant_settings, meeting-level quorum block, dual President+Secretaire signature table, text-only vote labels, and ?inline=1 Content-Disposition toggle for iframe embedding
+- Post-session Step 3 wired to display generated PV PDF inline via iframe with a separate download link, button label updated to "Generer le PV"
+- 16 targeted unit tests (9 command config + 7 SQL specification) proving supervisord cron worker and exponential-backoff retry logic meet QUEUE-01/QUEUE-02 requirements
+- Browser-based first-run setup page with admin guard, 5-field form matching login.html style, and transactional tenant+admin creation via /setup route
+- Secure token-based password reset with HMAC-SHA256 hashing, email queuing, and anti-enumeration protection
+- Replaced JS inline message with real anchor link to /reset-password on login page
+
+---
+
 ## v6.1 PDF & Preparation de Seance (Shipped: 2026-04-01)
 
 **Phases completed:** 2 phases, 3 plans, 0 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -14,6 +30,7 @@
 **Phases completed:** 3 phases, 6 plans, 0 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -23,6 +40,7 @@
 **Phases completed:** 4 phases, 8 plans, 0 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -35,6 +53,7 @@
 **Codebase:** 143 files changed, +27,020 / -17,886 lines
 
 **Key accomplishments:**
+
 1. Migration audit — eliminated all SQLite syntax from 23 migration files, added dry-run validation script with two-pass idempotency test
 2. Docker hardening — healthcheck PORT runtime evaluation fix (sh -c wrapper), envsubst nginx template for read-only FS, structured JSON health endpoint with database/redis/filesystem checks
 3. Unit tests batch 1 — 142 tests for 5 critical services (QuorumEngine, VoteEngine, ImportService, MeetingValidator, NotificationsService) with 385 assertions
@@ -52,6 +71,7 @@
 **Requirements:** 15/15 complete
 
 **Key accomplishments:**
+
 1. Postsession page — v4.3 header pattern, all 42 JS selectors verified, last hardcoded hex removed
 2. Analytics page — verified + minor fix pass (already built from prior phase 41.5), missing CSS class added
 3. Meetings + Archives — complete HTML+CSS rewrite, filter pills, KPI grids, modals, pagination, 67 JS selectors verified
@@ -70,6 +90,7 @@
 **Phases completed:** 7 phases, 14 plans, 2 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -79,6 +100,7 @@
 **Phases completed:** 12 phases, 34 plans, 14 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -88,6 +110,7 @@
 **Phases completed:** 10 phases, 34 plans, 0 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -101,6 +124,7 @@
 **Codebase:** 118 files changed, +14,955 / -1,170 lines
 
 **Key accomplishments:**
+
 1. PDF resolution documents — FilePond upload, authenticated serve endpoint, ag-pdf-viewer (inline/sheet/panel), SSE documentAdded events, Docker persistent volume
 2. Guided UX layer — ag-empty-state Web Component (11 migrations), status-aware dashboard cards with lifecycle CTAs, 8 contextual help panels, 7 disabled button tooltips
 3. Copropriété → generic AG vocabulary — 45+ occurrences across 21 files transformed, lot field removed, openKeyModal stub removed, PHPUnit weighted-vote regression test
@@ -119,6 +143,7 @@
 **Phases completed:** 13 phases, 37 plans, 4 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -132,6 +157,7 @@
 **Codebase:** 119 HTML/CSS/JS files, 59,330 LOC
 
 **Key accomplishments:**
+
 1. Design system with 64 CSS tokens, dark/light theme switching
 2. Component library: modal, toast, confirm dialog, popover, progress bar, guided tour, session banner
 3. App shell: sidebar rail/expand, header with search/notifications, mobile bottom nav, ARIA landmarks
@@ -144,4 +170,3 @@
 10. Help/FAQ with category accordion and 9 guided tour launcher cards
 
 ---
-

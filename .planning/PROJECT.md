@@ -33,7 +33,7 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 - 23 custom Web Components (ag-pdf-viewer, ag-empty-state, + 21 originals), 29 page JS modules
 - Design system with structured CSS token hierarchy (primitive → semantic → component aliases), @layer (base/components/v4), three-depth background model (bg/surface/raised), dark/light parity
 - ~95,000 LOC (30k JS, 30k PHP, 35k CSS)
-- PHPUnit: 2331 unit tests (90.8% service coverage, 64.6% controller coverage), 64 integration tests
+- PHPUnit: 2350+ unit tests (90.8% service coverage, 64.6% controller coverage), 64 integration tests
 - Playwright E2E: 18 specs, 177 tests (chromium + mobile-chrome + tablet)
 - CI pipeline: 7 GitHub Actions jobs (validate, lint, migrate-check, coverage, build, e2e, integration)
 - "Officiel et confiance" visual identity — bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono
@@ -138,4 +138,4 @@ Deferred ideas:
 | v5.0 quality milestone | Production readiness requires 90%+ test coverage before new features | ✓ Good — Services 90.8%, 2241 unit + 177 E2E tests, full CI pipeline |
 
 ---
-*Last updated: 2026-04-01 after v7.0 milestone completed*
+*Last updated: 2026-04-01 after v7.0 milestone shipped*

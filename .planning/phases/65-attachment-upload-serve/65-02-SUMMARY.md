@@ -103,6 +103,16 @@ None - no external service configuration required.
 - Phase 66 (voter attachment access) can now build on top: serve endpoint exists (65-01) and attachments are populated via this UI (65-02)
 - Hub accordion Documents section ready to be enriched in 66 with actual links/viewer
 
+## Self-Check: PASSED
+
+- SUMMARY.md: FOUND
+- wizard.htmx.html: FOUND (wizAttachmentSection, wizAttachmentPondInput, btnGoToHub)
+- wizard.js: FOUND (initAttachmentPond, renderAttachmentCard, name='file')
+- operator.htmx.html: FOUND (meetingAttachmentSection, meetingAttachmentList, meetingAttachmentFileInput)
+- operator-tabs.js: FOUND (loadMeetingAttachments, renderMeetingAttachments, updateHubDocuments, deleteMeetingAttachment)
+- Commit a1350367: FOUND
+- Commit a1ab7dfd: FOUND
+
 ---
 *Phase: 65-attachment-upload-serve*
 *Completed: 2026-04-01*
