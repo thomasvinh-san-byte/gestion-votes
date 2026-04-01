@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use AgVote\Controller\MeetingAttachmentController;
 use AgVote\Repository\MeetingAttachmentRepository;
 use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\VoteTokenRepository;
 
 /**
  * Unit tests for MeetingAttachmentController.
@@ -45,7 +46,7 @@ class MeetingAttachmentControllerTest extends ControllerTestCase
 
     public function testControllerHasRequiredMethods(): void
     {
-        foreach (['listForMeeting', 'upload', 'delete'] as $method) {
+        foreach (['listForMeeting', 'upload', 'delete', 'serve'] as $method) {
             $this->assertTrue(method_exists(MeetingAttachmentController::class, $method));
         }
     }
@@ -272,5 +273,150 @@ class MeetingAttachmentControllerTest extends ControllerTestCase
 
         $this->assertSame(200, $res['status']);
         $this->assertTrue($res['body']['data']['deleted']);
+    }
+
+    // =========================================================================
+    // serve() — validation only (serve exits after readfile)
+    // =========================================================================
+
+    public function testServeMissingId(): void
+    {
+        $this->setQueryParams([]);
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_id', $result['body']['error']);
+    }
+
+    public function testServeInvalidId(): void
+    {
+        $this->setQueryParams(['id' => 'bad']);
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('missing_id', $result['body']['error']);
+    }
+
+    public function testServeWithSessionUserDocNotFound(): void
+    {
+        $this->setQueryParams(['id' => self::ATTACH_ID]);
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('findById')->willReturn(null);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('not_found', $result['body']['error']);
+    }
+
+    public function testServeWithNoAuthRequiresToken(): void
+    {
+        // Enable real auth so authenticate() does not auto-fill a dev user.
+        // With auth enabled and no session/API-key, getCurrentUserId() returns null
+        // and the controller falls through to the token-check branch.
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::ATTACH_ID]);
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(401, $result['status']);
+        $this->assertEquals('authentication_required', $result['body']['error']);
+    }
+
+    public function testServeWithInvalidToken(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::ATTACH_ID, 'token' => 'fake-token']);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn(null);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $repo,
+            VoteTokenRepository::class         => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(401, $result['status']);
+        $this->assertEquals('invalid_token', $result['body']['error']);
+    }
+
+    public function testServeWithValidTokenButAttachmentNotFound(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::ATTACH_ID, 'token' => 'valid-vote-token']);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('findById')->willReturn(null);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn([
+            'tenant_id'  => self::TENANT,
+            'meeting_id' => self::MEETING_ID,
+        ]);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $repo,
+            VoteTokenRepository::class         => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('not_found', $result['body']['error']);
+    }
+
+    public function testServeWithTokenForWrongMeeting(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+        \AgVote\Core\Security\AuthMiddleware::reset();
+        $this->setQueryParams(['id' => self::ATTACH_ID, 'token' => 'valid-vote-token']);
+
+        $repo = $this->createMock(MeetingAttachmentRepository::class);
+        $repo->method('findById')->willReturn([
+            'id'           => self::ATTACH_ID,
+            'meeting_id'   => self::MEETING_ID,
+            'stored_name'  => 'att.pdf',
+            'original_name' => 'convocation.pdf',
+            'file_size'    => 1024,
+        ]);
+        $voteTokenRepo = $this->createMock(VoteTokenRepository::class);
+        $voteTokenRepo->method('findByHash')->willReturn([
+            'tenant_id'  => self::TENANT,
+            'meeting_id' => 'different-meeting-id', // token meeting != attachment meeting
+        ]);
+        $this->injectRepos([
+            MeetingAttachmentRepository::class => $repo,
+            VoteTokenRepository::class         => $voteTokenRepo,
+        ]);
+
+        try {
+            $result = $this->callController(MeetingAttachmentController::class, 'serve');
+        } finally {
+            putenv('APP_AUTH_ENABLED=0');
+            \AgVote\Core\Security\AuthMiddleware::reset();
+        }
+        $this->assertEquals(403, $result['status']);
+        $this->assertEquals('access_denied', $result['body']['error']);
     }
 }
