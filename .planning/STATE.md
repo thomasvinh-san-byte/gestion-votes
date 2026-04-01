@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v6.1
 milestone_name: "PDF & Preparation de Seance"
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-04-01T12:00:00.000Z"
-last_activity: "2026-04-01 — Milestone v6.1 started: PDF & Preparation de Seance"
+last_updated: "2026-04-01T13:00:00.000Z"
+last_activity: "2026-04-01 — Roadmap created for v6.1 (2 phases, 5 requirements)"
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v6.1 PDF & Preparation de Seance — documents accessibles aux votants, upload dans le wizard, gestion console operateur
+**Current focus:** v6.1 PDF & Preparation de Seance — Phase 65 (Attachment Upload & Serve)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-01 — Milestone v6.1 started
+Phase: 1 of 2 (Phase 65: Attachment Upload & Serve)
+Plan: 0 of 1 in current phase
+Status: Ready to plan
+Last activity: 2026-04-01 — Roadmap created for v6.1
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -36,30 +36,21 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- [v6.0 roadmap]: 3 phases derived from 8 requirements — SMTP/templates foundation, email workflows, in-app notifications
-- [v6.0 roadmap]: Phase 62 groups EMAIL-04 + EMAIL-05 (template editing + SMTP config) as foundation before any sends
-- [v6.0 roadmap]: Phase 63 groups EMAIL-01 + EMAIL-02 + EMAIL-03 (invitation, reminder, results) as the three email workflows
-- [v6.0 roadmap]: Phase 64 groups NOTIF-01 + NOTIF-02 + NOTIF-03 (bell, list, toast) as the notification system
-- [Phase 62-smtp-template-engine]: Template editor uses body_html field (not body) for correct API alignment with EmailTemplatesController
-- [Phase 62-smtp-template-engine]: Server-side preview via debounced POST to email_templates_preview replaces stale client-side substitution
-- [Phase 62-smtp-template-engine]: MailerService::buildMailerConfig static helper merges DB SMTP settings over env config with password sentinel skip
-- [Phase 62-smtp-template-engine]: test_smtp action dispatched in EmailController::preview() before body_html check; sends real test email to from_email
-- [Phase 63]: DEFAULT_REMINDER_TEMPLATE CTA updated to use {{hub_url}} per user locked decision
-- [Phase 63]: scheduleResults() added as dedicated method; results hook uses fire-and-forget try/catch pattern identical to SSE broadcast
-- [Phase 63-email-sending-workflows]: results_emails added to transition api_ok() response so JS can show count in close toast without second API call
-- [Phase 63-email-sending-workflows]: Reminder button uses btn-secondary to visually distinguish from primary invitation button in invitationsCard
-- [Phase 63-email-sending-workflows]: results_emails captured from scheduleResults() return value and added to transition api_ok() payload — JS reads count directly without second API call
-- [Phase 64-in-app-notifications]: NOTIF_LABELS and SSE_TOAST_MAP added to shell.js — bell badge reads data.notifications + data.unread_count, mark-all-read sends {all: true}
-- [Phase 64-in-app-notifications]: SSE wired to Notifications.handleSseEvent in operator-realtime.js and public.js (not exec/hub as plan specified) — Task 3 browser verification deferred by user
+- [v6.1 roadmap]: 2 phases derived from 5 requirements — operator infrastructure first (65), then voter access (66)
+- [v6.1 roadmap]: ATTACH-05 (serve endpoint) grouped with operator phase because it must exist before voters can access files
+- [v6.1 roadmap]: Reuse ResolutionDocumentController::serve() dual-auth pattern (session OR vote token)
+- [v6.1 roadmap]: Reuse ag-pdf-viewer (inline/sheet/panel modes) for voter document viewing
+- [v6.1 roadmap]: Mirror wizard step 2 FilePond pattern in step 1 for meeting attachments
+- [v6.1 roadmap]: Mirror hub resolution doc badges pattern for meeting attachments section
 
 ### Existing Infrastructure
 
-- Symfony Mailer already installed (composer.json: symfony/mailer ^8.0)
-- EmailTemplateService exists with DEFAULT_INVITATION_TEMPLATE and DEFAULT_REMINDER_TEMPLATE
-- EmailQueueService exists for queuing emails
-- SSE infrastructure exists (EventBroadcaster, SseListener, Redis fan-out)
-- Shell has notification bell UI (shell.js notifPanel code)
-- ag-toast Web Component already exists
+- MeetingAttachmentController already exists with upload/list/delete (operator-only)
+- ResolutionDocumentController::serve() has dual auth (session OR vote token) — pattern to reuse
+- ag-pdf-viewer Web Component exists with inline/sheet/panel modes
+- Wizard step 2 has FilePond for resolution documents — mirror in step 1
+- Hub shows resolution doc badges — mirror for meeting attachments
+- Vote page has "Consulter le document" button — mirror for meeting attachments
 
 ### Known Tech Debt Carried Forward
 
@@ -91,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T06:44:34.102Z
-Stopped at: Completed 64-in-app-notifications-02-PLAN.md
+Last session: 2026-04-01
+Stopped at: Roadmap created for v6.1, ready to plan Phase 65
 Resume file: None

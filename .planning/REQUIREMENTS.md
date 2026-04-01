@@ -40,17 +40,17 @@ Requirements for v6.1 PDF & Preparation de Seance milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ATTACH-01 | TBD | Pending |
-| ATTACH-02 | TBD | Pending |
-| ATTACH-03 | TBD | Pending |
-| ATTACH-04 | TBD | Pending |
-| ATTACH-05 | TBD | Pending |
+| ATTACH-01 | Phase 65 | Pending |
+| ATTACH-02 | Phase 65 | Pending |
+| ATTACH-03 | Phase 66 | Pending |
+| ATTACH-04 | Phase 66 | Pending |
+| ATTACH-05 | Phase 65 | Pending |
 
 **Coverage:**
 - v6.1 requirements: 5 total
-- Mapped to phases: 0
-- Unmapped: 5
+- Mapped to phases: 5
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after milestone v6.1 start*
+*Last updated: 2026-04-01 after roadmap creation*
