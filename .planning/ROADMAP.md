@@ -13,7 +13,7 @@
 - ✅ **v5.0 Quality & Production Readiness** - Phases 52-57 (shipped 2026-03-30)
 - ✅ **v5.1 Operational Hardening** - Phases 58-61 (shipped 2026-03-31)
 - ✅ **v6.0 Production & Email** - Phases 62-64 (shipped 2026-04-01)
-- 🚧 **v6.1 PDF & Preparation de Seance** - Phases 65-66 (in progress)
+- ✅ **v6.1 PDF & Preparation de Seance** - Phases 65-66 (shipped 2026-04-01)
 
 ---
 
@@ -117,51 +117,21 @@
 
 ---
 
-### v6.1 PDF & Preparation de Seance (In Progress)
+<details>
+<summary>✅ v6.1 PDF & Preparation de Seance (Shipped: 2026-04-01) — 2 phases, 3 plans</summary>
 
-**Milestone Goal:** Make meeting-level PDF attachments accessible to voters through the hub and vote page. Operators upload in the wizard and manage from the console. A dual-auth serve endpoint (session OR vote token) secures file access.
+**Milestone Goal:** Make meeting-level PDF attachments accessible to voters through the hub and vote page.
 
-## Phases
+### Phases
 
-- [x] **Phase 65: Attachment Upload & Serve** - Wizard FilePond upload, operator console management panel, dual-auth serve endpoint (completed 2026-04-01)
-- [x] **Phase 66: Voter Document Access** - Hub "Documents de la seance" section and vote page "Documents" button with ag-pdf-viewer (completed 2026-04-01)
+- [x] **Phase 65: Attachment Upload & Serve** — Wizard FilePond upload, operator console management, dual-auth serve endpoint (completed 2026-04-01)
+- [x] **Phase 66: Voter Document Access** — Hub "Documents de la séance" section, vote page "Documents" button with ag-pdf-viewer (completed 2026-04-01)
 
-## Phase Details
-
-### Phase 65: Attachment Upload & Serve
-**Goal**: Operators can upload meeting attachments during session creation and manage them from the console, with a secure serve endpoint ready for voter access
-**Depends on**: Nothing (first phase of v6.1)
-**Requirements**: ATTACH-01, ATTACH-02, ATTACH-05
-**Success Criteria** (what must be TRUE):
-  1. Operator can upload one or more PDF attachments in wizard step 1 (session info) using FilePond, and they persist to the database and filesystem
-  2. Operator can view the list of existing attachments, add new ones, and delete existing ones from the operator console
-  3. The serve endpoint returns the PDF file with correct Content-Type when accessed with a valid session OR a valid vote token (dual auth mirroring ResolutionDocumentController::serve())
-  4. Unauthenticated or unauthorized requests to the serve endpoint receive 401/403
-**Plans**: 2 plans
-
-Plans:
-- [ ] 65-01-PLAN.md — Dual-auth serve() endpoint, route registration, and unit tests (ATTACH-05)
-- [ ] 65-02-PLAN.md — Wizard post-creation FilePond upload and operator console attachment management (ATTACH-01, ATTACH-02)
-
-### Phase 66: Voter Document Access
-**Goal**: Voters can consult all meeting attachments from the hub and from the vote page using ag-pdf-viewer
-**Depends on**: Phase 65
-**Requirements**: ATTACH-03, ATTACH-04
-**Success Criteria** (what must be TRUE):
-  1. Hub displays a "Documents de la seance" section listing all meeting attachments, each clickable to open ag-pdf-viewer (inline or sheet mode)
-  2. Vote page displays a "Documents" button that opens a panel or sheet listing meeting attachments viewable via ag-pdf-viewer
-  3. PDF content loads successfully for voters authenticated by either session or vote token
-**Plans**: 1 plan
-
-Plans:
-- [ ] 66-01-PLAN.md — Public list endpoint, hub documents section, and vote page documents button (ATTACH-03, ATTACH-04)
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 65 → 66
+### Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Attachment Upload & Serve | 2/2 | Complete    | 2026-04-01 |
-| 66. Voter Document Access | 1/1 | Complete   | 2026-04-01 |
+| 65. Attachment Upload & Serve | 2/2 | Complete | 2026-04-01 |
+| 66. Voter Document Access | 1/1 | Complete | 2026-04-01 |
+
+</details>

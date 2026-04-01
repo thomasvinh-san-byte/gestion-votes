@@ -77,9 +77,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v6.0: Production & Email — SMTP config from admin UI with DB-over-env merge, customizable email templates with variable tags and server-side preview, invitation/reminder/results email workflows with operator trigger buttons, automatic results email on session close, in-app notifications (bell badge + French labels + mark-as-read + SSE toasts for vote/quorum/session events). 2352 PHPUnit tests, 0 failures.
 
+- v6.1: PDF & Préparation de Séance — Meeting attachment upload in wizard (post-creation FilePond), operator console management (view/add/delete), dual-auth serve endpoint (session OR vote token), hub "Documents de la séance" section with ag-pdf-viewer panel, vote page "Documents" button with sheet mode (read-only). Public list endpoint with safe-fields-only response.
+
 ### Active
 
-**v6.1 PDF & Préparation de Séance** : Rendre les pièces jointes de séance et les documents par résolution accessibles aux votants (hub + page de vote), upload de documents dans le wizard, gestion depuis la console opérateur. PV hors scope (envoyé par email).
+(No active milestone — ready for next milestone planning)
 
 ### Out of Scope
 

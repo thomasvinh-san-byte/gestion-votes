@@ -1,5 +1,14 @@
 # Milestones
 
+## v6.1 PDF & Preparation de Seance (Shipped: 2026-04-01)
+
+**Phases completed:** 2 phases, 3 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v6.0 Production & Email (Shipped: 2026-04-01)
 
 **Phases completed:** 3 phases, 6 plans, 0 tasks
