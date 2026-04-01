@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Production Essentials
 status: executing
-stopped_at: Completed 67-pv-officiel-pdf/67-02-PLAN.md
-last_updated: "2026-04-01T09:48:13.833Z"
+stopped_at: Completed 68-email-queue-worker/68-01-PLAN.md
+last_updated: "2026-04-01T09:59:42.727Z"
 last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 99
 ---
 
@@ -44,6 +44,9 @@ Progress: [██████████] 99%
 - [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
 - [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
 - [Phase 67-pv-officiel-pdf]: Task 2 (visual verification) deferred — user chose Continue without verifying
+- [Phase 68-email-queue-worker]: Command tests validate configuration only (no execute() call) — execute() needs live DB via Application::config()
+- [Phase 68-email-queue-worker]: Repository retry tests use file_get_contents() pattern to assert SQL patterns without a database connection
+- [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
 
 ### Existing Infrastructure
 
@@ -69,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T09:48:13.830Z
-Stopped at: Completed 67-pv-officiel-pdf/67-02-PLAN.md
+Last session: 2026-04-01T09:59:36.096Z
+Stopped at: Completed 68-email-queue-worker/68-01-PLAN.md
 Resume file: None
