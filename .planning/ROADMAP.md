@@ -113,11 +113,11 @@
   2. A test email can be sent from the settings page to verify SMTP configuration works before any real sends
   3. Administrator can edit email template subject and HTML body for each template type (invitation, reminder, results) with variable placeholders
   4. Template preview shows rendered output with sample data before saving
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 62-01: SMTP configuration persistence and Symfony Mailer transport wiring
-- [ ] 62-02: Email template CRUD editor in admin UI with live preview
+- [ ] 62-01-PLAN.md — SMTP backend: buildMailerConfig DB+env merge, test_smtp endpoint, password sentinel, TLS field
+- [ ] 62-02-PLAN.md — Template editor fixes: body_html field alignment, server-side preview, canonical variable tags
 
 ### Phase 63: Email Sending Workflows
 **Goal**: Operators can trigger invitation and reminder emails to meeting participants, and results emails are sent automatically after session close
