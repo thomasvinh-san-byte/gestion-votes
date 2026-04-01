@@ -230,6 +230,10 @@ return function (Router $router): void {
         'POST' => [MeetingAttachmentController::class, 'upload',         $op],
         'DELETE' => [MeetingAttachmentController::class, 'delete',         $op],
     ]);
+    $router->map('GET', "{$prefix}/meeting_attachment_serve",
+        MeetingAttachmentController::class, 'serve',
+        ['role' => 'public', 'rate_limit' => ['doc_serve', 120, 60]]
+    );
 
     // ── Resolution documents ──
     $router->mapMulti("{$prefix}/resolution_documents", [

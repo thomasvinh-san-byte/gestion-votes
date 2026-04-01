@@ -129,4 +129,65 @@ final class MeetingAttachmentController extends AbstractController {
 
         api_ok(['deleted' => true]);
     }
+
+    public function serve(): void
+    {
+        $id = api_query('id');
+        if ($id === '' || !api_is_uuid($id)) {
+            api_fail('missing_id', 400);
+        }
+
+        // Dual auth: session users (operator/admin) OR vote token holders (voters)
+        $userId = api_current_user_id();
+
+        if ($userId !== null) {
+            // Session-authenticated user (operator/admin) — use their tenant
+            $tenantId = api_current_tenant_id();
+        } else {
+            // No session — require a vote token via ?token= query param
+            $rawToken = api_query('token');
+            if ($rawToken === '') {
+                api_fail('authentication_required', 401);
+            }
+
+            // Hash and look up the token (findByHash, not consume — voter may have already voted)
+            $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
+            $tokenRow = $this->repo()->voteToken()->findByHash($tokenHash);
+            if ($tokenRow === null) {
+                api_fail('invalid_token', 401);
+            }
+
+            $tenantId = $tokenRow['tenant_id'];
+            $tokenMeetingId = $tokenRow['meeting_id'];
+        }
+
+        $att = $this->repo()->meetingAttachment()->findById($id, $tenantId);
+        if (!$att) {
+            api_fail('not_found', 404);
+        }
+
+        // For vote token users: verify the attachment belongs to the token's meeting
+        if ($userId === null && isset($tokenMeetingId) && $tokenMeetingId !== $att['meeting_id']) {
+            api_fail('access_denied', 403);
+        }
+
+        $path = AG_UPLOAD_DIR . '/meetings/' . $att['meeting_id'] . '/' . $att['stored_name'];
+        if (!file_exists($path) || !is_readable($path)) {
+            api_fail('file_not_found', 404);
+        }
+
+        // Sanitize filename for Content-Disposition header
+        $safeFilename = preg_replace('/[^\w\s\-\.]/', '', $att['original_name']);
+        $safeFilename = basename($safeFilename) ?: 'document.pdf';
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $safeFilename . '"');
+        header('Content-Length: ' . (int) $att['file_size']);
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-store');
+        header('X-Frame-Options: SAMEORIGIN');
+
+        readfile($path);
+        exit;
+    }
 }
