@@ -187,10 +187,10 @@ Plans:
   1. Navigating to /setup when no admin user exists shows a setup form with organization name, admin email, and admin password fields
   2. Submitting the form creates the first tenant and first admin user in the database
   3. After setup completes, the browser redirects to /login and /setup returns a redirect (or 404) for all future requests
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 69-01: Setup controller, page, and guard logic
+- [ ] 69-01-PLAN.md — SetupController + SetupRepository + setup form template + route + unit tests
 
 ### Phase 70: Reset Password
 **Goal**: Users who forget their password can securely reset it via email
@@ -215,6 +215,6 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 67. PV Officiel PDF | 2/2 | Complete    | 2026-04-01 |
-| 68. Email Queue Worker | 1/1 | Complete   | 2026-04-01 |
+| 68. Email Queue Worker | 1/1 | Complete    | 2026-04-01 |
 | 69. Initial Setup | 0/1 | Not started | - |
 | 70. Reset Password | 0/2 | Not started | - |
