@@ -426,28 +426,19 @@
       var btn = document.getElementById('btnGenerateReport');
       Shared.btnLoading(btn, true);
       try {
-        var res = await window.api('/api/v1/meeting_generate_report.php', { meeting_id: meetingId });
-        var d = res.body;
-        if (d && d.ok) {
-          var preview = document.getElementById('pvPreview');
-          if (preview && d.data && d.data.html) {
-            preview.innerHTML = '<iframe srcdoc="' + esc(d.data.html) + '" sandbox="allow-same-origin"></iframe>';
-          } else if (preview) {
-            preview.innerHTML = '<p class="text-center text-success p-8">PV g\u00e9n\u00e9r\u00e9 avec succ\u00e8s.</p>';
-          }
-          // Show hash
-          var hashBar = document.getElementById('pvHashBar');
-          var hashEl = document.getElementById('pvHash');
-          if (d.data && d.data.hash && hashBar && hashEl) {
-            hashEl.textContent = d.data.hash;
-            hashBar.hidden = false;
-          }
-          setNotif('success', 'Proc\u00e8s-verbal g\u00e9n\u00e9r\u00e9');
-        } else {
-          setNotif('error', d.error || 'Erreur de g\u00e9n\u00e9ration');
+        var preview = document.getElementById('pvPreview');
+        if (preview) {
+          // Embed PDF inline via iframe src pointing to the PDF endpoint with inline=1
+          var url = '/api/v1/meeting_generate_report_pdf.php?meeting_id='
+            + encodeURIComponent(meetingId) + '&inline=1';
+          preview.innerHTML = '<iframe src="' + url + '" style="width:100%;height:600px;border:none"></iframe>';
         }
+        setNotif('success', 'Proc\u00e8s-verbal g\u00e9n\u00e9r\u00e9');
+        // Show hash bar (hash not available via iframe src — indicate PV is generated)
+        var hashBar = document.getElementById('pvHashBar');
+        if (hashBar) hashBar.hidden = false;
       } catch (e) {
-        setNotif('error', 'Erreur r\u00e9seau');
+        setNotif('error', 'Erreur de g\u00e9n\u00e9ration du PV');
       } finally {
         Shared.btnLoading(btn, false);
       }
