@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-31T14:00:00.000Z"
-last_activity: "2026-03-31 — Roadmap created: 3 phases (62-64), 6 plans, 8 requirements mapped"
+status: planning
+stopped_at: Completed 62-02-PLAN.md
+last_updated: "2026-04-01T05:12:50.567Z"
+last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 6
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -40,6 +40,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v6.0 roadmap]: Phase 62 groups EMAIL-04 + EMAIL-05 (template editing + SMTP config) as foundation before any sends
 - [v6.0 roadmap]: Phase 63 groups EMAIL-01 + EMAIL-02 + EMAIL-03 (invitation, reminder, results) as the three email workflows
 - [v6.0 roadmap]: Phase 64 groups NOTIF-01 + NOTIF-02 + NOTIF-03 (bell, list, toast) as the notification system
+- [Phase 62-smtp-template-engine]: Template editor uses body_html field (not body) for correct API alignment with EmailTemplatesController
+- [Phase 62-smtp-template-engine]: Server-side preview via debounced POST to email_templates_preview replaces stale client-side substitution
 
 ### Existing Infrastructure
 
@@ -80,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31
-Stopped at: Roadmap created for v6.0 milestone
+Last session: 2026-04-01T05:12:50.564Z
+Stopped at: Completed 62-02-PLAN.md
 Resume file: None

@@ -156,6 +156,6 @@ Phases execute in numeric order: 62 -> 63 -> 64
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 62. SMTP & Template Engine | 0/2 | Not started | - |
+| 62. SMTP & Template Engine | 1/2 | In Progress|  |
 | 63. Email Sending Workflows | 0/2 | Not started | - |
 | 64. In-App Notifications | 0/2 | Not started | - |
