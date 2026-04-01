@@ -336,6 +336,7 @@ final class MeetingReportsController extends AbstractController {
         }
 
         $isPreview = api_query('preview') !== '' || api_query('draft') !== '';
+        $isInline = api_query('inline') === '1';
         $tenantId = api_current_tenant_id();
 
         $meeting = $this->repo()->meeting()->findWithValidator($meetingId);
@@ -348,6 +349,8 @@ final class MeetingReportsController extends AbstractController {
                 'detail' => 'La séance doit être validée avant de générer le PV définitif. Utilisez ?preview=1 pour un brouillon.',
             ]);
         }
+
+        $orgName = $this->repo()->settings()->get($tenantId, 'org_name') ?? '';
 
         $attendances = $this->repo()->attendance()->listForReport($meetingId, $tenantId);
         $motions = $this->repo()->motion()->listForReport($meetingId, $tenantId);
@@ -390,7 +393,10 @@ final class MeetingReportsController extends AbstractController {
             $html .= '<div class="draft-banner">⚠️ DOCUMENT BROUILLON - NON VALIDÉ - À TITRE INDICATIF UNIQUEMENT</div>';
         }
 
-        $html .= '<h1>PROCÈS-VERBAL DE SÉANCE' . ($isPreview ? ' (BROUILLON)' : '') . '</h1>';
+        if ($orgName !== '') {
+            $html .= '<h1 style="text-align:center;font-size:16pt;margin-bottom:5px">' . htmlspecialchars($orgName) . '</h1>';
+        }
+        $html .= '<h2 style="text-align:center;font-size:14pt;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:10px">PROCÈS-VERBAL DE SÉANCE' . ($isPreview ? ' (BROUILLON)' : '') . '</h2>';
         $html .= '<div class="header-info">';
         $html .= '<p><strong>Titre :</strong> ' . htmlspecialchars($meeting['title'] ?? '—') . '</p>';
         $html .= '<p><strong>Date :</strong> ' . ($meeting['scheduled_at'] ? date('d/m/Y à H:i', strtotime($meeting['scheduled_at'])) : '—') . '</p>';
@@ -424,6 +430,10 @@ final class MeetingReportsController extends AbstractController {
         }
         $html .= '</table>';
 
+        // Meeting-level quorum block
+        $quorumRatio = ($totalPower > 0) ? round(($presentPower / $totalPower) * 100, 1) : 0;
+        $html .= '<div class="result-box"><strong>Quorum de la séance :</strong> ' . $quorumRatio . '% des voix représentées (' . number_format($presentPower, 2) . ' / ' . number_format($totalPower, 2) . ')</div>';
+
         // Proxies
         if (!empty($proxies)) {
             $html .= '<h2>2. Procurations</h2><table><tr><th>Mandant</th><th>Mandataire</th></tr>';
@@ -448,17 +458,17 @@ final class MeetingReportsController extends AbstractController {
             }
 
             $html .= '<table><tr><th>Vote</th><th>Poids</th></tr>';
-            $html .= '<tr><td>✅ Pour</td><td>' . number_format((float) ($m['official_for'] ?? 0), 2) . '</td></tr>';
-            $html .= '<tr><td>❌ Contre</td><td>' . number_format((float) ($m['official_against'] ?? 0), 2) . '</td></tr>';
-            $html .= '<tr><td>⚪ Abstention</td><td>' . number_format((float) ($m['official_abstain'] ?? 0), 2) . '</td></tr>';
+            $html .= '<tr><td>Pour</td><td>' . number_format((float) ($m['official_for'] ?? 0), 2) . '</td></tr>';
+            $html .= '<tr><td>Contre</td><td>' . number_format((float) ($m['official_against'] ?? 0), 2) . '</td></tr>';
+            $html .= '<tr><td>Abstention</td><td>' . number_format((float) ($m['official_abstain'] ?? 0), 2) . '</td></tr>';
             $html .= '<tr><td><strong>Total</strong></td><td><strong>' . number_format((float) ($m['official_total'] ?? 0), 2) . '</strong></td></tr>';
             $html .= '</table>';
 
             $decisionClass = ($m['decision'] === 'adopted') ? '' : 'result-rejected';
             $dl = match ($m['decision'] ?? '') {
-                'adopted' => '✓ ADOPTÉE', 'rejected' => '✗ REJETÉE', 'no_quorum' => '⚠ SANS QUORUM',
-                'no_votes' => '⚠ SANS VOTES', 'no_policy' => '⚠ SANS RÈGLE', 'cancelled' => '✗ ANNULÉE',
-                'pending' => '… EN ATTENTE', default => '? ' . strtoupper($m['decision'] ?? '—'),
+                'adopted' => 'ADOPTEE', 'rejected' => 'REJETEE', 'no_quorum' => 'SANS QUORUM',
+                'no_votes' => 'SANS VOTES', 'no_policy' => 'SANS REGLE', 'cancelled' => 'ANNULEE',
+                'pending' => 'EN ATTENTE', default => strtoupper($m['decision'] ?? '—'),
             };
             $html .= '<div class="result-box ' . $decisionClass . '"><strong>Décision :</strong> ' . $dl;
             if (!empty($m['decision_reason'])) {
@@ -467,15 +477,22 @@ final class MeetingReportsController extends AbstractController {
             $html .= '</div>';
         }
 
-        // Signature
-        $html .= '<div class="signature-box"><p>Le Président de séance</p>';
-        $html .= '<p style="margin-top: 40px;"><strong>' . htmlspecialchars($meeting['president_name'] ?? '—') . '</strong></p>';
+        // Dual signature block (President + Secretaire de seance)
+        $html .= '<table style="width:100%;margin-top:40px;border:none"><tr>';
+        $html .= '<td style="width:50%;text-align:center;padding:20px;border:none">';
+        $html .= '<p>Le Président de séance</p>';
+        $html .= '<p style="margin-top:60px;border-top:1px solid #333">' . htmlspecialchars($meeting['president_name'] ?? '') . '</p>';
+        $html .= '</td>';
+        $html .= '<td style="width:50%;text-align:center;padding:20px;border:none">';
+        $html .= '<p>Le Secrétaire de séance</p>';
+        $html .= '<p style="margin-top:60px;border-top:1px solid #333">&nbsp;</p>';
+        $html .= '</td>';
+        $html .= '</tr></table>';
         if ($isPreview) {
-            $html .= '<p style="font-size: 9pt; color: #dc2626;">Document brouillon - Généré le ' . date('d/m/Y à H:i') . '</p>';
+            $html .= '<p style="font-size: 9pt; color: #dc2626; text-align:center;">Document brouillon - Généré le ' . date('d/m/Y à H:i') . '</p>';
         } else {
-            $html .= '<p style="font-size: 9pt; color: #6b7280;">Fait le ' . date('d/m/Y à H:i', strtotime($meeting['validated_at'])) . '</p>';
+            $html .= '<p style="font-size: 9pt; color: #6b7280; text-align:center;">Fait le ' . date('d/m/Y à H:i', strtotime($meeting['validated_at'])) . '</p>';
         }
-        $html .= '</div>';
 
         $html .= '<div class="footer"><p>Document généré automatiquement par AG-VOTE le ' . date('d/m/Y à H:i') . '</p>';
         $html .= '<p>Identifiant séance : ' . htmlspecialchars($meetingId) . '</p></div>';
@@ -508,8 +525,9 @@ final class MeetingReportsController extends AbstractController {
             'sha256' => $hash,
         ], $meetingId);
 
+        $disposition = $isInline ? 'inline' : 'attachment';
         header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: ' . $disposition . '; filename="' . $filename . '"');
         header('Content-Length: ' . strlen($pdfContent));
         header('X-Content-Type-Options: nosniff');
         header('X-Report-SHA256: ' . $hash);
