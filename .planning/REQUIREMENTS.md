@@ -15,14 +15,14 @@ Requirements for v7.0 Production Essentials milestone.
 
 ### Email Queue
 
-- [ ] **QUEUE-01**: Un worker cron dans le conteneur Docker execute processQueue() automatiquement a intervalle regulier (toutes les minutes)
-- [ ] **QUEUE-02**: Les emails en echec sont re-essayes avec un backoff, et les echecs definitifs sont marques comme failed dans la queue
+- [x] **QUEUE-01**: Un worker cron dans le conteneur Docker execute processQueue() automatiquement a intervalle regulier (toutes les minutes)
+- [x] **QUEUE-02**: Les emails en echec sont re-essayes avec un backoff, et les echecs definitifs sont marques comme failed dans la queue
 
 ### Setup Initial
 
-- [ ] **SETUP-01**: Une page /setup est accessible uniquement quand aucun utilisateur admin n'existe dans la base
-- [ ] **SETUP-02**: Le formulaire de setup cree le premier tenant (nom de l'organisation) et le premier admin (email + mot de passe)
-- [ ] **SETUP-03**: Apres le setup, la page redirige vers /login et n'est plus accessible
+- [x] **SETUP-01**: Une page /setup est accessible uniquement quand aucun utilisateur admin n'existe dans la base
+- [x] **SETUP-02**: Le formulaire de setup cree le premier tenant (nom de l'organisation) et le premier admin (email + mot de passe)
+- [x] **SETUP-03**: Apres le setup, la page redirige vers /login et n'est plus accessible
 
 ### Reset Password
 
@@ -54,11 +54,11 @@ Requirements for v7.0 Production Essentials milestone.
 | PV-01 | Phase 67 | Complete |
 | PV-02 | Phase 67 | Complete |
 | PV-03 | Phase 67 | Complete |
-| QUEUE-01 | Phase 68 | Pending |
-| QUEUE-02 | Phase 68 | Pending |
-| SETUP-01 | Phase 69 | Pending |
-| SETUP-02 | Phase 69 | Pending |
-| SETUP-03 | Phase 69 | Pending |
+| QUEUE-01 | Phase 68 | Complete |
+| QUEUE-02 | Phase 68 | Complete |
+| SETUP-01 | Phase 69 | Complete |
+| SETUP-02 | Phase 69 | Complete |
+| SETUP-03 | Phase 69 | Complete |
 | RESET-01 | Phase 70 | Pending |
 | RESET-02 | Phase 70 | Pending |
 | RESET-03 | Phase 70 | Pending |
