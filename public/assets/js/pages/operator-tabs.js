@@ -2826,6 +2826,21 @@ window.OpS = { fn: {} };
         if (openRateEl) openRateEl.textContent = Shared.formatPct(eng.open_rate || 0) + '%';
         if (engEl && (inv.sent || inv.opened)) Shared.show(engEl, 'block');
 
+        const invBtn = document.getElementById('btnSendInvitations');
+        if (invBtn) {
+          let badge = invBtn.querySelector('.inv-status-badge');
+          if (inv.sent > 0 || inv.total > 0) {
+            if (!badge) {
+              badge = document.createElement('span');
+              badge.className = 'inv-status-badge badge badge-sm ml-1';
+              invBtn.appendChild(badge);
+            }
+            badge.textContent = `${inv.sent}/${inv.total}`;
+          } else if (badge) {
+            badge.remove();
+          }
+        }
+
       }
     } catch (err) {
       // Stats endpoint may not exist yet — show placeholders
@@ -2927,6 +2942,67 @@ window.OpS = { fn: {} };
   }
 
   document.getElementById('btnSendInvitations')?.addEventListener('click', sendInvitations);
+
+  async function sendReminder() {
+    if (!currentMeetingId) {
+      setNotif('error', 'Aucune séance sélectionnée');
+      return;
+    }
+
+    const membersWithEmail = membersCache.filter(m => m.email).length;
+    if (membersWithEmail === 0) {
+      setNotif('error', 'Aucun membre n\'a d\'adresse email. Ajoutez des emails aux membres avant d\'envoyer.');
+      return;
+    }
+
+    const confirmed = await new Promise(resolve => {
+      const modal = createModal({
+        id: 'sendReminderModal',
+        title: 'Envoyer un rappel',
+        onDismiss: () => resolve(false),
+        content: `
+          <h3 id="sendReminderModal-title" style="margin:0 0 0.75rem;font-size:1.125rem;">${icon('bell', 'icon-sm icon-text')} Envoyer un rappel ?</h3>
+          <p style="margin:0 0 0.75rem;">${membersWithEmail} membre${membersWithEmail > 1 ? 's' : ''} avec email recevront un email de rappel.</p>
+          <p style="margin:0 0 0.5rem;color:var(--color-text-muted);font-size:0.875rem;">Un rappel est envoyé à tous les membres ayant une adresse email, indépendamment des invitations déjà envoyées.</p>
+          <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;">
+            <button class="btn btn-secondary" data-action="cancel">Annuler</button>
+            <button class="btn btn-warning" data-action="confirm">${icon('bell', 'icon-sm icon-text')} Envoyer le rappel</button>
+          </div>
+        `
+      });
+      modal.querySelector('[data-action="cancel"]').addEventListener('click', () => { closeModal(modal); resolve(false); });
+      modal.querySelector('[data-action="confirm"]').addEventListener('click', () => { closeModal(modal); resolve(true); });
+    });
+    if (!confirmed) return;
+
+    const btn = document.getElementById('btnSendReminder');
+    Shared.btnLoading(btn, true);
+
+    try {
+      const { body } = await api('/api/v1/invitations_send_reminder.php', {
+        meeting_id: currentMeetingId
+      });
+
+      if (body?.ok) {
+        const scheduled = body.data?.scheduled || 0;
+        setNotif('success', `${scheduled} rappel${scheduled > 1 ? 's' : ''} envoy${scheduled > 1 ? 'es' : 'e'}`);
+        await loadInvitationStats();
+      } else {
+        const errMsg = body?.error || getApiError(body, 'Erreur envoi rappel');
+        if (errMsg === 'smtp_not_configured' || (errMsg && errMsg.includes('smtp'))) {
+          setNotif('error', 'Le serveur SMTP n\'est pas configuré. Vérifiez la configuration email dans l\'administration.');
+        } else {
+          setNotif('error', errMsg);
+        }
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
+  }
+
+  document.getElementById('btnSendReminder')?.addEventListener('click', sendReminder);
 
   // Invitation scheduling buttons
   const invitationsOptions = document.getElementById('invitationsOptions');

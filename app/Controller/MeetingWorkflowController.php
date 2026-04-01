@@ -181,11 +181,13 @@ final class MeetingWorkflowController extends AbstractController {
             error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage());
         }
 
+        $resultsEmailCount = 0;
         if ($toStatus === 'closed') {
             try {
                 global $config;
                 $emailQueue = new EmailQueueService($config ?? []);
-                $emailQueue->scheduleResults($tenantId, $meetingId);
+                $result = $emailQueue->scheduleResults($tenantId, $meetingId);
+                $resultsEmailCount = $result['scheduled'] ?? 0;
             } catch (Throwable $e) {
                 error_log('[Email] Results email scheduling failed: ' . $e->getMessage());
                 // Non-blocking: do NOT fail the transition response
@@ -198,6 +200,7 @@ final class MeetingWorkflowController extends AbstractController {
             'to_status' => $toStatus,
             'transitioned_at' => date('c'),
             'warnings' => $workflowCheck['warnings'] ?? [],
+            'results_emails' => $resultsEmailCount,
         ]);
     }
 

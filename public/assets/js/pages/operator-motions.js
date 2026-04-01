@@ -1306,7 +1306,11 @@
         to_status: 'closed'
       });
       if (body?.ok) {
-        setNotif('success', 'Séance clôturée avec succès');
+        const resultsEmails = body.data?.results_emails || 0;
+        const emailMsg = resultsEmails > 0
+          ? ` — ${resultsEmails} email${resultsEmails > 1 ? 's' : ''} de resultats programme${resultsEmails > 1 ? 's' : ''}`
+          : '';
+        setNotif('success', `Séance clôturée avec succès${emailMsg}`);
         await O.fn.loadMeetingContext(O.currentMeetingId);
         O.fn.loadMeetings();
         O.fn.setMode('setup', { tab: 'resultats' });
