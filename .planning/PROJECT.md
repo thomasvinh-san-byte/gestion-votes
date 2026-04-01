@@ -79,9 +79,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v6.1: PDF & Préparation de Séance — Meeting attachment upload in wizard (post-creation FilePond), operator console management (view/add/delete), dual-auth serve endpoint (session OR vote token), hub "Documents de la séance" section with ag-pdf-viewer panel, vote page "Documents" button with sheet mode (read-only). Public list endpoint with safe-fields-only response.
 
+- v7.0: Production Essentials — Official PV PDF generation (loi 1901 template with dual signatures, inline/download modes), cron-based email queue worker (supervisord, retry with exponential backoff, failure tracking), browser-based /setup first-run page (tenant + admin creation with guard), secure password reset via email (HMAC-SHA256 tokens, 1-hour expiry, anti-enumeration, rate-limited).
+
 ### Active
 
-**v7.0 Production Essentials** : PV officiel PDF (template asso loi 1901 avec signatures), email queue worker (cron Docker), page /setup initial (premier tenant + admin), reset password par email (token sécurisé).
+None — v7.0 complete, next milestone not yet defined.
 
 ### Out of Scope
 
@@ -136,4 +138,4 @@ Deferred ideas:
 | v5.0 quality milestone | Production readiness requires 90%+ test coverage before new features | ✓ Good — Services 90.8%, 2241 unit + 177 E2E tests, full CI pipeline |
 
 ---
-*Last updated: 2026-03-31 after v5.1 milestone started*
+*Last updated: 2026-04-01 after v7.0 milestone completed*
