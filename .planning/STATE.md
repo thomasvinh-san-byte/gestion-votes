@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
 status: planning
-stopped_at: Completed 62-smtp-template-engine-01-PLAN.md
-last_updated: "2026-04-01T05:17:13.832Z"
+stopped_at: Completed 63-email-sending-workflows-01-PLAN.md
+last_updated: "2026-04-01T06:06:23.768Z"
 last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -44,6 +44,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 62-smtp-template-engine]: Server-side preview via debounced POST to email_templates_preview replaces stale client-side substitution
 - [Phase 62-smtp-template-engine]: MailerService::buildMailerConfig static helper merges DB SMTP settings over env config with password sentinel skip
 - [Phase 62-smtp-template-engine]: test_smtp action dispatched in EmailController::preview() before body_html check; sends real test email to from_email
+- [Phase 63]: DEFAULT_REMINDER_TEMPLATE CTA updated to use {{hub_url}} per user locked decision
+- [Phase 63]: scheduleResults() added as dedicated method; results hook uses fire-and-forget try/catch pattern identical to SSE broadcast
 
 ### Existing Infrastructure
 
@@ -84,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T05:17:13.829Z
-Stopped at: Completed 62-smtp-template-engine-01-PLAN.md
+Last session: 2026-04-01T06:06:23.765Z
+Stopped at: Completed 63-email-sending-workflows-01-PLAN.md
 Resume file: None
