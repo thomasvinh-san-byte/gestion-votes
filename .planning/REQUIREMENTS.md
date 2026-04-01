@@ -26,9 +26,9 @@ Requirements for v7.0 Production Essentials milestone.
 
 ### Reset Password
 
-- [ ] **RESET-01**: La page de login affiche un lien "Mot de passe oublie" qui ouvre un formulaire de demande de reset (saisie email)
-- [ ] **RESET-02**: Un email contenant un lien securise avec token temporaire (expiration 1h) est envoye a l'utilisateur
-- [ ] **RESET-03**: Le lien amene sur une page de saisie du nouveau mot de passe, qui met a jour le hash en base
+- [x] **RESET-01**: La page de login affiche un lien "Mot de passe oublie" qui ouvre un formulaire de demande de reset (saisie email)
+- [x] **RESET-02**: Un email contenant un lien securise avec token temporaire (expiration 1h) est envoye a l'utilisateur
+- [x] **RESET-03**: Le lien amene sur une page de saisie du nouveau mot de passe, qui met a jour le hash en base
 
 ## Future Requirements
 
@@ -59,9 +59,9 @@ Requirements for v7.0 Production Essentials milestone.
 | SETUP-01 | Phase 69 | Complete |
 | SETUP-02 | Phase 69 | Complete |
 | SETUP-03 | Phase 69 | Complete |
-| RESET-01 | Phase 70 | Pending |
-| RESET-02 | Phase 70 | Pending |
-| RESET-03 | Phase 70 | Pending |
+| RESET-01 | Phase 70 | Complete |
+| RESET-02 | Phase 70 | Complete |
+| RESET-03 | Phase 70 | Complete |
 
 **Coverage:**
 - v7.0 requirements: 11 total
