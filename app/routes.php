@@ -52,6 +52,7 @@ use AgVote\Controller\MembersController;
 use AgVote\Controller\MotionsController;
 use AgVote\Controller\NotificationsController;
 use AgVote\Controller\OperatorController;
+use AgVote\Controller\PasswordResetController;
 use AgVote\Controller\PoliciesController;
 use AgVote\Controller\ProjectorController;
 use AgVote\Controller\ProxiesController;
@@ -353,6 +354,9 @@ return function (Router $router): void {
     // ═════════════════════════════════════════════════════════════════════
     // PUBLIC HTML PAGES (no auth middleware — token/public access)
     // ═════════════════════════════════════════════════════════════════════
+
+    // -- Password reset (no auth) --
+    $router->mapAny('/reset-password', PasswordResetController::class, 'resetPassword');
 
     // -- Setup (first-run, no auth) --
     $router->mapAny('/setup', SetupController::class, 'setup');

@@ -26,6 +26,7 @@ use AgVote\Repository\MemberGroupRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\NotificationRepository;
+use AgVote\Repository\PasswordResetRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\ReminderScheduleRepository;
@@ -97,6 +98,7 @@ final class RepositoryFactory {
     public function member(): MemberRepository { return $this->get(MemberRepository::class); }
     public function motion(): MotionRepository { return $this->get(MotionRepository::class); }
     public function notification(): NotificationRepository { return $this->get(NotificationRepository::class); }
+    public function passwordReset(): PasswordResetRepository { return $this->get(PasswordResetRepository::class); }
     public function policy(): PolicyRepository { return $this->get(PolicyRepository::class); }
     public function proxy(): ProxyRepository { return $this->get(ProxyRepository::class); }
     public function reminderSchedule(): ReminderScheduleRepository { return $this->get(ReminderScheduleRepository::class); }
