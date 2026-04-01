@@ -587,6 +587,80 @@
     return pond;
   }
 
+  function initAttachmentPond(meetingId) {
+    var containerEl = document.getElementById('wizAttachmentSection');
+    var inputEl = document.getElementById('wizAttachmentPondInput');
+    if (!containerEl || !inputEl || inputEl._pondInitialized) return null;
+    if (typeof FilePond === 'undefined') return null;
+
+    FilePond.registerPlugin(
+      FilePondPluginFileValidateType,
+      FilePondPluginFileValidateSize
+    );
+
+    var pond = FilePond.create(inputEl, {
+      name: 'file',  // CRITICAL: matches api_file('file') in MeetingAttachmentController
+      acceptedFileTypes: ['application/pdf'],
+      labelFileTypeNotAllowed: 'Seuls les fichiers PDF sont acceptes',
+      fileValidateTypeLabelExpectedTypes: 'Format attendu : PDF',
+      maxFileSize: '10MB',
+      labelMaxFileSizeExceeded: 'Le fichier depasse 10 Mo',
+      labelMaxFileSize: 'Taille maximale : 10 Mo',
+      allowMultiple: true,
+      server: {
+        process: {
+          url: '/api/v1/meeting_attachments',
+          method: 'POST',
+          headers: function() {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            return {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-Token': meta ? meta.content : ''
+            };
+          },
+          ondata: function(formData) {
+            formData.append('meeting_id', meetingId);
+            return formData;
+          },
+          onload: function(response) {
+            try {
+              var data = JSON.parse(response);
+              var listEl = document.getElementById('wizAttachmentList');
+              if (listEl && data.attachment) renderAttachmentCard(listEl, data.attachment);
+              return data.attachment ? data.attachment.id : '';
+            } catch (e) { return ''; }
+          },
+          onerror: function(response) {
+            try {
+              var data = JSON.parse(response);
+              if (window.AgToast) window.AgToast.show(data.error || 'Erreur lors du telechargement', 'error');
+            } catch (e) {
+              if (window.AgToast) window.AgToast.show('Erreur lors du telechargement', 'error');
+            }
+          }
+        },
+        revert: null
+      },
+      labelIdle: 'Glissez un PDF ici ou <span class="filepond--label-action">parcourir</span>'
+    });
+
+    inputEl._pondInitialized = true;
+    return pond;
+  }
+
+  function renderAttachmentCard(listEl, att) {
+    var card = document.createElement('div');
+    card.className = 'doc-card';
+    card.dataset.attId = att.id;
+    var sizeKb = Math.round((att.file_size || 0) / 1024);
+    var sizeLabel = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' Mo' : sizeKb + ' Ko';
+    card.innerHTML =
+      '<span class="doc-card__icon">&#128196;</span>' +
+      '<span class="doc-card__name">' + escapeHtml(att.original_name || '') + '</span>' +
+      '<span class="doc-card__size">' + escapeHtml(sizeLabel) + '</span>';
+    listEl.appendChild(card);
+  }
+
   function renderDocCard(listEl, doc) {
     var card = document.createElement('div');
     card.className = 'doc-card';
@@ -935,6 +1009,15 @@
       });
     });
 
+    var createdMeetingId = null;
+
+    var btnGoToHub = document.getElementById('btnGoToHub');
+    if (btnGoToHub) {
+      btnGoToHub.addEventListener('click', function() {
+        window.location.href = '/hub/' + createdMeetingId;
+      });
+    }
+
     var btnCreate = document.getElementById('btnCreate');
     if (btnCreate) {
       btnCreate.addEventListener('click', function() {
@@ -951,6 +1034,7 @@
             }
             clearDraft();
             var d = res.body.data || {};
+            createdMeetingId = d.meeting_id || '';
             var totalMembers = (d.members_created || 0) + (d.members_linked || 0);
             var motions = d.motions_created || 0;
             var msg = 'S\u00e9ance cr\u00e9\u00e9e\u202f\u2022\u202f' + totalMembers + ' membre' + (totalMembers > 1 ? 's' : '') +
@@ -961,7 +1045,23 @@
                 type: 'success'
               }));
             } catch (e) {}
-            window.location.href = '/hub/' + (d.meeting_id || '');
+
+            // Show attachment section instead of immediate redirect
+            var attachSection = document.getElementById('wizAttachmentSection');
+            if (attachSection) attachSection.hidden = false;
+
+            // Hide recap and warning
+            var recap = document.getElementById('wizRecap');
+            if (recap) recap.hidden = true;
+            var warnRecap = document.querySelector('.alert-warn-recap');
+            if (warnRecap) warnRecap.hidden = true;
+
+            // Hide the step-nav bar
+            var stepNav = document.querySelector('#step3 .step-nav');
+            if (stepNav) stepNav.hidden = true;
+
+            // Initialize attachment pond
+            initAttachmentPond(createdMeetingId);
           })
           .catch(function(err) {
             btnCreate.disabled = false;
