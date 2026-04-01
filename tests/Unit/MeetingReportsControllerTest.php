@@ -732,4 +732,86 @@ class MeetingReportsControllerTest extends ControllerTestCase
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('smtp_not_configured', $result['body']['error']);
     }
+
+    // =========================================================================
+    // GENERATE PDF: LOI 1901 TEMPLATE REQUIREMENTS (Wave 0 — RED)
+    // =========================================================================
+
+    public function testGeneratePdfIncludesOrgNameHeader(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+
+        // generatePdf() must fetch org_name from SettingsRepository via settings()->get()
+        $this->assertStringContainsString(
+            "settings()->get",
+            $source,
+            'generatePdf() must call $this->repo()->settings()->get() to fetch org_name from tenant_settings',
+        );
+    }
+
+    public function testGeneratePdfIncludesQuorumSection(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+
+        // generatePdf() must contain a meeting-level quorum section header
+        $this->assertStringContainsString(
+            'Quorum de la',
+            $source,
+            'generatePdf() must include a meeting-level quorum block with "Quorum de la séance" text',
+        );
+    }
+
+    public function testGeneratePdfIncludesDualSignatureBlocks(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+
+        $this->assertStringContainsString(
+            'Le Pr',
+            $source,
+            'generatePdf() must include President signature block starting with "Le Pr"',
+        );
+        $this->assertStringContainsString(
+            'Le Secr',
+            $source,
+            'generatePdf() must include Secretaire signature block starting with "Le Secr"',
+        );
+    }
+
+    public function testGeneratePdfInlineDisposition(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+
+        $this->assertStringContainsString(
+            "api_query('inline')",
+            $source,
+            'generatePdf() must detect the ?inline=1 query parameter',
+        );
+        $this->assertStringContainsString(
+            'inline',
+            $source,
+            'generatePdf() must support Content-Disposition: inline mode',
+        );
+    }
+
+    public function testGeneratePdfUsesTextLabelsNotEmoji(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+
+        // generatePdf() must NOT contain emoji vote result characters
+        $this->assertStringNotContainsString(
+            "\u{2705}",
+            $source,
+            'generatePdf() must not use checkmark emoji (✅) — use text label "Pour" instead',
+        );
+        $this->assertStringNotContainsString(
+            "\u{274C}",
+            $source,
+            'generatePdf() must not use cross emoji (❌) — use text label "Contre" instead',
+        );
+        $this->assertStringNotContainsString(
+            "\u{26AA}",
+            $source,
+            'generatePdf() must not use white circle emoji (⚪) — use text label "Abstention" instead',
+        );
+    }
 }
