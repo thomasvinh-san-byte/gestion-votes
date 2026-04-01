@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
+use AgVote\Service\EmailQueueService;
 use AgVote\Service\MeetingWorkflowService;
 use AgVote\Service\OfficialResultsService;
 use AgVote\SSE\EventBroadcaster;
@@ -178,6 +179,17 @@ final class MeetingWorkflowController extends AbstractController {
             EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
         } catch (Throwable $e) {
             error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage());
+        }
+
+        if ($toStatus === 'closed') {
+            try {
+                global $config;
+                $emailQueue = new EmailQueueService($config ?? []);
+                $emailQueue->scheduleResults($tenantId, $meetingId);
+            } catch (Throwable $e) {
+                error_log('[Email] Results email scheduling failed: ' . $e->getMessage());
+                // Non-blocking: do NOT fail the transition response
+            }
         }
 
         api_ok([

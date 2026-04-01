@@ -216,6 +216,26 @@ final class EmailController extends AbstractController {
         ]);
     }
 
+    public function sendReminder(): void {
+        $input = api_request('POST');
+        $meetingId = trim((string) ($input['meeting_id'] ?? ''));
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 400);
+        }
+        api_guard_meeting_not_validated($meetingId);
+
+        global $config;
+        $service = new EmailQueueService($config ?? []);
+        $tenantId = api_current_tenant_id();
+        $result = $service->scheduleReminders($tenantId, $meetingId);
+
+        audit_log('email.reminder', 'meeting', $meetingId, [
+            'scheduled' => $result['scheduled'],
+        ], $meetingId);
+
+        api_ok(['scheduled' => $result['scheduled'], 'errors' => $result['errors']]);
+    }
+
     private function testSmtp(): void {
         global $config;
         $tenantId = api_current_tenant_id();

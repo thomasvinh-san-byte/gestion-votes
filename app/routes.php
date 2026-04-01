@@ -158,6 +158,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/email_templates_preview", EmailController::class, 'preview', $opAdm);
     $router->mapAny("{$prefix}/invitations_schedule", EmailController::class, 'schedule', $op);
     $router->mapAny("{$prefix}/invitations_send_bulk", EmailController::class, 'sendBulk', $op);
+    $router->mapAny("{$prefix}/invitations_send_reminder", EmailController::class, 'sendReminder', $op);
     $router->mapMulti("{$prefix}/email_templates", [
         'GET' => [EmailTemplatesController::class, 'list',   $opAdm],
         'POST' => [EmailTemplatesController::class, 'create', $opAdm],
