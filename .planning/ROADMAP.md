@@ -139,7 +139,7 @@
 
 ---
 
-### 🚧 v7.0 Production Essentials (In Progress)
+### v7.0 Production Essentials (In Progress)
 
 **Milestone Goal:** Deliver four production-essential features: official PV PDF generation for legal compliance, cron-based email queue worker for reliable delivery, browser-based initial setup for new deployments, and secure password reset via email.
 
@@ -174,10 +174,10 @@ Plans:
   1. A cron job inside the Docker container calls processQueue() every minute without operator action
   2. Emails that fail to send are retried with exponential backoff (not immediately re-sent in a tight loop)
   3. After max retries, permanently failed emails are marked as "failed" in the queue table and stop being retried
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 68-01: Cron worker setup and retry logic
+- [ ] 68-01-PLAN.md — Verify and test existing queue worker, add --reminders to supervisord, add retry logic tests
 
 ### Phase 69: Initial Setup
 **Goal**: A new deployment can be bootstrapped through a browser-based setup page
@@ -214,7 +214,7 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 67. PV Officiel PDF | 2/2 | Complete   | 2026-04-01 |
+| 67. PV Officiel PDF | 2/2 | Complete    | 2026-04-01 |
 | 68. Email Queue Worker | 0/1 | Not started | - |
 | 69. Initial Setup | 0/1 | Not started | - |
 | 70. Reset Password | 0/2 | Not started | - |
