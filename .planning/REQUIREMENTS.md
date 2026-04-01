@@ -9,9 +9,9 @@ Requirements for v7.0 Production Essentials milestone.
 
 ### PV Officiel
 
-- [ ] **PV-01**: Apres validation d'une seance, l'operateur peut generer un PV PDF contenant : en-tete (nom orga, date, lieu), liste des membres presents/representes, quorum atteint, resolutions avec resultats detailles (pour/contre/abstention), et pied de page (signatures president + secretaire)
-- [ ] **PV-02**: Le PV PDF utilise le template asso loi 1901 standard et est genere via Dompdf (deja installe)
-- [ ] **PV-03**: Le PV genere est consultable et telechargeable depuis la page post-session
+- [x] **PV-01**: Apres validation d'une seance, l'operateur peut generer un PV PDF contenant : en-tete (nom orga, date, lieu), liste des membres presents/representes, quorum atteint, resolutions avec resultats detailles (pour/contre/abstention), et pied de page (signatures president + secretaire)
+- [x] **PV-02**: Le PV PDF utilise le template asso loi 1901 standard et est genere via Dompdf (deja installe)
+- [x] **PV-03**: Le PV genere est consultable et telechargeable depuis la page post-session
 
 ### Email Queue
 
@@ -51,9 +51,9 @@ Requirements for v7.0 Production Essentials milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PV-01 | Phase 67 | Pending |
-| PV-02 | Phase 67 | Pending |
-| PV-03 | Phase 67 | Pending |
+| PV-01 | Phase 67 | Complete |
+| PV-02 | Phase 67 | Complete |
+| PV-03 | Phase 67 | Complete |
 | QUEUE-01 | Phase 68 | Pending |
 | QUEUE-02 | Phase 68 | Pending |
 | SETUP-01 | Phase 69 | Pending |

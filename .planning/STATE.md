@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Production Essentials
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-01T15:00:00.000Z"
-last_activity: "2026-04-01 — Roadmap created for v7.0: 4 phases (67-70), 6 plans, 11 requirements mapped"
+status: planning
+stopped_at: Completed 67-pv-officiel-pdf/67-01-PLAN.md
+last_updated: "2026-04-01T09:43:23.665Z"
+last_activity: 2026-04-01 — Roadmap created for v7.0
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 6
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 67 of 70 (PV Officiel PDF)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-04-01 — Roadmap created for v7.0
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 99%
 
 ## Accumulated Context
 
@@ -41,6 +41,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
 - [v7.0 roadmap]: Email queue builds on existing EmailQueueService::processQueue() — just needs cron worker
 - [v7.0 roadmap]: Setup page guard checks admin user count — no config file needed
+- [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
+- [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
 
 ### Existing Infrastructure
 
@@ -66,6 +68,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01
-Stopped at: Roadmap created for v7.0 Production Essentials
+Last session: 2026-04-01T09:43:23.662Z
+Stopped at: Completed 67-pv-officiel-pdf/67-01-PLAN.md
 Resume file: None
