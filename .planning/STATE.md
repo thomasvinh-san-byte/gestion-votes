@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
 status: planning
-stopped_at: Completed 64-in-app-notifications-01-PLAN.md
-last_updated: "2026-04-01T06:39:07.957Z"
+stopped_at: Completed 64-in-app-notifications-02-PLAN.md
+last_updated: "2026-04-01T06:44:39.668Z"
 last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 63-email-sending-workflows]: Reminder button uses btn-secondary to visually distinguish from primary invitation button in invitationsCard
 - [Phase 63-email-sending-workflows]: results_emails captured from scheduleResults() return value and added to transition api_ok() payload — JS reads count directly without second API call
 - [Phase 64-in-app-notifications]: NOTIF_LABELS and SSE_TOAST_MAP added to shell.js — bell badge reads data.notifications + data.unread_count, mark-all-read sends {all: true}
+- [Phase 64-in-app-notifications]: SSE wired to Notifications.handleSseEvent in operator-realtime.js and public.js (not exec/hub as plan specified) — Task 3 browser verification deferred by user
 
 ### Existing Infrastructure
 
@@ -90,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T06:39:07.954Z
-Stopped at: Completed 64-in-app-notifications-01-PLAN.md
+Last session: 2026-04-01T06:44:34.102Z
+Stopped at: Completed 64-in-app-notifications-02-PLAN.md
 Resume file: None
