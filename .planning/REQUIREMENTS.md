@@ -13,7 +13,7 @@ Requirements for v6.0 Production & Email milestone. Each maps to roadmap phases.
 - [ ] **EMAIL-02**: L'operateur peut envoyer un rappel par email avant une seance — l'email contient la date, le lieu et un lien vers le hub
 - [ ] **EMAIL-03**: Apres cloture d'une seance, un email de resultats est envoye aux participants avec un lien vers les resultats
 - [x] **EMAIL-04**: Les templates d'emails sont personnalisables depuis l'interface admin (sujet, corps HTML avec variables)
-- [ ] **EMAIL-05**: L'envoi utilise SMTP generique (Symfony Mailer) — compatible Mailgun, SendGrid, OVH, Gmail
+- [x] **EMAIL-05**: L'envoi utilise SMTP generique (Symfony Mailer) — compatible Mailgun, SendGrid, OVH, Gmail
 
 ### Notifications
 
@@ -53,7 +53,7 @@ Requirements for v6.0 Production & Email milestone. Each maps to roadmap phases.
 | EMAIL-02 | Phase 63 | Pending |
 | EMAIL-03 | Phase 63 | Pending |
 | EMAIL-04 | Phase 62 | Complete |
-| EMAIL-05 | Phase 62 | Pending |
+| EMAIL-05 | Phase 62 | Complete |
 | NOTIF-01 | Phase 64 | Pending |
 | NOTIF-02 | Phase 64 | Pending |
 | NOTIF-03 | Phase 64 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
 status: planning
-stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-04-01T05:12:50.567Z"
+stopped_at: Completed 62-smtp-template-engine-01-PLAN.md
+last_updated: "2026-04-01T05:17:13.832Z"
 last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -42,6 +42,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v6.0 roadmap]: Phase 64 groups NOTIF-01 + NOTIF-02 + NOTIF-03 (bell, list, toast) as the notification system
 - [Phase 62-smtp-template-engine]: Template editor uses body_html field (not body) for correct API alignment with EmailTemplatesController
 - [Phase 62-smtp-template-engine]: Server-side preview via debounced POST to email_templates_preview replaces stale client-side substitution
+- [Phase 62-smtp-template-engine]: MailerService::buildMailerConfig static helper merges DB SMTP settings over env config with password sentinel skip
+- [Phase 62-smtp-template-engine]: test_smtp action dispatched in EmailController::preview() before body_html check; sends real test email to from_email
 
 ### Existing Infrastructure
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T05:12:50.564Z
-Stopped at: Completed 62-02-PLAN.md
+Last session: 2026-04-01T05:17:13.829Z
+Stopped at: Completed 62-smtp-template-engine-01-PLAN.md
 Resume file: None
