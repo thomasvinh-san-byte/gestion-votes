@@ -582,6 +582,40 @@
   let notifPanel = null;
   let notifCount = 0;
 
+  var NOTIF_LABELS = {
+    'meeting_created':         'Séance créée',
+    'meeting_launched':        'Séance démarrée',
+    'meeting_closed':          'Séance clôturée',
+    'meeting_validated':       'Séance validée',
+    'motion_opened':           'Vote ouvert',
+    'motion_closed':           'Vote clôturé',
+    'attendances_bulk_update': 'Présences mises à jour',
+    'member_created':          'Membre ajouté',
+    'vote_anomaly':            'Anomalie de vote',
+    'meeting_archived':        'Séance archivée',
+    'member_imported':         'Import de membres',
+    'proxy_created':           'Mandat enregistré',
+    'emergency_triggered':     "Procédure d'urgence",
+    'speech_granted':          'Parole accordée'
+  };
+
+  var SSE_TOAST_MAP = {
+    'motion.opened': function(data) {
+      var title = (data.motion && data.motion.title) ? data.motion.title : '';
+      return { type: 'info', msg: title ? 'Vote ouvert : ' + title : 'Vote ouvert' };
+    },
+    'motion.closed': function() { return { type: 'info', msg: 'Vote clôturé' }; },
+    'quorum.updated': function(data) {
+      if (data.quorum && data.quorum.met) return { type: 'success', msg: 'Quorum atteint' };
+      return null;
+    },
+    'meeting.status_changed': function(data) {
+      if (data.new_status === 'live') return { type: 'success', msg: 'Séance démarrée' };
+      if (data.new_status === 'closed') return { type: 'info', msg: 'Séance clôturée' };
+      return null;
+    }
+  };
+
   function createNotifBell() {
     const header = document.querySelector('.app-header');
     if (!header || header.querySelector('.notif-bell')) return;
@@ -638,13 +672,13 @@
   }
 
   function renderNotifications(data) {
-    const items = Array.isArray(data) ? data : (data.items || []);
-    const unread = items.filter(function(n) { return !n.read; }).length;
+    const items = Array.isArray(data) ? data : (data.notifications || data.items || []);
+    const unread = typeof data.unread_count === 'number' ? data.unread_count : items.filter(function(n) { return !n.read; }).length;
     notifCount = unread;
 
     const countEl = document.querySelector('.notif-count');
     if (countEl) {
-      countEl.textContent = String(unread);
+      countEl.textContent = unread > 9 ? '9+' : String(unread);
       countEl.style.display = unread > 0 ? 'flex' : 'none';
     }
 
@@ -661,8 +695,8 @@
       return '<div class="notif-item">' +
         '<span class="notif-dot" style="background:' + dotColor + '"></span>' +
         '<div class="notif-body">' +
-          '<div class="notif-msg">' + esc(n.message || n.title || '') + '</div>' +
-          '<div class="notif-time">' + esc(n.time || n.created_at || '') + '</div>' +
+          '<div class="notif-msg">' + esc(NOTIF_LABELS[n.type] || n.message || n.title || 'Notification') + '</div>' +
+          '<div class="notif-time">' + esc(n.timestamp || n.created_at || n.time || '') + '</div>' +
         '</div></div>';
     }).join('');
   }
@@ -670,13 +704,25 @@
   async function markNotificationsRead() {
     try {
       if (!window.api || notifCount === 0) return;
-      await window.api('/api/v1/notifications_read.php', {}, 'PUT');
+      await window.api('/api/v1/notifications_read.php', { all: true }, 'PUT');
+      await fetchNotifications();
     } catch(e) { /* silent */ }
   }
 
   createNotifBell();
 
-  window.Notifications = { fetch: fetchNotifications };
+  window.Notifications = {
+    fetch: fetchNotifications,
+    handleSseEvent: function(type, data) {
+      var handler = SSE_TOAST_MAP[type];
+      if (!handler) return;
+      var toast = handler(data || {});
+      if (toast && typeof Shared !== 'undefined' && Shared.showToast) {
+        Shared.showToast(toast.msg, toast.type);
+      }
+      fetchNotifications();
+    }
+  };
 
   // ==========================================================================
   // Global Search — Ctrl+K / Cmd+K
