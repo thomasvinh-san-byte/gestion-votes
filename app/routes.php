@@ -59,6 +59,7 @@ use AgVote\Controller\QuorumController;
 use AgVote\Controller\ReminderController;
 use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
+use AgVote\Controller\SetupController;
 use AgVote\Controller\TrustController;
 use AgVote\Controller\VotePublicController;
 use AgVote\Controller\VoteTokenController;
@@ -352,6 +353,9 @@ return function (Router $router): void {
     // ═════════════════════════════════════════════════════════════════════
     // PUBLIC HTML PAGES (no auth middleware — token/public access)
     // ═════════════════════════════════════════════════════════════════════
+
+    // -- Setup (first-run, no auth) --
+    $router->mapAny('/setup', SetupController::class, 'setup');
 
     // Vote form (token-authenticated, no role middleware)
     $router->mapAny('/vote', VotePublicController::class, 'vote');

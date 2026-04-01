@@ -8,6 +8,10 @@ declare(strict_types=1);
 // Chemin racine du projet
 define('PROJECT_ROOT', dirname(__DIR__));
 
+// Flag used by standalone HTML controllers (e.g. SetupController) to throw
+// exceptions instead of calling header()/exit() so unit tests can assert redirects.
+define('PHPUNIT_RUNNING', true);
+
 // Autoload Composer si disponible
 $autoload = PROJECT_ROOT . '/vendor/autoload.php';
 if (file_exists($autoload)) {

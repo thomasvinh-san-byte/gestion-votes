@@ -32,6 +32,7 @@ use AgVote\Repository\ReminderScheduleRepository;
 use AgVote\Repository\ResolutionDocumentRepository;
 use AgVote\Repository\SpeechRepository;
 use AgVote\Repository\SettingsRepository;
+use AgVote\Repository\SetupRepository;
 use AgVote\Repository\SystemRepository;
 use AgVote\Repository\UserRepository;
 use AgVote\Repository\VoteTokenRepository;
@@ -101,6 +102,7 @@ final class RepositoryFactory {
     public function reminderSchedule(): ReminderScheduleRepository { return $this->get(ReminderScheduleRepository::class); }
     public function resolutionDocument(): ResolutionDocumentRepository { return $this->get(ResolutionDocumentRepository::class); }
     public function settings(): SettingsRepository { return $this->get(SettingsRepository::class); }
+    public function setup(): SetupRepository { return $this->get(SetupRepository::class); }
     public function speech(): SpeechRepository { return $this->get(SpeechRepository::class); }
     public function system(): SystemRepository { return $this->get(SystemRepository::class); }
     public function user(): UserRepository { return $this->get(UserRepository::class); }
