@@ -217,14 +217,6 @@
     }
   });
 
-  // Forgot password
-  document.getElementById('forgotLink').addEventListener('click', function(e) {
-    e.preventDefault();
-    var msg = document.getElementById('forgotMsg');
-    msg.textContent = 'Contactez votre administrateur pour réinitialiser votre mot de passe.';
-    msg.classList.add('visible');
-  });
-
   // Show demo credentials hint — populates and unhides #demoPanel (static div in HTML)
   function showDemoHint() {
     var panel = document.getElementById('demoPanel');
