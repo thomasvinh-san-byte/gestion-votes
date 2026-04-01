@@ -8,6 +8,7 @@ use AgVote\Controller\EmailController;
 use AgVote\Repository\InvitationRepository;
 use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\SettingsRepository;
 
 /**
  * Unit tests for EmailController.
@@ -324,5 +325,33 @@ class EmailControllerTest extends ControllerTestCase
     {
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailController.php');
         $this->assertStringContainsString('api_guard_meeting_not_validated', $source);
+    }
+
+    // =========================================================================
+    // test_smtp dispatch
+    // =========================================================================
+
+    public function testPreviewDispatchesTestSmtpAction(): void
+    {
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/EmailController.php');
+        $this->assertStringContainsString("=== 'test_smtp'", $source, 'preview() must check for test_smtp action');
+        $this->assertStringContainsString('testSmtp', $source, 'testSmtp private method must exist');
+        $this->assertStringContainsString('buildMailerConfig', $source, 'testSmtp must call buildMailerConfig');
+    }
+
+    public function testPreviewWithTestSmtpActionRequiresSmtpConfigured(): void
+    {
+        $this->setHttpMethod('POST');
+
+        // Inject a settings repo that returns null for all keys (no SMTP configured in DB)
+        $settingsRepo = $this->createMock(SettingsRepository::class);
+        $settingsRepo->method('get')->willReturn(null);
+        $this->injectRepos([SettingsRepository::class => $settingsRepo]);
+
+        $this->injectJsonBody(['action' => 'test_smtp']);
+        // No SMTP configured (env $config not set in test) — should fail with smtp_not_configured
+        $result = $this->callController(EmailController::class, 'preview');
+        $this->assertEquals(400, $result['status']);
+        $this->assertEquals('smtp_not_configured', $result['body']['error']);
     }
 }

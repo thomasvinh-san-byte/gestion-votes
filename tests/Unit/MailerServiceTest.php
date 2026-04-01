@@ -247,4 +247,72 @@ class MailerServiceTest extends TestCase {
         // Error is SMTP connection failure, not header sanitization issue
         $this->assertNotNull($result['error']);
     }
+
+    // =========================================================================
+    // buildMailerConfig() — DB-over-env merge
+    // =========================================================================
+
+    public function testBuildMailerConfigMergesDbOverEnv(): void {
+        $repo = $this->createMock(\AgVote\Repository\SettingsRepository::class);
+        $repo->method('get')->willReturnMap([
+            ['tenant1', 'settSmtpHost',    'smtp.db.com'],
+            ['tenant1', 'settSmtpPort',    '465'],
+            ['tenant1', 'settSmtpUser',    null],
+            ['tenant1', 'settSmtpPass',    null],
+            ['tenant1', 'settSmtpTls',     null],
+            ['tenant1', 'settSenderName',  null],
+            ['tenant1', 'settSenderEmail', null],
+        ]);
+
+        $envConfig = ['smtp' => ['host' => 'smtp.env.com', 'port' => 587, 'user' => 'envuser']];
+        $result = MailerService::buildMailerConfig($envConfig, $repo, 'tenant1');
+
+        $this->assertSame('smtp.db.com', $result['smtp']['host'], 'DB host should override env host');
+        $this->assertSame(465, $result['smtp']['port'], 'DB port should override env port as int');
+        $this->assertSame('envuser', $result['smtp']['user'], 'Env user should be preserved when DB returns null');
+    }
+
+    public function testBuildMailerConfigIgnoresSentinel(): void {
+        $repo = $this->createMock(\AgVote\Repository\SettingsRepository::class);
+        $repo->method('get')->willReturnMap([
+            ['tenant1', 'settSmtpHost',    null],
+            ['tenant1', 'settSmtpPort',    null],
+            ['tenant1', 'settSmtpUser',    null],
+            ['tenant1', 'settSmtpPass',    '*****'],
+            ['tenant1', 'settSmtpTls',     null],
+            ['tenant1', 'settSenderName',  null],
+            ['tenant1', 'settSenderEmail', null],
+        ]);
+
+        $envConfig = ['smtp' => ['pass' => 'real-secret-password']];
+        $result = MailerService::buildMailerConfig($envConfig, $repo, 'tenant1');
+
+        $this->assertSame('real-secret-password', $result['smtp']['pass'], 'Sentinel should not overwrite real env password');
+    }
+
+    public function testBuildMailerConfigEmptyDbFallsBackToEnv(): void {
+        $repo = $this->createMock(\AgVote\Repository\SettingsRepository::class);
+        $repo->method('get')->willReturn(null);
+
+        $envConfig = [
+            'smtp' => [
+                'host' => 'smtp.env.com',
+                'port' => 587,
+                'user' => 'envuser',
+                'pass' => 'envpass',
+                'tls'  => 'starttls',
+                'from_name'  => 'Env Name',
+                'from_email' => 'env@example.com',
+            ],
+        ];
+        $result = MailerService::buildMailerConfig($envConfig, $repo, 'tenant1');
+
+        $this->assertSame('smtp.env.com', $result['smtp']['host']);
+        $this->assertSame(587, $result['smtp']['port']);
+        $this->assertSame('envuser', $result['smtp']['user']);
+        $this->assertSame('envpass', $result['smtp']['pass']);
+        $this->assertSame('starttls', $result['smtp']['tls']);
+        $this->assertSame('Env Name', $result['smtp']['from_name']);
+        $this->assertSame('env@example.com', $result['smtp']['from_email']);
+    }
 }
