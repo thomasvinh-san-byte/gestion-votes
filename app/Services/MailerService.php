@@ -150,4 +150,28 @@ final class MailerService {
         $t = preg_replace("/\n{3,}/", "\n\n", $t);
         return trim($t);
     }
+
+    /**
+     * Merges DB-stored SMTP settings over env config.
+     * DB values win when non-empty and not the password sentinel.
+     */
+    public static function buildMailerConfig(array $envConfig, \AgVote\Repository\SettingsRepository $repo, string $tenantId): array {
+        $smtpKeyMap = [
+            'settSmtpHost'    => 'host',
+            'settSmtpPort'    => 'port',
+            'settSmtpUser'    => 'user',
+            'settSmtpPass'    => 'pass',
+            'settSmtpTls'     => 'tls',
+            'settSenderName'  => 'from_name',
+            'settSenderEmail' => 'from_email',
+        ];
+        $smtp = $envConfig['smtp'] ?? [];
+        foreach ($smtpKeyMap as $dbKey => $smtpKey) {
+            $dbVal = $repo->get($tenantId, $dbKey);
+            if ($dbVal !== null && $dbVal !== '' && $dbVal !== '*****') {
+                $smtp[$smtpKey] = ($smtpKey === 'port') ? (int) $dbVal : $dbVal;
+            }
+        }
+        return array_merge($envConfig, ['smtp' => $smtp]);
+    }
 }

@@ -13,6 +13,12 @@ final class EmailController extends AbstractController {
     public function preview(): void {
         $input = api_request('POST');
 
+        $action = trim((string) ($input['action'] ?? ''));
+        if ($action === 'test_smtp') {
+            $this->testSmtp();
+            return;
+        }
+
         $bodyHtml = trim((string) ($input['body_html'] ?? ''));
         $subject = trim((string) ($input['subject'] ?? ''));
         $customVariables = isset($input['custom_variables']) && is_array($input['custom_variables'])
@@ -208,5 +214,24 @@ final class EmailController extends AbstractController {
             'skipped_already_sent' => $skippedAlreadySent,
             'errors' => $errors,
         ]);
+    }
+
+    private function testSmtp(): void {
+        global $config;
+        $tenantId = api_current_tenant_id();
+        $mergedConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
+        $mailer = new MailerService($mergedConfig);
+        if (!$mailer->isConfigured()) {
+            api_fail('smtp_not_configured', 400, ['detail' => 'SMTP host and port are required']);
+        }
+        $fromEmail = $mergedConfig['smtp']['from_email'] ?? '';
+        if ($fromEmail === '') {
+            api_fail('smtp_no_sender', 400, ['detail' => 'Sender email (from_email) is required']);
+        }
+        $result = $mailer->send($fromEmail, 'Test SMTP - AG-VOTE', '<p>Configuration SMTP verifiee avec succes.</p>');
+        if (!$result['ok']) {
+            api_fail('smtp_test_failed', 400, ['detail' => $result['error']]);
+        }
+        api_ok(['tested' => true, 'sent_to' => $fromEmail]);
     }
 }
