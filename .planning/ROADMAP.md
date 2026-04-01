@@ -151,10 +151,10 @@ Plans:
   1. Hub displays a "Documents de la seance" section listing all meeting attachments, each clickable to open ag-pdf-viewer (inline or sheet mode)
   2. Vote page displays a "Documents" button that opens a panel or sheet listing meeting attachments viewable via ag-pdf-viewer
   3. PDF content loads successfully for voters authenticated by either session or vote token
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 66-01: Hub document section and vote page document button with ag-pdf-viewer
+- [ ] 66-01-PLAN.md — Public list endpoint, hub documents section, and vote page documents button (ATTACH-03, ATTACH-04)
 
 ## Progress
 
@@ -163,5 +163,5 @@ Phases execute in numeric order: 65 → 66
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Attachment Upload & Serve | 2/2 | Complete   | 2026-04-01 |
+| 65. Attachment Upload & Serve | 2/2 | Complete    | 2026-04-01 |
 | 66. Voter Document Access | 0/1 | Not started | - |
