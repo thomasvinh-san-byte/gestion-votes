@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v6.1
 milestone_name: PDF & Preparation de Seance
-status: planning
-stopped_at: Completed 65-02 — wizard post-creation attachment upload and operator console attachment management
-last_updated: "2026-04-01T08:24:20.113Z"
-last_activity: 2026-04-01 — Roadmap created for v6.1
+status: in-progress
+stopped_at: Completed 66-01 tasks 1-2 — awaiting checkpoint:human-verify (Task 3)
+last_updated: "2026-04-01T08:42:00.000Z"
+last_activity: 2026-04-01 — Executed 66-01 (listPublic endpoint + hub/vote page wiring)
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 0
+  total_plans: 3
+  completed_plans: 3
+  percent: 75
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v6.1 PDF & Preparation de Seance — Phase 65 (Attachment Upload & Serve)
+**Current focus:** v6.1 PDF & Preparation de Seance — Phase 66 (Voter Document Access)
 
 ## Current Position
 
-Phase: 1 of 2 (Phase 65: Attachment Upload & Serve)
-Plan: 0 of 1 in current phase
-Status: Ready to plan
-Last activity: 2026-04-01 — Roadmap created for v6.1
+Phase: 2 of 2 (Phase 66: Voter Document Access)
+Plan: 1 of 1 in current phase (awaiting checkpoint:human-verify to complete)
+Status: In progress — checkpoint
+Last activity: 2026-04-01 — Executed 66-01 tasks 1+2, awaiting visual verification
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 75%
 
 ## Accumulated Context
 
@@ -47,6 +47,11 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 65-02]: Wizard uses FilePond with name='file' for meeting attachments matching MeetingAttachmentController
 - [Phase 65-02]: Operator console uses native file input (no FilePond) for attachment upload, mirroring addDocUploadToMotionCard pattern
 - [Phase 65-02]: No SSE/EventBroadcaster for attachment changes — pre-session documents do not need real-time broadcast
+- [Phase 66-01]: Reuse doc_serve rate limit bucket for meeting_attachments_public (same use case, 120/60s)
+- [Phase 66-01]: stored_name excluded from listPublic response — only id, original_name, file_size, created_at exposed
+- [Phase 66-01]: getElementById('meetingAttachViewer') used — never querySelector to avoid collision with resoPdfViewer
+- [Phase 66-01]: vote page viewer has no allow-download — voter is read-only (PDF-10)
+- [Phase 66-01]: loadMeetingAttachments is meeting-scoped, called on meeting context change not per-motion refresh
 
 ### Existing Infrastructure
 
@@ -87,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T08:24:20.110Z
-Stopped at: Completed 65-02 — wizard post-creation attachment upload and operator console attachment management
+Last session: 2026-04-01T08:42:00.000Z
+Stopped at: Completed 66-01 tasks 1+2 — checkpoint:human-verify pending for Task 3 visual verification
 Resume file: None
