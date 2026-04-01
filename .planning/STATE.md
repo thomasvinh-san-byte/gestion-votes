@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
 status: planning
-stopped_at: Completed 63-email-sending-workflows-02-PLAN.md
-last_updated: "2026-04-01T06:16:05.014Z"
+stopped_at: Completed 64-in-app-notifications-01-PLAN.md
+last_updated: "2026-04-01T06:39:07.957Z"
 last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 63-email-sending-workflows]: results_emails added to transition api_ok() response so JS can show count in close toast without second API call
 - [Phase 63-email-sending-workflows]: Reminder button uses btn-secondary to visually distinguish from primary invitation button in invitationsCard
 - [Phase 63-email-sending-workflows]: results_emails captured from scheduleResults() return value and added to transition api_ok() payload — JS reads count directly without second API call
+- [Phase 64-in-app-notifications]: NOTIF_LABELS and SSE_TOAST_MAP added to shell.js — bell badge reads data.notifications + data.unread_count, mark-all-read sends {all: true}
 
 ### Existing Infrastructure
 
@@ -89,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T06:15:58.911Z
-Stopped at: Completed 63-email-sending-workflows-02-PLAN.md
+Last session: 2026-04-01T06:39:07.954Z
+Stopped at: Completed 64-in-app-notifications-01-PLAN.md
 Resume file: None

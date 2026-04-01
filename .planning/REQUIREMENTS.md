@@ -17,8 +17,8 @@ Requirements for v6.0 Production & Email milestone. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NOTIF-01**: Une icone cloche dans le header affiche un badge avec le nombre de notifications non lues
-- [ ] **NOTIF-02**: Cliquer sur la cloche affiche la liste des notifications recentes (nouveau vote ouvert, seance bientot, resultats disponibles)
+- [x] **NOTIF-01**: Une icone cloche dans le header affiche un badge avec le nombre de notifications non lues
+- [x] **NOTIF-02**: Cliquer sur la cloche affiche la liste des notifications recentes (nouveau vote ouvert, seance bientot, resultats disponibles)
 - [ ] **NOTIF-03**: Un toast apparait en temps reel via SSE quand un evenement important survient (vote ouvert, quorum atteint, seance demarree)
 
 ## Future Requirements
@@ -54,8 +54,8 @@ Requirements for v6.0 Production & Email milestone. Each maps to roadmap phases.
 | EMAIL-03 | Phase 63 | Complete |
 | EMAIL-04 | Phase 62 | Complete |
 | EMAIL-05 | Phase 62 | Complete |
-| NOTIF-01 | Phase 64 | Pending |
-| NOTIF-02 | Phase 64 | Pending |
+| NOTIF-01 | Phase 64 | Complete |
+| NOTIF-02 | Phase 64 | Complete |
 | NOTIF-03 | Phase 64 | Pending |
 
 **Coverage:**
