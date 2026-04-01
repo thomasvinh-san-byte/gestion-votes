@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Production & Email
 status: planning
-stopped_at: Completed 63-email-sending-workflows-01-PLAN.md
-last_updated: "2026-04-01T06:06:23.768Z"
+stopped_at: "Completed 63-email-sending-workflows-02-PLAN.md — awaiting checkpoint:human-verify"
+last_updated: "2026-04-01T06:13:08.636Z"
 last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 62-smtp-template-engine]: test_smtp action dispatched in EmailController::preview() before body_html check; sends real test email to from_email
 - [Phase 63]: DEFAULT_REMINDER_TEMPLATE CTA updated to use {{hub_url}} per user locked decision
 - [Phase 63]: scheduleResults() added as dedicated method; results hook uses fire-and-forget try/catch pattern identical to SSE broadcast
+- [Phase 63-email-sending-workflows]: results_emails added to transition api_ok() response so JS can show count in close toast without second API call
 
 ### Existing Infrastructure
 
@@ -86,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T06:06:23.765Z
-Stopped at: Completed 63-email-sending-workflows-01-PLAN.md
+Last session: 2026-04-01T06:13:08.633Z
+Stopped at: Completed 63-email-sending-workflows-02-PLAN.md — awaiting checkpoint:human-verify
 Resume file: None

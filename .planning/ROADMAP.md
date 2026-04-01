@@ -99,7 +99,7 @@
 ## Phases
 
 - [x] **Phase 62: SMTP & Template Engine** - Wire Symfony Mailer SMTP config and make email templates editable from admin UI (completed 2026-04-01)
-- [ ] **Phase 63: Email Sending Workflows** - Operator sends invitations/reminders, system sends results after session close
+- [x] **Phase 63: Email Sending Workflows** - Operator sends invitations/reminders, system sends results after session close (completed 2026-04-01)
 - [ ] **Phase 64: In-App Notifications** - Bell badge with notification list and real-time SSE toasts
 
 ## Phase Details
@@ -157,5 +157,5 @@ Phases execute in numeric order: 62 -> 63 -> 64
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 62. SMTP & Template Engine | 2/2 | Complete    | 2026-04-01 |
-| 63. Email Sending Workflows | 1/2 | In Progress|  |
+| 63. Email Sending Workflows | 2/2 | Complete   | 2026-04-01 |
 | 64. In-App Notifications | 0/2 | Not started | - |
