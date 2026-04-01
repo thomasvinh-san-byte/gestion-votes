@@ -116,8 +116,8 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 62-01-PLAN.md — SMTP backend: buildMailerConfig DB+env merge, test_smtp endpoint, password sentinel, TLS field
-- [ ] 62-02-PLAN.md — Template editor fixes: body_html field alignment, server-side preview, canonical variable tags
+- [x] 62-01-PLAN.md — SMTP backend: buildMailerConfig DB+env merge, test_smtp endpoint, password sentinel, TLS field
+- [x] 62-02-PLAN.md — Template editor fixes: body_html field alignment, server-side preview, canonical variable tags
 
 ### Phase 63: Email Sending Workflows
 **Goal**: Operators can trigger invitation and reminder emails to meeting participants, and results emails are sent automatically after session close
@@ -128,11 +128,11 @@ Plans:
   2. Operator clicks "Envoyer un rappel" on a session and each member receives an email with the session date, location, and a link to the hub
   3. After an operator closes a session, each participant automatically receives a results email with a link to view the results page
   4. Emails are queued via EmailQueueService and processed reliably -- failed sends are logged and the operator can see send status
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 63-01: Invitation email flow (operator trigger, queue processing, member-specific vote links)
-- [ ] 63-02: Reminder and results email flows (operator-triggered reminder, automatic post-close results)
+- [ ] 63-01-PLAN.md — Backend: results template, scheduleReminders/scheduleResults methods, sendReminder route, transition close hook
+- [ ] 63-02-PLAN.md — Frontend: reminder button in operator console, invitation send status badge, UI verification
 
 ### Phase 64: In-App Notifications
 **Goal**: Users receive real-time awareness of important events through a persistent notification bell and transient toast messages
@@ -156,6 +156,6 @@ Phases execute in numeric order: 62 -> 63 -> 64
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 62. SMTP & Template Engine | 2/2 | Complete   | 2026-04-01 |
+| 62. SMTP & Template Engine | 2/2 | Complete    | 2026-04-01 |
 | 63. Email Sending Workflows | 0/2 | Not started | - |
 | 64. In-App Notifications | 0/2 | Not started | - |
