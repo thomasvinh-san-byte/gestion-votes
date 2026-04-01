@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: Production & Email
-status: planning
-stopped_at: Completed 64-in-app-notifications-02-PLAN.md
-last_updated: "2026-04-01T07:06:54.012Z"
-last_activity: 2026-03-31 — Roadmap created for v6.0
+milestone: v6.1
+milestone_name: "PDF & Preparation de Seance"
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-04-01T12:00:00.000Z"
+last_activity: "2026-04-01 — Milestone v6.1 started: PDF & Preparation de Seance"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-31)
+See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v6.0 Production & Email — SMTP emails (invitations, reminders, results), customizable templates, in-app notifications (bell + SSE toasts)
+**Current focus:** v6.1 PDF & Preparation de Seance — documents accessibles aux votants, upload dans le wizard, gestion console operateur
 
 ## Current Position
 
-Phase: 62 of 64 (SMTP & Template Engine) — ready to plan
-Plan: --
-Status: Ready to plan Phase 62
-Last activity: 2026-03-31 — Roadmap created for v6.0
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-01 — Milestone v6.1 started
 
 Progress: [░░░░░░░░░░] 0%
 

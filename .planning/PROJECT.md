@@ -79,7 +79,7 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-(No active milestone — ready for next milestone planning)
+**v6.1 PDF & Préparation de Séance** : Rendre les pièces jointes de séance et les documents par résolution accessibles aux votants (hub + page de vote), upload de documents dans le wizard, gestion depuis la console opérateur. PV hors scope (envoyé par email).
 
 ### Out of Scope
 
