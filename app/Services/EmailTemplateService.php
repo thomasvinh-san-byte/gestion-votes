@@ -345,6 +345,8 @@ final class EmailTemplateService {
             '{{tenant_name}}' => 'Organisation XYZ',
             '{{current_date}}' => date('d/m/Y'),
             '{{current_time}}' => date('H:i'),
+            '{{results_url}}' => 'https://votes.example.com/postsession.htmx.html?meeting_id=demo',
+            '{{hub_url}}' => 'https://votes.example.com/hub.htmx.html?meeting_id=demo',
         ];
 
         return $this->render($templateBody, $sampleData);
@@ -408,6 +410,21 @@ final class EmailTemplateService {
         );
         if ($rem) {
             $created[] = $rem;
+        }
+
+        // Default results template
+        $res = $this->templateRepo->create(
+            $tenantId,
+            'Resultats standard',
+            'results',
+            'Resultats: {{meeting_title}}',
+            self::DEFAULT_RESULTS_TEMPLATE,
+            null,
+            true,
+            $createdBy,
+        );
+        if ($res) {
+            $created[] = $res;
         }
 
         return $created;

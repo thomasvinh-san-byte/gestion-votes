@@ -618,7 +618,7 @@
           template_id: _currentTemplateId,
           type: _currentTemplate,
           subject: (document.getElementById('templateSubject') || {}).value || '',
-          body: (document.getElementById('templateBody') || {}).value || ''
+          body_html: (document.getElementById('templateBody') || {}).value || ''
         })
           .then(function(r) {
             if (r.body && r.body.ok) {

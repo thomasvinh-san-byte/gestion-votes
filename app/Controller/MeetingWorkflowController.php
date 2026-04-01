@@ -185,7 +185,8 @@ final class MeetingWorkflowController extends AbstractController {
         if ($toStatus === 'closed') {
             try {
                 global $config;
-                $emailQueue = new EmailQueueService($config ?? []);
+                $mergedConfig = \AgVote\Service\MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
+                $emailQueue = new EmailQueueService($mergedConfig);
                 $result = $emailQueue->scheduleResults($tenantId, $meetingId);
                 $resultsEmailCount = $result['scheduled'] ?? 0;
             } catch (Throwable $e) {

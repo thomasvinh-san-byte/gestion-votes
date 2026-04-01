@@ -77,8 +77,9 @@ final class EmailController extends AbstractController {
         }
 
         global $config;
-        $service = new EmailQueueService($config ?? []);
         $tenantId = api_current_tenant_id();
+        $mergedConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
+        $service = new EmailQueueService($mergedConfig);
 
         $result = $service->scheduleInvitations($tenantId, $meetingId, $templateId, $scheduledAt, $onlyUnsent);
 
@@ -117,6 +118,7 @@ final class EmailController extends AbstractController {
         $invitationRepo = $this->repo()->invitation();
 
         $tenantId = api_current_tenant_id();
+        $mergedConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
         $meetingTitle = $meetingRepo->findTitle($meetingId, $tenantId) ?? $meetingId;
         $members = $memberRepo->listActiveWithEmail($tenantId);
 
@@ -124,7 +126,7 @@ final class EmailController extends AbstractController {
             $members = array_slice($members, 0, $limit);
         }
 
-        $mailer = new MailerService($config ?? []);
+        $mailer = new MailerService($mergedConfig);
         if (!$mailer->isConfigured() && !$dryRun) {
             api_fail('smtp_not_configured', 400);
         }
@@ -225,8 +227,9 @@ final class EmailController extends AbstractController {
         api_guard_meeting_not_validated($meetingId);
 
         global $config;
-        $service = new EmailQueueService($config ?? []);
         $tenantId = api_current_tenant_id();
+        $mergedConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
+        $service = new EmailQueueService($mergedConfig);
         $result = $service->scheduleReminders($tenantId, $meetingId);
 
         audit_log('email.reminder', 'meeting', $meetingId, [
