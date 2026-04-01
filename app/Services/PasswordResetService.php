@@ -25,7 +25,7 @@ use AgVote\Repository\UserRepository;
  *  - TTL: 1 hour
  *  - Single-use: markUsed() is called atomically on consume
  */
-final class PasswordResetService {
+class PasswordResetService {
     private const TOKEN_BYTES  = 32;
     private const TTL_SECONDS  = 3600; // 1 hour
 
