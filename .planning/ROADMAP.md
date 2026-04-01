@@ -143,11 +143,11 @@ Plans:
   2. Clicking the bell opens a panel listing recent notifications (vote opened, session starting soon, results available) with timestamps and links
   3. Marking a notification as read decrements the badge count; marking all as read clears the badge
   4. When a relevant event fires (vote opened, quorum reached, session started), an ag-toast appears in real-time via SSE without any user action
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 64-01: Notification persistence, bell badge wiring, and notification list panel
-- [ ] 64-02: SSE event broadcasting and real-time ag-toast delivery
+- [ ] 64-01-PLAN.md — NotificationsService creation, shell.js data shape fix, French labels, mark-read fix, SSE toast map
+- [ ] 64-02-PLAN.md — SSE toast wiring in operator-exec.js and hub.js, full regression test, browser verification
 
 ## Progress
 
@@ -157,5 +157,5 @@ Phases execute in numeric order: 62 -> 63 -> 64
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 62. SMTP & Template Engine | 2/2 | Complete    | 2026-04-01 |
-| 63. Email Sending Workflows | 2/2 | Complete   | 2026-04-01 |
+| 63. Email Sending Workflows | 2/2 | Complete    | 2026-04-01 |
 | 64. In-App Notifications | 0/2 | Not started | - |
