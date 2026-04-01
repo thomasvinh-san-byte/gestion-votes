@@ -12,6 +12,7 @@
 - ✅ **v4.4 Complete Rebuild** - Phases 49-51 (shipped 2026-03-30)
 - ✅ **v5.0 Quality & Production Readiness** - Phases 52-57 (shipped 2026-03-30)
 - ✅ **v5.1 Operational Hardening** - Phases 58-61 (shipped 2026-03-31)
+- ✅ **v6.0 Production & Email** - Phases 62-64 (shipped 2026-04-01)
 
 ---
 
@@ -92,70 +93,23 @@
 
 ---
 
-### v6.0 Production & Email (In Progress)
+<details>
+<summary>✅ v6.0 Production & Email (Shipped: 2026-04-01) — 3 phases, 6 plans</summary>
 
 **Milestone Goal:** Deliver functional email communication (invitations, reminders, results) via SMTP with customizable templates, plus real-time in-app notifications via bell icon and SSE toasts.
 
-## Phases
+### Phases
 
 - [x] **Phase 62: SMTP & Template Engine** - Wire Symfony Mailer SMTP config and make email templates editable from admin UI (completed 2026-04-01)
 - [x] **Phase 63: Email Sending Workflows** - Operator sends invitations/reminders, system sends results after session close (completed 2026-04-01)
 - [x] **Phase 64: In-App Notifications** - Bell badge with notification list and real-time SSE toasts (completed 2026-04-01)
 
-## Phase Details
-
-### Phase 62: SMTP & Template Engine
-**Goal**: Administrators can configure SMTP delivery and customize email templates so the application is ready to send real emails
-**Depends on**: Nothing (first phase of v6.0)
-**Requirements**: EMAIL-04, EMAIL-05
-**Success Criteria** (what must be TRUE):
-  1. Administrator can enter SMTP credentials (host, port, user, password, encryption) in the settings page and the configuration persists across sessions
-  2. A test email can be sent from the settings page to verify SMTP configuration works before any real sends
-  3. Administrator can edit email template subject and HTML body for each template type (invitation, reminder, results) with variable placeholders
-  4. Template preview shows rendered output with sample data before saving
-**Plans**: 2 plans
-
-Plans:
-- [x] 62-01-PLAN.md — SMTP backend: buildMailerConfig DB+env merge, test_smtp endpoint, password sentinel, TLS field
-- [x] 62-02-PLAN.md — Template editor fixes: body_html field alignment, server-side preview, canonical variable tags
-
-### Phase 63: Email Sending Workflows
-**Goal**: Operators can trigger invitation and reminder emails to meeting participants, and results emails are sent automatically after session close
-**Depends on**: Phase 62
-**Requirements**: EMAIL-01, EMAIL-02, EMAIL-03
-**Success Criteria** (what must be TRUE):
-  1. Operator clicks "Envoyer les invitations" on a session and each member receives an email containing a personalized link to their vote page
-  2. Operator clicks "Envoyer un rappel" on a session and each member receives an email with the session date, location, and a link to the hub
-  3. After an operator closes a session, each participant automatically receives a results email with a link to view the results page
-  4. Emails are queued via EmailQueueService and processed reliably -- failed sends are logged and the operator can see send status
-**Plans**: 2 plans
-
-Plans:
-- [ ] 63-01-PLAN.md — Backend: results template, scheduleReminders/scheduleResults methods, sendReminder route, transition close hook
-- [ ] 63-02-PLAN.md — Frontend: reminder button in operator console, invitation send status badge, UI verification
-
-### Phase 64: In-App Notifications
-**Goal**: Users receive real-time awareness of important events through a persistent notification bell and transient toast messages
-**Depends on**: Phase 62 (notifications reference the same event types as emails)
-**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03
-**Success Criteria** (what must be TRUE):
-  1. A bell icon in the app shell header displays a badge with the count of unread notifications, updating without page refresh
-  2. Clicking the bell opens a panel listing recent notifications (vote opened, session starting soon, results available) with timestamps and links
-  3. Marking a notification as read decrements the badge count; marking all as read clears the badge
-  4. When a relevant event fires (vote opened, quorum reached, session started), an ag-toast appears in real-time via SSE without any user action
-**Plans**: 2 plans
-
-Plans:
-- [ ] 64-01-PLAN.md — NotificationsService creation, shell.js data shape fix, French labels, mark-read fix, SSE toast map
-- [ ] 64-02-PLAN.md — SSE toast wiring in operator-exec.js and hub.js, full regression test, browser verification
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 62 -> 63 -> 64
+### Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 62. SMTP & Template Engine | 2/2 | Complete    | 2026-04-01 |
-| 63. Email Sending Workflows | 2/2 | Complete    | 2026-04-01 |
-| 64. In-App Notifications | 2/2 | Complete   | 2026-04-01 |
+| 62. SMTP & Template Engine | 2/2 | Complete | 2026-04-01 |
+| 63. Email Sending Workflows | 2/2 | Complete | 2026-04-01 |
+| 64. In-App Notifications | 2/2 | Complete | 2026-04-01 |
+
+</details>

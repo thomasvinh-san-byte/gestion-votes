@@ -1,5 +1,14 @@
 # Milestones
 
+## v6.0 Production & Email (Shipped: 2026-04-01)
+
+**Phases completed:** 3 phases, 6 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v5.1 Operational Hardening (Shipped: 2026-03-31)
 
 **Phases completed:** 4 phases, 8 plans, 0 tasks

@@ -4,7 +4,7 @@ milestone: v6.0
 milestone_name: Production & Email
 status: planning
 stopped_at: Completed 64-in-app-notifications-02-PLAN.md
-last_updated: "2026-04-01T06:44:39.668Z"
+last_updated: "2026-04-01T07:06:54.012Z"
 last_activity: 2026-03-31 — Roadmap created for v6.0
 progress:
   total_phases: 3

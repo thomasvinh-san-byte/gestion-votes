@@ -75,9 +75,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v5.1: Operational Hardening — WebSocket→SSE namespace rename, vote/quorum edge cases (token reuse audit, closed-motion 409, zero-member safety), session/import/auth hardening (CSV encoding detection, duplicate email pre-scan, session expiry redirect, configurable rate limiting with audit), dead code cleanup (vocabulary purge, Command file documentation). 2331 PHPUnit tests, 0 failures.
 
+- v6.0: Production & Email — SMTP config from admin UI with DB-over-env merge, customizable email templates with variable tags and server-side preview, invitation/reminder/results email workflows with operator trigger buttons, automatic results email on session close, in-app notifications (bell badge + French labels + mark-as-read + SSE toasts for vote/quorum/session events). 2352 PHPUnit tests, 0 failures.
+
 ### Active
 
-**v6.0 Production & Email** : Envoyer des emails fonctionnels via SMTP (invitations avec lien vers l'app, rappels, résultats), templates personnalisables, notifications in-app (cloche + toasts SSE temps réel).
+(No active milestone — ready for next milestone planning)
 
 ### Out of Scope
 
