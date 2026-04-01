@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.1
 milestone_name: PDF & Preparation de Seance
 status: planning
-stopped_at: Completed 65-01-PLAN.md — serve() endpoint + 7 unit tests
-last_updated: "2026-04-01T08:23:38.028Z"
+stopped_at: Completed 65-02 — wizard post-creation attachment upload and operator console attachment management
+last_updated: "2026-04-01T08:24:20.113Z"
 last_activity: 2026-04-01 — Roadmap created for v6.1
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -44,6 +44,9 @@ Progress: [░░░░░░░░░░] 0%
 - [v6.1 roadmap]: Mirror hub resolution doc badges pattern for meeting attachments section
 - [Phase 65-01]: Reuse doc_serve rate limit bucket for meeting_attachment_serve (same use case, 120/60s)
 - [Phase 65-01]: serve() uses meetingAttachment() repo path (AG_UPLOAD_DIR/meetings/{meeting_id}/) — not resolutions/
+- [Phase 65-02]: Wizard uses FilePond with name='file' for meeting attachments matching MeetingAttachmentController
+- [Phase 65-02]: Operator console uses native file input (no FilePond) for attachment upload, mirroring addDocUploadToMotionCard pattern
+- [Phase 65-02]: No SSE/EventBroadcaster for attachment changes — pre-session documents do not need real-time broadcast
 
 ### Existing Infrastructure
 
@@ -84,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T08:23:38.025Z
-Stopped at: Completed 65-01-PLAN.md — serve() endpoint + 7 unit tests
+Last session: 2026-04-01T08:24:20.110Z
+Stopped at: Completed 65-02 — wizard post-creation attachment upload and operator console attachment management
 Resume file: None

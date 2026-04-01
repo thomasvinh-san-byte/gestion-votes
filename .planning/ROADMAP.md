@@ -123,7 +123,7 @@
 
 ## Phases
 
-- [ ] **Phase 65: Attachment Upload & Serve** - Wizard FilePond upload, operator console management panel, dual-auth serve endpoint
+- [x] **Phase 65: Attachment Upload & Serve** - Wizard FilePond upload, operator console management panel, dual-auth serve endpoint (completed 2026-04-01)
 - [ ] **Phase 66: Voter Document Access** - Hub "Documents de la seance" section and vote page "Documents" button with ag-pdf-viewer
 
 ## Phase Details
@@ -163,5 +163,5 @@ Phases execute in numeric order: 65 → 66
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 65. Attachment Upload & Serve | 1/2 | In Progress|  |
+| 65. Attachment Upload & Serve | 2/2 | Complete   | 2026-04-01 |
 | 66. Voter Document Access | 0/1 | Not started | - |
