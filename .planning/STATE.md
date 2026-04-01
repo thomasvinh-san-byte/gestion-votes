@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.1
-milestone_name: PDF & Preparation de Seance
-status: executing
-stopped_at: Completed 66-01-PLAN.md — Task 3 visual verification deferred by user
-last_updated: "2026-04-01T09:06:22.311Z"
-last_activity: 2026-04-01 — Executed 66-01 tasks 1+2, awaiting visual verification
+milestone: v7.0
+milestone_name: Production Essentials
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-04-01T14:00:00.000Z"
+last_activity: "2026-04-01 — Milestone v7.0 started: Production Essentials"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
-  percent: 75
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v6.1 PDF & Preparation de Seance — Phase 66 (Voter Document Access)
+**Current focus:** v7.0 Production Essentials — PV officiel, email queue worker, setup initial, reset password
 
 ## Current Position
 
-Phase: 2 of 2 (Phase 66: Voter Document Access)
-Plan: 1 of 1 in current phase (awaiting checkpoint:human-verify to complete)
-Status: In progress — checkpoint
-Last activity: 2026-04-01 — Executed 66-01 tasks 1+2, awaiting visual verification
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-01 — Milestone v7.0 started
 
-Progress: [███████░░░] 75%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 

@@ -81,7 +81,7 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-(No active milestone — ready for next milestone planning)
+**v7.0 Production Essentials** : PV officiel PDF (template asso loi 1901 avec signatures), email queue worker (cron Docker), page /setup initial (premier tenant + admin), reset password par email (token sécurisé).
 
 ### Out of Scope
 
