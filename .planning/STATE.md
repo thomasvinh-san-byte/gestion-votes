@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.0
-milestone_name: Production Essentials
+milestone: v8.0
+milestone_name: Account & Hardening
 status: executing
 stopped_at: Completed 74-ci-hardening/74-01-PLAN.md
-last_updated: "2026-04-02T06:12:59.468Z"
-last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
+last_updated: "2026-04-02T06:13:55.415Z"
+last_activity: 2026-04-02
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 6
   percent: 99
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 67 of 70 (PV Officiel PDF)
-Plan: 1 of 2 in current phase
+Phase: 74 of 70 (PV Officiel PDF)
+Plan: Not started
 Status: In progress
-Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
+Last activity: 2026-04-02
 
 Progress: [██████████] 99%
 
