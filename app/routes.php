@@ -83,12 +83,12 @@ return function (Router $router): void {
 
     // ── Admin ──
     $rlAdmin = ['role' => 'admin', 'rate_limit' => ['admin_ops', 30, 60]];
-    $rlOpAdm = ['role' => ['operator', 'admin'], 'rate_limit' => ['admin_ops', 30, 60]];
+    $rlOpAdm = ['role' => ['operator', 'admin', 'president'], 'rate_limit' => ['admin_ops', 30, 60]];
     $router->mapAny("{$prefix}/admin_audit_log", AdminController::class, 'auditLog', $admin);
     $router->mapAny("{$prefix}/admin_meeting_roles", AdminController::class, 'meetingRoles', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_reset_demo", MeetingWorkflowController::class, 'resetDemo', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_roles", AdminController::class, 'roles', $admin);
-    $router->mapAny("{$prefix}/admin_system_status", AdminController::class, 'systemStatus', $rlAdmin);
+    $router->mapAny("{$prefix}/admin_system_status", AdminController::class, 'systemStatus', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_users", AdminController::class, 'users', $rlOpAdm);
 
     // ── Policies ──
@@ -118,7 +118,7 @@ return function (Router $router): void {
     // ── Attendances ──
     $router->mapAny("{$prefix}/attendances", AttendancesController::class, 'listForMeeting', ['role' => ['operator', 'trust', 'admin']]);
     $router->mapAny("{$prefix}/attendances_bulk", AttendancesController::class, 'bulk', $opAdm);
-    $router->mapAny("{$prefix}/attendances_upsert", AttendancesController::class, 'upsert', $op);
+    $router->mapAny("{$prefix}/attendances_upsert", AttendancesController::class, 'upsert', ['role' => ['operator', 'president']]);
     $router->mapAny("{$prefix}/attendance_present_from", AttendancesController::class, 'setPresentFrom', $op);
     $router->mapAny("{$prefix}/attendances_import_csv", ImportController::class, 'attendancesCsv', ['role' => ['operator', 'admin'], 'rate_limit' => ['csv_import', 10, 3600]]);
     $router->mapAny("{$prefix}/attendances_import_xlsx", ImportController::class, 'attendancesXlsx', ['role' => ['operator', 'admin'], 'rate_limit' => ['xlsx_import', 10, 3600]]); /* [xlsx] */
@@ -161,9 +161,9 @@ return function (Router $router): void {
 
     // ── Email ──
     $router->mapAny("{$prefix}/email_templates_preview", EmailController::class, 'preview', $opAdm);
-    $router->mapAny("{$prefix}/invitations_schedule", EmailController::class, 'schedule', $op);
-    $router->mapAny("{$prefix}/invitations_send_bulk", EmailController::class, 'sendBulk', $op);
-    $router->mapAny("{$prefix}/invitations_send_reminder", EmailController::class, 'sendReminder', $op);
+    $router->mapAny("{$prefix}/invitations_schedule", EmailController::class, 'schedule', ['role' => ['operator', 'president']]);
+    $router->mapAny("{$prefix}/invitations_send_bulk", EmailController::class, 'sendBulk', ['role' => ['operator', 'president']]);
+    $router->mapAny("{$prefix}/invitations_send_reminder", EmailController::class, 'sendReminder', ['role' => ['operator', 'president']]);
     $router->mapMulti("{$prefix}/email_templates", [
         'GET' => [EmailTemplatesController::class, 'list',   $opAdm],
         'POST' => [EmailTemplatesController::class, 'create', $opAdm],
@@ -206,15 +206,15 @@ return function (Router $router): void {
     ]);
 
     // ── Import ──
-    $rlCsv = ['role' => ['operator', 'admin'], 'rate_limit' => ['csv_import', 10, 3600]];
-    $rlXlsx = ['role' => ['operator', 'admin'], 'rate_limit' => ['xlsx_import', 10, 3600]];
+    $rlCsv = ['role' => ['operator', 'admin', 'president'], 'rate_limit' => ['csv_import', 10, 3600]];
+    $rlXlsx = ['role' => ['operator', 'admin', 'president'], 'rate_limit' => ['xlsx_import', 10, 3600]];
     $router->mapAny("{$prefix}/members_import_csv", ImportController::class, 'membersCsv', $rlCsv);
     $router->mapAny("{$prefix}/members_import_xlsx", ImportController::class, 'membersXlsx', $rlXlsx); /* [xlsx] */
     $router->mapAny("{$prefix}/motions_import_csv", ImportController::class, 'motionsCsv', $rlCsv);
     $router->mapAny("{$prefix}/motions_import_xlsx", ImportController::class, 'motionsXlsx', $rlXlsx); /* [xlsx] */
 
     // ── Invitations ──
-    $router->mapAny("{$prefix}/invitations_create", InvitationsController::class, 'create', $op);    $router->mapAny("{$prefix}/invitations_list", InvitationsController::class, 'listForMeeting', $op);    $router->mapAny("{$prefix}/invitations_redeem", InvitationsController::class, 'redeem', ['role' => 'public', 'rate_limit' => ['invitation_redeem', 30, 60]]);
+    $router->mapAny("{$prefix}/invitations_create", InvitationsController::class, 'create', ['role' => ['operator', 'president']]);    $router->mapAny("{$prefix}/invitations_list", InvitationsController::class, 'listForMeeting', ['role' => ['operator', 'president']]);    $router->mapAny("{$prefix}/invitations_redeem", InvitationsController::class, 'redeem', ['role' => 'public', 'rate_limit' => ['invitation_redeem', 30, 60]]);
     $router->mapAny("{$prefix}/invitations_stats", InvitationsController::class, 'stats', ['role' => ['operator', 'admin', 'auditor']]);
 
     // ── Meetings ──
@@ -268,7 +268,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/meeting_workflow_check", MeetingWorkflowController::class, 'workflowCheck', ['role' => ['operator', 'president', 'admin', 'viewer']]);
 
     // ── Meeting reports ──
-    $router->mapAny("{$prefix}/meeting_generate_report", MeetingReportsController::class, 'generateReport', ['role' => 'president']);
+    $router->mapAny("{$prefix}/meeting_generate_report", MeetingReportsController::class, 'generateReport', ['role' => ['president', 'operator', 'admin']]);
     $router->mapAny("{$prefix}/meeting_generate_report_pdf", MeetingReportsController::class, 'generatePdf', ['role' => ['president', 'admin', 'operator', 'auditor']]);
     $router->mapAny("{$prefix}/meeting_report", MeetingReportsController::class, 'report', $audit);
     $router->mapAny("{$prefix}/meeting_report_send", MeetingReportsController::class, 'sendReport', $op);
@@ -306,7 +306,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/motion_delete", MotionsController::class, 'deleteMotion', $op);
     $router->mapAny("{$prefix}/motion_reorder", MotionsController::class, 'reorder', $op);
     $router->mapAny("{$prefix}/motion_tally", MotionsController::class, 'tally', $op);    $router->map('GET', "{$prefix}/current_motion", MotionsController::class, 'current', ['role' => 'public', 'rate_limit' => ['current_motion', 120, 60]]);
-    $router->mapAny("{$prefix}/motions_open", MotionsController::class, 'open', $op);
+    $router->mapAny("{$prefix}/motions_open", MotionsController::class, 'open', ['role' => ['operator', 'president', 'admin']]);
     $router->mapAny("{$prefix}/motions_close", MotionsController::class, 'close', ['role' => ['operator', 'president', 'admin']]);
     $router->mapAny("{$prefix}/degraded_tally", MotionsController::class, 'degradedTally', $op);
     $router->mapAny("{$prefix}/motions_override_decision", MotionsController::class, 'overrideDecision', ['role' => ['operator', 'president', 'admin']]);
@@ -325,7 +325,7 @@ return function (Router $router): void {
     // ── Proxies ──
     $router->mapAny("{$prefix}/proxies", ProxiesController::class, 'listForMeeting', ['role' => ['operator', 'trust', 'admin']]);
     $router->mapAny("{$prefix}/proxies_delete", ProxiesController::class, 'delete', $opAdm);
-    $router->mapAny("{$prefix}/proxies_upsert", ProxiesController::class, 'upsert', $op);
+    $router->mapAny("{$prefix}/proxies_upsert", ProxiesController::class, 'upsert', ['role' => ['operator', 'president']]);
     $router->mapAny("{$prefix}/proxies_import_csv", ImportController::class, 'proxiesCsv', $rlCsv);
     $router->mapAny("{$prefix}/proxies_import_xlsx", ImportController::class, 'proxiesXlsx', $rlXlsx); /* [xlsx] */
     $router->mapAny("{$prefix}/procuration_pdf", ProcurationPdfController::class, 'download', ['role' => ['operator', 'admin', 'president']]);
