@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Production Essentials
 status: executing
-stopped_at: Completed 69-initial-setup/69-01-PLAN.md
-last_updated: "2026-04-01T10:12:00.022Z"
-last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
+stopped_at: Completed 71-mon-compte/71-01-PLAN.md
+last_updated: "2026-04-02T05:16:03Z"
+last_activity: "2026-04-02 — Phase 71 Plan 01 complete: /account page with profile view, password change, auth banner link"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 67 of 70 (PV Officiel PDF)
-Plan: 1 of 2 in current phase
+Phase: 71 of 71 (Mon Compte)
+Plan: 1 of 1 in current phase
 Status: In progress
-Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
+Last activity: 2026-04-02 — Phase 71 Plan 01 complete: /account page with profile view, password change, auth banner link
 
 Progress: [██████████] 99%
 
@@ -36,6 +36,10 @@ Progress: [██████████] 99%
 
 ### Decisions
 
+- [Phase 71-mon-compte]: AccountController directly checks $_SESSION['auth_user'] (no AuthMiddleware) — same pattern as PasswordResetController and SetupController
+- [Phase 71-mon-compte]: Template reuses login-card / login-orb layout from reset_request_form.php — no new CSS file needed
+- [Phase 71-mon-compte]: Voter confinement allowlist includes /account so voter-role users can access their profile
+- [Phase 71-mon-compte]: Worktree bootstrap.php updated to load vendor from parent project using require (not require_once) to get ClassLoader back for addPsr4 override
 - [v7.0 roadmap]: 4 phases derived from 11 requirements — each feature is an independent vertical slice
 - [v7.0 roadmap]: Phase 70 (Reset Password) depends on Phase 68 (Email Queue) for reliable email delivery
 - [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
@@ -74,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T10:12:00.020Z
-Stopped at: Completed 69-initial-setup/69-01-PLAN.md
+Last session: 2026-04-02T05:16:03Z
+Stopped at: Completed 71-mon-compte/71-01-PLAN.md
 Resume file: None

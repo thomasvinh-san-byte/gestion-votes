@@ -15,6 +15,7 @@
 - ✅ **v6.0 Production & Email** - Phases 62-64 (shipped 2026-04-01)
 - ✅ **v6.1 PDF & Preparation de Seance** - Phases 65-66 (shipped 2026-04-01)
 - 🚧 **v7.0 Production Essentials** - Phases 67-70 (in progress)
+- 🚧 **v7.1 Account Self-Service** - Phase 71 (in progress)
 
 ---
 
@@ -218,3 +219,21 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 | 68. Email Queue Worker | 1/1 | Complete    | 2026-04-01 |
 | 69. Initial Setup | 1/1 | Complete    | 2026-04-01 |
 | 70. Reset Password | 0/2 | Not started | - |
+
+</details>
+
+---
+
+### v7.1 Account Self-Service (In Progress)
+
+**Milestone Goal:** Allow any authenticated user to view their profile and change their password through a self-service /account page.
+
+## Phases
+
+- [x] **Phase 71: Mon Compte** - Self-service /account page with profile view and password change (completed 2026-04-02)
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
