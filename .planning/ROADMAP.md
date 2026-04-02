@@ -253,7 +253,11 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
   2. An admin changes the session timeout value in settings and subsequent sessions expire after the new configured duration
   3. The timeout setting persists across server restarts (stored in tenant_settings, not only in memory)
   4. Attempting the critical operation via direct POST without completing the 2-step flow is rejected
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 72-01-PLAN.md — 2-step confirmation for critical admin operations (delete, set_password)
+- [ ] 72-02-PLAN.md — Configurable session timeout from admin settings UI
 
 ### Phase 73: Vote Session Resume
 **Goal**: A voter whose session expires mid-vote can re-authenticate and return to the exact ballot they were on, without losing their voting context
@@ -291,7 +295,7 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
-| 72. Security Config | 0/TBD | Not started | - |
+| 72. Security Config | 0/2 | Not started | - |
 | 73. Vote Session Resume | 0/TBD | Not started | - |
 | 74. CI Hardening | 0/TBD | Not started | - |
 | 75. Coverage & Observability | 0/TBD | Not started | - |
