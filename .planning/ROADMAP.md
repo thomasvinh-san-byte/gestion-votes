@@ -314,9 +314,10 @@ Plans:
   2. An administrator sets a data retention duration (in months) in the admin settings; a scheduled job or manual trigger purges all member records and associated data older than that threshold
   3. An administrator selects a member and triggers "Supprimer definitivement"; all rows for that member — votes, attendance records, procurations — are deleted across all related tables in a single cascaded operation
   4. After deletion, the member cannot log in and their data does not appear in any list or report
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
+- [ ] 77-01-PLAN.md — RgpdExportService + download endpoint + account page button (LEGAL-02)
+- [ ] 77-02-PLAN.md — DataRetentionCommand + MemberRepository erase methods + AdminController erase_member (LEGAL-03, LEGAL-04)
 
 ### Phase 78: Data Integrity Locks
 **Goal**: Concurrent vote submissions and proxy chain validations cannot produce corrupted or inconsistent state
@@ -359,7 +360,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 76. Procuration PDF | 1/1 | Complete    | 2026-04-02 |
-| 77. RGPD Compliance | 0/TBD | Not started | - |
+| 77. RGPD Compliance | 0/2 | Not started | - |
 | 78. Data Integrity Locks | 0/TBD | Not started | - |
 | 79. SSE & Async Robustness | 0/TBD | Not started | - |
 | 80. Pagination & Quality | 0/TBD | Not started | - |
