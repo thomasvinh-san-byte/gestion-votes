@@ -314,7 +314,8 @@
 
                 <div class="field-group-h">
                   <label for="settSessionTimeout">Expiration de session (min)</label>
-                  <input id="settSessionTimeout" class="form-input" type="number" min="5" placeholder="60">
+                  <input id="settSessionTimeout" class="form-input" type="number" min="5" max="480" step="5" placeholder="30">
+                  <span style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">Valeur par defaut : 30 minutes (5 a 480 min)</span>
                 </div>
 
                 <div class="field-group-h">

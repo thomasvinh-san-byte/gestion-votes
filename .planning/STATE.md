@@ -1,70 +1,70 @@
 ---
 gsd_state_version: 1.0
-milestone: v8.0
-milestone_name: Account & Hardening
+milestone: v7.0
+milestone_name: Production Essentials
 status: executing
-stopped_at: Completed 72-security-config/72-01-PLAN.md
-last_updated: "2026-04-02T05:38:20Z"
-last_activity: 2026-04-02 -- Phase 72 Plan 01 complete — admin delete/set_password require confirm_password
+stopped_at: Completed 72-security-config/72-02-PLAN.md
+last_updated: "2026-04-02T05:43:27.462Z"
+last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
 progress:
-  total_phases: 9
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 8
-  percent: 25
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 4
+  percent: 99
 ---
 
 # AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 72 — security-config
+**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
 
 ## Current Position
 
-Phase: 72 (security-config) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 72
-Last activity: 2026-04-02 -- Phase 72 Plan 01 complete
+Phase: 67 of 70 (PV Officiel PDF)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
 
-Progress: [███░░░░░░░] 25%
+Progress: [██████████] 99%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v7.0]: 4 phases (67-70) shipped — PV PDF, email queue worker, setup page, password reset
-- [v7.0 audit]: Nginx routing fix for /reset-password and /setup discovered and applied
-- [v7.0]: HMAC-SHA256 token pattern established (VoteTokenService + PasswordResetService)
-- [v7.0]: HTML controller pattern (no AbstractController, uses HtmlView::render())
-- [v8.0]: Phase 71 Mon Compte — /account page with profile view + self-service password change
-- [v8.0]: AccountController follows same HTML controller pattern (HtmlView::render, AccountRedirectException)
-- [v8.0]: Phases 74-75 (tech debt) independent of 71-73
-- [Phase 72-01]: requireConfirmation() fires before other checks — confirmation gate is outermost guard on critical admin actions
-- [Phase 72-01]: findActiveById() updated to SELECT password_hash — required by confirmation check
+- [v7.0 roadmap]: 4 phases derived from 11 requirements — each feature is an independent vertical slice
+- [v7.0 roadmap]: Phase 70 (Reset Password) depends on Phase 68 (Email Queue) for reliable email delivery
+- [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
+- [v7.0 roadmap]: Email queue builds on existing EmailQueueService::processQueue() — just needs cron worker
+- [v7.0 roadmap]: Setup page guard checks admin user count — no config file needed
+- [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
+- [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
+- [Phase 67-pv-officiel-pdf]: Task 2 (visual verification) deferred — user chose Continue without verifying
+- [Phase 68-email-queue-worker]: Command tests validate configuration only (no execute() call) — execute() needs live DB via Application::config()
+- [Phase 68-email-queue-worker]: Repository retry tests use file_get_contents() pattern to assert SQL patterns without a database connection
+- [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
+- [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
+- [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
+- [Phase 72-security-config]: setSessionTimeoutForTest() test helper pattern used instead of mocking RepositoryFactory (class is final)
+- [Phase 72-security-config]: Dynamic session timeout: value stored as minutes in tenant_settings, converted to seconds in getSessionTimeout(); per-request cache cleared by reset()
 
 ### Existing Infrastructure
 
-- AccountController + account_form.php (Phase 71)
-- PasswordResetService + PasswordResetController (Phase 70)
-- SetupController with hasAnyAdmin() guard (Phase 69)
-- Email queue worker via supervisord (Phase 68)
-- AuthController + AuthMiddleware with bcrypt/argon2 hashing
-- CSRF middleware (synchronizer token pattern)
-- InputValidator with fluent API
-- RateLimiter (file-based fallback when Redis unavailable)
-- 50+ audit event types with SHA-256 chain verification
-- tenant_settings table for persisted config
+- MeetingReportService exists with Dompdf for PV generation (partially implemented)
+- EmailQueueService::processQueue() exists — needs cron wrapper
+- Symfony Mailer installed and configured (Phase 62)
+- AuthController + AuthMiddleware complete with bcrypt/argon2 password hashing
+- Login page already built (Phase 44 rebuild)
 
 ### Known Tech Debt Carried Forward
 
-- Controller coverage at 64.6% (exit()-based controllers are structural ceiling) — DEBT-01
-- admin.js KPI load failure catch is silent — DEBT-02
-- E2E seed data (04_e2e.sql) not loaded in CI e2e job — DEBT-03
-- Migration idempotency check is local-only, not CI-gated — DEBT-04
+- Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
+- CI e2e job runs chromium only; mobile-chrome/tablet are local-only
+- Migration idempotency check is local-only, not CI-gated
 
 ### Pending Todos
 
@@ -76,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T05:38:20Z
-Stopped at: Completed 72-security-config/72-01-PLAN.md
+Last session: 2026-04-02T05:43:27.459Z
+Stopped at: Completed 72-security-config/72-02-PLAN.md
 Resume file: None
