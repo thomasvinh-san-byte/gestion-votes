@@ -351,9 +351,11 @@ Plans:
   1. The audit log, meetings list, and members list each display at most 50 items per page with working previous/next controls; navigating to page 2 loads the correct offset without reloading the full dataset
   2. Once a session is marked as validated, the PV generation endpoint returns the stored snapshot PDF and does not re-execute the PDF generation logic; the stored file content is immutable after first generation
   3. Every interactive element on every page (buttons, inputs, links, custom controls) has an aria-label or associated label that screen readers can announce; automated axe or Pa11y audit shows zero critical ARIA violations
-**Plans**: 1 plan
+**Plans**: 3 plans
 Plans:
-- [ ] 80-01-PLAN.md — TBD
+- [ ] 80-01-PLAN.md — MemberRepository::listPaginated + MembersController page/per_page + members.js server-side pagination (FE-02)
+- [ ] 80-02-PLAN.md — generatePdf() snapshot-first check for immutable PV (QUAL-01)
+- [ ] 80-03-PLAN.md — ARIA label pass: icon-only buttons/links, radio fieldset/legend, chart export buttons (QUAL-02)
 
 ## Progress
 
@@ -363,4 +365,4 @@ Plans:
 | 77. RGPD Compliance | 1/2 | Complete    | 2026-04-02 |
 | 78. Data Integrity Locks | 1/1 | Complete    | 2026-04-02 |
 | 79. SSE & Async Robustness | 1/1 | Complete    | 2026-04-02 |
-| 80. Pagination & Quality | 0/TBD | Not started | - |
+| 80. Pagination & Quality | 0/3 | Not started | - |
