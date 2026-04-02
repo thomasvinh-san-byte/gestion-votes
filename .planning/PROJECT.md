@@ -81,11 +81,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v7.0: Production Essentials — Official PV PDF generation (loi 1901 template with dual signatures, inline/download modes), cron-based email queue worker (supervisord, retry with exponential backoff, failure tracking), browser-based /setup first-run page (tenant + admin creation with guard), secure password reset via email (HMAC-SHA256 tokens, 1-hour expiry, anti-enumeration, rate-limited).
 
+- v8.0: Account & Hardening — Page Mon Compte (profil + password change self-service), confirmation 2 etapes pour operations critiques, session timeout configurable (5-480 min), reprise vote apres timeout, controller coverage >70%, admin KPI errors visibles, E2E seed data + migration idempotency en CI.
+
 ### Active
 
 None — v8.0 complete, next milestone not yet defined.
-
-**v8.0: Account & Hardening — Page Mon Compte (profil + password change self-service), confirmation 2 etapes pour operations critiques, session timeout configurable (5-480 min), reprise vote apres timeout, controller coverage >70%, admin KPI errors visibles, E2E seed data + migration idempotency en CI.
 
 ### Out of Scope
 
