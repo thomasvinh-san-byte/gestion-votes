@@ -53,15 +53,15 @@ Requirements for v9.0 Compliance & Robustness milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LEGAL-01 | TBD | Pending |
-| LEGAL-02 | TBD | Pending |
-| LEGAL-03 | TBD | Pending |
-| LEGAL-04 | TBD | Pending |
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| FE-01 | TBD | Pending |
-| FE-02 | TBD | Pending |
-| FE-03 | TBD | Pending |
-| FE-04 | TBD | Pending |
-| QUAL-01 | TBD | Pending |
-| QUAL-02 | TBD | Pending |
+| LEGAL-01 | Phase 76 | Pending |
+| LEGAL-02 | Phase 77 | Pending |
+| LEGAL-03 | Phase 77 | Pending |
+| LEGAL-04 | Phase 77 | Pending |
+| DATA-01 | Phase 78 | Pending |
+| DATA-02 | Phase 78 | Pending |
+| FE-01 | Phase 79 | Pending |
+| FE-02 | Phase 80 | Pending |
+| FE-03 | Phase 79 | Pending |
+| FE-04 | Phase 79 | Pending |
+| QUAL-01 | Phase 80 | Pending |
+| QUAL-02 | Phase 80 | Pending |
