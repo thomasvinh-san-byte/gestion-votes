@@ -34,6 +34,7 @@
    * @param {Function} [opts.onEvent] - Called for every event: (type, data)
    * @param {Function} [opts.onConnect] - Called when connection opens
    * @param {Function} [opts.onDisconnect] - Called when connection drops
+   * @param {Function} [opts.onFallback] - Called when max reconnects exceeded (polling-only mode)
    * @returns {{ close: Function, isConnected: Function }}
    */
   function connect(meetingId, opts) {
@@ -120,6 +121,7 @@
       if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
         console.warn('[EventStream] Max reconnect attempts reached, closing.');
         close();
+        if (handlers.onFallback) handlers.onFallback();
       }
       // Otherwise EventSource auto-reconnects
     };

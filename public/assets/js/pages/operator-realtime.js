@@ -18,6 +18,7 @@
   var newVoteDebounceTimer = null;
   var sseStream = null;
   var sseConnected = false;
+  var _sseFallbackToastEl = null;
 
   // =========================================================================
   // SSE INDICATOR (OPC-02)
@@ -48,6 +49,11 @@
       onConnect: function() {
         sseConnected = true;
         setSseIndicator('live');
+        // Dismiss fallback toast if it exists
+        if (_sseFallbackToastEl) {
+          _sseFallbackToastEl.dismiss();
+          _sseFallbackToastEl = null;
+        }
         console.info('[operator] SSE connected for meeting', O.currentMeetingId);
       },
       onDisconnect: function() {
@@ -57,6 +63,16 @@
         setTimeout(function() {
           if (!sseConnected) setSseIndicator('offline');
         }, 5000);
+      },
+      onFallback: function() {
+        sseConnected = false;
+        setSseIndicator('offline');
+        // Show persistent fallback notification (duration=0 = no auto-dismiss)
+        if (typeof AgToast !== 'undefined' && AgToast.show) {
+          _sseFallbackToastEl = AgToast.show('warning', 'Connexion temps reel interrompue — passage en mode poll', 0);
+        } else {
+          setNotif('warning', 'Connexion temps reel interrompue — passage en mode poll', 0);
+        }
       },
       onEvent: function(type, data) {
         handleSSEEvent(type, data);
