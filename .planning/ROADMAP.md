@@ -268,7 +268,10 @@ Plans:
   2. After successful re-authentication, the voter is returned directly to the ballot for the meeting they were voting in
   3. Any vote the voter had already cast before timeout is preserved and visible on return
   4. If the vote session has closed while the voter was timed out, they see a clear message explaining the vote has ended
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 73-01-PLAN.md — Modify auth-ui.js session expiry redirect + login.js return_to routing for vote page resume
 
 ### Phase 74: CI Hardening
 **Goal**: The CI pipeline loads E2E seed data automatically and validates migration idempotency on every run, so local-only checks cannot silently drift from CI
@@ -296,6 +299,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
 | 72. Security Config | 1/2 | Complete    | 2026-04-02 |
-| 73. Vote Session Resume | 0/TBD | Not started | - |
+| 73. Vote Session Resume | 0/1 | Not started | - |
 | 74. CI Hardening | 0/TBD | Not started | - |
 | 75. Coverage & Observability | 0/TBD | Not started | - |
