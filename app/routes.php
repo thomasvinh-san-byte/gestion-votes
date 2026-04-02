@@ -282,6 +282,9 @@ return function (Router $router): void {
         'DELETE' => [MembersController::class, 'delete',       $op],
     ]);
     $router->map('GET', "{$prefix}/presidents", MembersController::class, 'presidents', $audit); /* [audit] president listing */
+    $router->map('POST', "{$prefix}/members_bulk", MembersController::class, 'bulk',
+        ['role' => ['operator', 'admin'], 'rate_limit' => ['members_bulk', 20, 60]]
+    );
 
     // ── Member groups ──
     $router->mapMulti("{$prefix}/member_groups", [
