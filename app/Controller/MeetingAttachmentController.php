@@ -65,6 +65,12 @@ final class MeetingAttachmentController extends AbstractController {
             mkdir($uploadDir, 0o750, true);
         }
 
+        // Disk space guard: require at least 50 MB free before storing
+        $freeBytes = disk_free_space($uploadDir);
+        if ($freeBytes !== false && $freeBytes < 50 * 1024 * 1024) {
+            api_fail('disk_full', 507, ['detail' => 'Espace disque insuffisant pour stocker le fichier.']);
+        }
+
         $repo = $this->repo()->meetingAttachment();
         $id = $repo->generateUuid();
         $storedName = $id . '.pdf';
