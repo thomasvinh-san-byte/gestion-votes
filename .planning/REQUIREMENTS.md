@@ -14,7 +14,7 @@ Requirements for v8.0 Account & Hardening milestone.
 
 ### Security Hardening
 
-- [ ] **SEC-01**: Les operations critiques (suppression utilisateur, reset mot de passe admin) demandent une confirmation 2 etapes
+- [x] **SEC-01**: Les operations critiques (suppression utilisateur, reset mot de passe admin) demandent une confirmation 2 etapes
 - [ ] **SEC-02**: Le timeout de session est configurable depuis les parametres admin (au lieu de 30 min hardcode)
 - [ ] **SEC-03**: Un utilisateur dont la session expire pendant un vote peut reprendre son vote apres re-authentification
 
@@ -46,7 +46,7 @@ Deferred to later milestones.
 |-------------|-------|--------|
 | ACCT-01 | Phase 71 | Pending |
 | ACCT-02 | Phase 71 | Pending |
-| SEC-01 | Phase 72 | Pending |
+| SEC-01 | Phase 72 | Complete |
 | SEC-02 | Phase 72 | Pending |
 | SEC-03 | Phase 73 | Pending |
 | DEBT-01 | Phase 75 | Pending |

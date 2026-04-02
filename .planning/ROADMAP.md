@@ -256,7 +256,7 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 **Plans**: 2 plans
 
 Plans:
-- [ ] 72-01-PLAN.md — 2-step confirmation for critical admin operations (delete, set_password)
+- [x] 72-01-PLAN.md — 2-step confirmation for critical admin operations (delete, set_password)
 - [ ] 72-02-PLAN.md — Configurable session timeout from admin settings UI
 
 ### Phase 73: Vote Session Resume
@@ -295,7 +295,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
-| 72. Security Config | 0/2 | Not started | - |
+| 72. Security Config | 1/2 | In progress | - |
 | 73. Vote Session Resume | 0/TBD | Not started | - |
 | 74. CI Hardening | 0/TBD | Not started | - |
 | 75. Coverage & Observability | 0/TBD | Not started | - |
