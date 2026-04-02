@@ -13,9 +13,25 @@ define('PROJECT_ROOT', dirname(__DIR__));
 define('PHPUNIT_RUNNING', true);
 
 // Autoload Composer si disponible
+// In worktrees the vendor directory lives in the main project tree.
 $autoload = PROJECT_ROOT . '/vendor/autoload.php';
+if (!file_exists($autoload)) {
+    // Fallback: walk up to find the main project vendor (git worktree scenario)
+    $candidate = dirname(PROJECT_ROOT, 3) . '/vendor/autoload.php'; // up 3 levels: worktree → worktrees → .claude → gestion_votes_php
+    if (file_exists($candidate)) {
+        $autoload = $candidate;
+    }
+}
 if (file_exists($autoload)) {
-    require_once $autoload;
+    // Use require (not require_once) so we always get the ClassLoader back
+    // even if the autoloader was already loaded by phpunit before running this bootstrap.
+    $loader = require $autoload;
+    // Prepend the worktree app/ paths so worktree classes take priority.
+    // This handles git worktrees where vendor/ is in the parent project.
+    if ($loader instanceof \Composer\Autoload\ClassLoader) {
+        $loader->addPsr4('AgVote\\', [PROJECT_ROOT . '/app/'], true);
+        $loader->addPsr4('AgVote\\Service\\', [PROJECT_ROOT . '/app/Services/'], true);
+    }
 }
 
 // Définir les constantes de test
