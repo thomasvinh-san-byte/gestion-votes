@@ -77,6 +77,7 @@ None.
 | 260402-d2y | Fix 5 post-v9.0 audit findings (RGPD route, proxy cascade, N+1 groups, search, bulk ops) | 2026-04-02 | 8d1aae71 | [260402-d2y](./quick/260402-d2y-fix-5-post-v9-audit-findings/) |
 | 260402-du4 | Relax role transitions — operator can do president transitions, president is system role, rollbacks allowed | 2026-04-02 | e280721a | [260402-du4](./quick/260402-du4-relax-role-transitions/) |
 | 260402-e51 | Fix 9 critical path blockers — president on imports/invitations/motions, operator archive, SMTP+APP_URL warnings | 2026-04-02 | 441b9f98 | [260402-e51](./quick/260402-e51-fix-critical-path-blockers/) |
+| 260402-eh3 | Fix 11 critical path findings (expired token, audit anonymize, tie detection, password helper, meeting delete confirm+counts, president auto-assign, past vote badge, quorum toast, participation counter, multi-operator SSE) | 2026-04-02 | df57647a | [260402-eh3](./quick/260402-eh3-fix-11-critical-path-findings/) |
 
 ### Blockers/Concerns
 
