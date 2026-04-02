@@ -21,7 +21,7 @@ Requirements for v8.0 Account & Hardening milestone.
 ### Tech Debt
 
 - [ ] **DEBT-01**: Augmenter la couverture controller au-dela de 64.6% en refactorant les controllers avec exit()
-- [ ] **DEBT-02**: admin.js KPI load failure doit afficher un message d'erreur au lieu d'echouer silencieusement
+- [x] **DEBT-02**: admin.js KPI load failure doit afficher un message d'erreur au lieu d'echouer silencieusement
 - [ ] **DEBT-03**: Le seed data E2E (04_e2e.sql) est charge dans le job CI e2e
 - [ ] **DEBT-04**: Le check d'idempotency des migrations est execute en CI (pas seulement en local)
 
@@ -50,6 +50,6 @@ Deferred to later milestones.
 | SEC-02 | Phase 72 | Pending |
 | SEC-03 | Phase 73 | Pending |
 | DEBT-01 | Phase 75 | Pending |
-| DEBT-02 | Phase 75 | Pending |
+| DEBT-02 | Phase 75 | Complete |
 | DEBT-03 | Phase 74 | Pending |
 | DEBT-04 | Phase 74 | Pending |

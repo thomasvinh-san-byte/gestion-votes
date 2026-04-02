@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Account & Hardening
 status: executing
-stopped_at: Completed 74-ci-hardening/74-01-PLAN.md
-last_updated: "2026-04-02T06:13:55.415Z"
-last_activity: 2026-04-02
+stopped_at: Completed 75-coverage-observability/75-02-PLAN.md
+last_updated: "2026-04-02T06:22:48.988Z"
+last_activity: 2026-04-02 -- Phase 75 execution started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 9
+  completed_phases: 8
+  total_plans: 13
+  completed_plans: 12
   percent: 99
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
+**Current focus:** Phase 75 — coverage-observability
 
 ## Current Position
 
-Phase: 74 of 70 (PV Officiel PDF)
-Plan: Not started
-Status: In progress
-Last activity: 2026-04-02
+Phase: 75 (coverage-observability) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 75
+Last activity: 2026-04-02 -- Phase 75 execution started
 
 Progress: [██████████] 99%
 
@@ -51,6 +51,7 @@ Progress: [██████████] 99%
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
 - [Phase 74]: E2E seed loaded via docker exec -i stdin pipe into agvote-db psql after app healthy — no temp files needed
 - [Phase 74]: migrate-check uses dedicated agvote_migration_ci credentials, full two-pass validation replaces --syntax-only grep scan
+- [Phase 75-coverage-observability]: Only overwrite KPI cards still showing '-' placeholder — cards that loaded keep their values (partial failure case)
 
 ### Existing Infrastructure
 
@@ -76,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T06:12:48.707Z
-Stopped at: Completed 74-ci-hardening/74-01-PLAN.md
+Last session: 2026-04-02T06:22:48.985Z
+Stopped at: Completed 75-coverage-observability/75-02-PLAN.md
 Resume file: None

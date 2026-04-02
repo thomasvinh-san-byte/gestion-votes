@@ -308,4 +308,4 @@ Plans:
 | 72. Security Config | 1/2 | Complete    | 2026-04-02 |
 | 73. Vote Session Resume | 0/1 | Complete    | 2026-04-02 |
 | 74. CI Hardening | 0/1 | Complete    | 2026-04-02 |
-| 75. Coverage & Observability | 0/2 | Not started | - |
+| 75. Coverage & Observability | 1/2 | In Progress|  |
