@@ -234,7 +234,7 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 - [x] **Phase 72: Security Config** - 2-step confirmation for critical operations and configurable session timeout from admin settings (completed 2026-04-02)
 - [x] **Phase 73: Vote Session Resume** - Re-authentication flow that restores voter context after session timeout during a live vote (completed 2026-04-02)
 - [x] **Phase 74: CI Hardening** - Load E2E seed data in CI job and gate migration idempotency check in CI pipeline (completed 2026-04-02)
-- [ ] **Phase 75: Coverage & Observability** - Refactor exit()-based controllers to raise coverage ceiling and surface admin.js KPI errors visibly
+- [x] **Phase 75: Coverage & Observability** - Refactor exit()-based controllers to raise coverage ceiling and surface admin.js KPI errors visibly (completed 2026-04-02)
 
 ## Phase Details
 
@@ -308,4 +308,4 @@ Plans:
 | 72. Security Config | 1/2 | Complete    | 2026-04-02 |
 | 73. Vote Session Resume | 0/1 | Complete    | 2026-04-02 |
 | 74. CI Hardening | 0/1 | Complete    | 2026-04-02 |
-| 75. Coverage & Observability | 1/2 | In Progress|  |
+| 75. Coverage & Observability | 1/2 | Complete    | 2026-04-02 |
