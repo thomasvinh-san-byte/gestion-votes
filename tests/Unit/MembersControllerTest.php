@@ -378,4 +378,175 @@ class MembersControllerTest extends ControllerTestCase
         $this->assertSame(200, $res['status']);
         $this->assertCount(1, $res['body']['data']['items']);
     }
+
+    // =========================================================================
+    // index() — search filter (Finding 4)
+    // =========================================================================
+
+    public function testIndexSearchFiltersResults(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['search' => 'dupont']);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->expects($this->once())->method('listPaginatedFiltered')
+            ->willReturn([['id' => self::MEMBER_ID, 'full_name' => 'Dupont Jean']]);
+        $repo->expects($this->once())->method('countFiltered')->willReturn(1);
+        $repo->expects($this->never())->method('listPaginated');
+        $repo->expects($this->never())->method('countAll');
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $this->assertCount(1, $res['body']['data']['items']);
+    }
+
+    public function testIndexNoSearchUsesUnfiltered(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->expects($this->once())->method('listPaginated')->willReturn([]);
+        $repo->expects($this->once())->method('countAll')->willReturn(0);
+        $repo->expects($this->never())->method('listPaginatedFiltered');
+        $repo->expects($this->never())->method('countFiltered');
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+    }
+
+    // =========================================================================
+    // index() — batch groups (Finding 3)
+    // =========================================================================
+
+    public function testIndexIncludeGroupsUsesBatch(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['include_groups' => '1']);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('listPaginated')->willReturn([
+            ['id' => self::MEMBER_ID, 'full_name' => 'Alice Martin'],
+        ]);
+        $memberRepo->method('countAll')->willReturn(1);
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->expects($this->once())->method('listGroupsForMembers')
+            ->with([self::MEMBER_ID], self::TENANT)
+            ->willReturn([self::MEMBER_ID => [['id' => 'grp-1', 'name' => 'Group A']]]);
+        $groupRepo->expects($this->never())->method('listGroupsForMember');
+
+        $this->injectRepos([
+            MemberRepository::class      => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $items = $res['body']['data']['items'];
+        $this->assertCount(1, $items);
+        $this->assertArrayHasKey('groups', $items[0]);
+    }
+
+    // =========================================================================
+    // bulk() — POST /api/v1/members_bulk (Finding 5)
+    // =========================================================================
+
+    public function testBulkAssignGroupSuccess(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'operation'  => 'assign_group',
+            'member_ids' => [self::MEMBER_ID],
+            'group_id'   => 'group-uuid-001',
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('filterExistingIds')->willReturn([self::MEMBER_ID]);
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->expects($this->once())->method('bulkAssignToGroup')
+            ->with('group-uuid-001', [self::MEMBER_ID])
+            ->willReturn(1);
+
+        $this->injectRepos([
+            MemberRepository::class      => $memberRepo,
+            MemberGroupRepository::class => $groupRepo,
+        ]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame('assign_group', $data['operation']);
+        $this->assertSame(1, $data['affected']);
+    }
+
+    public function testBulkUpdateVotingPowerSuccess(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'operation'    => 'update_voting_power',
+            'member_ids'   => [self::MEMBER_ID],
+            'voting_power' => 2.5,
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('filterExistingIds')->willReturn([self::MEMBER_ID]);
+        $memberRepo->expects($this->once())->method('bulkUpdateVotingPower')
+            ->with([self::MEMBER_ID], self::TENANT, 2.5)
+            ->willReturn(1);
+
+        $this->injectRepos([MemberRepository::class => $memberRepo]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+        $this->assertSame('update_voting_power', $data['operation']);
+        $this->assertSame(1, $data['affected']);
+    }
+
+    public function testBulkMissingOperationFails(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'member_ids' => [self::MEMBER_ID],
+        ]);
+
+        $this->injectRepos([MemberRepository::class => $this->createMock(MemberRepository::class)]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(422, $res['status']);
+    }
+
+    public function testBulkInvalidOperationFails(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'operation'  => 'delete_all',
+            'member_ids' => [self::MEMBER_ID],
+        ]);
+
+        $this->injectRepos([MemberRepository::class => $this->createMock(MemberRepository::class)]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(422, $res['status']);
+    }
 }
