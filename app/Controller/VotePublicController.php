@@ -69,11 +69,11 @@ final class VotePublicController {
         }
 
         if (!empty($ctx['meeting_validated_at'])) {
-            HtmlView::text('meeting_validated', 409);
+            HtmlView::render('vote_meeting_validated', [], 409);
         }
 
         if (empty($ctx['motion_opened_at']) || !empty($ctx['motion_closed_at'])) {
-            HtmlView::text('motion_not_open', 409);
+            HtmlView::render('vote_motion_closed', [], 409);
         }
 
         // ── GET: show vote form ─────────────────────────────────────────
@@ -88,7 +88,7 @@ final class VotePublicController {
         $confirm = ($postData['confirm'] ?? '0') === '1';
 
         if (!is_string($vote) || !isset(self::VOTE_MAP[$vote])) {
-            HtmlView::text('Vote invalide', 400);
+            HtmlView::render('vote_token_expired', [], 400);
         }
 
         // Show confirmation page
@@ -107,10 +107,10 @@ final class VotePublicController {
         $member = $memberRepo->findByIdForTenant($row['member_id'], $ctx['tenant_id']);
         $weight = (float) ($member['voting_power'] ?? 1.0);
         if (!is_finite($weight) || $weight < 0.0) {
-            HtmlView::text('Poids de vote invalide (doit être un nombre fini >= 0)', 422);
+            HtmlView::render('vote_token_expired', [], 422);
         }
         if ($weight > 1e6) {
-            HtmlView::text('Poids de vote invalide', 422);
+            HtmlView::render('vote_token_expired', [], 422);
         }
 
         try {
@@ -142,7 +142,7 @@ final class VotePublicController {
             });
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'token_already_used') {
-                HtmlView::text('Token déjà utilisé ou expiré', 409);
+                HtmlView::render('vote_already_cast', [], 409);
             }
             if ($e->getMessage() === 'motion_closed_concurrent') {
                 HtmlView::text('Ce vote est clos', 409);

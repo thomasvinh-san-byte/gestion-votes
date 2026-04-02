@@ -30,7 +30,9 @@ final class ExportController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
         if (empty($mt['validated_at'])) {
-            api_fail('meeting_not_validated', 409);
+            api_fail('meeting_not_validated', 409, [
+                'detail' => 'Les exports ne sont disponibles qu\'après la validation de la séance.',
+            ]);
         }
         return $mt;
     }
@@ -47,6 +49,9 @@ final class ExportController extends AbstractController {
     // ------------------------------------------------------------------
 
     public function attendanceCsv(): void {
+        // Flush any output buffer to prevent headers-already-sent issues
+        if (ob_get_level() > 0) { ob_end_clean(); }
+
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'csv');
 
@@ -82,6 +87,9 @@ final class ExportController extends AbstractController {
     // ------------------------------------------------------------------
 
     public function votesCsv(): void {
+        // Flush any output buffer to prevent headers-already-sent issues
+        if (ob_get_level() > 0) { ob_end_clean(); }
+
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'csv');
 
@@ -125,6 +133,9 @@ final class ExportController extends AbstractController {
     // ------------------------------------------------------------------
 
     public function membersCsv(): void {
+        // Flush any output buffer to prevent headers-already-sent issues
+        if (ob_get_level() > 0) { ob_end_clean(); }
+
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('members', $mt['id'], 'csv');
 
@@ -146,6 +157,9 @@ final class ExportController extends AbstractController {
     // ------------------------------------------------------------------
 
     public function motionResultsCsv(): void {
+        // Flush any output buffer to prevent headers-already-sent issues
+        if (ob_get_level() > 0) { ob_end_clean(); }
+
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('motion_results', $mt['id'], 'csv');
         $tenantId = api_current_tenant_id();
@@ -205,6 +219,9 @@ final class ExportController extends AbstractController {
     // ------------------------------------------------------------------
 
     public function ballotsAuditCsv(): void {
+        // Flush any output buffer to prevent headers-already-sent issues
+        if (ob_get_level() > 0) { ob_end_clean(); }
+
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('ballots_audit', $mt['id'], 'csv');
 

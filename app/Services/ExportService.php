@@ -229,6 +229,20 @@ final class ExportService {
     }
 
     /**
+     * Sanitizes a CSV cell value to prevent formula injection.
+     *
+     * Prefixes cells starting with =, +, -, or @ with a tab character
+     * so spreadsheet applications do not interpret them as formulas.
+     */
+    private function sanitizeCsvCell(mixed $value): string {
+        $str = (string) $value;
+        if ($str !== '' && in_array($str[0], ['=', '+', '-', '@'], true)) {
+            return "\t" . $str;
+        }
+        return $str;
+    }
+
+    /**
      * Writes a CSV row
      *
      * @param resource $handle
@@ -236,7 +250,7 @@ final class ExportService {
      * @param string $separator
      */
     public function writeCsvRow($handle, array $row, string $separator = ';'): void {
-        fputcsv($handle, $row, $separator);
+        fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row), $separator);
     }
 
     /**

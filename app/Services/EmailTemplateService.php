@@ -298,6 +298,20 @@ final class EmailTemplateService {
     }
 
     /**
+     * Renders an HTML template with HTML-escaped variables to prevent XSS.
+     *
+     * Use this method when substituting user-controlled values into HTML email bodies.
+     * Keep using render() for plain-text bodies and subject lines.
+     */
+    public function renderHtml(string $templateBody, array $variables): string {
+        $escapedVars = array_map(
+            fn ($v) => htmlspecialchars((string) $v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            $variables,
+        );
+        return str_replace(array_keys($escapedVars), array_values($escapedVars), $templateBody);
+    }
+
+    /**
      * Renders a complete template (subject + body).
      */
     public function renderTemplate(
@@ -318,7 +332,7 @@ final class EmailTemplateService {
         return [
             'ok' => true,
             'subject' => $this->render($template['subject'], $variables),
-            'body_html' => $this->render($template['body_html'], $variables),
+            'body_html' => $this->renderHtml($template['body_html'], $variables),
             'body_text' => $template['body_text'] ? $this->render($template['body_text'], $variables) : null,
             'variables' => $variables,
         ];
