@@ -83,7 +83,9 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-**v8.0 Account & Hardening** : Page Mon Compte (profil, changement de mot de passe self-service), confirmation 2 etapes pour operations critiques, session timeout configurable, reprise de session apres timeout, tech debt (controller coverage, admin.js KPI, e2e seed data CI, migration idempotency CI).
+None — v8.0 complete, next milestone not yet defined.
+
+**v8.0: Account & Hardening — Page Mon Compte (profil + password change self-service), confirmation 2 etapes pour operations critiques, session timeout configurable (5-480 min), reprise vote apres timeout, controller coverage >70%, admin KPI errors visibles, E2E seed data + migration idempotency en CI.
 
 ### Out of Scope
 
@@ -138,4 +140,4 @@ Deferred ideas:
 | v5.0 quality milestone | Production readiness requires 90%+ test coverage before new features | ✓ Good — Services 90.8%, 2241 unit + 177 E2E tests, full CI pipeline |
 
 ---
-*Last updated: 2026-04-02 after v8.0 milestone started*
+*Last updated: 2026-04-02 after v8.0 milestone shipped*

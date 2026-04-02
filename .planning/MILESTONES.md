@@ -1,5 +1,27 @@
 # Milestones
 
+## v8.0 Account & Hardening (Shipped: 2026-04-02)
+
+**Phases completed:** 9 phases, 13 plans, 21 tasks
+
+**Key accomplishments:**
+
+- generatePdf() upgraded to asso loi 1901 standard with org header from tenant_settings, meeting-level quorum block, dual President+Secretaire signature table, text-only vote labels, and ?inline=1 Content-Disposition toggle for iframe embedding
+- Post-session Step 3 wired to display generated PV PDF inline via iframe with a separate download link, button label updated to "Generer le PV"
+- 16 targeted unit tests (9 command config + 7 SQL specification) proving supervisord cron worker and exponential-backoff retry logic meet QUEUE-01/QUEUE-02 requirements
+- Browser-based first-run setup page with admin guard, 5-field form matching login.html style, and transactional tenant+admin creation via /setup route
+- Secure token-based password reset with HMAC-SHA256 hashing, email queuing, and anti-enumeration protection
+- Replaced JS inline message with real anchor link to /reset-password on login page
+- One-liner:
+- One-liner:
+- Session timeout made configurable via tenant_settings: AuthMiddleware reads settSessionTimeout (minutes) from DB with 5-480 min clamp, CsrfMiddleware delegates to same value, settings UI updated with range constraints
+- One-liner:
+- CI pipeline upgraded with E2E seed loading and full PostgreSQL idempotency gate, closing two local-only drift risks
+- FileServedOkException and EmailPixelSentException enable happy-path testing of three exit()-based controller methods, removing the structural 64.6% coverage ceiling
+- Silent KPI failure replaced with visible em-dash error state in red plus a French toast notification when loadAdminKpis() throws
+
+---
+
 ## v7.0 Production Essentials (Shipped: 2026-04-01)
 
 **Phases completed:** 4 phases, 6 plans, 10 tasks
