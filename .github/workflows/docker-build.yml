@@ -272,6 +272,14 @@ jobs:
         env:
           DB_PASS: ci-test-password
 
+      - name: Load E2E seed data (04_e2e.sql)
+        run: |
+          PGPASSWORD=ci-test-password docker exec -i agvote-db \
+            psql -U vote_app -d vote_app \
+            < database/seeds/04_e2e.sql
+        env:
+          DB_PASS: ci-test-password
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
