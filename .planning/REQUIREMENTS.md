@@ -9,7 +9,7 @@ Requirements for v9.0 Compliance & Robustness milestone.
 
 ### Conformite Legale
 
-- [ ] **LEGAL-01**: L'operateur peut generer un PDF de procuration (pouvoir) pour chaque delegation enregistree, avec les noms du delegant et du delegataire
+- [x] **LEGAL-01**: L'operateur peut generer un PDF de procuration (pouvoir) pour chaque delegation enregistree, avec les noms du delegant et du delegataire
 - [ ] **LEGAL-02**: Un membre peut exporter toutes ses donnees personnelles (profil, votes, presences) au format JSON ou CSV depuis la page Mon Compte
 - [ ] **LEGAL-03**: L'administrateur peut configurer une politique de retention des donnees (duree en mois) et les donnees au-dela de cette duree sont purgees automatiquement
 - [ ] **LEGAL-04**: L'administrateur peut supprimer definitivement les donnees d'un membre (droit a l'oubli RGPD) avec cascade sur votes, presences, procurations
@@ -53,7 +53,7 @@ Requirements for v9.0 Compliance & Robustness milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LEGAL-01 | Phase 76 | Pending |
+| LEGAL-01 | Phase 76 | Complete |
 | LEGAL-02 | Phase 77 | Pending |
 | LEGAL-03 | Phase 77 | Pending |
 | LEGAL-04 | Phase 77 | Pending |

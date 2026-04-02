@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Compliance & Robustness
-status: roadmapped
-stopped_at: Roadmap created — ready to plan Phase 76
-last_updated: "2026-04-02T12:00:00.000Z"
-last_activity: 2026-04-02 -- v9.0 roadmap created (5 phases, 76-80)
+status: executing
+stopped_at: "Completed 76-procuration-pdf/76-01-PLAN.md"
+last_updated: "2026-04-02T07:29:50.000Z"
+last_activity: "2026-04-02 — Phase 76 Plan 01 complete: ProcurationPdfService + Controller + download button"
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 20
 ---
 
 # AG-VOTE — Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v9.0 Compliance & Robustness — Phase 76 next
+**Current focus:** Phase 76 — procuration-pdf
 
 ## Current Position
 
-Phase: 76 (not started)
-Plan: —
-Status: Roadmap defined, ready to plan
-Last activity: 2026-04-02 — v9.0 roadmap created
+Phase: 76 (procuration-pdf) — COMPLETE
+Plan: 1 of 1
+Status: Phase 76 complete, proceeding to Phase 77
+Last activity: 2026-04-02 — Phase 76 Plan 01 complete: ProcurationPdfService + Controller + download button
 
-Progress: [░░░░░░░░░░] 0% (0/5 phases)
+Progress: [██░░░░░░░░] 20% (1/5 phases)
 
 ## Phase Map
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 76 | Procuration PDF | LEGAL-01 | Not started |
+| 76 | Procuration PDF | LEGAL-01 | Complete |
 | 77 | RGPD Compliance | LEGAL-02, LEGAL-03, LEGAL-04 | Not started |
 | 78 | Data Integrity Locks | DATA-01, DATA-02 | Not started |
 | 79 | SSE & Async Robustness | FE-01, FE-03, FE-04 | Not started |
@@ -46,6 +46,8 @@ Progress: [░░░░░░░░░░] 0% (0/5 phases)
 
 ### Decisions
 
+- [Phase 76-procuration-pdf]: Download anchor not gated on isLocked — PDF available in all session states (open, validated, archived)
+- [Phase 76-procuration-pdf]: ProcurationPdfService uses inline CSS for Dompdf compatibility (no external stylesheets)
 - [v9.0]: 5 phases derived from 12 requirements — LEGAL split into PDF (76) and RGPD (77), DATA together (78), FE split into SSE/async (79) and pagination (80 combined with QUAL)
 - [v8.0]: Page Mon Compte, 2-step confirmation, configurable timeout, vote session resume, CI hardening, coverage >70%
 - [v8.0]: confirm_password field for critical admin ops (password_verify before delete/set_password)
@@ -84,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T12:00:00.000Z
-Stopped at: Roadmap created for v9.0 — run /gsd:plan-phase 76 to start
+Last session: 2026-04-02T07:29:50.000Z
+Stopped at: Completed 76-procuration-pdf/76-01-PLAN.md
 Resume file: None

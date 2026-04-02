@@ -284,7 +284,7 @@
 
 ## Phases
 
-- [ ] **Phase 76: Procuration PDF** - Generate a downloadable PDF pouvoir for each recorded delegation
+- [x] **Phase 76: Procuration PDF** - Generate a downloadable PDF pouvoir for each recorded delegation (completed 2026-04-02)
 - [ ] **Phase 77: RGPD Compliance** - Member data export, admin data retention policy, and right-to-erasure deletion
 - [ ] **Phase 78: Data Integrity Locks** - Transaction-level FOR UPDATE locks on ballot mutations and proxy chain validation inside the transaction
 - [ ] **Phase 79: SSE & Async Robustness** - EventSource cleanup on navigation, async error capture in operator console, SSE fallback polling notification
@@ -303,7 +303,7 @@
   4. Generating the PDF does not require the session to be in any particular lifecycle state
 **Plans**: 1 plan
 Plans:
-- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
+- [x] 76-01-PLAN.md — ProcurationPdfService + controller + download button (completed 2026-04-02)
 
 ### Phase 77: RGPD Compliance
 **Goal**: Members can export their own data and administrators can enforce data retention and erasure rights
@@ -358,7 +358,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 76. Procuration PDF | 0/1 | Not started | - |
+| 76. Procuration PDF | 1/1 | Complete | 2026-04-02 |
 | 77. RGPD Compliance | 0/TBD | Not started | - |
 | 78. Data Integrity Locks | 0/TBD | Not started | - |
 | 79. SSE & Async Robustness | 0/TBD | Not started | - |
