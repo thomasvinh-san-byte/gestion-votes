@@ -176,9 +176,28 @@ server {
     }
 
     # ── Clean URLs: /page → page.htmx.html ─────────────────────────────
-    location ~ ^/(dashboard|wizard|hub|operator|postsession|vote|validate|archives|meetings|audit|members|users|analytics|settings|admin|help|email-templates|public|report|trust|docs)/?$ {
-        rewrite ^ /$1.htmx.html last;
-    }
+    # Uses exact matches (location =) for reliable priority over location / fallback.
+    location = /dashboard { rewrite ^ /dashboard.htmx.html last; }
+    location = /wizard { rewrite ^ /wizard.htmx.html last; }
+    location = /hub { rewrite ^ /hub.htmx.html last; }
+    location = /operator { rewrite ^ /operator.htmx.html last; }
+    location = /postsession { rewrite ^ /postsession.htmx.html last; }
+    location = /vote { rewrite ^ /vote.htmx.html last; }
+    location = /validate { rewrite ^ /validate.htmx.html last; }
+    location = /archives { rewrite ^ /archives.htmx.html last; }
+    location = /meetings { rewrite ^ /meetings.htmx.html last; }
+    location = /audit { rewrite ^ /audit.htmx.html last; }
+    location = /members { rewrite ^ /members.htmx.html last; }
+    location = /users { rewrite ^ /users.htmx.html last; }
+    location = /analytics { rewrite ^ /analytics.htmx.html last; }
+    location = /settings { rewrite ^ /settings.htmx.html last; }
+    location = /admin { rewrite ^ /admin.htmx.html last; }
+    location = /help { rewrite ^ /help.htmx.html last; }
+    location = /email-templates { rewrite ^ /email-templates.htmx.html last; }
+    location = /public { rewrite ^ /public.htmx.html last; }
+    location = /report { rewrite ^ /report.htmx.html last; }
+    location = /trust { rewrite ^ /trust.htmx.html last; }
+    location = /docs { rewrite ^ /docs.htmx.html last; }
 
     # ── HTML pages and fallback ───────────────────────────────────────────
     location / {
