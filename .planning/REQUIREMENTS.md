@@ -1,0 +1,67 @@
+# Requirements: AG-VOTE
+
+**Defined:** 2026-04-02
+**Core Value:** Self-hosted voting platform with legal compliance for French general assemblies
+
+## v9.0 Requirements
+
+Requirements for v9.0 Compliance & Robustness milestone.
+
+### Conformite Legale
+
+- [ ] **LEGAL-01**: L'operateur peut generer un PDF de procuration (pouvoir) pour chaque delegation enregistree, avec les noms du delegant et du delegataire
+- [ ] **LEGAL-02**: Un membre peut exporter toutes ses donnees personnelles (profil, votes, presences) au format JSON ou CSV depuis la page Mon Compte
+- [ ] **LEGAL-03**: L'administrateur peut configurer une politique de retention des donnees (duree en mois) et les donnees au-dela de cette duree sont purgees automatiquement
+- [ ] **LEGAL-04**: L'administrateur peut supprimer definitivement les donnees d'un membre (droit a l'oubli RGPD) avec cascade sur votes, presences, procurations
+
+### Integrite Donnees
+
+- [ ] **DATA-01**: Toutes les mutations de ballots et de statut de motion utilisent des verrous FOR UPDATE dans une transaction
+- [ ] **DATA-02**: La validation de chaine de procurations est effectuee a l'interieur de la transaction (fix TOCTOU)
+
+### Frontend Robustness
+
+- [ ] **FE-01**: Les connexions EventSource sont nettoyees proprement lors de la navigation (pas de memory leak)
+- [ ] **FE-02**: Les listes d'audit, meetings et membres sont paginees (max 50 items par page)
+- [ ] **FE-03**: Les erreurs async dans operator-realtime.js sont capturees et affichees a l'utilisateur
+- [ ] **FE-04**: Le fallback polling SSE affiche une notification "Connexion temps reel interrompue"
+
+### Qualite
+
+- [ ] **QUAL-01**: Apres validation d'une seance, le PV est finalise en snapshot immutable (impossible de re-generer un PV different)
+- [ ] **QUAL-02**: Les elements interactifs ont des aria-labels complets (WCAG AA conformance)
+
+## Future Requirements
+
+- **i18n-01**: Support multi-langue (francais + anglais minimum)
+- **SIG-01**: Upload et validation de signature electronique
+- **TPL-01**: Templates de seances reutilisables (AG Ordinaire, AG Extraordinaire)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Convocation officielle PDF | Hors scope logiciel — document papier |
+| Feuille d'emargement | Hors scope logiciel — document papier |
+| Keyboard shortcuts | Non necessaire |
+| SSO / LDAP / SAML | Apres stabilisation fonctionnelle |
+| Multi-langue (i18n) | App mono-langue francais suffisante |
+| Loading spinners | Nice-to-have deferred |
+| Rate limit headers | Nice-to-have deferred |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| LEGAL-01 | TBD | Pending |
+| LEGAL-02 | TBD | Pending |
+| LEGAL-03 | TBD | Pending |
+| LEGAL-04 | TBD | Pending |
+| DATA-01 | TBD | Pending |
+| DATA-02 | TBD | Pending |
+| FE-01 | TBD | Pending |
+| FE-02 | TBD | Pending |
+| FE-03 | TBD | Pending |
+| FE-04 | TBD | Pending |
+| QUAL-01 | TBD | Pending |
+| QUAL-02 | TBD | Pending |
