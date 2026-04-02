@@ -99,34 +99,34 @@ final class Permissions {
 
     /**
      * Meeting state transitions.
-     * Format: from => [to => required_role]
+     * Format: from => [to => string[]] required_roles
      */
     public const TRANSITIONS = [
         'draft' => [
-            'scheduled' => 'operator',
-            'frozen' => 'president',
+            'scheduled' => ['operator'],
+            'frozen'    => ['president', 'operator'],
         ],
         'scheduled' => [
-            'frozen' => 'president',
-            'draft' => 'admin',
+            'frozen'  => ['president', 'operator'],
+            'draft'   => ['admin', 'operator'],
         ],
         'frozen' => [
-            'live' => 'president',
-            'scheduled' => 'admin',
+            'live'      => ['president', 'operator'],
+            'scheduled' => ['admin', 'operator'],
         ],
         'live' => [
-            'paused' => 'operator',
-            'closed' => 'president',
+            'paused'  => ['operator'],
+            'closed'  => ['president', 'operator'],
         ],
         'paused' => [
-            'live' => 'operator',
-            'closed' => 'president',
+            'live'   => ['operator'],
+            'closed' => ['president', 'operator'],
         ],
         'closed' => [
-            'validated' => 'president',
+            'validated' => ['president', 'operator'],
         ],
         'validated' => [
-            'archived' => 'admin',
+            'archived' => ['admin'],
         ],
         // 'archived' is terminal — no transitions allowed
     ];

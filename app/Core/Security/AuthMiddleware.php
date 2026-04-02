@@ -31,8 +31,8 @@ final class AuthMiddleware {
     // CONSTANTS — delegated to Permissions (single source of truth)
     // =========================================================================
 
-    /** System roles — derived from Permissions::HIERARCHY minus meeting roles */
-    private const SYSTEM_ROLES = ['admin', 'operator', 'auditor', 'viewer'];
+    /** System roles — user account roles stored in users.role */
+    private const SYSTEM_ROLES = ['admin', 'operator', 'auditor', 'viewer', 'president'];
 
     /** Meeting roles (no hierarchy, distinct permissions) */
     private const MEETING_ROLES = ['president', 'assessor', 'voter'];
@@ -560,8 +560,7 @@ final class AuthMiddleware {
 
     /**
      * Checks if the state transition is allowed.
-     * 'president' transitions require meeting_role 'president'
-     * OR system role 'admin'.
+     * Supports string|array required roles from Permissions::TRANSITIONS.
      */
     public static function canTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): bool {
         $allowed = Permissions::TRANSITIONS[$fromStatus] ?? [];
@@ -569,8 +568,8 @@ final class AuthMiddleware {
             return false;
         }
 
-        $requiredRole = $allowed[$toStatus];
-        $systemRole = self::getCurrentRole();
+        $requiredRoles = (array) $allowed[$toStatus];   // supports string|string[]
+        $systemRole    = self::getCurrentRole();
 
         // Admin can do everything
         if ($systemRole === 'admin') {
@@ -578,13 +577,19 @@ final class AuthMiddleware {
         }
 
         // System role match
-        if ($systemRole === $requiredRole) {
+        if (in_array($systemRole, $requiredRoles, true)) {
             return true;
         }
 
-        // Meeting role match (president transitions)
+        // Meeting role match (e.g. president assigned per-meeting)
         $meetingRoles = self::getMeetingRoles($meetingId);
-        return in_array($requiredRole, $meetingRoles, true);
+        foreach ($requiredRoles as $r) {
+            if (in_array($r, $meetingRoles, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function requireTransition(string $fromStatus, string $toStatus, ?string $meetingId = null): void {
@@ -602,7 +607,7 @@ final class AuthMiddleware {
             self::deny('transition_forbidden', 403, [
                 'from' => $fromStatus,
                 'to' => $toStatus,
-                'required_role' => $allowed[$toStatus],
+                'required_roles' => (array) ($allowed[$toStatus] ?? []),
                 'user_role' => self::getCurrentRole(),
                 'meeting_roles' => self::getMeetingRoles($meetingId),
             ]);
@@ -615,7 +620,7 @@ final class AuthMiddleware {
 
         foreach ($all as $to => $requiredRole) {
             if (self::canTransition($currentStatus, $to, $meetingId)) {
-                $result[] = ['to' => $to, 'required_role' => $requiredRole];
+                $result[] = ['to' => $to, 'required_roles' => (array) $requiredRole];
             }
         }
 
