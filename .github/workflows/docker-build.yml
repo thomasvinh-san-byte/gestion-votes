@@ -95,16 +95,39 @@ jobs:
         run: npm run lint:ci
 
   # ---------------------------------------------------------------------------
-  # Migration syntax check: grep for SQLite patterns (no PostgreSQL needed)
+  # Migration idempotency check: full two-pass PostgreSQL validation
   # ---------------------------------------------------------------------------
   migrate-check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.8-alpine3.21
+        env:
+          POSTGRES_DB: agvote_migration_ci
+          POSTGRES_USER: agvote_ci
+          POSTGRES_PASSWORD: agvote_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agvote_ci -d agvote_migration_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Validate migration syntax (no SQLite patterns)
-        run: bash scripts/validate-migrations.sh --syntax-only
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Validate migrations (full idempotency, two-pass PostgreSQL)
+        run: bash scripts/validate-migrations.sh
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: agvote_ci
+          DB_DATABASE: agvote_migration_ci
+          DB_PASSWORD: agvote_ci
 
   # ---------------------------------------------------------------------------
   # Coverage gate: PHPUnit Unit suite with pcov, enforces thresholds
