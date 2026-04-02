@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Compliance & Robustness
-status: completed
-stopped_at: Completed 76-procuration-pdf/76-01-PLAN.md
-last_updated: "2026-04-02T07:33:07.771Z"
-last_activity: 2026-04-02
+status: executing
+stopped_at: Completed 77-rgpd-compliance/77-02-PLAN.md
+last_updated: "2026-04-02T07:45:28.645Z"
+last_activity: 2026-04-02 -- Phase 77 execution started
 progress:
-  total_phases: 5
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_phases: 14
+  completed_phases: 10
+  total_plans: 16
+  completed_plans: 15
   percent: 20
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 76 — procuration-pdf
+**Current focus:** Phase 77 — rgpd-compliance
 
 ## Current Position
 
-Phase: 77
-Plan: Not started
-Status: Phase 76 complete, proceeding to Phase 77
-Last activity: 2026-04-02
+Phase: 77 (rgpd-compliance) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 77
+Last activity: 2026-04-02 -- Phase 77 execution started
 
 Progress: [██░░░░░░░░] 20% (1/5 phases)
 
@@ -53,6 +53,8 @@ Progress: [██░░░░░░░░] 20% (1/5 phases)
 - [v8.0]: confirm_password field for critical admin ops (password_verify before delete/set_password)
 - [v8.0]: AuthMiddleware::getSessionTimeout() reads from tenant_settings, cached per-request
 - [v7.0]: HMAC-SHA256 token pattern, HTML controller pattern, nginx routing for PHP controllers
+- [Phase 77-rgpd-compliance]: PostgreSQL INTERVAL does not support bind params — month count embedded via (int) cast interpolation in findExpiredForTenant
+- [Phase 77-rgpd-compliance]: erase_member uses requireConfirmation same as delete — admin must confirm with password before RGPD hard delete
 
 ### Existing Infrastructure
 
@@ -86,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T07:29:50.000Z
-Stopped at: Completed 76-procuration-pdf/76-01-PLAN.md
+Last session: 2026-04-02T07:45:28.642Z
+Stopped at: Completed 77-rgpd-compliance/77-02-PLAN.md
 Resume file: None
