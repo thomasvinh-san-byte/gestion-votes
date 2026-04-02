@@ -129,4 +129,15 @@ final class ProxiesService {
         }
         return $this->repo->hasActiveProxy($meetingId, $giverMemberId, $receiverMemberId, $tenantId);
     }
+
+    /**
+     * Same as hasActiveProxy but with FOR UPDATE lock.
+     * Must be called inside an active transaction.
+     */
+    public function hasActiveProxyForUpdate(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId = ''): bool {
+        if ($tenantId === '') {
+            $tenantId = \AgVote\Core\Security\AuthMiddleware::getCurrentTenantId();
+        }
+        return $this->repo->hasActiveProxyForUpdate($meetingId, $giverMemberId, $receiverMemberId, $tenantId);
+    }
 }

@@ -194,6 +194,24 @@ class ProxyRepository extends AbstractRepository {
         return $count > 0;
     }
 
+    /**
+     * Same as hasActiveProxy but acquires a FOR UPDATE row lock.
+     * Must be called inside an active transaction.
+     */
+    public function hasActiveProxyForUpdate(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId): bool {
+        $rows = $this->selectAll(
+            'SELECT id FROM proxies
+             WHERE meeting_id = :meeting_id
+               AND giver_member_id = :giver
+               AND receiver_member_id = :receiver
+               AND tenant_id = :tid
+               AND revoked_at IS NULL
+             FOR UPDATE',
+            [':meeting_id' => $meetingId, ':giver' => $giverMemberId, ':receiver' => $receiverMemberId, ':tid' => $tenantId],
+        );
+        return count($rows) > 0;
+    }
+
     // =========================================================================
     // PROXY ANALYSIS (migrated from MeetingRepository)
     // =========================================================================

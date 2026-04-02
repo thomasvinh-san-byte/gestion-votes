@@ -795,9 +795,13 @@ class BallotsServiceTest extends TestCase {
         // Proxy voter is present (no throw in this test)
         $this->attendanceRepo->method('isPresentDirect')->willReturn(true);
 
-        // First call: proxy active, second call (inside transaction): revoked
+        // First call: proxy active (initial pre-transaction check via hasActiveProxy)
         $this->proxyRepo->method('hasActiveProxy')
-            ->willReturnOnConsecutiveCalls(true, false);
+            ->willReturn(true);
+
+        // In-transaction re-check uses hasActiveProxyForUpdate: returns false (revoked)
+        $this->proxyRepo->method('hasActiveProxyForUpdate')
+            ->willReturn(false);
 
         $this->meetingRepo->method('lockForUpdate')
             ->willReturn(['id' => self::MEETING, 'status' => 'live']);
