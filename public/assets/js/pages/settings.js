@@ -163,6 +163,25 @@
             _prevValues.set(key, val);
           }
         });
+        // APP_URL localhost warning
+        var appUrlEl = document.getElementById('app_url') || document.querySelector('[data-setting="app_url"]') || document.querySelector('input[name="app_url"]');
+        if (appUrlEl) {
+          var appUrlVal = settings['app_url'] || settings['APP_URL'] || appUrlEl.value || '';
+          var appEnv = settings['app_env'] || settings['APP_ENV'] || '';
+          var safeEnvs = ['demo', 'development', 'dev', 'local'];
+          var isSafeEnv = safeEnvs.some(function(e) { return appEnv.toLowerCase().indexOf(e) !== -1; });
+          if (!isSafeEnv && appUrlVal.toLowerCase().indexOf('localhost') !== -1) {
+            var warn = document.getElementById('appUrlLocalhostWarning');
+            if (!warn) {
+              warn = document.createElement('div');
+              warn.id = 'appUrlLocalhostWarning';
+              warn.setAttribute('role', 'alert');
+              warn.style.cssText = 'color:#856404;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:6px 10px;margin-top:4px;font-size:.85rem;';
+              warn.textContent = 'APP_URL contient localhost — les liens dans les emails ne fonctionneront pas en production.';
+              appUrlEl.parentNode.insertBefore(warn, appUrlEl.nextSibling);
+            }
+          }
+        }
       })
       .catch(function(e) {
         console.warn('Settings load failed (graceful degradation):', e);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
+use AgVote\Service\MailerService;
 use Throwable;
 
 /**
@@ -377,6 +378,11 @@ final class AdminController extends AbstractController {
 
         $recentAlerts = $sysRepo->listRecentAlerts(20);
 
+        global $config;
+        $mailerConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
+        $mailer = new MailerService($mailerConfig);
+        $smtpConfigured = $mailer->isConfigured();
+
         api_ok([
             'system' => [
                 'server_time' => $serverTime,
@@ -394,6 +400,7 @@ final class AdminController extends AbstractController {
                 'php_version' => phpversion(),
                 'memory_usage' => round(memory_get_usage(true) / 1048576, 1) . ' MB',
                 'auth_failures_15m' => $fail15,
+                'smtp_configured' => $smtpConfigured,
             ],
             'alerts' => $recentAlerts,
         ]);

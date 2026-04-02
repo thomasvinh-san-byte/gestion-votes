@@ -76,6 +76,35 @@ window.OpS = { fn: {} };
   let lastSetupTab = 'seance'; // Remember last active prep tab for seamless mode switching
   let _settingsSnapshot = null;  // Captured after populateSettingsForm to track dirty state
 
+  // ── SMTP warning ──────────────────────────────────────────────────────────
+  function checkSmtpWarning() {
+    api('/api/v1/admin_system_status')
+      .then(function(r) {
+        if (!r.body || !r.body.ok || !r.body.data) return;
+        var sys = r.body.data.system || {};
+        if (sys.smtp_configured === false) {
+          showSmtpWarning();
+        }
+      })
+      .catch(function() { /* silently skip — operator may not have access */ });
+  }
+
+  function showSmtpWarning() {
+    var existing = document.getElementById('smtpWarningBanner');
+    if (existing) return;
+    var banner = document.createElement('div');
+    banner.id = 'smtpWarningBanner';
+    banner.setAttribute('role', 'alert');
+    banner.style.cssText = 'background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:4px;padding:10px 14px;margin:8px 0;font-size:.9rem;';
+    banner.textContent = 'SMTP non configuré — les invitations ne seront pas envoyées.';
+    var target = document.getElementById('noMeetingState') || document.body.firstElementChild;
+    if (target && target.parentNode) {
+      target.parentNode.insertBefore(banner, target);
+    } else {
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }
+
   // Safe DOM text setter — avoids null reference errors if element is missing
   function setText(id, value) {
     const el = document.getElementById(id);
@@ -3264,6 +3293,7 @@ window.OpS = { fn: {} };
   initTabs();
   startClock();
   loadMeetings();
+  checkSmtpWarning();
 
   // Wire MeetingContext changes to data loading
   MeetingContext.onChange(function(_oldId, newId) {
