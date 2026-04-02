@@ -329,7 +329,7 @@ Plans:
   3. All ballot mutation queries and motion status changes acquire a row-level lock before reading state they will modify
 **Plans**: 1 plan
 Plans:
-- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
+- [ ] 78-01-PLAN.md — hasActiveProxyForUpdate (DATA-02) + VotePublicController motion lock (DATA-01) + tests
 
 ### Phase 79: SSE & Async Robustness
 **Goal**: SSE connections do not leak on navigation and frontend errors are visible to users rather than silently swallowed
