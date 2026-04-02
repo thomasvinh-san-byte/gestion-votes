@@ -60,6 +60,7 @@ use AgVote\Controller\ProjectorController;
 use AgVote\Controller\ProxiesController;
 use AgVote\Controller\QuorumController;
 use AgVote\Controller\ReminderController;
+use AgVote\Controller\RgpdExportController;
 use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\SetupController;
@@ -194,6 +195,10 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/members_export_csv", ExportController::class, 'membersCsv', $op); /* [alias] → export_members_csv */
     $router->mapAny("{$prefix}/motions_export", ExportController::class, 'motionResultsCsv', ['role' => ['operator', 'admin', 'auditor']]); /* [alias] → export_motions_results_csv */
     $router->mapAny("{$prefix}/votes_export", ExportController::class, 'votesCsv', $op); /* [alias] → export_votes_csv */
+    $router->map('GET', "{$prefix}/rgpd_export", RgpdExportController::class, 'download',
+        ['role' => ['admin', 'operator', 'viewer', 'auditor', 'member', 'president', 'trust'],
+         'rate_limit' => ['rgpd_export', 5, 3600]]
+    );
     $router->mapMulti("{$prefix}/export_templates", [        'GET' => [ExportTemplatesController::class, 'list',   $opAdm],
         'POST' => [ExportTemplatesController::class, 'create', $opAdm],
         'PUT' => [ExportTemplatesController::class, 'update', $opAdm],
