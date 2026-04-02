@@ -155,8 +155,9 @@ server {
     }
 
     # ── Clean URLs: /page/UUID → page.htmx.html (JS reads ID from path) ──
+    # Uses rewrite…break (not last) to avoid re-entering location matching.
     location ~ ^/(wizard|hub|operator|postsession|vote|validate|archives|meetings|audit|members|analytics)/([0-9a-f-]+)/?$ {
-        rewrite ^ /$1.htmx.html last;
+        rewrite ^ /$1.htmx.html break;
     }
 
     # ── PHP HTML controllers (no .php extension, no /api/ prefix) ────────
@@ -172,32 +173,36 @@ server {
 
     # ── Clean URLs: /login → login.html (special case: no .htmx suffix) ──
     location = /login {
-        rewrite ^ /login.html last;
+        try_files /login.html =404;
     }
 
     # ── Clean URLs: /page → page.htmx.html ─────────────────────────────
-    # Uses exact matches (location =) for reliable priority over location / fallback.
-    location = /dashboard { rewrite ^ /dashboard.htmx.html last; }
-    location = /wizard { rewrite ^ /wizard.htmx.html last; }
-    location = /hub { rewrite ^ /hub.htmx.html last; }
-    location = /operator { rewrite ^ /operator.htmx.html last; }
-    location = /postsession { rewrite ^ /postsession.htmx.html last; }
-    location = /vote { rewrite ^ /vote.htmx.html last; }
-    location = /validate { rewrite ^ /validate.htmx.html last; }
-    location = /archives { rewrite ^ /archives.htmx.html last; }
-    location = /meetings { rewrite ^ /meetings.htmx.html last; }
-    location = /audit { rewrite ^ /audit.htmx.html last; }
-    location = /members { rewrite ^ /members.htmx.html last; }
-    location = /users { rewrite ^ /users.htmx.html last; }
-    location = /analytics { rewrite ^ /analytics.htmx.html last; }
-    location = /settings { rewrite ^ /settings.htmx.html last; }
-    location = /admin { rewrite ^ /admin.htmx.html last; }
-    location = /help { rewrite ^ /help.htmx.html last; }
-    location = /email-templates { rewrite ^ /email-templates.htmx.html last; }
-    location = /public { rewrite ^ /public.htmx.html last; }
-    location = /report { rewrite ^ /report.htmx.html last; }
-    location = /trust { rewrite ^ /trust.htmx.html last; }
-    location = /docs { rewrite ^ /docs.htmx.html last; }
+    # Uses try_files (not rewrite) to serve directly without re-entering
+    # location matching. rewrite…last restarts the location search, and the
+    # rewritten URI (e.g. /dashboard.htmx.html) falls into location / whose
+    # try_files $uri $uri/ /index.html silently serves index.html when the
+    # file lookup fails for any reason (race, path mismatch, etc.).
+    location = /dashboard { try_files /dashboard.htmx.html =404; }
+    location = /wizard { try_files /wizard.htmx.html =404; }
+    location = /hub { try_files /hub.htmx.html =404; }
+    location = /operator { try_files /operator.htmx.html =404; }
+    location = /postsession { try_files /postsession.htmx.html =404; }
+    location = /vote { try_files /vote.htmx.html =404; }
+    location = /validate { try_files /validate.htmx.html =404; }
+    location = /archives { try_files /archives.htmx.html =404; }
+    location = /meetings { try_files /meetings.htmx.html =404; }
+    location = /audit { try_files /audit.htmx.html =404; }
+    location = /members { try_files /members.htmx.html =404; }
+    location = /users { try_files /users.htmx.html =404; }
+    location = /analytics { try_files /analytics.htmx.html =404; }
+    location = /settings { try_files /settings.htmx.html =404; }
+    location = /admin { try_files /admin.htmx.html =404; }
+    location = /help { try_files /help.htmx.html =404; }
+    location = /email-templates { try_files /email-templates.htmx.html =404; }
+    location = /public { try_files /public.htmx.html =404; }
+    location = /report { try_files /report.htmx.html =404; }
+    location = /trust { try_files /trust.htmx.html =404; }
+    location = /docs { try_files /docs.htmx.html =404; }
 
     # ── HTML pages and fallback ───────────────────────────────────────────
     location / {
