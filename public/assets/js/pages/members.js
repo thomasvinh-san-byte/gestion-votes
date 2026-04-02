@@ -31,7 +31,8 @@
   let currentFilter = 'all';
   let currentGroupFilter = null; // null = all groups
   let currentPage = 1;
-  let pageSize = 12;
+  let pageSize = 50; // server-side page size, capped at 50
+  let _serverPagination = null; // pagination metadata from server
 
   // Onboarding elements
   var onboardingEl = document.getElementById('membersOnboarding');
@@ -494,11 +495,15 @@
   // ==========================================
 
   function updatePagination(totalFiltered) {
-    const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+    // Use server pagination metadata when available
+    const totalPages = _serverPagination
+      ? Math.max(1, _serverPagination.total_pages)
+      : Math.max(1, Math.ceil(totalFiltered / pageSize));
+    const total = _serverPagination ? _serverPagination.total : totalFiltered;
     if (currentPage > totalPages) currentPage = totalPages;
     paginPrev.disabled = currentPage <= 1;
     paginNext.disabled = currentPage >= totalPages;
-    paginInfo.textContent = `Page ${currentPage} / ${totalPages}`;
+    paginInfo.textContent = `Page ${currentPage} / ${totalPages} (${total} membres total)`;
   }
 
   // Update filter chip count badges
@@ -526,15 +531,19 @@
     const search = searchInput.value.trim();
     const filtered = sortMembers(filterMembers(members, currentFilter, search, currentGroupFilter));
     const n = filtered.length;
-    membersCount.textContent = `${n} membre${n > 1 ? 's' : ''}`;
+    // Show total from server when available (reflects full dataset, not just current page)
+    const displayTotal = _serverPagination ? _serverPagination.total : n;
+    membersCount.textContent = `${displayTotal} membre${displayTotal > 1 ? 's' : ''}`;
     updateFilterChipCounts(members);
 
+    // Use server pagination total for pagination controls; allMembers is already the current page
     updatePagination(n);
 
     if (!n) {
       // Contextual empty state: different message when truly empty vs filtered to zero
       var isFiltered = currentFilter !== 'all' || searchInput.value.trim() || currentGroupFilter;
-      if (allMembers.length === 0) {
+      var totalFromServer = _serverPagination ? _serverPagination.total : allMembers.length;
+      if (totalFromServer === 0 && !isFiltered) {
         membersList.innerHTML = '<div class="empty-state-guided">' +
           '<svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>' +
           '<h3>Aucun membre enregistré</h3>' +
@@ -556,8 +565,8 @@
       return;
     }
 
-    const start = (currentPage - 1) * pageSize;
-    const paged = filtered.slice(start, start + pageSize);
+    // allMembers already contains only the current page from the server (at most 50 items)
+    const paged = filtered;
 
     membersList.innerHTML = paged.map(m => {
       const name = m.full_name || m.name || '\u2014';
@@ -602,16 +611,22 @@
   // DATA LOADING
   // ==========================================
 
-  async function fetchMembers() {
+  async function fetchMembers(page) {
+    page = page || currentPage;
+    // Cap pageSize at 50 to enforce server-side maximum
+    if (pageSize > 50) pageSize = 50;
     membersList.innerHTML = '<div class="text-center p-6 text-muted members-loading">Chargement\u2026</div>';
 
     await Shared.withRetry({
       container: membersList,
       errorMsg: 'Impossible de charger les membres',
       action: async function () {
-        const { body } = await api('/api/v1/members.php?include_groups=1');
+        const url = '/api/v1/members.php?include_groups=1&page=' + page + '&per_page=' + pageSize;
+        const { body } = await api(url);
         if (!body || !body.ok) throw new Error(body?.error || 'Erreur serveur');
-        allMembers = body.data?.members || [];
+        allMembers = body.data?.items || [];
+        _serverPagination = body.data?.pagination || null;
+        currentPage = page;
         await fetchMemberGroups();
         updateStats(allMembers);
         renderMembers(allMembers);
@@ -841,18 +856,21 @@
       chip.classList.add('active');
       currentFilter = chip.dataset.filter;
       currentPage = 1;
-      renderMembers(allMembers);
+      // Re-fetch page 1 from server; client-side filter still applied on result set
+      fetchMembers(1);
       updateFiltersHint();
     });
   });
 
   // Search (debounced to avoid re-render on every keystroke)
+  // Re-fetches page 1 from server on search change; full-text search across all pages
+  // requires a page reload to reach page 2+
   let _searchTimeout = null;
   searchInput.addEventListener('input', () => {
     clearTimeout(_searchTimeout);
     _searchTimeout = setTimeout(() => {
       currentPage = 1;
-      renderMembers(allMembers);
+      fetchMembers(1);
       updateFiltersHint();
     }, 250);
   });
@@ -860,20 +878,21 @@
   // Sort
   sortSelect.addEventListener('change', () => {
     currentPage = 1;
-    renderMembers(allMembers);
+    fetchMembers(1);
   });
 
-  // Pagination
+  // Pagination — re-fetch from server on page navigation
   paginPrev.addEventListener('click', () => {
-    if (currentPage > 1) { currentPage--; renderMembers(allMembers); }
+    if (currentPage > 1) { fetchMembers(currentPage - 1); }
   });
   paginNext.addEventListener('click', () => {
-    if (!paginNext.disabled) { currentPage++; renderMembers(allMembers); }
+    if (!paginNext.disabled) { fetchMembers(currentPage + 1); }
   });
   paginSizeSelect.addEventListener('change', () => {
-    pageSize = parseInt(paginSizeSelect.value) || 20;
+    // Cap at 50 to enforce server-side maximum
+    pageSize = Math.min(parseInt(paginSizeSelect.value) || 50, 50);
     currentPage = 1;
-    renderMembers(allMembers);
+    fetchMembers(1);
   });
 
   // CSV upload
