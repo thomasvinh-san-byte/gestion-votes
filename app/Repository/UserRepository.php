@@ -319,11 +319,11 @@ class UserRepository extends AbstractRepository {
     }
 
     /**
-     * Trouve un utilisateur actif par ID et tenant (id, name).
+     * Trouve un utilisateur actif par ID et tenant (id, name, password_hash).
      */
     public function findActiveById(string $userId, string $tenantId): ?array {
         return $this->selectOne(
-            'SELECT id, name FROM users WHERE id = :id AND tenant_id = :t AND is_active = true',
+            'SELECT id, name, password_hash FROM users WHERE id = :id AND tenant_id = :t AND is_active = true',
             [':id' => $userId, ':t' => $tenantId],
         );
     }

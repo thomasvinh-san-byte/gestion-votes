@@ -41,6 +41,7 @@ final class AdminController extends AbstractController {
             $action = trim((string) ($in['action'] ?? 'create'));
 
             if ($action === 'set_password') {
+                $this->requireConfirmation($in, api_current_tenant_id());
                 $userId = api_require_uuid($in, 'user_id');
                 $password = (string) ($in['password'] ?? '');
 
@@ -77,6 +78,7 @@ final class AdminController extends AbstractController {
                 audit_log('admin.user.toggled', 'user', $userId, ['is_active' => $active]);
                 api_ok(['saved' => true, 'user_id' => $userId, 'is_active' => $active]);
             } elseif ($action === 'delete') {
+                $this->requireConfirmation($in, api_current_tenant_id());
                 $userId = api_require_uuid($in, 'user_id');
 
                 $currentUserId = api_current_user_id();
@@ -461,6 +463,20 @@ final class AdminController extends AbstractController {
             'items' => $formatted,
             'action_types' => $actionTypes,
         ]);
+    }
+
+    private function requireConfirmation(array $in, string $tenantId): void
+    {
+        $confirmPassword = trim((string) ($in['confirm_password'] ?? ''));
+        if ($confirmPassword === '') {
+            api_fail('confirmation_required', 400, ['detail' => 'Veuillez confirmer votre mot de passe pour cette operation.']);
+        }
+        $adminUserId = api_current_user_id();
+        $adminUser = $this->repo()->user()->findActiveById($adminUserId, $tenantId);
+        if (!$adminUser || !password_verify($confirmPassword, $adminUser['password_hash'])) {
+            audit_log('admin.confirm.failed', 'user', $adminUserId, ['action' => $in['action'] ?? '']);
+            api_fail('confirmation_failed', 400, ['detail' => 'Mot de passe incorrect.']);
+        }
     }
 
     private static function parsePayload(mixed $payload): array {

@@ -139,13 +139,17 @@ class AdminControllerTest extends ControllerTestCase
     public function testUsersPostSetPasswordWeakPassword(): void
     {
         $this->setHttpMethod('POST');
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
         $this->injectJsonBody([
             'action' => 'set_password',
             'user_id' => self::TARGET_UID,
             'password' => 'short',
+            'confirm_password' => 'admin123',
         ]);
 
         $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
         $this->injectRepos([UserRepository::class => $userRepo]);
 
         $resp = $this->callController(AdminController::class, 'users');
@@ -156,13 +160,17 @@ class AdminControllerTest extends ControllerTestCase
     public function testUsersPostSetPasswordSuccess(): void
     {
         $this->setHttpMethod('POST');
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
         $this->injectJsonBody([
             'action' => 'set_password',
             'user_id' => self::TARGET_UID,
             'password' => 'StrongPassword123',
+            'confirm_password' => 'admin123',
         ]);
 
         $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
         $userRepo->expects($this->once())->method('setPasswordHash');
 
         $this->injectRepos([UserRepository::class => $userRepo]);
@@ -251,9 +259,16 @@ class AdminControllerTest extends ControllerTestCase
     public function testUsersPostDeleteSelf(): void
     {
         $this->setHttpMethod('POST');
-        $this->injectJsonBody(['action' => 'delete', 'user_id' => self::USER_ID]);
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $this->injectJsonBody([
+            'action' => 'delete',
+            'user_id' => self::USER_ID,
+            'confirm_password' => 'admin123',
+        ]);
 
         $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
         $this->injectRepos([UserRepository::class => $userRepo]);
 
         $resp = $this->callController(AdminController::class, 'users');
@@ -264,9 +279,16 @@ class AdminControllerTest extends ControllerTestCase
     public function testUsersPostDeleteSuccess(): void
     {
         $this->setHttpMethod('POST');
-        $this->injectJsonBody(['action' => 'delete', 'user_id' => self::TARGET_UID]);
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $this->injectJsonBody([
+            'action' => 'delete',
+            'user_id' => self::TARGET_UID,
+            'confirm_password' => 'admin123',
+        ]);
 
         $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
         $userRepo->expects($this->once())->method('deleteUser');
 
         $this->injectRepos([UserRepository::class => $userRepo]);
@@ -985,5 +1007,127 @@ class AdminControllerTest extends ControllerTestCase
 
         $resp = $this->callController(AdminController::class, 'auditLog');
         $this->assertSame(200, $resp['status']);
+    }
+
+    // =========================================================================
+    // 2-STEP CONFIRMATION
+    // =========================================================================
+
+    public function testConfirmDeleteWithoutConfirmPasswordReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody(['action' => 'delete', 'user_id' => self::TARGET_UID]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        $resp = $this->callController(AdminController::class, 'users');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('confirmation_required', $resp['body']['error']);
+    }
+
+    public function testConfirmDeleteWithWrongPasswordReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $this->injectJsonBody([
+            'action' => 'delete',
+            'user_id' => self::TARGET_UID,
+            'confirm_password' => 'wrongpassword',
+        ]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
+
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        $resp = $this->callController(AdminController::class, 'users');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('confirmation_failed', $resp['body']['error']);
+    }
+
+    public function testConfirmDeleteWithCorrectPasswordSucceeds(): void
+    {
+        $this->setHttpMethod('POST');
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $this->injectJsonBody([
+            'action' => 'delete',
+            'user_id' => self::TARGET_UID,
+            'confirm_password' => 'admin123',
+        ]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
+        $userRepo->expects($this->once())->method('deleteUser');
+
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        $resp = $this->callController(AdminController::class, 'users');
+        $this->assertSame(200, $resp['status']);
+        $this->assertTrue($resp['body']['data']['deleted']);
+    }
+
+    public function testConfirmSetPasswordWithoutConfirmPasswordReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'action' => 'set_password',
+            'user_id' => self::TARGET_UID,
+            'password' => 'StrongPassword123',
+        ]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        $resp = $this->callController(AdminController::class, 'users');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('confirmation_required', $resp['body']['error']);
+    }
+
+    public function testConfirmSetPasswordWithWrongPasswordReturns400(): void
+    {
+        $this->setHttpMethod('POST');
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $this->injectJsonBody([
+            'action' => 'set_password',
+            'user_id' => self::TARGET_UID,
+            'password' => 'StrongPassword123',
+            'confirm_password' => 'wrongpassword',
+        ]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
+
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        $resp = $this->callController(AdminController::class, 'users');
+        $this->assertSame(400, $resp['status']);
+        $this->assertSame('confirmation_failed', $resp['body']['error']);
+    }
+
+    public function testConfirmSetPasswordWithCorrectPasswordSucceeds(): void
+    {
+        $this->setHttpMethod('POST');
+        $adminHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $this->injectJsonBody([
+            'action' => 'set_password',
+            'user_id' => self::TARGET_UID,
+            'password' => 'StrongPassword123',
+            'confirm_password' => 'admin123',
+        ]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findActiveById')
+            ->willReturn(['id' => self::USER_ID, 'name' => 'Admin', 'password_hash' => $adminHash]);
+        $userRepo->expects($this->once())->method('setPasswordHash');
+
+        $this->injectRepos([UserRepository::class => $userRepo]);
+
+        $resp = $this->callController(AdminController::class, 'users');
+        $this->assertSame(200, $resp['status']);
+        $this->assertTrue($resp['body']['data']['saved']);
     }
 }
