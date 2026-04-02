@@ -294,7 +294,11 @@ Plans:
   1. The exit()-based controllers are refactored so PHPUnit can exercise them; coverage report shows controller coverage above 70%
   2. When the admin KPI endpoint fails, the admin page displays a visible error message or fallback state instead of leaving the KPI cards blank with no indication of failure
   3. The coverage-check.sh threshold is updated to enforce the new higher floor, and CI fails if coverage drops below it
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 75-01-PLAN.md — Refactor exit()-based serve() and outputPixel() methods to use PHPUNIT_RUNNING exceptions; add happy-path tests; raise coverage threshold to 70
+- [ ] 75-02-PLAN.md — Replace silent KPI catch block with visible error fallback in admin.js
 
 ## Progress
 
@@ -304,4 +308,4 @@ Plans:
 | 72. Security Config | 1/2 | Complete    | 2026-04-02 |
 | 73. Vote Session Resume | 0/1 | Complete    | 2026-04-02 |
 | 74. CI Hardening | 0/1 | Complete    | 2026-04-02 |
-| 75. Coverage & Observability | 0/TBD | Not started | - |
+| 75. Coverage & Observability | 0/2 | Not started | - |
