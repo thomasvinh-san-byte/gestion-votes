@@ -219,8 +219,8 @@ return function (Router $router): void {
 
     // ── Meetings ──
     $router->mapMulti("{$prefix}/meetings", [
-        'GET' => [MeetingsController::class, 'index',         $view],
-        'POST' => [MeetingsController::class, 'createMeeting', $op],
+        'GET'  => [MeetingsController::class, 'index',         $view],
+        'POST' => [MeetingsController::class, 'createMeeting', ['role' => ['operator', 'president', 'admin']]],
     ]);
     $router->map('GET', "{$prefix}/meetings_index", MeetingsController::class, 'index', $view);
     $router->mapAny("{$prefix}/meetings_update", MeetingsController::class, 'update', $op);
