@@ -44,12 +44,12 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ACCT-01 | TBD | Pending |
-| ACCT-02 | TBD | Pending |
-| SEC-01 | TBD | Pending |
-| SEC-02 | TBD | Pending |
-| SEC-03 | TBD | Pending |
-| DEBT-01 | TBD | Pending |
-| DEBT-02 | TBD | Pending |
-| DEBT-03 | TBD | Pending |
-| DEBT-04 | TBD | Pending |
+| ACCT-01 | Phase 71 | Pending |
+| ACCT-02 | Phase 71 | Pending |
+| SEC-01 | Phase 72 | Pending |
+| SEC-02 | Phase 72 | Pending |
+| SEC-03 | Phase 73 | Pending |
+| DEBT-01 | Phase 75 | Pending |
+| DEBT-02 | Phase 75 | Pending |
+| DEBT-03 | Phase 74 | Pending |
+| DEBT-04 | Phase 74 | Pending |
