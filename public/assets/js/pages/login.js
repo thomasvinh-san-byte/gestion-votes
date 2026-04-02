@@ -104,6 +104,11 @@
   }
 
   function redirectByRole(user, meetingRoles) {
+    var returnTo = new URLSearchParams(location.search).get('return_to');
+    if (returnTo && isSafeRedirect(returnTo)) {
+      window.location.href = returnTo;
+      return;
+    }
     var redirect = new URLSearchParams(location.search).get('redirect');
     if (redirect && isSafeRedirect(redirect)) {
       window.location.href = redirect;

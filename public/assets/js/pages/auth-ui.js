@@ -518,8 +518,12 @@
 
     // Detect session expiry — redirect to login with expired flag before processing
     if (data && data.error === 'session_expired') {
-      window.location.href = '/login.html?expired=1&redirect=' +
-        encodeURIComponent(window.location.pathname + window.location.search);
+      var _path = window.location.pathname;
+      var _isVote = (_path === '/vote' || _path === '/vote.htmx.html');
+      var _returnParam = _isVote
+        ? 'return_to=' + encodeURIComponent('/vote')
+        : 'redirect=' + encodeURIComponent(_path + window.location.search);
+      window.location.href = '/login.html?expired=1&' + _returnParam;
       return;
     }
 
