@@ -84,8 +84,8 @@ final class PasswordResetController {
 
         if ($password === '') {
             $errors[] = 'Le mot de passe est requis.';
-        } elseif (strlen($password) < 8) {
-            $errors[] = 'Le mot de passe doit contenir au moins 8 caracteres.';
+        } elseif (($pwErr = \AgVote\Helper\PasswordValidator::validate($password)) !== null) {
+            $errors[] = $pwErr;
         } elseif ($password !== $confirm) {
             $errors[] = 'Les mots de passe ne correspondent pas.';
         }

@@ -104,6 +104,7 @@ final class AdminController extends AbstractController {
 
                 // Hard delete — cascades to ballots, attendances, proxies via FK ON DELETE CASCADE
                 $rows = $memberRepo->hardDeleteById($memberId, $tenantId);
+                $this->repo()->auditEvent()->anonymizeForResource('member', $memberId);
                 audit_log('admin.member.erased', 'member', $memberId, [
                     'full_name' => $member['full_name'] ?? '',
                     'email'     => $member['email'] ?? '',
@@ -490,20 +491,6 @@ final class AdminController extends AbstractController {
             'items' => $formatted,
             'action_types' => $actionTypes,
         ]);
-    }
-
-    private function requireConfirmation(array $in, string $tenantId): void
-    {
-        $confirmPassword = trim((string) ($in['confirm_password'] ?? ''));
-        if ($confirmPassword === '') {
-            api_fail('confirmation_required', 400, ['detail' => 'Veuillez confirmer votre mot de passe pour cette operation.']);
-        }
-        $adminUserId = api_current_user_id();
-        $adminUser = $this->repo()->user()->findActiveById($adminUserId, $tenantId);
-        if (!$adminUser || !password_verify($confirmPassword, $adminUser['password_hash'])) {
-            audit_log('admin.confirm.failed', 'user', $adminUserId, ['action' => $in['action'] ?? '']);
-            api_fail('confirmation_failed', 400, ['detail' => 'Mot de passe incorrect.']);
-        }
     }
 
     private static function parsePayload(mixed $payload): array {

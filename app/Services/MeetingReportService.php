@@ -273,7 +273,11 @@ final class MeetingReportService {
         if ($base === null || $ratio === null || $thr === null) {
             return null;
         }
-        return 'Majorité (' . $base . '): ratio ' . self::fmt((float) $ratio) . ' / seuil ' . self::fmt((float) $thr);
+        $line = 'Majorité (' . $base . '): ratio ' . self::fmt((float) $ratio) . ' / seuil ' . self::fmt((float) $thr);
+        if ($maj['tie'] ?? false) {
+            $line .= ' · Egalité des voix';
+        }
+        return $line;
     }
 
     private static function decisionLabel(string $dec): string {

@@ -537,6 +537,19 @@ final class MeetingsController extends AbstractController {
         ]);
 
         IdempotencyGuard::store($result);
+
+        // Auto-assign president meeting role if current user has system role 'president'
+        if (api_current_role() === 'president') {
+            $currentUserId = api_current_user_id();
+            $this->repo()->user()->assignMeetingRole(
+                $tenantId,
+                (string) $result['meeting_id'],
+                $currentUserId,
+                'president',
+                $currentUserId,
+            );
+        }
+
         api_ok($result, 201);
     }
 
@@ -547,6 +560,8 @@ final class MeetingsController extends AbstractController {
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400, ['detail' => 'meeting_id est obligatoire (uuid).']);
         }
+
+        $this->requireConfirmation($input, api_current_tenant_id());
 
         $repo = $this->repo()->meeting();
         $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
@@ -567,13 +582,20 @@ final class MeetingsController extends AbstractController {
             ]);
         }
 
+        $statsRepo = $this->repo()->meetingStats();
+        $deleteWarning = [
+            'motions'     => $statsRepo->countMotions($meetingId, api_current_tenant_id()),
+            'ballots'     => $statsRepo->countBallots($meetingId, api_current_tenant_id()),
+            'attendances' => $this->repo()->wizard()->countAttendances($meetingId, api_current_tenant_id()),
+        ];
+
         $deleted = $repo->deleteDraft($meetingId, api_current_tenant_id());
 
         audit_log('meeting_deleted', 'meeting', $meetingId, [
             'title' => $current['title'],
         ]);
 
-        api_ok(['deleted' => $deleted > 0, 'meeting_id' => $meetingId]);
+        api_ok(['deleted' => $deleted > 0, 'meeting_id' => $meetingId, 'delete_warning' => $deleteWarning]);
     }
 
     public function voteSettings(): void {

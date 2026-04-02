@@ -125,6 +125,15 @@ final class VoteEngine {
             }
         }
 
+        // Tie detection: ratio equals threshold within floating-point epsilon and at least one vote was cast
+        $tie = (
+            $majorityThreshold !== null
+            && $majorityThreshold > 0
+            && $majorityRatio !== null
+            && abs($majorityRatio - $majorityThreshold) < 0.0001
+            && $forWeight > 0
+        );
+
         return [
             'quorum' => [
                 'applied' => (bool) $quorumPolicy,
@@ -141,6 +150,7 @@ final class VoteEngine {
                 'ratio' => $majorityRatio,
                 'threshold' => $majorityThreshold,
                 'abstention_as_against' => $abstAsAgainst,
+                'tie' => $tie,
             ],
         ];
     }

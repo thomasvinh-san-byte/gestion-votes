@@ -72,8 +72,8 @@ final class AccountController {
 
         if ($newPassword === '') {
             $errors[] = 'Le nouveau mot de passe est requis.';
-        } elseif (strlen($newPassword) < 8) {
-            $errors[] = 'Le mot de passe doit contenir au moins 8 caracteres.';
+        } elseif (($pwErr = \AgVote\Helper\PasswordValidator::validate($newPassword)) !== null) {
+            $errors[] = $pwErr;
         } elseif ($newPassword !== $newPasswordConfirm) {
             $errors[] = 'Les mots de passe ne correspondent pas.';
         }

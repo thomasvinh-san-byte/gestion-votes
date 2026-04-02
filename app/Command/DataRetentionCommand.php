@@ -64,6 +64,7 @@ final class DataRetentionCommand extends Command {
             $rows = $memberRepo->hardDeleteById($m['id'], $tenantId);
             if ($rows > 0) {
                 $deleted++;
+                (new \AgVote\Repository\AuditEventRepository())->anonymizeForResource('member', (string) $m['id']);
                 $output->writeln('  Supprime : ' . $m['full_name'] . ' (' . $m['id'] . ')');
             }
         }

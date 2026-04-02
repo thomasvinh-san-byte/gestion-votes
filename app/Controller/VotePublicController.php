@@ -57,7 +57,7 @@ final class VotePublicController {
         $row = $tokenRepo->findValidByHash($hash);
 
         if (!$row) {
-            HtmlView::text('Token invalide ou expiré', 403);
+            HtmlView::render('vote_token_expired', [], 403);
         }
 
         // ── Verify motion/meeting state ─────────────────────────────────

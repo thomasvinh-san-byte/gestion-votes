@@ -55,6 +55,23 @@ abstract class AbstractController {
     }
 
     /**
+     * Require that the request includes a valid confirm_password field.
+     * Calls api_fail() if missing or incorrect — never returns on failure.
+     */
+    protected function requireConfirmation(array $in, string $tenantId): void {
+        $confirmPassword = trim((string) ($in['confirm_password'] ?? ''));
+        if ($confirmPassword === '') {
+            api_fail('confirmation_required', 400, ['detail' => 'Veuillez confirmer votre mot de passe pour cette operation.']);
+        }
+        $adminUserId = api_current_user_id();
+        $adminUser = $this->repo()->user()->findActiveById($adminUserId, $tenantId);
+        if (!$adminUser || !password_verify($confirmPassword, $adminUser['password_hash'])) {
+            audit_log('admin.confirm.failed', 'user', $adminUserId, ['action' => $in['action'] ?? '']);
+            api_fail('confirmation_failed', 400, ['detail' => 'Mot de passe incorrect.']);
+        }
+    }
+
+    /**
      * Wraps a block that may call api_ok/api_fail internally.
      * Catches only non-API exceptions, converting them to api_fail.
      * Eliminates the need for manual catch(ApiResponseException){throw} pattern.

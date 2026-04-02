@@ -290,6 +290,22 @@ class AuditEventRepository extends AbstractRepository {
     }
 
     /**
+     * Anonymize audit_events rows linked to a member or invitation resource.
+     * Called on RGPD hard-delete to replace the member's resource_id with 'ERASED'.
+     *
+     * @param string $resourceType Kept for future extension (currently unused in WHERE — covers both member + invitation).
+     * @param string $resourceId   The member UUID to anonymize.
+     */
+    public function anonymizeForResource(string $resourceType, string $resourceId): void {
+        $this->execute(
+            "UPDATE audit_events SET resource_id = 'ERASED'
+             WHERE resource_type IN ('member', 'invitation')
+             AND resource_id = :rid",
+            [':rid' => $resourceId],
+        );
+    }
+
+    /**
      * Delete audit events for a meeting (reset demo, best-effort).
      */
     public function deleteByMeeting(string $meetingId, string $tenantId): void {
