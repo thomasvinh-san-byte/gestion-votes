@@ -188,7 +188,9 @@
   2. A logged-in user submits the password change form (current + new + confirm) and the new password is accepted on next login
   3. Submitting an incorrect current password shows a clear error without changing anything
   4. The Mon Compte page is reachable from the main navigation for all roles
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
 
 ### Phase 72: Security Config
 **Goal**: Administrators can require 2-step confirmation before irreversible operations execute, and can set the session idle timeout from the admin UI instead of relying on a hardcoded 30-minute value
@@ -199,7 +201,9 @@
   2. An admin changes the session timeout value in settings and subsequent sessions expire after the new configured duration
   3. The timeout setting persists across server restarts (stored in tenant_settings, not only in memory)
   4. Attempting the critical operation via direct POST without completing the 2-step flow is rejected
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
 
 ### Phase 73: Vote Session Resume
 **Goal**: A voter whose session expires mid-vote can re-authenticate and return to the exact ballot they were on, without losing their voting context
@@ -210,7 +214,9 @@
   2. After successful re-authentication, the voter is returned directly to the ballot for the meeting they were voting in
   3. Any vote the voter had already cast before timeout is preserved and visible on return
   4. If the vote session has closed while the voter was timed out, they see a clear message explaining the vote has ended
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
 
 ### Phase 74: CI Hardening
 **Goal**: The CI pipeline loads E2E seed data automatically and validates migration idempotency on every run, so local-only checks cannot silently drift from CI
@@ -220,7 +226,9 @@
   1. The CI e2e job loads 04_e2e.sql before running Playwright tests, and tests that depend on seed data pass in CI without manual intervention
   2. The CI migrate-check job runs the idempotency validation script and fails the build if any migration is not idempotent
   3. A purposely non-idempotent migration (test fixture) causes the CI job to fail with a clear error message
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
 
 ### Phase 75: Coverage & Observability
 **Goal**: Controller test coverage rises above the current 64.6% structural ceiling and the admin dashboard no longer silently swallows KPI load failures
@@ -230,7 +238,9 @@
   1. The exit()-based controllers are refactored so PHPUnit can exercise them; coverage report shows controller coverage above 70%
   2. When the admin KPI endpoint fails, the admin page displays a visible error message or fallback state instead of leaving the KPI cards blank with no indication of failure
   3. The coverage-check.sh threshold is updated to enforce the new higher floor, and CI fails if coverage drops below it
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
 
 ## Progress
 
