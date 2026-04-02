@@ -52,6 +52,7 @@ use AgVote\Controller\MembersController;
 use AgVote\Controller\MotionsController;
 use AgVote\Controller\NotificationsController;
 use AgVote\Controller\OperatorController;
+use AgVote\Controller\AccountController;
 use AgVote\Controller\PasswordResetController;
 use AgVote\Controller\PoliciesController;
 use AgVote\Controller\ProjectorController;
@@ -360,6 +361,9 @@ return function (Router $router): void {
 
     // -- Setup (first-run, no auth) --
     $router->mapAny('/setup', SetupController::class, 'setup');
+
+    // -- Account (session-authenticated) --
+    $router->mapAny('/account', AccountController::class, 'account');
 
     // Vote form (token-authenticated, no role middleware)
     $router->mapAny('/vote', VotePublicController::class, 'vote');

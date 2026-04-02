@@ -14,8 +14,8 @@
 - ✅ **v5.1 Operational Hardening** - Phases 58-61 (shipped 2026-03-31)
 - ✅ **v6.0 Production & Email** - Phases 62-64 (shipped 2026-04-01)
 - ✅ **v6.1 PDF & Preparation de Seance** - Phases 65-66 (shipped 2026-04-01)
-- ✅ **v7.0 Production Essentials** - Phases 67-70 (shipped 2026-04-01)
-- [ ] **v8.0 Account & Hardening** - Phases 71-75 (in progress)
+- 🚧 **v7.0 Production Essentials** - Phases 67-70 (in progress)
+- 🚧 **v7.1 Account Self-Service** - Phase 71 (in progress)
 
 ---
 
@@ -140,114 +140,100 @@
 
 ---
 
-<details>
-<summary>✅ v7.0 Production Essentials (Shipped: 2026-04-01) — 4 phases, 6 plans</summary>
+### v7.0 Production Essentials (In Progress)
 
 **Milestone Goal:** Deliver four production-essential features: official PV PDF generation for legal compliance, cron-based email queue worker for reliable delivery, browser-based initial setup for new deployments, and secure password reset via email.
 
-### Phases
+## Phases
 
 - [x] **Phase 67: PV Officiel PDF** - Generate legally compliant proces-verbal PDF with asso loi 1901 template (completed 2026-04-01)
 - [x] **Phase 68: Email Queue Worker** - Cron-based queue processor in Docker with retry and failure handling (completed 2026-04-01)
 - [x] **Phase 69: Initial Setup** - First-run /setup page to create tenant and admin account (completed 2026-04-01)
-- [x] **Phase 70: Reset Password** - Secure token-based password reset flow via email (completed 2026-04-01)
+- [ ] **Phase 70: Reset Password** - Secure token-based password reset flow via email
 
-### Progress
+## Phase Details
+
+### Phase 67: PV Officiel PDF
+**Goal**: Operators can generate a legally compliant official PV after validating a session
+**Depends on**: Nothing (builds on existing MeetingReportService + Dompdf)
+**Requirements**: PV-01, PV-02, PV-03
+**Success Criteria** (what must be TRUE):
+  1. After validating a session, the operator clicks "Generer PV" and receives a PDF containing: organization header (name, date, location), attendance list (present and represented members), quorum confirmation, each resolution with detailed vote counts (pour/contre/abstention), and signature blocks for president and secretary
+  2. The generated PDF follows the standard asso loi 1901 proces-verbal template layout
+  3. The PV PDF is viewable inline and downloadable from the post-session page
+**Plans**: 2 plans
+
+Plans:
+- [ ] 67-01-PLAN.md — Upgrade generatePdf() to loi 1901 template with org header, quorum block, dual signatures, inline mode
+- [ ] 67-02-PLAN.md — Wire post-session Step 3 inline PDF preview and download UI
+
+### Phase 68: Email Queue Worker
+**Goal**: Queued emails are processed automatically without manual intervention
+**Depends on**: Nothing (builds on existing EmailQueueService::processQueue())
+**Requirements**: QUEUE-01, QUEUE-02
+**Success Criteria** (what must be TRUE):
+  1. A cron job inside the Docker container calls processQueue() every minute without operator action
+  2. Emails that fail to send are retried with exponential backoff (not immediately re-sent in a tight loop)
+  3. After max retries, permanently failed emails are marked as "failed" in the queue table and stop being retried
+**Plans**: 1 plan
+
+Plans:
+- [ ] 68-01-PLAN.md — Verify and test existing queue worker, add --reminders to supervisord, add retry logic tests
+
+### Phase 69: Initial Setup
+**Goal**: A new deployment can be bootstrapped through a browser-based setup page
+**Depends on**: Nothing (independent feature)
+**Requirements**: SETUP-01, SETUP-02, SETUP-03
+**Success Criteria** (what must be TRUE):
+  1. Navigating to /setup when no admin user exists shows a setup form with organization name, admin email, and admin password fields
+  2. Submitting the form creates the first tenant and first admin user in the database
+  3. After setup completes, the browser redirects to /login and /setup returns a redirect (or 404) for all future requests
+**Plans**: 1 plan
+
+Plans:
+- [ ] 69-01-PLAN.md — SetupController + SetupRepository + setup form template + route + unit tests
+
+### Phase 70: Reset Password
+**Goal**: Users who forget their password can securely reset it via email
+**Depends on**: Phase 68 (email queue ensures reset emails are delivered reliably)
+**Requirements**: RESET-01, RESET-02, RESET-03
+**Success Criteria** (what must be TRUE):
+  1. The login page displays a "Mot de passe oublie" link that opens a form where the user enters their email address
+  2. Submitting the form sends an email containing a secure token link that expires after 1 hour
+  3. Clicking the link opens a new-password form; submitting it updates the password hash in the database and the user can immediately log in with the new password
+  4. Expired or already-used tokens are rejected with a clear French error message
+**Plans**: 2 plans
+
+Plans:
+- [ ] 70-01-PLAN.md — Backend: migration, repository, service, controller, routes, templates, unit tests
+- [ ] 70-02-PLAN.md — Wire login page forgot link to /reset-password + human verification
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 67 → 68 → 69 → 70
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 67. PV Officiel PDF | 2/2 | Complete | 2026-04-01 |
-| 68. Email Queue Worker | 1/1 | Complete | 2026-04-01 |
-| 69. Initial Setup | 1/1 | Complete | 2026-04-01 |
-| 70. Reset Password | 2/2 | Complete | 2026-04-01 |
+| 67. PV Officiel PDF | 2/2 | Complete    | 2026-04-01 |
+| 68. Email Queue Worker | 1/1 | Complete    | 2026-04-01 |
+| 69. Initial Setup | 1/1 | Complete    | 2026-04-01 |
+| 70. Reset Password | 0/2 | Not started | - |
 
 </details>
 
 ---
 
-## v8.0 Account & Hardening
+### v7.1 Account Self-Service (In Progress)
 
-**Milestone Goal:** Give every logged-in user a self-service Mon Compte page, harden critical operations with 2-step confirmation, make session timeout configurable, add vote session resume after re-auth, and retire four known tech debt items (controller coverage, silent error, CI seed data, CI migration check).
+**Milestone Goal:** Allow any authenticated user to view their profile and change their password through a self-service /account page.
 
-### Phases
+## Phases
 
-- [ ] **Phase 71: Mon Compte** - Profile view and self-service password change page for all connected users
-- [ ] **Phase 72: Security Config** - 2-step confirmation for critical operations and configurable session timeout from admin settings
-- [ ] **Phase 73: Vote Session Resume** - Re-authentication flow that restores voter context after session timeout during a live vote
-- [ ] **Phase 74: CI Hardening** - Load E2E seed data in CI job and gate migration idempotency check in CI pipeline
-- [ ] **Phase 75: Coverage & Observability** - Refactor exit()-based controllers to raise coverage ceiling and surface admin.js KPI errors visibly
-
-## Phase Details
-
-### Phase 71: Mon Compte
-**Goal**: Any connected user can view their profile and change their own password without admin intervention
-**Depends on**: Nothing (builds on existing AuthController + bcrypt infrastructure)
-**Requirements**: ACCT-01, ACCT-02
-**Success Criteria** (what must be TRUE):
-  1. A logged-in user navigates to /account and sees their name, email, and role displayed
-  2. A logged-in user submits the password change form (current + new + confirm) and the new password is accepted on next login
-  3. Submitting an incorrect current password shows a clear error without changing anything
-  4. The Mon Compte page is reachable from the main navigation for all roles
-**Plans**: 1 plan
-Plans:
-- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
-
-### Phase 72: Security Config
-**Goal**: Administrators can require 2-step confirmation before irreversible operations execute, and can set the session idle timeout from the admin UI instead of relying on a hardcoded 30-minute value
-**Depends on**: Phase 71
-**Requirements**: SEC-01, SEC-02
-**Success Criteria** (what must be TRUE):
-  1. Deleting a user or triggering an admin password reset shows a confirmation dialog requiring a second explicit action before proceeding
-  2. An admin changes the session timeout value in settings and subsequent sessions expire after the new configured duration
-  3. The timeout setting persists across server restarts (stored in tenant_settings, not only in memory)
-  4. Attempting the critical operation via direct POST without completing the 2-step flow is rejected
-**Plans**: 1 plan
-Plans:
-- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
-
-### Phase 73: Vote Session Resume
-**Goal**: A voter whose session expires mid-vote can re-authenticate and return to the exact ballot they were on, without losing their voting context
-**Depends on**: Phase 72
-**Requirements**: SEC-03
-**Success Criteria** (what must be TRUE):
-  1. When a voter's session expires during an active vote, they are redirected to a re-authentication page rather than the generic login page
-  2. After successful re-authentication, the voter is returned directly to the ballot for the meeting they were voting in
-  3. Any vote the voter had already cast before timeout is preserved and visible on return
-  4. If the vote session has closed while the voter was timed out, they see a clear message explaining the vote has ended
-**Plans**: 1 plan
-Plans:
-- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
-
-### Phase 74: CI Hardening
-**Goal**: The CI pipeline loads E2E seed data automatically and validates migration idempotency on every run, so local-only checks cannot silently drift from CI
-**Depends on**: Nothing (pure CI/infrastructure work)
-**Requirements**: DEBT-03, DEBT-04
-**Success Criteria** (what must be TRUE):
-  1. The CI e2e job loads 04_e2e.sql before running Playwright tests, and tests that depend on seed data pass in CI without manual intervention
-  2. The CI migrate-check job runs the idempotency validation script and fails the build if any migration is not idempotent
-  3. A purposely non-idempotent migration (test fixture) causes the CI job to fail with a clear error message
-**Plans**: 1 plan
-Plans:
-- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
-
-### Phase 75: Coverage & Observability
-**Goal**: Controller test coverage rises above the current 64.6% structural ceiling and the admin dashboard no longer silently swallows KPI load failures
-**Depends on**: Nothing (independent quality work)
-**Requirements**: DEBT-01, DEBT-02
-**Success Criteria** (what must be TRUE):
-  1. The exit()-based controllers are refactored so PHPUnit can exercise them; coverage report shows controller coverage above 70%
-  2. When the admin KPI endpoint fails, the admin page displays a visible error message or fallback state instead of leaving the KPI cards blank with no indication of failure
-  3. The coverage-check.sh threshold is updated to enforce the new higher floor, and CI fails if coverage drops below it
-**Plans**: 1 plan
-Plans:
-- [ ] 71-01-PLAN.md — AccountController + template + route + nginx + auth banner link
+- [x] **Phase 71: Mon Compte** - Self-service /account page with profile view and password change (completed 2026-04-02)
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 71. Mon Compte | 0/TBD | Not started | - |
-| 72. Security Config | 0/TBD | Not started | - |
-| 73. Vote Session Resume | 0/TBD | Not started | - |
-| 74. CI Hardening | 0/TBD | Not started | - |
-| 75. Coverage & Observability | 0/TBD | Not started | - |
+| 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
