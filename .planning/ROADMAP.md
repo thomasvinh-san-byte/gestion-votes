@@ -341,7 +341,7 @@ Plans:
   3. When the SSE connection falls back to polling, a persistent notification reading "Connexion temps reel interrompue" (or equivalent) appears and remains visible until connectivity is restored
 **Plans**: 1 plan
 Plans:
-- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
+- [ ] 79-01-PLAN.md — EventSource cleanup (public.js pagehide) + async .catch() toasts (operator-realtime.js) + onFallback notification (FE-01, FE-03, FE-04)
 
 ### Phase 80: Pagination & Quality
 **Goal**: Long lists do not degrade page performance, the PV cannot be regenerated after session validation, and interactive elements are accessible to screen reader users
@@ -353,7 +353,7 @@ Plans:
   3. Every interactive element on every page (buttons, inputs, links, custom controls) has an aria-label or associated label that screen readers can announce; automated axe or Pa11y audit shows zero critical ARIA violations
 **Plans**: 1 plan
 Plans:
-- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
+- [ ] 80-01-PLAN.md — TBD
 
 ## Progress
 
@@ -362,5 +362,5 @@ Plans:
 | 76. Procuration PDF | 1/1 | Complete    | 2026-04-02 |
 | 77. RGPD Compliance | 1/2 | Complete    | 2026-04-02 |
 | 78. Data Integrity Locks | 1/1 | Complete    | 2026-04-02 |
-| 79. SSE & Async Robustness | 0/TBD | Not started | - |
+| 79. SSE & Async Robustness | 0/1 | Not started | - |
 | 80. Pagination & Quality | 0/TBD | Not started | - |
