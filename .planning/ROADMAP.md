@@ -286,7 +286,7 @@
 
 - [x] **Phase 76: Procuration PDF** - Generate a downloadable PDF pouvoir for each recorded delegation (completed 2026-04-02)
 - [x] **Phase 77: RGPD Compliance** - Member data export, admin data retention policy, and right-to-erasure deletion (completed 2026-04-02)
-- [ ] **Phase 78: Data Integrity Locks** - Transaction-level FOR UPDATE locks on ballot mutations and proxy chain validation inside the transaction
+- [x] **Phase 78: Data Integrity Locks** - Transaction-level FOR UPDATE locks on ballot mutations and proxy chain validation inside the transaction (completed 2026-04-02)
 - [ ] **Phase 79: SSE & Async Robustness** - EventSource cleanup on navigation, async error capture in operator console, SSE fallback polling notification
 - [ ] **Phase 80: Pagination & Quality** - List pagination (audit/meetings/members), PV immutable snapshot after validation, ARIA label completeness
 
@@ -329,7 +329,7 @@ Plans:
   3. All ballot mutation queries and motion status changes acquire a row-level lock before reading state they will modify
 **Plans**: 1 plan
 Plans:
-- [ ] 78-01-PLAN.md — hasActiveProxyForUpdate (DATA-02) + VotePublicController motion lock (DATA-01) + tests
+- [x] 78-01-PLAN.md — hasActiveProxyForUpdate (DATA-02) + VotePublicController motion lock (DATA-01) + tests (completed 2026-04-02)
 
 ### Phase 79: SSE & Async Robustness
 **Goal**: SSE connections do not leak on navigation and frontend errors are visible to users rather than silently swallowed
@@ -361,6 +361,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 76. Procuration PDF | 1/1 | Complete    | 2026-04-02 |
 | 77. RGPD Compliance | 1/2 | Complete    | 2026-04-02 |
-| 78. Data Integrity Locks | 0/TBD | Not started | - |
+| 78. Data Integrity Locks | 1/1 | Complete    | 2026-04-02 |
 | 79. SSE & Async Robustness | 0/TBD | Not started | - |
 | 80. Pagination & Quality | 0/TBD | Not started | - |

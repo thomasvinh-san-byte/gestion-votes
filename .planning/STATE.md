@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Compliance & Robustness
 status: executing
-stopped_at: Completed 77-rgpd-compliance/77-01-PLAN.md
-last_updated: "2026-04-02T07:55:01.726Z"
-last_activity: 2026-04-02
+stopped_at: Completed 78-data-integrity-locks/78-01-PLAN.md
+last_updated: "2026-04-02T08:06:00.000Z"
+last_activity: 2026-04-02 -- Phase 78 Plan 01 complete: TOCTOU races closed via FOR UPDATE proxy and motion row locks
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
-  percent: 99
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
+**Current focus:** Phase 78 — data-integrity-locks
 
 ## Current Position
 
-Phase: 78 of 70 (data integrity locks)
-Plan: Not started
-Status: In progress
-Last activity: 2026-04-02
+Phase: 78 (data-integrity-locks) — COMPLETE
+Plan: 1 of 1
+Status: Phase 78 complete
+Last activity: 2026-04-02 -- Phase 78 Plan 01 complete: TOCTOU races closed via FOR UPDATE proxy and motion row locks
 
 Progress: [██████████] 99%
 
@@ -51,6 +51,9 @@ Progress: [██████████] 99%
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
 - [Phase 77-rgpd-compliance]: Direct PDO injection in RgpdExportService — export spans multiple tables with JOINs not covered by existing single-table repos
 - [Phase 77-rgpd-compliance]: All authenticated roles allowed for RGPD export — any logged-in user may export their own data (Article 20 portability)
+- [Phase 78-data-integrity-locks]: hasActiveProxyForUpdate uses selectAll+FOR UPDATE (not scalar count) — consistent with countActiveAsGiverForUpdate pattern
+- [Phase 78-data-integrity-locks]: VotePublicController motion lock placed before consumeIfValid — ensures lock acquired before irreversible token consumption
+- [Phase 78-data-integrity-locks]: Source-level assertion for DATA-02 in DataIntegrityLocksTest — controller uses exit() so cannot be fully executed in unit tests
 
 ### Existing Infrastructure
 
@@ -76,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T07:53:46.722Z
-Stopped at: Completed 77-rgpd-compliance/77-01-PLAN.md
+Last session: 2026-04-02T08:06:00Z
+Stopped at: Completed 78-data-integrity-locks/78-01-PLAN.md
 Resume file: None

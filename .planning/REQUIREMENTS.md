@@ -16,8 +16,8 @@ Requirements for v9.0 Compliance & Robustness milestone.
 
 ### Integrite Donnees
 
-- [ ] **DATA-01**: Toutes les mutations de ballots et de statut de motion utilisent des verrous FOR UPDATE dans une transaction
-- [ ] **DATA-02**: La validation de chaine de procurations est effectuee a l'interieur de la transaction (fix TOCTOU)
+- [x] **DATA-01**: Toutes les mutations de ballots et de statut de motion utilisent des verrous FOR UPDATE dans une transaction
+- [x] **DATA-02**: La validation de chaine de procurations est effectuee a l'interieur de la transaction (fix TOCTOU)
 
 ### Frontend Robustness
 
@@ -57,8 +57,8 @@ Requirements for v9.0 Compliance & Robustness milestone.
 | LEGAL-02 | Phase 77 | Pending |
 | LEGAL-03 | Phase 77 | Pending |
 | LEGAL-04 | Phase 77 | Pending |
-| DATA-01 | Phase 78 | Pending |
-| DATA-02 | Phase 78 | Pending |
+| DATA-01 | Phase 78 | Complete |
+| DATA-02 | Phase 78 | Complete |
 | FE-01 | Phase 79 | Pending |
 | FE-02 | Phase 80 | Pending |
 | FE-03 | Phase 79 | Pending |
