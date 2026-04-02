@@ -126,7 +126,7 @@ final class Permissions {
             'validated' => ['president', 'operator'],
         ],
         'validated' => [
-            'archived' => ['admin'],
+            'archived' => ['admin', 'operator'],
         ],
         // 'archived' is terminal — no transitions allowed
     ];
