@@ -281,7 +281,10 @@ Plans:
   1. The CI e2e job loads 04_e2e.sql before running Playwright tests, and tests that depend on seed data pass in CI without manual intervention
   2. The CI migrate-check job runs the idempotency validation script and fails the build if any migration is not idempotent
   3. A purposely non-idempotent migration (test fixture) causes the CI job to fail with a clear error message
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 74-01-PLAN.md — Load 04_e2e.sql in e2e job and upgrade migrate-check to full PostgreSQL idempotency validation
 
 ### Phase 75: Coverage & Observability
 **Goal**: Controller test coverage rises above the current 64.6% structural ceiling and the admin dashboard no longer silently swallows KPI load failures
@@ -300,5 +303,5 @@ Plans:
 | 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
 | 72. Security Config | 1/2 | Complete    | 2026-04-02 |
 | 73. Vote Session Resume | 0/1 | Complete    | 2026-04-02 |
-| 74. CI Hardening | 0/TBD | Not started | - |
+| 74. CI Hardening | 0/1 | Not started | - |
 | 75. Coverage & Observability | 0/TBD | Not started | - |
