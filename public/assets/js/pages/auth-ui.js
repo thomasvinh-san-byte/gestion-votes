@@ -138,6 +138,10 @@
       '    <span class="auth-btn-label">Accueil</span>' +
       '  </a>' +
       '  <button class="btn btn-ghost btn-sm" id="auth-login-btn">Se connecter</button>' +
+      '  <a href="/account" class="btn btn-ghost btn-sm" id="auth-account-btn" style="display:none;" aria-label="Mon Compte">' +
+      '    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>' +
+      '    <span class="auth-btn-label">Mon Compte</span>' +
+      '  </a>' +
       '  <button class="btn btn-ghost btn-sm auth-logout-btn" id="auth-logout-btn" style="display:none;">' +
       '    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-log-out"></use></svg>' +
       '    <span class="auth-btn-label">D\u00e9connexion</span>' +
@@ -182,6 +186,7 @@
     isLoggedIn ? _hide(b.querySelector('#auth-login-btn')) : _show(b.querySelector('#auth-login-btn'));
     isLoggedIn ? _show(b.querySelector('#auth-logout-btn')) : _hide(b.querySelector('#auth-logout-btn'));
     isLoggedIn ? _show(b.querySelector('#auth-home-btn')) : _hide(b.querySelector('#auth-home-btn'));
+    isLoggedIn ? _show(b.querySelector('#auth-account-btn')) : _hide(b.querySelector('#auth-account-btn'));
 
     if (type === 'danger') {
       b.classList.add('auth-banner--disconnected');
@@ -347,7 +352,7 @@
     // Allowed pages for voters
     var path = window.location.pathname;
     // Allowed pages for voters (exact match or /page/UUID pattern)
-    var allowedExact = ['/vote.htmx.html', '/vote', '/public.htmx.html', '/public', '/help.htmx.html', '/help', '/docs.htmx.html', '/docs'];
+    var allowedExact = ['/vote.htmx.html', '/vote', '/public.htmx.html', '/public', '/help.htmx.html', '/help', '/docs.htmx.html', '/docs', '/account'];
     for (var i = 0; i < allowedExact.length; i++) {
       if (path === allowedExact[i]) return;
     }
