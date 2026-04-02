@@ -301,7 +301,9 @@
   2. The PDF contains the full name of the delegating member (mandant), the full name of the receiving member (mandataire), the session name and date, and an appropriate legal mention
   3. The PDF is downloadable directly from the browser without navigating away from the current page
   4. Generating the PDF does not require the session to be in any particular lifecycle state
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
 
 ### Phase 77: RGPD Compliance
 **Goal**: Members can export their own data and administrators can enforce data retention and erasure rights
@@ -312,7 +314,9 @@
   2. An administrator sets a data retention duration (in months) in the admin settings; a scheduled job or manual trigger purges all member records and associated data older than that threshold
   3. An administrator selects a member and triggers "Supprimer definitivement"; all rows for that member — votes, attendance records, procurations — are deleted across all related tables in a single cascaded operation
   4. After deletion, the member cannot log in and their data does not appear in any list or report
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
 
 ### Phase 78: Data Integrity Locks
 **Goal**: Concurrent vote submissions and proxy chain validations cannot produce corrupted or inconsistent state
@@ -322,7 +326,9 @@
   1. Under concurrent load, two simultaneous ballot submissions for the same motion cannot both succeed if only one vote slot remains (serialized via FOR UPDATE)
   2. A proxy chain is validated and the vote is recorded inside a single database transaction; a concurrent delegation change that completes between the validation check and the insert is detected and rejected
   3. All ballot mutation queries and motion status changes acquire a row-level lock before reading state they will modify
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
 
 ### Phase 79: SSE & Async Robustness
 **Goal**: SSE connections do not leak on navigation and frontend errors are visible to users rather than silently swallowed
@@ -332,7 +338,9 @@
   1. Navigating away from a page that opened an EventSource connection closes that connection immediately; no orphaned SSE connections appear in the browser network tab after navigation
   2. When an async operation in operator-realtime.js throws an error, a French error message is displayed to the operator (toast or inline message) rather than the error being swallowed silently
   3. When the SSE connection falls back to polling, a persistent notification reading "Connexion temps reel interrompue" (or equivalent) appears and remains visible until connectivity is restored
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
 
 ### Phase 80: Pagination & Quality
 **Goal**: Long lists do not degrade page performance, the PV cannot be regenerated after session validation, and interactive elements are accessible to screen reader users
@@ -342,13 +350,15 @@
   1. The audit log, meetings list, and members list each display at most 50 items per page with working previous/next controls; navigating to page 2 loads the correct offset without reloading the full dataset
   2. Once a session is marked as validated, the PV generation endpoint returns the stored snapshot PDF and does not re-execute the PDF generation logic; the stored file content is immutable after first generation
   3. Every interactive element on every page (buttons, inputs, links, custom controls) has an aria-label or associated label that screen readers can announce; automated axe or Pa11y audit shows zero critical ARIA violations
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 76-01-PLAN.md — ProcurationPdfService + controller + download button
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 76. Procuration PDF | 0/TBD | Not started | - |
+| 76. Procuration PDF | 0/1 | Not started | - |
 | 77. RGPD Compliance | 0/TBD | Not started | - |
 | 78. Data Integrity Locks | 0/TBD | Not started | - |
 | 79. SSE & Async Robustness | 0/TBD | Not started | - |
