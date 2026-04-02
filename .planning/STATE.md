@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v9.0
-milestone_name: Compliance & Robustness
+milestone: v7.0
+milestone_name: Production Essentials
 status: executing
-stopped_at: Completed 79-sse-async-robustness/79-01-PLAN.md
-last_updated: "2026-04-02T08:18:48.231Z"
-last_activity: 2026-04-02
+stopped_at: Completed 80-pagination-quality/80-01-PLAN.md
+last_updated: "2026-04-02T08:39:47.947Z"
+last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 99
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 79 — sse-async-robustness
+**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
 
 ## Current Position
 
-Phase: 80
-Plan: Not started
-Status: Executing Phase 79
-Last activity: 2026-04-02
+Phase: 67 of 70 (PV Officiel PDF)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
 
 Progress: [██████████] 99%
 
@@ -49,13 +49,7 @@ Progress: [██████████] 99%
 - [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
 - [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
-- [Phase 77-rgpd-compliance]: Direct PDO injection in RgpdExportService — export spans multiple tables with JOINs not covered by existing single-table repos
-- [Phase 77-rgpd-compliance]: All authenticated roles allowed for RGPD export — any logged-in user may export their own data (Article 20 portability)
-- [Phase 78-data-integrity-locks]: hasActiveProxyForUpdate uses selectAll+FOR UPDATE (not scalar count) — consistent with countActiveAsGiverForUpdate pattern
-- [Phase 78-data-integrity-locks]: VotePublicController motion lock placed before consumeIfValid — ensures lock acquired before irreversible token consumption
-- [Phase 78-data-integrity-locks]: Source-level assertion for DATA-02 in DataIntegrityLocksTest — controller uses exit() so cannot be fully executed in unit tests
-- [Phase 79-sse-async-robustness]: AgToast.show() return value stored in _sseFallbackToastEl for programmatic dismiss on reconnect
-- [Phase 79-sse-async-robustness]: onFallback dual-path: AgToast.show() if available else setNotif() — defensive for environments where AgToast may not be loaded
+- [Phase 80-pagination-quality]: listAll() preserved alongside listPaginated() for backward compatibility; MembersController::index() uses server-side pagination with ?page=&per_page= max 50
 
 ### Existing Infrastructure
 
@@ -81,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T08:17:59.148Z
-Stopped at: Completed 79-sse-async-robustness/79-01-PLAN.md
+Last session: 2026-04-02T08:39:47.944Z
+Stopped at: Completed 80-pagination-quality/80-01-PLAN.md
 Resume file: None
