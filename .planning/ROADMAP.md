@@ -14,8 +14,8 @@
 - ✅ **v5.1 Operational Hardening** - Phases 58-61 (shipped 2026-03-31)
 - ✅ **v6.0 Production & Email** - Phases 62-64 (shipped 2026-04-01)
 - ✅ **v6.1 PDF & Preparation de Seance** - Phases 65-66 (shipped 2026-04-01)
-- 🚧 **v7.0 Production Essentials** - Phases 67-70 (in progress)
-- 🚧 **v7.1 Account Self-Service** - Phase 71 (in progress)
+- ✅ **v7.0 Production Essentials** - Phases 67-70 (shipped 2026-04-01)
+- 🚧 **v8.0 Account & Hardening** - Phases 71-75 (in progress)
 
 ---
 
@@ -224,16 +224,74 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 
 ---
 
-### v7.1 Account Self-Service (In Progress)
+### v8.0 Account & Hardening (In Progress)
 
-**Milestone Goal:** Allow any authenticated user to view their profile and change their password through a self-service /account page.
+**Milestone Goal:** Give every logged-in user a self-service Mon Compte page, harden critical operations with 2-step confirmation, make session timeout configurable, add vote session resume after re-auth, and retire four known tech debt items (controller coverage, silent error, CI seed data, CI migration check).
 
 ## Phases
 
-- [x] **Phase 71: Mon Compte** - Self-service /account page with profile view and password change (completed 2026-04-02)
+- [x] **Phase 71: Mon Compte** - Profile view and self-service password change page for all connected users (completed 2026-04-02)
+- [ ] **Phase 72: Security Config** - 2-step confirmation for critical operations and configurable session timeout from admin settings
+- [ ] **Phase 73: Vote Session Resume** - Re-authentication flow that restores voter context after session timeout during a live vote
+- [ ] **Phase 74: CI Hardening** - Load E2E seed data in CI job and gate migration idempotency check in CI pipeline
+- [ ] **Phase 75: Coverage & Observability** - Refactor exit()-based controllers to raise coverage ceiling and surface admin.js KPI errors visibly
+
+## Phase Details
+
+### Phase 71: Mon Compte
+**Goal**: Any connected user can view their profile and change their own password without admin intervention
+**Depends on**: Nothing (builds on existing AuthController + bcrypt infrastructure)
+**Requirements**: ACCT-01, ACCT-02
+**Plans**: 1 plan (complete)
+
+### Phase 72: Security Config
+**Goal**: Administrators can require 2-step confirmation before irreversible operations execute, and can set the session idle timeout from the admin UI instead of relying on a hardcoded 30-minute value
+**Depends on**: Phase 71
+**Requirements**: SEC-01, SEC-02
+**Success Criteria** (what must be TRUE):
+  1. Deleting a user or triggering an admin password reset shows a confirmation dialog requiring a second explicit action before proceeding
+  2. An admin changes the session timeout value in settings and subsequent sessions expire after the new configured duration
+  3. The timeout setting persists across server restarts (stored in tenant_settings, not only in memory)
+  4. Attempting the critical operation via direct POST without completing the 2-step flow is rejected
+**Plans**: TBD
+
+### Phase 73: Vote Session Resume
+**Goal**: A voter whose session expires mid-vote can re-authenticate and return to the exact ballot they were on, without losing their voting context
+**Depends on**: Phase 72
+**Requirements**: SEC-03
+**Success Criteria** (what must be TRUE):
+  1. When a voter's session expires during an active vote, they are redirected to a re-authentication page rather than the generic login page
+  2. After successful re-authentication, the voter is returned directly to the ballot for the meeting they were voting in
+  3. Any vote the voter had already cast before timeout is preserved and visible on return
+  4. If the vote session has closed while the voter was timed out, they see a clear message explaining the vote has ended
+**Plans**: TBD
+
+### Phase 74: CI Hardening
+**Goal**: The CI pipeline loads E2E seed data automatically and validates migration idempotency on every run, so local-only checks cannot silently drift from CI
+**Depends on**: Nothing (pure CI/infrastructure work)
+**Requirements**: DEBT-03, DEBT-04
+**Success Criteria** (what must be TRUE):
+  1. The CI e2e job loads 04_e2e.sql before running Playwright tests, and tests that depend on seed data pass in CI without manual intervention
+  2. The CI migrate-check job runs the idempotency validation script and fails the build if any migration is not idempotent
+  3. A purposely non-idempotent migration (test fixture) causes the CI job to fail with a clear error message
+**Plans**: TBD
+
+### Phase 75: Coverage & Observability
+**Goal**: Controller test coverage rises above the current 64.6% structural ceiling and the admin dashboard no longer silently swallows KPI load failures
+**Depends on**: Nothing (independent quality work)
+**Requirements**: DEBT-01, DEBT-02
+**Success Criteria** (what must be TRUE):
+  1. The exit()-based controllers are refactored so PHPUnit can exercise them; coverage report shows controller coverage above 70%
+  2. When the admin KPI endpoint fails, the admin page displays a visible error message or fallback state instead of leaving the KPI cards blank with no indication of failure
+  3. The coverage-check.sh threshold is updated to enforce the new higher floor, and CI fails if coverage drops below it
+**Plans**: TBD
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 71. Mon Compte | 1/1 | Complete    | 2026-04-02 |
+| 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
+| 72. Security Config | 0/TBD | Not started | - |
+| 73. Vote Session Resume | 0/TBD | Not started | - |
+| 74. CI Hardening | 0/TBD | Not started | - |
+| 75. Coverage & Observability | 0/TBD | Not started | - |

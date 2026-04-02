@@ -1,72 +1,68 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.0
-milestone_name: Production Essentials
+milestone: v8.0
+milestone_name: Account & Hardening
 status: executing
-stopped_at: Completed 71-mon-compte/71-01-PLAN.md
-last_updated: "2026-04-02T05:22:13.462Z"
-last_activity: 2026-04-02
+stopped_at: Phase 71 complete, Phase 72 next
+last_updated: "2026-04-02T10:00:00.000Z"
+last_activity: 2026-04-02 -- Phase 71 complete, continuing v8.0
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
-  percent: 99
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 20
 ---
 
 # AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
+**Current focus:** v8.0 Account & Hardening — Phase 72 next
 
 ## Current Position
 
-Phase: 71 of 71 (Mon Compte)
-Plan: Not started
-Status: In progress
-Last activity: 2026-04-02
+Phase: 72 (Security Config) — Not started
+Plan: —
+Status: Phase 71 complete, proceeding to Phase 72
+Last activity: 2026-04-02 — Phase 71 Mon Compte completed
 
-Progress: [██████████] 99%
+Progress: [██░░░░░░░░] 20%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [Phase 71-mon-compte]: AccountController directly checks $_SESSION['auth_user'] (no AuthMiddleware) — same pattern as PasswordResetController and SetupController
-- [Phase 71-mon-compte]: Template reuses login-card / login-orb layout from reset_request_form.php — no new CSS file needed
-- [Phase 71-mon-compte]: Voter confinement allowlist includes /account so voter-role users can access their profile
-- [Phase 71-mon-compte]: Worktree bootstrap.php updated to load vendor from parent project using require (not require_once) to get ClassLoader back for addPsr4 override
-- [v7.0 roadmap]: 4 phases derived from 11 requirements — each feature is an independent vertical slice
-- [v7.0 roadmap]: Phase 70 (Reset Password) depends on Phase 68 (Email Queue) for reliable email delivery
-- [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
-- [v7.0 roadmap]: Email queue builds on existing EmailQueueService::processQueue() — just needs cron worker
-- [v7.0 roadmap]: Setup page guard checks admin user count — no config file needed
-- [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
-- [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
-- [Phase 67-pv-officiel-pdf]: Task 2 (visual verification) deferred — user chose Continue without verifying
-- [Phase 68-email-queue-worker]: Command tests validate configuration only (no execute() call) — execute() needs live DB via Application::config()
-- [Phase 68-email-queue-worker]: Repository retry tests use file_get_contents() pattern to assert SQL patterns without a database connection
-- [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
-- [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
-- [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
+- [v7.0]: 4 phases (67-70) shipped — PV PDF, email queue worker, setup page, password reset
+- [v7.0 audit]: Nginx routing fix for /reset-password and /setup discovered and applied
+- [v7.0]: HMAC-SHA256 token pattern established (VoteTokenService + PasswordResetService)
+- [v7.0]: HTML controller pattern (no AbstractController, uses HtmlView::render())
+- [v8.0]: Phase 71 Mon Compte — /account page with profile view + self-service password change
+- [v8.0]: AccountController follows same HTML controller pattern (HtmlView::render, AccountRedirectException)
+- [v8.0]: Phases 74-75 (tech debt) independent of 71-73
 
 ### Existing Infrastructure
 
-- MeetingReportService exists with Dompdf for PV generation (partially implemented)
-- EmailQueueService::processQueue() exists — needs cron wrapper
-- Symfony Mailer installed and configured (Phase 62)
-- AuthController + AuthMiddleware complete with bcrypt/argon2 password hashing
-- Login page already built (Phase 44 rebuild)
+- AccountController + account_form.php (Phase 71)
+- PasswordResetService + PasswordResetController (Phase 70)
+- SetupController with hasAnyAdmin() guard (Phase 69)
+- Email queue worker via supervisord (Phase 68)
+- AuthController + AuthMiddleware with bcrypt/argon2 hashing
+- CSRF middleware (synchronizer token pattern)
+- InputValidator with fluent API
+- RateLimiter (file-based fallback when Redis unavailable)
+- 50+ audit event types with SHA-256 chain verification
+- tenant_settings table for persisted config
 
 ### Known Tech Debt Carried Forward
 
-- Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
-- CI e2e job runs chromium only; mobile-chrome/tablet are local-only
-- Migration idempotency check is local-only, not CI-gated
+- Controller coverage at 64.6% (exit()-based controllers are structural ceiling) — DEBT-01
+- admin.js KPI load failure catch is silent — DEBT-02
+- E2E seed data (04_e2e.sql) not loaded in CI e2e job — DEBT-03
+- Migration idempotency check is local-only, not CI-gated — DEBT-04
 
 ### Pending Todos
 
@@ -78,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T05:16:03Z
-Stopped at: Completed 71-mon-compte/71-01-PLAN.md
+Last session: 2026-04-02T10:00:00.000Z
+Stopped at: Phase 71 complete, Phase 72 next
 Resume file: None
