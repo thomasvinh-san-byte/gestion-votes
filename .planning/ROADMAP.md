@@ -231,7 +231,7 @@ Phases execute in numeric order: 67 → 68 → 69 → 70
 ## Phases
 
 - [x] **Phase 71: Mon Compte** - Profile view and self-service password change page for all connected users (completed 2026-04-02)
-- [ ] **Phase 72: Security Config** - 2-step confirmation for critical operations and configurable session timeout from admin settings
+- [x] **Phase 72: Security Config** - 2-step confirmation for critical operations and configurable session timeout from admin settings (completed 2026-04-02)
 - [ ] **Phase 73: Vote Session Resume** - Re-authentication flow that restores voter context after session timeout during a live vote
 - [ ] **Phase 74: CI Hardening** - Load E2E seed data in CI job and gate migration idempotency check in CI pipeline
 - [ ] **Phase 75: Coverage & Observability** - Refactor exit()-based controllers to raise coverage ceiling and surface admin.js KPI errors visibly
@@ -295,7 +295,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
-| 72. Security Config | 1/2 | In progress | - |
+| 72. Security Config | 1/2 | Complete    | 2026-04-02 |
 | 73. Vote Session Resume | 0/TBD | Not started | - |
 | 74. CI Hardening | 0/TBD | Not started | - |
 | 75. Coverage & Observability | 0/TBD | Not started | - |
