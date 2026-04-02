@@ -21,10 +21,10 @@ Requirements for v9.0 Compliance & Robustness milestone.
 
 ### Frontend Robustness
 
-- [ ] **FE-01**: Les connexions EventSource sont nettoyees proprement lors de la navigation (pas de memory leak)
+- [x] **FE-01**: Les connexions EventSource sont nettoyees proprement lors de la navigation (pas de memory leak)
 - [ ] **FE-02**: Les listes d'audit, meetings et membres sont paginees (max 50 items par page)
-- [ ] **FE-03**: Les erreurs async dans operator-realtime.js sont capturees et affichees a l'utilisateur
-- [ ] **FE-04**: Le fallback polling SSE affiche une notification "Connexion temps reel interrompue"
+- [x] **FE-03**: Les erreurs async dans operator-realtime.js sont capturees et affichees a l'utilisateur
+- [x] **FE-04**: Le fallback polling SSE affiche une notification "Connexion temps reel interrompue"
 
 ### Qualite
 
@@ -59,9 +59,9 @@ Requirements for v9.0 Compliance & Robustness milestone.
 | LEGAL-04 | Phase 77 | Pending |
 | DATA-01 | Phase 78 | Complete |
 | DATA-02 | Phase 78 | Complete |
-| FE-01 | Phase 79 | Pending |
+| FE-01 | Phase 79 | Complete |
 | FE-02 | Phase 80 | Pending |
-| FE-03 | Phase 79 | Pending |
-| FE-04 | Phase 79 | Pending |
+| FE-03 | Phase 79 | Complete |
+| FE-04 | Phase 79 | Complete |
 | QUAL-01 | Phase 80 | Pending |
 | QUAL-02 | Phase 80 | Pending |
