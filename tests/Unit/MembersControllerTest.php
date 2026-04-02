@@ -26,9 +26,10 @@ use AgVote\Repository\MemberRepository;
  */
 class MembersControllerTest extends ControllerTestCase
 {
-    private const TENANT    = 'tenant-uuid-001';
+    private const TENANT    = 'aaaaaaaa-0000-0000-0000-000000000001';
     private const MEMBER_ID = 'aaaaaaaa-1111-2222-3333-000000000080';
-    private const USER_ID   = 'user-uuid-0080';
+    private const USER_ID   = 'aaaaaaaa-0000-0000-0000-000000000080';
+    private const GROUP_ID  = 'bbbbbbbb-1111-2222-3333-000000000001';
 
     // =========================================================================
     // CONTROLLER STRUCTURE
@@ -142,8 +143,8 @@ class MembersControllerTest extends ControllerTestCase
         $memberRepo->method('countAll')->willReturn(1);
 
         $groupRepo = $this->createMock(MemberGroupRepository::class);
-        $groupRepo->method('listGroupsForMember')->willReturn([
-            ['id' => 'group-id-01', 'name' => 'Group A'],
+        $groupRepo->method('listGroupsForMembers')->willReturn([
+            self::MEMBER_ID => [['id' => 'aaaabbbb-1111-2222-3333-000000000001', 'name' => 'Group A']],
         ]);
 
         $this->injectRepos([
@@ -469,7 +470,7 @@ class MembersControllerTest extends ControllerTestCase
         $this->injectJsonBody([
             'operation'  => 'assign_group',
             'member_ids' => [self::MEMBER_ID],
-            'group_id'   => 'group-uuid-001',
+            'group_id'   => self::GROUP_ID,
         ]);
 
         $memberRepo = $this->createMock(MemberRepository::class);
@@ -477,7 +478,7 @@ class MembersControllerTest extends ControllerTestCase
 
         $groupRepo = $this->createMock(MemberGroupRepository::class);
         $groupRepo->expects($this->once())->method('bulkAssignToGroup')
-            ->with('group-uuid-001', [self::MEMBER_ID])
+            ->with(self::GROUP_ID, [self::MEMBER_ID])
             ->willReturn(1);
 
         $this->injectRepos([

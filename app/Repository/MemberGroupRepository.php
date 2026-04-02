@@ -239,6 +239,45 @@ class MemberGroupRepository extends AbstractRepository {
     }
 
     /**
+     * Batch fetch groups for multiple members (avoids N+1 queries).
+     * Returns an associative array keyed by member_id, each value is the array of groups.
+     *
+     * @param string[] $memberIds
+     * @return array<string, array>
+     */
+    public function listGroupsForMembers(array $memberIds, string $tenantId): array {
+        if (count($memberIds) === 0) {
+            return [];
+        }
+        $params = [':tid' => $tenantId];
+        $in = $this->buildInClause('mbid', $memberIds, $params);
+
+        $rows = $this->selectAll(
+            "SELECT
+                mga.member_id,
+                mg.id,
+                mg.name,
+                mg.description,
+                mg.color,
+                mg.sort_order,
+                mga.assigned_at
+            FROM member_group_assignments mga
+            JOIN member_groups mg ON mg.id = mga.group_id AND mg.tenant_id = :tid AND mg.is_active = true
+            WHERE mga.member_id IN ({$in})
+            ORDER BY mg.sort_order ASC, mg.name ASC",
+            $params,
+        );
+
+        $result = [];
+        foreach ($rows as $row) {
+            $memberId = $row['member_id'];
+            unset($row['member_id']);
+            $result[$memberId][] = $row;
+        }
+        return $result;
+    }
+
+    /**
      * Verifie si un membre appartient a un groupe.
      */
     public function isMemberInGroup(string $memberId, string $groupId): bool {

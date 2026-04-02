@@ -408,10 +408,15 @@ class MemberRepository extends AbstractRepository {
 
     /**
      * Soft delete un membre (marque deleted_at).
+     * Supprime aussi toutes les procurations ou le membre est donneur ou receveur.
      */
     public function softDelete(string $id, string $tenantId): void {
         $this->execute(
             'UPDATE members SET deleted_at = NOW(), updated_at = NOW() WHERE id = :id AND tenant_id = :tid',
+            [':id' => $id, ':tid' => $tenantId],
+        );
+        $this->execute(
+            'DELETE FROM proxies WHERE tenant_id = :tid AND (giver_member_id = :id OR receiver_member_id = :id)',
             [':id' => $id, ':tid' => $tenantId],
         );
     }
@@ -458,5 +463,69 @@ class MemberRepository extends AbstractRepository {
             'SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL',
             [':tid' => $tenantId],
         ) ?? 0);
+    }
+
+    /**
+     * Paginated member list filtered by search term (full_name or email ILIKE).
+     */
+    public function listPaginatedFiltered(string $tenantId, int $limit = 50, int $offset = 0, ?string $search = null): array {
+        $limit  = max(1, min($limit, 50));
+        $offset = max(0, $offset);
+        $params = [':tenant_id' => $tenantId, ':lim' => $limit, ':off' => $offset];
+        $where  = 'WHERE tenant_id = :tenant_id AND deleted_at IS NULL';
+
+        if ($search !== null && $search !== '') {
+            $where .= ' AND (full_name ILIKE :search OR email ILIKE :search)';
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        return $this->selectAll(
+            "SELECT id, full_name, full_name AS name, email, role,
+                    COALESCE(voting_power, 1.0) AS voting_power,
+                    is_active, created_at, updated_at, tenant_id
+             FROM members
+             {$where}
+             ORDER BY full_name ASC
+             LIMIT :lim OFFSET :off",
+            $params,
+        );
+    }
+
+    /**
+     * Count of non-deleted members matching optional search filter.
+     */
+    public function countFiltered(string $tenantId, ?string $search = null): int {
+        $params = [':tid' => $tenantId];
+        $where  = 'WHERE tenant_id = :tid AND deleted_at IS NULL';
+
+        if ($search !== null && $search !== '') {
+            $where .= ' AND (full_name ILIKE :search OR email ILIKE :search)';
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        return (int) ($this->scalar(
+            "SELECT COUNT(*) FROM members {$where}",
+            $params,
+        ) ?? 0);
+    }
+
+    /**
+     * Bulk update voting_power for a set of member IDs.
+     * Only updates members that exist and are not deleted for the tenant.
+     * Returns number of rows updated.
+     */
+    public function bulkUpdateVotingPower(array $ids, string $tenantId, float $power): int {
+        $ids = $this->filterExistingIds($ids, $tenantId);
+        if (count($ids) === 0) {
+            return 0;
+        }
+        $params = [':power' => $power, ':tid' => $tenantId];
+        $in = $this->buildInClause('id', $ids, $params);
+
+        return $this->execute(
+            "UPDATE members SET voting_power = :power, updated_at = NOW()
+             WHERE id IN ({$in}) AND tenant_id = :tid AND deleted_at IS NULL",
+            $params,
+        );
     }
 }
