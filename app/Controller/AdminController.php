@@ -89,6 +89,26 @@ final class AdminController extends AbstractController {
                 $userRepo->deleteUser(api_current_tenant_id(), $userId);
                 audit_log('admin.user.deleted', 'user', $userId, []);
                 api_ok(['deleted' => true, 'user_id' => $userId]);
+            } elseif ($action === 'erase_member') {
+                $this->requireConfirmation($in, api_current_tenant_id());
+                $memberId = api_require_uuid($in, 'member_id');
+                $tenantId = api_current_tenant_id();
+
+                // Verify member exists and belongs to tenant before deletion
+                $memberRepo = $this->repo()->member();
+                $member = $memberRepo->findByIdForTenant($memberId, $tenantId);
+                if ($member === null) {
+                    api_fail('member_not_found', 404, ['detail' => 'Membre introuvable ou deja supprime.']);
+                }
+
+                // Hard delete — cascades to ballots, attendances, proxies via FK ON DELETE CASCADE
+                $rows = $memberRepo->hardDeleteById($memberId, $tenantId);
+                audit_log('admin.member.erased', 'member', $memberId, [
+                    'full_name' => $member['full_name'] ?? '',
+                    'email'     => $member['email'] ?? '',
+                    'rgpd'      => true,
+                ]);
+                api_ok(['erased' => true, 'member_id' => $memberId, 'rows_deleted' => $rows]);
             } elseif ($action === 'update') {
                 $userId = api_require_uuid($in, 'user_id');
                 $email = strtolower(trim((string) ($in['email'] ?? '')));
