@@ -74,7 +74,17 @@
       }
 
     } catch (e) {
-      // KPI section is optional — fail silently
+      // KPI load failed — show visible error state on cards that are still showing '-'
+      var kpiIds = ['adminKpiMembers', 'adminKpiSessions', 'adminKpiVotes', 'adminKpiActive'];
+      kpiIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.textContent === '-') {
+          el.textContent = '—';
+          el.title = 'Erreur chargement indicateurs';
+          el.style.color = 'var(--color-error, #DC2626)';
+        }
+      });
+      setNotif('error', 'Erreur lors du chargement des indicateurs');
     }
   }
 
