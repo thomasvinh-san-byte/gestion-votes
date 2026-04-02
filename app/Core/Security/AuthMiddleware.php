@@ -37,8 +37,8 @@ final class AuthMiddleware {
     /** Meeting roles (no hierarchy, distinct permissions) */
     private const MEETING_ROLES = ['president', 'assessor', 'voter'];
 
-    /** Session timeout in seconds (30 minutes) */
-    private const SESSION_TIMEOUT = 1800;
+    /** Default session timeout in seconds (30 minutes) — used as fallback */
+    private const DEFAULT_SESSION_TIMEOUT = 1800;
 
     /** Interval (seconds) between DB re-validation of session user (is_active, role) */
     private const SESSION_REVALIDATE_INTERVAL = 60;
@@ -64,6 +64,22 @@ final class AuthMiddleware {
     /** True when the last authenticate() call detected an expired session (not just missing). */
     private static bool $sessionExpired = false;
 
+    /** Cached session timeout in seconds (per-request cache, keyed by tenant). */
+    private static ?int $cachedSessionTimeout = null;
+
+    /** Tenant ID for which the timeout cache is valid. */
+    private static ?string $cachedTimeoutTenantId = null;
+
+    /**
+     * Test-only injected timeout value (seconds, already clamped).
+     * null = use DB / fallback logic.
+     * @internal used by unit tests only
+     */
+    private static ?int $testSessionTimeout = null;
+
+    /** Tenant ID for which the test timeout override is valid. */
+    private static ?string $testTimeoutTenantId = null;
+
     // =========================================================================
     // INIT / CONFIG
     // =========================================================================
@@ -80,6 +96,65 @@ final class AuthMiddleware {
             return false;
         }
         return true;
+    }
+
+    // =========================================================================
+    // SESSION TIMEOUT
+    // =========================================================================
+
+    /**
+     * Returns session timeout in seconds for the given tenant.
+     *
+     * Reads the `settSessionTimeout` key (stored as minutes) from tenant_settings.
+     * Value is clamped to 5-480 minutes (300-28800 seconds).
+     * Falls back to DEFAULT_SESSION_TIMEOUT (1800 s) when not set or on DB error.
+     *
+     * Cached per-request to avoid repeated DB reads.
+     */
+    public static function getSessionTimeout(?string $tenantId = null): int {
+        $tid = $tenantId ?? self::getCurrentTenantId();
+
+        // Test override (injected via setSessionTimeoutForTest)
+        if (self::$testSessionTimeout !== null && self::$testTimeoutTenantId === $tid) {
+            return max(300, min(28800, self::$testSessionTimeout));
+        }
+
+        // Per-request cache
+        if (self::$cachedSessionTimeout !== null && self::$cachedTimeoutTenantId === $tid) {
+            return self::$cachedSessionTimeout;
+        }
+
+        try {
+            $repo = RepositoryFactory::getInstance()->settings();
+            $val = $repo->get($tid, 'settSessionTimeout');
+            if ($val !== null && is_numeric($val)) {
+                $seconds = ((int) $val) * 60; // stored as minutes, used as seconds
+                $seconds = max(300, min(28800, $seconds)); // clamp: 5min - 480min
+                self::$cachedSessionTimeout = $seconds;
+                self::$cachedTimeoutTenantId = $tid;
+                return $seconds;
+            }
+        } catch (\Throwable $e) {
+            // DB failure: fall back to default
+        }
+
+        self::$cachedSessionTimeout = self::DEFAULT_SESSION_TIMEOUT;
+        self::$cachedTimeoutTenantId = $tid;
+        return self::DEFAULT_SESSION_TIMEOUT;
+    }
+
+    /**
+     * Test helper: inject a specific timeout value (seconds) for the given tenant.
+     * Pass null to clear the override (use DB logic).
+     *
+     * @internal used by unit tests only
+     */
+    public static function setSessionTimeoutForTest(string $tenantId, ?int $seconds): void {
+        self::$testSessionTimeout = $seconds;
+        self::$testTimeoutTenantId = $tenantId;
+        // Also clear the per-request cache so next call hits our injected value
+        self::$cachedSessionTimeout = null;
+        self::$cachedTimeoutTenantId = null;
     }
 
     // =========================================================================
@@ -298,7 +373,7 @@ final class AuthMiddleware {
                 $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
                 $now = time();
 
-                if ($lastActivity > 0 && ($now - $lastActivity) > self::SESSION_TIMEOUT) {
+                if ($lastActivity > 0 && ($now - $lastActivity) > self::getSessionTimeout()) {
                     // Session expired - destroy it
                     error_log(sprintf(
                         'SESSION_EXPIRED | user_id=%s | idle=%ds',
@@ -779,5 +854,9 @@ final class AuthMiddleware {
         self::$currentMeetingRoles = null;
         self::$accessLog = [];
         self::$sessionExpired = false;
+        self::$cachedSessionTimeout = null;
+        self::$cachedTimeoutTenantId = null;
+        self::$testSessionTimeout = null;
+        self::$testTimeoutTenantId = null;
     }
 }

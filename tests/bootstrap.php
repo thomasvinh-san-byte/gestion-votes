@@ -16,6 +16,19 @@ define('PHPUNIT_RUNNING', true);
 $autoload = PROJECT_ROOT . '/vendor/autoload.php';
 if (file_exists($autoload)) {
     require_once $autoload;
+
+    // Override Composer PSR-4 paths so tests load classes from THIS worktree,
+    // not the main repository. This is required because vendor/ is symlinked
+    // to the main repo's vendor, which maps AgVote\ to the main repo's app/.
+    // We must retrieve the already-registered ClassLoader (require_once returns
+    // true if the file was already loaded by PHPUnit itself).
+    foreach (spl_autoload_functions() as $fn) {
+        if (is_array($fn) && $fn[0] instanceof \Composer\Autoload\ClassLoader) {
+            $fn[0]->setPsr4('AgVote\\', [PROJECT_ROOT . '/app/']);
+            $fn[0]->setPsr4('AgVote\\Service\\', [PROJECT_ROOT . '/app/Services/']);
+            break;
+        }
+    }
 }
 
 // Définir les constantes de test

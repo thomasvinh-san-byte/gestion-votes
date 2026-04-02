@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Core\Security;
 
+use AgVote\Core\Security\AuthMiddleware;
+
 /**
  * CsrfMiddleware - OWASP-compliant CSRF Protection
  *
@@ -13,7 +15,6 @@ final class CsrfMiddleware {
     private const TOKEN_NAME = 'csrf_token';
     private const TOKEN_HEADER = 'X-CSRF-Token';
     private const TOKEN_LENGTH = 32;
-    private const TOKEN_LIFETIME = 1800; // 30 min — must match AuthMiddleware::SESSION_TIMEOUT
 
     /**
      * Initializes CSRF protection
@@ -30,7 +31,7 @@ final class CsrfMiddleware {
         if (!isset($_SESSION[self::TOKEN_NAME]) || !isset($_SESSION[self::TOKEN_NAME . '_time'])) {
             return false;
         }
-        return (time() - (int) $_SESSION[self::TOKEN_NAME . '_time']) < self::TOKEN_LIFETIME;
+        return (time() - (int) $_SESSION[self::TOKEN_NAME . '_time']) < AuthMiddleware::getSessionTimeout();
     }
 
     public static function regenerateToken(): string {
