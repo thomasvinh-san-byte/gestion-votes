@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Compliance & Robustness
-status: completed
-stopped_at: Completed 78-data-integrity-locks/78-01-PLAN.md
-last_updated: "2026-04-02T08:08:25.236Z"
-last_activity: 2026-04-02
+status: executing
+stopped_at: Completed 79-sse-async-robustness/79-01-PLAN.md
+last_updated: "2026-04-02T08:18:05.167Z"
+last_activity: 2026-04-02 -- Phase 79 execution started
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 14
+  completed_phases: 13
+  total_plans: 18
+  completed_plans: 18
   percent: 99
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 78 — data-integrity-locks
+**Current focus:** Phase 79 — sse-async-robustness
 
 ## Current Position
 
-Phase: 79
-Plan: Not started
-Status: Phase 78 complete
-Last activity: 2026-04-02
+Phase: 79 (sse-async-robustness) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 79
+Last activity: 2026-04-02 -- Phase 79 execution started
 
 Progress: [██████████] 99%
 
@@ -54,6 +54,8 @@ Progress: [██████████] 99%
 - [Phase 78-data-integrity-locks]: hasActiveProxyForUpdate uses selectAll+FOR UPDATE (not scalar count) — consistent with countActiveAsGiverForUpdate pattern
 - [Phase 78-data-integrity-locks]: VotePublicController motion lock placed before consumeIfValid — ensures lock acquired before irreversible token consumption
 - [Phase 78-data-integrity-locks]: Source-level assertion for DATA-02 in DataIntegrityLocksTest — controller uses exit() so cannot be fully executed in unit tests
+- [Phase 79-sse-async-robustness]: AgToast.show() return value stored in _sseFallbackToastEl for programmatic dismiss on reconnect
+- [Phase 79-sse-async-robustness]: onFallback dual-path: AgToast.show() if available else setNotif() — defensive for environments where AgToast may not be loaded
 
 ### Existing Infrastructure
 
@@ -79,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T08:06:00Z
-Stopped at: Completed 78-data-integrity-locks/78-01-PLAN.md
+Last session: 2026-04-02T08:17:59.148Z
+Stopped at: Completed 79-sse-async-robustness/79-01-PLAN.md
 Resume file: None
