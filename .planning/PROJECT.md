@@ -85,7 +85,7 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 ### Active
 
-None — v8.0 complete, next milestone not yet defined.
+**v9.0 Compliance & Robustness** : Procuration PDF, RGPD (export/retention/suppression), verrous concurrence votes, fix TOCTOU procurations, memory leak SSE, pagination, erreurs async, SSE fallback, PV finalization immutable, ARIA labels.
 
 ### Out of Scope
 
@@ -140,4 +140,4 @@ Deferred ideas:
 | v5.0 quality milestone | Production readiness requires 90%+ test coverage before new features | ✓ Good — Services 90.8%, 2241 unit + 177 E2E tests, full CI pipeline |
 
 ---
-*Last updated: 2026-04-02 after v8.0 milestone shipped*
+*Last updated: 2026-04-02 after v9.0 milestone started*
