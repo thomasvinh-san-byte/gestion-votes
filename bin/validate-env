@@ -1,0 +1,210 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * AG-VOTE — Environment configuration auditor.
+ *
+ * Usage: php bin/validate-env
+ *
+ * Prints a per-var OK / MISSING / WARNING report with ANSI colours.
+ * Exit code 0 = all required vars present. Exit code 1 = at least one required var is missing.
+ */
+
+// ── Colour helpers ─────────────────────────────────────────────────────────
+
+$IS_TTY = function_exists('posix_isatty') && posix_isatty(STDOUT);
+
+function colour(string $code, string $text): string {
+    global $IS_TTY;
+    if (!$IS_TTY) {
+        return $text;
+    }
+    return "\033[{$code}m{$text}\033[0m";
+}
+
+function green(string $t): string { return colour('32', $t); }
+function yellow(string $t): string { return colour('33', $t); }
+function red(string $t): string { return colour('31', $t); }
+
+// ── Load .env if present (display only — do not mutate environment) ────────
+
+$envFile = dirname(__DIR__) . '/.env';
+$envValues = [];
+
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+        if (strpos($line, '=') === false) {
+            continue;
+        }
+        [$k, $v] = explode('=', $line, 2);
+        $k = trim($k);
+        $v = trim(trim($v), '"\'');
+        $envValues[$k] = $v;
+    }
+}
+
+// Merge: putenv() values take precedence over .env file values
+function resolveVar(string $key, array $envValues): string {
+    $val = getenv($key);
+    if ($val !== false) {
+        return (string) $val;
+    }
+    return $envValues[$key] ?? '';
+}
+
+// ── Secret vars — redact all but first 4 chars ────────────────────────────
+
+$secretVars = [
+    'APP_SECRET', 'DB_PASS', 'REDIS_PASSWORD', 'MAIL_PASS',
+    'API_KEY_OPERATOR', 'API_KEY_TRUST', 'API_KEY_ADMIN',
+    'MONITOR_WEBHOOK_URL',
+];
+
+function redact(string $key, string $val, array $secretVars): string {
+    if (!in_array($key, $secretVars, true)) {
+        return $val;
+    }
+    if (strlen($val) <= 4) {
+        return '****';
+    }
+    return substr($val, 0, 4) . '****';
+}
+
+// ── Canonical var list by section ─────────────────────────────────────────
+// Severity levels: required | security | warning | info
+
+$sections = [
+    'APPLICATION' => [
+        'required' => ['APP_ENV', 'APP_SECRET', 'APP_URL'],
+    ],
+    'BASE DE DONNÉES' => [
+        'required' => ['DB_DSN', 'DB_USER', 'DB_PASS'],
+    ],
+    'MULTI-TENANT' => [
+        'required' => ['DEFAULT_TENANT_ID'],
+    ],
+    'CLÉS API' => [
+        'info' => ['API_KEY_OPERATOR', 'API_KEY_TRUST', 'API_KEY_ADMIN'],
+    ],
+    'SÉCURITÉ' => [
+        'security' => ['APP_AUTH_ENABLED', 'CSRF_ENABLED', 'RATE_LIMIT_ENABLED',
+                       'LOAD_SEED_DATA', 'APP_LOGIN_MAX_ATTEMPTS', 'APP_LOGIN_WINDOW'],
+    ],
+    'CORS' => [
+        'warning' => ['CORS_ALLOWED_ORIGINS'],
+    ],
+    'EMAIL' => [
+        'info' => ['MAIL_HOST', 'MAIL_PORT', 'MAIL_USER', 'MAIL_PASS',
+                   'MAIL_FROM', 'MAIL_FROM_NAME', 'MAIL_TLS', 'MAIL_TIMEOUT'],
+    ],
+    'REDIS' => [
+        'info' => ['REDIS_HOST', 'REDIS_PORT', 'REDIS_PASSWORD', 'REDIS_DATABASE', 'REDIS_PREFIX'],
+    ],
+    'FONCTIONNALITÉS' => [
+        'info' => ['PUSH_ENABLED', 'EMAIL_TRACKING_ENABLED', 'PROXY_MAX_PER_RECEIVER'],
+    ],
+    'STOCKAGE' => [
+        'warning' => ['AGVOTE_UPLOAD_DIR'],
+    ],
+    'MONITORING' => [
+        'info' => ['MONITOR_ALERT_EMAILS', 'MONITOR_WEBHOOK_URL',
+                   'MONITOR_AUTH_FAILURES_THRESHOLD', 'MONITOR_DB_LATENCY_MS',
+                   'MONITOR_DISK_FREE_PCT', 'MONITOR_EMAIL_BACKLOG'],
+    ],
+];
+
+// ── Counters ───────────────────────────────────────────────────────────────
+
+$countOk      = 0;
+$countWarn    = 0;
+$countMissing = 0;
+
+// ── Print header ───────────────────────────────────────────────────────────
+
+echo PHP_EOL;
+echo colour('1', '=== AG-VOTE — Audit de configuration ===') . PHP_EOL;
+if (file_exists($envFile)) {
+    echo "Fichier .env chargé : {$envFile}" . PHP_EOL;
+} else {
+    echo yellow('[INFO] Aucun fichier .env trouvé — variables d\'environnement système uniquement') . PHP_EOL;
+}
+echo PHP_EOL;
+
+// ── Process each section ───────────────────────────────────────────────────
+
+foreach ($sections as $sectionName => $groups) {
+    echo colour('1', "--- {$sectionName} ---") . PHP_EOL;
+
+    foreach ($groups as $severity => $vars) {
+        foreach ($vars as $var) {
+            $val = resolveVar($var, $envValues);
+
+            if ($val === '') {
+                // MISSING
+                if ($severity === 'required') {
+                    echo red("  [MISSING]     {$var}") . PHP_EOL;
+                    $countMissing++;
+                } elseif (in_array($severity, ['security', 'warning'], true)) {
+                    echo yellow("  [WARN]        {$var}") . PHP_EOL;
+                    $countWarn++;
+                } else {
+                    echo "  [info]        {$var}" . PHP_EOL;
+                }
+            } elseif (str_contains($val, '<') || (str_ends_with($val, '>') && str_contains($val, '<'))) {
+                // PLACEHOLDER
+                echo yellow("  [PLACEHOLDER] {$var} = " . redact($var, $val, $secretVars)) . PHP_EOL;
+                $countWarn++;
+            } else {
+                // OK
+                echo green("  [OK]          {$var} = " . redact($var, $val, $secretVars)) . PHP_EOL;
+                $countOk++;
+            }
+        }
+    }
+
+    echo PHP_EOL;
+}
+
+// ── Special production warnings ────────────────────────────────────────────
+
+$appEnv  = resolveVar('APP_ENV', $envValues);
+$appUrl  = resolveVar('APP_URL', $envValues);
+$appDbg  = resolveVar('APP_DEBUG', $envValues);
+$seedDat = resolveVar('LOAD_SEED_DATA', $envValues);
+
+if (in_array($appEnv, ['production', 'prod'], true)) {
+    if ($appDbg === '1') {
+        echo red('[SECURITY] APP_DEBUG=1 en production !') . PHP_EOL;
+        $countWarn++;
+    }
+    if ($seedDat === '1') {
+        echo red('[SECURITY] LOAD_SEED_DATA=1 en production !') . PHP_EOL;
+        $countWarn++;
+    }
+    if ($appUrl !== '' && (str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1'))) {
+        echo yellow('[WARN] APP_URL pointe vers localhost en production') . PHP_EOL;
+        $countWarn++;
+    }
+}
+
+// ── Summary line ───────────────────────────────────────────────────────────
+
+echo PHP_EOL;
+$summary = "{$countOk} vars OK, {$countWarn} avertissements, {$countMissing} manquantes";
+if ($countMissing > 0) {
+    echo red("Bilan : {$summary}") . PHP_EOL;
+} elseif ($countWarn > 0) {
+    echo yellow("Bilan : {$summary}") . PHP_EOL;
+} else {
+    echo green("Bilan : {$summary}") . PHP_EOL;
+}
+echo PHP_EOL;
+
+exit($countMissing > 0 ? 1 : 0);

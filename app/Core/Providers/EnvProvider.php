@@ -27,6 +27,7 @@ final class EnvProvider {
             [$key, $val] = explode('=', $line, 2);
             $key = trim($key);
             $val = trim($val);
+            $val = trim($val, '"\'');
             if (getenv($key) === false) {
                 putenv("{$key}={$val}");
                 $_ENV[$key] = $val;

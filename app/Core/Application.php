@@ -180,6 +180,16 @@ final class Application {
             }
         }
 
+        // APP_URL warning in production
+        if ($isProduction) {
+            $appUrl = (string) (getenv('APP_URL') ?: (self::$config['app_url'] ?? ''));
+            if ($appUrl === '' || str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1')) {
+                error_log('[CONFIG WARNING] APP_URL is not set or points to localhost in production. '
+                    . 'Set APP_URL to your public URL (e.g. https://vote.mondomaine.fr). '
+                    . 'Email links and CORS will be incorrect until this is fixed.');
+            }
+        }
+
         // DEFAULT_TENANT_ID
         if (!defined('DEFAULT_TENANT_ID')) {
             $tid = getenv('DEFAULT_TENANT_ID')
