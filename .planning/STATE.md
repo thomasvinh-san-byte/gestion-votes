@@ -79,6 +79,7 @@ None.
 | 260402-e51 | Fix 9 critical path blockers — president on imports/invitations/motions, operator archive, SMTP+APP_URL warnings | 2026-04-02 | 441b9f98 | [260402-e51](./quick/260402-e51-fix-critical-path-blockers/) |
 | 260402-eh3 | Fix 11 critical path findings (expired token, audit anonymize, tie detection, password helper, meeting delete confirm+counts, president auto-assign, past vote badge, quorum toast, participation counter, multi-operator SSE) | 2026-04-02 | df57647a | [260402-eh3](./quick/260402-eh3-fix-11-critical-path-findings/) |
 | 260402-ex6 | Fix 10 second audit (CSV injection, email XSS, lockout recovery, voter HTML pages, import size+dedup, export flush+draft msg) | 2026-04-02 | f56a3865 | [260402-ex6](./quick/260402-ex6-fix-10-second-audit-pass/) |
+| 260402-f8j | Fix 4 third audit (18 env vars documented, disk space guard, email renderHtml 14 sites) | 2026-04-02 | e97f1834 | [260402-f8j](./quick/260402-f8j-fix-5-third-audit-pass/) |
 
 ### Blockers/Concerns
 
