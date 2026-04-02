@@ -1,67 +1,64 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.0
-milestone_name: Production Essentials
-status: executing
-stopped_at: Completed 69-initial-setup/69-01-PLAN.md
-last_updated: "2026-04-01T20:25:36.607Z"
-last_activity: 2026-04-01
+milestone: v8.0
+milestone_name: Account & Hardening
+status: defining
+stopped_at: Defining requirements
+last_updated: "2026-04-02T08:00:00.000Z"
+last_activity: 2026-04-02 -- Milestone v8.0 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
-  percent: 99
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 70 — reset-password
+**Current focus:** Defining v8.0 requirements
 
 ## Current Position
 
-Phase: 70
-Plan: Not started
-Status: Executing Phase 70
-Last activity: 2026-04-01
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-02 — Milestone v8.0 started
 
-Progress: [██████████] 99%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v7.0 roadmap]: 4 phases derived from 11 requirements — each feature is an independent vertical slice
-- [v7.0 roadmap]: Phase 70 (Reset Password) depends on Phase 68 (Email Queue) for reliable email delivery
-- [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
-- [v7.0 roadmap]: Email queue builds on existing EmailQueueService::processQueue() — just needs cron worker
-- [v7.0 roadmap]: Setup page guard checks admin user count — no config file needed
-- [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
-- [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
-- [Phase 67-pv-officiel-pdf]: Task 2 (visual verification) deferred — user chose Continue without verifying
-- [Phase 68-email-queue-worker]: Command tests validate configuration only (no execute() call) — execute() needs live DB via Application::config()
-- [Phase 68-email-queue-worker]: Repository retry tests use file_get_contents() pattern to assert SQL patterns without a database connection
-- [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
-- [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
-- [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
+- [v7.0]: 4 phases (67-70) shipped — PV PDF, email queue worker, setup page, password reset
+- [v7.0 audit]: Nginx routing fix for /reset-password and /setup discovered and applied
+- [v7.0]: HMAC-SHA256 token pattern established (VoteTokenService + PasswordResetService)
+- [v7.0]: HTML controller pattern (no AbstractController, uses HtmlView::render())
 
 ### Existing Infrastructure
 
-- MeetingReportService exists with Dompdf for PV generation (partially implemented)
-- EmailQueueService::processQueue() exists — needs cron wrapper
-- Symfony Mailer installed and configured (Phase 62)
-- AuthController + AuthMiddleware complete with bcrypt/argon2 password hashing
-- Login page already built (Phase 44 rebuild)
+- PasswordResetService + PasswordResetController (Phase 70)
+- SetupController with hasAnyAdmin() guard (Phase 69)
+- Email queue worker via supervisord (Phase 68)
+- MeetingReportService with Dompdf PV generation (Phase 67)
+- AuthController + AuthMiddleware with bcrypt/argon2 hashing
+- CSRF middleware (synchronizer token pattern)
+- InputValidator with fluent API
+- RateLimiter (file-based fallback when Redis unavailable)
+- 50+ audit event types with SHA-256 chain verification
 
 ### Known Tech Debt Carried Forward
 
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
+- admin.js KPI load failure catch is silent (non-blocking, admin-only)
 - CI e2e job runs chromium only; mobile-chrome/tablet are local-only
+- E2E seed data (04_e2e.sql) not loaded in CI e2e job
 - Migration idempotency check is local-only, not CI-gated
 
 ### Pending Todos
@@ -74,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T10:12:00.020Z
-Stopped at: Completed 69-initial-setup/69-01-PLAN.md
+Last session: 2026-04-02T08:00:00.000Z
+Stopped at: Defining v8.0 requirements
 Resume file: None
