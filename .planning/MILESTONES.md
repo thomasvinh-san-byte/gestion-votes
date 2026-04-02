@@ -1,5 +1,22 @@
 # Milestones
 
+## v9.0 Compliance & Robustness (Shipped: 2026-04-02)
+
+**Phases completed:** 5 phases, 8 plans, 17 tasks
+
+**Key accomplishments:**
+
+- Dompdf-based procuration PDF generation with GET endpoint and operator download button — operators can download a legally-framed pouvoir document for any recorded proxy delegation
+- RGPD Article 20 data portability via RgpdExportService + GET /api/v1/rgpd_export JSON download + Mon Compte page button
+- One-liner:
+- TOCTOU races closed: ProxyRepository gains hasActiveProxyForUpdate() (FOR UPDATE SELECT), BallotsService uses it for in-transaction proxy re-check, and VotePublicController locks the motion row before ballot insert
+- EventSource cleanup on pagehide, .catch() on all SSE async chains, and persistent French fallback toast when SSE exceeds MAX_RECONNECT_ATTEMPTS
+- Server-side offset pagination for members list: MemberRepository::listPaginated/countAll, MembersController pagination envelope, members.js re-fetch navigation
+- generatePdf() now serves validated-meeting PDFs from stored HTML snapshot (QUAL-01), ensuring byte-for-byte idempotency after first generation via findSnapshot() + X-PV-Snapshot header
+- WCAG 2.1 AA zero-critical fix: aria-label on all icon-only buttons/links and fieldset+legend on all radio groups across 10 pages
+
+---
+
 ## v8.0 Account & Hardening (Shipped: 2026-04-02)
 
 **Phases completed:** 9 phases, 13 plans, 21 tasks
