@@ -6,10 +6,12 @@ declare(strict_types=1);
  * AG-VOTE CLI — Symfony Console entry point.
  *
  * Usage:
- *   php bin/console                          # list all commands
- *   php bin/console email:process-queue      # process pending emails
- *   php bin/console ratelimit:cleanup        # clean old rate-limit files
- *   php bin/console redis:health             # check Redis connectivity
+ *   php bin/console                                               # list all commands
+ *   php bin/console email:process-queue                          # process pending emails
+ *   php bin/console ratelimit:cleanup                            # clean old rate-limit files
+ *   php bin/console redis:health                                 # check Redis connectivity
+ *   php bin/console rgpd:purge-retention --tenant-id=UUID        # purge expired member data (RGPD)
+ *   php bin/console rgpd:purge-retention --tenant-id=UUID --dry-run  # preview without deleting
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -18,6 +20,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 \AgVote\Core\Application::bootCli();
 
 use Symfony\Component\Console\Application;
+use AgVote\Command\DataRetentionCommand;
 use AgVote\Command\EmailProcessQueueCommand;
 use AgVote\Command\MonitoringCheckCommand;
 use AgVote\Command\RateLimitCleanupCommand;
@@ -29,5 +32,6 @@ $app->addCommand(new EmailProcessQueueCommand());
 $app->addCommand(new MonitoringCheckCommand());
 $app->addCommand(new RateLimitCleanupCommand());
 $app->addCommand(new RedisHealthCommand());
+$app->addCommand(new DataRetentionCommand());
 
 $app->run();

@@ -379,6 +379,34 @@ class MemberRepository extends AbstractRepository {
     }
 
     /**
+     * Returns members not updated since $monthsRetention months ago (candidates for RGPD purge).
+     * Returns empty array if $monthsRetention <= 0 (disabled).
+     */
+    public function findExpiredForTenant(string $tenantId, int $monthsRetention): array {
+        if ($monthsRetention <= 0) {
+            return [];
+        }
+        $sql = "SELECT id, full_name, email, updated_at
+                FROM members
+                WHERE tenant_id = :tid
+                  AND deleted_at IS NULL
+                  AND updated_at < NOW() - INTERVAL '" . ((int) $monthsRetention) . " months'";
+        return $this->selectAll($sql, [':tid' => $tenantId]);
+    }
+
+    /**
+     * Hard-deletes a member row (RGPD right-to-erasure).
+     * Cascades to ballots, attendances, proxies via FK ON DELETE CASCADE.
+     * Returns number of rows deleted.
+     */
+    public function hardDeleteById(string $id, string $tenantId): int {
+        return $this->execute(
+            'DELETE FROM members WHERE id = :id AND tenant_id = :tid',
+            [':id' => $id, ':tid' => $tenantId],
+        );
+    }
+
+    /**
      * Soft delete un membre (marque deleted_at).
      */
     public function softDelete(string $id, string $tenantId): void {
