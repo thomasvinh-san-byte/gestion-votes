@@ -55,6 +55,7 @@ use AgVote\Controller\OperatorController;
 use AgVote\Controller\AccountController;
 use AgVote\Controller\PasswordResetController;
 use AgVote\Controller\PoliciesController;
+use AgVote\Controller\ProcurationPdfController;
 use AgVote\Controller\ProjectorController;
 use AgVote\Controller\ProxiesController;
 use AgVote\Controller\QuorumController;
@@ -319,6 +320,7 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/proxies_upsert", ProxiesController::class, 'upsert', $op);
     $router->mapAny("{$prefix}/proxies_import_csv", ImportController::class, 'proxiesCsv', $rlCsv);
     $router->mapAny("{$prefix}/proxies_import_xlsx", ImportController::class, 'proxiesXlsx', $rlXlsx); /* [xlsx] */
+    $router->mapAny("{$prefix}/procuration_pdf", ProcurationPdfController::class, 'download', ['role' => ['operator', 'admin', 'president']]);
 
     // ── Quorum ──
     $router->map('GET', "{$prefix}/quorum_card", QuorumController::class, 'card', $pub); /* [voter] public quorum display */
