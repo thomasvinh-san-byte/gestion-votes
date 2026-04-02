@@ -112,7 +112,11 @@ final class AuthMiddleware {
      * Cached per-request to avoid repeated DB reads.
      */
     public static function getSessionTimeout(?string $tenantId = null): int {
-        $tid = $tenantId ?? self::getCurrentTenantId();
+        // Avoid recursion: getCurrentTenantId() → getCurrentUser() → authenticate() → getSessionTimeout()
+        // During authentication, read tenant_id directly from session instead of calling getCurrentTenantId().
+        $tid = $tenantId
+            ?? ($_SESSION['auth_user']['tenant_id'] ?? null)
+            ?? self::getDefaultTenantId();
 
         // Test override (injected via setSessionTimeoutForTest)
         if (self::$testSessionTimeout !== null && self::$testTimeoutTenantId === $tid) {
