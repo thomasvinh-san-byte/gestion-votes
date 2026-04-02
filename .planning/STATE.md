@@ -52,6 +52,8 @@ Progress: [██████████] 99%
 - [Phase 74]: E2E seed loaded via docker exec -i stdin pipe into agvote-db psql after app healthy — no temp files needed
 - [Phase 74]: migrate-check uses dedicated agvote_migration_ci credentials, full two-pass validation replaces --syntax-only grep scan
 - [Phase 75-coverage-observability]: Only overwrite KPI cards still showing '-' placeholder — cards that loaded keep their values (partial failure case)
+- [Phase 75-01]: FileServedOkException and EmailPixelSentException follow AccountRedirectException pattern — tests call serve() directly (not via handle()) to bypass AbstractController RuntimeException catch
+- [Phase 75-01]: coverage-check.sh CTRL_THRESHOLD raised from 60 to 70 after exit() refactoring removes structural ceiling
 
 ### Existing Infrastructure
 
@@ -63,7 +65,7 @@ Progress: [██████████] 99%
 
 ### Known Tech Debt Carried Forward
 
-- Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
+- Controller coverage ceiling removed — exit()-based serve() and outputPixel() now testable via PHPUNIT_RUNNING exception pattern
 - CI e2e job runs chromium only; mobile-chrome/tablet are local-only
 - Migration idempotency check is local-only, not CI-gated
 
