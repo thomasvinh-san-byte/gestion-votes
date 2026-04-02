@@ -201,16 +201,16 @@ final class EmailQueueService {
                 if (!$rendered['ok']) {
                     // Fallback to service default template
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
-                    $subject = $this->templateService->render('Invitation de vote - {{meeting_title}}', $variables);
-                    $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
+                    $subject = $this->templateService->renderHtml('Invitation de vote - {{meeting_title}}', $variables);
+                    $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
                 } else {
                     $subject = $rendered['subject'];
                     $bodyHtml = $rendered['body_html'];
                 }
             } else {
                 $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
-                $subject = $this->templateService->render('Invitation de vote - {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
+                $subject = $this->templateService->renderHtml('Invitation de vote - {{meeting_title}}', $variables);
+                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
             }
 
             // Add to queue
@@ -294,16 +294,16 @@ final class EmailQueueService {
                 );
                 if (!$rendered['ok']) {
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
-                    $subject = $this->templateService->render('Rappel : {{meeting_title}}', $variables);
-                    $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
+                    $subject = $this->templateService->renderHtml('Rappel : {{meeting_title}}', $variables);
+                    $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
                 } else {
                     $subject = $rendered['subject'];
                     $bodyHtml = $rendered['body_html'];
                 }
             } else {
                 $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
-                $subject = $this->templateService->render('Rappel : {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
+                $subject = $this->templateService->renderHtml('Rappel : {{meeting_title}}', $variables);
+                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
             }
 
             // Add to queue
@@ -392,16 +392,16 @@ final class EmailQueueService {
                 );
                 if (!$rendered['ok']) {
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
-                    $subject = $this->templateService->render('Resultats de la seance - {{meeting_title}}', $variables);
-                    $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
+                    $subject = $this->templateService->renderHtml('Resultats de la seance - {{meeting_title}}', $variables);
+                    $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
                 } else {
                     $subject = $rendered['subject'];
                     $bodyHtml = $rendered['body_html'];
                 }
             } else {
                 $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
-                $subject = $this->templateService->render('Resultats de la seance - {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
+                $subject = $this->templateService->renderHtml('Resultats de la seance - {{meeting_title}}', $variables);
+                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
             }
 
             // Add to queue (no invitation_id for results emails)
@@ -532,8 +532,8 @@ final class EmailQueueService {
                 $bodyHtml = $rendered['ok'] ? $rendered['body_html'] : '';
             } else {
                 $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
-                $subject = $this->templateService->render('Invitation de vote - {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->render(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
+                $subject = $this->templateService->renderHtml('Invitation de vote - {{meeting_title}}', $variables);
+                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
             }
 
             // Send
