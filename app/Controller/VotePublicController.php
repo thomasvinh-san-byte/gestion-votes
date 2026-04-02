@@ -115,6 +115,15 @@ final class VotePublicController {
 
         try {
             api_transaction(function () use ($tokenRepo, $hash, $row, $ctx, $dbVote, $weight) {
+                // Lock the motion row before ballot insert to prevent TOCTOU race:
+                // a concurrent motion close arriving between the pre-transaction guard
+                // and the INSERT would let a ballot land on a closed motion.
+                $motionRepo = RepositoryFactory::getInstance()->motion();
+                $lockedMotion = $motionRepo->findByIdForTenantForUpdate($row['motion_id'], $ctx['tenant_id']);
+                if (!$lockedMotion || !empty($lockedMotion['closed_at'])) {
+                    throw new RuntimeException('motion_closed_concurrent');
+                }
+
                 $consumed = $tokenRepo->consumeIfValid($hash, $ctx['tenant_id']);
                 if (!$consumed) {
                     throw new RuntimeException('token_already_used');
@@ -134,6 +143,9 @@ final class VotePublicController {
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'token_already_used') {
                 HtmlView::text('Token déjà utilisé ou expiré', 409);
+            }
+            if ($e->getMessage() === 'motion_closed_concurrent') {
+                HtmlView::text('Ce vote est clos', 409);
             }
             throw $e;
         }
