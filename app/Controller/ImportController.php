@@ -27,6 +27,9 @@ final class ImportController extends AbstractController {
         $rows = [];
 
         if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            if (($file['size'] ?? 0) > 10 * 1024 * 1024) {
+                api_fail('file_too_large', 400, ['detail' => 'Fichier trop volumineux. Maximum 10 Mo.']);
+            }
             $validation = ImportService::validateUploadedFile($file, 'csv');
             if (!$validation['ok']) {
                 api_fail('invalid_file', 400, ['detail' => $validation['error']]);
@@ -463,6 +466,11 @@ final class ImportController extends AbstractController {
             api_fail('upload_error', 400, ['detail' => 'Fichier manquant.']);
         }
 
+        $maxBytes = 10 * 1024 * 1024; // 10 MB
+        if (($file['size'] ?? 0) > $maxBytes) {
+            api_fail('file_too_large', 400, ['detail' => 'Fichier trop volumineux. Maximum 10 Mo.']);
+        }
+
         $validation = ImportService::validateUploadedFile($file, $format);
         if (!$validation['ok']) {
             api_fail('invalid_file', 400, ['detail' => $validation['error']]);
@@ -584,6 +592,8 @@ final class ImportController extends AbstractController {
             return $group['id'];
         };
 
+        $seenEmails = [];
+
         foreach ($rows as $lineIndex => $row) {
             $lineNumber = $lineIndex + 2;
 
@@ -596,6 +606,16 @@ final class ImportController extends AbstractController {
 
             if (isset($colIndex['email'])) {
                 $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
+            }
+
+            // In-batch duplicate email detection
+            if (!empty($data['email'])) {
+                if (isset($seenEmails[$data['email']])) {
+                    $errors[] = ['line' => $lineNumber, 'error' => "Email en double dans le fichier: {$data['email']} (déjà à la ligne {$seenEmails[$data['email']]})"];
+                    $skipped++;
+                    continue;
+                }
+                $seenEmails[$data['email']] = $lineNumber;
             }
             $data['voting_power'] = isset($colIndex['voting_power'])
                 ? ImportService::parseVotingPower($row[$colIndex['voting_power']] ?? '1') : 1.0;
