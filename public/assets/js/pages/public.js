@@ -520,8 +520,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // SSE: connect for real-time updates, with polling as fallback
   var _sseActive = false;
+  var _publicSseStream = null;
   if (window.EventStream && MEETING_ID) {
-    EventStream.connect(MEETING_ID, {
+    _publicSseStream = EventStream.connect(MEETING_ID, {
       onConnect: function() { _sseActive = true; },
       onDisconnect: function() { _sseActive = false; },
       onEvent: function(type, data) {
@@ -536,6 +537,9 @@ document.addEventListener('DOMContentLoaded', function() {
           window.Notifications.handleSseEvent(type, data);
         }
       },
+    });
+    window.addEventListener('pagehide', function() {
+      if (_publicSseStream) { _publicSseStream.close(); _publicSseStream = null; }
     });
   }
 

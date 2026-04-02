@@ -77,6 +77,8 @@
         var motionId = data.motion_id || data.data.motion_id;
         O.fn.loadBallots(motionId).then(function() {
           if (O.currentMode === 'exec') O.fn.refreshExecView();
+        }).catch(function(err) {
+          setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));
         });
       }
       break;
@@ -88,11 +90,17 @@
           setNotif('info', 'Vote ouvert: ' + title);
           O.announce('Vote ouvert : ' + title);
           if (O.currentMeetingStatus === 'live' && O.currentMode !== 'exec') {
-            O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.setMode('exec'); });
+            O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.setMode('exec'); }).catch(function(err) {
+              setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));
+            });
           } else if (O.currentMode === 'exec') {
-            O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.refreshExecView(); });
+            O.fn.loadBallots(O.currentOpenMotion.id).then(function() { O.fn.refreshExecView(); }).catch(function(err) {
+              setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));
+            });
           }
         }
+      }).catch(function(err) {
+        setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));
       });
       break;
 
@@ -100,6 +108,8 @@
     case 'motion.updated':
       O.fn.loadResolutions().then(function() {
         if (O.currentMode === 'exec') O.fn.refreshExecView();
+      }).catch(function(err) {
+        setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));
       });
       break;
 
