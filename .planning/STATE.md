@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: Production Essentials
 status: executing
-stopped_at: Completed 69-initial-setup/69-01-PLAN.md
-last_updated: "2026-04-01T10:12:00.022Z"
+stopped_at: Completed 72-security-config/72-02-PLAN.md
+last_updated: "2026-04-02T05:43:27.462Z"
 last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 4
+  total_plans: 6
   completed_plans: 4
   percent: 99
 ---
@@ -49,6 +49,8 @@ Progress: [██████████] 99%
 - [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
 - [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
+- [Phase 72-security-config]: setSessionTimeoutForTest() test helper pattern used instead of mocking RepositoryFactory (class is final)
+- [Phase 72-security-config]: Dynamic session timeout: value stored as minutes in tenant_settings, converted to seconds in getSessionTimeout(); per-request cache cleared by reset()
 
 ### Existing Infrastructure
 
@@ -74,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T10:12:00.020Z
-Stopped at: Completed 69-initial-setup/69-01-PLAN.md
+Last session: 2026-04-02T05:43:27.459Z
+Stopped at: Completed 72-security-config/72-02-PLAN.md
 Resume file: None
