@@ -69,6 +69,22 @@ if ($meetingId === '' || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
     exit;
 }
 
+// Handle heartbeat request (cheaply renews presence TTL without starting SSE loop)
+if (!empty($_GET['heartbeat'])) {
+    if (RedisProvider::isAvailable()) {
+        try {
+            $redis = RedisProvider::connection();
+            $presenceKey = "sse:operators:{$meetingId}";
+            $redis->sAdd($presenceKey, $consumerId);
+            $redis->expire($presenceKey, 90);
+        } catch (Throwable $e) {
+            // Graceful degradation
+        }
+    }
+    http_response_code(204);
+    exit;
+}
+
 // ── SSE headers ──────────────────────────────────────────────────────────
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
@@ -97,6 +113,7 @@ sendEvent('connected', ['meeting_id' => $meetingId, 'server_time' => date('c')])
 
 // Register this consumer in the meeting's consumer SET so the publisher
 // can fan out events to its personal queue.
+$presenceKey = null;
 if (RedisProvider::isAvailable()) {
     try {
         $redis = RedisProvider::connection();
@@ -106,6 +123,36 @@ if (RedisProvider::isAvailable()) {
     } catch (Throwable $e) {
         // Graceful degradation — file fallback still works without registration
     }
+}
+
+// Track operator presence in Redis SET for multi-operator badge
+$actorRole = $_SESSION['auth_user']['role'] ?? '';
+if (in_array($actorRole, ['operator', 'admin', 'president'], true) && RedisProvider::isAvailable()) {
+    try {
+        $redis = RedisProvider::connection();
+        $presenceKey = "sse:operators:{$meetingId}";
+        $redis->sAdd($presenceKey, $consumerId);
+        $redis->expire($presenceKey, 90); // 90s TTL — renewed each reconnect
+        $operatorCount = (int) $redis->sCard($presenceKey);
+        // Emit presence event to this consumer immediately
+        if ($operatorCount >= 1) {
+            sendEvent('operator.presence', ['count' => $operatorCount, 'meeting_id' => $meetingId]);
+        }
+    } catch (Throwable $e) {
+        // Graceful degradation
+    }
+}
+
+// Cleanup presence on ungraceful exit via shutdown function
+if ($presenceKey !== null) {
+    $shutdownConsumerId = $consumerId;
+    $shutdownPresenceKey = $presenceKey;
+    register_shutdown_function(function () use ($shutdownPresenceKey, $shutdownConsumerId) {
+        try {
+            $r = RedisProvider::connection();
+            $r->sRem($shutdownPresenceKey, $shutdownConsumerId);
+        } catch (Throwable $e) {}
+    });
 }
 
 $startTime = time();
@@ -150,6 +197,10 @@ if (RedisProvider::isAvailable()) {
         $redis = RedisProvider::connection();
         $redis->sRem("sse:consumers:{$meetingId}", $consumerId);
         $redis->del("sse:queue:{$meetingId}:{$consumerId}");
+        // Clean up presence entry on graceful exit
+        if ($presenceKey !== null) {
+            $redis->sRem($presenceKey, $consumerId);
+        }
     } catch (Throwable $e) {
         // Ignore — TTL will clean up stale entries
     }

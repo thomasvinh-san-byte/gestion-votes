@@ -19,6 +19,9 @@
   var sseStream = null;
   var sseConnected = false;
   var _sseFallbackToastEl = null;
+  var _prevQuorumMet = null;
+  var _operatorPresenceCount = 0;
+  var _presenceHeartbeatTimer = null;
 
   // =========================================================================
   // SSE INDICATOR (OPC-02)
@@ -55,10 +58,20 @@
           _sseFallbackToastEl = null;
         }
         console.info('[operator] SSE connected for meeting', O.currentMeetingId);
+        // Start presence heartbeat to renew Redis TTL every 60s
+        if (_presenceHeartbeatTimer) clearInterval(_presenceHeartbeatTimer);
+        _presenceHeartbeatTimer = setInterval(function() {
+          if (sseConnected && O.currentMeetingId) {
+            fetch('/api/v1/events.php?meeting_id=' + encodeURIComponent(O.currentMeetingId) + '&heartbeat=1', {
+              method: 'HEAD', credentials: 'same-origin'
+            }).catch(function(){});
+          }
+        }, 60000);
       },
       onDisconnect: function() {
         sseConnected = false;
         setSseIndicator('reconnecting');
+        clearInterval(_presenceHeartbeatTimer);
         // If still disconnected after 5s, show offline state
         setTimeout(function() {
           if (!sseConnected) setSseIndicator('offline');
@@ -130,9 +143,23 @@
       break;
 
     case 'attendance.updated':
+      O.fn.loadQuorumStatus();
+      if (O.currentMode === 'setup') O.fn.loadDashboard();
+      break;
+
     case 'quorum.updated':
       O.fn.loadQuorumStatus();
       if (O.currentMode === 'setup') O.fn.loadDashboard();
+      var nowMet = data && (data.quorum_met === true || (data.data && data.data.quorum_met === true));
+      if (_prevQuorumMet === false && nowMet === true) {
+        setNotif('success', 'Quorum atteint !');
+      }
+      _prevQuorumMet = nowMet ? true : (nowMet === false ? false : _prevQuorumMet);
+      break;
+
+    case 'operator.presence':
+      var cnt = (data && data.count) ? parseInt(data.count, 10) : 0;
+      if (!isNaN(cnt)) updateOperatorPresenceBadge(cnt);
       break;
 
     case 'speech.queue_updated':
@@ -153,6 +180,29 @@
     // Forward to notification toast system
     if (window.Notifications && window.Notifications.handleSseEvent) {
       window.Notifications.handleSseEvent(type, data);
+    }
+  }
+
+  /**
+   * Update/create the multi-operator presence badge.
+   * Badge appears when >1 operator is connected to the same meeting.
+   * @param {number} count - Number of active operators
+   */
+  function updateOperatorPresenceBadge(count) {
+    _operatorPresenceCount = count;
+    var badge = document.getElementById('opPresenceBadge');
+    if (count > 1) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'opPresenceBadge';
+        badge.style.cssText = 'font-size:0.75rem;margin-left:0.75rem;background:var(--color-warning-bg,#fef3c7);color:var(--color-warning,#92400e);border-radius:0.375rem;padding:0.125rem 0.5rem;';
+        var indicator = document.getElementById('opSseIndicator');
+        if (indicator && indicator.parentElement) indicator.parentElement.appendChild(badge);
+      }
+      badge.textContent = count + ' opérateur(s) actif(s)';
+      badge.style.display = '';
+    } else if (badge) {
+      badge.style.display = 'none';
     }
   }
 

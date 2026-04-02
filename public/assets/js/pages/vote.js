@@ -808,26 +808,49 @@
     const text = $('#voteParticipationText');
     if (!container || !fill || !text) return;
 
+    var cast = data?.votes_cast ?? data?.ballots_cast ?? null;
+    var eligible = data?.eligible_count ?? data?.total_eligible ?? null;
+
     // Try to extract participation percentage from various possible API fields
     let pct = data?.participation_pct ?? null;
 
-    if (pct === null) {
-      const cast = data?.votes_cast ?? data?.ballots_cast ?? null;
-      const eligible = data?.eligible_count ?? data?.total_eligible ?? null;
-      if (cast !== null && eligible !== null && eligible > 0) {
-        pct = Math.round((cast / eligible) * 100);
-      }
+    if (pct === null && cast !== null && eligible !== null && eligible > 0) {
+      pct = Math.round((cast / eligible) * 100);
     }
 
     if (pct !== null && data?.motion) {
       fill.style.setProperty('--bar-pct', Math.min(pct, 100) + '%');
-      text.textContent = pct + '% ont voté';
+      // Show absolute counts when both are available, otherwise percentage
+      if (cast !== null && eligible !== null) {
+        text.textContent = cast + '/' + eligible + ' ont voté';
+      } else {
+        text.textContent = pct + '% ont voté';
+      }
       Shared.show(container);
     } else {
       fill.style.setProperty('--bar-pct', '0%');
       text.textContent = '0% ont voté';
       Shared.hide(container);
     }
+  }
+
+  /**
+   * Show a badge above the vote buttons indicating the member's past vote.
+   * Only shown for non-secret motions when the API returns my_vote / member_ballot.
+   * @param {string|null} choix - The vote choice ('for', 'against', 'abstain', 'nsp') or null
+   */
+  function showPastVoteBadge(choix) {
+    var existing = document.getElementById('pastVoteBadge');
+    if (existing) existing.remove();
+    if (!choix) return;
+    var LABELS = { 'for': 'Pour', 'against': 'Contre', 'abstain': 'Abstention', 'nsp': 'Blanc' };
+    var badge = document.createElement('div');
+    badge.id = 'pastVoteBadge';
+    badge.className = 'badge badge-info';
+    badge.style.cssText = 'margin-bottom:0.5rem;display:inline-flex;align-items:center;gap:0.4rem;';
+    badge.textContent = 'Vous avez voté : ' + (LABELS[choix] || choix);
+    var voteArea = document.getElementById('voteButtons') || document.querySelector('.vote-buttons') || document.querySelector('.vote-actions');
+    if (voteArea) voteArea.insertAdjacentElement('beforebegin', badge);
   }
 
   // ── Document consultation (PDF-08 / PDF-10) ────────────────────────
@@ -998,6 +1021,7 @@
       updateMotionProgress(null, null);
       updateVoteParticipation(null);
       updateVoteTimer(null);
+      showPastVoteBadge(null);
       setVoteButtonsEnabled(false);
       setVoteAppState('waiting');
       return;
@@ -1034,6 +1058,12 @@
       updateMotionProgress(d, m);
       updateVoteParticipation(d);
       updateVoteTimer(m);
+      // Show past vote badge for non-secret motions (Finding 8)
+      if (!m.secret) {
+        showPastVoteBadge(d?.my_vote ?? d?.member_ballot ?? null);
+      } else {
+        showPastVoteBadge(null);
+      }
       setVoteButtonsEnabled(!!memberId && !_isAbsent);
       setVoteAppState('voting');
     } catch(e){
