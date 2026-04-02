@@ -7,7 +7,7 @@
  * - Stale-while-revalidate for HTML pages
  */
 
-const CACHE_VERSION = 'agvote-v1.5';
+const CACHE_VERSION = 'agvote-v9.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -101,7 +101,10 @@ self.addEventListener('fetch', (event) => {
   } else if (isCacheableApiRequest(url.pathname)) {
     event.respondWith(networkFirstWithCache(request, API_CACHE));
   } else if (isHtmlRequest(request)) {
-    event.respondWith(staleWhileRevalidate(request, DYNAMIC_CACHE));
+    // Network-first for HTML pages — stale-while-revalidate caused cached
+    // index.html to be served instead of correct .htmx.html after routing fixes,
+    // and can show stale auth state after login/logout.
+    event.respondWith(networkFirstWithCache(request, DYNAMIC_CACHE));
   } else {
     event.respondWith(networkFirst(request));
   }
