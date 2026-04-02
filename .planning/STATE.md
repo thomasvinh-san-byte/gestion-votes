@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v8.0
-milestone_name: Account & Hardening
-status: completed
-stopped_at: Completed 73-vote-session-resume/73-01-PLAN.md
-last_updated: "2026-04-02T06:03:38.434Z"
-last_activity: 2026-04-02
+milestone: v7.0
+milestone_name: Production Essentials
+status: executing
+stopped_at: Completed 74-ci-hardening/74-01-PLAN.md
+last_updated: "2026-04-02T06:12:59.468Z"
+last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
 progress:
   total_phases: 4
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 6
+  completed_plans: 4
   percent: 99
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 
 ## Current Position
 
-Phase: 73 of 73 (Vote Session Resume)
-Plan: Not started
-Status: Complete
-Last activity: 2026-04-02
+Phase: 67 of 70 (PV Officiel PDF)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
 
 Progress: [██████████] 99%
 
@@ -49,8 +49,8 @@ Progress: [██████████] 99%
 - [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
 - [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
-- [Phase 73-vote-session-resume]: return_to param used for vote page expiry (vs generic redirect=) — allows role-based logic to still apply for other pages
-- [Phase 73-vote-session-resume]: _isVote gate scopes return_to behavior to /vote and /vote.htmx.html only; all other pages use redirect= (backward compat)
+- [Phase 74]: E2E seed loaded via docker exec -i stdin pipe into agvote-db psql after app healthy — no temp files needed
+- [Phase 74]: migrate-check uses dedicated agvote_migration_ci credentials, full two-pass validation replaces --syntax-only grep scan
 
 ### Existing Infrastructure
 
@@ -76,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T10:43:00.000Z
-Stopped at: Completed 73-vote-session-resume/73-01-PLAN.md
+Last session: 2026-04-02T06:12:48.707Z
+Stopped at: Completed 74-ci-hardening/74-01-PLAN.md
 Resume file: None
