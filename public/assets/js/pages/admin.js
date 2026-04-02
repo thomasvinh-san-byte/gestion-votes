@@ -439,21 +439,30 @@
               '<label class="form-label">Nouveau mot de passe</label>' +
               '<input class="form-input" type="password" id="setPassword" placeholder="Min. 8 caract\u00e8res" autocomplete="new-password">' +
             '</div>' +
-            '<div class="form-group">' +
-              '<label class="form-label">Confirmer le mot de passe</label>' +
+            '<div class="form-group mb-4">' +
+              '<label class="form-label">Confirmer le nouveau mot de passe</label>' +
               '<input class="form-input" type="password" id="confirmPassword" placeholder="Confirmer le mot de passe" autocomplete="new-password">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Votre mot de passe (confirmation)</label>' +
+              '<input class="form-input" type="password" id="confirmAdminPw" placeholder="Votre mot de passe administrateur" autocomplete="current-password">' +
             '</div>',
           confirmText: 'Enregistrer',
           onConfirm: async function(modal) {
             var pw = modal.querySelector('#setPassword').value;
             var confirm = modal.querySelector('#confirmPassword').value;
+            var adminPw = modal.querySelector('#confirmAdminPw').value;
             if (!pw || pw.length < 8) { Shared.fieldError(modal.querySelector('#setPassword'), 'Minimum 8 caract\u00e8res'); return false; }
             if (pw !== confirm) { Shared.fieldError(modal.querySelector('#confirmPassword'), 'Les mots de passe ne correspondent pas'); return false; }
+            if (!adminPw) { Shared.fieldError(modal.querySelector('#confirmAdminPw'), 'Mot de passe requis'); return false; }
             try {
-              var r = await api('/api/v1/admin_users.php', { action: 'set_password', user_id: userId, password: pw });
+              var r = await api('/api/v1/admin_users.php', { action: 'set_password', user_id: userId, password: pw, confirm_password: adminPw });
               if (r.body && r.body.ok) {
                 setNotif('success', 'Mot de passe d\u00e9fini');
                 loadUsers();
+              } else if (r.body && r.body.error === 'confirmation_failed') {
+                Shared.fieldError(modal.querySelector('#confirmAdminPw'), 'Mot de passe incorrect');
+                return false;
               } else {
                 setNotif('error', getApiError(r.body));
                 return false;
@@ -472,16 +481,25 @@
         Shared.openModal({
           title: 'Supprimer l\'utilisateur',
           body: '<div class="alert alert-danger mb-3"><strong>Action irr\u00e9versible</strong></div>' +
-            '<p>Supprimer d\u00e9finitivement <strong>' + escapeHtml(delUserName) + '</strong> ?</p>',
+            '<p>Supprimer d\u00e9finitivement <strong>' + escapeHtml(delUserName) + '</strong> ?</p>' +
+            '<div class="form-group mt-4">' +
+              '<label class="form-label">Votre mot de passe (confirmation)</label>' +
+              '<input class="form-input" type="password" id="confirmDeletePw" placeholder="Votre mot de passe administrateur" autocomplete="current-password">' +
+            '</div>',
           confirmText: 'Supprimer',
           confirmClass: 'btn btn-danger',
-          onConfirm: async function() {
+          onConfirm: async function(modal) {
+            var pw = modal.querySelector('#confirmDeletePw').value;
+            if (!pw) { Shared.fieldError(modal.querySelector('#confirmDeletePw'), 'Mot de passe requis'); return false; }
             Shared.btnLoading(delBtn, true);
             try {
-              var r = await api('/api/v1/admin_users.php', { action: 'delete', user_id: delBtn.dataset.id });
+              var r = await api('/api/v1/admin_users.php', { action: 'delete', user_id: delBtn.dataset.id, confirm_password: pw });
               if (r.body && r.body.ok) {
                 setNotif('success', 'Utilisateur supprim\u00e9');
                 loadUsers();
+              } else if (r.body && r.body.error === 'confirmation_failed') {
+                Shared.fieldError(modal.querySelector('#confirmDeletePw'), 'Mot de passe incorrect');
+                return false;
               } else {
                 setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
               }
