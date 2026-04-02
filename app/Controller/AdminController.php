@@ -379,10 +379,15 @@ final class AdminController extends AbstractController {
 
         $recentAlerts = $sysRepo->listRecentAlerts(20);
 
-        global $config;
-        $mailerConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
-        $mailer = new MailerService($mailerConfig);
-        $smtpConfigured = $mailer->isConfigured();
+        $smtpConfigured = false;
+        try {
+            global $config;
+            $mailerConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
+            $mailer = new MailerService($mailerConfig);
+            $smtpConfigured = $mailer->isConfigured();
+        } catch (\Throwable) {
+            // Best effort — SMTP check should not break system status
+        }
 
         api_ok([
             'system' => [
