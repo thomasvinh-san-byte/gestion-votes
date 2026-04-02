@@ -1,82 +1,70 @@
 ---
 gsd_state_version: 1.0
-milestone: v9.0
-milestone_name: Compliance & Robustness
+milestone: v7.0
+milestone_name: Production Essentials
 status: executing
-stopped_at: Completed 77-rgpd-compliance/77-02-PLAN.md
-last_updated: "2026-04-02T07:45:28.645Z"
-last_activity: 2026-04-02 -- Phase 77 execution started
+stopped_at: Completed 77-rgpd-compliance/77-01-PLAN.md
+last_updated: "2026-04-02T07:53:46.725Z"
+last_activity: "2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template"
 progress:
-  total_phases: 14
-  completed_phases: 10
-  total_plans: 16
-  completed_plans: 15
-  percent: 20
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 4
+  percent: 99
 ---
 
 # AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 77 — rgpd-compliance
+**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
 
 ## Current Position
 
-Phase: 77 (rgpd-compliance) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 77
-Last activity: 2026-04-02 -- Phase 77 execution started
+Phase: 67 of 70 (PV Officiel PDF)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-04-01 — Phase 67 Plan 01 complete: generatePdf() upgraded to loi 1901 template
 
-Progress: [██░░░░░░░░] 20% (1/5 phases)
-
-## Phase Map
-
-| Phase | Name | Requirements | Status |
-|-------|------|--------------|--------|
-| 76 | Procuration PDF | LEGAL-01 | Complete |
-| 77 | RGPD Compliance | LEGAL-02, LEGAL-03, LEGAL-04 | Not started |
-| 78 | Data Integrity Locks | DATA-01, DATA-02 | Not started |
-| 79 | SSE & Async Robustness | FE-01, FE-03, FE-04 | Not started |
-| 80 | Pagination & Quality | FE-02, QUAL-01, QUAL-02 | Not started |
+Progress: [██████████] 99%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [Phase 76-procuration-pdf]: Download anchor not gated on isLocked — PDF available in all session states (open, validated, archived)
-- [Phase 76-procuration-pdf]: ProcurationPdfService uses inline CSS for Dompdf compatibility (no external stylesheets)
-- [v9.0]: 5 phases derived from 12 requirements — LEGAL split into PDF (76) and RGPD (77), DATA together (78), FE split into SSE/async (79) and pagination (80 combined with QUAL)
-- [v8.0]: Page Mon Compte, 2-step confirmation, configurable timeout, vote session resume, CI hardening, coverage >70%
-- [v8.0]: confirm_password field for critical admin ops (password_verify before delete/set_password)
-- [v8.0]: AuthMiddleware::getSessionTimeout() reads from tenant_settings, cached per-request
-- [v7.0]: HMAC-SHA256 token pattern, HTML controller pattern, nginx routing for PHP controllers
-- [Phase 77-rgpd-compliance]: PostgreSQL INTERVAL does not support bind params — month count embedded via (int) cast interpolation in findExpiredForTenant
-- [Phase 77-rgpd-compliance]: erase_member uses requireConfirmation same as delete — admin must confirm with password before RGPD hard delete
+- [v7.0 roadmap]: 4 phases derived from 11 requirements — each feature is an independent vertical slice
+- [v7.0 roadmap]: Phase 70 (Reset Password) depends on Phase 68 (Email Queue) for reliable email delivery
+- [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
+- [v7.0 roadmap]: Email queue builds on existing EmailQueueService::processQueue() — just needs cron worker
+- [v7.0 roadmap]: Setup page guard checks admin user count — no config file needed
+- [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
+- [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
+- [Phase 67-pv-officiel-pdf]: Task 2 (visual verification) deferred — user chose Continue without verifying
+- [Phase 68-email-queue-worker]: Command tests validate configuration only (no execute() call) — execute() needs live DB via Application::config()
+- [Phase 68-email-queue-worker]: Repository retry tests use file_get_contents() pattern to assert SQL patterns without a database connection
+- [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
+- [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
+- [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
+- [Phase 77-rgpd-compliance]: Direct PDO injection in RgpdExportService — export spans multiple tables with JOINs not covered by existing single-table repos
+- [Phase 77-rgpd-compliance]: All authenticated roles allowed for RGPD export — any logged-in user may export their own data (Article 20 portability)
 
 ### Existing Infrastructure
 
-- AccountController + /account page (Phase 71)
-- 2-step confirmation on AdminController (Phase 72)
-- Configurable session timeout via tenant_settings (Phase 72)
-- Vote session resume via return_to param (Phase 73)
-- CI e2e seed data + migration idempotency gate (Phase 74)
-- 3 exit()-based controllers refactored with PHPUNIT_RUNNING exceptions (Phase 75)
-- Dompdf for PDF generation (MeetingReportService) — reuse for procuration PDF
-- ProxiesService with proxy chain validation (has TOCTOU issue — Phase 78 target)
-- lockForUpdate() in MeetingRepository (5 locations — expand in Phase 78)
-- SSE EventSource in operator-realtime.js, hub.js, vote.js (cleanup target Phase 79)
-- audit.js, meetings.js, members.js — list endpoints without pagination (Phase 80 target)
+- MeetingReportService exists with Dompdf for PV generation (partially implemented)
+- EmailQueueService::processQueue() exists — needs cron wrapper
+- Symfony Mailer installed and configured (Phase 62)
+- AuthController + AuthMiddleware complete with bcrypt/argon2 password hashing
+- Login page already built (Phase 44 rebuild)
 
-### Known Tech Debt Addressed in v9.0
+### Known Tech Debt Carried Forward
 
-- ProxiesService TOCTOU race condition in proxy chain validation (DATA-02, Phase 78)
-- SSE EventSource listeners not cleaned up on page unload (FE-01, Phase 79)
-- No pagination on audit/meeting/member list endpoints (FE-02, Phase 80)
-- PV can be re-exported after validation — no immutable snapshot (QUAL-01, Phase 80)
-- ARIA labels sporadic coverage (QUAL-02, Phase 80)
+- Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
+- CI e2e job runs chromium only; mobile-chrome/tablet are local-only
+- Migration idempotency check is local-only, not CI-gated
 
 ### Pending Todos
 
@@ -88,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T07:45:28.642Z
-Stopped at: Completed 77-rgpd-compliance/77-02-PLAN.md
+Last session: 2026-04-02T07:53:46.722Z
+Stopped at: Completed 77-rgpd-compliance/77-01-PLAN.md
 Resume file: None

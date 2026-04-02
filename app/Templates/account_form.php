@@ -119,6 +119,21 @@
 
     </div><!-- .login-card -->
 
+    <!-- RGPD Export -->
+    <div class="login-card" style="margin-top:1.5rem;">
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">Mes donnees (RGPD)</h2>
+      <p style="font-size:0.875rem;color:var(--color-text-secondary,#64748b);margin-bottom:1rem;">
+        Telechargez une copie de vos donnees personnelles : profil, votes enregistres et presences aux seances.
+      </p>
+      <a href="/api/v1/rgpd_export"
+         download
+         class="btn btn-secondary"
+         style="display:inline-block;text-decoration:none;"
+         aria-label="Exporter mes donnees personnelles (JSON)">
+        Exporter mes donnees
+      </a>
+    </div>
+
     <!-- Footer -->
     <div class="login-footer">
       <button type="button" class="login-theme-toggle" id="btnTheme" aria-label="Basculer le theme clair/sombre">
