@@ -204,4 +204,24 @@ class EmailTrackingControllerTest extends ControllerTestCase
         $this->assertStringContainsString('email_tracking_enabled', $source);
         $this->assertStringContainsString('trackingEnabled', $source);
     }
+
+    // =========================================================================
+    // pixel() — happy path (requires EmailPixelSentException support in controller)
+    // =========================================================================
+
+    /**
+     * When invitationId is empty, pixel() calls outputPixel() immediately.
+     * With PHPUNIT_RUNNING mode, outputPixel() throws EmailPixelSentException
+     * instead of echoing GIF bytes and calling exit().
+     */
+    public function testPixelOutputThrowsEmailPixelSentException(): void
+    {
+        // Set $_GET to empty so invitationId === '' which triggers immediate outputPixel() call
+        $_GET = [];
+
+        $this->expectException(\AgVote\Controller\EmailPixelSentException::class);
+
+        $controller = new EmailTrackingController();
+        $controller->pixel();
+    }
 }

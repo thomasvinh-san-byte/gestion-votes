@@ -4,9 +4,9 @@
 # Usage:
 #   bash scripts/coverage-check.sh [--services-threshold N] [--controllers-threshold N]
 #
-# Defaults (set after Phase 55 controller test rewrites):
+# Defaults (set after Phase 75 exit() refactor):
 #   --services-threshold 90    (Services/ achieved 90.8% in Phase 55)
-#   --controllers-threshold 60 (Controllers/ at 64.6% after Phase 55 — DocContent/EmailTracking/VotePublic at 0% due to exit() are untestable)
+#   --controllers-threshold 70 (Controllers/ raised above 70% after Phase 75 — FileServedOkException/EmailPixelSentException enable happy-path tests)
 #
 # Override thresholds via env vars:
 #   COVERAGE_SERVICES_THRESHOLD=95 COVERAGE_CTRL_THRESHOLD=90 bash scripts/coverage-check.sh
@@ -24,7 +24,7 @@ set -euo pipefail
 
 # ── Threshold configuration ────────────────────────────────────────────────
 SERVICES_THRESHOLD="${COVERAGE_SERVICES_THRESHOLD:-90}"
-CTRL_THRESHOLD="${COVERAGE_CTRL_THRESHOLD:-60}"
+CTRL_THRESHOLD="${COVERAGE_CTRL_THRESHOLD:-70}"
 
 # Parse CLI flags
 while [[ $# -gt 0 ]]; do

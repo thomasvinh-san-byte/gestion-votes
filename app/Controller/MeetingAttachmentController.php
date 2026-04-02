@@ -237,6 +237,9 @@ final class MeetingAttachmentController extends AbstractController {
         header('Cache-Control: private, no-store');
         header('X-Frame-Options: SAMEORIGIN');
 
+        if (defined('PHPUNIT_RUNNING') && PHPUNIT_RUNNING === true) {
+            throw new FileServedOkException($path, 'application/pdf', $safeFilename, (int) $att['file_size']);
+        }
         readfile($path);
         exit;
     }

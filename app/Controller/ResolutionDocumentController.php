@@ -207,6 +207,9 @@ final class ResolutionDocumentController extends AbstractController {
         header('Cache-Control: private, no-store');
         header('X-Frame-Options: SAMEORIGIN');
 
+        if (defined('PHPUNIT_RUNNING') && PHPUNIT_RUNNING === true) {
+            throw new FileServedOkException($path, 'application/pdf', $safeFilename, (int) $doc['file_size']);
+        }
         readfile($path);
         exit;
     }

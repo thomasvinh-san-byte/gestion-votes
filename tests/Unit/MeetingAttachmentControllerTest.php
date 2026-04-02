@@ -607,4 +607,46 @@ class MeetingAttachmentControllerTest extends ControllerTestCase
         $this->assertEquals(400, $result['status']);
         $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
+
+    // =========================================================================
+    // serve() — happy path (requires FileServedOkException support in controller)
+    // =========================================================================
+
+    public function testServeSuccessWithSessionUser(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setQueryParams(['id' => self::ATTACH_ID]);
+
+        // Create a real temp file under the expected path structure:
+        // AG_UPLOAD_DIR . '/meetings/' . MEETING_ID . '/' . storedName
+        $dir = AG_UPLOAD_DIR . '/meetings/' . self::MEETING_ID;
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $storedName = 'testfile_75_01.pdf';
+        $filePath = $dir . '/' . $storedName;
+        file_put_contents($filePath, 'dummy pdf content');
+
+        try {
+            $att = [
+                'id'            => self::ATTACH_ID,
+                'meeting_id'    => self::MEETING_ID,
+                'stored_name'   => $storedName,
+                'original_name' => 'convocation.pdf',
+                'file_size'     => 17,
+            ];
+
+            $repo = $this->createMock(MeetingAttachmentRepository::class);
+            $repo->method('findById')->willReturn($att);
+            $this->injectRepos([MeetingAttachmentRepository::class => $repo]);
+
+            // Call serve() directly (not via handle()) to bypass RuntimeException catch in AbstractController
+            $this->expectException(\AgVote\Controller\FileServedOkException::class);
+            $controller = new MeetingAttachmentController();
+            $controller->serve();
+        } finally {
+            @unlink($filePath);
+            @rmdir($dir);
+        }
+    }
 }

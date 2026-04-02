@@ -406,4 +406,47 @@ class ResolutionDocumentControllerTest extends ControllerTestCase
         $this->assertEquals(403, $result['status']);
         $this->assertEquals('access_denied', $result['body']['error']);
     }
+
+    // =========================================================================
+    // serve() — happy path (requires FileServedOkException support in controller)
+    // =========================================================================
+
+    public function testServeSuccessWithSessionUser(): void
+    {
+        $this->setAuth(self::USER_ID, 'admin', self::TENANT_ID);
+        $this->setQueryParams(['id' => self::DOC_ID]);
+
+        // Create a real temp file under the expected path structure:
+        // AG_UPLOAD_DIR . '/resolutions/' . MOTION_ID . '/' . storedName
+        $dir = AG_UPLOAD_DIR . '/resolutions/' . self::MOTION_ID;
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $storedName = 'testdoc_75_01.pdf';
+        $filePath = $dir . '/' . $storedName;
+        file_put_contents($filePath, 'dummy pdf content');
+
+        try {
+            $doc = [
+                'id'            => self::DOC_ID,
+                'motion_id'     => self::MOTION_ID,
+                'meeting_id'    => self::MEETING_ID,
+                'stored_name'   => $storedName,
+                'original_name' => 'resolution.pdf',
+                'file_size'     => 17,
+            ];
+
+            $docRepo = $this->createMock(ResolutionDocumentRepository::class);
+            $docRepo->method('findById')->willReturn($doc);
+            $this->injectRepos([ResolutionDocumentRepository::class => $docRepo]);
+
+            // Call serve() directly (not via handle()) to bypass RuntimeException catch in AbstractController
+            $this->expectException(\AgVote\Controller\FileServedOkException::class);
+            $controller = new ResolutionDocumentController();
+            $controller->serve();
+        } finally {
+            @unlink($filePath);
+            @rmdir($dir);
+        }
+    }
 }

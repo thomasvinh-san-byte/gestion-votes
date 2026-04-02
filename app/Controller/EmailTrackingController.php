@@ -116,6 +116,9 @@ final class EmailTrackingController {
         header('Pragma: no-cache');
         header('Expires: 0');
 
+        if (defined('PHPUNIT_RUNNING') && PHPUNIT_RUNNING === true) {
+            throw new EmailPixelSentException();
+        }
         echo $gif;
         exit;
     }
