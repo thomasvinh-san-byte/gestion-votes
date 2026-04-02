@@ -16,17 +16,31 @@ final class MembersController extends AbstractController {
 
         $repo = $this->repo()->member();
         $tenantId = api_current_tenant_id();
-        $members = $repo->listAll($tenantId);
+
+        $page    = max(1, api_query_int('page', 1));
+        $perPage = max(1, min(api_query_int('per_page', 50), 50));
+        $offset  = ($page - 1) * $perPage;
+
+        $rows  = $repo->listPaginated($tenantId, $perPage, $offset);
+        $total = $repo->countAll($tenantId);
 
         $includeGroups = isset($data['include_groups']) && $data['include_groups'];
         if ($includeGroups) {
             $groupRepo = $this->repo()->memberGroup();
-            foreach ($members as &$member) {
+            foreach ($rows as &$member) {
                 $member['groups'] = $groupRepo->listGroupsForMember($member['id'], $tenantId);
             }
         }
 
-        api_ok(['items' => $members]);
+        api_ok([
+            'items'      => $rows,
+            'pagination' => [
+                'total'       => $total,
+                'page'        => $page,
+                'per_page'    => $perPage,
+                'total_pages' => (int) ceil($total / $perPage),
+            ],
+        ]);
     }
 
     public function create(): void {

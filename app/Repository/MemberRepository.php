@@ -403,4 +403,32 @@ class MemberRepository extends AbstractRepository {
             [':tenant_id' => $tenantId],
         );
     }
+
+    /**
+     * Paginated member list (not deleted) for a tenant.
+     */
+    public function listPaginated(string $tenantId, int $limit = 50, int $offset = 0): array {
+        $limit  = max(1, min($limit, 50));
+        $offset = max(0, $offset);
+        return $this->selectAll(
+            'SELECT id, full_name, full_name AS name, email, role,
+                    COALESCE(voting_power, 1.0) AS voting_power,
+                    is_active, created_at, updated_at, tenant_id
+             FROM members
+             WHERE tenant_id = :tenant_id AND deleted_at IS NULL
+             ORDER BY full_name ASC
+             LIMIT :lim OFFSET :off',
+            [':tenant_id' => $tenantId, ':lim' => $limit, ':off' => $offset],
+        );
+    }
+
+    /**
+     * Count of all non-deleted members for a tenant (for pagination).
+     */
+    public function countAll(string $tenantId): int {
+        return (int) ($this->scalar(
+            'SELECT COUNT(*) FROM members WHERE tenant_id = :tid AND deleted_at IS NULL',
+            [':tid' => $tenantId],
+        ) ?? 0);
+    }
 }
