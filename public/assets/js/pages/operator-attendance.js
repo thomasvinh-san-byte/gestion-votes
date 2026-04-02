@@ -326,6 +326,14 @@
           <span class="proxy-arrow">${icon('arrow-right', 'icon-sm')}</span>
           <span class="proxy-receiver">${escapeHtml(p.receiver_name || '—')}</span>
         </div>
+        <a
+          href="/api/v1/procuration_pdf.php?proxy_id=${encodeURIComponent(p.id)}&meeting_id=${encodeURIComponent(O.currentMeetingId)}"
+          target="_blank"
+          download
+          class="btn btn-sm btn-ghost"
+          title="Télécharger le PDF de procuration"
+          aria-label="Télécharger le PDF de procuration pour ${escapeHtml(p.giver_name || 'ce mandant')}"
+        >${icon('download', 'icon-sm')}</a>
         ${!isLocked ? `
           <button class="btn btn-sm btn-ghost text-danger btn-revoke-proxy" data-giver-id="${escapeHtml(p.giver_member_id)}" title="Révoquer">
             ${icon('x', 'icon-sm')}
