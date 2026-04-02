@@ -72,9 +72,10 @@ class MembersControllerTest extends ControllerTestCase
         $this->setQueryParams([]);
 
         $repo = $this->createMock(MemberRepository::class);
-        $repo->method('listAll')->willReturn([
+        $repo->method('listPaginated')->willReturn([
             ['id' => self::MEMBER_ID, 'full_name' => 'Alice Martin'],
         ]);
+        $repo->method('countAll')->willReturn(1);
 
         $this->injectRepos([MemberRepository::class => $repo]);
 
@@ -85,6 +86,49 @@ class MembersControllerTest extends ControllerTestCase
         $this->assertSame(self::MEMBER_ID, $res['body']['data']['items'][0]['id']);
     }
 
+    public function testIndexReturnsPaginationMeta(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['page' => '1', 'per_page' => '50']);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->method('listPaginated')->willReturn([
+            ['id' => 'aaa', 'full_name' => 'Alice'],
+            ['id' => 'bbb', 'full_name' => 'Bob'],
+        ]);
+        $repo->method('countAll')->willReturn(47);
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $pagination = $res['body']['data']['pagination'];
+        $this->assertSame(47, $pagination['total']);
+        $this->assertSame(1, $pagination['page']);
+        $this->assertSame(50, $pagination['per_page']);
+        $this->assertSame(1, $pagination['total_pages']);
+    }
+
+    public function testIndexCallsListPaginatedNotListAll(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams([]);
+
+        $repo = $this->createMock(MemberRepository::class);
+        $repo->expects($this->once())->method('listPaginated')->willReturn([]);
+        $repo->expects($this->never())->method('listAll');
+        $repo->method('countAll')->willReturn(0);
+
+        $this->injectRepos([MemberRepository::class => $repo]);
+
+        $res = $this->callController(MembersController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+    }
+
     public function testIndexWithIncludeGroupsFetchesGroups(): void
     {
         $this->setAuth(self::USER_ID, 'operator', self::TENANT);
@@ -92,9 +136,10 @@ class MembersControllerTest extends ControllerTestCase
         $this->setQueryParams(['include_groups' => '1']);
 
         $memberRepo = $this->createMock(MemberRepository::class);
-        $memberRepo->method('listAll')->willReturn([
+        $memberRepo->method('listPaginated')->willReturn([
             ['id' => self::MEMBER_ID, 'full_name' => 'Alice Martin'],
         ]);
+        $memberRepo->method('countAll')->willReturn(1);
 
         $groupRepo = $this->createMock(MemberGroupRepository::class);
         $groupRepo->method('listGroupsForMember')->willReturn([
