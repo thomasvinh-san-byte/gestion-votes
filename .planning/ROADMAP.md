@@ -215,7 +215,10 @@
   3. Indigo accent color (--color-accent) appears only on interactive elements — CTA buttons, active nav item, focus rings, inline links — and is absent from decorative chrome, headings, and backgrounds
   4. Running `grep -r "color-mix(in srgb" public/assets/css/design-system.css` returns zero results; all blend operations use `color-mix(in oklch, ...)`
   5. The critical-tokens inline styles in all .htmx.html files reflect the updated semantic token values so no flash-of-wrong-color occurs on page load
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 82-01-PLAN.md — Light mode semantic token migration (hex/rgba to oklch primitives) + color-mix srgb-to-oklch upgrade
+- [ ] 82-02-PLAN.md — Dark mode warming + critical-tokens sync + visual checkpoint
 
 ### Phase 83: Component Geometry + Chrome Cleanup
 **Goal**: All interactive components share a single border-radius language, elevation is expressed through exactly three named shadow levels, borders read as structural cues rather than solid edges, and the dashboard/session list feel instantaneous with skeleton shimmer
@@ -244,6 +247,6 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 82. Token Foundation + Palette Shift | 0/TBD | Not started | - |
+| 82. Token Foundation + Palette Shift | 0/2 | Not started | - |
 | 83. Component Geometry + Chrome Cleanup | 0/TBD | Not started | - |
 | 84. Hardened Foundation | 0/TBD | Not started | - |
