@@ -276,6 +276,19 @@
 
 </details>
 
+### Phase 81: Fix UX interactivity — blocking popups, broken layouts, fragile frontend wiring
+
+**Goal:** Unify all confirmation dialogs under AgConfirm.ask(), fix form layouts to exploit horizontal space with 2-column grids, wire every API call with visible loading/success/error feedback, add SSE disconnect banner and unsaved changes warnings
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13, D-14, D-15
+**Depends on:** Phase 80
+**Plans:** 4 plans
+
+Plans:
+- [ ] 81-01-PLAN.md — CSS foundation: .form-grid utility, SSE banner styles, per-page width strategy (D-05, D-06, D-07, D-13, D-14)
+- [ ] 81-02-PLAN.md — Confirmation migration: replace Shared.openModal with AgConfirm.ask() for all simple confirmations (D-01, D-02, D-03)
+- [ ] 81-03-PLAN.md — Toast/feedback wiring: fix setNotif, AgToast arg order, audit API error/loading coverage (D-08, D-09, D-10)
+- [ ] 81-04-PLAN.md — Wizard 2-col layout, SSE disconnect banner, unsaved changes warnings, animation timing (D-04, D-11, D-12, D-15)
+
 ---
 
 ## v9.0 Compliance & Robustness
