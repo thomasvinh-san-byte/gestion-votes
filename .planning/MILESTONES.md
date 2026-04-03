@@ -1,5 +1,18 @@
 # Milestones
 
+## v9.0 Compliance & Robustness (Shipped: 2026-04-03)
+
+**Phases completed:** 1 phases, 4 plans, 8 tasks
+
+**Key accomplishments:**
+
+- .form-grid auto-fit utility, .sse-warning-banner styles, and per-page width strategy applied across 9 CSS files — full-width pages unconstrained, narrow pages centered at 720px
+- Universal AgConfirm.ask() confirmation pattern established across 7 page modules — one consistent dialog pattern replacing mixed Shared.openModal() confirmations
+- Fixed AgToast argument order bugs across all key pages, removed local setNotif override in users.js, and wired Shared.btnLoading for double-submit prevention on settings section saves and wizard creation.
+- 2-column wizard grid, SSE disconnect banner via event-stream.js, beforeunload unsaved-changes protection on wizard and settings, and UI-SPEC animation timing in all 3 overlay components
+
+---
+
 ## v9.0 Compliance & Robustness (Shipped: 2026-04-02)
 
 **Phases completed:** 5 phases, 8 plans, 17 tasks
