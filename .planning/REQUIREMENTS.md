@@ -42,17 +42,17 @@
 
 | REQ-ID | Description | Phase | Status |
 |--------|-------------|-------|--------|
-| COLOR-01 | Semantic tokens modernized | TBD | Pending |
-| COLOR-02 | Warm-neutral gray ramp | TBD | Pending |
-| COLOR-03 | Accent sparsity | TBD | Pending |
-| COLOR-04 | Derived shade computation | TBD | Pending |
-| COLOR-05 | Dark mode derived token sync | TBD | Pending |
-| COMP-01 | Radius consolidation | TBD | Pending |
-| COMP-02 | Shadow vocabulary (3 levels) | TBD | Pending |
-| COMP-03 | Border alpha transparency | TBD | Pending |
-| COMP-04 | Skeleton shimmer loading | TBD | Pending |
-| HARD-01 | Zero hardcoded hex in page CSS | TBD | Pending |
-| HARD-02 | Shadow DOM fallback audit | TBD | Pending |
-| HARD-03 | critical-tokens sync | TBD | Pending |
-| HARD-04 | Animatable token registration | TBD | Pending |
-| HARD-05 | Focus ring token pattern | TBD | Pending |
+| COLOR-01 | Semantic tokens modernized | Phase 82 | Pending |
+| COLOR-02 | Warm-neutral gray ramp | Phase 82 | Pending |
+| COLOR-03 | Accent sparsity | Phase 82 | Pending |
+| COLOR-04 | Derived shade computation | Phase 82 | Pending |
+| COLOR-05 | Dark mode derived token sync | Phase 82 | Pending |
+| COMP-01 | Radius consolidation | Phase 83 | Pending |
+| COMP-02 | Shadow vocabulary (3 levels) | Phase 83 | Pending |
+| COMP-03 | Border alpha transparency | Phase 83 | Pending |
+| COMP-04 | Skeleton shimmer loading | Phase 83 | Pending |
+| HARD-01 | Zero hardcoded hex in page CSS | Phase 84 | Pending |
+| HARD-02 | Shadow DOM fallback audit | Phase 84 | Pending |
+| HARD-03 | critical-tokens sync | Phase 84 | Pending |
+| HARD-04 | Animatable token registration | Phase 84 | Pending |
+| HARD-05 | Focus ring token pattern | Phase 84 | Pending |

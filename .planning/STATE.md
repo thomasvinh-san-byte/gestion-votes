@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-04-03T07:15:00.000Z"
+last_updated: "2026-04-03T00:00:00.000Z"
 last_activity: 2026-04-03
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,54 +18,43 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 81 — fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring
+**Current focus:** Phase 82 — Token Foundation + Palette Shift (not started)
 
 ## Current Position
 
-Phase: 81
+Phase: 82 of 84
 Plan: Not started
-Status: Executing Phase 81
-Last activity: 2026-04-03
+Status: Ready to plan Phase 82
+Last activity: 2026-04-03 — v10.0 roadmap created (phases 82-84)
 
-Progress: [██████████] 99%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v7.0 roadmap]: 4 phases derived from 11 requirements — each feature is an independent vertical slice
-- [v7.0 roadmap]: Phase 70 (Reset Password) depends on Phase 68 (Email Queue) for reliable email delivery
-- [v7.0 roadmap]: PV generation builds on existing MeetingReportService + Dompdf (already installed)
-- [v7.0 roadmap]: Email queue builds on existing EmailQueueService::processQueue() — just needs cron worker
-- [v7.0 roadmap]: Setup page guard checks admin user count — no config file needed
-- [Phase 67-pv-officiel-pdf]: Secretary signature blank line only — no secretary_name column; loi 1901 handwritten practice
-- [Phase 67-pv-officiel-pdf]: Inline mode uses separate ?inline=1 flag (not ?preview=1) — preview adds watermark, inline final PV must not
-- [Phase 67-pv-officiel-pdf]: Task 2 (visual verification) deferred — user chose Continue without verifying
-- [Phase 68-email-queue-worker]: Command tests validate configuration only (no execute() call) — execute() needs live DB via Application::config()
-- [Phase 68-email-queue-worker]: Repository retry tests use file_get_contents() pattern to assert SQL patterns without a database connection
-- [Phase 68-email-queue-worker]: Added --reminders to supervisord.conf so processReminders() runs every cycle alongside processQueue()
-- [Phase 69-initial-setup]: SetupRedirectException pattern: redirect throws exception in PHPUNIT_RUNNING for testable redirects without process exit
-- [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
-- [Phase 80-pagination-quality]: sr-only legend used for cnilLevel/textSize groups in settings where card h2 already provides visual context
-- [Phase 80-pagination-quality]: Chart export aria-labels include specific chart title for disambiguation between 8 identical download icons
-- [Phase 81-fix-ux]: AgConfirm.ask() chosen as universal confirmation pattern — ONE pattern applied everywhere across all 7 page modules
-- [Phase 81-fix-ux]: confirmModal() wrapper in operator-tabs.js delegates to AgConfirm.ask() — operator-speech, operator-attendance, operator-motions benefit automatically
-- [Phase 81-fix-ux]: Shared.openModal() preserved for form-containing modals; ag-modal backdrop-click/Escape already functional
+- [v10.0 roadmap]: 3 phases derived from 14 requirements — token layer → component geometry → hardening
+- [v10.0 roadmap]: Phase 82 changes design-system.css @layer base only; no per-page CSS files touched in this phase
+- [v10.0 roadmap]: Dark mode [data-theme="dark"] block and critical-tokens inline styles must update in the same commit as any :root color primitive change (Pitfall 2 from research)
+- [v10.0 roadmap]: Token names must never be renamed — add new alongside old to avoid Shadow DOM fallback staleness (Pitfall 3 from research)
+- [v10.0 roadmap]: Phase 83 deferred skeleton shimmer scope requires pre-phase audit of which pages use spinners vs. HTMX-managed states
+- [v9.0 roadmap]: AgConfirm.ask() is the universal confirmation pattern across all 7 page modules
+- [Phase 81-fix-ux]: Shared.openModal() preserved for form-containing modals only
 
 ### Existing Infrastructure
 
-- MeetingReportService exists with Dompdf for PV generation (partially implemented)
-- EmailQueueService::processQueue() exists — needs cron wrapper
-- Symfony Mailer installed and configured (Phase 62)
-- AuthController + AuthMiddleware complete with bcrypt/argon2 password hashing
-- Login page already built (Phase 44 rebuild)
+- design-system.css: 5,258 lines, three @layer stack (base/components/v4), oklch values already present as trailing comments on every primitive
+- 23 Web Components with Shadow DOM — inherit tokens but fallback hex literals require manual update after palette changes
+- 25 per-page CSS files — ~15 hardcoded hex/rgba values identified: analytics.css, meetings.css, hub.css, vote.css, public.css, users.css
+- critical-tokens inline styles in 22 HTML files — 6 hex values that prevent flash-of-wrong-color on load
+- color-mix(in srgb, ...) calls in design-system.css — need upgrade to color-mix(in oklch, ...)
 
 ### Known Tech Debt Carried Forward
 
-- Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
+- Controller coverage at 64.6% structural ceiling (3 exit()-based controllers)
 - CI e2e job runs chromium only; mobile-chrome/tablet are local-only
 - Migration idempotency check is local-only, not CI-gated
 
@@ -73,24 +62,13 @@ Progress: [██████████] 99%
 
 None.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260402-d2y | Fix 5 post-v9.0 audit findings (RGPD route, proxy cascade, N+1 groups, search, bulk ops) | 2026-04-02 | 8d1aae71 | [260402-d2y](./quick/260402-d2y-fix-5-post-v9-audit-findings/) |
-| 260402-du4 | Relax role transitions — operator can do president transitions, president is system role, rollbacks allowed | 2026-04-02 | e280721a | [260402-du4](./quick/260402-du4-relax-role-transitions/) |
-| 260402-e51 | Fix 9 critical path blockers — president on imports/invitations/motions, operator archive, SMTP+APP_URL warnings | 2026-04-02 | 441b9f98 | [260402-e51](./quick/260402-e51-fix-critical-path-blockers/) |
-| 260402-eh3 | Fix 11 critical path findings (expired token, audit anonymize, tie detection, password helper, meeting delete confirm+counts, president auto-assign, past vote badge, quorum toast, participation counter, multi-operator SSE) | 2026-04-02 | df57647a | [260402-eh3](./quick/260402-eh3-fix-11-critical-path-findings/) |
-| 260402-ex6 | Fix 10 second audit (CSV injection, email XSS, lockout recovery, voter HTML pages, import size+dedup, export flush+draft msg) | 2026-04-02 | f56a3865 | [260402-ex6](./quick/260402-ex6-fix-10-second-audit-pass/) |
-| 260402-f8j | Fix 4 third audit (18 env vars documented, disk space guard, email renderHtml 14 sites) | 2026-04-02 | e97f1834 | [260402-f8j](./quick/260402-f8j-fix-5-third-audit-pass/) |
-| 260402-ffh | Fix .env ecosystem (rewrite examples, EnvProvider quotes, APP_URL warning, validate-env CLI) | 2026-04-02 | 461b18d5 | [260402-ffh](./quick/260402-ffh-fix-env-ecosystem/) |
-
 ### Blockers/Concerns
 
-None.
+- Phase 83 skeleton shimmer: scope unknown until pre-phase audit of spinner vs. HTMX vs. empty-div loading patterns across all pages
+- Phase 84 HARD-03: exact list of .htmx.html files with critical-tokens blocks should be verified before planning (research said 22 files)
 
 ## Session Continuity
 
-Last session: 2026-04-03T06:12:15.304Z
-Stopped at: Completed 81-fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring/81-02-PLAN.md
+Last session: 2026-04-03
+Stopped at: Roadmap created for v10.0 — phases 82, 83, 84 defined, files written
 Resume file: None

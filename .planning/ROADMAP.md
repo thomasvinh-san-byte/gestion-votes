@@ -16,7 +16,8 @@
 - ✅ **v6.1 PDF & Preparation de Seance** - Phases 65-66 (shipped 2026-04-01)
 - ✅ **v7.0 Production Essentials** - Phases 67-70 (shipped 2026-04-01)
 - ✅ **v8.0 Account & Hardening** - Phases 71-75 (shipped 2026-04-02)
-- ✅ **v9.0 Compliance & Robustness** - Phases 76-80 (shipped 2026-04-02)
+- ✅ **v9.0 Compliance & Robustness** - Phases 76-81 (shipped 2026-04-03)
+- 🚧 **v10.0 Visual Identity Evolution** - Phases 82-84 (in progress)
 
 ---
 
@@ -153,54 +154,6 @@
 - [x] **Phase 69: Initial Setup** - First-run /setup page to create tenant and admin account (completed 2026-04-01)
 - [x] **Phase 70: Reset Password** - Secure token-based password reset flow via email (completed 2026-04-01)
 
-### Phase Details
-
-#### Phase 67: PV Officiel PDF
-**Goal**: Operators can generate a legally compliant official PV after validating a session
-**Depends on**: Nothing (builds on existing MeetingReportService + Dompdf)
-**Requirements**: PV-01, PV-02, PV-03
-**Success Criteria** (what must be TRUE):
-  1. After validating a session, the operator clicks "Generer PV" and receives a PDF containing: organization header (name, date, location), attendance list (present and represented members), quorum confirmation, each resolution with detailed vote counts (pour/contre/abstention), and signature blocks for president and secretary
-  2. The generated PDF follows the standard asso loi 1901 proces-verbal template layout
-  3. The PV PDF is viewable inline and downloadable from the post-session page
-
-#### Phase 68: Email Queue Worker
-**Goal**: Queued emails are processed automatically without manual intervention
-**Depends on**: Nothing (builds on existing EmailQueueService::processQueue())
-**Requirements**: QUEUE-01, QUEUE-02
-**Success Criteria** (what must be TRUE):
-  1. A cron job inside the Docker container calls processQueue() every minute without operator action
-  2. Emails that fail to send are retried with exponential backoff (not immediately re-sent in a tight loop)
-  3. After max retries, permanently failed emails are marked as "failed" in the queue table and stop being retried
-
-#### Phase 69: Initial Setup
-**Goal**: A new deployment can be bootstrapped through a browser-based setup page
-**Depends on**: Nothing (independent feature)
-**Requirements**: SETUP-01, SETUP-02, SETUP-03
-**Success Criteria** (what must be TRUE):
-  1. Navigating to /setup when no admin user exists shows a setup form with organization name, admin email, and admin password fields
-  2. Submitting the form creates the first tenant and first admin user in the database
-  3. After setup completes, the browser redirects to /login and /setup returns a redirect (or 404) for all future requests
-
-#### Phase 70: Reset Password
-**Goal**: Users who forget their password can securely reset it via email
-**Depends on**: Phase 68 (email queue ensures reset emails are delivered reliably)
-**Requirements**: RESET-01, RESET-02, RESET-03
-**Success Criteria** (what must be TRUE):
-  1. The login page displays a "Mot de passe oublie" link that opens a form where the user enters their email address
-  2. Submitting the form sends an email containing a secure token link that expires after 1 hour
-  3. Clicking the link opens a new-password form; submitting it updates the password hash in the database and the user can immediately log in with the new password
-  4. Expired or already-used tokens are rejected with a clear French error message
-
-### Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 67. PV Officiel PDF | 2/2 | Complete | 2026-04-01 |
-| 68. Email Queue Worker | 1/1 | Complete | 2026-04-01 |
-| 69. Initial Setup | 1/1 | Complete | 2026-04-01 |
-| 70. Reset Password | 2/2 | Complete | 2026-04-01 |
-
 </details>
 
 ---
@@ -218,164 +171,79 @@
 - [x] **Phase 74: CI Hardening** - Load E2E seed data in CI job and gate migration idempotency check in CI pipeline (completed 2026-04-02)
 - [x] **Phase 75: Coverage & Observability** - Refactor exit()-based controllers to raise coverage ceiling and surface admin.js KPI errors visibly (completed 2026-04-02)
 
-### Phase Details
-
-#### Phase 71: Mon Compte
-**Goal**: Any connected user can view their profile and change their own password without admin intervention
-**Depends on**: Nothing (builds on existing AuthController + bcrypt infrastructure)
-**Requirements**: ACCT-01, ACCT-02
-**Plans**: 1 plan (complete)
-
-#### Phase 72: Security Config
-**Goal**: Administrators can require 2-step confirmation before irreversible operations execute, and can set the session idle timeout from the admin UI
-**Depends on**: Phase 71
-**Requirements**: SEC-01, SEC-02
-**Success Criteria** (what must be TRUE):
-  1. Deleting a user or triggering an admin password reset shows a confirmation dialog requiring a second explicit action before proceeding
-  2. An admin changes the session timeout value in settings and subsequent sessions expire after the new configured duration
-  3. The timeout setting persists across server restarts (stored in tenant_settings, not only in memory)
-  4. Attempting the critical operation via direct POST without completing the 2-step flow is rejected
-
-#### Phase 73: Vote Session Resume
-**Goal**: A voter whose session expires mid-vote can re-authenticate and return to the exact ballot they were on
-**Depends on**: Phase 72
-**Requirements**: SEC-03
-**Success Criteria** (what must be TRUE):
-  1. When a voter's session expires during an active vote, they are redirected to a re-authentication page rather than the generic login page
-  2. After successful re-authentication, the voter is returned directly to the ballot for the meeting they were voting in
-  3. Any vote the voter had already cast before timeout is preserved and visible on return
-  4. If the vote session has closed while the voter was timed out, they see a clear message explaining the vote has ended
-
-#### Phase 74: CI Hardening
-**Goal**: The CI pipeline loads E2E seed data automatically and validates migration idempotency on every run
-**Depends on**: Nothing (pure CI/infrastructure work)
-**Requirements**: DEBT-03, DEBT-04
-**Success Criteria** (what must be TRUE):
-  1. The CI e2e job loads 04_e2e.sql before running Playwright tests, and tests that depend on seed data pass in CI without manual intervention
-  2. The CI migrate-check job runs the idempotency validation script and fails the build if any migration is not idempotent
-  3. A purposely non-idempotent migration (test fixture) causes the CI job to fail with a clear error message
-
-#### Phase 75: Coverage & Observability
-**Goal**: Controller test coverage rises above the current 64.6% structural ceiling and the admin dashboard no longer silently swallows KPI load failures
-**Depends on**: Nothing (independent quality work)
-**Requirements**: DEBT-01, DEBT-02
-**Success Criteria** (what must be TRUE):
-  1. The exit()-based controllers are refactored so PHPUnit can exercise them; coverage report shows controller coverage above 70%
-  2. When the admin KPI endpoint fails, the admin page displays a visible error message or fallback state instead of leaving the KPI cards blank with no indication of failure
-  3. The coverage-check.sh threshold is updated to enforce the new higher floor, and CI fails if coverage drops below it
-
-### Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 71. Mon Compte | 1/1 | Complete | 2026-04-02 |
-| 72. Security Config | 2/2 | Complete | 2026-04-02 |
-| 73. Vote Session Resume | 1/1 | Complete | 2026-04-02 |
-| 74. CI Hardening | 1/1 | Complete | 2026-04-02 |
-| 75. Coverage & Observability | 2/2 | Complete | 2026-04-02 |
-
 </details>
-
-### Phase 81: Fix UX interactivity — blocking popups, broken layouts, fragile frontend wiring
-
-**Goal:** Unify all confirmation dialogs under AgConfirm.ask(), fix form layouts to exploit horizontal space with 2-column grids, wire every API call with visible loading/success/error feedback, add SSE disconnect banner and unsaved changes warnings
-**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12, D-13, D-14, D-15
-**Depends on:** Phase 80
-**Plans:** 4/4 plans complete
-
-Plans:
-- [ ] 81-01-PLAN.md — CSS foundation: .form-grid utility, SSE banner styles, per-page width strategy (D-05, D-06, D-07, D-13, D-14)
-- [ ] 81-02-PLAN.md — Confirmation migration: replace Shared.openModal with AgConfirm.ask() for all simple confirmations (D-01, D-02, D-03)
-- [ ] 81-03-PLAN.md — Toast/feedback wiring: fix setNotif, AgToast arg order, audit API error/loading coverage (D-08, D-09, D-10)
-- [ ] 81-04-PLAN.md — Wizard 2-col layout, SSE disconnect banner, unsaved changes warnings, animation timing (D-04, D-11, D-12, D-15)
 
 ---
 
-## v9.0 Compliance & Robustness
+<details>
+<summary>✅ v9.0 Compliance & Robustness (Shipped: 2026-04-03) — 6 phases, 12 plans</summary>
 
-**Milestone Goal:** Deliver legal compliance features (procuration PDF, RGPD data rights), fix concurrency and data integrity holes (transaction locks, proxy TOCTOU), harden the frontend (SSE cleanup, async errors, SSE fallback, pagination), and close quality gaps (PV immutability, ARIA labels).
+**Milestone Goal:** Deliver legal compliance features (procuration PDF, RGPD data rights), fix concurrency and data integrity holes (transaction locks, proxy TOCTOU), harden the frontend (SSE cleanup, async errors, SSE fallback, pagination), and close quality gaps (PV immutability, ARIA labels). Plus UX interactivity overhaul: universal AgConfirm.ask(), per-page width strategy, AgToast fixes, SSE disconnect banner, wizard 2-column grid, unsaved changes warnings, animation timing contracts.
 
-## Phases
+### Phases
 
 - [x] **Phase 76: Procuration PDF** - Generate a downloadable PDF pouvoir for each recorded delegation (completed 2026-04-02)
 - [x] **Phase 77: RGPD Compliance** - Member data export, admin data retention policy, and right-to-erasure deletion (completed 2026-04-02)
 - [x] **Phase 78: Data Integrity Locks** - Transaction-level FOR UPDATE locks on ballot mutations and proxy chain validation inside the transaction (completed 2026-04-02)
 - [x] **Phase 79: SSE & Async Robustness** - EventSource cleanup on navigation, async error capture in operator console, SSE fallback polling notification (completed 2026-04-02)
 - [x] **Phase 80: Pagination & Quality** - List pagination (audit/meetings/members), PV immutable snapshot after validation, ARIA label completeness (completed 2026-04-02)
+- [x] **Phase 81: UX Interactivity** - Universal AgConfirm.ask(), per-page width strategy, AgToast fixes, SSE disconnect banner, wizard 2-col grid, unsaved changes warnings (completed 2026-04-03)
+
+</details>
+
+---
+
+## v10.0 Visual Identity Evolution
+
+**Milestone Goal:** Evolve the complete visual identity — colors, component geometry, and codebase hardening — inspired by modern web best practices (Linear, Notion, Clerk, Stripe) while preserving the "officiel et confiance" spirit. Token-first, propagation-driven: change design-system.css, let all 25 page CSS files and 23 Web Components inherit automatically.
+
+## Phases
+
+- [ ] **Phase 82: Token Foundation + Palette Shift** - Promote oklch semantic tokens, warm-neutral gray ramp, derived shade computation, dark mode co-update, visible palette change across all pages
+- [ ] **Phase 83: Component Geometry + Chrome Cleanup** - Consolidate radius to --radius-base, reduce shadows to 3 named levels, apply alpha-based borders, replace spinners with skeleton shimmer on dashboard and session list
+- [ ] **Phase 84: Hardened Foundation** - Eliminate all hardcoded hex from page CSS, audit Shadow DOM fallback literals, sync critical-tokens inline styles, register animatable tokens, tokenize focus rings
 
 ## Phase Details
 
-### Phase 76: Procuration PDF
-**Goal**: Operators can download a legally valid pouvoir PDF for every delegation registered in a session
-**Depends on**: Nothing (builds on existing ProxiesService + Dompdf)
-**Requirements**: LEGAL-01
+### Phase 82: Token Foundation + Palette Shift
+**Goal**: Every page simultaneously looks warmer and more refined because all semantic color tokens reference oklch values, the gray ramp shifts toward warm-neutral, derived tints/shades are computed programmatically, and dark mode overrides are fully in sync
+**Depends on**: Nothing (design-system.css @layer base only — no page file changes)
+**Requirements**: COLOR-01, COLOR-02, COLOR-03, COLOR-04, COLOR-05
 **Success Criteria** (what must be TRUE):
-  1. From the operator console or hub delegation list, the operator clicks a button and receives a PDF for a specific delegation
-  2. The PDF contains the full name of the delegating member (mandant), the full name of the receiving member (mandataire), the session name and date, and an appropriate legal mention
-  3. The PDF is downloadable directly from the browser without navigating away from the current page
-  4. Generating the PDF does not require the session to be in any particular lifecycle state
-**Plans**: 1 plan
-Plans:
-- [x] 76-01-PLAN.md — ProcurationPdfService + controller + download button (completed 2026-04-02)
+  1. Opening the dashboard in light mode shows warm-neutral gray surfaces (hue 200-210 range) rather than the current cool blue-gray — the visual difference is visible in a side-by-side screenshot
+  2. Switching to dark mode on any page produces correctly-tinted dark surfaces; no token appears brighter or more saturated than its light-mode counterpart due to stale color-mix() evaluation
+  3. Indigo accent color (--color-accent) appears only on interactive elements — CTA buttons, active nav item, focus rings, inline links — and is absent from decorative chrome, headings, and backgrounds
+  4. Running `grep -r "color-mix(in srgb" public/assets/css/design-system.css` returns zero results; all blend operations use `color-mix(in oklch, ...)`
+  5. The critical-tokens inline styles in all .htmx.html files reflect the updated semantic token values so no flash-of-wrong-color occurs on page load
+**Plans**: TBD
 
-### Phase 77: RGPD Compliance
-**Goal**: Members can export their own data and administrators can enforce data retention and erasure rights
-**Depends on**: Nothing (independent backend features)
-**Requirements**: LEGAL-02, LEGAL-03, LEGAL-04
+### Phase 83: Component Geometry + Chrome Cleanup
+**Goal**: All interactive components share a single border-radius language, elevation is expressed through exactly three named shadow levels, borders read as structural cues rather than solid edges, and the dashboard/session list feel instantaneous with skeleton shimmer
+**Depends on**: Phase 82 (palette must be stable before geometry work, to avoid double visual QA)
+**Requirements**: COMP-01, COMP-02, COMP-03, COMP-04
 **Success Criteria** (what must be TRUE):
-  1. A logged-in member visits Mon Compte and clicks "Exporter mes donnees"; they receive a JSON or CSV file containing their profile, all their recorded votes, and all their attendance records
-  2. An administrator sets a data retention duration (in months) in the admin settings; a scheduled job or manual trigger purges all member records and associated data older than that threshold
-  3. An administrator selects a member and triggers "Supprimer definitivement"; all rows for that member — votes, attendance records, procurations — are deleted across all related tables in a single cascaded operation
-  4. After deletion, the member cannot log in and their data does not appear in any list or report
-**Plans**: 2 plans
-Plans:
-- [ ] 77-01-PLAN.md — RgpdExportService + download endpoint + account page button (LEGAL-02)
-- [ ] 77-02-PLAN.md — DataRetentionCommand + MemberRepository erase methods + AdminController erase_member (LEGAL-03, LEGAL-04)
+  1. Every button, input, card, modal, and dropdown visibly shares the same corner radius — adjusting the single `--radius-base` token changes all of them simultaneously with no per-component overrides needed
+  2. The shadow scale has exactly three named levels visible in the rendered UI: sm (cards/panels — border-only or near-zero elevation), md (dropdowns/popovers), lg (modals/dialogs); no component uses a shadow outside this vocabulary
+  3. Borders on cards and panels appear to "float" subtly on any background color — light or dark — because they use alpha-based color rather than a fixed hex; placing a card on a light gray vs. white surface still shows a visible but not harsh edge
+  4. The dashboard KPI cards and session list show a shimmer animation while loading instead of a spinner; the shimmer respects `prefers-reduced-motion` (static placeholder when motion is reduced)
+**Plans**: TBD
 
-### Phase 78: Data Integrity Locks
-**Goal**: Concurrent vote submissions and proxy chain validations cannot produce corrupted or inconsistent state
-**Depends on**: Nothing (pure backend database layer changes)
-**Requirements**: DATA-01, DATA-02
+### Phase 84: Hardened Foundation
+**Goal**: The codebase has zero escape hatches — no hardcoded hex in any page CSS file, all Shadow DOM fallback literals reflect the current palette, critical-tokens inline blocks are in sync, color tokens can be animated via CSS transitions, and focus rings across all Web Components use the token reference pattern
+**Depends on**: Phase 83 (hardening targets the palette and geometry values set in phases 82-83)
+**Requirements**: HARD-01, HARD-02, HARD-03, HARD-04, HARD-05
 **Success Criteria** (what must be TRUE):
-  1. Under concurrent load, two simultaneous ballot submissions for the same motion cannot both succeed if only one vote slot remains (serialized via FOR UPDATE)
-  2. A proxy chain is validated and the vote is recorded inside a single database transaction; a concurrent delegation change that completes between the validation check and the insert is detected and rejected
-  3. All ballot mutation queries and motion status changes acquire a row-level lock before reading state they will modify
-**Plans**: 1 plan
-Plans:
-- [x] 78-01-PLAN.md — hasActiveProxyForUpdate (DATA-02) + VotePublicController motion lock (DATA-01) + tests (completed 2026-04-02)
-
-### Phase 79: SSE & Async Robustness
-**Goal**: SSE connections do not leak on navigation and frontend errors are visible to users rather than silently swallowed
-**Depends on**: Nothing (pure frontend JS changes)
-**Requirements**: FE-01, FE-03, FE-04
-**Success Criteria** (what must be TRUE):
-  1. Navigating away from a page that opened an EventSource connection closes that connection immediately; no orphaned SSE connections appear in the browser network tab after navigation
-  2. When an async operation in operator-realtime.js throws an error, a French error message is displayed to the operator (toast or inline message) rather than the error being swallowed silently
-  3. When the SSE connection falls back to polling, a persistent notification reading "Connexion temps reel interrompue" (or equivalent) appears and remains visible until connectivity is restored
-**Plans**: 1 plan
-Plans:
-- [ ] 79-01-PLAN.md — EventSource cleanup (public.js pagehide) + async .catch() toasts (operator-realtime.js) + onFallback notification (FE-01, FE-03, FE-04)
-
-### Phase 80: Pagination & Quality
-**Goal**: Long lists do not degrade page performance, the PV cannot be regenerated after session validation, and interactive elements are accessible to screen reader users
-**Depends on**: Nothing (independent quality improvements across layers)
-**Requirements**: FE-02, QUAL-01, QUAL-02
-**Success Criteria** (what must be TRUE):
-  1. The audit log, meetings list, and members list each display at most 50 items per page with working previous/next controls; navigating to page 2 loads the correct offset without reloading the full dataset
-  2. Once a session is marked as validated, the PV generation endpoint returns the stored snapshot PDF and does not re-execute the PDF generation logic; the stored file content is immutable after first generation
-  3. Every interactive element on every page (buttons, inputs, links, custom controls) has an aria-label or associated label that screen readers can announce; automated axe or Pa11y audit shows zero critical ARIA violations
-**Plans**: 3 plans
-Plans:
-- [ ] 80-01-PLAN.md — MemberRepository::listPaginated + MembersController page/per_page + members.js server-side pagination (FE-02)
-- [ ] 80-02-PLAN.md — generatePdf() snapshot-first check for immutable PV (QUAL-01)
-- [ ] 80-03-PLAN.md — ARIA label pass: icon-only buttons/links, radio fieldset/legend, chart export buttons (QUAL-02)
+  1. Running `grep -rn "#[0-9a-fA-F]\{3,6\}\|rgba(" public/assets/css/` (excluding design-system.css itself) returns zero results — every color in every per-page CSS file is expressed as `var(--token)`
+  2. Running `grep -r "1650E0\|22,80,224\|rgba(22" public/assets/js/components/` returns zero results — all Shadow DOM component fallback hex literals match the current token values
+  3. Toggling dark mode while the dashboard page is open produces no visible "flash" of incorrect color on any Web Component — Shadow DOM tokens are consistent with the page-level theme
+  4. CSS `transition: color 150ms, background-color 150ms` applied to a button produces a smooth animated color change (not a hard cut) because the color tokens are registered via `@property` with the correct `<color>` syntax type
+  5. Focusing any interactive element in any Web Component shows a 2px indigo outline that matches the page-level focus ring — no component displays the legacy `rgba(22,80,224,0.35)` hardcoded value
+**Plans**: TBD
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 76. Procuration PDF | 1/1 | Complete    | 2026-04-02 |
-| 77. RGPD Compliance | 1/2 | Complete    | 2026-04-02 |
-| 78. Data Integrity Locks | 1/1 | Complete    | 2026-04-02 |
-| 79. SSE & Async Robustness | 1/1 | Complete    | 2026-04-02 |
-| 80. Pagination & Quality | 0/3 | Complete    | 2026-04-02 |
+| 82. Token Foundation + Palette Shift | 0/TBD | Not started | - |
+| 83. Component Geometry + Chrome Cleanup | 0/TBD | Not started | - |
+| 84. Hardened Foundation | 0/TBD | Not started | - |
