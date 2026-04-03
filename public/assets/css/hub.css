@@ -107,8 +107,8 @@
   grid-template-columns: 280px 1fr;
   gap: var(--space-card, 1.5rem);
   align-items: start;
-  max-width: 1200px;
-  margin: 1.5rem auto 0;
+  width: 100%;
+  margin-top: 1.5rem;
   padding: 0 var(--space-page, 1.5rem) 2rem;
 }
 

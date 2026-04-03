@@ -13,8 +13,7 @@
 /* meetings-main uses default .app-main padding from design-system.css */
 
 .meetings-main .page-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* =============================================================================

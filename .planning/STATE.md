@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Compliance & Robustness
 status: executing
-stopped_at: Phase 81 UI-SPEC approved
-last_updated: "2026-04-03T05:18:49.189Z"
+stopped_at: Completed 81-01-PLAN.md
+last_updated: "2026-04-03T06:12:47.479Z"
 last_activity: 2026-04-02
 progress:
-  total_phases: 6
+  total_phases: 14
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -51,6 +51,8 @@ Progress: [██████████] 99%
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
 - [Phase 80-pagination-quality]: sr-only legend used for cnilLevel/textSize groups in settings where card h2 already provides visual context
 - [Phase 80-pagination-quality]: Chart export aria-labels include specific chart title for disambiguation between 8 identical download icons
+- [Phase 81-fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring]: users.css treated as full-width — user management list exploits horizontal space like members list
+- [Phase 81-fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring]: [81-01 CSS foundation]: Narrow pages use max-width var(--content-narrow, 720px) + margin-inline: auto; full-width pages use width: 100% with no max-width on main content
 
 ### Existing Infrastructure
 
@@ -65,10 +67,6 @@ Progress: [██████████] 99%
 - Controller coverage at 64.6% (3 exit()-based controllers are structural ceiling)
 - CI e2e job runs chromium only; mobile-chrome/tablet are local-only
 - Migration idempotency check is local-only, not CI-gated
-
-### Roadmap Evolution
-
-- Phase 81 added: Fix UX interactivity — blocking popups, broken layouts, fragile frontend wiring
 
 ### Pending Todos
 
@@ -92,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T05:18:49.179Z
-Stopped at: Phase 81 UI-SPEC approved
-Resume file: .planning/phases/81-fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring/81-UI-SPEC.md
+Last session: 2026-04-03T06:12:47.476Z
+Stopped at: Completed 81-01-PLAN.md
+Resume file: None

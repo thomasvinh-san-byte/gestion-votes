@@ -28,11 +28,10 @@
   margin: 0 auto;
 }
 
-/* ─── Centered content constraint ─── */
+/* TODO: HTML partial needs .form-grid on form containers */
 .postsession-main .container,
 .postsession-main .page-content {
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
   padding: 0 var(--space-card);
 }
 
