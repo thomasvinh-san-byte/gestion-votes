@@ -256,4 +256,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 82. Token Foundation + Palette Shift | 2/2 | Complete    | 2026-04-03 |
 | 83. Component Geometry + Chrome Cleanup | 2/2 | Complete    | 2026-04-03 |
-| 84. Hardened Foundation | 0/3   | Not started | - |
+| 84. Hardened Foundation | 1/3 | In Progress|  |

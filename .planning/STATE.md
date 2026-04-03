@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
-status: completed
-stopped_at: Completed 83-02-PLAN.md — dashboard skeleton shimmer for KPI cards and session list
-last_updated: "2026-04-03T10:06:10.493Z"
-last_activity: 2026-04-03
+status: executing
+stopped_at: Completed 84-01-PLAN.md — @property blocks, new tokens, oklch fixes, HARD-03 critical-tokens sync
+last_updated: "2026-04-03T10:33:46.126Z"
+last_activity: 2026-04-03 -- Phase 84 execution started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 83 — Component Geometry + Chrome Cleanup
+**Current focus:** Phase 84 — Hardened Foundation
 
 ## Current Position
 
-Phase: 84
-Plan: Not started
-Status: Phase 83 complete — ready for Phase 84
-Last activity: 2026-04-03
+Phase: 84 (Hardened Foundation) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 84
+Last activity: 2026-04-03 -- Phase 84 execution started
 
 Progress: [██████████] 100%
 
@@ -51,6 +51,8 @@ Progress: [██████████] 100%
 - [Phase 83-01]: Shadow scale reduced 9→3 levels: sm=0.06 opacity, md unchanged, lg=old xl 0.14 opacity
 - [Phase 83-01]: --color-border-alpha uses oklch alpha for adaptive depth (black/white based for light/dark modes)
 - [Phase 83]: Skeleton KPI height 88px matches kpi-card approx height; .kpi-card-wrapper wrapper enables CSS-only show/hide toggle
+- [Phase 84]: @property registered for 8 core color tokens — derived tokens excluded (no var() in initial-value per CSS spec)
+- [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
 
 ### Existing Infrastructure
 
@@ -76,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T09:49:59.391Z
-Stopped at: Completed 83-02-PLAN.md — dashboard skeleton shimmer for KPI cards and session list
+Last session: 2026-04-03T10:33:46.123Z
+Stopped at: Completed 84-01-PLAN.md — @property blocks, new tokens, oklch fixes, HARD-03 critical-tokens sync
 Resume file: None

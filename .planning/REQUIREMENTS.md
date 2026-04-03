@@ -19,9 +19,9 @@
 
 - [ ] **HARD-01**: Zero hardcoded hex values in per-page CSS files — all colors via var(--token)
 - [ ] **HARD-02**: Shadow DOM component fallback hex values audited and updated to match new palette
-- [ ] **HARD-03**: critical-tokens inline styles in all .htmx.html files synced with new semantic tokens
-- [ ] **HARD-04**: Animatable color and opacity tokens registered for CSS transition support
-- [ ] **HARD-05**: Focus ring colors in Shadow DOM components use token reference pattern instead of hardcoded rgba
+- [x] **HARD-03**: critical-tokens inline styles in all .htmx.html files synced with new semantic tokens
+- [x] **HARD-04**: Animatable color and opacity tokens registered for CSS transition support
+- [x] **HARD-05**: Focus ring colors in Shadow DOM components use token reference pattern instead of hardcoded rgba
 
 ## Future Requirements (deferred)
 
