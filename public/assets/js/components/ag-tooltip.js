@@ -35,7 +35,7 @@ class AgTooltip extends HTMLElement {
           font-weight: 600;
           white-space: nowrap;
           padding: 4px 8px;
-          border-radius: 5px;
+          border-radius: var(--radius-base, 8px);
           opacity: 0;
           visibility: hidden;
           transition: opacity .15s ease, visibility .15s ease, transform .15s ease;

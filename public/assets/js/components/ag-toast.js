@@ -92,7 +92,7 @@ class AgToast extends HTMLElement {
           padding: var(--space-3, 12px) var(--space-4, 16px);
           background: var(--color-surface-raised, #ffffff);
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-toast, 8px);
+          border-radius: var(--radius-base, 8px);
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1));
           width: var(--toast-width, 356px);
           font-size: var(--text-sm, 0.875rem);
@@ -129,7 +129,7 @@ class AgToast extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: var(--radius-sm, 4px);
+          border-radius: var(--radius-base, 8px);
           cursor: pointer;
           color: var(--color-text-muted, #95a3a4);
           background: none;

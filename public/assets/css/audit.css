@@ -597,8 +597,8 @@ tr.audit-detail-inline td {
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--color-surface);
-  border-radius: var(--radius-xl, 16px);
-  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-base, 8px);
+  box-shadow: var(--shadow-lg);
   z-index: var(--z-modal, 50);
   width: min(560px, calc(100vw - 2rem));
   max-height: calc(100vh - 4rem);

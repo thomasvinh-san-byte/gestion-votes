@@ -259,7 +259,7 @@ class AgSearchableSelect extends HTMLElement {
           padding: 0.5rem 2.5rem 0.5rem 0.75rem;
           background: var(--color-surface, #ffffff);
           border: 2px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-md, 8px);
+          border-radius: var(--radius-base, 8px);
           cursor: pointer;
           transition: border-color 0.15s, background-color 0.15s;
           font-size: 0.875rem;
@@ -314,7 +314,7 @@ class AgSearchableSelect extends HTMLElement {
           background: var(--color-surface, #ffffff);
           border: 1px solid var(--color-primary, #1650E0);
           border-top: none;
-          border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+          border-radius: 0 0 var(--radius-base, 8px) var(--radius-base, 8px);
           box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.1));
           z-index: 1000;
           max-height: 300px;
@@ -338,7 +338,7 @@ class AgSearchableSelect extends HTMLElement {
           max-width: 100%;
           padding: 0.5rem 0.75rem 0.5rem 2rem;
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-sm, 6px);
+          border-radius: var(--radius-base, 8px);
           font-size: 0.875rem;
           background: var(--color-bg-subtle, #f5f7f4);
           transition: border-color 0.15s;
@@ -449,7 +449,7 @@ class AgSearchableSelect extends HTMLElement {
           background: var(--color-warning-subtle, #fff3cd);
           color: inherit;
           padding: 0;
-          border-radius: 2px;
+          border-radius: var(--radius-base, 8px);
         }
 
       </style>

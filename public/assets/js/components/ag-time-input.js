@@ -120,7 +120,7 @@ class AgTimeInput extends HTMLElement {
           display: flex; align-items: center; gap: 2px;
           background: var(--color-surface, #fff);
           border: 1.5px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-sm, 8px);
+          border-radius: var(--radius-base, 8px);
           padding: 4px 8px;
           font-family: var(--font-mono, monospace);
           font-size: 15px;

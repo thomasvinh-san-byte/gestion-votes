@@ -121,7 +121,7 @@ class AgPdfViewer extends HTMLElement {
         :host([mode="inline"]) {
           width: 100%;
           height: var(--pdf-viewer-height, 600px);
-          border-radius: var(--radius, 6px);
+          border-radius: var(--radius-base, 8px);
           overflow: hidden;
           border: 1px solid var(--color-border, #e5e7eb);
         }
@@ -141,7 +141,7 @@ class AgPdfViewer extends HTMLElement {
           inset: auto 0 0 0;
           height: 80dvh;
           background: var(--color-surface, #fafaf7);
-          border-radius: var(--radius-lg, 16px) var(--radius-lg, 16px) 0 0;
+          border-radius: var(--radius-base, 8px) var(--radius-base, 8px) 0 0;
           z-index: var(--z-modal, 100);
           transform: translateY(100%);
           transition: transform var(--duration-slow, 0.3s) var(--ease-out, ease-out);
@@ -232,7 +232,7 @@ class AgPdfViewer extends HTMLElement {
           height: 32px;
           border: none;
           background: none;
-          border-radius: var(--radius-sm, 6px);
+          border-radius: var(--radius-base, 8px);
           cursor: pointer;
           color: var(--color-text-muted, #6b7280);
           font-size: 18px;

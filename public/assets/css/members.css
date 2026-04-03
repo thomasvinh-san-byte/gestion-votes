@@ -1008,7 +1008,7 @@ dialog.member-detail-dialog {
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
   padding: 0;
   margin: auto;
   position: fixed;

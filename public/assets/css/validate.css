@@ -82,10 +82,10 @@
 
 .validate-modal {
   background: var(--color-surface-raised); /* QA-02: elevated confirmation modal above backdrop */
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-base);
   max-width: 520px;
   width: 100%;
-  box-shadow: var(--shadow-2xl);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 

@@ -86,7 +86,7 @@ class AgVoteButton extends HTMLElement {
           font-size: 17px;
           font-weight: 800;
           border: 1.5px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-lg, 16px);
+          border-radius: var(--radius-base, 8px);
           cursor: pointer;
           transition: background .18s cubic-bezier(.4,0,.2,1), border-color .18s cubic-bezier(.4,0,.2,1), box-shadow .18s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1);
           -webkit-tap-highlight-color: transparent;

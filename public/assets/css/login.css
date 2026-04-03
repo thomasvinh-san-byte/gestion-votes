@@ -55,9 +55,9 @@
   max-width: 420px;
   background: var(--color-surface-raised);
   border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-base);
   padding: var(--space-8);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
   position: relative;
   z-index: 1;
   transition: box-shadow var(--duration-deliberate) var(--ease-standard),
@@ -66,7 +66,7 @@
 
 .login-card:focus-within {
   border-color: var(--color-border-focus);
-  box-shadow: var(--shadow-xl), 0 0 0 3px var(--color-primary-glow);
+  box-shadow: var(--shadow-lg), 0 0 0 3px var(--color-primary-glow);
 }
 
 @starting-style {

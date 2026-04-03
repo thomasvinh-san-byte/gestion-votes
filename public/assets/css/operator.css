@@ -1137,9 +1137,9 @@
   max-width: 480px;
   width: 90%;
   padding: 2rem;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-base);
   background: var(--color-surface);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 1rem;

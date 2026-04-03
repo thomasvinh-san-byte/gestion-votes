@@ -104,7 +104,7 @@ class AgConfirm extends HTMLElement {
           display: flex; justify-content: center; gap: 8px;
         }
         .btn {
-          padding: 8px 18px; border-radius: var(--radius, 0.5rem); font-size: 13px; font-weight: 600;
+          padding: 8px 18px; border-radius: var(--radius-base, 8px); font-size: 13px; font-weight: 600;
           cursor: pointer; border: 1.5px solid var(--color-border, #d5dbd2);
           background: var(--color-surface, #fff); color: var(--color-text-dark, #1a1a1a);
           transition: background var(--duration-fast, 150ms) ease, border-color var(--duration-fast, 150ms) ease;

@@ -51,7 +51,7 @@ class AgKpi extends HTMLElement {
         .kpi {
           background: var(--color-surface, #ffffff);
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-lg, 16px);
+          border-radius: var(--radius-base, 8px);
           padding: 12px 8px;
           text-align: center;
           cursor: default;

@@ -498,10 +498,10 @@
   flex-direction: column;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-base);
   overflow: hidden;
   transition: border-color var(--duration-normal) var(--ease-default), box-shadow var(--duration-normal) var(--ease-default), transform var(--duration-normal) var(--ease-default);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
 }
 
 /* inherited from .card-clickable — translateY(-2px) already in design-system.css */
@@ -1038,8 +1038,8 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-alpha);
+  border-radius: var(--radius-base);
   transition: var(--transition-shadow), transform var(--duration-moderate) var(--ease-standard);
   text-decoration: none;
   color: inherit;
@@ -1086,8 +1086,8 @@
 
 .dashboard-sessions {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--color-border-alpha);
   padding: var(--space-card, 24px);
 }
 .dashboard-panel-header {
@@ -1126,8 +1126,8 @@
   position: sticky;
   top: 80px;
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--color-border-alpha);
   padding: var(--space-card, 24px);
 }
 .dashboard-aside__title {

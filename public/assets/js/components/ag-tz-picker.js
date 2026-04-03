@@ -63,7 +63,7 @@ class AgTzPicker extends HTMLElement {
           width: 100%;
           padding: 8px 32px 8px 10px;
           border: 1.5px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-sm, 8px);
+          border-radius: var(--radius-base, 8px);
           background: var(--color-surface, #fff);
           font-family: var(--font-sans, sans-serif);
           font-size: 13px;

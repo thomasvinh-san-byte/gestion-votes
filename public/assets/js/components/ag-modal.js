@@ -113,8 +113,8 @@ class AgModal extends HTMLElement {
           width: min(${maxW}, 100%);
           background: var(--color-surface-raised, #fff);
           border: 1px solid var(--color-border, #d5dbd2);
-          border-radius: var(--radius-modal, 12px);
-          box-shadow: var(--shadow-xl, var(--shadow-lg));
+          border-radius: var(--radius-base, 8px);
+          box-shadow: var(--shadow-lg);
           overflow: hidden;
           animation: modalIn var(--duration-fast, 150ms) var(--ease-spring, cubic-bezier(.34,1.2,.64,1));
         }
@@ -141,7 +141,7 @@ class AgModal extends HTMLElement {
         .modal-close {
           width: 28px; height: 28px;
           display: flex; align-items: center; justify-content: center;
-          border: none; background: none; border-radius: var(--radius-sm, 4px);
+          border: none; background: none; border-radius: var(--radius-base, 8px);
           cursor: pointer; color: var(--color-text-muted, #95a3a4);
           transition: background var(--duration-fast, 150ms) ease;
         }

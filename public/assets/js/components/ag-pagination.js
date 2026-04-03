@@ -68,7 +68,7 @@ class AgPagination extends HTMLElement {
           border-top: 1px solid var(--color-border-subtle, #e8e7e2);
         }
         .pg-btn {
-          width: 26px; height: 26px; border-radius: 5px;
+          width: 26px; height: 26px; border-radius: var(--radius-base, 8px);
           display: flex; align-items: center; justify-content: center;
           font-family: var(--font-mono, monospace); font-size: 11px; font-weight: 600;
           border: 1px solid var(--color-border, #d5dbd2);
