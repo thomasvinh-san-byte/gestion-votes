@@ -201,7 +201,7 @@
 
 - [x] **Phase 82: Token Foundation + Palette Shift** - Promote oklch semantic tokens, warm-neutral gray ramp, derived shade computation, dark mode co-update, visible palette change across all pages (completed 2026-04-03)
 - [x] **Phase 83: Component Geometry + Chrome Cleanup** - Consolidate radius to --radius-base, reduce shadows to 3 named levels, apply alpha-based borders, replace spinners with skeleton shimmer on dashboard and session list (completed 2026-04-03)
-- [ ] **Phase 84: Hardened Foundation** - Eliminate all hardcoded hex from page CSS, audit Shadow DOM fallback literals, sync critical-tokens inline styles, register animatable tokens, tokenize focus rings
+- [x] **Phase 84: Hardened Foundation** - Eliminate all hardcoded hex from page CSS, audit Shadow DOM fallback literals, sync critical-tokens inline styles, register animatable tokens, tokenize focus rings (completed 2026-04-03)
 
 ## Phase Details
 
@@ -246,7 +246,7 @@ Plans:
   5. Focusing any interactive element in any Web Component shows a 2px indigo outline that matches the page-level focus ring — no component displays the legacy `rgba(22,80,224,0.35)` hardcoded value
 **Plans**: 3 plans
 Plans:
-- [ ] 84-01-PLAN.md — @property registration, new tokens, focus ring fixes in design-system.css
+- [x] 84-01-PLAN.md — @property registration, new tokens, focus ring fixes in design-system.css
 - [ ] 84-02-PLAN.md — Eliminate all hardcoded hex/rgba from 16 per-page CSS files
 - [ ] 84-03-PLAN.md — Shadow DOM fallback audit and focus ring tokenization in 19 Web Components
 
@@ -256,4 +256,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 82. Token Foundation + Palette Shift | 2/2 | Complete    | 2026-04-03 |
 | 83. Component Geometry + Chrome Cleanup | 2/2 | Complete    | 2026-04-03 |
-| 84. Hardened Foundation | 1/3 | In Progress|  |
+| 84. Hardened Foundation | 3/3 | Complete   | 2026-04-03 |

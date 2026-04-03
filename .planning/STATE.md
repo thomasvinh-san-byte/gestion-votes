@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
 status: executing
-stopped_at: Completed 84-01-PLAN.md — @property blocks, new tokens, oklch fixes, HARD-03 critical-tokens sync
-last_updated: "2026-04-03T10:33:46.126Z"
+stopped_at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
+last_updated: "2026-04-03T10:45:51.499Z"
 last_activity: 2026-04-03 -- Phase 84 execution started
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 7
   percent: 100
 ---
 
@@ -53,6 +53,8 @@ Progress: [██████████] 100%
 - [Phase 83]: Skeleton KPI height 88px matches kpi-card approx height; .kpi-card-wrapper wrapper enables CSS-only show/hide toggle
 - [Phase 84]: @property registered for 8 core color tokens — derived tokens excluded (no var() in initial-value per CSS spec)
 - [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
+- [Phase 84]: Token name --color-primary-text is canonical for text on primary backgrounds (not --color-text-on-primary or --color-primary-contrast)
+- [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
 
 ### Existing Infrastructure
 
@@ -78,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:33:46.123Z
-Stopped at: Completed 84-01-PLAN.md — @property blocks, new tokens, oklch fixes, HARD-03 critical-tokens sync
+Last session: 2026-04-03T10:45:51.496Z
+Stopped at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
 Resume file: None
