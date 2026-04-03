@@ -61,14 +61,35 @@
     };
   }
 
+  function showSseWarning() {
+    if (document.getElementById('sseWarningBanner')) return;
+    var banner = document.createElement('div');
+    banner.id = 'sseWarningBanner';
+    banner.className = 'sse-warning-banner';
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+    banner.textContent = 'Connexion temps reel interrompue \u2014 actualisation automatique toutes les 30 secondes';
+    var main = document.querySelector('.app-main') || document.querySelector('main') || document.body;
+    main.prepend(banner);
+  }
+
+  function hideSseWarning() {
+    var el = document.getElementById('sseWarningBanner');
+    if (el) el.remove();
+  }
+
   function openConnection() {
     if (!currentMeetingId) return;
+
+    // Clean up any stale banner when reconnecting
+    hideSseWarning();
 
     var url = '/api/v1/events.php?meeting_id=' + encodeURIComponent(currentMeetingId);
     source = new EventSource(url);
 
     source.addEventListener('connected', function (_e) {
       reconnectAttempts = 0;
+      hideSseWarning();
       if (handlers.onConnect) handlers.onConnect();
     });
 
@@ -116,6 +137,7 @@
 
     source.onerror = function () {
       reconnectAttempts++;
+      showSseWarning();
       if (handlers.onDisconnect) handlers.onDisconnect();
 
       if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
@@ -153,5 +175,7 @@
     connect: connect,
     close: close,
     isActive: isActive,
+    showSseWarning: showSseWarning,
+    hideSseWarning: hideSseWarning,
   };
 })();

@@ -29,8 +29,9 @@
    900px CONTENT TRACK
    ============================================================================= */
 
-.wiz-content {
-  max-width: 900px;
+.wiz-content,
+.wizard-page {
+  max-width: 960px;
   margin: 0 auto;
   padding: var(--space-4);
   overflow: hidden; /* clip slide animations */
@@ -43,7 +44,7 @@
 
 .wiz-step {
   display: none;
-  animation: wizSlideIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: wizSlideIn var(--duration-deliberate, 300ms) var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1)) both;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-subtle);
@@ -55,7 +56,14 @@
 
 .wiz-step.slide-out {
   display: block;
-  animation: wizSlideOut 180ms ease-in both;
+  animation: wizSlideOut var(--duration-normal, 200ms) var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1)) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wiz-step,
+  .wiz-step.slide-out {
+    animation: none;
+  }
 }
 
 /* =============================================================================
@@ -156,6 +164,56 @@
 
 .wiz-step-body {
   padding: 1rem 1.5rem;
+}
+
+/* =============================================================================
+   WIZARD STEP 2-COLUMN FORM GRID (D-04/D-05)
+   Fields flow in 2 columns on desktop; full-width exceptions listed below.
+   ============================================================================= */
+
+.wiz-step-body .step-content,
+.wiz-step-body .step-fields,
+.wiz-step-body .form-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-md, 16px);
+  align-items: start;
+}
+
+/* Full-width exceptions within wizard steps */
+.wiz-step-body .step-content textarea,
+.wiz-step-body .step-content .field-full,
+.wiz-step-body .step-content .form-group-full,
+.wiz-step-body .step-content .upload-zone,
+.wiz-step-body .step-content h3,
+.wiz-step-body .step-content .step-description,
+.wiz-step-body .step-content .step-actions,
+.wiz-step-body .step-content .data-table-wrapper,
+.wiz-step-body .step-fields textarea,
+.wiz-step-body .step-fields .field-full,
+.wiz-step-body .step-fields .form-group-full,
+.wiz-step-body .step-fields .upload-zone,
+.wiz-step-body .step-fields .data-table-wrapper,
+.wiz-step-body .form-body textarea,
+.wiz-step-body .form-body .field-full,
+.wiz-step-body .form-body .form-group-full,
+.wiz-step-body .form-body .upload-zone,
+.wiz-step-body .form-body .data-table-wrapper {
+  grid-column: 1 / -1;
+}
+
+/* Member table max-height to keep step in viewport */
+.wiz-step-body .data-table-wrapper {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .wiz-step-body .step-content,
+  .wiz-step-body .step-fields,
+  .wiz-step-body .form-body {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* =============================================================================

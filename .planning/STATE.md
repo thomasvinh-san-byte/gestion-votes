@@ -5,8 +5,12 @@ milestone_name: Compliance & Robustness
 status: executing
 stopped_at: Completed 81-fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring/81-02-PLAN.md
 last_updated: "2026-04-03T06:12:23.884Z"
-last_activity: 2026-04-02
+last_activity: 2026-04-03
 progress:
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 2
   percent: 99
 ---
 
@@ -17,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v7.0 Production Essentials — Phase 67 (PV Officiel PDF) ready to plan
+**Current focus:** Phase 81 — fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring
 
 ## Current Position
 
-Phase: 80 of 70 (PV Officiel PDF)
-Plan: Not started
-Status: In progress
-Last activity: 2026-04-02
+Phase: 81 (fix-ux-interactivity-blocking-popups-broken-layouts-fragile-frontend-wiring) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 81
+Last activity: 2026-04-03 -- Phase 81 execution started
 
 Progress: [██████████] 99%
 
