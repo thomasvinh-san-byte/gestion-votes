@@ -15,6 +15,47 @@
  * 10. Print
  */
 
+@property --color-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.520 0.195 265);
+}
+@property --color-primary-text {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(1 0 0);
+}
+@property --color-surface {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.969 0.006 95);
+}
+@property --color-bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.922 0.013 95);
+}
+@property --color-text {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.530 0.025 80);
+}
+@property --color-border {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.833 0.022 88);
+}
+@property --color-danger {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.510 0.175 25);
+}
+@property --color-success {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: oklch(0.500 0.135 155);
+}
+
 @layer base, components, v4;
 
 @layer base {
@@ -305,12 +346,14 @@ table {
   --color-primary-muted:  oklch(0.520 0.195 265 / 0.12);  /* was rgba(22,80,224,0.12) */
   --color-primary-glow:   oklch(0.520 0.195 265 / 0.12);  /* was rgba(22,80,224,0.12) */
   --color-primary-text:   oklch(1 0 0);       /* white */
+  --color-text-on-primary-muted: oklch(1 0 0 / 0.85);
 
   --color-success:        var(--green-600);   /* oklch(0.500 0.135 155) */
   --color-success-hover:  color-mix(in oklch, var(--color-success) 88%, black);
   --color-success-subtle: var(--green-50);    /* oklch(0.968 0.020 155) */
   --color-success-border: oklch(0.750 0.100 155);  /* #A3E8C1 approx */
   --color-success-text:   var(--green-600);   /* oklch(0.500 0.135 155) */
+  --color-success-glow:   oklch(0.500 0.135 155 / 0.60);
 
   --color-warning:        var(--amber-600);   /* oklch(0.590 0.115 60) */
   --color-warning-hover:  color-mix(in oklch, var(--color-warning) 88%, black);
@@ -323,6 +366,8 @@ table {
   --color-danger-subtle: var(--red-50);    /* oklch(0.975 0.015 25) */
   --color-danger-border: oklch(0.800 0.080 25);  /* #F4BFBF approx */
   --color-danger-text:   var(--red-600);   /* oklch(0.510 0.175 25) */
+  --color-danger-glow:   oklch(0.510 0.175 25 / 0.14);
+  --color-danger-focus:  oklch(0.510 0.175 25 / 0.35);
 
   --color-info:        var(--blue-600);   /* oklch(0.520 0.195 265) */
   --color-info-hover:  color-mix(in oklch, var(--color-info) 88%, black);
@@ -342,8 +387,9 @@ table {
   --color-neutral-subtle: var(--stone-300);  /* oklch(0.893 0.017 90) */
   --color-neutral-text:   var(--stone-700);  /* oklch(0.530 0.025 80) */
 
-  --color-backdrop:     oklch(0 0 0 / 0.50);      /* was rgba(0,0,0,0.5) */
-  --color-overlay-tint: oklch(0 0 0 / 0.04);      /* was rgba(0,0,0,0.04) */
+  --color-backdrop:       oklch(0 0 0 / 0.50);      /* was rgba(0,0,0,0.5) */
+  --color-backdrop-heavy: oklch(0 0 0 / 0.55);
+  --color-overlay-tint:   oklch(0 0 0 / 0.04);      /* was rgba(0,0,0,0.04) */
 
   /* ─── Sidebar ─── */
   --sidebar-bg:         oklch(0.080 0.015 260);    /* was #0C1018 — intentionally cool */
@@ -421,7 +467,7 @@ table {
   --shadow-focus: 0 0 0 2px var(--color-surface-raised),
                   0 0 0 4px var(--color-border-focus);
   --shadow-focus-danger: 0 0 0 2px var(--color-surface-raised),
-                          0 0 0 4px rgba(196, 40, 40, 0.35);
+                          0 0 0 4px var(--color-danger-focus);
 
   /* ═══════════════════════════════════════════════════════════════════════════
      SEMANTIC — Layout
@@ -509,7 +555,7 @@ table {
      ═══════════════════════════════════════════════════════════════════════════ */
 
   --ring-width: 3px;
-  --ring-color: rgba(22, 80, 224, 0.35);
+  --ring-color: oklch(0.520 0.195 265 / 0.35);
   --ring-offset: 2px;
 
   /* ═══════════════════════════════════════════════════════════════════════════
