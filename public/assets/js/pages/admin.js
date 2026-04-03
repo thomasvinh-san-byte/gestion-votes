@@ -417,23 +417,23 @@
         var active = btn.dataset.active === '1' ? 0 : 1;
         var label = active ? 'activer' : 'd\u00e9sactiver';
         var toggleBtn = btn;
-        Shared.openModal({
+        var ok = await AgConfirm.ask({
           title: (active ? 'Activer' : 'D\u00e9sactiver') + ' l\'utilisateur',
-          body: '<p>Voulez-vous ' + label + ' cet utilisateur ?</p>',
-          confirmText: active ? 'Activer' : 'D\u00e9sactiver',
-          onConfirm: async function() {
-            Shared.btnLoading(toggleBtn, true);
-            try {
-              var r = await api('/api/v1/admin_users.php', { action: 'toggle', user_id: toggleBtn.dataset.id, is_active: active });
-              if (r.body && r.body.ok) {
-                loadUsers();
-              } else {
-                setNotif('error', getApiError(r.body));
-              }
-            } catch (err) { setNotif('error', err.message); }
-            finally { Shared.btnLoading(toggleBtn, false); }
-          }
+          message: 'Voulez-vous ' + label + ' cet utilisateur ?',
+          confirmLabel: active ? 'Activer' : 'D\u00e9sactiver',
+          variant: 'warning'
         });
+        if (!ok) return;
+        Shared.btnLoading(toggleBtn, true);
+        try {
+          var r = await api('/api/v1/admin_users.php', { action: 'toggle', user_id: toggleBtn.dataset.id, is_active: active });
+          if (r.body && r.body.ok) {
+            loadUsers();
+          } else {
+            setNotif('error', getApiError(r.body));
+          }
+        } catch (err) { setNotif('error', err.message); }
+        finally { Shared.btnLoading(toggleBtn, false); }
         return;
       }
 

@@ -473,35 +473,33 @@
     });
 
     // Archive
-    click('btnArchive', function () {
-      Shared.openModal({
-        title: 'Archiver la s\u00e9ance',
-        body: '<p>Archiver d\u00e9finitivement cette s\u00e9ance ?</p>' +
-              '<p class="text-sm text-muted">Cette action est irr\u00e9versible. Les donn\u00e9es resteront consultables dans les archives.</p>',
-        confirmText: 'Archiver',
-        confirmClass: 'btn btn-danger',
-        onConfirm: async function() {
-          var btn = document.getElementById('btnArchive');
-          Shared.btnLoading(btn, true);
-          try {
-            var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, to_status: 'archived' });
-            var d = res.body;
-            if (d && d.ok) {
-              setNotif('success', 'S\u00e9ance archiv\u00e9e');
-              var banner = document.getElementById('completeBanner');
-              if (banner) banner.hidden = false;
-              var archiveCard = document.getElementById('archiveCard');
-              if (archiveCard) archiveCard.hidden = true;
-            } else {
-              setNotif('error', d.error || 'Erreur d\'archivage');
-            }
-          } catch (e) {
-            setNotif('error', 'Erreur r\u00e9seau');
-          } finally {
-            Shared.btnLoading(btn, false);
-          }
-        }
+    click('btnArchive', async function () {
+      const ok = await AgConfirm.ask({
+        title: 'Archiver la s\u00e9ance ?',
+        message: 'Archiver d\u00e9finitivement cette s\u00e9ance ? Les donn\u00e9es resteront consultables dans les archives. Cette action est irr\u00e9versible.',
+        confirmLabel: 'Archiver',
+        variant: 'danger'
       });
+      if (!ok) return;
+      var btn = document.getElementById('btnArchive');
+      Shared.btnLoading(btn, true);
+      try {
+        var res = await window.api('/api/v1/meeting_transition.php', { meeting_id: meetingId, to_status: 'archived' });
+        var d = res.body;
+        if (d && d.ok) {
+          setNotif('success', 'S\u00e9ance archiv\u00e9e');
+          var banner = document.getElementById('completeBanner');
+          if (banner) banner.hidden = false;
+          var archiveCard = document.getElementById('archiveCard');
+          if (archiveCard) archiveCard.hidden = true;
+        } else {
+          setNotif('error', d.error || 'Erreur d\'archivage');
+        }
+      } catch (e) {
+        setNotif('error', 'Erreur r\u00e9seau');
+      } finally {
+        Shared.btnLoading(btn, false);
+      }
     });
 
     // Stepper segments — back-only click navigation

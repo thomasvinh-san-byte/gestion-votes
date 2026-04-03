@@ -175,26 +175,26 @@ async function saveTemplate() {
 }
 
 // Delete template
-function deleteTemplate(id) {
+async function deleteTemplate(id) {
   const tpl = templates.find(t => t.id === id);
   const tplName = tpl ? tpl.name : 'ce template';
 
-  Shared.openModal({
+  const ok = await AgConfirm.ask({
     title: 'Supprimer le template',
-    body: '<p>Supprimer le template \u00ab <strong>' + escapeHtml(tplName) + '</strong> \u00bb ?</p>',
-    confirmText: 'Supprimer',
-    confirmClass: 'btn btn-danger',
-    onConfirm: async function() {
-      try {
-        const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, null, 'DELETE');
-        if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
-        window.showToast?.('Template supprim\u00e9', 'success');
-        loadTemplates();
-      } catch (err) {
-        window.showToast?.('Erreur: ' + err.message, 'error');
-      }
-    }
+    message: 'Supprimer le template \u00ab\u00a0' + tplName + '\u00a0\u00bb ?',
+    confirmLabel: 'Supprimer',
+    variant: 'danger'
   });
+  if (!ok) return;
+
+  try {
+    const { body: data } = await api(`${API_BASE}/email_templates.php?id=${encodeURIComponent(id)}`, null, 'DELETE');
+    if (!data.ok) throw new Error(data.message || data.error || 'Erreur suppression');
+    window.showToast?.('Template supprim\u00e9', 'success');
+    loadTemplates();
+  } catch (err) {
+    window.showToast?.('Erreur: ' + err.message, 'error');
+  }
 }
 
 // Duplicate template
@@ -223,22 +223,23 @@ function duplicateTemplate(id) {
 }
 
 // Create default templates
-function createDefaults() {
-  Shared.openModal({
+async function createDefaults() {
+  const ok = await AgConfirm.ask({
     title: 'Cr\u00e9er les templates par d\u00e9faut',
-    body: '<p>Cr\u00e9er les templates par d\u00e9faut (invitation et rappel) ?</p>',
-    confirmText: 'Cr\u00e9er',
-    onConfirm: async function() {
-      try {
-        const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'create_defaults' });
-        if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
-        window.showToast?.((data.data.count || 0) + ' templates cr\u00e9\u00e9s', 'success');
-        loadTemplates();
-      } catch (err) {
-        window.showToast?.('Erreur: ' + err.message, 'error');
-      }
-    }
+    message: 'Cr\u00e9er les templates par d\u00e9faut (invitation et rappel) ?',
+    confirmLabel: 'Cr\u00e9er',
+    variant: 'info'
   });
+  if (!ok) return;
+
+  try {
+    const { body: data } = await api(`${API_BASE}/email_templates.php`, { action: 'create_defaults' });
+    if (!data.ok) throw new Error(data.message || data.error || 'Erreur creation');
+    window.showToast?.((data.data.count || 0) + ' templates cr\u00e9\u00e9s', 'success');
+    loadTemplates();
+  } catch (err) {
+    window.showToast?.('Erreur: ' + err.message, 'error');
+  }
 }
 
 // Update preview

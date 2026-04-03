@@ -371,34 +371,33 @@
     });
   };
 
-  window.deleteGroup = function(groupId) {
+  window.deleteGroup = async function(groupId) {
     const group = allGroups.find(g => g.id === groupId);
     if (!group) return;
 
-    Shared.openModal({
+    const ok = await AgConfirm.ask({
       title: 'Supprimer le groupe',
-      body: '<p>Supprimer le groupe <strong>' + escapeHtml(group.name) + '</strong> ?</p>' +
-            '<p class="text-sm text-muted">Les membres ne seront pas supprim\u00e9s.</p>',
-      confirmText: 'Supprimer',
-      confirmClass: 'btn btn-danger',
-      onConfirm: async function() {
-        try {
-          var r = await api('/api/v1/member_groups.php?id=' + encodeURIComponent(groupId), null, 'DELETE');
-          if (r.body?.ok) {
-            setNotif('success', 'Groupe supprim\u00e9');
-            if (currentGroupFilter === groupId) {
-              currentGroupFilter = null;
-            }
-            await fetchGroups();
-            await fetchMembers();
-          } else {
-            setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-        }
-      }
+      message: 'Supprimer le groupe \u00ab\u00a0' + group.name + '\u00a0\u00bb ? Les membres ne seront pas supprim\u00e9s.',
+      confirmLabel: 'Supprimer',
+      variant: 'danger'
     });
+    if (!ok) return;
+
+    try {
+      var r = await api('/api/v1/member_groups.php?id=' + encodeURIComponent(groupId), null, 'DELETE');
+      if (r.body?.ok) {
+        setNotif('success', 'Groupe supprim\u00e9');
+        if (currentGroupFilter === groupId) {
+          currentGroupFilter = null;
+        }
+        await fetchGroups();
+        await fetchMembers();
+      } else {
+        setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
   };
 
   function getMemberGroupBadges(memberId) {
@@ -723,26 +722,25 @@
     var member = allMembers.find(function(m) { return m.id === memberId; });
     var memberName = member ? (member.full_name || member.name || 'ce membre') : 'ce membre';
 
-    Shared.openModal({
-      title: 'Supprimer le membre',
-      body: '<p>Supprimer d\u00e9finitivement <strong>' + escapeHtml(memberName) + '</strong> ?</p>' +
-            '<p class="text-sm text-muted">Cette action est irr\u00e9versible.</p>',
-      confirmText: 'Supprimer',
-      confirmClass: 'btn btn-danger',
-      onConfirm: async function() {
-        try {
-          var r = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
-          if (r.body?.ok) {
-            setNotif('success', 'Membre supprim\u00e9');
-            await fetchMembers();
-          } else {
-            setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-        }
-      }
+    const ok = await AgConfirm.ask({
+      title: 'Supprimer ce membre ?',
+      message: 'Supprimer d\u00e9finitivement ' + memberName + ' ? Cette action est irr\u00e9versible.',
+      confirmLabel: 'Supprimer le membre',
+      variant: 'danger'
     });
+    if (!ok) return;
+
+    try {
+      var r = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
+      if (r.body?.ok) {
+        setNotif('success', 'Membre supprim\u00e9');
+        await fetchMembers();
+      } else {
+        setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
   };
 
   window.editMember = function(memberId) {
@@ -978,30 +976,29 @@
   });
 
   // Generate seed members
-  document.getElementById('btnSeed').addEventListener('click', function () {
-    Shared.openModal({
+  document.getElementById('btnSeed').addEventListener('click', async function () {
+    const ok = await AgConfirm.ask({
       title: 'G\u00e9n\u00e9rer des membres fictifs',
-      body: '<p>G\u00e9n\u00e9rer <strong>10 membres fictifs</strong> pour tester l\u2019application ?</p>' +
-            '<p class="text-sm text-muted">Les membres g\u00e9n\u00e9r\u00e9s pourront \u00eatre supprim\u00e9s individuellement.</p>',
-      confirmText: 'G\u00e9n\u00e9rer',
-      onConfirm: async function() {
-        var btn = document.getElementById('btnSeed');
-        Shared.btnLoading(btn, true);
-        try {
-          var r = await api('/api/v1/dev_seed_members.php', { count: 10 });
-          if (r.body?.ok) {
-            setNotif('success', (r.body.data?.created || 0) + ' membres g\u00e9n\u00e9r\u00e9s');
-            await fetchMembers();
-          } else {
-            setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-        } finally {
-          Shared.btnLoading(btn, false);
-        }
-      }
+      message: 'G\u00e9n\u00e9rer 10 membres fictifs pour tester l\u2019application ? Les membres g\u00e9n\u00e9r\u00e9s pourront \u00eatre supprim\u00e9s individuellement.',
+      confirmLabel: 'G\u00e9n\u00e9rer',
+      variant: 'info'
     });
+    if (!ok) return;
+    var btn = document.getElementById('btnSeed');
+    Shared.btnLoading(btn, true);
+    try {
+      var r = await api('/api/v1/dev_seed_members.php', { count: 10 });
+      if (r.body?.ok) {
+        setNotif('success', (r.body.data?.created || 0) + ' membres g\u00e9n\u00e9r\u00e9s');
+        await fetchMembers();
+      } else {
+        setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    } finally {
+      Shared.btnLoading(btn, false);
+    }
   });
 
   // Enter key shortcuts

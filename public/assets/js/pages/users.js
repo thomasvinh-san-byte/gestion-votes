@@ -332,51 +332,49 @@
   // ═══════════════════════════════════════════════════════
   // DELETE USER
   // ═══════════════════════════════════════════════════════
-  function deleteUser(userId, userName) {
-    Shared.openModal({
-      title: 'Supprimer l\'utilisateur',
-      body: '<div class="alert alert-danger mb-3"><strong>Action irr\u00e9versible</strong></div>' +
-        '<p>Supprimer d\u00e9finitivement <strong>' + escapeHtml(userName) + '</strong> ?</p>',
-      confirmText: 'Supprimer',
-      confirmClass: 'btn btn-danger',
-      onConfirm: async function() {
-        try {
-          var r = await api('/api/v1/admin_users.php', { action: 'delete', user_id: userId });
-          if (r.body && r.body.ok) {
-            setNotif('success', 'Utilisateur supprim\u00e9');
-            loadUsers();
-          } else {
-            setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-        }
-      }
+  async function deleteUser(userId, userName) {
+    const ok = await AgConfirm.ask({
+      title: 'Supprimer cet utilisateur ?',
+      message: 'Supprimer d\u00e9finitivement ' + userName + ' ? Cette action est irr\u00e9versible.',
+      confirmLabel: 'Supprimer l\'utilisateur',
+      variant: 'danger'
     });
+    if (!ok) return;
+    try {
+      var r = await api('/api/v1/admin_users.php', { action: 'delete', user_id: userId });
+      if (r.body && r.body.ok) {
+        setNotif('success', 'Utilisateur supprim\u00e9');
+        loadUsers();
+      } else {
+        setNotif('error', getApiError(r.body, 'Erreur lors de la suppression'));
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
   }
 
   // ═══════════════════════════════════════════════════════
   // TOGGLE USER
   // ═══════════════════════════════════════════════════════
-  function toggleUser(userId, isActive) {
+  async function toggleUser(userId, isActive) {
     var newActive = isActive ? 0 : 1;
-    Shared.openModal({
+    const ok = await AgConfirm.ask({
       title: (newActive ? 'Activer' : 'D\u00e9sactiver') + ' l\'utilisateur',
-      body: '<p>Voulez-vous ' + (newActive ? 'activer' : 'd\u00e9sactiver') + ' cet utilisateur ?</p>',
-      confirmText: newActive ? 'Activer' : 'D\u00e9sactiver',
-      onConfirm: async function() {
-        try {
-          var r = await api('/api/v1/admin_users.php', { action: 'toggle', user_id: userId, is_active: newActive });
-          if (r.body && r.body.ok) {
-            loadUsers();
-          } else {
-            setNotif('error', getApiError(r.body, 'Erreur'));
-          }
-        } catch (err) {
-          setNotif('error', err.message);
-        }
-      }
+      message: 'Voulez-vous ' + (newActive ? 'activer' : 'd\u00e9sactiver') + ' cet utilisateur ?',
+      confirmLabel: newActive ? 'Activer' : 'D\u00e9sactiver',
+      variant: 'warning'
     });
+    if (!ok) return;
+    try {
+      var r = await api('/api/v1/admin_users.php', { action: 'toggle', user_id: userId, is_active: newActive });
+      if (r.body && r.body.ok) {
+        loadUsers();
+      } else {
+        setNotif('error', getApiError(r.body, 'Erreur'));
+      }
+    } catch (err) {
+      setNotif('error', err.message);
+    }
   }
 
   // ═══════════════════════════════════════════════════════
