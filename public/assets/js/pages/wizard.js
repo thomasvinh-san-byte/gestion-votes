@@ -572,9 +572,9 @@
           onerror: function(response) {
             try {
               var data = JSON.parse(response);
-              if (window.AgToast) window.AgToast.show(data.error || 'Erreur lors du telechargement', 'error');
+              AgToast.show('error', data.error || 'Erreur lors du telechargement');
             } catch (e) {
-              if (window.AgToast) window.AgToast.show('Erreur lors du telechargement', 'error');
+              AgToast.show('error', 'Erreur lors du telechargement');
             }
           }
         },
@@ -633,9 +633,9 @@
           onerror: function(response) {
             try {
               var data = JSON.parse(response);
-              if (window.AgToast) window.AgToast.show(data.error || 'Erreur lors du telechargement', 'error');
+              AgToast.show('error', data.error || 'Erreur lors du telechargement');
             } catch (e) {
-              if (window.AgToast) window.AgToast.show('Erreur lors du telechargement', 'error');
+              AgToast.show('error', 'Erreur lors du telechargement');
             }
           }
         },
@@ -705,9 +705,9 @@
         if (!confirmed) return;
         window.api('/api/v1/resolution_documents', { id: doc.id }, 'DELETE').then(function() {
           card.remove();
-          if (window.AgToast) window.AgToast.show('Document supprim\u00e9', 'success');
+          AgToast.show('success', 'Document supprim\u00e9');
         }).catch(function() {
-          if (window.AgToast) window.AgToast.show('Erreur lors de la suppression', 'error');
+          AgToast.show('error', 'Erreur lors de la suppression');
         });
       });
     });
@@ -1021,8 +1021,7 @@
     var btnCreate = document.getElementById('btnCreate');
     if (btnCreate) {
       btnCreate.addEventListener('click', function() {
-        btnCreate.disabled = true;
-        btnCreate.textContent = 'Cr\u00e9ation\u2026';
+        Shared.btnLoading(btnCreate, true, 'Cr\u00e9ation\u2026');
 
         var payload = buildPayload();
         api('/api/v1/meetings', payload)
@@ -1064,15 +1063,12 @@
             initAttachmentPond(createdMeetingId);
           })
           .catch(function(err) {
-            btnCreate.disabled = false;
-            btnCreate.textContent = 'Cr\u00e9er la s\u00e9ance \u2192';
+            Shared.btnLoading(btnCreate, false);
             var msg = 'Erreur lors de la cr\u00e9ation. Veuillez r\u00e9essayer.';
             if (err && err.details && err.details[0] && err.details[0].message) {
               msg = err.details[0].message;
             }
-            if (window.Shared && Shared.showToast) {
-              Shared.showToast(msg, 'error');
-            }
+            AgToast.show('error', msg, 8000);
           });
       });
     }
