@@ -3344,15 +3344,11 @@ window.OpS = { fn: {} };
         var file = input.files[0];
 
         if (file.size > 10 * 1024 * 1024) {
-          window.AgToast
-            ? window.AgToast.show('Le fichier depasse 10 Mo', 'error')
-            : setNotif('error', 'Le fichier depasse 10 Mo');
+          AgToast.show('error', 'Le fichier depasse 10 Mo');
           return;
         }
         if (file.type !== 'application/pdf') {
-          window.AgToast
-            ? window.AgToast.show('Seuls les fichiers PDF sont acceptes', 'error')
-            : setNotif('error', 'Seuls les fichiers PDF sont acceptes');
+          AgToast.show('error', 'Seuls les fichiers PDF sont acceptes');
           return;
         }
 
@@ -3373,17 +3369,15 @@ window.OpS = { fn: {} };
           .then(function(r) { return r.json(); })
           .then(function(resp) {
             if (resp && resp.ok) {
-              var msg = 'Document ajoute';
-              window.AgToast ? window.AgToast.show(msg, 'success') : setNotif('success', msg);
+              AgToast.show('success', 'Document ajoute');
               updateOperatorDocBadge(cardEl, motionId);
             } else {
               var errMsg = (resp && resp.error) ? resp.error : 'Erreur';
-              window.AgToast ? window.AgToast.show(errMsg, 'error') : setNotif('error', errMsg);
+              AgToast.show('error', errMsg);
             }
           })
           .catch(function() {
-            var errMsg = 'Erreur reseau';
-            window.AgToast ? window.AgToast.show(errMsg, 'error') : setNotif('error', errMsg);
+            AgToast.show('error', 'Erreur reseau');
           });
       });
       input.click();
@@ -3487,11 +3481,11 @@ window.OpS = { fn: {} };
         if (resp && resp.body && resp.body.data && resp.body.data.deleted) {
           var card = document.querySelector('[data-att-id="' + id + '"]');
           if (card) card.remove();
-          if (window.AgToast) window.AgToast.show('Pi\u00e8ce jointe supprim\u00e9e', 'success');
+          AgToast.show('success', 'Pi\u00e8ce jointe supprim\u00e9e');
           if (currentMeetingId) loadMeetingAttachments(currentMeetingId);
         }
       }).catch(function() {
-        if (window.AgToast) window.AgToast.show('Erreur lors de la suppression', 'error');
+        AgToast.show('error', 'Erreur lors de la suppression');
       });
   }
 
@@ -3502,12 +3496,12 @@ window.OpS = { fn: {} };
       var file = attInput.files[0];
       if (!file) return;
       if (file.type !== 'application/pdf') {
-        if (window.AgToast) window.AgToast.show('Seuls les fichiers PDF sont accept\u00e9s', 'error');
+        AgToast.show('error', 'Seuls les fichiers PDF sont accept\u00e9s');
         attInput.value = '';
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        if (window.AgToast) window.AgToast.show('Le fichier d\u00e9passe 10 Mo', 'error');
+        AgToast.show('error', 'Le fichier d\u00e9passe 10 Mo');
         attInput.value = '';
         return;
       }
@@ -3521,14 +3515,14 @@ window.OpS = { fn: {} };
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.error) {
-            if (window.AgToast) window.AgToast.show(data.error, 'error');
+            AgToast.show('error', data.error);
           } else {
-            if (window.AgToast) window.AgToast.show('Pi\u00e8ce jointe ajout\u00e9e', 'success');
+            AgToast.show('success', 'Pi\u00e8ce jointe ajout\u00e9e');
             if (currentMeetingId) loadMeetingAttachments(currentMeetingId);
           }
           attInput.value = '';
         }).catch(function() {
-          if (window.AgToast) window.AgToast.show('Erreur lors de l\'envoi', 'error');
+          AgToast.show('error', 'Erreur lors de l\'envoi');
           attInput.value = '';
         });
     });

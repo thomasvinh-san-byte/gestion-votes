@@ -235,14 +235,14 @@
         window.api('/api/v1/invitations_send_bulk', { meeting_id: sessionId, only_unsent: true }, 'POST')
           .then(function(res) {
             var sent = (res && res.body && res.body.data) ? (res.body.data.sent || 0) : 0;
-            if (window.AgToast) window.AgToast.show('Convocations envoy\u00e9es\u202f: ' + sent, 'success');
+            AgToast.show('success', 'Convocations envoy\u00e9es\u202f: ' + sent);
             section.setAttribute('hidden', '');
             loadData();
           })
           .catch(function() {
             newBtn.disabled = false;
             newBtn.textContent = 'Envoyer les convocations';
-            if (window.AgToast) window.AgToast.show('Erreur lors de l\u2019envoi des convocations', 'error');
+            AgToast.show('error', 'Erreur lors de l\u2019envoi des convocations');
           });
       });
     });
@@ -462,18 +462,18 @@
       window.api('/api/v1/meeting_transition', { meeting_id: sessionId, to_status: toStatus }, 'POST')
         .then(function(res) {
           if (res && res.body && res.body.ok) {
-            if (window.AgToast) window.AgToast.show('Statut mis \u00e0 jour', 'success');
+            AgToast.show('success', 'Statut mis \u00e0 jour');
             loadData();
           } else {
             var issues = (res && res.body && res.body.data && res.body.data.issues) ? res.body.data.issues : [];
             var msg = issues.length > 0 ? issues[0].msg : 'Impossible de changer le statut';
-            if (window.AgToast) window.AgToast.show(msg, 'error');
+            AgToast.show('error', msg);
             mainBtn.disabled = false;
             mainBtn.textContent = origText;
           }
         })
         .catch(function() {
-          if (window.AgToast) window.AgToast.show('Erreur lors du changement de statut', 'error');
+          AgToast.show('error', 'Erreur lors du changement de statut');
           mainBtn.disabled = false;
           mainBtn.textContent = origText;
         });

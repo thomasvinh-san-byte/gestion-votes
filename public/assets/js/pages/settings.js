@@ -122,16 +122,16 @@
       .then(function(r) {
         if (r.body && r.body.ok) {
           _prevValues.set(key, value);
-          AgToast.show('Param\u00e8tre enregistr\u00e9', 'success');
+          AgToast.show('success', 'Param\u00e8tre enregistr\u00e9');
         } else {
           // Revert on failure
           revertField(ctrl, prev);
-          AgToast.show('Erreur de sauvegarde', 'error');
+          AgToast.show('error', 'Erreur de sauvegarde');
         }
       })
       .catch(function() {
         revertField(ctrl, prev);
-        AgToast.show('Erreur de sauvegarde', 'error');
+        AgToast.show('error', 'Erreur de sauvegarde');
       });
   }
 
@@ -310,10 +310,10 @@
       confirmText: isEdit ? 'Enregistrer' : 'Cr\u00e9er',
       onConfirm: function(modal) {
         var name = modal.querySelector('#qpName').value.trim();
-        if (!name) { AgToast.show('Nom requis', 'error'); return false; }
+        if (!name) { AgToast.show('error', 'Nom requis'); return false; }
         var thresholdVal = parseFloat(modal.querySelector('#qpThreshold').value);
         if (isNaN(thresholdVal) || thresholdVal < 0 || thresholdVal > 1) {
-          AgToast.show('Le seuil doit \u00eatre compris entre 0 et 1', 'error'); return false;
+          AgToast.show('error', 'Le seuil doit \u00eatre compris entre 0 et 1'); return false;
         }
         var mode = modal.querySelector('#qpMode').value;
         var payload = {
@@ -390,10 +390,10 @@
           try {
             var r = await api('/api/v1/admin_quorum_policies.php', { action: 'delete', id: delBtn.dataset.id });
             if (r.body && r.body.ok) {
-              AgToast.show('Politique supprim\u00e9e', 'success');
+              AgToast.show('success', 'Politique supprim\u00e9e');
               loadQuorumPolicies();
             } else {
-              AgToast.show('Erreur lors de la suppression', 'error');
+              AgToast.show('error', 'Erreur lors de la suppression');
             }
           } catch (err) {
             AgToast.show(err.message, 'error');
@@ -454,12 +454,12 @@
         }, 'PUT')
           .then(function(r) {
             if (r.body && r.body.ok) {
-              AgToast.show('Template enregistr\u00e9', 'success');
+              AgToast.show('success', 'Template enregistr\u00e9');
             } else {
-              AgToast.show('Erreur de sauvegarde', 'error');
+              AgToast.show('error', 'Erreur de sauvegarde');
             }
           })
-          .catch(function() { AgToast.show('Erreur de sauvegarde', 'error'); });
+          .catch(function() { AgToast.show('error', 'Erreur de sauvegarde'); });
       });
     }
 
@@ -475,12 +475,12 @@
         try {
           var r = await api('/api/v1/email_templates', { action: 'create_defaults' }, 'POST');
           if (r.body && r.body.ok) {
-            AgToast.show('Templates r\u00e9initialis\u00e9s', 'success');
+            AgToast.show('success', 'Templates r\u00e9initialis\u00e9s');
           } else {
-            AgToast.show('Erreur lors de la r\u00e9initialisation', 'error');
+            AgToast.show('error', 'Erreur lors de la r\u00e9initialisation');
           }
         } catch (err) {
-          AgToast.show('Erreur lors de la r\u00e9initialisation', 'error');
+          AgToast.show('error', 'Erreur lors de la r\u00e9initialisation');
         }
       });
     }
@@ -497,12 +497,12 @@
       api('/api/v1/email_templates_preview', { action: 'test_smtp', dry_run: true })
         .then(function(r) {
           if (r.body && r.body.ok) {
-            AgToast.show('Connexion SMTP r\u00e9ussie', 'success');
+            AgToast.show('success', 'Connexion SMTP r\u00e9ussie');
           } else {
-            AgToast.show('Connexion SMTP \u00e9chou\u00e9e', 'error');
+            AgToast.show('error', 'Connexion SMTP \u00e9chou\u00e9e');
           }
         })
-        .catch(function() { AgToast.show('Connexion SMTP \u00e9chou\u00e9e', 'error'); })
+        .catch(function() { AgToast.show('error', 'Connexion SMTP \u00e9chou\u00e9e'); })
         .finally(function() { Shared.btnLoading(btnTest, false); });
     });
   }
@@ -540,7 +540,7 @@
         api('/api/v1/admin_settings.php', { action: 'update', key: 'textSize', value: radio.value })
           .then(function(r) {
             if (r.body && r.body.ok) {
-              AgToast.show('Taille du texte enregistr\u00e9e', 'success');
+              AgToast.show('success', 'Taille du texte enregistr\u00e9e');
             }
           })
           .catch(function() {});
@@ -561,7 +561,7 @@
         api('/api/v1/admin_settings.php', { action: 'update', key: 'settHighContrast', value: highContrastToggle.checked })
           .then(function(r) {
             if (r.body && r.body.ok) {
-              AgToast.show('Contraste enregistr\u00e9', 'success');
+              AgToast.show('success', 'Contraste enregistr\u00e9');
             }
           })
           .catch(function() {});
@@ -641,7 +641,7 @@
         })
           .then(function(r) {
             if (r.body && r.body.ok) {
-              AgToast.show('Email de test envoy\u00e9', 'success');
+              AgToast.show('success', 'Email de test envoy\u00e9');
             } else {
               AgToast.show('Erreur d\'envoi', 'error');
             }
@@ -674,7 +674,7 @@
       );
     });
     Promise.all(savePromises).then(function() {
-      AgToast.show('Section enregistr\u00e9e', 'success');
+      AgToast.show('success', 'Section enregistr\u00e9e');
       // Hide unsaved dot
       var dot = card.querySelector('.unsaved-dot');
       if (dot) dot.hidden = true;
