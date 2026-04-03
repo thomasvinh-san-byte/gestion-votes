@@ -76,10 +76,16 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 84 HARD-03: exact list of .htmx.html files with critical-tokens blocks should be verified before planning (research said 22 files)
+None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260403-gtt | Upgrade 76 color-mix(in srgb) to oklch in page CSS + clean persona rgba | 2026-04-03 | 1509e1a8 | [260403-gtt](./quick/260403-gtt-upgrade-color-mix-srgb-to-oklch-in-page-/) |
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:45:51.496Z
-Stopped at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
+Last session: 2026-04-03
+Stopped at: v10.0 milestone complete + quick task cleanup — zero srgb/rgba remaining codebase-wide
 Resume file: None
