@@ -1,5 +1,20 @@
 # Milestones
 
+## v10.0 Visual Identity Evolution (Shipped: 2026-04-03)
+
+**Phases completed:** 3 phases, 7 plans, 13 tasks
+
+**Key accomplishments:**
+
+- Warm-neutral dark mode surfaces (hue 78 oklch) replacing cool blue-tinted dark (hue ~260), all dark rgba() converted to oklch alpha, and 21 critical-tokens blocks synced to prevent flash-of-wrong-color
+- Single --radius-base (8px) token + 3-level shadow scale (sm/md/lg) + alpha border token propagated across all 17 CSS files and 13 Web Components via Shadow DOM fallback literals
+- CSS-only shimmer animation on 4 KPI cards + session list via .loading class toggle — eliminates spinner-to-content flash on dashboard load
+- 8 @property color registrations enabling CSS transition engine, 5 new glow/focus/backdrop tokens, and 21 htmx pages synced from stale hex to oklch critical-tokens
+- HARD-01 fully satisfied: zero hardcoded hex/rgba values across all 17 per-page CSS files, replaced with var(--token) references or oklch() literals
+- 19 Web Components stripped of stale #1650E0 hex fallbacks and rgba(22,80,224,...) literals; ag-modal and ag-toast focus rings now use var(--shadow-focus) with no rgba fallback (HARD-02 + HARD-05)
+
+---
+
 ## v9.0 Compliance & Robustness (Shipped: 2026-04-03)
 
 **Phases completed:** 1 phases, 4 plans, 8 tasks
