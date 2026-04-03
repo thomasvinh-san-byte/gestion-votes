@@ -336,13 +336,13 @@
         api('/api/v1/admin_quorum_policies.php', payload)
           .then(function(r) {
             if (r.body && r.body.ok) {
-              AgToast.show(isEdit ? 'Politique mise \u00e0 jour' : 'Politique cr\u00e9\u00e9e', 'success');
+              AgToast.show('success', isEdit ? 'Politique mise \u00e0 jour' : 'Politique cr\u00e9\u00e9e');
               loadQuorumPolicies();
             } else {
-              AgToast.show('Erreur lors de l\'enregistrement', 'error');
+              AgToast.show('error', 'Erreur lors de l\'enregistrement');
             }
           })
-          .catch(function(err) { AgToast.show(err.message, 'error'); });
+          .catch(function(err) { AgToast.show('error', err.message); });
       }
     });
 
@@ -632,7 +632,7 @@
     var btnTest = document.getElementById('btnTestEmail');
     if (btnTest) {
       btnTest.addEventListener('click', function() {
-        AgToast.show('Envoi d\'un email de test...', 'info');
+        AgToast.show('info', 'Envoi d\'un email de test...');
         api('/api/v1/email_templates_preview', {
           template_id: _currentTemplateId,
           type: _currentTemplate,
@@ -643,10 +643,10 @@
             if (r.body && r.body.ok) {
               AgToast.show('success', 'Email de test envoy\u00e9');
             } else {
-              AgToast.show('Erreur d\'envoi', 'error');
+              AgToast.show('error', 'Erreur d\'envoi');
             }
           })
-          .catch(function() { AgToast.show('Erreur d\'envoi', 'error'); });
+          .catch(function() { AgToast.show('error', 'Erreur d\'envoi'); });
       });
     }
   }
@@ -654,10 +654,11 @@
   // ═══════════════════════════════════════════════════════
   // SECTION SAVE BUTTONS + UNSAVED-DOT TRACKING
   // ═══════════════════════════════════════════════════════
-  function saveSection(card, section) {
+  function saveSection(card, section, triggerBtn) {
     // Gather all inputs within the card that have IDs and trigger saves
     var inputs = card.querySelectorAll('input[id], select[id], textarea[id]');
     var savePromises = [];
+    if (triggerBtn) Shared.btnLoading(triggerBtn, true);
     inputs.forEach(function(ctrl) {
       // Skip template editor fields — handled separately
       if (ctrl.closest('#templateEditor')) return;
@@ -670,14 +671,16 @@
               _prevValues.set(key, value);
             }
           })
-          .catch(function() {})
+          .catch(function(err) { AgToast.show('error', 'Erreur de sauvegarde : ' + (err.message || key)); })
       );
     });
     Promise.all(savePromises).then(function() {
-      AgToast.show('success', 'Section enregistr\u00e9e');
+      AgToast.show('success', 'Section enregistrée');
       // Hide unsaved dot
       var dot = card.querySelector('.unsaved-dot');
       if (dot) dot.hidden = true;
+    }).finally(function() {
+      if (triggerBtn) Shared.btnLoading(triggerBtn, false);
     });
   }
 
@@ -687,7 +690,7 @@
       btn.addEventListener('click', function() {
         var card = btn.closest('.card');
         if (!card) return;
-        saveSection(card, btn.dataset.section);
+        saveSection(card, btn.dataset.section, btn);
       });
     });
 
