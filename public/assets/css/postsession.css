@@ -535,7 +535,7 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  background: color-mix(in srgb, var(--color-text-inverse) 25%, transparent);
+  background: color-mix(in oklch, var(--color-text-inverse) 25%, transparent);
   border-radius: var(--radius-full);
   vertical-align: middle;
   margin-right: var(--space-1);

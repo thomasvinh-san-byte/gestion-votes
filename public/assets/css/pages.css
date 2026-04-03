@@ -588,8 +588,8 @@
 }
 
 @keyframes live-glow {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 10%, transparent); }
-  100% { box-shadow: 0 4px 20px color-mix(in srgb, var(--color-success) 20%, transparent); }
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 10%, transparent); }
+  100% { box-shadow: 0 4px 20px color-mix(in oklch, var(--color-success) 20%, transparent); }
 }
 
 .meeting-card.is-live::before {
@@ -777,7 +777,7 @@
 
 .file-drop-zone.drag-over {
   border-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+  background: color-mix(in oklch, var(--color-primary) 5%, var(--color-surface));
 }
 
 .file-drop-content {
@@ -941,7 +941,7 @@
   gap: 14px;
   padding: 14px 20px;
   margin-bottom: var(--space-card, 24px);
-  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+  background: color-mix(in oklch, var(--color-danger) 6%, var(--color-surface));
   border: 2px solid var(--color-danger);
   border-radius: var(--radius-xl);
   text-decoration: none;

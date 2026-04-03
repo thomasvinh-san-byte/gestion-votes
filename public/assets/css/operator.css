@@ -339,8 +339,8 @@
 }
 
 @keyframes ssePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 40%, transparent); }
-  50%       { opacity: 0.85; box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 0%, transparent); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 40%, transparent); }
+  50%       { opacity: 0.85; box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-success) 0%, transparent); }
 }
 
 /* Dark mode — keep vivid (intentional override) */
@@ -793,15 +793,15 @@
   height: 10px;
   border-radius: 50%;
   background: var(--color-success);
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 40%, transparent);
+  box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 40%, transparent);
   animation: liveDotPulse 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 @keyframes liveDotPulse {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 50%, transparent); }
-  70%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-success) 0%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-success) 0%, transparent); }
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 50%, transparent); }
+  70%  { box-shadow: 0 0 0 8px color-mix(in oklch, var(--color-success) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 0%, transparent); }
 }
 
 /* =============================================================================

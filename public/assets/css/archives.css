@@ -103,7 +103,7 @@
 .filter-tab .count {
   font-size: 11px;
   font-weight: var(--font-bold, 700);
-  background: color-mix(in srgb, currentColor 18%, transparent);
+  background: color-mix(in oklch, currentColor 18%, transparent);
   padding: 0 5px;
   border-radius: var(--radius-full, 999px);
   min-width: 18px;

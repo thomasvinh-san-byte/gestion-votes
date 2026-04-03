@@ -5,53 +5,53 @@
  */
 
 :root {
-  --shadow-warning-ring: 0 0 0 4px color-mix(in srgb, var(--color-warning) 10%, transparent);
-  --shadow-warning-glow: 0 4px 20px color-mix(in srgb, var(--color-warning) 40%, transparent);
-  --shadow-warning-glow-lg: 0 6px 28px color-mix(in srgb, var(--color-warning) 60%, transparent);
-  --shadow-success-ring: 0 0 0 4px color-mix(in srgb, var(--color-success) 10%, transparent);
-  --shadow-success-glow: 0 4px 20px color-mix(in srgb, var(--color-success) 35%, transparent);
-  --shadow-danger-glow: 0 2px 6px color-mix(in srgb, var(--color-danger) 35%, transparent);
-  --color-warning-bg-8: color-mix(in srgb, var(--color-warning) 8%, transparent);
-  --color-warning-border-25: color-mix(in srgb, var(--color-warning) 25%, transparent);
+  --shadow-warning-ring: 0 0 0 4px color-mix(in oklch, var(--color-warning) 10%, transparent);
+  --shadow-warning-glow: 0 4px 20px color-mix(in oklch, var(--color-warning) 40%, transparent);
+  --shadow-warning-glow-lg: 0 6px 28px color-mix(in oklch, var(--color-warning) 60%, transparent);
+  --shadow-success-ring: 0 0 0 4px color-mix(in oklch, var(--color-success) 10%, transparent);
+  --shadow-success-glow: 0 4px 20px color-mix(in oklch, var(--color-success) 35%, transparent);
+  --shadow-danger-glow: 0 2px 6px color-mix(in oklch, var(--color-danger) 35%, transparent);
+  --color-warning-bg-8: color-mix(in oklch, var(--color-warning) 8%, transparent);
+  --color-warning-border-25: color-mix(in oklch, var(--color-warning) 25%, transparent);
   --vote-shadow-hover: 0 2px 12px rgb(var(--shadow-color) / 0.08);
-  --vote-btn-for-shadow: 0 10px 40px color-mix(in srgb, var(--color-success) 30%, transparent);
-  --vote-btn-for-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-success) 40%, transparent);
-  --vote-btn-against-shadow: 0 10px 40px color-mix(in srgb, var(--color-danger) 30%, transparent);
-  --vote-btn-against-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-danger) 40%, transparent);
-  --vote-btn-abstain-shadow: 0 10px 40px color-mix(in srgb, var(--color-neutral) 30%, transparent);
-  --vote-btn-abstain-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-neutral) 40%, transparent);
+  --vote-btn-for-shadow: 0 10px 40px color-mix(in oklch, var(--color-success) 30%, transparent);
+  --vote-btn-for-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-success) 40%, transparent);
+  --vote-btn-against-shadow: 0 10px 40px color-mix(in oklch, var(--color-danger) 30%, transparent);
+  --vote-btn-against-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-danger) 40%, transparent);
+  --vote-btn-abstain-shadow: 0 10px 40px color-mix(in oklch, var(--color-neutral) 30%, transparent);
+  --vote-btn-abstain-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-neutral) 40%, transparent);
   --vote-btn-blanc-start: var(--color-border-strong);
   --vote-btn-blanc-end: var(--color-neutral);
-  --vote-btn-blanc-shadow: 0 10px 40px color-mix(in srgb, var(--color-neutral) 30%, transparent);
-  --vote-btn-blanc-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-neutral) 40%, transparent);
-  --vote-post-success-bg: color-mix(in srgb, var(--color-success) 12%, transparent);
-  --vote-post-against-bg: color-mix(in srgb, var(--color-danger) 12%, transparent);
-  --vote-post-abstain-bg: color-mix(in srgb, var(--color-neutral) 12%, transparent);
+  --vote-btn-blanc-shadow: 0 10px 40px color-mix(in oklch, var(--color-neutral) 30%, transparent);
+  --vote-btn-blanc-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-neutral) 40%, transparent);
+  --vote-post-success-bg: color-mix(in oklch, var(--color-success) 12%, transparent);
+  --vote-post-against-bg: color-mix(in oklch, var(--color-danger) 12%, transparent);
+  --vote-post-abstain-bg: color-mix(in oklch, var(--color-neutral) 12%, transparent);
 }
 
 [data-theme="dark"] {
-  --shadow-warning-ring: 0 0 0 4px color-mix(in srgb, var(--color-warning) 15%, transparent);
-  --shadow-warning-glow: 0 4px 20px color-mix(in srgb, var(--color-warning) 35%, transparent);
-  --shadow-warning-glow-lg: 0 6px 28px color-mix(in srgb, var(--color-warning) 50%, transparent);
-  --shadow-success-ring: 0 0 0 4px color-mix(in srgb, var(--color-success) 15%, transparent);
-  --shadow-success-glow: 0 4px 20px color-mix(in srgb, var(--color-success) 30%, transparent);
-  --shadow-danger-glow: 0 2px 6px color-mix(in srgb, var(--color-danger) 30%, transparent);
-  --color-warning-bg-8: color-mix(in srgb, var(--color-warning) 10%, transparent);
-  --color-warning-border-25: color-mix(in srgb, var(--color-warning) 20%, transparent);
-  --vote-shadow-hover: 0 2px 12px color-mix(in srgb, var(--color-text-inverse) 6%, transparent);
-  --vote-btn-for-shadow: 0 10px 40px color-mix(in srgb, var(--color-success) 25%, transparent);
-  --vote-btn-for-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-success) 35%, transparent);
-  --vote-btn-against-shadow: 0 10px 40px color-mix(in srgb, var(--color-danger) 25%, transparent);
-  --vote-btn-against-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-danger) 35%, transparent);
-  --vote-btn-abstain-shadow: 0 10px 40px color-mix(in srgb, var(--color-neutral) 20%, transparent);
-  --vote-btn-abstain-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-neutral) 30%, transparent);
+  --shadow-warning-ring: 0 0 0 4px color-mix(in oklch, var(--color-warning) 15%, transparent);
+  --shadow-warning-glow: 0 4px 20px color-mix(in oklch, var(--color-warning) 35%, transparent);
+  --shadow-warning-glow-lg: 0 6px 28px color-mix(in oklch, var(--color-warning) 50%, transparent);
+  --shadow-success-ring: 0 0 0 4px color-mix(in oklch, var(--color-success) 15%, transparent);
+  --shadow-success-glow: 0 4px 20px color-mix(in oklch, var(--color-success) 30%, transparent);
+  --shadow-danger-glow: 0 2px 6px color-mix(in oklch, var(--color-danger) 30%, transparent);
+  --color-warning-bg-8: color-mix(in oklch, var(--color-warning) 10%, transparent);
+  --color-warning-border-25: color-mix(in oklch, var(--color-warning) 20%, transparent);
+  --vote-shadow-hover: 0 2px 12px color-mix(in oklch, var(--color-text-inverse) 6%, transparent);
+  --vote-btn-for-shadow: 0 10px 40px color-mix(in oklch, var(--color-success) 25%, transparent);
+  --vote-btn-for-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-success) 35%, transparent);
+  --vote-btn-against-shadow: 0 10px 40px color-mix(in oklch, var(--color-danger) 25%, transparent);
+  --vote-btn-against-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-danger) 35%, transparent);
+  --vote-btn-abstain-shadow: 0 10px 40px color-mix(in oklch, var(--color-neutral) 20%, transparent);
+  --vote-btn-abstain-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-neutral) 30%, transparent);
   --vote-btn-blanc-start: var(--color-neutral);
   --vote-btn-blanc-end: var(--color-neutral-hover);
-  --vote-btn-blanc-shadow: 0 10px 40px color-mix(in srgb, var(--color-neutral) 25%, transparent);
-  --vote-btn-blanc-shadow-hover: 0 15px 50px color-mix(in srgb, var(--color-neutral) 35%, transparent);
-  --vote-post-success-bg: color-mix(in srgb, var(--color-success) 15%, transparent);
-  --vote-post-against-bg: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  --vote-post-abstain-bg: color-mix(in srgb, var(--color-neutral) 12%, transparent);
+  --vote-btn-blanc-shadow: 0 10px 40px color-mix(in oklch, var(--color-neutral) 25%, transparent);
+  --vote-btn-blanc-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-neutral) 35%, transparent);
+  --vote-post-success-bg: color-mix(in oklch, var(--color-success) 15%, transparent);
+  --vote-post-against-bg: color-mix(in oklch, var(--color-danger) 15%, transparent);
+  --vote-post-abstain-bg: color-mix(in oklch, var(--color-neutral) 12%, transparent);
 }
 
 /* =============================================================================
@@ -715,7 +715,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(circle at center, color-mix(in srgb, var(--color-text-inverse) 30%, transparent) 0%, transparent 70%);
+  background: radial-gradient(circle at center, color-mix(in oklch, var(--color-text-inverse) 30%, transparent) 0%, transparent 70%);
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
@@ -819,10 +819,10 @@
   right: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
-  border: 2px solid color-mix(in srgb, var(--color-text-inverse) 30%, transparent);
+  border: 2px solid color-mix(in oklch, var(--color-text-inverse) 30%, transparent);
   font-size: 0.6875rem;
   font-weight: 800;
-  color: color-mix(in srgb, var(--color-text-inverse) 60%, transparent);
+  color: color-mix(in oklch, var(--color-text-inverse) 60%, transparent);
   background: var(--sidebar-hover);
   opacity: 0.5;
 }
@@ -1962,7 +1962,7 @@
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  background: color-mix(in oklch, var(--color-bg) 94%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
