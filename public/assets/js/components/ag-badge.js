@@ -91,7 +91,7 @@ class AgBadge extends HTMLElement {
         :host([variant="primary"]) .badge,
         :host([variant="accent"]) .badge {
           background: var(--color-primary-subtle, #e8edfa);
-          color: var(--color-primary, #1650E0);
+          color: var(--color-primary);
         }
         :host([variant="success"]) .badge {
           background: var(--color-success-subtle, #e4ede4);
@@ -127,7 +127,7 @@ class AgBadge extends HTMLElement {
         }
         :host([variant="scheduled"]) .badge {
           background: var(--color-primary-subtle, #e8edfa);
-          color: var(--color-primary, #1650E0);
+          color: var(--color-primary);
         }
         :host([variant="closed"]) .badge {
           background: var(--color-success-subtle, #e4ede4);
@@ -135,7 +135,7 @@ class AgBadge extends HTMLElement {
         }
         :host([variant="validated"]) .badge {
           background: var(--color-primary-subtle, #e8edfa);
-          color: var(--color-primary, #1650E0);
+          color: var(--color-primary);
         }
 
         @keyframes pulse {

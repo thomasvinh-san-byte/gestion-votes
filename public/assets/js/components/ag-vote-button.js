@@ -134,44 +134,44 @@ class AgVoteButton extends HTMLElement {
 
         /* Value variants — flat card style from wireframe */
         :host([value="for"]) button {
-          border-color: var(--color-success, #0b7a40);
+          border-color: var(--color-success);
           background: var(--color-success-subtle, #e4ede4);
         }
-        :host([value="for"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(11,122,64,.14); }
-        :host([value="for"]) .icon-circle { background: rgba(11,122,64,.12); color: var(--color-success, #0b7a40); }
+        :host([value="for"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px oklch(0.500 0.135 155 / 0.14); }
+        :host([value="for"]) .icon-circle { background: oklch(0.500 0.135 155 / 0.12); color: var(--color-success); }
 
         :host([value="against"]) button {
-          border-color: var(--color-danger, #c42828);
+          border-color: var(--color-danger);
           background: var(--color-danger-subtle, #f2e4e4);
         }
-        :host([value="against"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(196,40,40,.14); }
-        :host([value="against"]) .icon-circle { background: rgba(196,40,40,.12); color: var(--color-danger, #c42828); }
+        :host([value="against"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px oklch(0.510 0.175 25 / 0.14); }
+        :host([value="against"]) .icon-circle { background: oklch(0.510 0.175 25 / 0.12); color: var(--color-danger); }
 
         :host([value="abstain"]) button {
           border-color: var(--color-border-dash, #c4c3bc);
           background: var(--color-bg-subtle, #e8e7e2);
         }
-        :host([value="abstain"]) .icon-circle { background: rgba(149,163,164,.15); color: var(--color-text-muted, #95a3a4); }
+        :host([value="abstain"]) .icon-circle { background: var(--color-neutral-subtle); color: var(--color-text-muted, #95a3a4); }
 
         :host([value="nsp"]) button {
           border-color: var(--color-border, #d5dbd2);
           background: var(--color-bg-subtle, #e8e7e2);
         }
-        :host([value="nsp"]) .icon-circle { background: rgba(149,163,164,.15); color: var(--color-text-muted, #95a3a4); }
+        :host([value="nsp"]) .icon-circle { background: var(--color-neutral-subtle); color: var(--color-text-muted, #95a3a4); }
 
         /* Selected state */
         :host([value="for"][selected]) button {
-          background: var(--color-success, #0b7a40);
-          border-color: var(--color-success, #0b7a40);
+          background: var(--color-success);
+          border-color: var(--color-success);
           color: #fff;
-          box-shadow: 0 0 0 3px rgba(11,122,64,.18);
+          box-shadow: 0 0 0 3px oklch(0.500 0.135 155 / 0.18);
         }
         :host([value="for"][selected]) .icon-circle { background: rgba(255,255,255,.18); }
         :host([value="against"][selected]) button {
-          background: var(--color-danger, #c42828);
-          border-color: var(--color-danger, #c42828);
+          background: var(--color-danger);
+          border-color: var(--color-danger);
           color: #fff;
-          box-shadow: 0 0 0 3px rgba(196,40,40,.18);
+          box-shadow: 0 0 0 3px oklch(0.510 0.175 25 / 0.18);
         }
         :host([value="against"][selected]) .icon-circle { background: rgba(255,255,255,.18); }
         :host([value="abstain"][selected]) button {

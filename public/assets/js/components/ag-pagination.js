@@ -78,13 +78,13 @@ class AgPagination extends HTMLElement {
           transition: color .15s ease, background .15s ease, border-color .15s ease;
         }
         .pg-btn:hover:not(.pg-active):not(.pg-dots) {
-          border-color: var(--color-primary, #1650E0);
-          color: var(--color-primary, #1650E0);
+          border-color: var(--color-primary);
+          color: var(--color-primary);
           background: var(--color-primary-subtle, #e8edfa);
         }
         .pg-active {
-          background: var(--color-primary, #1650E0);
-          border-color: var(--color-primary, #1650E0);
+          background: var(--color-primary);
+          border-color: var(--color-primary);
           color: #fff;
           cursor: default;
         }

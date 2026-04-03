@@ -36,7 +36,7 @@ class AgConfirm extends HTMLElement {
       },
       info: {
         bg: 'var(--color-primary-subtle, #e8edfa)',
-        color: 'var(--color-primary, #1650E0)',
+        color: 'var(--color-primary)',
         svg: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
       },
       success: {
@@ -114,7 +114,7 @@ class AgConfirm extends HTMLElement {
           background: ${v.color}; border-color: ${v.color}; color: var(--color-text-inverse, #fff);
         }
         .btn-confirm:hover { opacity: .9; background: ${v.color}; }
-        .btn:focus-visible { outline: 2px solid var(--color-primary, #1650E0); outline-offset: 2px; }
+        .btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
       </style>
       <div class="overlay-backdrop">
         <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="cd-title" aria-describedby="cd-msg">

@@ -32,7 +32,7 @@ class AgBreadcrumb extends HTMLElement {
           font-weight: 500;
           transition: color .15s ease;
         }
-        a.bc-item:hover { color: var(--color-primary, #1650E0); }
+        a.bc-item:hover { color: var(--color-primary); }
         .bc-current {
           color: var(--color-text-dark, #1a1a1a);
           font-weight: 600;

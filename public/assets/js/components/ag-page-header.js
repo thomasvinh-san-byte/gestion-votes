@@ -36,7 +36,7 @@ class AgPageHeader extends HTMLElement {
           width: 4px;
           height: 22px;
           border-radius: 2px;
-          background: var(--color-primary, #1650E0);
+          background: var(--color-primary);
           flex-shrink: 0;
         }
         .page-sub {

@@ -44,7 +44,7 @@ class AgDonut extends HTMLElement {
       const largeArc = angle > 180 ? 1 : 0;
 
       return `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}"
-        stroke="${seg.color || '#ccc'}" stroke-width="${thickness}" fill="none" stroke-linecap="round">
+        stroke="${seg.color || 'var(--color-border)'}" stroke-width="${thickness}" fill="none" stroke-linecap="round">
         <title>${this._esc(seg.label || '')} : ${seg.value} (${Math.round(pct * 100)}%)</title>
       </path>`;
     }).join('');

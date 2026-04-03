@@ -58,8 +58,8 @@ class AgQuorumBar extends HTMLElement {
           display: block;
         }
         .quorum {
-          background: var(--color-surface, #ffffff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           padding: 1rem;
         }
@@ -72,7 +72,7 @@ class AgQuorumBar extends HTMLElement {
         .quorum-label {
           font-size: 0.875rem;
           font-weight: 600;
-          color: var(--color-text, #4e5340);
+          color: var(--color-text);
         }
         .quorum-status {
           font-size: 0.75rem;
@@ -81,20 +81,20 @@ class AgQuorumBar extends HTMLElement {
           border-radius: 9999px;
         }
         .quorum-status.reached {
-          background: var(--color-success-subtle, #e4ede4);
-          color: var(--color-success-text, #2d4a2e);
+          background: var(--color-success-subtle);
+          color: var(--color-success-text);
         }
         .quorum-status.partial {
-          background: var(--color-warning-subtle, #f5eddf);
-          color: var(--color-warning-text, #6b4f28);
+          background: var(--color-warning-subtle);
+          color: var(--color-warning-text);
         }
         .quorum-status.critical {
-          background: var(--color-danger-subtle, #f2e4e4);
-          color: var(--color-danger-text, #6b2828);
+          background: var(--color-danger-subtle);
+          color: var(--color-danger-text);
         }
         .quorum-track {
           height: 12px;
-          background: var(--color-bg-subtle, #e2e8dd);
+          background: var(--color-bg-subtle);
           border-radius: 9999px;
           overflow: hidden;
           position: relative;
@@ -104,15 +104,15 @@ class AgQuorumBar extends HTMLElement {
           border-radius: 9999px;
           transition: width 0.5s ease-out;
         }
-        .quorum-fill.reached { background: var(--color-success, #0b7a40); }
-        .quorum-fill.partial { background: var(--color-warning, #b8860b); }
-        .quorum-fill.critical { background: var(--color-danger, #c42828); }
+        .quorum-fill.reached { background: var(--color-success); }
+        .quorum-fill.partial { background: var(--color-warning); }
+        .quorum-fill.critical { background: var(--color-danger); }
         .quorum-threshold {
           position: absolute;
           top: 0;
           bottom: 0;
           width: 3px;
-          background: var(--color-text, #4e5340);
+          background: var(--color-text);
           transform: translateX(-50%);
         }
         .quorum-threshold::after {
@@ -125,21 +125,21 @@ class AgQuorumBar extends HTMLElement {
           height: 0;
           border-left: 4px solid transparent;
           border-right: 4px solid transparent;
-          border-top: 4px solid var(--color-text, #4e5340);
+          border-top: 4px solid var(--color-text);
         }
         .quorum-values {
           display: flex;
           justify-content: space-between;
           margin-top: 0.5rem;
           font-size: 0.75rem;
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text-muted);
         }
         .quorum-current {
           font-weight: 600;
         }
-        .quorum-current.reached { color: var(--color-success, #0b7a40); }
-        .quorum-current.partial { color: var(--color-warning, #b8860b); }
-        .quorum-current.critical { color: var(--color-danger, #c42828); }
+        .quorum-current.reached { color: var(--color-success); }
+        .quorum-current.partial { color: var(--color-warning); }
+        .quorum-current.critical { color: var(--color-danger); }
       </style>
       <div class="quorum">
         <div class="quorum-header">
