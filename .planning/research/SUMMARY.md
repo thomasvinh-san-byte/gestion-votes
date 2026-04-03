@@ -1,207 +1,185 @@
-# Research Summary — AG-VOTE v4.1 "Design Excellence"
+# Project Research Summary
 
-**Project:** AG-VOTE v4.1
-**Domain:** Premium light-first visual refonte for governance/SaaS web app
-**Researched:** 2026-03-19
+**Project:** AG-VOTE v10.0 — Visual Identity Evolution
+**Domain:** CSS design system evolution for a self-hosted vanilla PHP/JS civic voting app
+**Researched:** 2026-04-03
 **Confidence:** HIGH
-
----
 
 ## Executive Summary
 
-AG-VOTE is a fully functional general-assembly voting platform that has reached v4.0 feature-complete status. The v4.1 milestone is a pure visual refonte — zero new features, zero infrastructure changes. The diagnosis is blunt and supported by all four research files: the current design is objectively mediocre because it exhibits every pattern that distinguishes AI-generated CSS from premium, intentional design. The symptoms are specific and measurable: uniform border-radii regardless of element size, all surfaces at the same background depth, shadows applied at identical opacity everywhere, color used for decoration rather than signal, and spacing with no semantic hierarchy (16px applied to section breaks, field gaps, and icon-label pairs equally). Functionality works. What is broken is the visual language.
+AG-VOTE enters v10.0 with a mature, production-grade design system: a 5,258-line CSS file, 23 Web Components with Shadow DOM, 25 per-page CSS files, a three-layer token hierarchy (primitive → semantic → component aliases), full dark/light mode, and an established "officiel et confiance" visual identity (bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono). The v10.0 milestone is strictly about evolving the *visual expression* of this system — not its architecture. The research consensus is unambiguous: the highest-ROI approach is to change token values in `design-system.css`, not to restructure HTML or components. All 25 page CSS files and all 23 Web Components will propagate those token changes for free via CSS custom property inheritance, including through the Shadow DOM boundary.
 
-The recommended fix strategy is layered and sequential. It must begin with the token system rather than individual pages, because every page-level problem traces back to how tokens are defined and consumed. The current 265+ CSS variables are bloated — they skip the primitive layer and mix semantic with ad-hoc values, producing overlap, inconsistency, and an inability to change one concept without hunting through six files. The right target is roughly 80 semantic tokens backed by 60 well-named primitives, all consumed through semantic aliases in component CSS. Once the token foundation is correct, component-level upgrades (buttons, cards, tables, badges, forms) become reliable because they reference a trustworthy system. Only after components are solid should per-page layout work begin — because pages are composed from components, not the reverse.
+The recommended approach is a strict token-first, visible-output-first methodology: start with the warm-neutral gray ramp (the single change with the widest visual impact), then progressively layer accent sparsity, border alpha treatment, consistent radius, and shadow vocabulary reduction before adding behavioral enhancements like skeleton loading and celebration animations. Every phase must ship at least one screenshot-demonstrable visual change — the v4.1 lesson (infrastructure delivered, no visible output) is the primary failure mode to avoid and is explicitly documented in PROJECT.md.
 
-The primary risk is scope creep in both directions: either the refonte stays superficial (changing colors without fixing the underlying spacing and elevation model) or it drifts into feature work (adding new components not present in v4.0). Research from PITFALLS.md also flags two specific technical hazards: the oklch color migration needs hex fallbacks to avoid transparent surfaces in older Safari, and the body font-size change from 16px to 14px must be executed as one atomic sweep — not incrementally — or page CSS breaks inconsistently. Both risks are mitigatable with discipline and are called out per phase below.
+The key risks are well-understood and have documented prevention strategies. The three most dangerous are: (1) HTML restructuring silently breaking JS selectors — the v4.2 root cause — which is avoided by treating any HTML structural change as a breaking change with a mandatory JS selector audit; (2) dark mode color-mix derived tokens computing against stale light-mode values when source primitives change; and (3) Shadow DOM component fallback hex literals becoming stale after a brand color change. All three risks are avoidable with disciplined grep-based verification steps that are already documented in PITFALLS.md.
 
 ---
 
 ## Key Findings
 
-### Design Philosophy (from STACK.md)
+### Recommended Stack
 
-The overarching principle is that **premium design is made of intentional differences, not uniform tokens.** What makes Stripe, Linear, and Vercel look expensive is that they break their own patterns deliberately — a tighter shadow here, more padding there, a heavier weight in one place. AI-generated CSS applies everything uniformly. Every element gets the same border-radius, the same shadow opacity, the same 16px gap. The v4.1 refonte must introduce intentional variation at every level.
+The entire v10.0 milestone requires zero npm installs. All recommended technologies are native browser CSS APIs with sufficient baseline support for the app's operator audience. The key upgrade path is: promote oklch color values from "trailing comments" to primary token values, replace `color-mix(in srgb, ...)` with `color-mix(in oklch, ...)` for perceptually accurate blends, add `@property` registration for any tokens that need animated transitions, and expand the existing View Transitions gate (already in design-system.css) to more DOM regions. CSS Relative Color Syntax (`oklch(from var(--color-primary) calc(l + 0.06) c h)`) can replace 40+ manually-maintained hex tint/shade values behind an `@supports` gate.
 
-**Core design references and their applicable patterns:**
-- **Stripe Dashboard** — three-depth background layering, restrained color use, KPI row layout
-- **Linear** — neutral canvas approach (color for signal only), sidebar-always-dark pattern, premium spacing
-- **Atlassian Design System** — elevation semantics, surface/raised/overlay model, spacing guidelines
-- **Radix UI** — 12-step color scale mapping, semantic color token naming convention
-- **shadcn/ui (new-york)** — component CSS reference for buttons, inputs, cards (exact values verified)
-- **Sonner** — canonical toast/notification CSS (values extracted from source)
+**Core technologies:**
+- `oklch()` as semantic token values — replace hex in semantic layer for perceptually uniform palette generation; 92.93% global support, already used as comments on every primitive
+- CSS Relative Color Syntax — derive hover/active/subtle variants programmatically from base tokens; 89.57% support, gate with `@supports (color: oklch(from red l c h))`
+- `color-mix(in oklch, ...)` — upgrade existing `color-mix(in srgb, ...)` calls; eliminates grey-mud phenomenon at 50% mix
+- `@property` typed custom properties — required only for tokens that must animate via CSS `transition`; Baseline Widely Available since July 2024
+- CSS View Transitions (same-document) — already gated in design-system.css; expand to tab panels, wizard steps, list updates
+- CSS Scroll-Driven Animations — entrance animations tied to scroll; gate with `@supports` + `prefers-reduced-motion`; Firefox partial support, ~75% global
 
-**The 5 AI anti-patterns that must be eliminated from every file:**
-1. Uniform border-radius (8px on badge, card, modal, and input equally)
-2. Identical shadow opacity everywhere (`0 2px 8px rgba(0,0,0,0.1)` on all components)
-3. Color used for decoration not signal (tinted section headers, colored stat cards)
-4. Monotone spacing (16px applied to section breaks, form gaps, and icon-label pairs)
-5. Weak font-weight contrast (headings at 500 when body is 400 — imperceptible difference)
+**Do not use:** Tailwind, GSAP, Style Dictionary, CSS Houdini Paint API, display-p3 wide gamut, or aggressive multi-level CSS nesting.
 
-### Page Layout Specifications (from FEATURES.md)
+### Expected Features
 
-FEATURES.md provides concrete CSS grid/flex specs and ASCII diagrams for all 6 page types in the application. These are not wireframes — they are implementation-ready layout specifications with exact values.
+Research cross-referenced Linear, Vercel, Stripe, Notion, and Clerk to identify what makes a business app feel premium in 2025-2026. The pattern is consistent: neutrals dominate (90-95% of surfaces), brand color appears sparingly (5-8%) on CTAs, active states, and focus rings. Structure is "felt not seen" via alpha-based borders rather than solid hairlines.
 
-**Six page types identified, each with distinct layout philosophy:**
+**Must have (table stakes):**
+- Neutral-dominant color palette — indigo at 5-8% of surfaces; 90-95% warm-neutral gray
+- Intentional dark mode — dark gray surfaces (#1a1b26 range), not pure black; elevation via lighter grays not shadows
+- Consistent border radius language — single decision enforced via `--radius-base` token; recommendation: 6-8px (Notion/Clerk quality tier)
+- Semantic focus rings — `outline: 2px solid var(--color-accent); outline-offset: 2px` on all interactive elements
+- Hover state on every clickable element — 150ms, 3-5% lightness shift only
+- Tabular numbers for all numeric data — `font-variant-numeric: tabular-nums` + JetBrains Mono
+- Skeleton loading states on dashboard and session list — replace spinners
+- Single-level shadow vocabulary — exactly 3 levels: card (border-only), dropdown, modal
 
-| Page | Layout Pattern | Key Constraint |
-|------|---------------|----------------|
-| Dashboard | KPI row (4-col) + sessions list + aside | max-width 1200px, session rows 72px min-height |
-| Wizard | Centered single-column, max 640px | Stepper above form card, sidebar suppressed |
-| Session detail | Header meta strip + 2-col (main + sidebar) | Info sidebar 320px, sticky at scroll |
-| Operator console | Full-width data-dense table | Tighter row padding 8px 16px, monospace counts |
-| Vote/ballot screen | Vertically centered single card | Full viewport height, voter-facing only |
-| Results/PV | Stacked sections, print-ready | Max 880px for print layout parity |
+**Should have (competitive differentiators):**
+- Warm-neutral gray base — shifts gray ramp hue from cold blue-gray (220-230°) toward warmer (200-210°)
+- Alpha-based borders — `oklch(50% 0 0 / 0.12)` pattern; "structural subtlety" effect
+- Ambient gradient accents — only on login page orb, empty state heroes, operator console header; never on functional chrome
+- Progressive disclosure on operator console — hide secondary controls until vote is active
+- Celebration micro-animations — terminal success states only (vote close, PV generation); 400ms max; `prefers-reduced-motion` guard
+- Sidebar attention hierarchy — dim sidebar chrome when user is deep in a workflow
 
-**Critical layout decisions:**
-- Dashboard sessions: vertical list, not card grid — data with status/dates/CTAs scans better as rows
-- Wizard: no sidebar — navigation context fights user concentration on focused tasks
-- Operator: 14px body throughout — data-dense, matches Linear/Jira/GitHub table conventions
-- All pages: three-level background stack (body `#EDECE6` → surface `#FAFAF7` → raised `#FFFFFF`)
+**Defer (v11+):**
+- Density mode toggle (compact/comfortable) — high value for power users, high CSS architecture cost
+- Per-page ambient gradient expansion — visual interest only, requires extensive dark/light QA
+- Variable font exploration — Bricolage Grotesque variable font; uncertain ROI
 
-### Component Architecture (from ARCHITECTURE.md)
+**Anti-features to reject:** Full glassmorphism on data cards, rainbow status badge colors, heavy drop shadows on cards, bold color fills on nav sidebar, decorative illustration on every empty state, persistent toast/banner overuse, animation on every state transition.
 
-ARCHITECTURE.md provides exact CSS specifications for every shared component, sourced from shadcn/ui (new-york), Sonner, Shopify Polaris, and AG-VOTE's own verified token values. These are ready to implement.
+### Architecture Approach
 
-**Major components with their premium specs:**
+The architecture is token-first and propagation-driven. The three-layer token hierarchy means changing a primitive value in `:root` automatically propagates to all semantic tokens that reference it, then to all 25 per-page CSS files and all 23 Web Components (via Shadow DOM custom property inheritance) without any additional file changes. The only exceptions requiring manual co-changes are: (1) `[data-theme="dark"]` semantic override block — must be updated in the same commit as any `:root` primitive change; (2) `critical-tokens` inline styles in 22 HTML files — 6 hex values that prevent flash-of-wrong-color; and (3) Shadow DOM fallback hex literals in component `<style>` strings — these do not respond to token changes.
 
-1. **Buttons** — 36px default height, 500 font-weight (not 600/700), explicit property transitions only (not `all`), three size variants (30px/36px/44px), six variants (primary/secondary/ghost/danger/danger-ghost/outline). `transform: scale(0.97)` on active state gives tactile feedback.
+**Migration layer order (strictly enforced):**
+1. `design-system.css @layer base` — primitive and semantic token values in `:root` and `[data-theme="dark"]`
+2. `design-system.css @layer components` — component aliases (radius, height, type scale)
+3. `design-system.css @layer v4` — progressive enhancement only (view transitions, @starting-style)
+4. Per-page CSS files — outside all layers; only touch if a page has hardcoded hex that did not propagate
+5. Web Component `<style>` strings — only fallback hex literals need updating after primitive changes
 
-2. **Cards** — three-section anatomy (header 20px/24px padding, body 24px, footer 16px/24px). Resting: `--shadow-xs` + border. Hover: `--shadow-md` + `translateY(-1px)` + border lightens. The shadow-vs-border trade is the core elevation signal.
+**Known hardcoded values to fix:** `#1650E0` in analytics.css and meetings.css; `rgba(22,80,224,...)` in hub.css, vote.css, public.css, users.css; ~8 occurrences in design-system.css shadow box-shadow values; `rgba(22,80,224,0.35)` as hardcoded focus ring hex in Shadow DOM component `<style>` strings.
 
-3. **Tables** — `12px 16px` cell padding standard, `8px 16px` for operator dense mode. First/last column get extra 24px horizontal padding. Headers in 13px uppercase with 0.04em tracking. Stripe pattern with `--color-bg-subtle` on odd rows.
+### Critical Pitfalls
 
-4. **Forms** — 36px input height, 12px/16px padding, `--radius-md` (6px). Focus ring via `--shadow-focus` (double ring: 2px surface gap + 4px primary). Form groups 20px gap, label-to-input 8px. No `outline` overrides — use box-shadow only.
+1. **HTML restructuring silently breaks JS selectors** (the v4.2 failure) — Before restructuring any page, grep the page JS file for all `querySelector`, `closest`, `dataset` reads; verify every selector still resolves. Prefer `data-*` attribute hooks over structural selectors. Run Playwright E2E before committing any HTML restructuring.
 
-5. **Modals** — `--radius-xl` (12px), `--shadow-xl`, header/body/footer anatomy with border dividers. Backdrop `oklch(0 0 0 / 50%)`. Enter animation: `opacity` + `translateY(8px)` → `0` over 300ms `--ease-emphasized`.
+2. **Infrastructure-only phase with no visible output** (the v4.1 failure) — Every phase must deliver at least one screenshot-demonstrable visual change. Token work is only justified when the visual output lands in the same phase. Reject any phase description containing only "refactor/rename/restructure" without specifying what users will see differently.
 
-6. **Toasts (Sonner-style)** — 356px width, `--shadow-lg`, `--radius-xl`, stacked with 8px gap between toasts. Rich variant uses left-border accent stripe (3px solid status color).
+3. **color-mix() derived tokens computing with wrong values in dark mode** — `color-mix()` in `:root` evaluates against `:root` values only. Every `color-mix()` token in `:root` that references a semantic color must have an explicit corresponding override in `[data-theme="dark"]`.
 
-7. **Badges** — pill shape (`--radius-full`) for status, `--radius-sm` (5px) for inline labels. 2px/8px padding. Three-part construction: subtle bg + text + border, all from the semantic status color group.
+4. **Token rename silently breaks Shadow DOM component fallbacks** — Shadow DOM components reference tokens by name in embedded `<style>` strings. A rename in `design-system.css` leaves all 23 component files using the old name, falling back to hardcoded light-mode hex. Rule: never rename existing token names; add new names alongside old ones.
 
-8. **Steppers** — connector line 2px, step circle 28px diameter. Completed: primary fill + white check. Active: primary ring (2px outline offset). Pending: border only. Font 13px medium.
-
-**Radius hierarchy (anti-uniform-radius rule):**
-- 3px — table cell indicators, hairlines
-- 5px — tags, badges, inline chips, tooltips
-- 6px — buttons, inputs, selects (interactive elements)
-- 8px — cards, panels, dropdowns (containers)
-- 12px — modals, drawers, toasts (overlay surfaces)
-- 999px — pill status badges, avatars
-
-### CSS Architecture and Token System (from PITFALLS.md)
-
-PITFALLS.md defines the complete token hierarchy and 7 specific pitfalls that will break the refonte if not actively prevented.
-
-**Token hierarchy (three layers):**
-- Layer 1 Primitives: raw values named after what they ARE (`--blue-600`, `--stone-200`). Never used in component CSS directly.
-- Layer 2 Semantic: context-aware, theme-switchable (`--color-primary`, `--color-surface`). These are what components use.
-- Layer 3 Component: scoped to a single component (`--btn-bg`, `--badge-border`). Optional, for complex overrides only.
-
-**Target token count:** 80–100 semantic tokens in `:root`, 20–30 dark overrides in `[data-theme="dark"]`. Down from the current 265+ bloated set.
-
-**Complete shadow system (7 levels):** All use `--shadow-color: 21 21 16` (warm near-black matching the palette) in light mode, switching to pure black in dark mode. Opacity ranges from 0.04 (2xs, barely visible) to 0.18 (2xl, floating panel). Dark mode multiplies opacity by roughly 3x for visibility.
-
-**Typography correction:** Base body drops from 16px to 14px for data-dense app convention. This is a high-risk change if done incrementally — PITFALLS.md specifies a staged naming migration: add `--text-14: 0.875rem` first, sweep all components, then rename `--text-base` in one atomic commit.
-
-**Dark mode strategy:** Sidebar stays always-dark regardless of theme (independent token set). Body elevation is expressed via lightness in dark mode (higher surface = lighter L value), not shadows. Borders use opacity-based values (`oklch(1 0 0 / 8%)`) not hex, so they adapt automatically.
-
-### Critical Pitfalls (from PITFALLS.md)
-
-1. **oklch Browser Fallback Gap** — OKLCH primitives without hex fallbacks silently produce transparent surfaces in Safari < 15.4. Prevention: declare hex first, oklch second as progressive enhancement. Use `@supports(color: oklch(0 0 0))` gates for color-mix derivations.
-
-2. **color-mix() Circular Reference** — Redefining `--color-primary` using itself inside `color-mix()` resolves to `transparent`. Prevention: always use component-scoped tokens (`--btn-bg`) as the target of color-mix, never redefine the source token.
-
-3. **Token Proliferation** — Adding per-page one-off variables without checking semantic tokens first. Prevention: enforce the naming convention strictly. If you reach for `--quorum-bar-success-bg`, use `--color-success-subtle` instead.
-
-4. **Shadow Strength Mismatch** — Light-mode shadows tuned to 5–10% opacity are nearly invisible in dark mode without the `--shadow-color` variable pattern. Prevention: always override `--shadow-color` in `[data-theme="dark"]` so all shadow levels adapt automatically.
-
-5. **Typography Base Size Regression** — Changing `--text-base` from 16px to 14px without an atomic sweep breaks every component at once in different ways. Prevention: two-phase migration — introduce `--text-14` as alias, sweep references, then rename.
-
-6. **@layer Specificity vs Direct Values** — Component CSS in `@layer v4` using raw `oklch()` directly instead of tokens bypasses theming. Prevention: `@layer v4` may reassign token values but must never use raw color values in component rules.
-
-7. **`transition: all` Performance** — 15+ page CSS files contain `transition: all 150ms ease`. On tables with 50+ rows, hover states trigger full composite reflow. Prevention: enumerate specific properties only. Use `--transition-color` and `--transition-ui` named tokens.
+5. **Hardcoded focus ring hex stale after brand color change** — `rgba(22,80,224,0.35)` is hardcoded in multiple Shadow DOM component inline styles. After any `--color-primary` change, run: `grep -r "22,80,224\|1650E0" public/assets/js/components/` and update all matches.
 
 ---
 
 ## Implications for Roadmap
 
-The research strongly implies a three-phase sequence: foundation first, components second, pages third. This order is not arbitrary — it reflects real dependencies. Pages are composed of components; components depend on tokens. Attempting to fix the dashboard layout without first fixing the token system produces visual improvements that are inconsistent, hard to maintain, and will need to be redone when the token audit eventually happens.
+Based on research, suggested phase structure for v10.0:
 
-### Phase 1: Token Foundation Audit and Upgrade
+### Phase 1: Token Foundation + Visible Palette Shift
 
-**Rationale:** Every page-level visual problem in AG-VOTE (flat backgrounds, uniform shadows, weak typography hierarchy) traces to token definitions and semantic misuse. Fixing tokens first makes every subsequent phase faster and more reliable. This is the high-leverage, low-visibility work that makes the rest possible.
+**Rationale:** The warm-neutral gray ramp is the single change with the widest, most immediate visual impact across all 25 pages and all 23 components. It must come first because all downstream visual decisions — border alpha, dark mode depths, elevation overlays — depend on the base gray hue. This phase bundles token-only changes with a visible palette shift to avoid the v4.1 "infrastructure without output" trap.
 
-**Delivers:**
-- Cleaned semantic token set (~80 tokens, down from 265+)
-- Complete oklch primitives with hex fallbacks
-- Corrected shadow scale with `--shadow-color` variable pattern and full 7-level range
-- Full dark mode token parity for all new and changed tokens
-- Typography scale correction including `--text-base` 14px migration (two-stage)
-- Border-radius semantic aliases (`--radius-btn`, `--radius-card`, `--radius-modal`)
-- Named transition tokens (`--transition-color`, `--transition-ui`, `--transition-enter`)
-- Spacing scale gaps filled (add `--space-1-5` 6px, `--space-2-5` 10px, semantic aliases)
+**Delivers:** Every page simultaneously looks warmer, more refined, and "2025-grade" without touching a single page-specific CSS file.
 
-**Avoids:** Token proliferation pitfall, oklch fallback gap, shadow strength mismatch, @layer specificity issue.
+**Addresses:** Warm-neutral gray ramp (P1), border alpha treatment (P1), dark mode tuning (P1), shadow-color warm tone alignment.
 
-**Research flag:** Skip `/gsd:research-phase`. The exact token values are already fully specified in PITFALLS.md and ARCHITECTURE.md. Execution work only.
+**Avoids:** Leaving `[data-theme="dark"]` out of sync with `:root` (Pitfall 2); updating `critical-tokens` inline styles in a separate commit from semantic token changes (Anti-Pattern 4 from ARCHITECTURE.md).
+
+**Verification:** Manual dark/light mode visual review on dashboard, login, operator, vote pages. Contrast check with axe DevTools in both themes.
 
 ---
 
-### Phase 2: Component Refresh
+### Phase 2: Chrome Cleanup + Component Geometry
 
-**Rationale:** Components are the unit of reuse. Fixing them once makes every page correct automatically for the shared elements. The research provides exact specifications for all 8 component categories — this is execution work, not design exploration.
+**Rationale:** Once the palette foundation is correct, the second highest ROI change is reducing visual noise: accent sparsity (eliminate indigo from UI chrome), consistent border radius (enforce `--radius-base` across all 23 components), and shadow vocabulary reduction (max 3 levels). These are all token or single-file changes with broad propagation. Doing these before per-page behavioral work ensures the foundation is visually coherent.
 
-**Delivers:**
-- Buttons: correct height/padding/weight, explicit transitions, tactile active state, all 6 variants
-- Cards: three-section anatomy, shadow-vs-border elevation model, hover lift with `translateY(-1px)`
-- Tables: semantic density variants (standard vs operator-dense), monospace data values, proper column padding
-- Forms: 36px inputs, double-ring focus, 8px label-to-input spacing, validation states
-- Modals: 12px radius, XL shadow, enter/exit animations using `--ease-emphasized`, backdrop blur
-- Toasts: Sonner-pattern stacking, 356px width, rich variant with accent stripe
-- Badges: pill status vs rectangular label, three-part color construction from semantic tokens
-- Steppers: 28px circles, connector lines, three-state visual model (completed/active/pending)
+**Delivers:** Consistent, calm product chrome. Indigo appears only at interaction moments. All components share a single radius language. Modals and dropdowns have the only elevated shadows.
 
-**Avoids:** Uniform border-radius, `transition: all`, weak hover states, color-mix circular reference.
+**Addresses:** Accent sparsity audit (P1), consistent border radius (P1), shadow vocabulary reduction (P1), focus ring standardization (P1).
 
-**Research flag:** Skip `/gsd:research-phase`. ARCHITECTURE.md contains implementation-ready CSS specs with all values verified. The work is implementation, not research.
+**Uses:** Direct design-system.css component alias edits (`--radius-*`, shadow scale). Per-file grep-and-replace for accent overuse across 25 CSS files.
+
+**Avoids:** Changing `--btn-height` or `--input-height` without verifying grid alignment in operator.css and wizard.css (ARCHITECTURE.md Layer 3 medium risk).
 
 ---
 
-### Phase 3: Per-Page Layout Refonte
+### Phase 3: Hardcoded Hex Elimination + Shadow DOM Audit
 
-**Rationale:** With correct tokens and correct components, each page's layout becomes the specific scope. Pages are rebuilt to the FEATURES.md specs — which provide grid/flex layout, ASCII diagrams, breakpoints, and spacing rationale for each of the 6 page types.
+**Rationale:** The palette and chrome are now clean in the token layer, but research identified ~15 hardcoded hex/rgba values scattered across 5 page CSS files and all 23 Web Component fallback strings. This phase closes the gap between the token system and the actual rendered output. Without it, a future primary color change will silently leave these values behind.
 
-**Delivers (one task per page type recommended):**
-- Dashboard: 4-col KPI grid + conditional urgent banner + sessions vertical list + sticky 280px aside
-- Wizard: centered 640px column, stepper above form card, sidebar suppressed or hidden
-- Session detail: meta strip header + 2-col (main + 320px sticky sidebar)
-- Operator console: full-width dense table, 14px throughout, live indicator pulse dots, monospace counts
-- Vote/ballot: full-viewport centered card, voter-facing simplified layout, minimal chrome
-- Results/PV: stacked sections with print-ready 880px max-width, `@media print` considerations
+**Delivers:** A codebase where `grep -r "1650E0\|22,80,224" public/assets/` returns zero results. All Shadow DOM component fallbacks reflect current token values.
 
-**Avoids:** Color-as-decoration on section headers, flat backgrounds (three-depth model enforced by Phase 1 tokens), monotone spacing (Phase 1 semantic aliases enforce hierarchy).
+**Addresses:** analytics.css and meetings.css hardcoded hex, hub/vote/public/users rgba fallbacks, ag-vote-button hover rgba states, Shadow DOM focus ring literals.
 
-**Research flag:** Dashboard and Operator console warrant a brief pre-implementation review to validate grid proportions in context (especially the 1200px dashboard max-width vs the global 1440px). The other 4 pages follow patterns fully covered in research. Mark Dashboard and Operator for light validation rather than full `/gsd:research-phase`.
+**Avoids:** Renaming any token during this phase (Pitfall 3 — Shadow DOM fallback staleness); dark mode must be independently verified after each component update (Pitfall 5 — dark contrast failures).
+
+---
+
+### Phase 4: Perception + Delight Layer
+
+**Rationale:** With the foundation solid and the codebase clean, this phase adds the behavioral and perception enhancements that require per-page or per-component work: skeleton loading (replaces spinners on the two most-visited pages), tabular number enforcement (numeric data audit), sidebar attention hierarchy, and celebration micro-animations. These are P2 features — meaningful differentiators, but only valuable on top of a coherent visual foundation.
+
+**Delivers:** Dashboard and session list feel instantaneous with skeleton shimmer. KPI data is visually precise. Sidebar recedes during workflows. Vote close and PV generation have a moment of delight.
+
+**Addresses:** Skeleton loading (P2), tabular numbers (P2), celebration micro-animations (P2), sidebar attention hierarchy (P2).
+
+**Uses:** `prefers-reduced-motion` guards (already in animation timing contracts from v9.0), `@keyframes` + View Transitions for celebration states.
+
+**Avoids:** Overanimation (150ms hover, 250ms panel reveals, 0ms data updates; never animate live vote row insertions); conflicting celebration animations with existing toast/banner overuse if not first resolved.
+
+**Research flag:** Skeleton shimmer requires per-page loading state audit before planning — which pages use spinner vs. empty div vs. HTMX-managed states is not yet documented.
+
+---
+
+### Phase 5: Progressive Disclosure (Operator Console)
+
+**Rationale:** Progressive disclosure is classified P2 but isolated into its own phase because it is the only v10.0 feature requiring JS + layout changes (not purely CSS). It carries the highest risk of triggering the v4.2 pattern if HTML restructuring is involved. Isolating it enables a full JS selector audit and dedicated Playwright E2E run before sign-off.
+
+**Delivers:** Secondary operator controls hidden until a vote is active; the console is dramatically less noisy during live sessions.
+
+**Addresses:** Progressive disclosure audit on operator console (P2).
+
+**Avoids:** HTML restructuring without prior JS selector grep (Pitfall 1 — the v4.2 failure mode).
+
+**Research flag:** Requires a pre-phase audit of operator.js for all `querySelector` and `closest` calls before any layout change is attempted.
 
 ---
 
 ### Phase Ordering Rationale
 
-- **Tokens before components** — components reference tokens; incorrect tokens make component specs wrong before implementation starts.
-- **Components before pages** — pages composed of unrefreshed components will need rework when components change.
-- **Dashboard last within the page phase, not first** — it is the most complex page (KPI grid + list + aside + conditional banner). Doing it last means the component library is fully refined and the risk of inconsistency is minimized.
-- **Operator console is a special case** — its 14px/dense-table pattern differs meaningfully from every other page. It should be its own sub-task within Phase 3, not grouped with standard-layout pages.
+- **Token layer before behavioral layer:** All page CSS and components propagate token changes for free. Behavioral changes (skeleton loading, sidebar dimming) are per-page work that is most efficient when the visual foundation is already stable.
+- **Primitive + semantic + dark mode in the same commit:** The architecture explicitly forbids leaving dark mode broken between commits. Any phase that changes `:root` color primitives must update `[data-theme="dark"]` and `critical-tokens` inline styles in the same commit.
+- **Infrastructure paired with visible output in every phase:** Phases 1-3 avoid the v4.1 pattern by coupling token/audit work with visible per-page output in each commit.
+- **HTML-touching phase last and isolated:** Phases 1-4 are pure CSS/token work. Phase 5 is the only phase that risks HTML restructuring and is isolated for controlled risk management.
 
-### Research Flags Summary
+### Research Flags
 
-| Phase | Research Needed | Reason |
-|-------|----------------|--------|
-| Phase 1: Token Foundation | None — skip | Full specs in PITFALLS.md and ARCHITECTURE.md |
-| Phase 2: Components | None — skip | Exact CSS specs in ARCHITECTURE.md, all values verified from source |
-| Phase 3: Wizard, Session, Vote, Results | None — skip | Well-specified in FEATURES.md with full breakpoint coverage |
-| Phase 3: Dashboard | Light validation only | Most complex layout; confirm 1200px max-width feels right in context |
-| Phase 3: Operator | Light validation only | Dense-table pattern differs from rest; confirm column widths in practice |
+Phases likely needing deeper research or pre-phase audit:
+
+- **Phase 4 (skeleton loading):** Requires per-page loading state audit before planning. Which pages use spinners vs. empty divs vs. HTMX-managed empty states is not documented in current research.
+- **Phase 5 (progressive disclosure):** Requires pre-phase operator.js JS selector audit. Complexity is HIGH per FEATURES.md. JS + layout risk justifies treating this as a mini-research step before implementation.
+
+Phases with standard patterns (safe to plan without additional research):
+
+- **Phase 1 (token foundation):** oklch token promotion, warm-neutral gray ramp, dark mode co-update — all are codebase-verified, well-documented patterns.
+- **Phase 2 (chrome cleanup):** Token alias edits and grep-based accent audit — mechanical, low-risk.
+- **Phase 3 (hardcoded hex):** Pure grep-and-replace with known target values already enumerated in ARCHITECTURE.md.
 
 ---
 
@@ -209,54 +187,59 @@ The research strongly implies a three-phase sequence: foundation first, componen
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Token system architecture | HIGH | Values verified directly from AG-VOTE design-system.css + Radix UI source + Tailwind v4 theme.css |
-| Shadow scale | HIGH | Josh W. Comeau research + Atlassian elevation docs. Warm shadow color already correct in existing tokens. |
-| Typography scale | HIGH | WCAG 2.1 + LearnUI.design guidelines + Linear/Jira/GitHub precedent for 14px on data apps |
-| Component specs | HIGH (source values) / MEDIUM (synthesis) | shadcn/Sonner/Polaris values are exact. AG-VOTE mapping decisions are synthesis. |
-| Page layouts | HIGH | Cross-verified against Stripe Dashboard, Linear, Notion. ASCII diagrams match research rationale. |
-| Border-radius scale | MEDIUM | Vercel/Linear/Stripe analysis is visual rather than documented. The 6/8/12px hierarchy is consensus, not single authoritative source. |
-| Dark mode strategy | HIGH | Atlassian + Radix verified. oklch lightness model for elevation is documented. |
-| oklch browser support | HIGH | MDN + Evil Martians + caniuse. Chrome 119+, Firefox 128+, Safari 16.4+. Fallback pattern clear. |
+| Stack | HIGH | All technologies are native CSS APIs with verified browser support from Can I Use and MDN. No install dependencies. The existing codebase already uses oklch, color-mix, and View Transitions gates — upgrade path is incremental and confirmed. |
+| Features | HIGH | Cross-verified across Linear, Vercel, Stripe, Notion, and Clerk with specific pattern observations. MVP vs. deferred split is grounded in complexity estimates and dependency analysis, not guesswork. |
+| Architecture | HIGH | Grounded in direct codebase inspection of design-system.css (5258 lines), all 23 Web Component files, all 25 CSS files, and the critical-tokens inline style pattern. No inferences — the architecture is fully mapped. |
+| Pitfalls | HIGH | Every critical pitfall is grounded in: (a) observed codebase issues (hardcoded hex counts are exact), (b) documented project history (v4.1, v4.2 failures referenced in PROJECT.md), or (c) verified technical behavior (color-mix dark mode evaluation, Shadow DOM inheritance). |
 
-**Overall confidence: HIGH**
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Dashboard max-width needs in-browser validation.** FEATURES.md specifies 1200px (not the global 1440px). This difference needs visual confirmation before committing. May need adjustment per page based on sidebar-collapsed vs sidebar-expanded state.
-
-- **The 14px base body size decision requires explicit acknowledgment.** This is a significant perceptual shift from the current 16px. Document it in the phase plan so it is not mistaken for a regression bug after implementation.
-
-- **Purple accent usage boundaries.** STACK.md resolves the blue/purple two-accent problem (purple only for voter persona contexts), but the boundary between "voter-specific" and "general UI" needs explicit documentation during Phase 3 when ballot and session-detail pages are built.
-
-- **Print stylesheet scope for Results/PV.** FEATURES.md mentions print-ready layout at 880px max-width. Whether this requires a dedicated `@media print` stylesheet is not fully specified. Treat as a task-level decision during Phase 3 planning for that page.
+- **Skeleton loading scope:** The exact list of pages using spinners vs. alternative loading patterns is not documented. Needs a grep audit of all `.htmx.html` and page JS files for spinner/loading state patterns before Phase 4 planning.
+- **Operator console JS complexity:** The operator.js file's full selector map is not enumerated in research. The progressive disclosure feature's true HTML restructuring scope is unknown until a pre-phase selector audit is done. This determines whether Phase 5 is a CSS-only change or a genuine refactor.
+- **Service worker cache strategy:** sw.js cache version bump is flagged as required after font URL changes. The current cache versioning scheme is not detailed in research — verify the bump pattern before any font URL changes in Phase 4+.
+- **FilePond CDN version pin:** PITFALLS.md flags that future FilePond versions may introduce `@layer` declarations conflicting with the app's layer order. The current pinned version is not documented in research — confirm the CDN URL is pinned to a specific version before any `@layer` changes in Phase 1-2.
 
 ---
 
 ## Sources
 
-### Primary (HIGH confidence)
-- AG-VOTE `public/assets/css/design-system.css` — ground truth for existing token values, verified by direct file read
-- [Radix UI Colors source (GitHub)](https://github.com/radix-ui/colors/blob/main/src/light.ts) — 12-step scale hex values for blue, stone, green, amber, red
-- [Tailwind CSS v4 theme.css (GitHub)](https://github.com/tailwindlabs/tailwindcss/blob/next/packages/tailwindcss/theme.css) — spacing, shadow, radius, and typography scale reference
-- [shadcn/ui — new-york registry](https://ui.shadcn.com) — component CSS architecture, button/input/card anatomy
-- [Atlassian Design System — Elevation](https://atlassian.design/foundations/elevation/) — surface layering model, shadow semantics
-- [Atlassian Design System — Spacing](https://atlassian.design/foundations/spacing/) — container padding guidelines
-- [OKLCH in CSS — Evil Martians](https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl) — color derivation formulas, browser support matrix
-- [Designing Beautiful Shadows — Josh W. Comeau](https://www.joshwcomeau.com/css/designing-shadows/) — shadow formula, warm-toned shadow color matching
-- [Radix UI Colors — Understanding the Scale](https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale) — step-to-use-case semantic mapping
+### Primary (HIGH confidence — direct codebase + official specs)
 
-### Secondary (MEDIUM confidence)
-- [Sonner CSS source (emilkowalski/sonner)](https://github.com/emilkowalski/sonner) — toast component exact CSS values
-- [Shopify Polaris token library](https://polaris.shopify.com/tokens) — enterprise-grade component token reference
-- [ishadeed.com — CSS Stepper](https://ishadeed.com) — stepper component implementation patterns
-- [Linear UI Redesign article](https://linear.app/now/how-we-redesigned-the-linear-ui) — neutral canvas color approach, LCH color space rationale
-- [Refactoring UI — Layout and Spacing](https://jacobshannon.com/blog/books/refactoring-ui/layout-and-spacing/) — whitespace philosophy, start-larger-than-comfortable rule
-- [Font Size Guidelines — LearnUI.design](https://www.learnui.design/blog/mobile-desktop-website-font-size-guidelines.html) — 14px for data apps, 16px for prose
-- [Why AI Websites Look the Same — AXE-WEB](https://axe-web.com/insights/ai-website-design-sameness/) — purple-blue gradient, uniform radius, Inter default patterns
-- [Material Design 3 — Motion specs](https://m3.material.io/styles/motion/easing-and-duration/tokens-specs) — easing and duration scale
-- [Vercel Geist Colors](https://vercel.com/geist/colors) — bg-100/bg-200 hierarchy, gray-alpha token pattern
+- `public/assets/css/design-system.css` — ground truth for token hierarchy, @layer structure, shadow scale, dark mode override block (5258 lines, direct read)
+- `public/assets/js/components/ag-*` — Shadow DOM token consumption pattern, hardcoded fallback hex values (23 files, direct read)
+- `public/dashboard.htmx.html`, `public/wizard.htmx.html` — font loading and critical-tokens inline style pattern (direct read)
+- `.planning/PROJECT.md` — v4.1/v4.2 regression history, v10.0 milestone scope (direct read)
+- [oklch() — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/oklch)
+- [OKLCH browser support — Can I Use](https://caniuse.com/mdn-css_types_color_oklch) — 92.93% global coverage
+- [CSS Relative Colors — Can I Use](https://caniuse.com/css-relative-colors) — 89.57% global
+- [@property Baseline — web.dev](https://web.dev/blog/at-property-baseline) — Baseline Widely Available July 2024
+- [View Transitions API — MDN](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API)
+- [color-mix() — Chrome for Developers](https://developer.chrome.com/docs/css-ui/css-color-mix)
+
+### Secondary (MEDIUM confidence — industry analysis + community sources)
+
+- [Linear — Behind the latest design refresh (official)](https://linear.app/now/behind-the-latest-design-refresh)
+- [Vercel Web Interface Guidelines (official)](https://vercel.com/design/guidelines)
+- [Stripe — Designing Accessible Color Systems](https://stripe.com/blog/accessible-color-systems)
+- [7 SaaS UI Design Trends in 2026 — SaaSUI Blog](https://www.saasui.design/blog/7-saas-ui-design-trends-2026)
+- [Dark Mode Color Palettes: Complete Guide 2025 — MyPaletteTool](https://mypalettetool.com/blog/dark-mode-color-palettes)
+- [Scroll-Driven Animations — Chrome for Developers](https://developer.chrome.com/docs/css-ui/scroll-driven-animations)
+- [OKLCH in CSS: why we moved from RGB and HSL — Evil Martians](https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl)
+- [CSS Custom Properties in Shadow DOM — DEV Community](https://dev.to/michaelwarren1106/public-css-custom-properties-in-the-shadow-dom-4hc6)
+- [CSS Cascade Layers — Smashing Magazine 2025](https://www.smashingmagazine.com/2025/06/css-cascade-layers-bem-utility-classes-specificity-control/)
+- [Dark Mode Does Not Satisfy WCAG Contrast by Itself — BOIA](https://www.boia.org/blog/offering-a-dark-mode-doesnt-satisfy-wcag-color-contrast-requirements)
+
+### Tertiary (supporting context)
+
+- [Self-hosting fonts performance — Tune The Web](https://www.tunetheweb.com/blog/should-you-self-host-google-fonts/) — 200-300ms self-host advantage
+- [Micro-interactions in web design 2025 — Stan Vision](https://www.stan.vision/journal/micro-interactions-2025-in-web-design)
+- [Clerk Mosaic Design System (official)](https://clerk.com/blog/introducing-mosaic-bring-your-brand-to-every-authentication-flow)
+- [Dark Mode in Web Components — DEV Community](https://dev.to/stuffbreaker/dark-mode-in-web-components-is-about-to-get-awesome-4i14)
+- [Font Loading Strategies 2025 — font-converters.com](https://font-converters.com/guides/font-loading-strategies)
 
 ---
 
-*Research completed: 2026-03-19*
+*Research completed: 2026-04-03*
 *Ready for roadmap: yes*

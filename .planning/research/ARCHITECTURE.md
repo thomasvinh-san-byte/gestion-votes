@@ -1,1334 +1,511 @@
-# Component Design Architecture — v4.1 Design Excellence
+# Architecture Research — Visual Identity Evolution Integration
 
-**Project:** AG-VOTE
-**Researched:** 2026-03-18
-**Scope:** Exact CSS specifications for every component type — premium, top 1% quality
-**Stack:** Vanilla JS Web Components + CSS custom properties, light-first
-**Supersedes:** v4.0 integration architecture (retained in milestone archive)
-
-## Methodology
-
-Sources used in priority order:
-1. shadcn/ui source (new-york registry) — industry reference for 2025/2026 design systems
-2. Sonner CSS source (`emilkowalski/sonner`) — canonical toast reference, values extracted from raw CSS
-3. Shopify Polaris token library — enterprise-grade, all values publicly documented
-4. ishadeed.com stepper article — authoritative CSS implementation with exact values
-5. AG-VOTE `design-system.css` — ground truth for existing tokens (verified by direct Read)
-
-All Tailwind values have been converted to exact px/rem. All specs reference AG-VOTE tokens where they exist.
-
-Confidence: HIGH for shadcn/Sonner/Polaris values. HIGH for AG-VOTE existing tokens. MEDIUM for synthesis decisions.
+**Domain:** CSS design system evolution for existing production web app
+**Researched:** 2026-04-03
+**Confidence:** HIGH
+**Scope:** v10.0 — how visual identity changes integrate with the existing AG-VOTE CSS architecture
 
 ---
 
-## Existing AG-VOTE Token Reference
+## Standard Architecture
 
-These tokens exist in `public/assets/css/design-system.css` and MUST be used — not reinvented.
+### System Overview
 
 ```
-Spacing        --space-1:0.25rem(4px) --space-2:0.5rem(8px) --space-3:0.75rem(12px)
-               --space-4:1rem(16px)   --space-5:1.25rem(20px) --space-6:1.5rem(24px)
-               --space-8:2rem(32px)
+┌─────────────────────────────────────────────────────────────────────┐
+│  HTML PAGES (22 .htmx.html + login.html + index.html)               │
+│  Each loads: app.css + optional {page}.css + Google Fonts            │
+├─────────────────────────────────────────────────────────────────────┤
+│  app.css (single entrypoint)                                         │
+│  ├── @import design-system.css  (foundation, ~5258 lines)           │
+│  └── @import pages.css          (shared cross-page classes)          │
+├─────────────────────────────────────────────────────────────────────┤
+│  design-system.css  (@layer base, components, v4)                   │
+│                                                                      │
+│  @layer base                                                         │
+│  ├── Reset, box-sizing                                               │
+│  ├── :root  { PRIMITIVES → SEMANTIC → COMPONENT ALIASES }           │
+│  ├── [data-theme="dark"] { overrides for all three layers }         │
+│  ├── Typography global rules (h1–h4, utility classes)               │
+│  └── Layout shell (app-shell, app-header, app-sidebar, nav-item…)   │
+│                                                                      │
+│  @layer components                                                   │
+│  └── Shared component CSS (.btn, .card, .badge, .form-*, .table…)   │
+│                                                                      │
+│  @layer v4                                                           │
+│  └── Progressive enhancement (CSS @starting-style, view-transition) │
+├─────────────────────────────────────────────────────────────────────┤
+│  Per-page CSS files (25 files, loaded individually per page)        │
+│  hub.css, wizard.css, operator.css, vote.css, …                     │
+│  All consume tokens from design-system.css via var(--…)             │
+├─────────────────────────────────────────────────────────────────────┤
+│  Web Components (23 components, all with Shadow DOM)                │
+│  ag-toast, ag-modal, ag-confirm, ag-kpi, ag-stepper, …             │
+│  Each embeds its own <style> that reads host document CSS vars       │
+│  Shadow DOM inherits custom properties from document :root          │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-Border radius  --radius-sm:0.375rem(6px)  --radius:0.5rem(8px)  --radius-lg:0.625rem(10px)
-               --radius-full:999px
+### Token Hierarchy (Three Layers in :root)
 
-Shadows        --shadow-xs:  0 1px 1px rgba(21,21,16,0.03)
-               --shadow-sm:  0 1px 3px rgba(21,21,16,0.05), 0 1px 2px rgba(21,21,16,0.03)
-               --shadow:     0 3px 6px rgba(21,21,16,0.06), 0 1px 3px rgba(21,21,16,0.04)
-               --shadow-md:  0 3px 10px rgba(21,21,16,0.07), 0 1px 3px rgba(21,21,16,0.04)
-               --shadow-lg:  0 8px 24px rgba(21,21,16,0.1), 0 2px 6px rgba(21,21,16,0.05)
-               --shadow-xl:  0 25px 50px -12px rgba(21,21,16,0.15)
-               --shadow-focus: 0 0 0 2px #fff, 0 0 0 4px rgba(22,80,224,0.4)
+```
+PRIMITIVES (raw values, never used in components directly)
+  --stone-50 … --stone-900    Parchment/warm gray palette
+  --blue-50  … --blue-800     Primary blue/indigo palette
+  --green-500, --amber-400, --red-500, --purple-500…
+  --font-sans, --font-display, --font-mono
+  --text-2xs … --text-5xl
+  --space-0 … --space-24
 
-Transitions    --duration-fast:100ms  --duration-normal:200ms  --duration-slow:300ms
-               --ease-default: cubic-bezier(0.4,0,0.2,1)
-               --ease-out:     cubic-bezier(0,0,0.2,1)
-               --ease-bounce:  cubic-bezier(0.34,1.56,0.64,1)
+SEMANTIC (context-aware, theme-switchable, used in components)
+  --color-bg, --color-surface, --color-surface-raised
+  --color-text, --color-text-muted, --color-text-dark
+  --color-primary, --color-primary-hover, --color-primary-subtle
+  --color-success/warning/danger/info (+ -hover, -subtle, -border, -text)
+  --shadow-2xs … --shadow-2xl  (via --shadow-color: 21 21 16 rgb channels)
+  --space-section, --space-card, --space-field
 
-Key colors     --color-primary:#1650E0  --color-primary-hover:#1140C0
-               --color-primary-active:#0C30A0  --color-primary-subtle:#EBF0FF
-               --color-surface:#FAFAF7  --color-surface-raised:#FFFFFF
-               --color-bg:#EDECE6  --color-bg-subtle:#E5E3D8
-               --color-border:#CDC9BB  --color-border-subtle:#DEDAD0
-               --color-border-strong:#BCB7A5
-               --color-text:#52504A  --color-text-muted:#857F72
-               --color-text-light:#B5B0A0  --color-text-dark:#151510
-               --color-backdrop:rgba(0,0,0,0.5)
-               --color-success:#0B7A40  --color-success-subtle:#EDFAF2
-               --color-warning:#B56700  --color-warning-subtle:#FFF7E8
-               --color-danger:#C42828   --color-danger-subtle:#FEF1F0
-               --color-accent:#5038C0  --color-accent-subtle:#EEEAFF
+COMPONENT ALIASES (scoped to one component, composed from semantic)
+  --radius-btn, --radius-card, --radius-modal, --radius-badge…
+  --type-page-title-size, --type-body-size, --type-label-weight…
+  --btn-height, --input-height, --toast-width…
+```
+
+### Dark Mode Architecture
+
+```
+:root           → light theme (default)
+[data-theme="dark"]  → full token override set for every SEMANTIC token
+
+theme-init.js   → runs synchronously in <head>, reads localStorage,
+                   sets data-theme="dark" on <html> before first paint
+
+critical-tokens <style> in each page <head>
+                → embeds --color-bg, --color-surface, --color-text
+                   as inline style to prevent FOUC on initial load
+```
+
+### Shadow DOM Token Inheritance
+
+```
+document :root
+  └── defines --color-primary, --color-surface, etc.
+
+  Shadow root (inside ag-toast, ag-modal, etc.)
+    └── custom properties INHERIT through shadow boundary
+    └── each component's embedded <style> uses:
+          var(--color-surface-raised, #fallback)
+          var(--color-primary, #fallback)
+        The fallback value is the light-mode hex literal.
+        This means dark mode tokens propagate automatically —
+        no special Shadow DOM theming needed.
 ```
 
 ---
 
-## 1. BUTTONS
+## Component Responsibilities
 
-### Research Basis
+| Layer | Owner | Responsibility |
+|-------|-------|----------------|
+| `design-system.css @layer base` | All pages | Token definitions, resets, typography globals, shell layout |
+| `design-system.css @layer components` | All pages | Shared component classes: btn, card, badge, table, form |
+| `design-system.css @layer v4` | Progressive enhancement | @starting-style, view-transition-name |
+| `pages.css` | Shared cross-page | Components that appear on many pages (session-card, stat-card, etc.) |
+| `{page}.css` | One page only | Page-specific layout and component variants not reused elsewhere |
+| Web Components (`ag-*.js`) | Shadow DOM | Self-contained UI with embedded styles reading host-document tokens |
+| `app.css` | Entry point | @import orchestration only — no styles of its own beyond minor brand overrides |
 
-shadcn/ui new-york registry (verified from taxonomy repo source). Tailwind conversions:
-- `h-10` = 40px, `h-9` = 36px, `h-11` = 44px
-- `px-4` = 16px, `py-2` = 8px, `text-sm` = 14px
-- `rounded-md` in new-york = 6px, `font-medium` = 500
-- Focus ring: `ring-2 ring-offset-2` = 2px ring + 2px gap = matches `--shadow-focus`
+---
 
-Base classes confirmed: `inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none`
+## Recommended Structure for v10 Visual Identity
 
-Sizes confirmed: default `h-10 py-2 px-4`, sm `h-9 px-3`, lg `h-11 px-8`, icon `h-10 w-10`.
+### What Changes vs. What Stays
 
-### What Separates Top 1% From Generic
+```
+CHANGE (token values only — in design-system.css :root and [data-theme="dark"])
+  Primitive palette         → new hue/saturation/lightness values
+  Semantic color aliases    → may remap to different primitives
+  Typography primitives     → font families (Google Fonts URL in 22 HTML files)
+  Shadow scale              → --shadow-color if warm tone changes
+  color-mix() derived tokens → auto-update when source tokens change
 
-1. **36px default height** (not 40px) — 40px is Bootstrap legacy. Dense governance UIs use 36px.
-2. **`font-weight: 500` not 600** — 600 reads as urgent/aggressive. 500 is confident, not shouting.
-3. **Active `scale(0.97)` transform** — 100ms, barely perceptible, but deeply tactile.
-4. **Box-shadow focus ring, not `outline`** — 2px white gap + 4px colored ring, keyboard-nav only.
-5. **Named transitions** — not `transition: all`, list exactly `background-color, color, border-color, box-shadow, transform`.
+PROPAGATES AUTOMATICALLY (zero additional work)
+  All 25 per-page CSS files  → consume via var(--), update for free
+  All 23 Web Components      → inherit through Shadow DOM boundary
+  Dark mode                  → [data-theme="dark"] block is the single override
+  critical-tokens inline styles → must be manually updated (22 pages × 3 tokens each)
 
-### Exact CSS Specifications
+CHANGE (if fonts change — 22 HTML files)
+  Google Fonts <link> URL   → one URL per page (identical string, 22 occurrences)
+  --font-sans, --font-display, --font-mono in :root
+```
 
+### Migration Strategy: Token-First
+
+**Rule:** never touch a page CSS file or Web Component to change visual identity. Change the token source, let consumers inherit.
+
+The three layers of change are strictly ordered:
+
+```
+Step 1: Primitives (no visible effect yet — just renaming raw values)
+  → Update --stone-* / --blue-* / --green-* etc. in :root
+
+Step 2: Semantic remapping (visible everywhere at once)
+  → Remap --color-primary, --color-bg, --color-surface, etc.
+    to point at new primitive values
+  → Update [data-theme="dark"] semantic overrides in parallel
+
+Step 3: Component alias review (spot fixes only)
+  → Check --radius-btn, --btn-height, --type-* roles
+  → Most require no change if semantic layer is correct
+```
+
+This order ensures that at no point is the system in a mixed state where some pages have new colors and others have old ones.
+
+---
+
+## Architectural Patterns
+
+### Pattern 1: Token Isolation via Fallback Values
+
+**What:** Every `var()` call in Web Components includes a hardcoded fallback.
+**When to use:** Always in Shadow DOM — avoids blank renders when tokens are slow to apply.
+**Trade-offs:** Fallback values must be kept in sync when primitives change. Fallbacks are light-mode hex values; they do not adapt to dark mode on their own.
+
+**Example (current pattern in all 23 components):**
 ```css
-/* ── BASE BUTTON ─────────────────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;                       /* 6px */
-  padding: 0 0.875rem;                 /* 0 14px */
-  height: 2.25rem;                     /* 36px — compact premium default */
-  border-radius: var(--radius-sm);     /* 6px */
-  font-family: var(--font-sans);
-  font-size: 0.875rem;                 /* 14px */
-  font-weight: var(--font-medium);     /* 500 */
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  border: 1px solid transparent;
-  text-decoration: none;
-  transition:
-    background-color var(--duration-fast) var(--ease-default),
-    color            var(--duration-fast) var(--ease-default),
-    border-color     var(--duration-fast) var(--ease-default),
-    box-shadow       var(--duration-fast) var(--ease-default),
-    transform        var(--duration-fast) var(--ease-default);
-  outline: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn:focus-visible {
-  box-shadow: var(--shadow-focus); /* 0 0 0 2px #fff, 0 0 0 4px rgba(22,80,224,0.4) */
-}
-
-.btn:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  pointer-events: none;
-  cursor: not-allowed;
-}
-
-/* ── SIZE VARIANTS ───────────────────────────────────────── */
-.btn-sm {
-  height: 1.875rem;                    /* 30px */
-  padding: 0 0.625rem;                 /* 0 10px */
-  font-size: 0.8125rem;                /* 13px */
-  border-radius: 0.3125rem;            /* 5px */
-  gap: 0.25rem;
-}
-
-.btn-lg {
-  height: 2.75rem;                     /* 44px */
-  padding: 0 1.25rem;                  /* 0 20px */
-  font-size: 0.9375rem;                /* 15px */
-  border-radius: var(--radius);        /* 8px */
-}
-
-.btn-icon {
-  width: 2.25rem;                      /* 36px × 36px */
-  height: 2.25rem;
-  padding: 0;
-  flex-shrink: 0;
-}
-.btn-icon.btn-sm { width: 1.875rem; height: 1.875rem; }
-.btn-icon.btn-lg { width: 2.75rem;  height: 2.75rem; }
-
-/* ── PRIMARY ─────────────────────────────────────────────── */
-.btn-primary {
-  background-color: var(--color-primary);     /* #1650E0 */
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: var(--shadow-xs);
-}
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover); /* #1140C0 */
-  box-shadow: var(--shadow-sm);
-}
-.btn-primary:active:not(:disabled) {
-  background-color: var(--color-primary-active); /* #0C30A0 */
-  box-shadow: none;
-}
-
-/* ── SECONDARY ───────────────────────────────────────────── */
-.btn-secondary {
-  background-color: var(--color-surface-raised); /* #FFFFFF */
-  color: var(--color-text);
-  border-color: var(--color-border);             /* #CDC9BB */
-  box-shadow: var(--shadow-xs);
-}
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-bg);             /* #EDECE6 */
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-sm);
-}
-.btn-secondary:active:not(:disabled) {
-  background-color: var(--color-bg-subtle);      /* #E5E3D8 */
-  box-shadow: none;
-}
-
-/* ── GHOST ───────────────────────────────────────────────── */
-.btn-ghost {
-  background-color: transparent;
-  color: var(--color-text);
-  border-color: transparent;
-}
-.btn-ghost:hover:not(:disabled) {
-  background-color: var(--color-bg-subtle);      /* #E5E3D8 */
-}
-.btn-ghost:active:not(:disabled) {
-  background-color: var(--color-border-subtle);  /* #DEDAD0 */
-}
-
-/* ── DANGER ──────────────────────────────────────────────── */
-.btn-danger {
-  background-color: var(--color-danger);         /* #C42828 */
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: var(--shadow-xs);
-}
-.btn-danger:hover:not(:disabled) {
-  background-color: var(--color-danger-hover);   /* #A82222 */
-}
-.btn-danger:active:not(:disabled) {
-  background-color: #8C1B1B;
-  box-shadow: none;
-}
-
-/* ── DANGER-GHOST (secondary destructive) ────────────────── */
-.btn-danger-ghost {
-  background-color: transparent;
-  color: var(--color-danger);
-  border-color: transparent;
-}
-.btn-danger-ghost:hover:not(:disabled) {
-  background-color: var(--color-danger-subtle);  /* #FEF1F0 */
-  border-color: var(--color-danger-border);
-}
-
-/* ── OUTLINE (primary-colored border) ───────────────────── */
-.btn-outline {
-  background-color: transparent;
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-.btn-outline:hover:not(:disabled) {
-  background-color: var(--color-primary-subtle); /* #EBF0FF */
-}
+/* Inside ag-kpi shadow root */
+background: var(--color-surface, #ffffff);
+border: 1px solid var(--color-border, #d5dbd2);
+color: var(--color-text-dark, #1a1a1a);
 ```
 
-### Anti-Patterns to Avoid
+**For v10:** When primitive hex values change, update both the `:root` semantic token AND the fallback literal in the component. Fallbacks are secondary; the token value drives the visual. Audit with: `grep -rn "var(--color-" public/assets/js/components/`.
 
-- `border-radius` above 8px on default buttons — becomes "rounded" not "precise"
-- `font-weight: 600` or `700` on buttons — 500 is premium, bolder feels alarming in governance UI
-- Shadows on ghost buttons — ghost implies floating, shadow anchors it wrongly
-- `transition: all` — enumerate specific properties only
+### Pattern 2: Dark Theme as Full Override Block
 
----
+**What:** `[data-theme="dark"]` in `@layer base` redefines all semantic and shadow tokens.
+**When to use:** All theme-switchable values go here, no `prefers-color-scheme` in component CSS.
+**Trade-offs:** Single selector to maintain, but it requires matching every :root token that changes between themes.
 
-## 2. CARDS
+**For v10:** After updating `:root` primitives, the `[data-theme="dark"]` block must be updated in parallel. The shadow scale already uses `--shadow-color` (light: `21 21 16`, dark: `0 0 0`) so all shadow levels adapt automatically when only `--shadow-color` is changed.
 
-### Research Basis
+### Pattern 3: @layer Cascade Order
 
-Stripe dashboard, Linear issue cards, and Notion blocks all use the pattern: **white surface + 1px border + warm-off-white page background**. AG-VOTE already has this with `--color-surface-raised: #FFFFFF` on `--color-bg: #EDECE6`. The gap is in precise padding rhythm and header treatment.
+**What:** `@layer base, components, v4` declared at top of design-system.css.
+**When to use:** Page CSS files loaded after app.css sit outside any named layer, which gives them highest specificity regardless of source order.
+**Trade-offs:** Page CSS will override @layer rules even with equal specificity. This is intentional and correct — page-specific overrides should win.
 
-Premium card rule: **border for light mode, shadow only for modals and raised surfaces**. Not both on the same element.
+**For v10 identity work:** Token changes belong in `@layer base` (the `:root` block). Component changes (border-radius values, shadow levels, button height) belong in `@layer components`. The `@layer v4` block is reserved for progressive enhancement animations only — do not add identity tokens there.
 
-### Exact CSS Specifications
+### Pattern 4: color-mix() Derived Tokens
 
+**What:** Several tokens are computed from base tokens at declaration time.
+**When to use:** Tinted backgrounds, hover states that are a percentage mix of base color.
+**Trade-offs:** If the source token is a new hue, derived values update automatically. But circular references (mixing a token with itself) produce `transparent`.
+
+**Current examples:**
 ```css
-/* ── BASE CARD ───────────────────────────────────────────── */
-.card {
-  background-color: var(--color-surface-raised); /* #FFFFFF */
-  border: 1px solid var(--color-border);         /* #CDC9BB */
-  border-radius: var(--radius-lg);               /* 10px */
-  box-shadow: var(--shadow-xs);
-  overflow: hidden;
-}
+/* Light mode */
+--color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, white);
+--color-surface-elevated: color-mix(in srgb, var(--color-surface) 97%, var(--color-primary));
 
-/* ── CARD HEADER ─────────────────────────────────────────── */
-.card-header {
-  padding: 1rem 1.25rem;                         /* 16px 20px */
-  border-bottom: 1px solid var(--color-border-subtle); /* #DEDAD0 */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);                           /* 12px */
-  min-height: 3rem;                              /* 48px — consistent header height */
-}
-
-.card-header-title {
-  font-size: 0.9375rem;                          /* 15px */
-  font-weight: var(--font-semibold);             /* 600 */
-  color: var(--color-text-dark);                 /* #151510 */
-  line-height: 1.3;
-}
-
-.card-header-subtitle {
-  font-size: 0.8125rem;                          /* 13px */
-  color: var(--color-text-muted);                /* #857F72 */
-  margin-top: 0.125rem;                          /* 2px */
-  line-height: 1.4;
-}
-
-/* ── CARD BODY ───────────────────────────────────────────── */
-.card-body {
-  padding: 1.25rem;                              /* 20px */
-}
-
-.card-body-spacious {
-  padding: 1.5rem;                               /* 24px — for forms, settings panels */
-}
-
-.card-body-compact {
-  padding: 0.875rem 1.25rem;                     /* 14px 20px — for dense data lists */
-}
-
-/* ── CARD FOOTER ─────────────────────────────────────────── */
-.card-footer {
-  padding: 0.875rem 1.25rem;                     /* 14px 20px */
-  border-top: 1px solid var(--color-border-subtle);
-  background-color: var(--color-bg);             /* #EDECE6 — recessed footer */
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);                           /* 8px */
-}
-
-/* ── INTERACTIVE CARD (clickable sessions, resolutions) ──── */
-.card-interactive {
-  cursor: pointer;
-  transition:
-    transform     var(--duration-normal) var(--ease-out),
-    box-shadow    var(--duration-normal) var(--ease-out),
-    border-color  var(--duration-normal) var(--ease-out);
-}
-.card-interactive:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border-strong);
-}
-.card-interactive:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-xs);
-}
-
-/* ── CARD VARIANTS ───────────────────────────────────────── */
-.card-flat {
-  box-shadow: none;
-  border-color: var(--color-border-subtle);
-}
-
-.card-raised {
-  box-shadow: var(--shadow-md);
-  border-color: transparent;
-}
-
-/* Left accent border for status cards */
-.card-accent-primary  { border-left: 3px solid var(--color-primary); }
-.card-accent-success  { border-left: 3px solid var(--color-success); }
-.card-accent-warning  { border-left: 3px solid var(--color-warning); }
-.card-accent-danger   { border-left: 3px solid var(--color-danger); }
-.card-accent-accent   { border-left: 3px solid var(--color-accent); }
+/* Dark mode override */
+--color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
 ```
 
-### Anti-Patterns to Avoid
+**For v10:** When changing `--color-primary`, these derived tokens update for free. Add new derived tokens using the same pattern. Never redefine the source token using itself inside color-mix.
 
-- `border-radius: 12px` or above — loses the "official document" feel AG-VOTE targets
-- Box-shadow only (no border) on light bg — borders give crisp definition on warm beige
-- Hover lift above `translateY(-2px)` — becomes distracting in dense list views
-- Padding above 24px in card bodies — creates empty space that reads as unfinished
+### Pattern 5: Font Loading via Google Fonts
+
+**What:** Fonts loaded as `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?...">` in every page's `<head>`. Font tokens (`--font-sans`, `--font-display`, `--font-mono`) reference the loaded families.
+**When to use:** Current approach — 22 HTML files each carry the same font URL string.
+**Trade-offs:** If font families change, 22 files need the same URL update. The token names stay stable; only the URL and the family name in the `@font-face`/URL change.
+
+**For v10:** Changing the font means: (1) update the Google Fonts URL in 22 `.htmx.html` files + `login.html` + `index.html`, (2) update `--font-sans`, `--font-display`, `--font-mono` values in `:root`. Pages and components consume via token — no other changes needed.
 
 ---
 
-## 3. TABLES
+## Data Flow
 
-### Research Basis
+### Token Update Flow
 
-Shopify Polaris: `--table-cell-padding: var(--p-space-150)` = 6px vertical, 16px horizontal. Carbon Design System: 48px rows (default density), 36px (compact).
-Key finding: **uppercase 12px headers with `letter-spacing: 0.05em` are the universal premium signal** for data tables. Every top-tier product uses this pattern (Stripe, Linear, Airtable, Notion databases).
-
-### Exact CSS Specifications
-
-```css
-/* ── TABLE WRAPPER ───────────────────────────────────────── */
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);               /* 10px */
-  background: var(--color-surface-raised);
-  -webkit-overflow-scrolling: touch;
-}
-
-/* ── TABLE BASE ──────────────────────────────────────────── */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;                           /* 14px */
-  color: var(--color-text);
-}
-
-/* ── HEADER ──────────────────────────────────────────────── */
-.data-table thead tr {
-  background-color: var(--color-bg);             /* #EDECE6 — slightly recessed */
-  border-bottom: 1px solid var(--color-border);  /* #CDC9BB */
-}
-
-.data-table thead th {
-  padding: 0 1rem;
-  height: 2.5rem;                                /* 40px */
-  font-size: 0.75rem;                            /* 12px */
-  font-weight: var(--font-semibold);             /* 600 */
-  color: var(--color-text-muted);                /* #857F72 */
-  text-transform: uppercase;
-  letter-spacing: 0.05em;                        /* 0.6px at 12px */
-  text-align: left;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
-/* Sortable header */
-.data-table thead th[data-sortable] {
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--duration-fast);
-}
-.data-table thead th[data-sortable]:hover {
-  color: var(--color-text);
-}
-
-/* Sort arrows — Unicode fallback, replace with SVG in production */
-.data-table thead th[aria-sort="ascending"]::after  { content: " ↑"; color: var(--color-primary); }
-.data-table thead th[aria-sort="descending"]::after { content: " ↓"; color: var(--color-primary); }
-.data-table thead th[data-sortable]:not([aria-sort])::after {
-  content: " ↕";
-  opacity: 0.3;
-}
-
-/* ── BODY ROWS ───────────────────────────────────────────── */
-.data-table tbody tr {
-  height: 2.75rem;                               /* 44px */
-  border-bottom: 1px solid var(--color-border-subtle); /* #DEDAD0 */
-  transition: background-color var(--duration-fast) var(--ease-default);
-}
-.data-table tbody tr:last-child {
-  border-bottom: none;
-}
-.data-table tbody tr:hover {
-  background-color: var(--color-bg-subtle);      /* #E5E3D8 */
-}
-.data-table tbody tr.selected {
-  background-color: var(--color-primary-subtle); /* #EBF0FF */
-}
-
-/* ── CELLS ───────────────────────────────────────────────── */
-.data-table td {
-  padding: 0 1rem;
-  vertical-align: middle;
-}
-
-/* First and last column inset */
-.data-table td:first-child,
-.data-table th:first-child { padding-left: 1.25rem; }  /* 20px */
-.data-table td:last-child,
-.data-table th:last-child  { padding-right: 1.25rem; }
-
-/* ── COMPACT VARIANT ─────────────────────────────────────── */
-.data-table.compact tbody tr { height: 2.25rem; }      /* 36px */
-.data-table.compact thead th { height: 2rem; }          /* 32px */
-
-/* ── STICKY HEADER ───────────────────────────────────────── */
-.table-wrapper.sticky { overflow-y: auto; max-height: 70vh; }
-.data-table.sticky-header thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background-color: var(--color-bg);
-}
-/* Hard separator line that stays visible during scroll */
-.data-table.sticky-header thead tr::after {
-  content: '';
-  display: block;
-  position: sticky;
-  height: 1px;
-  background: var(--color-border);
-}
-
-/* ── NUMERIC CELL (right-aligned data) ───────────────────── */
-.data-table td.num,
-.data-table th.num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;                          /* 13px */
-}
+```
+1. Update primitive(s) in :root
+        ↓
+2. Semantic tokens that reference those primitives
+   update automatically (CSS var resolution is live)
+        ↓
+3. Component aliases update automatically
+        ↓
+4. All 25 page CSS files see new values (no file changes needed)
+        ↓
+5. All 23 Web Components inherit through shadow boundary
+   → their var(--color-primary, fallback) now resolves to new value
+        ↓
+6. [data-theme="dark"] must be updated separately
+   (dark overrides are explicit, not derived from light primitives)
 ```
 
-### Anti-Patterns to Avoid
+### Theme Switch Flow
 
-- Striped rows — hover is sufficient; stripes create visual noise at high density
-- Vertical cell borders — horizontal-only rules reduce visual noise by ~60%
-- Uppercase headers above 13px — at 14px+ uppercase is visually aggressive
-- Row height below 36px — too cramped for click targets and text legibility
-
----
-
-## 4. FORMS & INPUTS
-
-### Research Basis
-
-shadcn/ui new-york input (verified): `h-10 px-3 py-2 text-sm rounded-md` = 40px, 12px horizontal, 14px text, 6px radius.
-Stripe Elements: recommends `fontSizeBase` minimum 16px for mobile (prevents iOS zoom).
-Focus ring: `ring-2 ring-offset-2` = `box-shadow: 0 0 0 2px #fff, 0 0 0 4px {brand}` — matches `--shadow-focus`.
-
-AG-VOTE desktop-first decision: use 36px default, 40px for standalone forms where finger-touch matters.
-
-### Exact CSS Specifications
-
-```css
-/* ── FORM GROUP ──────────────────────────────────────────── */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;                                 /* 6px — label to input */
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: var(--space-4);                           /* 16px */
-}
-
-/* ── LABEL ───────────────────────────────────────────────── */
-.form-label {
-  font-size: 0.875rem;                           /* 14px */
-  font-weight: var(--font-medium);               /* 500 */
-  color: var(--color-text);                      /* #52504A */
-  line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.form-label .required {
-  color: var(--color-danger);                    /* #C42828 */
-  font-size: 0.75rem;                            /* 12px */
-}
-
-/* ── INPUT BASE ──────────────────────────────────────────── */
-.input {
-  display: block;
-  width: 100%;
-  height: 2.25rem;                               /* 36px */
-  padding: 0 0.75rem;                            /* 0 12px */
-  font-family: var(--font-sans);
-  font-size: 0.875rem;                           /* 14px */
-  font-weight: var(--font-normal);               /* 400 */
-  color: var(--color-text);
-  background-color: var(--color-surface-raised); /* #FFFFFF */
-  border: 1px solid var(--color-border);         /* #CDC9BB */
-  border-radius: var(--radius-sm);               /* 6px */
-  outline: none;
-  transition:
-    border-color     var(--duration-fast) var(--ease-default),
-    box-shadow       var(--duration-fast) var(--ease-default),
-    background-color var(--duration-fast) var(--ease-default);
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.input::placeholder {
-  color: var(--color-text-light);                /* #B5B0A0 */
-}
-
-.input:hover:not(:focus):not(:disabled) {
-  border-color: var(--color-border-strong);      /* #BCB7A5 */
-}
-
-.input:focus {
-  border-color: var(--color-primary);            /* #1650E0 */
-  box-shadow: var(--shadow-focus);
-}
-
-.input:disabled {
-  background-color: var(--color-bg);             /* #EDECE6 */
-  color: var(--color-text-muted);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* ── STANDARD (40px) variant for standalone forms ────────── */
-.input-md {
-  height: 2.5rem;                                /* 40px */
-  font-size: 1rem;                               /* 16px — prevents iOS zoom */
-}
-
-/* ── TEXTAREA ────────────────────────────────────────────── */
-textarea.input {
-  height: auto;
-  min-height: 5rem;                              /* 80px */
-  padding: 0.5rem 0.75rem;                       /* 8px 12px */
-  resize: vertical;
-  line-height: var(--leading-normal);            /* 1.5 */
-}
-
-/* ── SELECT ──────────────────────────────────────────────── */
-select.input {
-  padding-right: 2rem;                           /* 32px — room for caret */
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23857F72' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;      /* 8px from right */
-  background-size: 1.25rem;                      /* 20px */
-  cursor: pointer;
-}
-
-/* ── INPUT WITH LEADING ICON ─────────────────────────────── */
-.input-wrapper {
-  position: relative;
-}
-.input-wrapper .input-icon {
-  position: absolute;
-  left: 0.625rem;                                /* 10px */
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1rem; height: 1rem;                     /* 16px */
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-.input-wrapper .input { padding-left: 2.125rem; } /* 34px = icon(16) + gap(10) + pad(8) */
-
-/* ── ERROR STATE ─────────────────────────────────────────── */
-.input.is-invalid,
-.input[aria-invalid="true"] {
-  border-color: var(--color-danger);             /* #C42828 */
-  background-color: var(--color-danger-subtle);  /* #FEF1F0 — tinted, not fully red */
-}
-.input.is-invalid:focus,
-.input[aria-invalid="true"]:focus {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(196, 40, 40, 0.35);
-}
-
-/* ── HELPER TEXT ─────────────────────────────────────────── */
-.form-hint {
-  font-size: 0.8125rem;                          /* 13px */
-  color: var(--color-text-muted);
-  line-height: 1.4;
-}
-.form-error {
-  font-size: 0.8125rem;
-  color: var(--color-danger);
-  line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-/* ── CHECKBOX & RADIO ────────────────────────────────────── */
-.checkbox-group,
-.radio-group {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;                                   /* 8px */
-  cursor: pointer;
-}
-.checkbox-group input[type="checkbox"],
-.radio-group input[type="radio"] {
-  width: 1rem; height: 1rem;                     /* 16px */
-  flex-shrink: 0;
-  margin-top: 0.125rem;                          /* 2px optical alignment */
-  accent-color: var(--color-primary);
-  cursor: pointer;
-}
+```
+User clicks theme toggle
+        ↓
+JS sets document.documentElement.setAttribute('data-theme', 'dark')
+        ↓
+CSS selector [data-theme="dark"] activates
+        ↓
+All semantic tokens in that block override their :root values
+        ↓
+Shadow DOM components inherit new values automatically
+        ↓
+critical-tokens inline style in <head> is light-mode only
+   → acceptable: it only affects the very first paint before JS loads
 ```
 
-### Anti-Patterns to Avoid
+### Font Change Flow
 
-- Placeholder-only labels — disappear on focus, inaccessible
-- Full red background on error (not subtle tint) — too aggressive for governance context
-- `outline` as focus indicator — replace with `box-shadow` for custom rings
-- Input height below 32px — too small for click targets (WCAG 2.5.8)
-
----
-
-## 5. MODALS & DIALOGS
-
-### Research Basis
-
-Radix Dialog / shadcn/ui Dialog. Native `<dialog>` element is the correct approach: built-in keyboard trap, `::backdrop`, `close` event, `ESC` key handling.
-
-Animation: scale from 96% + fade, 200ms, `--ease-out`. shadcn/ui uses `animate-in fade-in-0 zoom-in-95` = `opacity: 0 → 1` + `scale(0.95) → scale(1)`.
-
-### Exact CSS Specifications
-
-```css
-/* ── NATIVE DIALOG RESET ─────────────────────────────────── */
-dialog {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  border: none;
-  background: transparent;
-  padding: 0;
-  max-width: none;
-  max-height: none;
-  overflow: visible;
-}
-
-/* ── BACKDROP ────────────────────────────────────────────── */
-dialog::backdrop {
-  background-color: var(--color-backdrop);       /* rgba(0,0,0,0.5) */
-  animation: backdrop-in var(--duration-normal) var(--ease-out) both;
-}
-
-@keyframes backdrop-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── MODAL PANEL ─────────────────────────────────────────── */
-.modal-panel {
-  background-color: var(--color-surface-raised); /* #FFFFFF */
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);               /* 10px */
-  box-shadow: var(--shadow-xl);
-  width: 100%;
-  max-width: 35rem;                              /* 560px default */
-  max-height: calc(100dvh - 4rem);               /* viewport - 64px breathing room */
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: modal-in var(--duration-normal) var(--ease-out) both;
-}
-
-.modal-panel.modal-wide   { max-width: 45rem; }  /* 720px — for tables, forms */
-.modal-panel.modal-narrow { max-width: 25rem; }  /* 400px — for confirms, alerts */
-.modal-panel.modal-full   { max-width: calc(100% - 3rem); max-height: calc(100dvh - 3rem); }
-
-@keyframes modal-in {
-  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* ── MODAL HEADER ────────────────────────────────────────── */
-.modal-header {
-  padding: 1.25rem 1.25rem 1rem;                 /* 20px 20px 16px */
-  border-bottom: 1px solid var(--color-border-subtle);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-shrink: 0;
-}
-
-.modal-title {
-  font-size: 1rem;                               /* 16px */
-  font-weight: var(--font-semibold);             /* 600 */
-  color: var(--color-text-dark);
-  line-height: 1.3;
-}
-.modal-description {
-  font-size: 0.875rem;                           /* 14px */
-  color: var(--color-text-muted);
-  margin-top: 0.25rem;
-  line-height: 1.5;
-}
-
-/* ── CLOSE BUTTON (top-right) ────────────────────────────── */
-.modal-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem; height: 2rem;                     /* 32px */
-  border-radius: var(--radius-sm);               /* 6px */
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-top: -0.25rem;                          /* optical alignment to title */
-  transition:
-    background-color var(--duration-fast),
-    color            var(--duration-fast);
-}
-.modal-close:hover {
-  background-color: var(--color-bg-subtle);
-  color: var(--color-text);
-}
-
-/* ── MODAL BODY ──────────────────────────────────────────── */
-.modal-body {
-  padding: 1.25rem;                              /* 20px */
-  overflow-y: auto;
-  flex: 1;
-  overscroll-behavior: contain;
-}
-
-/* ── MODAL FOOTER ────────────────────────────────────────── */
-.modal-footer {
-  padding: 1rem 1.25rem;                         /* 16px 20px */
-  border-top: 1px solid var(--color-border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);                           /* 8px between buttons */
-  flex-shrink: 0;
-  background-color: var(--color-bg);             /* recessed footer */
-}
-
-/* ── CONFIRM DIALOG variant (danger action) ──────────────── */
-.modal-panel.modal-confirm .modal-footer {
-  justify-content: space-between;                /* Cancel left, Confirm right */
-}
 ```
-
-### Anti-Patterns to Avoid
-
-- `transition: all` on the panel — specify `opacity, transform` only
-- `border-radius` above 12px — phone-app feel, wrong for desktop governance
-- `overflow: hidden` on the dialog wrapper — body needs to scroll independently
-- `padding` inside `dialog` itself — put it on `.modal-panel` child
-
----
-
-## 6. TOASTS & NOTIFICATIONS
-
-### Research Basis
-
-Sonner CSS source (raw file verified). Key extracted values:
-- Width: 356px (`--width` variable, rendered fixed)
-- Padding: 16px outer, internal gap 8px between icon and text
-- Border-radius: 8px toast, 4px for progress indicator
-- Font-size: 13px body, 12px description
-- Border: `1px solid rgba(0,0,0,0.08)` light mode
-- Animation: 400ms `ease`, transform from `translateY(0.5rem) scale(0.96)` to rest
-- Auto-dismiss: 4000ms, paused when tab inactive
-
-### Exact CSS Specifications
-
-```css
-/* ── TOAST CONTAINER ─────────────────────────────────────── */
-.toast-container {
-  position: fixed;
-  bottom: 1.5rem;                                /* 24px */
-  right: 1.5rem;
-  z-index: var(--z-toast);                       /* 800 */
-  display: flex;
-  flex-direction: column-reverse;                /* newest on top */
-  gap: 0.5rem;                                   /* 8px */
-  pointer-events: none;
-  width: 22.25rem;                               /* 356px — Sonner canonical */
-  max-width: calc(100vw - 3rem);
-}
-
-/* ── TOAST BASE ──────────────────────────────────────────── */
-.toast {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;                                   /* 8px */
-  padding: 0.875rem 1rem;                        /* 14px 16px */
-  background-color: var(--color-surface-raised); /* #FFFFFF */
-  border: 1px solid rgba(21, 21, 16, 0.08);
-  border-radius: var(--radius);                  /* 8px */
-  box-shadow: var(--shadow-lg);
-  pointer-events: all;
-  width: 100%;
-  animation: toast-in var(--duration-slow) var(--ease-out) both;
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.5rem) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes toast-out {
-  from { opacity: 1; transform: translateY(0) scale(1); max-height: 10rem; }
-  to   { opacity: 0; transform: translateY(-0.25rem) scale(0.96); max-height: 0; }
-}
-
-.toast.is-removing {
-  animation: toast-out var(--duration-normal) var(--ease-default) both;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* ── TOAST ICON ──────────────────────────────────────────── */
-.toast-icon {
-  width: 1.125rem; height: 1.125rem;             /* 18px */
-  flex-shrink: 0;
-  margin-top: 0.0625rem;                         /* 1px optical alignment */
-}
-
-/* ── TOAST CONTENT ───────────────────────────────────────── */
-.toast-body { flex: 1; min-width: 0; }
-
-.toast-title {
-  font-size: 0.875rem;                           /* 14px */
-  font-weight: var(--font-medium);               /* 500 */
-  color: var(--color-text-dark);
-  line-height: 1.3;
-}
-.toast-message {
-  font-size: 0.8125rem;                          /* 13px */
-  color: var(--color-text-muted);
-  margin-top: 0.125rem;                          /* 2px */
-  line-height: 1.4;
-}
-
-/* ── DISMISS BUTTON ──────────────────────────────────────── */
-.toast-dismiss {
-  position: absolute;
-  top: 0.5rem; right: 0.5rem;                   /* 8px */
-  width: 1.5rem; height: 1.5rem;                 /* 24px */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  border-radius: 0.25rem;                        /* 4px */
-  opacity: 0;
-  transition: opacity var(--duration-fast), background-color var(--duration-fast);
-}
-.toast:hover .toast-dismiss { opacity: 1; }
-.toast-dismiss:hover { background-color: var(--color-bg-subtle); }
-
-/* ── SEMANTIC VARIANTS (left-border accent via inset shadow) */
-/* Technique: inset box-shadow for border-left avoids layout shift */
-.toast-success {
-  box-shadow: inset 3px 0 0 var(--color-success), var(--shadow-lg);
-}
-.toast-success .toast-icon { color: var(--color-success); }
-
-.toast-error {
-  box-shadow: inset 3px 0 0 var(--color-danger), var(--shadow-lg);
-}
-.toast-error .toast-icon { color: var(--color-danger); }
-
-.toast-warning {
-  box-shadow: inset 3px 0 0 var(--color-warning), var(--shadow-lg);
-}
-.toast-warning .toast-icon { color: var(--color-warning); }
-
-.toast-info {
-  box-shadow: inset 3px 0 0 var(--color-primary), var(--shadow-lg);
-}
-.toast-info .toast-icon { color: var(--color-primary); }
-```
-
-### Anti-Patterns to Avoid
-
-- Full-color toast backgrounds (green success, red error) — harsh in a governance UI
-- Width above 400px — becomes a banner, not a toast
-- Auto-dismiss below 3000ms — long messages cannot be read in time
-- Right-padding tight enough that text collides with dismiss button — add `padding-right: 2rem`
-
----
-
-## 7. BADGES & STATUS INDICATORS
-
-### Research Basis
-
-shadcn/ui badge (verified from source): `px-2.5 py-0.5 text-xs font-semibold rounded-full` = 10px/2px padding, 12px, 600 weight, pill shape.
-
-Key distinction: Linear uses `border-radius: 4px` (not pill) for project status labels, pill only for user/tag labels. GitHub uses pill (`border-radius: 2em`) for all labels.
-
-**AG-VOTE rule:** pill for boolean states (present/absent, pass/fail), 6px radius for multi-part status badges with dots.
-
-### Exact CSS Specifications
-
-```css
-/* ── BASE BADGE ──────────────────────────────────────────── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3125rem;                                /* 5px */
-  padding: 0.1875rem 0.5rem;                     /* 3px 8px */
-  font-size: 0.75rem;                            /* 12px */
-  font-weight: var(--font-semibold);             /* 600 */
-  line-height: 1.3;
-  white-space: nowrap;
-  border-radius: var(--radius-full);             /* pill — default */
-  border: 1px solid transparent;
-  letter-spacing: 0;
-}
-
-/* ── SEMANTIC VARIANTS ───────────────────────────────────── */
-.badge-default {
-  background-color: var(--color-neutral-subtle); /* #E5E3D8 */
-  color: var(--color-neutral-text);              /* #52504A */
-  border-color: var(--color-border-subtle);
-}
-.badge-primary {
-  background-color: var(--color-primary-subtle); /* #EBF0FF */
-  color: var(--color-primary);                   /* #1650E0 */
-  border-color: rgba(22, 80, 224, 0.2);
-}
-.badge-success {
-  background-color: var(--color-success-subtle); /* #EDFAF2 */
-  color: var(--color-success);                   /* #0B7A40 */
-  border-color: var(--color-success-border);     /* #A3E8C1 */
-}
-.badge-warning {
-  background-color: var(--color-warning-subtle); /* #FFF7E8 */
-  color: var(--color-warning);                   /* #B56700 */
-  border-color: var(--color-warning-border);     /* #F5D490 */
-}
-.badge-danger {
-  background-color: var(--color-danger-subtle);  /* #FEF1F0 */
-  color: var(--color-danger);                    /* #C42828 */
-  border-color: var(--color-danger-border);      /* #F4BFBF */
-}
-.badge-accent {
-  background-color: var(--color-accent-subtle);  /* #EEEAFF */
-  color: var(--color-accent);                    /* #5038C0 */
-  border-color: var(--color-purple-border);      /* #C4B8F8 */
-}
-
-/* ── SOLID (high-emphasis, e.g. adopted/rejected resolution) */
-.badge-solid-primary { background: var(--color-primary); color: #fff; }
-.badge-solid-success { background: var(--color-success); color: #fff; }
-.badge-solid-danger  { background: var(--color-danger);  color: #fff; }
-
-/* ── STATUS BADGE (dot + label, 6px radius not pill) ─────── */
-.badge-status {
-  border-radius: var(--radius-sm);               /* 6px */
-  padding-left: 0.4375rem;                       /* 7px — tighter left for dot */
-}
-.badge-dot {
-  width: 0.5rem; height: 0.5rem;                 /* 8px */
-  border-radius: 50%;
-  flex-shrink: 0;
-  background-color: currentColor;
-}
-.badge-dot-pulse {
-  animation: dot-pulse 1.5s ease-in-out infinite;
-}
-@keyframes dot-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.85); }
-}
-
-/* ── SIZE VARIANTS ───────────────────────────────────────── */
-.badge-sm {
-  padding: 0.125rem 0.375rem;                    /* 2px 6px */
-  font-size: 0.6875rem;                          /* 11px */
-  gap: 0.25rem;
-}
-.badge-lg {
-  padding: 0.25rem 0.75rem;                      /* 4px 12px */
-  font-size: 0.8125rem;                          /* 13px */
-  gap: 0.375rem;
-}
-
-/* ── COUNTER BADGE (numeric, e.g. delta counts) ──────────── */
-.badge-count {
-  min-width: 1.25rem;                            /* 20px */
-  height: 1.25rem;
-  padding: 0 0.3125rem;                          /* 0 5px */
-  border-radius: var(--radius-full);
-  font-size: 0.6875rem;                          /* 11px */
-  font-weight: var(--font-bold);                 /* 700 */
-  font-variant-numeric: tabular-nums;
-  justify-content: center;
-}
-```
-
-### AG-VOTE Status Color Matrix
-
-| State | Class | Notes |
-|-------|-------|-------|
-| `ouvert` (live vote) | `badge-success badge-status` + pulse dot | Active voting in progress |
-| `en cours` (session live) | `badge-primary badge-status` + pulse dot | Meeting active |
-| `clos` / `terminé` | `badge-default` | Neutral, completed |
-| `adopté` | `badge-solid-success` | High emphasis — result |
-| `rejeté` | `badge-solid-danger` | High emphasis — result |
-| `en attente` | `badge-warning badge-status` | Needs action |
-| `suspendu` | `badge-accent` | Edge case |
-| `présent` | `badge-success badge-sm` | Member attendance row |
-| `absent` | `badge-default badge-sm` | Member attendance row |
-| `procuration` | `badge-accent badge-sm` | Proxy delegation |
-| `quorum atteint` | `badge-success` | Quorum bar context |
-| `quorum non atteint` | `badge-danger` | Quorum bar context |
-
----
-
-## 8. STEPPERS & PROGRESS
-
-### Research Basis
-
-ishadeed.com stepper: `--size: 3rem` (48px) default circle, 2px connector. Stripe payment flow: 32px circle, connector above. Material Design: 40px, 2dp connector.
-
-AG-VOTE decision: **32px circle** — compact for a named wizard header. Stripe-style. Connector is 1.5px (premium thinness at this size).
-
-### Exact CSS Specifications
-
-```css
-/* ── STEPPER CONTAINER ───────────────────────────────────── */
-.stepper {
-  display: flex;
-  align-items: flex-start;
-  gap: 0;
-  counter-reset: step;
-}
-
-/* ── STEPPER ITEM ────────────────────────────────────────── */
-.stepper-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  position: relative;
-  text-align: center;
-}
-
-/* Connector line between circles */
-.stepper-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 1rem;                                     /* half of 32px = 16px */
-  left: calc(50% + 1.25rem);                     /* center + half-circle + 4px gap */
-  right: calc(-50% + 1.25rem);
-  height: 1.5px;
-  background-color: var(--color-border);         /* #CDC9BB pending */
-  z-index: 0;
-  transition: background-color var(--duration-slow) var(--ease-default);
-}
-
-/* Completed step connector becomes primary */
-.stepper-item.is-done:not(:last-child)::after {
-  background-color: var(--color-primary);        /* #1650E0 */
-}
-
-/* ── STEP CIRCLE ─────────────────────────────────────────── */
-.stepper-circle {
-  width: 2rem; height: 2rem;                     /* 32px */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8125rem;                          /* 13px */
-  font-weight: var(--font-semibold);             /* 600 */
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
-  border: 1.5px solid var(--color-border);       /* pending: border only */
-  background-color: var(--color-surface-raised);
-  color: var(--color-text-muted);
-  transition:
-    background-color var(--duration-normal) var(--ease-default),
-    border-color     var(--duration-normal) var(--ease-default),
-    color            var(--duration-normal) var(--ease-default),
-    box-shadow       var(--duration-normal) var(--ease-default);
-}
-
-/* ── STEP STATES ─────────────────────────────────────────── */
-
-/* Active — current step */
-.stepper-item.is-active .stepper-circle {
-  background-color: var(--color-primary);        /* #1650E0 */
-  border-color: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 0 0 3px var(--color-primary-subtle); /* #EBF0FF — halo */
-}
-
-/* Done — completed step */
-.stepper-item.is-done .stepper-circle {
-  background-color: var(--color-success);        /* #0B7A40 */
-  border-color: var(--color-success);
-  color: transparent;                            /* hide number, show checkmark */
-}
-/* Checkmark via CSS for done steps */
-.stepper-item.is-done .stepper-circle::before,
-.stepper-item.is-done .stepper-circle::after {
-  content: '';
-  position: absolute;
-  background-color: #ffffff;
-  border-radius: 1px;
-}
-.stepper-item.is-done .stepper-circle::before {
-  width: 5px; height: 1.5px;
-  transform: rotate(45deg) translate(1px, 2px);
-}
-.stepper-item.is-done .stepper-circle::after {
-  width: 9px; height: 1.5px;
-  transform: rotate(-45deg) translate(-1px, 2px);
-}
-
-/* Pending — future step */
-.stepper-item.is-pending .stepper-circle {
-  background-color: var(--color-surface-raised);
-  border-color: var(--color-border);
-  color: var(--color-text-light);               /* #B5B0A0 */
-}
-
-/* Error state */
-.stepper-item.is-error .stepper-circle {
-  background-color: var(--color-danger-subtle);
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-}
-
-/* ── STEP LABEL ──────────────────────────────────────────── */
-.stepper-label {
-  margin-top: 0.5rem;                            /* 8px */
-  font-size: 0.75rem;                            /* 12px */
-  font-weight: var(--font-medium);               /* 500 */
-  color: var(--color-text-muted);
-  line-height: 1.3;
-  max-width: 5rem;                               /* 80px — prevents wrapping */
-}
-.stepper-item.is-active .stepper-label {
-  color: var(--color-primary);
-  font-weight: var(--font-semibold);
-}
-.stepper-item.is-done .stepper-label {
-  color: var(--color-text);
-}
-.stepper-item.is-pending .stepper-label {
-  color: var(--color-text-light);
-}
-
-/* ── COMPACT STEPPER (header bar use) ───────────────────── */
-.stepper.stepper-compact .stepper-circle {
-  width: 1.5rem; height: 1.5rem;                 /* 24px */
-  font-size: 0.6875rem;                          /* 11px */
-}
-.stepper.stepper-compact .stepper-item:not(:last-child)::after {
-  top: 0.75rem;                                  /* 12px */
-  left: calc(50% + 0.875rem);
-  right: calc(-50% + 0.875rem);
-}
-.stepper.stepper-compact .stepper-label {
-  font-size: 0.6875rem;                          /* 11px */
-  margin-top: 0.25rem;
-}
-
-/* ── LINEAR PROGRESS BAR ─────────────────────────────────── */
-.progress-bar {
-  height: 0.375rem;                              /* 6px */
-  background-color: var(--color-border-subtle);  /* #DEDAD0 */
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  border-radius: var(--radius-full);
-  background-color: var(--color-primary);
-  transition: width var(--duration-slow) var(--ease-out);
-}
-.progress-fill.success { background-color: var(--color-success); }
-.progress-fill.warning { background-color: var(--color-warning); }
-.progress-fill.danger  { background-color: var(--color-danger); }
-
-/* Quorum-specific progress (AG-VOTE: shows quorum threshold) */
-.progress-bar.with-threshold {
-  position: relative;
-}
-.progress-threshold {
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-  width: 2px;
-  background-color: var(--color-text-dark);      /* #151510 */
-  border-radius: 1px;
-  /* left: set via inline style = threshold% */
-}
-```
-
-### Anti-Patterns to Avoid
-
-- Circles above 40px in desktop wizard headers — dominates the header, mobile-app feel
-- Showing step numbers after completion — replace with checkmark icon, numbers imply ordering not status
-- Connector lines that never change color — progress perception requires visual feedback
-- Labels longer than 3 words — `max-width: 5rem` enforces this, keep label text tight
-
----
-
-## New Tokens to Add to design-system.css (@layer v4)
-
-These fill gaps exposed by component research. All are additive — no existing tokens renamed.
-
-```css
-@layer v4 {
-  :root {
-    /* ── Component dimension tokens ── */
-    --btn-height-sm:       1.875rem;   /* 30px */
-    --btn-height:          2.25rem;    /* 36px — compact desktop default */
-    --btn-height-lg:       2.75rem;    /* 44px */
-
-    --input-height:        2.25rem;    /* 36px */
-    --input-height-md:     2.5rem;     /* 40px — standalone forms */
-
-    --table-row-height:    2.75rem;    /* 44px */
-    --table-row-compact:   2.25rem;    /* 36px */
-    --table-header-height: 2.5rem;     /* 40px */
-
-    --stepper-circle:      2rem;       /* 32px */
-    --stepper-circle-sm:   1.5rem;     /* 24px */
-    --stepper-connector:   1.5px;
-
-    --toast-width:         22.25rem;   /* 356px */
-
-    --modal-width:         35rem;      /* 560px */
-    --modal-width-wide:    45rem;      /* 720px */
-    --modal-width-narrow:  25rem;      /* 400px */
-
-    --card-padding:        1.25rem;    /* 20px */
-    --card-padding-lg:     1.5rem;     /* 24px */
-  }
-}
+Update Google Fonts URL in all 22 .htmx.html files (+ login.html, index.html)
+        ↓
+Update --font-sans / --font-display / --font-mono values in :root
+        ↓
+All typography rules referencing var(--font-sans) update automatically
+        ↓
+Web Components using var(--font-mono, 'JetBrains Mono', monospace)
+need fallback string updated if family name changes
 ```
 
 ---
 
-## Application to AG-VOTE Web Components
+## Build Order to Avoid Regressions
 
-| Component | Key Spec Deltas (vs current) |
-|-----------|------------------------------|
-| `ag-modal` | Add `modal-in` animation; footer bg → `--color-bg`; close btn 32px not full X |
-| `ag-toast` | Width 356px; `inset` box-shadow for left accent; `toast-in` scale+fade animation |
-| `ag-confirm` | Use `modal-narrow` (400px); two-button footer with `space-between` |
-| `ag-popover` | No changes needed from this research |
-| `ag-searchable-select` | Apply `.input` specs to trigger; dropdown items use table-row hover pattern |
-| `ag-pdf-viewer` | Outside scope of this research (v4.0 architecture doc) |
+### Phase A: Token Foundation (design-system.css only)
 
-All 23 Web Components should source their colors exclusively from the design token set above. No hardcoded hex values inside component shadow DOM.
+This is the highest-leverage and safest work — all changes are isolated to one file.
+
+```
+A1. Update color primitives (--stone-*, --blue-*, --green-*, etc.)
+    → No visual effect yet — primitives are not directly used in components
+    → Verification: no visible change
+
+A2. Remap semantic color tokens to new primitives
+    → First visible effect — all pages update simultaneously
+    → Verify: light mode on dashboard, login, operator, vote pages
+    → Verify: dark mode toggle on same pages
+    → Verify: status colors (success/warning/danger) on members or audit page
+
+A3. Update [data-theme="dark"] semantic override block
+    → Must be done in same commit as A2 — never leave dark mode broken
+    → color-mix() dark overrides reference var(--color-surface) not white — check these
+
+A4. Update shadow-color if warm tone of new palette changes
+    → --shadow-color: R G B  (warm near-black rgb channels)
+    → All shadow levels adapt automatically
+
+A5. Update component aliases (--radius-*, --type-*, --btn-height, etc.)
+    → Only if identity change requires different component geometry
+    → Verify: buttons, cards, modals across all pages
+```
+
+### Phase B: Font Change (22 HTML files + :root)
+
+Font change is mechanical but touches many files.
+
+```
+B1. Update Google Fonts URL string
+    → Run: grep -rn "fonts.googleapis.com" public/*.html public/*.htmx.html
+    → Edit: 22 .htmx.html files + login.html + index.html (22 total)
+    → Use sed or per-file edit — they all carry the same URL
+
+B2. Update --font-sans / --font-display / --font-mono in :root
+    → Fallback stack in token value should match new family name
+
+B3. Update fallback strings in Web Components
+    → grep -rn "font-mono, '\|font-display, '\|font-sans, '" public/assets/js/components/
+    → Update the literal family names in fallback position
+
+B4. Update critical-tokens inline styles in HTML files
+    → These embed --color-bg, --color-surface, --color-text only
+    → Not affected by font change — skip
+```
+
+### Phase C: Per-Page CSS (only if needed)
+
+After token changes, page CSS files should require no edits IF they consume tokens properly. The cases that require page-level edits are:
+
+```
+Case 1: Page CSS contains hardcoded hex or rgba instead of var(--*)
+  → These are the ~10 known occurrences (hub.css fallbacks, analytics.css, etc.)
+  → They will NOT update with token changes — must be manually corrected
+
+Case 2: A page uses a component alias that was deprecated or renamed
+  → Unlikely in v10 unless radius/dimension tokens are restructured
+
+Case 3: New component variants or layout patterns introduced in v10
+  → New work, not migration — add to page CSS or design-system.css components layer
+```
+
+Known hardcoded values to audit (from grep at time of research):
+- `hub.css` — 3 rgba fallbacks using `rgba(22, 80, 224, …)` in fallback position (acceptable, non-blocking)
+- `analytics.css` — `#1650E0` as fallback in border-top-color
+- `meetings.css` — `#1650E0` in color: fallback position
+- `users.css`, `public.css`, `vote.css` — `rgba(22,80,224,…)` in fallback position
+- `design-system.css` — ~8 hardcoded `rgba(22, 80, 224, …)` in shadow box-shadow values (not in tokens)
+
+### Phase D: Web Component Fallback Audit
+
+After token values are finalized:
+
+```
+D1. grep -rn "var(--color-" public/assets/js/components/
+    → Collect all fallback hex literals
+    → Compare against new semantic token values
+    → Update only where the visual gap between fallback and token would cause
+      flash-of-wrong-color on component mount
+
+D2. ag-vote-button.js — has rgba hardcoded for hover backgrounds
+    → rgba(11,122,64,.12), rgba(196,40,40,.12) for for/against states
+    → Update if success/danger hues change significantly
+
+D3. ag-stepper.js, ag-toast.js, ag-modal.js — all use semantic tokens correctly
+    → Only fallback literals need updating if hex values change
+```
+
+### Phase E: critical-tokens Inline Styles (22 HTML files)
+
+```
+Each .htmx.html contains:
+  <style id="critical-tokens">
+    :root { --color-bg: #EDECE6; --color-surface: #FAFAF7; --color-text: #151510; }
+    [data-theme="dark"] { --color-bg: #0B0D10; --color-surface: #141820; --color-text: #ECF0FA; }
+    html, body { background: var(--color-bg); }
+  </style>
+
+Update these 6 hex values if --color-bg or --color-surface changes.
+Grep: grep -rn "critical-tokens" public/
+These 3 tokens × 2 themes = 6 values across 22 files.
+Update with sed or bulk editor — all identical.
+```
+
+---
+
+## Integration Points by Layer
+
+### Layer 1: Primitives (design-system.css :root)
+
+| Token group | Files to change | Propagates to |
+|-------------|----------------|---------------|
+| `--stone-*`, `--blue-*`, `--green-*` | design-system.css | Nowhere directly — primitives are only referenced by semantic layer |
+| `--font-sans`, `--font-display`, `--font-mono` | design-system.css + 22 HTML files | All CSS rules using var(--font-*), Web Component fallback strings |
+| `--text-*` scale | design-system.css only | All typography rules — no page CSS changes needed |
+| `--shadow-color` | design-system.css :root + [data-theme="dark"] | All 7 shadow levels auto-update |
+
+### Layer 2: Semantic Colors (design-system.css)
+
+| Token group | Required co-change | Risk |
+|-------------|-------------------|------|
+| `--color-bg`, `--color-surface`, `--color-surface-raised` | critical-tokens inline styles in 22 HTML files | Flash-of-wrong-color if not updated together |
+| `--color-primary`, `--color-primary-hover`, `--color-primary-*` | `--ring-color`, `--color-border-focus`, `--sidebar-active`, hardcoded rgba in 8 places | Medium — some values are still hardcoded as rgba(22,80,224) |
+| `--color-success/warning/danger/info` | None — all consumed via var() correctly | Low |
+| `[data-theme="dark"]` overrides | Must be updated in same commit as :root | High — leaving dark mode broken causes immediate visible regression |
+
+### Layer 3: Component Aliases (design-system.css)
+
+| Token group | Impact | Risk |
+|-------------|--------|------|
+| `--radius-btn/card/modal/badge/…` | All components using that alias | Low — global update, no per-page work |
+| `--btn-height`, `--input-height` | Buttons and inputs across all pages | Medium — may break grid alignment in operator.css, wizard.css |
+| `--type-page-title-*` | h1 rendering on all pages | Low |
+
+### Layer 4: Per-Page CSS (25 files)
+
+| File | Token compliance | Action needed |
+|------|-----------------|---------------|
+| hub.css | HIGH — 334+ token usages, 3 rgba fallbacks | Fallback-only update if primary hue changes |
+| operator.css | HIGH | Likely no changes needed |
+| vote.css | HIGH — 1 rgba fallback | Fallback-only update |
+| wizard.css | HIGH | Likely no changes needed |
+| analytics.css | MEDIUM — 1 hardcoded hex | Fix hardcoded #1650E0 |
+| meetings.css | MEDIUM — 2 hardcoded hex | Fix hardcoded #1650E0 |
+| public.css | HIGH — 1 rgba fallback | Fallback-only update |
+| users.css | HIGH — 1 rgba fallback | Fallback-only update |
+| pages.css | MEDIUM — session-card has some hardcoded values | Audit needed |
+| All others | HIGH | Likely no changes needed |
+
+### Layer 5: Web Components (23 files)
+
+| Component | Shadow DOM approach | Token usage | Action needed |
+|-----------|-------------------|-------------|---------------|
+| ag-toast | Embedded `<style>` with var() + fallback | Semantic tokens correctly | Update fallback hex if values change |
+| ag-modal | Embedded `<style>` with var() + fallback | Semantic tokens correctly | Update fallback hex |
+| ag-confirm | Embedded `<style>` with var() + fallback | Semantic tokens correctly | Update fallback hex |
+| ag-kpi | Embedded `<style>` with var() + fallback | Semantic tokens + color-mix | Update fallback hex |
+| ag-vote-button | Embedded `<style>` with var() + fallback | 4 hardcoded rgba for states | Update rgba if success/danger hues change |
+| ag-stepper | Embedded `<style>` with var() + fallback | Semantic tokens correctly | Update fallback hex |
+| ag-tooltip | Embedded `<style>` | Semantic tokens | Update fallback hex |
+| ag-badge, ag-breadcrumb, ag-donut, ag-mini-bar, ag-page-header, ag-pagination, ag-pdf-viewer, ag-popover, ag-quorum-bar, ag-scroll-top, ag-searchable-select, ag-spinner, ag-time-input, ag-tz-picker | Embedded `<style>` | Semantic tokens | Update fallback hex |
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Changing Page CSS Before Tokens
+
+**What people do:** Edit `hub.css` colors directly to test the new palette.
+**Why it's wrong:** Creates drift between page CSS and token system. When tokens are later updated, page CSS overrides persist and cannot be distinguished from intentional page-specific overrides.
+**Do this instead:** Change the token in design-system.css, observe the automatic propagation. Only edit page CSS if the token change produces an unintended result specific to that page.
+
+### Anti-Pattern 2: Adding Raw Values to @layer v4
+
+**What people do:** Add `color: oklch(0.6 0.15 265)` directly in the v4 layer block.
+**Why it's wrong:** Raw color values bypass the theming system. The v4 layer is for progressive enhancement (animations, view transitions) only. Token values in v4 would not respond to `[data-theme="dark"]`.
+**Do this instead:** Add new tokens to `:root` in `@layer base`, reference them from `@layer components` or page CSS.
+
+### Anti-Pattern 3: Separate Dark Mode Fallbacks in Web Components
+
+**What people do:** Add `@media (prefers-color-scheme: dark) { … }` inside Shadow DOM embedded styles.
+**Why it's wrong:** AG-VOTE uses `[data-theme="dark"]` as its theme switch, not `prefers-color-scheme`. The `[data-theme]` selector works across the shadow boundary via CSS custom property inheritance. A media query inside Shadow DOM fires for OS preference regardless of user's in-app choice.
+**Do this instead:** Rely on `var(--color-*, fallback)` — when document-level `[data-theme="dark"]` activates, tokens change, and Shadow DOM inherits them automatically. No media queries needed inside components.
+
+### Anti-Pattern 4: Updating critical-tokens After Token Changes
+
+**What people do:** Update design-system.css first, deploy, then update critical-tokens inline styles separately.
+**Why it's wrong:** Between deploys, a user loading the page sees the old color flash for the 50–200ms before app.css loads.
+**Do this instead:** Update critical-tokens inline styles in the same commit as the semantic token changes. These 22 files contain 6 hex values each — a single sed command updates all of them.
+
+### Anti-Pattern 5: Hardcoded rgba Over var() Fallbacks
+
+**What people do:** Write `rgba(22, 80, 224, 0.12)` directly instead of `var(--color-primary-subtle)`.
+**Why it's wrong:** When primary hue changes, this value becomes visually wrong without any lint error. It is invisible in grep unless you know the old hex.
+**Do this instead:** Use the semantic token. If no semantic token captures the exact intent (e.g., a 12%-opacity variant of primary), add a derived token using color-mix() rather than hardcoding the rgba.
+
+---
+
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| Token change only (hue/saturation shift) | Zero file changes outside design-system.css + 22 HTML critical-tokens. Extremely safe. |
+| Font family change | 22 HTML files + :root + 23 component fallback strings. Mechanical, low-risk. |
+| New color palette + fonts + component geometry | All three layers + critical-tokens. Highest scope, but each layer is independent and can be done in separate commits. |
+| Adding a new semantic token | design-system.css :root + [data-theme="dark"] block. No page or component changes unless they opt in. |
 
 ---
 
 ## Sources
 
-- shadcn/ui button.tsx taxonomy repo: [github.com/shadcn-ui/taxonomy](https://github.com/shadcn-ui/taxonomy/blob/main/components/ui/button.tsx) — HIGH confidence
-- Sonner CSS raw source: [github.com/emilkowalski/sonner](https://github.com/emilkowalski/sonner) — HIGH confidence (raw file fetched)
-- Shopify Polaris design tokens: [polaris-react.shopify.com/tokens](https://polaris-react.shopify.com/tokens/all-tokens) — HIGH confidence (page fetched, exact values)
-- ishadeed stepper article: [ishadeed.com/article/stepper-component](https://ishadeed.com/article/stepper-component-html-css/) — HIGH confidence
-- Emil Kowalski toast breakdown: [emilkowal.ski/ui/building-a-toast-component](https://emilkowal.ski/ui/building-a-toast-component) — MEDIUM (article prose, not source code)
-- AG-VOTE design-system.css: `/home/user/gestion_votes_php/public/assets/css/design-system.css` — HIGH (direct file read, lines 83-319)
+- `public/assets/css/design-system.css` — direct read (5258 lines), ground truth for current token hierarchy, @layer structure, shadow scale, dark mode override block
+- `public/assets/js/components/ag-toast.js`, `ag-modal.js`, `ag-kpi.js`, `ag-stepper.js`, `ag-vote-button.js` — direct read, Shadow DOM token consumption pattern verified
+- `public/dashboard.htmx.html`, `public/wizard.htmx.html` — direct read, font loading and critical-tokens inline style pattern confirmed
+- `public/assets/css/app.css` — direct read, @import chain confirmed
+- `public/assets/js/theme-init.js` — direct read, [data-theme] mechanism confirmed
+- Grep audit of hardcoded values across all 25 CSS files and 23 component files
+- `AG-VOTE PROJECT.md` — v10.0 milestone scope confirmed
+
+---
+
+*Architecture research for: CSS visual identity evolution integration*
+*Researched: 2026-04-03*
+*Supersedes: v4.1 component architecture (retained for historical component specs)*

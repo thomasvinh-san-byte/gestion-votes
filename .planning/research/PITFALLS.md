@@ -1,937 +1,302 @@
-# CSS Architecture & Token System — AG-VOTE v4.1 "Design Excellence"
+# Pitfalls Research
 
-**Domain:** CSS design token system architecture — primitive → semantic → component hierarchy
-**Researched:** 2026-03-18
-**Overall confidence:** HIGH (Radix Colors official docs, Tailwind v4 theme.css, shadcn/ui theming docs, MDN color-mix/oklch, Material Design 3 motion specs — all verified via current sources)
-
----
-
-## What This File Contains
-
-Complete, copy-pasteable CSS custom property definitions for a top 1% design token system. Each section answers a specific research question with concrete values ready to drop into `design-system.css`.
-
-The current AG-VOTE system has 265+ variables, a "objectivement médiocre" visual result, and ad-hoc color derivations. This research provides the architectural upgrade path.
+**Domain:** Visual identity evolution — existing app with design tokens, Shadow DOM, dark/light mode
+**Researched:** 2026-04-03
+**Confidence:** HIGH (grounded in codebase inspection + verified against current MDN/community sources)
 
 ---
 
-## 1. TOKEN HIERARCHY: Primitive → Semantic → Component
+## The v4.2 Pattern — What Went Wrong and Why
 
-### The Three-Layer Model (HIGH confidence — industry consensus)
+v4.2 shipped a visual redesign that restructured HTML to achieve new layouts. The restructuring silently invalidated JavaScript `querySelector` selectors that targeted specific DOM shapes (class names, parent-child relationships, element order). JS interactions broke. v4.3 required a ground-up rebuild of 6 pages to fix the regressions.
 
-**Layer 1 — Primitives (raw values, no context):**
-Named after what they ARE, not what they do. Never referenced directly in components.
-
-```css
-/* Raw color palette — primitives */
---blue-50: oklch(0.97 0.013 254);
---blue-100: oklch(0.93 0.032 254);
---blue-500: oklch(0.55 0.18 254);
---blue-600: oklch(0.49 0.20 254);
-
-/* Raw spacing — primitives */
---space-px-1: 4px;
---space-px-2: 8px;
-
-/* Raw type scale — primitives */
---type-12: 0.75rem;
---type-14: 0.875rem;
-```
-
-**Layer 2 — Semantic tokens (context-aware, theme-switchable):**
-Named after what they DO, not what they are. These are the tokens used in component CSS.
-
-```css
-:root {
-  --color-bg: var(--stone-50);
-  --color-surface: var(--white);
-  --color-text: var(--stone-700);
-  --color-primary: var(--blue-600);
-}
-
-[data-theme="dark"] {
-  --color-bg: var(--gray-950);
-  --color-surface: var(--gray-900);
-  --color-text: var(--gray-200);
-  --color-primary: var(--blue-400);
-}
-```
-
-**Layer 3 — Component tokens (scoped overrides):**
-Named after the component they serve. Optional, used for complex components only.
-
-```css
-.btn {
-  --btn-bg: var(--color-primary);
-  --btn-fg: var(--color-primary-text);
-  --btn-radius: var(--radius-md);
-  background: var(--btn-bg);
-}
-```
-
-### How Many of Each?
-
-Based on Radix Colors (12-step scale), Tailwind v4 (12 shadow variants, 9 font sizes, dynamic spacing), and shadcn/ui (20 semantic tokens):
-
-| Category | Primitives | Semantic | Component |
-|----------|-----------|---------|-----------|
-| Colors | ~60 (5 palettes × 12 steps) | ~30 | Per component |
-| Spacing | ~15 (0–64) | 6–8 named | Per layout |
-| Typography | 9 sizes | 5–6 named | Per component |
-| Shadows | 7 levels | 5 named | Rarely |
-| Radius | 6 sizes | 4–5 named | Rarely |
-
-**Verdict for AG-VOTE:** The current 265+ variables are bloated because they skip the primitive layer and mix semantic + ad-hoc values. Target: ~80 semantic tokens, backed by ~60 well-named primitives.
+The lesson: **visual changes that restructure HTML are a different class of change than visual changes that only touch CSS.** Every pitfall below is evaluated through this lens — does this change touch HTML structure, and if so, what JS breaks?
 
 ---
 
-## 2. SPACING SCALE
+## Critical Pitfalls
 
-### Research Findings (HIGH confidence — Tailwind v4 source verified)
+### Pitfall 1: HTML Restructuring Silently Breaks JS Selectors
 
-Tailwind v4 uses 0.25rem (4px) base with dynamic generation. Open Props uses a non-linear scale. The industry standard for desktop apps is **4px base, 8px grid**, with named steps up to 80–96px.
+**What goes wrong:**
+A visual redesign wraps elements in new container divs, promotes children to siblings, or changes the element type (e.g., `<div>` to `<section>`). CSS changes work. The page looks correct. JS event listeners, `querySelector` calls, `closest()` traversals, and attribute reads that depended on the old DOM shape silently return `null` or attach to wrong elements. Clicks do nothing. SSE updates render in wrong containers. Form submissions fail.
 
-### Recommended Scale for AG-VOTE
+**Why it happens:**
+CSS and JS are written by different mental models. When a developer thinks "I'm just changing the layout," they focus on the visual output and do not audit all the page JS files for selector dependencies. In a IIFE + `var` codebase without TypeScript, there is no compile-time check.
 
-The current scale (`--space-1` through `--space-16`) is solid but has gaps at the high end (48px → 64px jump) and lacks a few commonly needed values. Recommended complete scale:
+**How to avoid:**
+- Treat HTML restructuring as a **breaking change**, not a visual change.
+- Before restructuring any page, grep the corresponding page JS file for all `querySelector`, `querySelectorAll`, `closest`, `getElementById`, `dataset`, and attribute reads. List every selector. Verify each one still resolves after the restructuring.
+- Prefer `data-*` attributes as JS hooks over structural selectors (`> .card:first-child`, `.row .col .btn`). A `data-action="submit-wizard"` attribute survives layout changes; `.wizard-row .right-col button` does not.
+- After any HTML restructuring, run the full Playwright E2E suite for that page before committing.
 
-```css
-/* ─── SPACING SCALE (4px base, 8px grid rhythm) ─── */
-/* Drop-in replacement for existing --space-* variables */
+**Warning signs:**
+- New layout requires adding wrapper divs around existing interactive elements.
+- A component that previously had a flat DOM now has additional nesting levels.
+- A `querySelector` in the page JS targets a class that was renamed or removed in the new design.
+- JS file is not modified when the HTML file is modified for a page that has JS interactions.
 
-:root {
-  /* Micro spacing — icon gaps, border offsets */
-  --space-0: 0;
-  --space-0-5: 0.125rem;  /* 2px  — fine-grained only */
-  --space-1: 0.25rem;     /* 4px  — tight gaps */
-  --space-1-5: 0.375rem;  /* 6px  — icon-to-label */
-  --space-2: 0.5rem;      /* 8px  — base grid unit */
-  --space-2-5: 0.625rem;  /* 10px — compact UI */
-  --space-3: 0.75rem;     /* 12px — small padding */
-  --space-4: 1rem;        /* 16px — standard padding */
-  --space-5: 1.25rem;     /* 20px — medium padding */
-  --space-6: 1.5rem;      /* 24px — card padding */
-  --space-7: 1.75rem;     /* 28px — comfortable spacing */
-  --space-8: 2rem;        /* 32px — section gap */
-  --space-10: 2.5rem;     /* 40px — large gap */
-  --space-12: 3rem;       /* 48px — section break */
-  --space-14: 3.5rem;     /* 56px — nav height */
-  --space-16: 4rem;       /* 64px — major section */
-  --space-20: 5rem;       /* 80px — page-level spacing */
-  --space-24: 6rem;       /* 96px — hero spacing */
-
-  /* ─── SEMANTIC SPACING ALIASES ─── */
-  /* Used in component CSS — never raw --space-* directly */
-  --gap-xs: var(--space-1);     /* 4px  — tight icon gaps */
-  --gap-sm: var(--space-2);     /* 8px  — inline gaps */
-  --gap-md: var(--space-4);     /* 16px — standard gap */
-  --gap-lg: var(--space-6);     /* 24px — card/section gap */
-  --gap-xl: var(--space-8);     /* 32px — page section gap */
-
-  --pad-xs: var(--space-2);     /* 8px  — chip/badge padding */
-  --pad-sm: var(--space-3);     /* 12px — compact button */
-  --pad-md: var(--space-4);     /* 16px — standard button/input */
-  --pad-lg: var(--space-6);     /* 24px — card padding */
-  --pad-xl: var(--space-8);     /* 32px — panel padding */
-  --pad-2xl: var(--space-12);   /* 48px — page content padding */
-}
-```
-
-**Why 0.5 steps matter:** Icon-to-label gaps (6px), input padding harmony with border width, and table cell padding all need values between 4px and 8px. The current scale jumps from 4px to 8px with nothing in between — this causes layout compromise.
-
-**Sweet spot for AG-VOTE:** 18 raw steps + 10 semantic aliases = 28 spacing tokens. Far fewer than the current bloated set.
+**Phase to address:** Every phase that restructures page HTML. Must be enforced as a checklist item before phase sign-off.
 
 ---
 
-## 3. COLOR SYSTEM
+### Pitfall 2: color-mix() Derived Tokens Break in Dark Mode
 
-### Radix Colors 12-Step Scale — Semantic Mapping (HIGH confidence — official docs)
+**What goes wrong:**
+The design system uses `color-mix()` to derive tint/shade tokens (e.g., `--color-primary-tint-10`, `--color-surface-elevated`). When a new color is introduced for light mode (e.g., changing `--color-primary`), the `color-mix()` expressions recompute correctly in light mode. But in dark mode, `--color-primary` is separately defined in `[data-theme="dark"]`. If derived `color-mix()` tokens are only declared in `:root` and not overridden in `[data-theme="dark"]`, the expression in `:root` does not automatically re-evaluate against the dark overrides — the computed dark token is derived from light primitive values.
 
-Each step has a defined purpose. This is the industry's most principled color scale:
+**Why it happens:**
+The primitive palette in `:root` contains 100+ tokens. The `[data-theme="dark"]` block overrides a subset of semantic tokens. When adding a new color, developers remember to add it to `:root` and `[data-theme="dark"]` but forget that derived `color-mix()` tokens in `:root` that reference semantic tokens also need corresponding overrides in `[data-theme="dark"]`.
 
-| Step | Use Case | AG-VOTE Example |
-|------|----------|-----------------|
-| 1 | App background | `--color-bg` |
-| 2 | Subtle background | `--color-bg-subtle` |
-| 3 | UI element background (rest) | hover bg on ghost button |
-| 4 | Hovered UI element background | active bg on ghost button |
-| 5 | Active/selected UI element bg | selected row, active tab |
-| 6 | Subtle borders and separators | `--color-border-subtle` |
-| 7 | UI element border + focus ring | `--color-border` |
-| 8 | Hovered UI element border | border on input hover |
-| 9 | Solid background (highest chroma) | `--color-primary` button fill |
-| 10 | Hovered solid background | `--color-primary-hover` |
-| 11 | Low-contrast text | `--color-text-muted` |
-| 12 | High-contrast text | `--color-text-dark` |
+**How to avoid:**
+- Maintain a strict rule: every `color-mix()` derived token in `:root` that references a semantic color token must have a corresponding explicit override in `[data-theme="dark"]`.
+- When adding a new color token, immediately add all three: primitive in `:root`, semantic in `:root`, semantic override in `[data-theme="dark"]`.
+- Add a comment above each `color-mix()` block in `design-system.css`: `/* NOTE: override in [data-theme="dark"] required if base token changes */`.
 
-### AG-VOTE Color Primitives — OKLCH (recommended)
+**Warning signs:**
+- `--color-surface-elevated` looks subtly wrong in dark mode (not elevated relative to the dark background).
+- Tinted backgrounds on KPI cards differ between themes in unexpected ways.
+- A color change that looked fine in light mode produces broken contrast or wrong tones in dark mode.
 
-AG-VOTE's "Acte Officiel" identity uses warm stone/parchment backgrounds with indigo-blue primary. The current hex values translated to OKLCH for derivation power:
-
-```css
-/* ─── COLOR PRIMITIVES ─── */
-/* These are reference values. The SEMANTIC tokens below are what components use. */
-
-:root {
-  /* Stone/Parchment palette (warm neutral — "Acte Officiel") */
-  --stone-50:  oklch(0.969 0.006 95);   /* #FAFAF7 — surface */
-  --stone-100: oklch(0.950 0.009 95);   /* #F2F0EB — near-white */
-  --stone-200: oklch(0.922 0.013 95);   /* #EDECE6 — bg (current --color-bg) */
-  --stone-300: oklch(0.893 0.017 90);   /* #E5E3D8 — bg-subtle */
-  --stone-400: oklch(0.833 0.022 88);   /* #CDC9BB — border */
-  --stone-500: oklch(0.760 0.028 85);   /* #BCB7A5 — border-strong */
-  --stone-600: oklch(0.648 0.030 82);   /* #857F72 — text-muted */
-  --stone-700: oklch(0.530 0.025 80);   /* #52504A — text */
-  --stone-800: oklch(0.350 0.018 78);   /* #2A2720 — text-secondary */
-  --stone-900: oklch(0.180 0.012 75);   /* #151510 — text-dark */
-
-  /* Blue/Indigo palette (primary brand) */
-  --blue-50:  oklch(0.960 0.018 265);   /* #EBF0FF */
-  --blue-100: oklch(0.920 0.035 265);   /* #D6E3FF */
-  --blue-200: oklch(0.850 0.060 265);   /* #B3CCFF */
-  --blue-400: oklch(0.680 0.130 265);   /* #5C96FA — dark mode primary */
-  --blue-500: oklch(0.600 0.165 265);   /* #3D7EF8 — mid */
-  --blue-600: oklch(0.520 0.195 265);   /* #1650E0 — current --color-primary */
-  --blue-700: oklch(0.440 0.190 265);   /* #1140C0 */
-  --blue-800: oklch(0.360 0.180 265);   /* #0C30A0 */
-
-  /* Success/Green */
-  --green-50:  oklch(0.968 0.020 155);  /* #EDFAF2 */
-  --green-600: oklch(0.500 0.135 155);  /* #0B7A40 — current --color-success */
-  --green-500: oklch(0.580 0.155 155);  /* #2DC87A — dark mode success */
-
-  /* Warning/Amber */
-  --amber-50:  oklch(0.978 0.022 90);   /* #FFF7E8 */
-  --amber-600: oklch(0.590 0.115 60);   /* #B56700 — current --color-warning */
-  --amber-400: oklch(0.740 0.130 68);   /* #EDA030 — dark mode warning */
-
-  /* Danger/Red */
-  --red-50:   oklch(0.975 0.015 25);    /* #FEF1F0 */
-  --red-600:  oklch(0.510 0.175 25);    /* #C42828 — current --color-danger */
-  --red-500:  oklch(0.600 0.185 25);    /* #E85454 — dark mode danger */
-
-  /* Purple (accent / post-session) */
-  --purple-50:  oklch(0.965 0.022 298); /* #EEEAFF */
-  --purple-600: oklch(0.490 0.170 298); /* #5038C0 — current --color-accent */
-  --purple-500: oklch(0.580 0.175 298); /* #8C72F8 — dark mode accent */
-}
-```
-
-### Semantic Color Tokens — COMPLETE LIGHT + DARK
-
-```css
-/* ─── SEMANTIC COLOR TOKENS — LIGHT THEME ─── */
-:root {
-  /* --- Backgrounds (Radix steps 1–2) --- */
-  --color-bg:          oklch(0.922 0.013 95);    /* #EDECE6 warm parchment */
-  --color-bg-subtle:   oklch(0.893 0.017 90);    /* #E5E3D8 slightly darker */
-
-  /* --- Surfaces (elevation steps 3–5) --- */
-  --color-surface:         oklch(0.969 0.006 95); /* #FAFAF7 near-white warm */
-  --color-surface-raised:  oklch(1.000 0.000 0);  /* #FFFFFF pure white cards */
-  --color-surface-overlay: oklch(0.969 0.006 95 / 95%); /* modal bg */
-  --color-surface-alt:     oklch(0.893 0.017 90); /* recessed areas */
-
-  /* --- Text (Radix steps 11–12) --- */
-  --color-text:          oklch(0.530 0.025 80);  /* #52504A body text */
-  --color-text-dark:     oklch(0.180 0.012 75);  /* #151510 headings */
-  --color-text-secondary: oklch(0.180 0.012 75); /* strong labels */
-  --color-text-muted:    oklch(0.648 0.030 82);  /* #857F72 secondary info */
-  --color-text-light:    oklch(0.750 0.018 88);  /* #B5B0A0 placeholder */
-  --color-text-inverse:  oklch(1.000 0.000 0);   /* white on dark bg */
-  --color-text-disabled: oklch(0.780 0.014 88);  /* #C4C0B5 disabled */
-
-  /* --- Borders (Radix steps 6–8) --- */
-  --color-border:        oklch(0.833 0.022 88);  /* #CDC9BB standard */
-  --color-border-subtle: oklch(0.872 0.018 89);  /* #DEDAD0 light dividers */
-  --color-border-strong: oklch(0.800 0.026 87);  /* #BCB7A5 prominent */
-  --color-border-focus:  oklch(0.520 0.195 265 / 50%); /* primary 50% */
-
-  /* --- Primary / Brand (Radix steps 9–10) --- */
-  --color-primary:       oklch(0.520 0.195 265); /* #1650E0 */
-  --color-primary-hover: oklch(0.440 0.190 265); /* #1140C0 */
-  --color-primary-active:oklch(0.360 0.180 265); /* #0C30A0 */
-  --color-primary-subtle:oklch(0.960 0.018 265); /* #EBF0FF */
-  --color-primary-muted: oklch(0.520 0.195 265 / 12%); /* transparent fill */
-  --color-primary-text:  oklch(1.000 0.000 0);   /* white on primary */
-
-  /* --- Derived with color-mix (no oklch math needed) --- */
-  --color-primary-tint-5:  color-mix(in oklch, var(--color-primary) 5%, white);
-  --color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, white);
-  --color-primary-tint-15: color-mix(in oklch, var(--color-primary) 15%, white);
-  --color-primary-shade-10: color-mix(in oklch, var(--color-primary) 90%, black);
-
-  /* --- Semantic states --- */
-  --color-success:        oklch(0.500 0.135 155); /* #0B7A40 */
-  --color-success-hover:  oklch(0.440 0.125 155); /* darker */
-  --color-success-subtle: oklch(0.968 0.020 155); /* #EDFAF2 */
-  --color-success-border: oklch(0.820 0.060 155); /* #A3E8C1 */
-  --color-success-text:   oklch(0.500 0.135 155);
-
-  --color-warning:        oklch(0.590 0.115 60);  /* #B56700 */
-  --color-warning-hover:  oklch(0.520 0.108 60);
-  --color-warning-subtle: oklch(0.978 0.022 90);  /* #FFF7E8 */
-  --color-warning-border: oklch(0.870 0.070 75);  /* #F5D490 */
-  --color-warning-text:   oklch(0.590 0.115 60);
-
-  --color-danger:         oklch(0.510 0.175 25);  /* #C42828 */
-  --color-danger-hover:   oklch(0.450 0.168 25);
-  --color-danger-subtle:  oklch(0.975 0.015 25);  /* #FEF1F0 */
-  --color-danger-border:  oklch(0.840 0.065 25);  /* #F4BFBF */
-  --color-danger-text:    oklch(0.510 0.175 25);
-
-  --color-accent:         oklch(0.490 0.170 298); /* #5038C0 purple */
-  --color-accent-subtle:  oklch(0.965 0.022 298); /* #EEEAFF */
-  --color-accent-border:  oklch(0.780 0.080 298); /* #C4B8F8 */
-  --color-accent-text:    oklch(0.490 0.170 298);
-
-  --color-neutral:        oklch(0.648 0.030 82);  /* #857F72 */
-  --color-neutral-hover:  oklch(0.570 0.025 82);
-  --color-neutral-subtle: oklch(0.893 0.017 90);  /* #E5E3D8 */
-  --color-neutral-text:   oklch(0.530 0.025 80);
-
-  /* --- Misc --- */
-  --color-backdrop:       oklch(0 0 0 / 50%);
-  --color-overlay-tint:   oklch(0 0 0 / 4%);    /* hover tint on surfaces */
-}
-
-/* ─── SEMANTIC COLOR TOKENS — DARK THEME ─── */
-[data-theme="dark"] {
-  /* --- Backgrounds --- */
-  --color-bg:          oklch(0.130 0.012 265);   /* #0B0F1A deep navy */
-  --color-bg-subtle:   oklch(0.180 0.018 265);   /* #1B2030 */
-
-  /* --- Surfaces (light sources — higher = lighter in dark mode) --- */
-  --color-surface:         oklch(0.155 0.016 265); /* #141820 */
-  --color-surface-raised:  oklch(0.190 0.020 265); /* #1E2438 */
-  --color-surface-overlay: oklch(0.155 0.016 265 / 96%);
-  --color-surface-alt:     oklch(0.180 0.018 265); /* #1B2030 */
-
-  /* --- Text --- */
-  --color-text:          oklch(0.620 0.020 248);  /* #7A8499 */
-  --color-text-dark:     oklch(0.940 0.012 252);  /* #ECF0FA */
-  --color-text-secondary: oklch(0.940 0.012 252);
-  --color-text-muted:    oklch(0.460 0.018 250);  /* #50596C */
-  --color-text-light:    oklch(0.320 0.015 248);  /* #38404E */
-  --color-text-inverse:  oklch(0.130 0.012 265);  /* dark bg */
-  --color-text-disabled: oklch(0.380 0.015 248);
-
-  /* --- Borders --- */
-  --color-border:        oklch(0.230 0.020 265);  /* #252C3C */
-  --color-border-subtle: oklch(0.200 0.018 265);  /* #1E2434 */
-  --color-border-strong: oklch(0.270 0.024 265);  /* #2E3850 */
-  --color-border-focus:  oklch(0.620 0.170 265 / 50%);
-
-  /* --- Primary --- */
-  --color-primary:       oklch(0.630 0.170 265);  /* #3D7EF8 */
-  --color-primary-hover: oklch(0.700 0.155 265);  /* #5C96FA */
-  --color-primary-active:oklch(0.770 0.120 265);  /* #96BDFB */
-  --color-primary-subtle:oklch(0.630 0.170 265 / 12%);
-  --color-primary-muted: oklch(0.630 0.170 265 / 12%);
-  --color-primary-text:  oklch(0.130 0.012 265);
-
-  --color-primary-tint-5:  color-mix(in oklch, var(--color-primary) 5%, var(--color-surface));
-  --color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, var(--color-surface));
-  --color-primary-tint-15: color-mix(in oklch, var(--color-primary) 15%, var(--color-surface));
-  --color-primary-shade-10: color-mix(in oklch, var(--color-primary) 90%, var(--color-surface));
-
-  /* --- Semantic states --- */
-  --color-success:        oklch(0.680 0.155 155); /* #2DC87A */
-  --color-success-hover:  oklch(0.740 0.160 155);
-  --color-success-subtle: oklch(0.680 0.155 155 / 8%);
-  --color-success-border: oklch(0.680 0.155 155 / 28%);
-  --color-success-text:   oklch(0.680 0.155 155);
-
-  --color-warning:        oklch(0.760 0.130 68);  /* #EDA030 */
-  --color-warning-hover:  oklch(0.810 0.130 68);
-  --color-warning-subtle: oklch(0.760 0.130 68 / 8%);
-  --color-warning-border: oklch(0.760 0.130 68 / 28%);
-  --color-warning-text:   oklch(0.760 0.130 68);
-
-  --color-danger:         oklch(0.650 0.185 25);  /* #E85454 */
-  --color-danger-hover:   oklch(0.710 0.180 25);
-  --color-danger-subtle:  oklch(0.650 0.185 25 / 9%);
-  --color-danger-border:  oklch(0.650 0.185 25 / 28%);
-  --color-danger-text:    oklch(0.650 0.185 25);
-
-  --color-accent:         oklch(0.650 0.175 298); /* #8C72F8 */
-  --color-accent-subtle:  oklch(0.650 0.175 298 / 10%);
-  --color-accent-border:  oklch(0.650 0.175 298 / 30%);
-  --color-accent-text:    oklch(0.650 0.175 298);
-
-  --color-neutral:        oklch(0.460 0.018 250);
-  --color-neutral-hover:  oklch(0.620 0.020 248);
-  --color-neutral-subtle: oklch(0.620 0.020 248 / 15%);
-  --color-neutral-text:   oklch(0.620 0.020 248);
-
-  --color-backdrop:       oklch(0 0 0 / 70%);
-  --color-overlay-tint:   oklch(1 0 0 / 3%);
-}
-```
-
-### oklch Color Derivation Formulas (MEDIUM confidence — MDN + Evil Martians verified)
-
-For use within component CSS when you need one-off variants without adding new tokens:
-
-```css
-/* Hover state — lighten by ~10% lightness */
-.btn:hover {
-  background: oklch(from var(--color-primary) calc(l + 0.06) c h);
-}
-
-/* Active state — darken by ~10% lightness */
-.btn:active {
-  background: oklch(from var(--color-primary) calc(l - 0.06) c h);
-}
-
-/* Subtle fill — desaturate + lighten heavily */
-.badge-subtle {
-  background: oklch(from var(--color-primary) calc(l + 0.35) calc(c * 0.15) h);
-}
-
-/* Tinted border — same hue, very low chroma */
-.card-primary {
-  border-color: oklch(from var(--color-primary) calc(l + 0.25) calc(c * 0.30) h);
-}
-
-/* color-mix pattern (wider browser support, more predictable) */
-.icon-bg {
-  background: color-mix(in oklch, var(--color-primary) 12%, var(--color-surface));
-}
-```
-
-**Browser support note:** `oklch(from ...)` relative color syntax requires Chrome 119+, Firefox 128+, Safari 16.4+. `color-mix(in oklch, ...)` has slightly wider support (Chrome 111+). Both are safe for 2026 targets.
+**Phase to address:** Token/palette phase — specifically the earliest phase that changes any color primitive.
 
 ---
 
-## 4. SHADOW SYSTEM
+### Pitfall 3: Token Rename Silently Breaks Shadow DOM Components
 
-### Research Findings (HIGH confidence — Tailwind v4 theme.css source)
+**What goes wrong:**
+The 23 Web Components all use Shadow DOM (`attachShadow({ mode: 'open' })`). Their internal styles are inline `<style>` strings that reference CSS custom properties with hardcoded fallback values (e.g., `var(--color-surface-raised, #ffffff)`). When a token is renamed during a visual identity evolution, the Shadow DOM component inline styles continue referencing the old property name. Since the old name no longer exists in `:root`, the component falls back to the hardcoded hex — which is always a light-mode value. In dark mode, the component renders with a white/light background.
 
-Top systems use 5–7 shadow levels. Tailwind v4 uses 7 (2xs → 2xl). The key insight from premium apps (Linear, Vercel, Stripe): **shadows in light mode should be warm-tinted, not cold black** — use the darkest text color as shadow base.
+**Why it happens:**
+Shadow DOM styles are embedded in JS string literals. A CSS linter or search-replace that updates `.css` files will not find these strings unless explicitly targeting JS files. The developer assumes the rename is complete after updating `design-system.css`, but all 23 components are untouched.
 
-AG-VOTE's existing shadows use `rgba(21, 21, 16, N)` which is already correct (warm dark). The problem is the values themselves are too weak for a "top 1%" result.
+**How to avoid:**
+- **Do not rename existing token names.** Add new tokens alongside old ones and keep old names as aliases pointing to the new name.
+- If a rename is unavoidable, run: `grep -r "old-token-name" public/assets/js/components/` before committing. Zero results required.
+- Note: CSS custom properties DO inherit through the Shadow DOM boundary automatically. The risk is specifically token renames, not token inheritance itself. The current inheritance mechanism works correctly.
 
-### Complete Shadow Scale
+**Warning signs:**
+- A Web Component (ag-modal, ag-toast, ag-confirm, ag-popover) renders with a visually wrong background in dark mode after a token change.
+- A grep of `*.js` component files finds the old token name after a rename was applied only to `*.css` files.
+- A component looks correct in light mode but wrong in dark mode.
 
-```css
-:root {
-  /* ─── SHADOW SCALE ─── */
-  /* Base color: --shadow-color is the warm dark tone of the page */
-  /* Light mode: warm near-black. Dark mode: pure black (more visible). */
-  --shadow-color: 21 21 16;        /* rgb channels — warm black */
-
-  /* 7 levels from surface lift to floating panel */
-  --shadow-2xs: 0 1px 0 rgb(var(--shadow-color) / 0.04);
-  --shadow-xs:  0 1px 2px rgb(var(--shadow-color) / 0.06),
-                0 1px 1px rgb(var(--shadow-color) / 0.03);
-  --shadow-sm:  0 1px 3px rgb(var(--shadow-color) / 0.08),
-                0 1px 2px rgb(var(--shadow-color) / 0.04);
-  --shadow:     0 2px 6px rgb(var(--shadow-color) / 0.08),
-                0 1px 3px rgb(var(--shadow-color) / 0.05);
-  --shadow-md:  0 4px 12px rgb(var(--shadow-color) / 0.10),
-                0 2px 4px rgb(var(--shadow-color) / 0.06);
-  --shadow-lg:  0 8px 24px rgb(var(--shadow-color) / 0.12),
-                0 3px 8px rgb(var(--shadow-color) / 0.06);
-  --shadow-xl:  0 16px 40px rgb(var(--shadow-color) / 0.14),
-                0 6px 16px rgb(var(--shadow-color) / 0.07);
-  --shadow-2xl: 0 24px 64px rgb(var(--shadow-color) / 0.18),
-                0 8px 24px rgb(var(--shadow-color) / 0.08);
-
-  /* Special purpose */
-  --shadow-inner: inset 0 2px 4px rgb(var(--shadow-color) / 0.05);
-  --shadow-inset-sm: inset 0 1px 2px rgb(var(--shadow-color) / 0.08);
-  --shadow-focus: 0 0 0 2px var(--color-surface-raised),
-                  0 0 0 4px var(--color-border-focus);
-  --shadow-focus-danger: 0 0 0 2px var(--color-surface-raised),
-                          0 0 0 4px oklch(0.510 0.175 25 / 35%);
-}
-
-[data-theme="dark"] {
-  --shadow-color: 0 0 0;     /* pure black — needed for visibility on dark bg */
-
-  --shadow-2xs: 0 1px 0 rgb(var(--shadow-color) / 0.12);
-  --shadow-xs:  0 1px 2px rgb(var(--shadow-color) / 0.20),
-                0 1px 1px rgb(var(--shadow-color) / 0.12);
-  --shadow-sm:  0 1px 3px rgb(var(--shadow-color) / 0.24),
-                0 1px 2px rgb(var(--shadow-color) / 0.16);
-  --shadow:     0 2px 6px rgb(var(--shadow-color) / 0.30),
-                0 1px 3px rgb(var(--shadow-color) / 0.18);
-  --shadow-md:  0 4px 12px rgb(var(--shadow-color) / 0.34),
-                0 2px 4px rgb(var(--shadow-color) / 0.20);
-  --shadow-lg:  0 8px 24px rgb(var(--shadow-color) / 0.40),
-                0 3px 8px rgb(var(--shadow-color) / 0.22);
-  --shadow-xl:  0 16px 40px rgb(var(--shadow-color) / 0.50),
-                0 6px 16px rgb(var(--shadow-color) / 0.26);
-  --shadow-2xl: 0 24px 64px rgb(var(--shadow-color) / 0.60),
-                0 8px 24px rgb(var(--shadow-color) / 0.30);
-
-  --shadow-inner: inset 0 2px 4px rgb(var(--shadow-color) / 0.20);
-  --shadow-inset-sm: inset 0 1px 2px rgb(var(--shadow-color) / 0.25);
-}
-```
-
-### Shadow Usage Guide
-
-| Component | Shadow Level | Rationale |
-|-----------|-------------|-----------|
-| Table row | `--shadow-2xs` | Barely lifted, data density |
-| Card (default) | `--shadow-sm` | Light surface |
-| Card (hover) | `--shadow-md` | Lifted on hover |
-| Modal dialog | `--shadow-xl` | Floating layer |
-| Dropdown/popover | `--shadow-lg` | Above content |
-| Tooltip | `--shadow-md` | Small floating |
-| Button (active) | `--shadow-inner` | Pressed state |
-| Input (focus) | `--shadow-focus` | Accessibility ring |
+**Phase to address:** Any phase that changes token names in `design-system.css`. Token additions are safe; renames are dangerous.
 
 ---
 
-## 5. TYPOGRAPHY SCALE
+### Pitfall 4: Hardcoded Focus Ring Hex Not Updated After Brand Color Change
 
-### Research Findings (MEDIUM confidence — LearnUI.design + industry consensus)
+**What goes wrong:**
+Multiple Shadow DOM components contain the focus ring color as a hardcoded rgba literal: `rgba(22,80,224,0.35)`. This value is the current primary blue (`#1650E0`) at 35% opacity. It appears in fallback values for `--shadow-focus` inside component inline styles. If the brand primary blue changes, all CSS token references update automatically — but these hardcoded rgba literals in JS string templates remain the old color. Focus rings on interactive elements inside Web Components (modal close button, confirm buttons, popover triggers) show the old brand blue.
 
-For data-heavy desktop apps (Linear, Notion, AG-VOTE): body text 14–16px, headings 24–36px, labels/captions 11–13px. The key insight: **line-height should decrease as font-size increases** — headlines at 1.1–1.2, body at 1.5–1.6, captions at 1.4.
+**Why it happens:**
+The component authors correctly embedded focus ring styles for graceful degradation when tokens fail. But they hardcoded the rgba value rather than using a fully token-referenced value. This creates a hidden coupling to the exact hex of the current primary.
 
-AG-VOTE uses Bricolage Grotesque (body), Fraunces (display/headings), JetBrains Mono (data). This is an excellent combination. The problem is in the scale steps and line-height assignments.
+**How to avoid:**
+- After any brand blue change, run: `grep -r "22,80,224\|1650E0" public/assets/js/components/` and update all matches.
+- Consider using `var(--ring-color, rgba(22,80,224,0.35))` as the fallback form — the token resolves correctly when the stylesheet is loaded; the rgba is only the degradation fallback.
 
-```css
-:root {
-  /* ─── FONT FAMILIES (unchanged — strong identity) ─── */
-  --font-sans:    'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
-  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+**Warning signs:**
+- A brand color phase was applied but no `*.js` component files were modified.
+- Focus rings on Shadow DOM components show a different blue than native browser focus rings on the page.
 
-  /* ─── FONT SIZE SCALE ─── */
-  /* 9 steps — covers every use case in AG-VOTE */
-  --text-2xs:  0.6875rem;  /* 11px — badges, legal fine print */
-  --text-xs:   0.75rem;    /* 12px — table meta, timestamps */
-  --text-sm:   0.8125rem;  /* 13px — compact UI, secondary labels */
-  --text-base: 0.875rem;   /* 14px — PRIMARY body text (data-dense app) */
-  --text-md:   1rem;       /* 16px — emphasized body, form labels */
-  --text-lg:   1.125rem;   /* 18px — section subtitles, lead text */
-  --text-xl:   1.25rem;    /* 20px — page sub-headers */
-  --text-2xl:  1.5rem;     /* 24px — h3 / card titles */
-  --text-3xl:  1.875rem;   /* 30px — h2 / page titles */
-  --text-4xl:  2.25rem;    /* 36px — h1 / hero (display font) */
-  --text-5xl:  3rem;       /* 48px — landing/marketing only */
-
-  /* ─── LINE HEIGHTS (per-size — not generic) ─── */
-  /* Smaller text needs more breathing room. Large text needs tighter tracking. */
-  --leading-2xs:  1.5;    /* 11px → 16.5px */
-  --leading-xs:   1.5;    /* 12px → 18px */
-  --leading-sm:   1.55;   /* 13px → ~20px */
-  --leading-base: 1.571;  /* 14px → 22px — golden for data tables */
-  --leading-md:   1.5;    /* 16px → 24px */
-  --leading-lg:   1.4;    /* 18px → 25.2px */
-  --leading-xl:   1.35;   /* 20px → 27px */
-  --leading-2xl:  1.3;    /* 24px → 31.2px */
-  --leading-3xl:  1.2;    /* 30px → 36px */
-  --leading-4xl:  1.1;    /* 36px → 39.6px */
-
-  /* ─── FONT WEIGHTS ─── */
-  --weight-regular:   400;
-  --weight-medium:    500;
-  --weight-semibold:  600;
-  --weight-bold:      700;
-  --weight-extrabold: 800;
-
-  /* ─── LETTER SPACING ─── */
-  --tracking-tight:   -0.025em;  /* large headings */
-  --tracking-snug:    -0.015em;  /* h2/h3 */
-  --tracking-normal:   0em;      /* body text */
-  --tracking-wide:     0.025em;  /* all-caps labels, badges */
-  --tracking-wider:    0.05em;   /* very tight UPPERCASE */
-  --tracking-widest:   0.1em;    /* micro labels */
-
-  /* ─── SEMANTIC TYPOGRAPHY ALIASES ─── */
-  /* Used in component CSS for consistency */
-  --type-page-title-size:   var(--text-3xl);
-  --type-page-title-weight: var(--weight-bold);
-  --type-page-title-lead:   var(--leading-3xl);
-  --type-page-title-track:  var(--tracking-tight);
-  --type-page-title-font:   var(--font-display);
-
-  --type-section-title-size:   var(--text-2xl);
-  --type-section-title-weight: var(--weight-bold);
-  --type-section-title-lead:   var(--leading-2xl);
-  --type-section-title-track:  var(--tracking-snug);
-
-  --type-card-title-size:   var(--text-xl);
-  --type-card-title-weight: var(--weight-semibold);
-  --type-card-title-lead:   var(--leading-xl);
-
-  --type-body-size:   var(--text-base);  /* 14px */
-  --type-body-weight: var(--weight-regular);
-  --type-body-lead:   var(--leading-base);
-
-  --type-body-md-size:   var(--text-md);  /* 16px — for prose/help */
-  --type-body-md-weight: var(--weight-regular);
-  --type-body-md-lead:   var(--leading-md);
-
-  --type-label-size:   var(--text-sm);
-  --type-label-weight: var(--weight-medium);
-  --type-label-lead:   var(--leading-sm);
-
-  --type-caption-size:   var(--text-xs);
-  --type-caption-weight: var(--weight-regular);
-  --type-caption-lead:   var(--leading-xs);
-
-  --type-badge-size:   var(--text-2xs);
-  --type-badge-weight: var(--weight-medium);
-  --type-badge-track:  var(--tracking-wide);
-
-  --type-mono-size:   var(--text-sm);   /* 13px for data/code */
-  --type-mono-lead:   var(--leading-sm);
-  --type-mono-font:   var(--font-mono);
-}
-```
-
-**Key change from v4.0:** Base body size drops from 16px to 14px. AG-VOTE is a data-dense governance app — operators see vote tallies, proxy tables, member lists. 14px is what Linear, Notion, Jira, and GitHub use for their dense data tables. 16px is for marketing sites and text-heavy reads. This single change immediately makes the UI feel more professional and data-native.
+**Phase to address:** Brand color phase — any phase that changes `--color-primary`.
 
 ---
 
-## 6. DARK MODE STRATEGY
+### Pitfall 5: Dark Mode Contrast Passes Light Mode But Fails Independently
 
-### Background Layering Model (HIGH confidence — Atlassian + Radix verified)
+**What goes wrong:**
+A new color combination — e.g., a softer muted text on a card surface — passes WCAG AA (4.5:1) in light mode. The designer verifies this. The dark mode equivalent uses corresponding dark tokens. But dark mode contrast is never independently verified. For example, `--color-text-muted` in dark mode (`#50596C`) on `--color-surface` (`#141820`) produces approximately 3.2:1 — below the 4.5:1 threshold for normal-size body text.
 
-**The core principle:** In dark mode, elevation = lightness. A higher surface (closer to the user) is lighter. This is the opposite of light mode where elevation is expressed via shadows.
+**Why it happens:**
+Designers verify contrast in their primary design tool using the light mode palette. Dark mode is treated as "automatic" because tokens use the same semantic names. But contrast ratio depends on absolute luminance values, which are entirely different between themes. A pair that passes in light may fail in dark and vice versa.
 
-**5-layer background model:**
+**How to avoid:**
+- For every new semantic color pair introduced, verify contrast in **both** themes independently.
+- Run a browser accessibility audit (Lighthouse, axe DevTools) after every palette change in both themes.
+- `--color-text-muted` and `--color-text-light` are by design lower-contrast — use only for non-body-text elements (captions, metadata, labels under large primary text) where WCAG allows 3:1 for large text or decorative content.
+- Never promote `--color-text-muted` to primary content text to achieve a "softer" visual.
 
-```
-Layer 0: Page background (darkest)  →  --color-bg
-Layer 1: Surface (cards, panels)    →  --color-surface      (+3-4% lightness)
-Layer 2: Raised (selected, hover)   →  --color-surface-raised (+4-5% more)
-Layer 3: Overlay (modals, drawers)  →  --color-surface-overlay (same as raised + blur)
-Layer 4: Tooltip/popover            →  --color-surface-raised + higher shadow
-```
+**Warning signs:**
+- A Lighthouse accessibility audit flags contrast violations after a palette change.
+- Text that was previously `--color-text-dark` is changed to `--color-text-muted` for aesthetic reasons.
+- A new foreground color is introduced without documenting its contrast ratio on each surface it appears on.
 
-In the AG-VOTE dark token definitions above, these follow oklch lightness values:
-- `--color-bg`: L=0.130
-- `--color-surface`: L=0.155  (+0.025)
-- `--color-surface-raised`: L=0.190  (+0.035)
-
-**The gap between layers must be at least 3 lightness points in oklch** for the layering to be visible to human perception.
-
-### Dark Mode Contrast Rules
-
-```css
-/* ─── CONTRAST REQUIREMENTS — WCAG AA ─── */
-/*
-  Text on bg:          body text vs surface → ≥ 4.5:1
-  Large text on bg:    headings vs bg → ≥ 3:1
-  Border visibility:   border vs surface → ≥ 1.5:1 (perceptible)
-
-  AG-VOTE dark mode measurements:
-  --color-text (L=0.62) on --color-surface (L=0.155) → ~6.2:1 ✓
-  --color-text-dark (L=0.94) on --color-bg (L=0.13) → ~12:1 ✓
-  --color-text-muted (L=0.46) on --color-surface (L=0.155) → ~3.8:1 ✗ (borderline)
-
-  Fix for muted text in dark mode:
-  Muted text needs L ≥ 0.50 on the dark surfaces used.
-*/
-
-/* Dark mode text legibility rules */
-[data-theme="dark"] {
-  /* Minimum muted text — bumped to pass 4.5:1 */
-  --color-text-muted:  oklch(0.520 0.018 250);  /* was 0.460 — too dim */
-
-  /* Don't use --color-text-light for anything except decorative/disabled */
-  /* It fails WCAG AA on dark surfaces */
-}
-```
-
-### Sidebar Dark Override Pattern
-
-```css
-/* ─── SIDEBAR (always dark, regardless of theme) ─── */
-/* Sidebar has its own independent token set */
-:root {
-  --sidebar-bg:           oklch(0.110 0.015 265); /* #0C1018 */
-  --sidebar-bg-hover:     oklch(1 0 0 / 10%);     /* white 10% overlay */
-  --sidebar-bg-active:    oklch(0.520 0.195 265 / 30%); /* primary 30% */
-  --sidebar-border:       oklch(1 0 0 / 8%);
-  --sidebar-text:         oklch(1 0 0 / 85%);
-  --sidebar-text-active:  oklch(1 0 0 / 100%);
-  --sidebar-text-muted:   oklch(1 0 0 / 50%);
-  --sidebar-icon:         oklch(1 0 0 / 60%);
-  --sidebar-icon-active:  oklch(0.680 0.170 265); /* primary color */
-}
-/* Sidebar stays the same in dark mode — already dark */
-[data-theme="dark"] {
-  --sidebar-bg: oklch(0.080 0.010 265); /* slightly deeper in dark mode */
-}
-```
-
-### What Top Dark Modes Do Differently
-
-1. **No pure black (#000000) anywhere** — pure black has infinite contrast and feels harsh. Use deeply saturated dark grays with a slight blue/purple hue.
-
-2. **Borders are opacity-based, not hex-based** — `oklch(1 0 0 / 8%)` instead of `#252C3C`. This adapts automatically when background lightness changes.
-
-3. **Colored shadows are invisible on dark** — replace shadows with `border: 1px solid var(--color-border)` on dark surfaces. Only floating elements (modals, popovers) need shadows.
-
-4. **Interactive states use background tint, not border** — on dark, `background: oklch(1 0 0 / 5%)` for hover is more legible than changing border color.
+**Phase to address:** Every phase introducing new color combinations, especially typography and palette phases.
 
 ---
 
-## 7. BORDER-RADIUS SCALE
+### Pitfall 6: @layer Ordering Disrupted by Uncoordinated Layer Additions
 
-### Research Findings (MEDIUM confidence — visual analysis of Vercel/Linear/Stripe)
+**What goes wrong:**
+`design-system.css` declares `@layer base, components, v4;` at the top. Page-specific CSS files (`wizard.css`, `hub.css`, etc.) write unlayered rules that have higher precedence than all layered rules regardless of specificity. If a new phase introduces a new layer without pre-declaring it in the global list, or if a page CSS file adds `@layer some-name { ... }` that was not pre-registered, the cascade priority silently shifts. Overrides that previously worked stop working. New rules have no effect.
 
-| App | Default button | Cards | Inputs | Modals |
-|-----|---------------|-------|--------|--------|
-| Vercel | 6px | 8px | 6px | 12px |
-| Linear | 6px | 8px | 6px | 12px |
-| Stripe | 6px | 12px | 6px | 16px |
-| GitHub | 6px | 8px | 6px | 12px |
+**Why it happens:**
+`@layer` ordering is set by the first declaration of that layer name encountered during stylesheet parse order. If a layer is added in a page file without being registered in `design-system.css` first, its position in the cascade depends on parse order — which is load order dependent and fragile.
 
-**Pattern:** 6px for interactive elements (buttons, inputs, chips), 8px for containers (cards), 12px for modals/drawers. "Premium" feel comes from **consistent application**, not specific numbers.
+**How to avoid:**
+- All new layers must be declared in the `@layer base, components, v4;` registration line in `design-system.css` before being used anywhere.
+- Do not introduce `@layer` declarations in page-specific CSS files without coordinating with the global declaration.
+- Prefer adding visual identity overrides to the existing `v4` layer rather than creating `v5`.
 
-**What makes radius look cheap:**
-- Using the same radius everywhere (no hierarchy)
-- Radius too large for small elements (8px on a 24px badge looks like a pill)
-- Mixing px and rem values across components
+**Warning signs:**
+- A new CSS rule has no visible effect despite correct class targeting and no specificity conflicts.
+- A style override that "should win" is being overridden by a rule it should beat.
+- A page CSS file contains `@layer` that is not in the `design-system.css` registration list.
 
-```css
-:root {
-  /* ─── BORDER RADIUS SCALE ─── */
-  --radius-none: 0;
-  --radius-xs:   0.1875rem; /* 3px  — table cell indicators, hairline */
-  --radius-sm:   0.3125rem; /* 5px  — tags, badges, inline chips */
-  --radius-md:   0.375rem;  /* 6px  — buttons, inputs, selects */
-  --radius-lg:   0.5rem;    /* 8px  — cards, panels, dropdowns */
-  --radius-xl:   0.75rem;   /* 12px — modals, drawers, toasts */
-  --radius-2xl:  1rem;      /* 16px — sidesheets, featured cards */
-  --radius-full: 9999px;    /* pill — status badges, avatar */
-
-  /* ─── SEMANTIC RADIUS ALIASES ─── */
-  --radius-btn:     var(--radius-md);   /* 6px — all buttons */
-  --radius-input:   var(--radius-md);   /* 6px — inputs, selects */
-  --radius-badge:   var(--radius-sm);   /* 5px — status badges */
-  --radius-chip:    var(--radius-full); /* pill — filter chips */
-  --radius-card:    var(--radius-lg);   /* 8px — content cards */
-  --radius-panel:   var(--radius-lg);   /* 8px — sidebar panels */
-  --radius-modal:   var(--radius-xl);   /* 12px — dialog boxes */
-  --radius-toast:   var(--radius-lg);   /* 8px — notifications */
-  --radius-tooltip: var(--radius-sm);   /* 5px — tooltips */
-  --radius-avatar:  var(--radius-full); /* circle — avatars */
-  --radius-tag:     var(--radius-xs);   /* 3px — table tags (tight) */
-}
-```
-
-**AG-VOTE specific note:** The current scale (6px / 8px / 10px) is close but `--radius-lg: 10px` should become `--radius-lg: 8px` to align with industry standard. The 10px value is an awkward in-between.
+**Phase to address:** Any phase modifying CSS layer structure or adding new component CSS files.
 
 ---
 
-## 8. TRANSITION SYSTEM
+### Pitfall 7: Font Loading Regression — Weight Changes Not Propagated to All Pages
 
-### Research Findings (HIGH confidence — Material Design 3 motion specs + MDN verified)
+**What goes wrong:**
+The app loads three Google Fonts families via a single `<link rel="stylesheet">` URL that is duplicated across 20+ `.htmx.html` files. If a visual identity evolution changes font weights (e.g., adding weight 300 or removing weight 800 from Bricolage Grotesque), updating one page's URL does not update all pages. Pages with the old URL continue loading old weight subsets. The service worker may cache the old Google Fonts CSS response. Some pages get the new weights; others get stale subsets. Font rendering is inconsistent across pages and sessions.
 
-Material Design 3 defines: **Standard (default)** for most UI changes, **Emphasized** for large/dramatic changes, **Decelerate** for elements entering screen, **Accelerate** for elements leaving.
+**Why it happens:**
+There is no single source of truth for the Google Fonts URL. It is a copy-pasted string across all HTML files. Developers update the page they are working on and miss the rest.
 
-Framer Motion defaults: spring-based with damping 20, stiffness 300 for most interactions. For CSS-only (no Framer), the equivalent feel uses `cubic-bezier(0.34, 1.56, 0.64, 1)` for a subtle spring bounce.
+**How to avoid:**
+- When changing font weights or families, search all `.htmx.html` files for the Google Fonts URL and update every instance: `grep -r "fonts.googleapis.com" public/ --include="*.html"`.
+- After updating, bump the service worker cache version in `sw.js` to force stale cache invalidation.
+- The `display=swap` parameter is already in place — correct. The `crossorigin` attribute on the preconnect tag is already present — do not remove it. Without `crossorigin` on the preconnect, the font preconnect is ignored by the browser.
 
-```css
-:root {
-  /* ─── DURATION SCALE ─── */
-  --duration-instant:  50ms;   /* state-only changes (color on hover) */
-  --duration-fast:     100ms;  /* micro interactions (button press) */
-  --duration-normal:   150ms;  /* standard UI (most hover states) */
-  --duration-moderate: 200ms;  /* slightly more complex (dropdowns) */
-  --duration-slow:     250ms;  /* deliberate feedback (form validation) */
-  --duration-deliberate: 300ms;/* enter/exit animations */
-  --duration-elaborate: 400ms; /* page transitions, modals */
-  --duration-dramatic: 500ms;  /* hero animations, first load */
+**Warning signs:**
+- A new font weight is visible on some pages but not others after a deploy.
+- Font rendering differs between a fresh network load and a service-worker-cached load.
+- A weight was added to Fraunces but display headings still appear in the old weight on pages where the URL was not updated.
 
-  /* ─── EASING FUNCTIONS ─── */
-  /* Named after intent, not mathematical description */
-
-  /* Standard — functional state changes (hover, focus, active) */
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-
-  /* Emphasized — enter screen or expand (decelerates into rest) */
-  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1.0);
-
-  /* Emphasized out — exit screen or collapse (accelerates away) */
-  --ease-emphasized-out: cubic-bezier(0.3, 0, 0.8, 0.15);
-
-  /* Linear — opacity fades, where easing looks wrong */
-  --ease-linear: linear;
-
-  /* Spring — delightful micro bounce (not for enter/exit, only for interactive response) */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Overshoot — badges, count changes — slightly overshoots target */
-  --ease-overshoot: cubic-bezier(0.34, 1.3, 0.64, 1);
-
-  /* Legacy aliases (backwards compat with existing code) */
-  --ease-default: var(--ease-standard);
-  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
-  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
-  --ease-bounce:  var(--ease-spring);
-
-  /* ─── NAMED TRANSITIONS ─── */
-  /* Pre-composed transitions for common use cases */
-  --transition-color:     color var(--duration-normal) var(--ease-standard),
-                          background-color var(--duration-normal) var(--ease-standard),
-                          border-color var(--duration-normal) var(--ease-standard);
-
-  --transition-shadow:    box-shadow var(--duration-moderate) var(--ease-standard);
-
-  --transition-transform: transform var(--duration-moderate) var(--ease-standard);
-
-  --transition-opacity:   opacity var(--duration-normal) var(--ease-linear);
-
-  --transition-ui:        color var(--duration-normal) var(--ease-standard),
-                          background-color var(--duration-normal) var(--ease-standard),
-                          border-color var(--duration-normal) var(--ease-standard),
-                          box-shadow var(--duration-moderate) var(--ease-standard),
-                          opacity var(--duration-normal) var(--ease-linear);
-
-  --transition-enter:     transform var(--duration-deliberate) var(--ease-emphasized),
-                          opacity var(--duration-deliberate) var(--ease-linear);
-
-  --transition-exit:      transform var(--duration-moderate) var(--ease-emphasized-out),
-                          opacity var(--duration-moderate) var(--ease-linear);
-
-  /* Legacy shorthand (keep for existing code) */
-  --transition: var(--duration-normal) var(--ease-standard);
-}
-```
-
-**Why `--transition-ui` matters:** Instead of writing `transition: all 200ms ease` (which re-computes layout on every frame), enumerate exactly what changes. `all` triggers reflows. Individual property transitions only composite what's needed.
-
-**Duration guide for AG-VOTE:**
-- Button hover color: `--duration-normal` (150ms) + `--ease-standard`
-- Dropdown open: `--duration-deliberate` (300ms) + `--ease-emphasized`
-- Modal enter: `--duration-elaborate` (400ms) + `--ease-emphasized`
-- Live vote badge count: `--duration-fast` (100ms) + `--ease-overshoot`
-- SSE delta badges: `--duration-fast` (100ms) + `--ease-spring`
+**Phase to address:** Typography phase. Also: any phase that modifies the font weight axis in the Google Fonts URL.
 
 ---
 
-## Critical Pitfalls for v4.1
+### Pitfall 8: Infrastructure-Only Phase Delivers No Visible Design Change (v4.1 Repeat)
 
-### Pitfall 1: oklch Browser Support — Gradual Rollout Risk
+**What goes wrong:**
+A phase restructures design tokens, renames variables, improves the token hierarchy, adds new aliases, or refactors the `@layer` structure — all in service of "a better foundation for the visual redesign." The phase ships. Pages look identical to before. No user-visible change was delivered. The next phase still has to do the actual visual work. The infrastructure phase consumed milestone budget without user-facing output, and stakeholders see no progress.
 
-**What goes wrong:** OKLCH primitive values in `:root` are not parsed by Safari < 15.4 or any IE. The fallback hex values disappear entirely — component backgrounds become transparent.
+**Why it happens:**
+Token infrastructure work feels like design work — it touches `design-system.css`, changes variable names, creates semantic aliases. But it does not change computed browser output unless it also changes the values those tokens resolve to. The gap between "infrastructure" and "visual output" is easy to underestimate.
 
-**Prevention:** For primitives layer, keep them as comments/reference only. Semantic tokens should use hex or `rgb()` as primary values, with `color-mix(in oklch, ...)` used only for derived values. OR add @supports guard:
+**How to avoid:**
+- Every phase in a visual identity milestone must produce at least one **visible, per-page change** demonstrable in a screenshot.
+- Token work is justified only if it unblocks a specific visual change that is **also delivered in the same phase**.
+- The v4.1 lesson is explicitly noted in PROJECT.md as "Revisit — infrastructure delivered but no visible visual impact." Do not repeat it. Token work must be coupled to visible output in the same commit.
 
-```css
-/* Safe pattern */
-:root {
-  --color-primary: #1650E0;  /* fallback first */
-  --color-primary: oklch(0.520 0.195 265);  /* enhances if supported */
-}
-```
+**Warning signs:**
+- A phase description contains only "refactor," "rename," "restructure," "hierarchy" without specifying what users will see differently.
+- A phase modifies only `design-system.css` without touching any page-specific CSS, HTML, or JS.
+- A phase is titled "Foundation for v10.x" without a list of concrete visual deliverables.
 
-**Detection:** Test in Safari 15.3 or use @supports(color: oklch(0 0 0)) gate.
-
-### Pitfall 2: color-mix() In Cascaded Variables — Reference Loop
-
-**What goes wrong:** `--color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, var(--color-surface))` in `:root` is fine. But if a component does `--color-primary: color-mix(in oklch, var(--color-primary) 80%, black)` — this is a circular reference and resolves to `transparent`.
-
-**Prevention:** Never redefine a token using itself. Use component-scoped tokens:
-
-```css
-/* BAD */
-.btn { --color-primary: color-mix(in oklch, var(--color-primary) 80%, black); }
-
-/* GOOD */
-.btn { --btn-bg: color-mix(in oklch, var(--color-primary) 80%, black); }
-```
-
-### Pitfall 3: Token Proliferation — The 265+ Variable Trap
-
-**What went wrong in v4.0:** Each page CSS file added its own one-off tokens (`--quorum-bar-bg`, `--delta-badge-color`) without checking if a semantic token already existed. Result: 265+ variables with massive overlap.
-
-**Prevention for v4.1:** Enforce a naming convention:
-- Primitive: `--[palette]-[step]` (e.g., `--blue-600`)
-- Semantic: `--color-[role]` (e.g., `--color-primary`)
-- Component: `--[component]-[property]` (e.g., `--badge-bg`)
-
-If you reach for `--color-vote-status-approved-bg`, that's a code smell. Use `--color-success-subtle`.
-
-**Maximum target:** 80–100 tokens in `:root`, 20–30 in `[data-theme="dark"]`, component tokens scoped to their component.
-
-### Pitfall 4: Shadow Strength Mismatch Between Themes
-
-**What goes wrong:** Shadows tuned for light mode (subtle, warm) are nearly invisible in dark mode. The current `--shadow-lg` is 0.10 alpha on light and 0.36 alpha on dark — a 3.6× multiplier. If you forget to add the dark override, shadowed elements look flat.
-
-**Prevention:** Always define the `--shadow-color` variable separately and override it in dark mode:
-
-```css
-:root { --shadow-color: 21 21 16; }     /* warm dark */
-[data-theme="dark"] { --shadow-color: 0 0 0; }  /* pure black */
-/* Then all --shadow-* values automatically adapt */
-```
-
-**Detection:** Screenshot the same component in both modes side-by-side at the same scale.
-
-### Pitfall 5: Typography Base Size Regression
-
-**What goes wrong:** Changing `--text-base` from 16px to 14px breaks every existing component that uses `font-size: var(--text-base)` — form labels, body text, table cells. They all shrink at once.
-
-**Prevention:** Add the new `--text-base: 0.875rem` (14px) and rename the old 16px to `--text-md`. Then sweep through page CSS files to update references. Do this in one atomic phase, not spread across multiple.
-
-**Migration path:**
-```css
-/* Phase 1: Add new value, keep old name */
---text-base: 1rem;       /* still 16px during transition */
---text-14: 0.875rem;     /* new 14px anchor */
-
-/* Phase 2: After all components updated */
---text-base: 0.875rem;   /* 14px */
---text-md: 1rem;         /* 16px */
-```
-
-### Pitfall 6: @layer Specificity vs New Token Cascade
-
-**What goes wrong:** If new tokens are defined in `@layer base` but a component in `@layer v4` uses `color: oklch(...)` directly (inline), the layer wins over the token. Adding `!important` to a token doesn't work — it applies to the fallback, not the variable.
-
-**Prevention:** Never put raw color values in `@layer v4` component rules. Always go through a token. The rule: `@layer v4` may override token assignments but must never bypass the token system.
-
-### Pitfall 7: Transition `all` Performance
-
-**What goes wrong:** `transition: all 150ms ease` triggers composite reflow on properties that don't change (width, height, font-size). On tables with 50+ rows, hover states stutter.
-
-**Prevention:** Use `--transition-color` or `--transition-ui` (explicit properties). Never `transition: all`.
-
-```css
-/* BAD — existing pattern in AG-VOTE */
-.table-row { transition: all 150ms ease; }
-
-/* GOOD */
-.table-row { transition: var(--transition-color), var(--transition-shadow); }
-```
+**Phase to address:** Milestone planning stage. This is a planning pitfall. The milestone roadmap must enforce that every phase delivers visible output.
 
 ---
 
-## Phase-Specific Warnings for v4.1
+## Technical Debt Patterns
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Token audit | Missing dark-mode parity for new tokens | Run both themes in parallel during development |
-| oklch migration | Browser fallback gaps | Keep hex fallbacks as first declaration |
-| Typography refactor | base-size change breaks all page CSS | Atomic sweep, staged naming migration |
-| Shadow audit | Dark mode shadows invisible | Use --shadow-color variable pattern |
-| Component spacing | Inconsistent pad-md vs space-6 usage | Enforce semantic alias usage only |
-| Transition cleanup | `transition: all` in 15+ page files | Search/replace with specific property list |
-| Color-mix circular refs | Component overrides looping | Lint for var(--color-*) inside color-mix redef |
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Hardcoded hex fallbacks in Shadow DOM component `<style>` strings | Components degrade gracefully when tokens fail to load | Fallbacks become stale after palette changes; must be manually audited per change | Acceptable — document which hex maps to which token |
+| Google Fonts URL duplicated across 20+ HTML files | No build step needed; simple to understand | Font weight changes require editing 20+ files; inconsistency risk on missed files | Acceptable until font changes become frequent |
+| Per-page CSS files outside `@layer` | Page styles always win without specificity fights | Unlayered rules are fragile against future layer additions | Acceptable — but never add page-level `@layer` without global coordination |
+| `color-mix()` derived tokens computed at parse time | Automatic tint/shade derivation, no manual calculation | Derived tokens in `:root` do not automatically update in `[data-theme="dark"]`; dark overrides required | Acceptable — but enforce paired dark overrides as a code review gate |
+| Light-mode hex as CSS variable fallback (`var(--color-X, #FFFFFF)`) | Correct rendering during token load delay | Always light-mode fallback — dark mode path gets wrong color on load failure | Acceptable for robustness; prefer truly neutral fallbacks on dark-critical paths |
+
+---
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Shadow DOM + dark mode via `[data-theme="dark"]` on `<html>` | Assuming Shadow DOM does not inherit CSS custom properties | CSS custom properties DO inherit through shadow boundaries automatically. The token is available inside Shadow DOM. The risk is renames and fallback staleness, not inheritance failure. |
+| Shadow DOM + new token introduction | Adding a new token to `:root` and assuming all Shadow DOM components receive it | Shadow DOM components only use a new token if they explicitly reference it in their inline `<style>` string. New tokens require explicit adoption inside each component. |
+| `color-mix()` in dark mode | Defining `color-mix()` once in `:root` expecting it to recompute with dark values | `color-mix()` in `:root` evaluates against `:root` values only. Dark `[data-theme="dark"]` block must explicitly re-declare derived tokens to override the `:root` computation. |
+| Google Fonts + service worker | Updating font URL without bumping service worker cache version | Always bump the `sw.js` cache version when changing font URLs to force invalidation of cached stylesheet responses. |
+| FilePond CSS + `@layer` | FilePond CSS loaded from CDN may introduce its own `@layer` in future versions | Pin FilePond to the specific version in the CDN URL. Verify new versions do not add `@layer` that conflicts with the app's layer order. |
+
+---
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Adding more Google Fonts weight variants | LCP degrades; font swap is more pronounced | Audit which weights are actually used before adding. Each additional weight axis is ~50-100KB. | Immediately on the pages where the heavier URL is loaded |
+| FOUT with new font or weight causing CLS | Text shifts when fallback swaps to custom font; Cumulative Layout Shift score increases | Use a system font fallback that matches the metric dimensions of Bricolage Grotesque; add `size-adjust` to the fallback `@font-face` | Every page load until the font is browser-cached |
+| `color-mix()` with `oklch` on older Firefox | Colors render incorrectly or fall back to `currentColor` on Firefox < 113 | The current codebase already declares both hex and oklch forms for primitives. Keep this dual-declaration pattern; do not drop the hex fallback. | Firefox versions below 113 — edge case in practice |
+
+---
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Changing base font size for UI chrome | Operators running live sessions have ergonomic muscle memory for UI density; a size shift disrupts scanning speed | Preserve `--text-base: 0.875rem` (14px). Font size changes are acceptable only for display/heading (`--font-display`) contexts. |
+| Reducing color contrast for a "softer" aesthetic | Fails WCAG AA; users with low vision cannot read primary content | Never reduce contrast below 4.5:1 for body text, 3:1 for large text. Verify both light and dark themes. |
+| Changing `--sidebar-width` globally | All 20+ page layouts shift simultaneously; content areas reflow | Sidebar width is a global layout constraint. Any change cascades to every page. Treat as a milestone-level decision, not a per-phase change. |
+| Adding CSS transition to `[data-theme="dark"]` override block | Theme toggle lags; all color-dependent properties animate on switch | The existing `--transition-color` is applied at component level. Do not add transition to the `[data-theme="dark"]` block itself — it causes a flash on every theme switch. |
+| Replacing Fraunces with a different display typeface | Breaks the "officiel et confiance" typographic identity established across v4.0–v4.3 | Fraunces is the identity font for h1 and display use. Any replacement requires explicit milestone sign-off. |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Dark mode**: Every new color pair verified for contrast in dark mode independently, not just light mode.
+- [ ] **Shadow DOM token rename**: After any rename, `grep -r "old-token" public/assets/js/components/` returns zero results.
+- [ ] **Focus ring hex**: After a primary blue change, `grep -r "22,80,224\|1650E0" public/assets/js/components/` returns zero or updated results.
+- [ ] **color-mix() dark overrides**: Every `color-mix()` expression added to `:root` has a corresponding explicit override in `[data-theme="dark"]`.
+- [ ] **Google Fonts URL**: All `.htmx.html` files use the updated font URL after a weight change.
+- [ ] **Service worker cache**: `sw.js` cache version incremented after any font URL or CSS file path change.
+- [ ] **JS selectors**: Every HTML restructuring was preceded by a grep of the page JS file for selectors targeting the changed elements. All selectors verified to still resolve.
+- [ ] **Playwright E2E**: Page-specific E2E spec passes green after any change to that page's HTML or JS.
+- [ ] **Visible output**: The phase produced at least one screenshot-demonstrable visual change on at least one real page.
+- [ ] **@layer registration**: No new `@layer name { ... }` exists in any file that was not pre-declared in `design-system.css`'s `@layer base, components, v4;` line.
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| HTML restructuring broke JS interactions (v4.2 pattern) | HIGH — often requires page rebuild | Revert HTML to last known working state. Apply visual changes purely via CSS if possible. If restructuring is unavoidable, fix JS selectors page by page with E2E verification at each step before proceeding to the next page. |
+| Token rename broke Shadow DOM components | MEDIUM — grep + search-replace across JS files | `grep -r "old-token-name" public/assets/js/components/` → update all occurrences → verify visually in both themes. |
+| Dark mode contrast failure | LOW — single token value adjustment | Update the failing token value in `[data-theme="dark"]` → re-run contrast check → verify with axe DevTools. |
+| Service worker serving stale fonts | LOW — cache version bump | Increment cache version constant in `sw.js` → deploy → users hard-refresh once. |
+| color-mix() derived token wrong in dark mode | LOW — add missing dark override | Add explicit computed value for the derived token in `[data-theme="dark"]` block. |
+| @layer ordering conflict | MEDIUM — requires CSS audit | Identify conflicting layer declarations across all CSS files → consolidate layer order in `design-system.css` → test 3+ representative pages. |
+| Infrastructure-only phase with no visible output | MEDIUM — requires phase replanning | Identify one page-level visual change that can be shipped alongside or instead of the infrastructure work. Merge both into the same commit. |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| HTML restructuring breaks JS selectors | Every page-touching phase | Playwright E2E for that page passes before phase closes |
+| color-mix() tokens wrong in dark mode | Token/palette phase | Manual dark mode visual review on all modified pages |
+| Token rename breaks Shadow DOM components | Any token rename phase | `grep -r "old-name" public/assets/js/components/` returns zero |
+| Hardcoded focus ring hex stale after brand color change | Brand color phase | `grep -r "22,80,224" public/assets/js/components/` returns zero or updated |
+| Dark mode contrast violations | Any phase introducing new colors | Lighthouse accessibility score maintained; axe scan passes |
+| @layer ordering disrupted | CSS architecture phase | Computed styles match expected on 3 representative pages |
+| Font loading regression | Typography phase | Network tab shows correct font file on all pages; sw.js version incremented |
+| Infrastructure-only phase with no visible output | Milestone planning stage | Phase sign-off requires screenshot evidence of visible change per page |
 
 ---
 
 ## Sources
 
-- [Radix Colors — Understanding the Scale](https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale) — HIGH confidence
-- [Tailwind CSS v4 theme.css (GitHub)](https://github.com/tailwindlabs/tailwindcss/blob/next/packages/tailwindcss/theme.css) — HIGH confidence
-- [shadcn/ui Theming Documentation](https://ui.shadcn.com/docs/theming) — HIGH confidence
-- [OKLCH in CSS: Why We Moved from RGB and HSL — Evil Martians](https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl) — HIGH confidence
-- [Material Design 3 Easing and Duration](https://m3.material.io/styles/motion/easing-and-duration/tokens-specs) — MEDIUM confidence (page content partially accessible)
-- [Material Design 3 Elevation](https://m3.material.io/styles/elevation/applying-elevation) — MEDIUM confidence
-- [Open Props — Sub-atomic CSS](https://open-props.style/) — HIGH confidence
-- [Better Buttons with color-mix() — A Beautiful Site](https://www.abeautifulsite.net/posts/better-buttons-with-color-mix-and-custom-properties/) — MEDIUM confidence
-- [Relative Color Syntax in CSS — OpenReplay](https://blog.openreplay.com/css-relative-color-syntax/) — MEDIUM confidence
-- [Font Size Guidelines — LearnUI.design](https://www.learnui.design/blog/mobile-desktop-website-font-size-guidelines.html) — MEDIUM confidence
-- [Atlassian Design — Elevation](https://atlassian.design/foundations/elevation/) — HIGH confidence
+- Codebase inspection: `/home/user/gestion_votes_php/public/assets/css/design-system.css`, `/home/user/gestion_votes_php/public/assets/js/components/ag-modal.js`, `ag-toast.js`, `ag-confirm.js`, `/home/user/gestion_votes_php/public/wizard.htmx.html`, `/home/user/gestion_votes_php/.planning/PROJECT.md`
+- [CSS Custom Properties in Shadow DOM — DEV Community](https://dev.to/michaelwarren1106/public-css-custom-properties-in-the-shadow-dom-4hc6)
+- [Shadow roots and inheritance — Kitty Giraudel](https://kittygiraudel.com/2021/08/23/shadow-roots-and-inheritance/)
+- [Dark Mode in Web Components — DEV Community](https://dev.to/stuffbreaker/dark-mode-in-web-components-is-about-to-get-awesome-4i14)
+- [Dark Mode Does Not Satisfy WCAG Contrast by Itself — BOIA](https://www.boia.org/blog/offering-a-dark-mode-doesnt-satisfy-wcag-color-contrast-requirements)
+- [Designing accessible color systems across themes — DEV Community](https://dev.to/beefedai/designing-accessible-color-systems-and-ensuring-contrast-across-themes-2i43)
+- [Font Loading Strategies 2025 — font-converters.com](https://font-converters.com/guides/font-loading-strategies)
+- [Preload web fonts — web.dev](https://web.dev/articles/codelab-preload-web-fonts)
+- [CSS Cascade Layers vs BEM — Smashing Magazine 2025](https://www.smashingmagazine.com/2025/06/css-cascade-layers-bem-utility-classes-specificity-control/)
+- [Refactoring CSS: Strategy and Regression — Smashing Magazine](https://www.smashingmagazine.com/2021/08/refactoring-css-strategy-regression-testing-maintenance-part2/)
+- PROJECT.md v4.1 decision note: "infrastructure delivered but no visible visual impact; page-by-page redesign needed" — confirms v4.1/v4.2 regression pattern as the canonical failure mode to avoid
+
+---
+*Pitfalls research for: visual identity evolution in existing app with Shadow DOM, dark/light mode, 35k CSS, 23 Web Components*
+*Researched: 2026-04-03*

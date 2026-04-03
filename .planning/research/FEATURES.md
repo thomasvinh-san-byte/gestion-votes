@@ -1,1594 +1,218 @@
-# Page Layout Specifications — v4.1 Design Excellence
+# Feature Research — Visual Identity Evolution
 
-**Domain:** AG-VOTE — General Assembly voting platform
-**Researched:** 2026-03-19
-**Scope:** Gold-standard layout for every page type — CSS grid/flex specs, ASCII diagrams, breakpoints
-**Confidence:** HIGH (cross-verified against multiple sources and existing codebase tokens)
-
----
-
-## Context and Constraints
-
-AG-VOTE already has a solid design system (`@layer base, components, v4`) with 265+ CSS custom properties, an 8px spacing grid, and a fixed sidebar rail (58px collapsed, 252px expanded). v4.1 is a **refonte** — every page layout gets rebuilt to a research-driven gold standard while preserving the existing design tokens and vanilla CSS approach.
-
-**Fixed constraints from PROJECT.md:**
-- `--sidebar-rail: 58px` (collapsed) / `--sidebar-expanded: 252px` (expanded/pinned)
-- `--header-height: 56px`
-- `--content-max: 1440px` / `--content-narrow: 720px`
-- Breakpoints: `480px` (sm) / `768px` (md) / `1024px` (lg)
-- Fonts: Bricolage Grotesque (body), Fraunces (display), JetBrains Mono (data)
-- Light-first, dark mode parity maintained
-- `@layer base, components, v4` structure preserved
+**Domain:** Modern SaaS/business app visual design patterns
+**Researched:** 2026-04-03
+**Milestone:** v10.0 Visual Identity Evolution
+**Confidence:** HIGH (cross-verified across multiple products and official sources)
 
 ---
 
-## PAGE TYPE 1 — DASHBOARD (KPI cards + session list)
+## Context
 
-### Reference: Stripe Dashboard, Linear dashboard pattern
+AG-VOTE already ships a complete design system: token hierarchy, 23 Web Components, 25 per-page CSS files,
+dark/light mode, "officiel et confiance" identity (bleu/indigo, Bricolage Grotesque + Fraunces + JetBrains Mono).
+This milestone evolves the *visual expression* of that system — not its architecture.
 
-**Used on:** `dashboard.htmx.html`
-
-### Layout Philosophy
-The dashboard is the "mission control" entry point. Primary purpose: answer "what needs my attention right now?" in under 3 seconds. The layout uses a top KPI row (scannable in one line), then an urgent action banner if applicable, then the sessions list as the main content. No card grid for sessions — a vertical list with strong row design beats a grid for data that has status, dates, and action CTAs.
-
-### ASCII Diagram
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ [sidebar rail 58px]  [header 56px — title + CTA]        │
-├─────────────────────────────────────────────────────────┤
-│                 CONTENT (max-width: 1200px, mx auto)     │
-│                                                         │
-│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐               │
-│  │ KPI  │  │ KPI  │  │ KPI  │  │ KPI  │  ← 4-col grid │
-│  │  28px│  │  28px│  │  28px│  │  28px│    gap: 16px   │
-│  └──────┘  └──────┘  └──────┘  └──────┘               │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ URGENT ACTION CARD (full width, conditionally)  │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌───────────────────────────────┐  ┌───────────────┐  │
-│  │ SESSIONS LIST                 │  │ QUICK ACTIONS │  │
-│  │ (upcoming + draft)            │  │ (secondary)   │  │
-│  │                               │  │               │  │
-│  │ row: 72px min-height          │  │               │  │
-│  │ ─────────────────────────     │  │               │  │
-│  │ row                           │  └───────────────┘  │
-│  │ ─────────────────────────     │                     │
-│  │ row                           │                     │
-│  └───────────────────────────────┘                     │
-└─────────────────────────────────────────────────────────┘
-```
-
-### CSS Grid Specifications
-
-```css
-@layer v4 {
-
-/* ── Dashboard content wrapper ── */
-.dashboard-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* ── KPI Row — 4 columns, equal width ── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-/* KPI card anatomy */
-.kpi-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);   /* 10px */
-  padding: 20px 24px;
-  min-height: 96px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.kpi-card__value {
-  font-size: var(--text-3xl);        /* 30px */
-  font-weight: var(--font-extrabold);
-  font-family: var(--font-display);  /* Fraunces */
-  line-height: 1;
-  color: var(--color-text-dark);
-}
-
-.kpi-card__label {
-  font-size: var(--text-sm);         /* 14px */
-  color: var(--color-text-muted);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.kpi-card__delta {
-  font-size: var(--text-xs);         /* 12px */
-  font-family: var(--font-mono);
-  margin-top: auto;
-}
-
-/* ── Urgent action banner — full width ── */
-.urgent-banner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary);
-  border-left: 4px solid var(--color-primary);
-  border-radius: var(--radius-lg);
-  text-decoration: none;
-  transition: background var(--duration-fast);
-}
-
-/* ── Main body — sessions list + sidebar ── */
-.dashboard-body {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-/* ── Session list rows ── */
-.session-list {
-  display: flex;
-  flex-direction: column;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.session-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  min-height: 72px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  transition: background var(--duration-fast);
-}
-
-.session-row:last-child { border-bottom: none; }
-.session-row:hover { background: var(--color-bg-subtle); }
-
-/* ── Quick actions sidebar ── */
-.dashboard-aside {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  position: sticky;
-  top: calc(var(--header-height) + 24px);
-}
-
-/* ── Responsive ── */
-@media (max-width: 1024px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .dashboard-body {
-    grid-template-columns: 1fr;
-  }
-  .dashboard-aside {
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-content {
-    padding: 0 16px;
-    gap: 16px;
-  }
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .kpi-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .kpi-card {
-    padding: 14px 16px;
-    min-height: 80px;
-  }
-  .kpi-card__value {
-    font-size: var(--text-2xl);
-  }
-}
-
-} /* @layer v4 */
-```
-
-### Spacing Rationale
-- **Max-width 1200px**: Stripe, Linear, and most SaaS dashboards use 1200–1280px. At 1440px (our global max) with a 58px sidebar, the content feels too sparse. 1200px keeps card proportions healthy.
-- **KPI 4-column gap 16px**: Tight enough that the row reads as a single unit, not four separate items.
-- **Session row 72px min-height**: Large enough to be scannable, matches the voter card height convention from v4.0.
-- **Quick-actions aside 280px**: Standard sidebar secondary column — matches Notion sidebar, Linear detail panel.
+Research scope: what do top-tier SaaS products (Linear, Vercel, Stripe, Notion, Clerk) do in 2025-2026
+that makes them feel premium, trustworthy, and calm? What patterns are table stakes, what differentiates,
+and what should be avoided?
 
 ---
 
-## PAGE TYPE 2 — WIZARD (4-step session creation)
+## Feature Landscape
 
-### Reference: Stripe Checkout, Notion database creation flow
+### Table Stakes (Users Expect These)
 
-**Used on:** `wizard.htmx.html`
+Features users assume any "serious" business app has. Their absence makes the product feel unpolished.
 
-### Layout Philosophy
-A wizard is a focused task. Remove all noise. The sidebar and its navigation context actively fight the user's concentration — they suggest escape routes. The gold-standard approach (Stripe Checkout) is a **centered single-column form**, max 640px wide, on a neutral page background. The stepper goes above the form card, not inside it, so it signals progress without competing with the form fields. Primary action is always at bottom-right, secondary (back) at bottom-left.
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Neutral-dominant color palette | Premium SaaS products since 2023 have moved away from heavy brand colors in the UI chrome; neutrals convey "tool", color conveys "moment" | LOW | AG-VOTE's indigo should appear sparingly — primary CTA, active nav state, focus ring. 90-95% of UI surface should be gray/neutral |
+| Dark mode that looks intentional | Dark mode is now expected by default on professional tools; users notice when it is an afterthought | MEDIUM | Must use dark grays (#121212 to #1c1c1e range) not pure black; surface elevation via lighter grays, not shadows |
+| Consistent border radius language | Every premier SaaS product picks a radius and holds it across all components; mixing radiuses reads as unfinished | LOW | Choose: either sharp (0-4px, Vercel/Linear style) or soft (8-12px, Notion/Clerk style). Cannot mix |
+| Semantic focus rings | WCAG and user expectation: interactive elements must have visible, branded focus indicators | LOW | Use `outline: 2px solid var(--color-accent)` with `outline-offset: 2px`. Replaces generic browser default |
+| Hover state on every clickable element | Users need immediate feedback that a surface is interactive | LOW | Subtle background shift (3-5% lightness change), not color changes. 150ms ease. |
+| Tabular numbers for data | Any financial, vote-count, or percentage value displayed in a column misaligns visually without `font-variant-numeric: tabular-nums` | LOW | JetBrains Mono already in use — apply it to all numeric KPI values. |
+| Skeleton loading states | Perceived performance: modern users expect content placeholders, not spinners, for page loads | MEDIUM | Replace spinner-based loading on dashboard KPIs and session lists with skeleton shimmer |
+| Single-level shadow vocabulary | Products with 2-3 shadow depths feel designed; products with 7+ shadow variants feel inconsistent | LOW | Establish: `shadow-sm` (card border), `shadow-md` (dropdown), `shadow-lg` (modal). Zero other variants. |
 
-### ASCII Diagram
+### Differentiators (Competitive Advantage)
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│ [header: back link left, step label right]                   │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│          ┌─────────────────────────────────┐                │
-│          │  STEPPER PROGRESS BAR           │  ← max 680px   │
-│          │  [1] [──] [2] [──] [3] [──] [4] │                │
-│          └─────────────────────────────────┘                │
-│                                                              │
-│          ┌─────────────────────────────────┐                │
-│          │  STEP CARD                      │                │
-│          │                                 │  ← max 640px   │
-│          │  [Step title]                   │    centered    │
-│          │                                 │                │
-│          │  Field label                    │                │
-│          │  [────────────────────────────] │                │
-│          │                                 │                │
-│          │  Field label                    │                │
-│          │  [────────────────────────────] │                │
-│          │                                 │                │
-│          │  ─────────────────────────────  │  ← divider     │
-│          │  [← Précédent]    [Suivant →]  │  ← sticky bar  │
-│          └─────────────────────────────────┘                │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
+Features that elevate AG-VOTE above generic admin panels and reinforce "officiel et confiance."
 
-### CSS Grid / Flex Specifications
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Warm-neutral gray base (not cool-gray) | Linear's 2024-2025 shift: moved from cool blue-gray to warmer gray "that still feels crisp, but less saturated." Warm grays feel more human and trustworthy for civic contexts | MEDIUM | Requires re-tuning the gray ramp in CSS tokens. HSL: shift gray hues from 220-230 (cold blue) toward 200-210 (warmer but still professional). Not warm enough to read "beige". |
+| Ambient gradient accents on hero surfaces | The 2025-2026 gradient trend is "smoky, ambient, layered — used as lighting not decoration." Linear uses them on marketing, Vercel uses subtle radial gradients on empty hero cards | MEDIUM | Apply only to: login page orb (already present), empty state hero areas, operator console header bar. Never on functional UI chrome. |
+| Progressive disclosure that removes noise | Linear's core principle: "navigation should recede once users reach their destination." Sidebar dims in use, advanced actions hide behind contextual menus | MEDIUM | Requires per-page audit. Operator console is the key candidate: hide secondary controls until vote is open. |
+| Density modes (compact vs. comfortable) | Lists (sessions, members, votes) should support a compact mode. Linear, Notion, and GitHub all offer density toggles | HIGH | Stored in localStorage or user profile. Affects padding on `ag-table` and list rows. This is a differentiator because few civic apps offer it. |
+| Celebration micro-animations on completion | "Delight is no longer a consumer-app luxury" (SaaS UI 2026 trends). A subtle checkmark animation when a vote closes, a confetti burst on PV generation — these are memorable | MEDIUM | Only on terminal success states. Never on destructive or warning actions. Use `prefers-reduced-motion` guard. |
+| Structural subtlety: "felt not seen" borders | Linear's 2025 refresh philosophy: structure should be "felt not seen" — borders at 8% white opacity in dark mode, not visible hairlines | LOW | Change border token from solid color to `rgba` or `oklch` with alpha. `--color-border: oklch(50% 0 0 / 0.12)` pattern. |
+| Attention hierarchy (dim inactive surfaces) | Elements that are contextually inactive should visually "recede". Tab headers dim when not selected. Sidebar recedes to near-invisible when user is deep in a flow. | MEDIUM | Implement using `--color-text-muted` and `--color-surface-subtle` already in token system. Requires per-component audit. |
 
-```css
-@layer v4 {
+### Anti-Features (Commonly Requested, Often Problematic)
 
-/* ── Wizard page shell — no sidebar ── */
-/* The wizard page uses .app-shell.no-sidebar */
-[data-page-role="wizard"] .app-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 24px 80px; /* bottom clearance for sticky bar */
-  background: var(--color-bg);
-}
+Features that seem visually appealing but undermine the "officiel et confiance" identity or create regressions.
 
-/* ── Wizard track — constrained column ── */
-.wizard-track {
-  width: 100%;
-  max-width: 680px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* ── Stepper bar ── */
-.wiz-progress-wrap {
-  /* Existing styles maintained — pill stepper */
-  /* Tokens: padding 4px, gap 4px, radius-lg */
-  /* Step items: flex 1, padding 14px 18px */
-  /* Active: background primary-subtle, color primary */
-  /* Done: background success-subtle, color success */
-}
-
-/* On narrow screens, collapse stepper to icon+number only */
-@media (max-width: 640px) {
-  .wiz-step-label {
-    display: none;
-  }
-  .wiz-step-item {
-    flex: 0 0 auto;
-    padding: 12px 14px;
-  }
-}
-
-/* ── Step form card ── */
-.step-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-.step-card__header {
-  padding: 24px 28px 0;
-}
-
-.step-card__title {
-  font-size: var(--text-xl);           /* 20px */
-  font-weight: var(--font-bold);
-  font-family: var(--font-display);
-  line-height: var(--leading-tight);
-}
-
-.step-card__body {
-  padding: 24px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;                           /* 20px between field groups */
-}
-
-/* ── Field group ── */
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: var(--text-sm);           /* 14px */
-  font-weight: var(--font-semibold);
-  color: var(--color-text-dark);
-}
-
-.field-hint {
-  font-size: var(--text-xs);           /* 12px */
-  color: var(--color-text-muted);
-  margin-top: 4px;
-}
-
-/* Fields never 100% by default — max 480px for inputs */
-/* Exception: textarea, description fields = 100% */
-.field-input {
-  max-width: 480px;
-  width: 100%;
-}
-
-.field-input--full {
-  max-width: none;
-}
-
-/* ── Two-column field row (e.g., date + time) ── */
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-@media (max-width: 480px) {
-  .field-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ── Step navigation bar — sticky at card bottom ── */
-.step-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 28px;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-  position: sticky;
-  bottom: 0;
-  z-index: var(--z-sticky);
-}
-
-/* Both buttons minimum 120px wide, 40px tall */
-.step-card__footer .btn {
-  min-width: 120px;
-  height: 40px;
-}
-
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  [data-page-role="wizard"] .app-main {
-    padding: 16px 16px 80px;
-  }
-  .wizard-track {
-    max-width: 100%;
-  }
-  .step-card__header,
-  .step-card__body,
-  .step-card__footer {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-
-} /* @layer v4 */
-```
-
-### Spacing Rationale
-- **Max-width 680px for track, 640px for inner form area**: Stripe Checkout uses ~600px. GitHub's new issue form uses ~640px. The wider 680px accommodates the stepper bar which includes step labels.
-- **Field gap 20px**: Enough breathing room that each field is a distinct decision, not a form wall.
-- **Footer sticky bottom**: The navigation buttons must always be visible. Long forms (step 2: resolution list) make non-sticky footers unusable.
-- **Button space-between**: Universal pattern for wizards — back on left (escape), forward on right (goal). Never center both buttons.
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Full glassmorphism on data cards | Looks trendy in design mockups | Destroys text contrast on dynamic backgrounds; inaccessible; reads as "consumer app" not "official tool"; nearly impossible to do well at WCAG AA | Use a single frosted-glass effect on the login page orb only — the one place AG-VOTE already uses it intentionally |
+| Rainbow color-coding for status badges | Seems informative; color = meaning | Color alone is not accessible (WCAG 1.4.1); too many hues creates visual noise; forces users to learn a color vocabulary | Use: one semantic color per status (success=green, warning=amber, error=red, info=blue, neutral=gray) with icon + label always present |
+| Heavy drop shadows on cards | Creates "material" depth, feels tangible | Shadows feel outdated in flat/calm design era; heavy shadows also read as "unpolished" on dark mode | Use border + subtle background elevation for card distinction. Save `box-shadow` for modals and dropdowns only. |
+| Bold color fills on nav sidebar | Differentiates active states | A bright-color sidebar rail draws too much attention to navigation chrome; the product content should be the focal point | Active nav item: left border in accent color + slightly lighter background. No filled colored background. |
+| Decorative illustration on every empty state | Looks friendly and designed | Adds visual weight; slows perceived performance; can conflict with the official/trust identity | Use a simple icon (from existing icon set) + one-line description + single action CTA. Reserve illustration for onboarding only. |
+| Persistent toast/banner notifications | Keeps users informed | Too many persistent notifications create visual noise and "alert fatigue"; users begin ignoring them | Use ephemeral toasts (3-4 second auto-dismiss) for non-critical feedback. Reserve persistent banners for genuinely blocking states (SSE disconnect, session expiry). |
+| Animation on every state transition | Feels polished and responsive | Overanimation increases perceived latency; users in production workflows find it distracting; fails `prefers-reduced-motion` | Use 150ms for hover/active feedback, 250ms for panel reveals, 0ms for data updates. Never animate row insertions in live vote view. |
+| Custom decorative typeface for body text | Brand differentiation | Bricolage Grotesque is already distinctive as a display font; using it for body text reduces readability at small sizes and data-dense contexts | Bricolage Grotesque for headings and page titles only. Consider Inter or system-ui for body text if readability becomes a pain point in user testing. |
 
 ---
 
-## PAGE TYPE 3 — SPLIT-PANEL (Operator Console)
-
-### Reference: Slack/Discord channel layout, Bloomberg terminal philosophy
-
-**Used on:** `operator.htmx.html`
-
-### Layout Philosophy
-The operator console is a **power tool for live sessions**. It must display maximum information density without cognitive overload. The gold-standard split-panel (Slack, Discord, VS Code) uses: a narrow left panel for navigation/list context, a dominant main panel for primary work, and an optional right drawer for details. For AG-VOTE specifically: left = agenda/navigation, main = active vote or current question, status bar = persistent session state at top.
-
-The critical insight from Slack/Discord: **the left panel is always visible and never collapses on desktop** (1024px+). On tablet (768–1024px), the left panel overlays. On mobile, it's a bottom sheet.
-
-### ASCII Diagram
+## Feature Dependencies
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│ [sidebar rail 58px] │  STATUS BAR — 52px — session state, live │
-│                     ├──────────────────────────────────────────┤
-│                     │  TAB NAR — 44px — Ordre du jour / Live   │
-│                     ├──────────┬───────────────────────────────┤
-│                     │          │                               │
-│                     │  AGENDA  │   MAIN PANEL                  │
-│                     │  PANEL   │                               │
-│                     │  280px   │   Current question/vote       │
-│                     │          │   Result chart                │
-│                     │  Agenda  │   Actions                     │
-│                     │  items   │                               │
-│                     │  list    │                               │
-│                     │          │   ─────────────────────────   │
-│                     │          │   QUORUM / ATTENDEES ROW      │
-│                     │          │   (sticky at panel bottom)    │
-│                     └──────────┴───────────────────────────────┘
-└────────────────────────────────────────────────────────────────┘
+Warm-neutral gray ramp (token update)
+    └──enables──> Structural-subtlety borders (alpha-based borders look right on warm neutrals)
+    └──enables──> Dark mode tuning (warm dark grays need corresponding token values)
+
+Attention hierarchy (dim inactive surfaces)
+    └──requires──> Per-component audit of text/surface token usage
+    └──requires──> Consistent use of semantic tokens (zero hardcoded hex — already enforced)
+
+Skeleton loading states
+    └──requires──> Per-page loading state audit (identify which pages use spinner vs. empty div)
+    └──enhances──> Perceived performance without backend changes
+
+Celebration micro-animations
+    └──requires──> prefers-reduced-motion guards (already have animation timing contracts from v9.0)
+    └──conflicts with──> Persistent toast/banner overuse (one feedback channel at a time)
+
+Progressive disclosure (noise removal)
+    └──requires──> Per-page content hierarchy audit
+    └──enhances──> Attention hierarchy (dimming inactive surfaces)
 ```
 
-### CSS Grid Specifications
+### Dependency Notes
 
-```css
-@layer v4 {
-
-/* ── Operator page takes over app-main ── */
-[data-page-role="operator"] .app-main {
-  padding: 0;
-  padding-left: var(--sidebar-rail); /* 58px */
-  display: grid;
-  grid-template-rows: 52px 44px 1fr;
-  grid-template-columns: 1fr;
-  grid-template-areas:
-    "statusbar"
-    "tabnav"
-    "console";
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* When sidebar is pinned, shift left */
-[data-page-role="operator"] .app-sidebar.pinned ~ .app-main {
-  padding-left: var(--sidebar-expanded); /* 252px */
-}
-
-/* ── Status bar ── */
-.op-status-bar {
-  grid-area: statusbar;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 20px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  border-top: 3px solid var(--persona-operateur, var(--color-primary));
-  overflow: hidden;
-}
-
-/* ── Tab navigation ── */
-.op-tab-nav {
-  grid-area: tabnav;
-  height: 44px;
-  display: flex;
-  align-items: stretch;
-  padding: 0 20px;
-  gap: 4px;
-  background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
-  overflow-x: auto;
-}
-
-/* ── Console body — split horizontal ── */
-.op-console {
-  grid-area: console;
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  overflow: hidden;
-}
-
-/* ── Agenda panel — left, scrollable ── */
-.op-agenda-panel {
-  width: 280px;
-  border-right: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--color-surface);
-}
-
-.op-agenda-panel__header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  flex-shrink: 0;
-}
-
-.op-agenda-panel__list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 0;
-}
-
-/* Agenda item row */
-.agenda-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 16px;
-  min-height: 52px;
-  cursor: pointer;
-  border-left: 3px solid transparent;
-  transition: background var(--duration-fast), border-color var(--duration-fast);
-}
-
-.agenda-item:hover { background: var(--color-bg-subtle); }
-.agenda-item.active {
-  background: var(--color-primary-subtle);
-  border-left-color: var(--color-primary);
-}
-.agenda-item.done { opacity: 0.6; }
-
-/* ── Main panel — right, scrollable ── */
-.op-main-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--color-bg);
-}
-
-.op-main-panel__content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-}
-
-/* ── Quorum bar — sticky at panel bottom ── */
-.op-quorum-bar {
-  flex-shrink: 0;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 0 24px;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  font-size: var(--text-sm);
-}
-
-/* ── Responsive: collapse agenda panel ── */
-@media (max-width: 1024px) {
-  .op-console {
-    grid-template-columns: 1fr;
-  }
-  .op-agenda-panel {
-    position: fixed;
-    top: calc(var(--header-height) + 52px + 44px);
-    left: calc(var(--sidebar-rail));
-    width: 280px;
-    height: calc(100vh - var(--header-height) - 52px - 44px);
-    z-index: var(--z-fixed);
-    transform: translateX(-100%);
-    transition: transform var(--duration-normal) var(--ease-out);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-  }
-  .op-agenda-panel.open {
-    transform: translateX(0);
-  }
-}
-
-@media (max-width: 768px) {
-  [data-page-role="operator"] .app-main {
-    grid-template-rows: 52px 44px 1fr;
-  }
-  .op-status-bar {
-    padding: 0 12px;
-    gap: 8px;
-  }
-  .op-main-panel__content {
-    padding: 16px;
-  }
-}
-
-} /* @layer v4 */
-```
-
-### Spacing Rationale
-- **Agenda panel 280px**: Matches Slack's channel list (220–240px) but needs more width for AG resolution titles which can be long French text. 280px is the practical minimum for a truncated two-line title + status badge.
-- **Status bar 52px**: Slightly taller than header (56px) to stand out as a different component type. Contains: session name, status badge, timer, live participant count. Must all fit in one row.
-- **Tab nav 44px**: Compact enough that the console area maximizes space. Two tabs: "Ordre du jour" (setup mode) / "En séance" (live mode).
-- **Quorum bar 52px at bottom**: Permanently visible during live voting — operators must never scroll to find quorum data.
+- **Warm-neutral gray ramp requires token update first:** All downstream visual decisions (border alpha, dark mode depths, elevation overlays) depend on the base gray hue. This is the foundational change that makes everything else feel coherent.
+- **Skeleton loading requires page-by-page audit:** Cannot be done globally — must identify per-page which data loads asynchronously.
+- **Celebration animations conflict with overuse:** If AG-VOTE already has too many toasts/banners (a known issue from v9.0), adding celebration animations on top creates noise competition. Fix the noise first.
 
 ---
 
-## PAGE TYPE 4 — DATA TABLES (Audit, Archives, Members, Users)
+## MVP Definition
 
-### Reference: Linear issue list, GitHub PR list, Airtable grid view
+### Launch With (v10.0 Phase 1 — Foundation)
 
-**Used on:** `audit.htmx.html`, `archives.htmx.html`, `members.htmx.html`, `admin.htmx.html`
+Minimum changes to make the entire product feel "2025-grade" without risky per-page rewrites.
 
-### Layout Philosophy
-Data tables must maximize information density while remaining scannable. The gold standard (Linear, Airtable) uses:
-1. A toolbar row (search + filters) pinned above the table
-2. A sticky header row that shows column names while scrolling
-3. Consistent row heights (48px for dense data, 56px for comfortable)
-4. No zebra striping — a clean hover highlight is sufficient and more modern
-5. Right-aligned numbers (quantities, votes, percentages) — never centered
+- [ ] **Warm-neutral gray ramp update** — Re-tune the gray token ramp from cool-blue-gray toward warmer gray. Affects every surface. Highest ROI single change.
+- [ ] **Accent sparsity audit** — Audit all 25 CSS files for overuse of `--color-accent`/indigo. Replace with neutral gray in UI chrome, preserve accent only for: primary CTAs, active nav, focus rings, status success.
+- [ ] **Border alpha treatment** — Update `--color-border` and `--color-border-subtle` to use alpha-based values (`oklch` with `/0.12` alpha) instead of solid gray values. Produces the "structural subtlety" effect.
+- [ ] **Consistent border radius decision** — Pick one language (recommendation: 6-8px medium-rounded, matching Notion/Clerk quality tier) and enforce across all components via a single `--radius-base` token. Eliminate radius inconsistencies.
+- [ ] **Shadow vocabulary reduction** — Enforce max 3 shadow levels across all CSS files. Remove decorative shadows; keep only structural ones (dropdown, modal, popover).
+- [ ] **Focus ring standardization** — Ensure every interactive element has `outline: 2px solid var(--color-accent-primary); outline-offset: 2px`. Remove custom focus overrides that deviate from this.
 
-### ASCII Diagram
+### Add After Validation (v10.0 Phase 2 — Elevation)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ PAGE HEADER — title, description, count badge               │
-├─────────────────────────────────────────────────────────────┤
-│ TOOLBAR — [🔍 Search...] [Filter ▾] [Export] [+ Add]  ↕    │
-│                                     ← 48px height ─────────  │
-├─────────────────────────────────────────────────────────────┤
-│ TABLE (scroll container, overflow-y: auto)                  │
-│ ┌──┬─────────────────┬──────────┬───────┬───────────────┐  │
-│ │☐ │ Name ↕          │ Status   │ Date  │ Actions       │  │
-│ ├──┼─────────────────┼──────────┼───────┼───────────────┤  │
-│ │☐ │ Item row        │ [badge]  │ date  │ [···]         │  │
-│ ├──┼─────────────────┼──────────┼───────┼───────────────┤  │
-│ │☐ │ Item row        │ [badge]  │ date  │ [···]         │  │
-│ ├──┼─────────────────┼──────────┼───────┼───────────────┤  │
-│ │☐ │ Item row        │ [badge]  │ date  │ [···]         │  │
-│ └──┴─────────────────┴──────────┴───────┴───────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│ PAGINATION — [←] 1 2 3 ... [→]   Showing 1-25 of 142 items │
-└─────────────────────────────────────────────────────────────┘
-```
+Once foundation is solid, add targeted high-ROI visual upgrades.
 
-### CSS Specifications
+- [ ] **Skeleton loading on dashboard + session list** — Replace load spinners with shimmer skeletons on the two most-visited pages.
+- [ ] **Sidebar attention hierarchy** — Dim the sidebar chrome when user is deep in a workflow (operator console, vote page, hub). Active nav dims to `--color-text-muted`.
+- [ ] **Celebration micro-animation on vote close and PV generation** — Single-use terminal success animations. 400ms max duration. Reduced-motion guard.
+- [ ] **Tabular numbers enforcement** — Audit all KPI values, vote counts, percentages, and apply `font-variant-numeric: tabular-nums` + JetBrains Mono where missing.
+- [ ] **Progressive disclosure audit on operator console** — Identify secondary controls that are always visible but only needed during active vote. Move to contextual reveal.
 
-```css
-@layer v4 {
+### Future Consideration (v11+)
 
-/* ── Table page content — no extra padding, full width ── */
-.table-page-main {
-  padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 0px);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-}
+Defer until v10.0 is validated and design direction confirmed.
 
-/* ── Page header strip ── */
-.table-page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 24px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-/* ── Toolbar strip ── */
-.table-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
-  height: 52px;
-  background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-  overflow-x: auto;
-}
-
-.table-toolbar__search {
-  flex: 0 0 280px;        /* fixed width search, never grows to fill all space */
-  max-width: 320px;
-  height: 32px;
-}
-
-.table-toolbar__filters {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-
-.table-toolbar__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-/* ── Table scroll container ── */
-.table-scroll {
-  flex: 1;
-  overflow: auto;        /* both axes */
-  position: relative;
-}
-
-/* ── Table ── */
-.data-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;   /* prevents column width jitter on data load */
-}
-
-/* ── Sticky header ── */
-.data-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
-  background: var(--color-surface);
-  border-bottom: 2px solid var(--color-border);
-  padding: 0 16px;
-  height: 40px;              /* header row: 40px */
-  font-size: var(--text-xs); /* 12px */
-  font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  text-align: left;
-  user-select: none;
-}
-
-/* Sortable header */
-.data-table th.sortable {
-  cursor: pointer;
-}
-.data-table th.sortable:hover {
-  color: var(--color-text);
-  background: var(--color-bg-subtle);
-}
-
-/* Right-align numeric columns */
-.data-table th.col-number,
-.data-table td.col-number {
-  text-align: right;
-  font-family: var(--font-mono);
-  letter-spacing: 0;
-}
-
-/* ── Table rows ── */
-.data-table tbody tr {
-  height: 48px;              /* standard row: 48px */
-  border-bottom: 1px solid var(--color-border-subtle);
-  transition: background var(--duration-fast);
-}
-
-.data-table tbody tr:hover {
-  background: var(--color-bg-subtle);
-}
-
-.data-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.data-table tbody td {
-  padding: 0 16px;
-  font-size: var(--text-sm);  /* 14px */
-  vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* First column — always left, slightly bolder */
-.data-table tbody td:first-child {
-  font-weight: var(--font-medium);
-  color: var(--color-text-dark);
-}
-
-/* Checkbox column */
-.data-table .col-check {
-  width: 44px;
-  padding: 0 12px;
-  text-align: center;
-}
-
-/* Actions column — right-aligned, never truncated */
-.data-table .col-actions {
-  width: 80px;
-  text-align: right;
-  padding-right: 12px;
-  overflow: visible;     /* action menus must escape the cell */
-}
-
-/* ── Pagination bar ── */
-.table-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 24px;
-  height: 52px;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-.table-pagination__info {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-}
-
-.table-pagination__nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pagination-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  transition: background var(--duration-fast), border-color var(--duration-fast);
-}
-.pagination-btn:hover { background: var(--color-bg-subtle); }
-.pagination-btn.active {
-  background: var(--color-primary-subtle);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  font-weight: var(--font-semibold);
-}
-
-/* ── Responsive ── */
-@media (max-width: 1024px) {
-  .table-toolbar__search {
-    flex-basis: 200px;
-  }
-}
-
-@media (max-width: 768px) {
-  .table-page-header,
-  .table-toolbar,
-  .table-pagination {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .table-toolbar {
-    height: auto;
-    min-height: 52px;
-    flex-wrap: wrap;
-    padding-top: 8px;
-    padding-bottom: 8px;
-  }
-  .table-toolbar__search {
-    flex-basis: 100%;
-    max-width: 100%;
-  }
-  /* Horizontal scroll on mobile — do not reflow columns */
-  .table-scroll {
-    -webkit-overflow-scrolling: touch;
-  }
-  /* Hide lower-priority columns on mobile via class */
-  .data-table .col-hide-mobile {
-    display: none;
-  }
-}
-
-} /* @layer v4 */
-```
-
-### Column Width Conventions
-
-| Column Type | Width | Alignment | Font |
-|-------------|-------|-----------|------|
-| Checkbox | 44px | Center | — |
-| Status badge | 120px | Left | sans |
-| Name / Title | auto (1fr) | Left | medium weight |
-| Date | 140px | Left | mono |
-| Number / Count | 100px | Right | mono |
-| Percentage | 80px | Right | mono |
-| Actions menu | 80px | Right | — |
+- [ ] **Density mode toggle** — Low/medium/high density for tables and lists. Requires user profile storage and significant CSS work. High value for power users but not needed for launch.
+- [ ] **Custom illustration system** — Only if onboarding or empty state design direction validates the need. Risk of conflicting with "officiel" identity.
+- [ ] **Variable font exploration** — Bricolage Grotesque is available as a variable font; weight-based responsiveness at headings could be visually interesting. Deferred: high complexity, uncertain ROI.
+- [ ] **Per-page ambient gradient tuning** — Expand the login-page orb gradient treatment to 2-3 other hero surfaces (operator console header, hub hero card). Requires visual QA across dark/light modes.
 
 ---
 
-## PAGE TYPE 5 — SETTINGS/ADMIN (Tabbed forms)
+## Feature Prioritization Matrix
 
-### Reference: GitHub Settings, Linear workspace settings, Stripe account settings
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Warm-neutral gray ramp | HIGH — affects every surface | LOW — token-only change | P1 |
+| Accent sparsity audit | HIGH — reduces visual noise immediately | LOW — CSS audit + find/replace | P1 |
+| Border alpha treatment | HIGH — "structurally subtle" feel | LOW — token update + test | P1 |
+| Consistent border radius | HIGH — cohesion | LOW — token + per-component pass | P1 |
+| Shadow vocabulary reduction | MEDIUM — removes clutter | LOW | P1 |
+| Focus ring standardization | HIGH — accessibility + brand | LOW | P1 |
+| Skeleton loading | HIGH — perceived performance | MEDIUM — per-page work | P2 |
+| Sidebar attention hierarchy | MEDIUM — polish | MEDIUM — behavioral JS + CSS | P2 |
+| Celebration micro-animations | MEDIUM — delight | MEDIUM — animation + guards | P2 |
+| Tabular numbers enforcement | MEDIUM — data precision | LOW — CSS audit | P2 |
+| Progressive disclosure (operator) | HIGH — operator UX | HIGH — JS + layout changes | P2 |
+| Density mode toggle | HIGH — power user value | HIGH — architecture + storage | P3 |
+| Per-page ambient gradients | LOW — visual interest only | MEDIUM | P3 |
+| Variable font exploration | LOW | HIGH | P3 |
 
-**Used on:** `settings.htmx.html`, `admin.htmx.html`, `email-templates.htmx.html`
-
-### Layout Philosophy
-Settings pages are for infrequent, deliberate configuration. The gold-standard (GitHub Settings) uses:
-1. **Left vertical nav** (not top tabs) for sections — gives more room than a tab bar, works better with many sections
-2. A **constrained content column** (max 720px) — wide enough for forms, narrow enough to feel focused
-3. **Section-divided cards** — each logical group is its own card with a heading
-4. **Fields never 100% width** — a full-width input inside a 720px card feels like an overwhelmingly long form. Constrain inputs to their semantic width.
-5. **Save button at section level**, not page level — one save per form section prevents lost-changes anxiety
-
-### ASCII Diagram
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│ [sidebar rail 58px]  PAGE HEADER — Settings                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────┐  ┌────────────────────────────────────┐   │
-│  │ SIDE NAV    │  │ CONTENT COLUMN (max-width: 720px)  │   │
-│  │ 220px       │  │                                    │   │
-│  │             │  │  ┌──────────────────────────────┐  │   │
-│  │ > Section 1 │  │  │ SECTION CARD                 │  │   │
-│  │   Section 2 │  │  │ ─────────────────────────    │  │   │
-│  │   Section 3 │  │  │ Heading  [sub-description]   │  │   │
-│  │   Section 4 │  │  │                              │  │   │
-│  │             │  │  │ Label                        │  │   │
-│  │             │  │  │ [Input ── 480px max ───────] │  │   │
-│  │             │  │  │ hint text                    │  │   │
-│  │             │  │  │                              │  │   │
-│  │             │  │  │ Label                        │  │   │
-│  │             │  │  │ [Input ── 360px max ───────] │  │   │
-│  │             │  │  │                              │  │   │
-│  │             │  │  │ ───────────────── [Save]     │  │   │
-│  │             │  │  └──────────────────────────────┘  │   │
-│  │             │  │                                    │   │
-│  │             │  │  ┌──────────────────────────────┐  │   │
-│  │             │  │  │ SECTION CARD 2               │  │   │
-│  │             │  │  └──────────────────────────────┘  │   │
-│  └─────────────┘  └────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### CSS Specifications
-
-```css
-@layer v4 {
-
-/* ── Settings main layout ── */
-.settings-main {
-  padding: 24px;
-  padding-left: calc(var(--sidebar-rail) + 24px);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* ── Settings body — sidenav + content ── */
-.settings-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 32px;
-  align-items: flex-start;
-  max-width: 1040px;   /* 220 + 32 + 720 + breathing room */
-}
-
-/* ── Left nav ── */
-.settings-sidenav {
-  width: 220px;
-  flex-shrink: 0;
-  position: sticky;
-  top: calc(var(--header-height) + 24px);
-}
-
-.settings-sidenav__group-label {
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--color-text-muted);
-  padding: 12px 12px 4px;
-}
-
-.settings-sidenav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: var(--radius);     /* 8px */
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  text-align: left;
-  transition: background var(--duration-fast), color var(--duration-fast);
-}
-
-.settings-sidenav-item:hover {
-  background: var(--color-bg-subtle);
-  color: var(--color-text);
-}
-
-.settings-sidenav-item.active {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-  font-weight: var(--font-semibold);
-}
-
-/* ── Content column ── */
-.settings-content {
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* ── Section card ── */
-.settings-section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.settings-section__header {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.settings-section__title {
-  font-size: var(--text-base);     /* 16px */
-  font-weight: var(--font-semibold);
-  color: var(--color-text-dark);
-}
-
-.settings-section__description {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin-top: 4px;
-}
-
-.settings-section__body {
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* ── Form field inside settings ── */
-.settings-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* Input width semantics — NEVER 100% for standard inputs */
-.settings-field input[type="text"],
-.settings-field input[type="email"],
-.settings-field input[type="url"],
-.settings-field input[type="number"] {
-  max-width: 480px;
-}
-
-.settings-field input[type="color"] {
-  width: 48px;
-  height: 32px;
-}
-
-.settings-field select {
-  max-width: 320px;
-}
-
-.settings-field textarea {
-  max-width: 100%;    /* Exception: textareas span full section width */
-  min-height: 100px;
-}
-
-/* ── Section footer — save button row ── */
-.settings-section__footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  background: var(--color-bg-subtle);
-  border-top: 1px solid var(--color-border);
-}
-
-/* Danger zone — visually separated ── */
-.settings-section--danger {
-  border-color: var(--color-danger-border);
-}
-.settings-section--danger .settings-section__header {
-  background: var(--color-danger-subtle);
-}
-.settings-section--danger .settings-section__title {
-  color: var(--color-danger);
-}
-
-/* ── Responsive ── */
-@media (max-width: 1024px) {
-  .settings-layout {
-    grid-template-columns: 180px 1fr;
-    gap: 24px;
-  }
-}
-
-@media (max-width: 768px) {
-  .settings-main {
-    padding: 16px;
-    padding-left: 16px;
-  }
-  .settings-layout {
-    grid-template-columns: 1fr;
-  }
-  .settings-sidenav {
-    position: static;
-    width: 100%;
-    /* Collapse to horizontal scrolling tab bar on mobile */
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    gap: 4px;
-  }
-  .settings-sidenav__group-label {
-    display: none;
-  }
-  .settings-sidenav-item {
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-}
-
-} /* @layer v4 */
-```
-
-### Field Width Conventions
-
-| Field Type | Max-width | Rationale |
-|------------|-----------|-----------|
-| Short text (name, title) | 480px | One concept, not a sentence |
-| URL, email | 480px | URLs can be long but not infinite |
-| Select / dropdown | 320px | Options are fixed-length |
-| Short number | 160px | Port, count, year |
-| Color picker | 48px | The swatch IS the width |
-| Textarea / description | 100% of section | Multi-line content needs space |
-| Toggle / checkbox | Natural (no width) | Don't stretch boolean inputs |
+**Priority key:**
+- P1: Foundation — must ship in Phase 1 of v10.0
+- P2: Elevation — ship in Phase 2 once foundation is stable
+- P3: Future — defer to v11+
 
 ---
 
-## PAGE TYPE 6 — MOBILE VOTER (Full-screen ballot)
+## Competitor Pattern Analysis
 
-### Reference: Slido live polling, Apple Pay sheet, native polling apps
+Concrete observations from Linear, Vercel, Stripe, Notion, Clerk in 2025-2026.
 
-**Used on:** `vote.htmx.html` (mobile-first, 100dvh)
-
-### Layout Philosophy
-The voter view is the **only** page explicitly mobile-first in AG-VOTE. A physical assembly room member pulls out their phone and votes on a resolution. The stakes are high (legally binding votes), the time window is short (60–90 seconds), and the environment is noisy (crowded room, hand-raised speakers, projector glare).
-
-Gold standard requirements:
-1. **Full viewport height** — `100dvh` (dynamic viewport height handles iOS Safari chrome)
-2. **One question, one decision per screen** — no scrolling to find the vote buttons
-3. **Vote buttons: minimum 72px tall, spanning ≥60% viewport width** — cannot be fat-fingered
-4. **Confirmation state is instant** — optimistic feedback, color the selected button immediately
-5. **Status header fixed top** — session name + resolution title never scroll away
-6. **Zero ambiguity** — "Pour" (green), "Contre" (red), "Abstention" (grey), "Blanc" (neutral) — color + text + icon, never just color
-
-### ASCII Diagram
-
-```
-┌────────────────────────────────────┐  ← 100dvh
-│  HEADER BAR (56px)                 │
-│  [Session name]     [Status badge] │
-├────────────────────────────────────┤
-│                                    │
-│  RESOLUTION CARD                   │  ← flex: 1, scrollable
-│                                    │     if title is very long
-│  [N° de résolution]                │
-│  ─────────────────────────────     │
-│  Titre de la résolution             │
-│  (font-display, 20–24px)           │
-│                                    │
-│  [Résumé / context if needed]      │
-│  (font-sm, text-muted)             │
-│                                    │
-│  [PDF icon - see doc]              │
-│                                    │
-├────────────────────────────────────┤
-│                                    │
-│  VOTE BUTTONS AREA                 │  ← flex-shrink: 0
-│  (padding: 20px, gap: 12px)        │     always visible
-│                                    │
-│  ┌──────────────────────────────┐  │
-│  │  POUR         ✓  [72px tall] │  │  ← success color
-│  └──────────────────────────────┘  │
-│  ┌──────────────────────────────┐  │
-│  │  CONTRE       ✗  [72px tall] │  │  ← danger color
-│  └──────────────────────────────┘  │
-│  ┌────────────┐  ┌───────────┐    │
-│  │ ABSTENTION │  │  BLANC    │    │  ← 2-col, 56px tall
-│  └────────────┘  └───────────┘    │
-│                                    │
-│  [env safe-area-inset-bottom]      │
-└────────────────────────────────────┘
-```
-
-### CSS Specifications
-
-```css
-@layer v4 {
-
-/* ── Voter shell — full height, no scroll ── */
-.vote-app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;       /* iOS Safari dynamic viewport */
-  background: var(--color-bg);
-  overflow: hidden;
-}
-
-/* ── Vote header ── */
-.vote-header {
-  flex-shrink: 0;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.vote-header__session {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-dark);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60%;
-}
-
-/* ── Resolution card — scrollable middle ── */
-.vote-resolution-area {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 24px 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.vote-resolution-number {
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--color-text-muted);
-}
-
-.vote-resolution-title {
-  font-family: var(--font-display);   /* Fraunces */
-  font-size: clamp(1.125rem, 4vw, 1.5rem);  /* 18–24px fluid */
-  font-weight: var(--font-semibold);
-  line-height: var(--leading-snug);
-  color: var(--color-text-dark);
-}
-
-.vote-resolution-body {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-}
-
-/* ── Vote buttons area — never scrolls away ── */
-.vote-actions {
-  flex-shrink: 0;
-  padding: 16px 20px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom)); /* iOS safe area */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-}
-
-/* Primary vote buttons — POUR + CONTRE */
-.vote-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 72px;                   /* MINIMUM — do not reduce */
-  border-radius: var(--radius-lg);
-  font-size: var(--text-lg);          /* 18px */
-  font-weight: var(--font-bold);
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast),
-    transform 80ms var(--ease-bounce),
-    box-shadow var(--duration-fast);
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.vote-btn:active {
-  transform: scale(0.97);
-}
-
-/* POUR — green */
-.vote-btn--pour {
-  background: var(--color-success);
-  color: #fff;
-}
-.vote-btn--pour:hover { background: var(--color-success-hover); }
-.vote-btn--pour.selected {
-  box-shadow: 0 8px 32px rgba(11, 122, 64, 0.35);
-  transform: scale(1.01);
-}
-
-/* CONTRE — red */
-.vote-btn--contre {
-  background: var(--color-danger);
-  color: #fff;
-}
-.vote-btn--contre:hover { background: var(--color-danger-hover); }
-.vote-btn--contre.selected {
-  box-shadow: 0 8px 32px rgba(196, 40, 40, 0.35);
-  transform: scale(1.01);
-}
-
-/* Secondary buttons row — ABSTENTION + BLANC (2-column) */
-.vote-btn-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.vote-btn--secondary {
-  min-height: 56px;                   /* Secondary: 56px — still large but not dominant */
-  font-size: var(--text-base);
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  color: var(--color-text);
-}
-.vote-btn--secondary:hover {
-  background: var(--color-bg-subtle);
-  border-color: var(--color-border-strong);
-}
-
-/* ABSTENTION — muted neutral */
-.vote-btn--abstention.selected {
-  background: var(--color-neutral-subtle);
-  border-color: var(--color-neutral);
-  color: var(--color-neutral-text);
-}
-
-/* BLANC — very neutral */
-.vote-btn--blanc.selected {
-  background: var(--color-bg-subtle);
-  border-color: var(--color-border-strong);
-}
-
-/* ── Confirmation overlay ── */
-.vote-confirmed-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  z-index: var(--z-overlay);
-  /* background tinted by vote choice via JS data attribute */
-}
-
-.vote-confirmed-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vote-confirmed-label {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  text-align: center;
-}
-
-/* ── Waiting state ── */
-.vote-waiting {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 40px 24px;
-  text-align: center;
-}
-
-.vote-waiting__spinner {
-  /* Use existing ag-spinner component or CSS animation */
-  width: 48px;
-  height: 48px;
-}
-
-/* ── Responsive override for tablet ── */
-/* On tablets (768px+), keep same pattern but allow slightly larger typography */
-@media (min-width: 768px) {
-  .vote-btn {
-    min-height: 80px;
-    font-size: var(--text-xl);
-  }
-  .vote-btn--secondary {
-    min-height: 64px;
-  }
-  .vote-resolution-area {
-    max-width: 560px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  .vote-actions {
-    max-width: 560px;
-    margin: 0 auto;
-    width: 100%;
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
-
-} /* @layer v4 */
-```
-
-### Touch Target Compliance
-
-| Element | Min Height | Width | WCAG 2.5.5 |
-|---------|-----------|-------|------------|
-| POUR button | 72px | 100% | Pass (>44px) |
-| CONTRE button | 72px | 100% | Pass |
-| ABSTENTION | 56px | ~50% | Pass |
-| BLANC | 56px | ~50% | Pass |
-| Header icons | 44px | 44px | Pass (minimum) |
-
-The 72px primary button height comes from: WCAG AA minimum 44px, but given the high-stakes real-time context (crowded room, hurried vote) and Slido/Mentimeter patterns, 72px provides substantial tap comfort and reduces error anxiety.
+| Pattern | Linear | Vercel | Stripe | Notion/Clerk | AG-VOTE Direction |
+|---------|--------|--------|--------|--------------|-------------------|
+| Gray base hue | Warm gray (2025 refresh: shifted from cool blue-gray) | Pure neutral gray, no temperature | Neutral-cool | Neutral-warm (Notion), clean neutral (Clerk) | Shift toward warm neutral to match Linear/Notion quality tier |
+| Accent color ratio | ~5% of UI surface — accent only on active states, icons | ~3% — blue only on links/CTAs | ~8% — purple/indigo on CTAs and key moments | ~5% Notion orange / Clerk purple | Reduce indigo to 5-8% of surfaces; neutralize chrome |
+| Border treatment | Barely-visible dividers, soft contrast | 8% opacity white in dark mode; gray-200 in light | Subtle borders, never heavy | Hairline borders, low opacity | Move to alpha-based `oklch` borders |
+| Border radius | 6-8px on cards, 4px on inputs | 4-6px — sharp-to-medium | 6-8px on cards | 8-12px (Notion soft, Clerk rounded) | 6-8px medium — trustworthy without cold sharpness |
+| Shadow philosophy | Minimal — elevation via color not shadow | Zero shadows on marketing, minimal in dashboard | Functional shadows only (modals, dropdowns) | Soft shadows on floating elements | Max 3 levels: border-only card / dropdown shadow / modal shadow |
+| Typography sizing | Dense but legible: 13-14px body in app | 16px body, -0.04em display tracking | 15px body in dashboard | 14-15px in Notion app | 14px app body, 15-16px for comfortable reading passages |
+| Dark mode background | Dark gray (~#1a1a24) not pure black | Pure black (#000) — developer brand | Dark gray surface | Near-black gray | Use #1a1b26 (indigo-tinted dark) to maintain "officiel" feel |
+| Navigation dimming | Sidebar dims when user is in content | Minimal persistent nav | Left nav stays visible but subtle | Sidebar present but not dominant | Dim sidebar text to `--color-text-muted` on operator/vote pages |
+| Loading patterns | Skeleton shimmer | Skeleton shimmer | Skeleton shimmer | Skeleton (Notion) | Replace spinners with skeletons on dashboard + session list |
+| Empty states | Icon + 1-2 lines + single CTA | Minimal icon + headline | Minimal illustration + action | Illustrated (Notion) / minimal icon (Clerk) | Keep current icon-based empty states; resist adding illustration |
 
 ---
 
-## Cross-Cutting Layout Patterns
+## Dependencies on Existing AG-VOTE Design System
 
-### App Shell Structure (all authenticated pages)
+These features build directly on v9.0's shipped infrastructure:
 
-The current app shell (`flex-column + fixed sidebar`) is sound. v4.1 refinements:
-
-```css
-@layer v4 {
-
-/* ── App main scroll container — prevent double scrollbar ── */
-.app-main {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;           /* critical for flex children scroll */
-  /* padding from design-system.css preserved */
-}
-
-/* ── Page content inner wrapper ── */
-/* Used by dashboard, meetings, archives, etc. */
-.page-content-wrap {
-  max-width: var(--content-max);    /* 1440px */
-  margin: 0 auto;
-  padding: 24px;
-  /* Use page-content-wrap--narrow for wizard/settings */
-}
-
-.page-content-wrap--narrow {
-  max-width: 860px;
-}
-
-} /* @layer v4 */
-```
-
-### Sidebar Rail + Content Offset Pattern
-
-The 58px sidebar rail creates a layout offset for all non-operator pages:
-
-```
-Content left edge = 58px (rail) + 22px (inner padding) = 80px
-Content right edge = 22px
-```
-
-When sidebar is pinned (252px):
-```
-Content left edge = 252px (expanded) + 22px = 274px
-```
-
-This is currently implemented with `padding-left: calc(var(--sidebar-rail) + 22px)` and the JS class `.pinned` override. The v4.1 refonte preserves this.
-
-### Page Header Anatomy (all pages)
-
-Every page header follows this exact structure:
-
-```css
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  /* margin-bottom: 14px — set in app.css, do not override */
-}
-
-/* Left: breadcrumb + h1 + sub */
-/* Right: CTAs (max 2 buttons + 1 icon action) */
-```
-
-**Never put more than 2 primary buttons in the page header.** If more actions are needed, use a dropdown trigger (kebab, "Actions ▾").
-
----
-
-## Implementation Phasing for v4.1
-
-| Page | Layout Type | Effort | Priority |
-|------|-------------|--------|----------|
-| `dashboard.htmx.html` | DASHBOARD | Medium | High — entry point |
-| `wizard.htmx.html` | WIZARD | Low | High — creation flow |
-| `operator.htmx.html` | SPLIT-PANEL | High | High — live meeting |
-| `vote.htmx.html` | MOBILE VOTER | Low | High — voter UX |
-| `members.htmx.html` | DATA TABLE | Medium | High — most-used admin |
-| `audit.htmx.html` | DATA TABLE | Low | Medium |
-| `archives.htmx.html` | DATA TABLE | Low | Medium |
-| `settings.htmx.html` | SETTINGS | Medium | Medium |
-| `admin.htmx.html` | SETTINGS | Medium | Medium |
-| `hub.htmx.html` | HYBRID (cards) | Medium | High — pre-meeting staging |
-| `postsession.htmx.html` | WIZARD-like | Low | Medium |
-| `meetings.htmx.html` | DATA TABLE | Low | Medium |
-| `analytics.htmx.html` | DASHBOARD-like | Medium | Low |
-| `report.htmx.html` | READ-ONLY | Low | Low |
-| `public.htmx.html` | READ-ONLY | Low | Low |
+| Existing Infrastructure | How v10.0 Extends It |
+|------------------------|----------------------|
+| CSS token hierarchy (primitive→semantic→component) | Re-tune primitive gray ramp tokens; semantic tokens pick up changes automatically |
+| Three-depth background model (bg/surface/raised) | Add fourth level: `--color-bg-elevated` for ambient gradient zones (login, hero) |
+| Animation timing contracts (`--duration-*` tokens, `prefers-reduced-motion`) | Use for celebration animations + hover state durations |
+| Zero hardcoded hex (enforced since v4.4) | Border alpha migration is clean — no scattered color values to hunt down |
+| Dark/light mode token parity | Gray ramp re-tune must maintain both modes; test both after each token change |
+| 23 Web Components | Component-level border radius and shadow cleanup can be done in component CSS, not per-page |
+| Per-page CSS files (25 files) | Accent sparsity audit is a per-file pass; no architecture change needed |
 
 ---
 
 ## Sources
 
-Research sources (all verified March 2026):
+- [Linear Design — The SaaS design trend that's boring and bettering UI (LogRocket)](https://blog.logrocket.com/ux-design/linear-design/)
+- [Linear — A calmer interface for a product in motion (official)](https://linear.app/now/behind-the-latest-design-refresh)
+- [Linear — How we redesigned the Linear UI Part II](https://linear.app/now/how-we-redesigned-the-linear-ui)
+- [Vercel Design System Breakdown: Colors, Typography, Tokens (Seedflip)](https://seedflip.co/blog/vercel-design-system)
+- [Vercel Web Interface Guidelines (official)](https://vercel.com/design/guidelines)
+- [Stripe — Designing Accessible Color Systems](https://stripe.com/blog/accessible-color-systems)
+- [7 SaaS UI Design Trends in 2026 (SaaSUI Blog)](https://www.saasui.design/blog/7-saas-ui-design-trends-2026)
+- [7 Emerging Web Design Trends for SaaS in 2026 (Envizn Labs)](https://enviznlabs.com/blogs/7-emerging-web-design-trends-for-saas-in-2026-ai-layouts-glow-effects-and-beyond)
+- [Dark Mode Color Palettes: Complete Guide 2025 (MyPaletteTool)](https://mypalettetool.com/blog/dark-mode-color-palettes)
+- [Complete Dark Mode Design Guide 2025 (UI Deploy)](https://ui-deploy.com/blog/complete-dark-mode-design-guide-ui-patterns-and-implementation-best-practices-2025)
+- [Top Dashboard Design Trends for SaaS Products in 2025 (UITop)](https://uitop.design/blog/design/top-dashboard-design-trends/)
+- [Micro-interactions in web design 2025 (Stan Vision)](https://www.stan.vision/journal/micro-interactions-2025-in-web-design)
+- [Clerk Mosaic Design System (official)](https://clerk.com/blog/introducing-mosaic-bring-your-brand-to-every-authentication-flow)
+- [SaaS Typography Playbook (FullStop Insights)](https://fullstop360.com/blog/insights/branding/saas-typography-playbook-what-leading-companies-use)
 
-- [CSS Grid Admin Dashboard — Max Böck](https://mxb.dev/blog/css-grid-admin-dashboard/) — 4-column pattern, 2rem gap, responsive switching
-- [Responsive Dashboard Layout with CSS Grid — Compile7](https://compile7.org/decompile/build-a-responsive-dashboard-layout-with-css-grid) — sidebar 240px, gap 24px, 4-col KPI
-- [Dashboard Design Best Practices — Brand.dev](https://www.brand.dev/blog/dashboard-design-best-practices) — KPI placement conventions
-- [CSS Sidebar — Every Layout](https://every-layout.dev/layouts/sidebar/) — flex-basis sizing, min-inline-size 50% breakpoint
-- [Stripe Dashboard Design Patterns — Stripe Docs](https://docs.stripe.com/stripe-apps/patterns) — design token approach, card anatomy
-- [CSS Grid Guide — CSS-Tricks](https://css-tricks.com/complete-guide-css-grid-layout/) — authoritative grid reference
-- [Position Sticky and Table Headers — CSS-Tricks](https://css-tricks.com/position-sticky-and-table-headers/) — sticky header implementation
-- Existing AG-VOTE design-system.css — confirmed token values, spacing scale, breakpoints
+---
+
+*Feature research for: Visual identity patterns for modern SaaS/business apps*
+*Researched: 2026-04-03*
+*Used by: v10.0 Visual Identity Evolution milestone roadmap*
