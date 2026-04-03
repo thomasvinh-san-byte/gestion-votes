@@ -199,7 +199,7 @@
 
 ## Phases
 
-- [ ] **Phase 82: Token Foundation + Palette Shift** - Promote oklch semantic tokens, warm-neutral gray ramp, derived shade computation, dark mode co-update, visible palette change across all pages
+- [x] **Phase 82: Token Foundation + Palette Shift** - Promote oklch semantic tokens, warm-neutral gray ramp, derived shade computation, dark mode co-update, visible palette change across all pages (completed 2026-04-03)
 - [ ] **Phase 83: Component Geometry + Chrome Cleanup** - Consolidate radius to --radius-base, reduce shadows to 3 named levels, apply alpha-based borders, replace spinners with skeleton shimmer on dashboard and session list
 - [ ] **Phase 84: Hardened Foundation** - Eliminate all hardcoded hex from page CSS, audit Shadow DOM fallback literals, sync critical-tokens inline styles, register animatable tokens, tokenize focus rings
 
@@ -217,8 +217,8 @@
   5. The critical-tokens inline styles in all .htmx.html files reflect the updated semantic token values so no flash-of-wrong-color occurs on page load
 **Plans**: 2 plans
 Plans:
-- [ ] 82-01-PLAN.md — Light mode semantic token migration (hex/rgba to oklch primitives) + color-mix srgb-to-oklch upgrade
-- [ ] 82-02-PLAN.md — Dark mode warming + critical-tokens sync + visual checkpoint
+- [x] 82-01-PLAN.md — Light mode semantic token migration (hex/rgba to oklch primitives) + color-mix srgb-to-oklch upgrade
+- [x] 82-02-PLAN.md — Dark mode warming + critical-tokens sync + visual checkpoint
 
 ### Phase 83: Component Geometry + Chrome Cleanup
 **Goal**: All interactive components share a single border-radius language, elevation is expressed through exactly three named shadow levels, borders read as structural cues rather than solid edges, and the dashboard/session list feel instantaneous with skeleton shimmer
@@ -247,6 +247,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 82. Token Foundation + Palette Shift | 1/2 | In Progress|  |
+| 82. Token Foundation + Palette Shift | 2/2 | Complete   | 2026-04-03 |
 | 83. Component Geometry + Chrome Cleanup | 0/TBD | Not started | - |
 | 84. Hardened Foundation | 0/TBD | Not started | - |
