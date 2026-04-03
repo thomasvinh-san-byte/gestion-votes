@@ -244,7 +244,11 @@ Plans:
   3. Toggling dark mode while the dashboard page is open produces no visible "flash" of incorrect color on any Web Component — Shadow DOM tokens are consistent with the page-level theme
   4. CSS `transition: color 150ms, background-color 150ms` applied to a button produces a smooth animated color change (not a hard cut) because the color tokens are registered via `@property` with the correct `<color>` syntax type
   5. Focusing any interactive element in any Web Component shows a 2px indigo outline that matches the page-level focus ring — no component displays the legacy `rgba(22,80,224,0.35)` hardcoded value
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 84-01-PLAN.md — @property registration, new tokens, focus ring fixes in design-system.css
+- [ ] 84-02-PLAN.md — Eliminate all hardcoded hex/rgba from 16 per-page CSS files
+- [ ] 84-03-PLAN.md — Shadow DOM fallback audit and focus ring tokenization in 19 Web Components
 
 ## Progress
 
@@ -252,4 +256,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 82. Token Foundation + Palette Shift | 2/2 | Complete    | 2026-04-03 |
 | 83. Component Geometry + Chrome Cleanup | 2/2 | Complete    | 2026-04-03 |
-| 84. Hardened Foundation | 0/TBD | Not started | - |
+| 84. Hardened Foundation | 0/3   | Not started | - |
