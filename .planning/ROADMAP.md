@@ -247,8 +247,8 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 84-01-PLAN.md — @property registration, new tokens, focus ring fixes in design-system.css
-- [ ] 84-02-PLAN.md — Eliminate all hardcoded hex/rgba from 16 per-page CSS files
-- [ ] 84-03-PLAN.md — Shadow DOM fallback audit and focus ring tokenization in 19 Web Components
+- [x] 84-02-PLAN.md — Eliminate all hardcoded hex/rgba from 16 per-page CSS files
+- [x] 84-03-PLAN.md — Shadow DOM fallback audit and focus ring tokenization in 19 Web Components
 
 ## Progress
 
@@ -256,4 +256,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 82. Token Foundation + Palette Shift | 2/2 | Complete    | 2026-04-03 |
 | 83. Component Geometry + Chrome Cleanup | 2/2 | Complete    | 2026-04-03 |
-| 84. Hardened Foundation | 3/3 | Complete   | 2026-04-03 |
+| 84. Hardened Foundation | 3/3 | Complete    | 2026-04-03 |
