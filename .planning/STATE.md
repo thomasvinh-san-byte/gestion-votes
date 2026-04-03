@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
-status: verifying
-stopped_at: Completed 82-02-PLAN.md — warm dark mode surfaces and critical-tokens sync
-last_updated: "2026-04-03T09:12:32.995Z"
-last_activity: 2026-04-03
+status: executing
+stopped_at: Completed 83-01-PLAN.md — radius-base, 3-level shadow scale, alpha border token
+last_updated: "2026-04-03T09:46:12.521Z"
+last_activity: 2026-04-03 -- Phase 83 execution started
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 83
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 82 — Token Foundation + Palette Shift
+**Current focus:** Phase 83 — Component Geometry + Chrome Cleanup
 
 ## Current Position
 
-Phase: 83
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-03
+Phase: 83 (Component Geometry + Chrome Cleanup) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 83
+Last activity: 2026-04-03 -- Phase 83 execution started
 
 Progress: [████████░░] 83%
 
@@ -47,6 +47,9 @@ Progress: [████████░░] 83%
 - [Phase 82-01]: --color-accent aliased to var(--purple-600) confirming COLOR-03 accent sparsity at token level
 - [Phase 82-token-foundation-palette-shift]: Dark mode surface hue set to 78 (warm-neutral) replacing cool hue ~260 — warm identity now consistent across both modes
 - [Phase 82-token-foundation-palette-shift]: Dark mode hover direction uses color-mix(in oklch, base 88%, white) — lightening in dark context is correct interactive cue
+- [Phase 83-01]: All component corners unified to --radius-base (8px) — no per-component radius overrides remain
+- [Phase 83-01]: Shadow scale reduced 9→3 levels: sm=0.06 opacity, md unchanged, lg=old xl 0.14 opacity
+- [Phase 83-01]: --color-border-alpha uses oklch alpha for adaptive depth (black/white based for light/dark modes)
 
 ### Existing Infrastructure
 
@@ -73,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T08:17:05.759Z
-Stopped at: Completed 82-02-PLAN.md — warm dark mode surfaces and critical-tokens sync
+Last session: 2026-04-03T09:46:12.518Z
+Stopped at: Completed 83-01-PLAN.md — radius-base, 3-level shadow scale, alpha border token
 Resume file: None
