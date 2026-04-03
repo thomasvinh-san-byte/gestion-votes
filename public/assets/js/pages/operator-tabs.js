@@ -216,7 +216,7 @@ window.OpS = { fn: {} };
   }
 
   // =========================================================================
-  // CONFIRM MODAL HELPER (uses Shared.openModal for standardized modals)
+  // CONFIRM MODAL HELPER (delegates to AgConfirm.ask for simple confirmations)
   // =========================================================================
 
   /**
@@ -229,24 +229,13 @@ window.OpS = { fn: {} };
    * @returns {Promise<boolean>}
    */
   function confirmModal({ title, body, confirmText = 'Confirmer', confirmClass = 'btn-primary' }) {
-    return new Promise(resolve => {
-      let resolved = false;
-      const m = Shared.openModal({
-        title,
-        body,
-        confirmText,
-        confirmClass,
-        onConfirm() {
-          resolved = true;
-          resolve(true);
-        }
-      });
-      // When modal is closed without confirming (Escape, backdrop, Cancel)
-      const origClose = m._close;
-      m._close = function() {
-        origClose.call(this);
-        if (!resolved) resolve(false);
-      };
+    var variant = 'warning';
+    if (confirmClass.indexOf('danger') !== -1) variant = 'danger';
+    return AgConfirm.ask({
+      title: title,
+      message: body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+      confirmLabel: confirmText,
+      variant: variant
     });
   }
 

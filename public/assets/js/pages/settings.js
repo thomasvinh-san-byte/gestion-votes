@@ -366,7 +366,7 @@
 
     var quorumList = document.getElementById('settingsQuorumList');
     if (quorumList) {
-      quorumList.addEventListener('click', function(e) {
+      quorumList.addEventListener('click', async function(e) {
         // Edit
         var btn = e.target.closest('.btn-edit-quorum');
         if (btn) {
@@ -379,27 +379,27 @@
         if (btn) {
           var name = btn.dataset.name || 'cette politique';
           var delBtn = btn;
-          Shared.openModal({
+          var ok = await AgConfirm.ask({
             title: 'Supprimer la politique de quorum',
-            body: '<div class="alert alert-danger mb-3"><strong>Action irr\u00e9versible</strong></div>' +
-              '<p>Supprimer la politique \u00ab\u00a0<strong>' + escapeHtml(name) + '</strong>\u00a0\u00bb\u00a0?</p>',
-            confirmText: 'Supprimer',
-            confirmClass: 'btn btn-danger',
-            onConfirm: function() {
-              Shared.btnLoading(delBtn, true);
-              api('/api/v1/admin_quorum_policies.php', { action: 'delete', id: delBtn.dataset.id })
-                .then(function(r) {
-                  if (r.body && r.body.ok) {
-                    AgToast.show('Politique supprim\u00e9e', 'success');
-                    loadQuorumPolicies();
-                  } else {
-                    AgToast.show('Erreur lors de la suppression', 'error');
-                  }
-                })
-                .catch(function(err) { AgToast.show(err.message, 'error'); })
-                .finally(function() { Shared.btnLoading(delBtn, false); });
-            }
+            message: 'Supprimer la politique \u00ab\u00a0' + name + '\u00a0\u00bb ? Cette action est irr\u00e9versible.',
+            confirmLabel: 'Supprimer',
+            variant: 'danger'
           });
+          if (!ok) return;
+          Shared.btnLoading(delBtn, true);
+          try {
+            var r = await api('/api/v1/admin_quorum_policies.php', { action: 'delete', id: delBtn.dataset.id });
+            if (r.body && r.body.ok) {
+              AgToast.show('Politique supprim\u00e9e', 'success');
+              loadQuorumPolicies();
+            } else {
+              AgToast.show('Erreur lors de la suppression', 'error');
+            }
+          } catch (err) {
+            AgToast.show(err.message, 'error');
+          } finally {
+            Shared.btnLoading(delBtn, false);
+          }
         }
       });
     }
@@ -464,24 +464,24 @@
     }
 
     if (btnReset) {
-      btnReset.addEventListener('click', function() {
-        Shared.openModal({
+      btnReset.addEventListener('click', async function() {
+        var ok = await AgConfirm.ask({
           title: 'R\u00e9initialiser les templates',
-          body: '<p>Cr\u00e9er tous les templates avec le contenu par d\u00e9faut ? Les templates existants seront \u00e9cras\u00e9s.</p>',
-          confirmText: 'R\u00e9initialiser',
-          confirmClass: 'btn btn-warning',
-          onConfirm: function() {
-            api('/api/v1/email_templates', { action: 'create_defaults' }, 'POST')
-              .then(function(r) {
-                if (r.body && r.body.ok) {
-                  AgToast.show('Templates r\u00e9initialis\u00e9s', 'success');
-                } else {
-                  AgToast.show('Erreur lors de la r\u00e9initialisation', 'error');
-                }
-              })
-              .catch(function() { AgToast.show('Erreur lors de la r\u00e9initialisation', 'error'); });
-          }
+          message: 'Cr\u00e9er tous les templates avec le contenu par d\u00e9faut ? Les templates existants seront \u00e9cras\u00e9s.',
+          confirmLabel: 'R\u00e9initialiser',
+          variant: 'warning'
         });
+        if (!ok) return;
+        try {
+          var r = await api('/api/v1/email_templates', { action: 'create_defaults' }, 'POST');
+          if (r.body && r.body.ok) {
+            AgToast.show('Templates r\u00e9initialis\u00e9s', 'success');
+          } else {
+            AgToast.show('Erreur lors de la r\u00e9initialisation', 'error');
+          }
+        } catch (err) {
+          AgToast.show('Erreur lors de la r\u00e9initialisation', 'error');
+        }
       });
     }
   }
