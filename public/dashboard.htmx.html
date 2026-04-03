@@ -83,43 +83,56 @@
         </a>
 
         <!-- KPI Row — 4 cards filling width -->
-        <div class="dashboard-kpis">
-          <ag-tooltip text="Sessions AG planifi&eacute;es ou en pr&eacute;paration" position="bottom">
-            <a href="/meetings" class="kpi-card kpi-card--1" aria-label="AG &agrave; venir">
-              <div class="kpi-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-              </div>
-              <div class="kpi-value" id="kpiSeances">-</div>
-              <div class="kpi-label">AG &agrave; venir</div>
-            </a>
-          </ag-tooltip>
-          <ag-tooltip text="Sessions en cours de vote en direct" position="bottom">
-            <a href="/operator" class="kpi-card kpi-card--2" aria-label="En cours">
-              <div class="kpi-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-              </div>
-              <div class="kpi-value" id="kpiEnCours">-</div>
-              <div class="kpi-label">En cours</div>
-            </a>
-          </ag-tooltip>
-          <ag-tooltip text="Convocations en attente d'envoi" position="bottom">
-            <a href="/hub" class="kpi-card kpi-card--3" aria-label="Convocations en attente">
-              <div class="kpi-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-              </div>
-              <div class="kpi-value" id="kpiConvoc">-</div>
-              <div class="kpi-label">Convoc. en attente</div>
-            </a>
-          </ag-tooltip>
-          <ag-tooltip text="Proc&egrave;s-verbaux &agrave; finaliser et envoyer" position="bottom">
-            <a href="/postsession" class="kpi-card kpi-card--4" aria-label="PV &agrave; envoyer">
-              <div class="kpi-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-              </div>
-              <div class="kpi-value" id="kpiPV">-</div>
-              <div class="kpi-label">PV &agrave; envoyer</div>
-            </a>
-          </ag-tooltip>
+        <div class="dashboard-kpis loading">
+          <!-- Skeleton placeholders — removed by JS after API response -->
+          <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
+          <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
+          <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
+          <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
+          <div class="kpi-card-wrapper">
+            <ag-tooltip text="Sessions AG planifi&eacute;es ou en pr&eacute;paration" position="bottom">
+              <a href="/meetings" class="kpi-card kpi-card--1" aria-label="AG &agrave; venir">
+                <div class="kpi-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                </div>
+                <div class="kpi-value" id="kpiSeances">-</div>
+                <div class="kpi-label">AG &agrave; venir</div>
+              </a>
+            </ag-tooltip>
+          </div>
+          <div class="kpi-card-wrapper">
+            <ag-tooltip text="Sessions en cours de vote en direct" position="bottom">
+              <a href="/operator" class="kpi-card kpi-card--2" aria-label="En cours">
+                <div class="kpi-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                </div>
+                <div class="kpi-value" id="kpiEnCours">-</div>
+                <div class="kpi-label">En cours</div>
+              </a>
+            </ag-tooltip>
+          </div>
+          <div class="kpi-card-wrapper">
+            <ag-tooltip text="Convocations en attente d'envoi" position="bottom">
+              <a href="/hub" class="kpi-card kpi-card--3" aria-label="Convocations en attente">
+                <div class="kpi-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                </div>
+                <div class="kpi-value" id="kpiConvoc">-</div>
+                <div class="kpi-label">Convoc. en attente</div>
+              </a>
+            </ag-tooltip>
+          </div>
+          <div class="kpi-card-wrapper">
+            <ag-tooltip text="Proc&egrave;s-verbaux &agrave; finaliser et envoyer" position="bottom">
+              <a href="/postsession" class="kpi-card kpi-card--4" aria-label="PV &agrave; envoyer">
+                <div class="kpi-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                </div>
+                <div class="kpi-value" id="kpiPV">-</div>
+                <div class="kpi-label">PV &agrave; envoyer</div>
+              </a>
+            </ag-tooltip>
+          </div>
         </div>
 
         <!-- Body: Sessions + Aside -->
@@ -137,7 +150,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
               </a>
             </div>
-            <div id="prochaines" class="dashboard-sessions__list" aria-live="polite">
+            <div id="prochaines" class="dashboard-sessions__list loading" aria-live="polite">
               <!-- Skeleton placeholders — JS replaces with session cards or empty state -->
               <div class="skeleton skeleton-session"></div>
               <div class="skeleton skeleton-session"></div>

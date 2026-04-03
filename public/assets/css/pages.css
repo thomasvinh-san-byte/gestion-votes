@@ -1118,6 +1118,31 @@
   margin-bottom: 0;
 }
 
+/* Skeleton shimmer for KPI cards */
+.skeleton-kpi {
+  height: 88px;               /* matches kpi-card approx height */
+  min-width: 0;
+  border-radius: var(--radius-base);
+}
+
+/* Loading state: show skeletons, hide real content */
+.dashboard-kpis.loading .kpi-card-wrapper {
+  display: none;
+}
+.dashboard-kpis.loading .skeleton-kpi {
+  display: block;
+}
+
+/* Loaded state: hide skeletons, show real content */
+.dashboard-kpis:not(.loading) .skeleton-kpi {
+  display: none;
+}
+
+/* Session list loading state */
+.dashboard-sessions__list.loading .session-card-link {
+  display: none;
+}
+
 /* =============================================================================
    DASHBOARD — Aside (Quick Actions)
    ============================================================================= */

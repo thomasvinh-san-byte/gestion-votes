@@ -126,6 +126,10 @@
           el = document.getElementById('kpiPV');
           if (el) el.textContent = meetings.filter(function (m) { return m.status === 'closed' || m.status === 'validated'; }).length;
 
+          // Remove loading state — show real KPI cards, hide skeletons
+          var kpisContainer = document.querySelector('.dashboard-kpis');
+          if (kpisContainer) kpisContainer.classList.remove('loading');
+
           // Urgent action — reveal banner if there's a live meeting (banner is hidden by default in HTML)
           var urgentCard = document.getElementById('actionUrgente');
           var liveMeeting = live.length > 0 ? live[0] : null;
@@ -144,6 +148,7 @@
           if (prochaines) {
             if (meetings.length === 0) {
               prochaines.innerHTML = '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour g\u00e9rer vos assembl\u00e9es g\u00e9n\u00e9rales." action-label="Nouvelle s\u00e9ance" action-href="/wizard"></ag-empty-state>';
+              prochaines.classList.remove('loading');
             } else {
               var sorted = meetings.slice().sort(function (a, b) {
                 var ai = STATUS_PRIORITY.indexOf(a.status);
@@ -153,6 +158,7 @@
               var html = '';
               sorted.slice(0, 8).forEach(function (s) { html += renderSessionCard(s); });
               prochaines.innerHTML = html;
+              prochaines.classList.remove('loading');
             }
           }
 
@@ -177,6 +183,10 @@
   /* ── Error state ─────────────────────────────────────── */
 
   function showDashboardError() {
+    var kpisContainer = document.querySelector('.dashboard-kpis');
+    if (kpisContainer) kpisContainer.classList.remove('loading');
+    var prochaines = document.getElementById('prochaines');
+    if (prochaines) prochaines.classList.remove('loading');
     if (window.Shared && Shared.showToast) {
       Shared.showToast('Impossible de charger le tableau de bord.', 'error');
     }
