@@ -229,7 +229,10 @@ Plans:
   2. The shadow scale has exactly three named levels visible in the rendered UI: sm (cards/panels — border-only or near-zero elevation), md (dropdowns/popovers), lg (modals/dialogs); no component uses a shadow outside this vocabulary
   3. Borders on cards and panels appear to "float" subtly on any background color — light or dark — because they use alpha-based color rather than a fixed hex; placing a card on a light gray vs. white surface still shows a visible but not harsh edge
   4. The dashboard KPI cards and session list show a shimmer animation while loading instead of a spinner; the shimmer respects `prefers-reduced-motion` (static placeholder when motion is reduced)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 83-01-PLAN.md — Radius consolidation + shadow scale reduction + alpha border token
+- [ ] 83-02-PLAN.md — Dashboard skeleton shimmer loading for KPI cards and session list
 
 ### Phase 84: Hardened Foundation
 **Goal**: The codebase has zero escape hatches — no hardcoded hex in any page CSS file, all Shadow DOM fallback literals reflect the current palette, critical-tokens inline blocks are in sync, color tokens can be animated via CSS transitions, and focus rings across all Web Components use the token reference pattern
@@ -248,5 +251,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 82. Token Foundation + Palette Shift | 2/2 | Complete    | 2026-04-03 |
-| 83. Component Geometry + Chrome Cleanup | 0/TBD | Not started | - |
+| 83. Component Geometry + Chrome Cleanup | 0/2 | Not started | - |
 | 84. Hardened Foundation | 0/TBD | Not started | - |
