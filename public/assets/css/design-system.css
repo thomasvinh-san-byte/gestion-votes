@@ -272,98 +272,98 @@ table {
      Hex primary, oklch not used here for max browser compat.
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --color-bg: #EDECE6;
-  --color-bg-subtle: #E5E3D8;
-  --color-surface-alt: #E5E3D8;  /* Wireframe --surface-alt: one step below surface */
-  --color-surface: #FAFAF7;
-  --color-surface-raised: #FFFFFF;
-  --color-surface-overlay: rgba(250, 250, 247, 0.95);
-  --color-glass: rgba(250, 250, 247, 0.95);
+  --color-bg:             var(--stone-200);  /* oklch(0.922 0.013 95) */
+  --color-bg-subtle:      var(--stone-300);  /* oklch(0.893 0.017 90) */
+  --color-surface-alt:    var(--stone-300);  /* oklch(0.893 0.017 90) — Wireframe --surface-alt: one step below surface */
+  --color-surface:        var(--stone-50);   /* oklch(0.969 0.006 95) */
+  --color-surface-raised: oklch(1 0 0);      /* white — no primitive */
+  --color-surface-overlay: oklch(0.969 0.006 95 / 0.95);  /* was rgba(250,250,247,0.95) */
+  --color-glass:           oklch(0.969 0.006 95 / 0.95);  /* was rgba(250,250,247,0.95) */
 
-  --color-text: #52504A;
-  --color-text-dark: #151510;
-  --color-text-secondary: #151510;
-  --color-text-muted: #857F72;
-  --color-text-light: #B5B0A0;
-  --color-text-inverse: #ffffff;
-  --color-text-disabled: #C4C0B5;
+  --color-text:           var(--stone-700);  /* oklch(0.530 0.025 80) */
+  --color-text-dark:      var(--stone-900);  /* oklch(0.180 0.012 75) */
+  --color-text-secondary: var(--stone-900);  /* oklch(0.180 0.012 75) */
+  --color-text-muted:     var(--stone-600);  /* oklch(0.648 0.030 82) */
+  --color-text-light:     var(--stone-500);  /* oklch(0.760 0.028 85) */
+  --color-text-inverse:   oklch(1 0 0);      /* white */
+  --color-text-disabled:  var(--stone-400);  /* oklch(0.833 0.022 88) */
 
-  --color-border: #CDC9BB;
-  --color-border-subtle: #DEDAD0;
-  --color-border-strong: #BCB7A5;
-  --color-border-dash: #BCB7A5;
-  --color-border-focus: rgba(22, 80, 224, 0.50);
+  --color-border:        var(--stone-400);  /* oklch(0.833 0.022 88) */
+  --color-border-subtle: oklch(0.912 0.015 92);  /* between stone-200 and stone-300, no exact primitive */
+  --color-border-strong: var(--stone-500);  /* oklch(0.760 0.028 85) */
+  --color-border-dash:   var(--stone-500);  /* oklch(0.760 0.028 85) */
+  --color-border-focus:  oklch(0.520 0.195 265 / 0.50);  /* was rgba(22,80,224,0.50) */
 
-  --color-primary: #1650E0;
-  --color-primary-hover: #1140C0;
-  --color-primary-active: #0C30A0;
-  --color-primary-subtle: #EBF0FF;
-  --color-primary-muted: rgba(22, 80, 224, 0.12);
-  --color-primary-glow: rgba(22, 80, 224, 0.12);
-  --color-primary-text: #ffffff;
+  --color-primary:        var(--blue-600);    /* oklch(0.520 0.195 265) */
+  --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, black);
+  --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, black);
+  --color-primary-subtle: var(--blue-50);     /* oklch(0.960 0.018 265) */
+  --color-primary-muted:  oklch(0.520 0.195 265 / 0.12);  /* was rgba(22,80,224,0.12) */
+  --color-primary-glow:   oklch(0.520 0.195 265 / 0.12);  /* was rgba(22,80,224,0.12) */
+  --color-primary-text:   oklch(1 0 0);       /* white */
 
-  --color-success: #0B7A40;
-  --color-success-hover: #096B37;
-  --color-success-subtle: #EDFAF2;
-  --color-success-border: #A3E8C1;
-  --color-success-text: #0B7A40;
+  --color-success:        var(--green-600);   /* oklch(0.500 0.135 155) */
+  --color-success-hover:  color-mix(in oklch, var(--color-success) 88%, black);
+  --color-success-subtle: var(--green-50);    /* oklch(0.968 0.020 155) */
+  --color-success-border: oklch(0.750 0.100 155);  /* #A3E8C1 approx */
+  --color-success-text:   var(--green-600);   /* oklch(0.500 0.135 155) */
 
-  --color-warning: #B56700;
-  --color-warning-hover: #9A5800;
-  --color-warning-subtle: #FFF7E8;
-  --color-warning-border: #F5D490;
-  --color-warning-text: #B56700;
+  --color-warning:        var(--amber-600);   /* oklch(0.590 0.115 60) */
+  --color-warning-hover:  color-mix(in oklch, var(--color-warning) 88%, black);
+  --color-warning-subtle: var(--amber-50);    /* oklch(0.978 0.022 90) */
+  --color-warning-border: oklch(0.860 0.090 80);  /* #F5D490 approx */
+  --color-warning-text:   var(--amber-600);   /* oklch(0.590 0.115 60) */
 
-  --color-danger: #C42828;
-  --color-danger-hover: #A82222;
-  --color-danger-subtle: #FEF1F0;
-  --color-danger-border: #F4BFBF;
-  --color-danger-text: #C42828;
+  --color-danger:        var(--red-600);   /* oklch(0.510 0.175 25) */
+  --color-danger-hover:  color-mix(in oklch, var(--color-danger) 88%, black);
+  --color-danger-subtle: var(--red-50);    /* oklch(0.975 0.015 25) */
+  --color-danger-border: oklch(0.800 0.080 25);  /* #F4BFBF approx */
+  --color-danger-text:   var(--red-600);   /* oklch(0.510 0.175 25) */
 
-  --color-info: #1650E0;
-  --color-info-hover: #1140C0;
-  --color-info-subtle: #EBF0FF;
-  --color-info-text: #1650E0;
+  --color-info:        var(--blue-600);   /* oklch(0.520 0.195 265) */
+  --color-info-hover:  color-mix(in oklch, var(--color-info) 88%, black);
+  --color-info-subtle: var(--blue-50);    /* oklch(0.960 0.018 265) */
+  --color-info-text:   var(--blue-600);   /* oklch(0.520 0.195 265) */
 
-  --color-purple: #5038C0;
-  --color-purple-subtle: #EEEAFF;
-  --color-purple-border: #C4B8F8;
-  --color-accent: #5038C0;
-  --color-accent-subtle: #EEEAFF;
-  --color-accent-border: #C4B8F8;
-  --color-accent-text: #5038C0;
+  --color-purple:        var(--purple-600);  /* oklch(0.490 0.170 298) */
+  --color-purple-subtle: var(--purple-50);   /* oklch(0.965 0.022 298) */
+  --color-purple-border: oklch(0.720 0.100 298);  /* #C4B8F8 approx */
+  --color-accent:        var(--purple-600);  /* stays aliased to purple, not primary — per COLOR-03 */
+  --color-accent-subtle: var(--purple-50);   /* oklch(0.965 0.022 298) */
+  --color-accent-border: oklch(0.720 0.100 298);  /* #C4B8F8 approx */
+  --color-accent-text:   var(--purple-600);  /* oklch(0.490 0.170 298) */
 
-  --color-neutral: #857F72;
-  --color-neutral-hover: #6B6860;
-  --color-neutral-subtle: #E5E3D8;
-  --color-neutral-text: #52504A;
+  --color-neutral:        var(--stone-600);  /* oklch(0.648 0.030 82) */
+  --color-neutral-hover:  color-mix(in oklch, var(--color-neutral) 88%, black);
+  --color-neutral-subtle: var(--stone-300);  /* oklch(0.893 0.017 90) */
+  --color-neutral-text:   var(--stone-700);  /* oklch(0.530 0.025 80) */
 
-  --color-backdrop: rgba(0, 0, 0, 0.5);
-  --color-overlay-tint: rgba(0, 0, 0, 0.04);
+  --color-backdrop:     oklch(0 0 0 / 0.50);      /* was rgba(0,0,0,0.5) */
+  --color-overlay-tint: oklch(0 0 0 / 0.04);      /* was rgba(0,0,0,0.04) */
 
   /* ─── Sidebar ─── */
-  --sidebar-bg: #0C1018;
-  --sidebar-hover: rgba(255, 255, 255, 0.1);
-  --sidebar-active: rgba(22, 80, 224, 0.3);
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-text: rgba(255, 255, 255, 0.85);
-  --sidebar-text-hover: #fff;
+  --sidebar-bg:         oklch(0.080 0.015 260);    /* was #0C1018 — intentionally cool */
+  --sidebar-hover:      oklch(1 0 0 / 0.10);       /* was rgba(255,255,255,0.1) */
+  --sidebar-active:     oklch(0.520 0.195 265 / 0.30);  /* was rgba(22,80,224,0.3) */
+  --sidebar-border:     oklch(1 0 0 / 0.08);       /* was rgba(255,255,255,0.08) */
+  --sidebar-text:       oklch(1 0 0 / 0.85);       /* was rgba(255,255,255,0.85) */
+  --sidebar-text-hover: oklch(1 0 0);              /* white */
 
   /* ─── Tags ─── */
-  --tag-bg: #E5E3D8;
-  --tag-text: #6B6860;
+  --tag-bg:   var(--stone-300);  /* oklch(0.893 0.017 90) */
+  --tag-text: oklch(0.530 0.025 80);  /* same as stone-700 */
 
   /* VIS-04: color-mix derived tokens */
-  --color-primary-tint-10: color-mix(in srgb, var(--color-primary) 10%, white);
-  --color-primary-tint-5: color-mix(in srgb, var(--color-primary) 5%, white);
-  --color-success-tint-10: color-mix(in srgb, var(--color-success) 10%, white);
-  --color-success-tint-5: color-mix(in srgb, var(--color-success) 5%, white);
-  --color-danger-tint-10: color-mix(in srgb, var(--color-danger) 10%, white);
-  --color-danger-tint-5: color-mix(in srgb, var(--color-danger) 5%, white);
-  --color-warning-tint-10: color-mix(in srgb, var(--color-warning) 10%, white);
-  --color-warning-tint-5: color-mix(in srgb, var(--color-warning) 5%, white);
-  --color-primary-shade-10: color-mix(in srgb, var(--color-primary) 90%, black);
-  --color-surface-elevated: color-mix(in srgb, var(--color-surface) 97%, var(--color-primary));
+  --color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, white);
+  --color-primary-tint-5:  color-mix(in oklch, var(--color-primary) 5%, white);
+  --color-success-tint-10: color-mix(in oklch, var(--color-success) 10%, white);
+  --color-success-tint-5:  color-mix(in oklch, var(--color-success) 5%, white);
+  --color-danger-tint-10:  color-mix(in oklch, var(--color-danger) 10%, white);
+  --color-danger-tint-5:   color-mix(in oklch, var(--color-danger) 5%, white);
+  --color-warning-tint-10: color-mix(in oklch, var(--color-warning) 10%, white);
+  --color-warning-tint-5:  color-mix(in oklch, var(--color-warning) 5%, white);
+  --color-primary-shade-10: color-mix(in oklch, var(--color-primary) 90%, black);
+  --color-surface-elevated: color-mix(in oklch, var(--color-surface) 97%, var(--color-primary));
 
   /* ─── Persona Accent Colors ───
      Each persona gets a distinct accent hue used for sidebar indicator,
