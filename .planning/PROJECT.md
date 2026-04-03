@@ -85,9 +85,11 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v8.0: Account & Hardening — Page Mon Compte (profil + password change self-service), confirmation 2 etapes pour operations critiques, session timeout configurable (5-480 min), reprise vote apres timeout, controller coverage >70%, admin KPI errors visibles, E2E seed data + migration idempotency en CI.
 
+- v9.0: Compliance & Robustness — Procuration PDF, RGPD compliance (export/retention/erasure), transaction-level FOR UPDATE locks, SSE cleanup + async error capture + fallback polling, list pagination, PV immutable snapshot, ARIA label completeness. Plus UX interactivity overhaul: universal AgConfirm.ask(), per-page width strategy, AgToast bug fixes, SSE disconnect banner, wizard 2-column grid, unsaved changes warnings, animation timing contracts.
+
 ### Active
 
-**v9.0 Compliance & Robustness** : Procuration PDF, RGPD (export/retention/suppression), verrous concurrence votes, fix TOCTOU procurations, memory leak SSE, pagination, erreurs async, SSE fallback, PV finalization immutable, ARIA labels.
+**v10.0 Visual Identity Evolution** : Evoluer l'identite visuelle complete — couleurs, typographie, composants — en s'inspirant des meilleures pratiques des sites web modernes tout en preservant l'esprit "officiel et confiance".
 
 ### Out of Scope
 
