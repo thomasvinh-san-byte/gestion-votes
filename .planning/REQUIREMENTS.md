@@ -2,10 +2,10 @@
 
 ## Color & Palette
 
-- [ ] **COLOR-01**: Semantic color tokens modernized for perceptual uniformity and automatic shade derivation
-- [ ] **COLOR-02**: Warm-neutral gray ramp replaces current cool-toned grays across all surfaces (bg, surface, raised)
-- [ ] **COLOR-03**: Accent color (indigo) appears only at interactive elements — CTAs, active nav, focus ring, inline links
-- [ ] **COLOR-04**: Derived tint/shade tokens (hover, disabled, subtle) computed from base values instead of manually maintained
+- [x] **COLOR-01**: Semantic color tokens modernized for perceptual uniformity and automatic shade derivation
+- [x] **COLOR-02**: Warm-neutral gray ramp replaces current cool-toned grays across all surfaces (bg, surface, raised)
+- [x] **COLOR-03**: Accent color (indigo) appears only at interactive elements — CTAs, active nav, focus ring, inline links
+- [x] **COLOR-04**: Derived tint/shade tokens (hover, disabled, subtle) computed from base values instead of manually maintained
 - [ ] **COLOR-05**: Dark mode overrides explicitly re-declare all derived tokens to prevent stale light-mode computation
 
 ## Component Geometry

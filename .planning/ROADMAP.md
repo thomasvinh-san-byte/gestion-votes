@@ -247,6 +247,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 82. Token Foundation + Palette Shift | 0/2 | Not started | - |
+| 82. Token Foundation + Palette Shift | 1/2 | In Progress|  |
 | 83. Component Geometry + Chrome Cleanup | 0/TBD | Not started | - |
 | 84. Hardened Foundation | 0/TBD | Not started | - |
