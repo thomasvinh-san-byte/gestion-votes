@@ -284,13 +284,13 @@
 }
 
 .meeting-card-status.draft        { background: var(--color-neutral-subtle);  color: var(--color-text-muted); }
-.meeting-card-status.scheduled    { background: var(--color-info-subtle);     color: var(--color-info-text, #1650E0); }
-.meeting-card-status.frozen       { background: var(--color-warning-subtle);  color: var(--color-warning-text, #b8860b); }
-.meeting-card-status.convocations { background: var(--color-info-subtle);     color: var(--color-info-text, #1650E0); }
-.meeting-card-status.live         { background: var(--color-danger-subtle);   color: var(--color-danger-text, #c42828); }
-.meeting-card-status.paused       { background: var(--color-danger-subtle);   color: var(--color-danger-text, #c42828); }
-.meeting-card-status.closed       { background: var(--color-success-subtle);  color: var(--color-success-text, #0b7a40); }
-.meeting-card-status.validated    { background: var(--color-success-subtle);  color: var(--color-success-hover, #064e28); }
+.meeting-card-status.scheduled    { background: var(--color-info-subtle);     color: var(--color-info-text); }
+.meeting-card-status.frozen       { background: var(--color-warning-subtle);  color: var(--color-warning-text); }
+.meeting-card-status.convocations { background: var(--color-info-subtle);     color: var(--color-info-text); }
+.meeting-card-status.live         { background: var(--color-danger-subtle);   color: var(--color-danger-text); }
+.meeting-card-status.paused       { background: var(--color-danger-subtle);   color: var(--color-danger-text); }
+.meeting-card-status.closed       { background: var(--color-success-subtle);  color: var(--color-success-text); }
+.meeting-card-status.validated    { background: var(--color-success-subtle);  color: var(--color-success-hover); }
 .meeting-card-status.archived     { background: var(--color-accent-subtle);   color: var(--color-accent-text); }
 .meeting-card-status.pv_sent      { background: var(--color-accent-subtle);   color: var(--color-accent-text); }
 
@@ -497,7 +497,7 @@
 .calendar-event:hover { opacity: 0.8; }
 
 .calendar-event.live      { background: var(--color-danger-subtle);  color: var(--color-danger); }
-.calendar-event.scheduled { background: var(--color-info-subtle);    color: var(--color-info-text, #1650E0); }
+.calendar-event.scheduled { background: var(--color-info-subtle);    color: var(--color-info-text); }
 .calendar-event.draft     { background: var(--color-neutral-subtle); color: var(--color-text-muted); }
 
 .calendar-day-count {
@@ -523,7 +523,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg, 12px);
   padding: var(--space-2);
-  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,.12));
+  box-shadow: var(--shadow-lg);
   z-index: 50;
   min-width: 200px;
 }

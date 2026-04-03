@@ -453,7 +453,7 @@
    ============================================================================= */
 
 [data-theme="dark"] .login-page {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-primary-muted, rgba(30, 60, 120, 0.3)) 0%, transparent 60%), var(--color-bg);
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-primary-muted) 0%, transparent 60%), var(--color-bg);
 }
 
 [data-theme="dark"] .login-orb {

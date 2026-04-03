@@ -565,7 +565,7 @@
 }
 
 .cta-subtitle {
-  color: rgba(255,255,255,0.85);
+  color: var(--color-text-on-primary-muted);
   font-size: var(--text-lg);
   margin-bottom: var(--space-8);
 }

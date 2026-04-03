@@ -179,7 +179,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-warning, #f59e0b);
+  background: var(--color-warning);
   flex-shrink: 0;
 }
 
@@ -310,7 +310,7 @@
   display: inline-block;
   width: 44px;
   height: 24px;
-  background: var(--color-border-strong, #cbd5e1);
+  background: var(--color-border-strong);
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-standard);
@@ -328,7 +328,7 @@
   background: white;
   border-radius: 50%;
   transition: transform var(--duration-fast) var(--ease-standard);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.20);
 }
 
 .settings-toggle:checked + .settings-toggle-label {

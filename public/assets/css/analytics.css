@@ -138,7 +138,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .analytics-period-pill.active {
   background: var(--color-primary);
-  color: var(--color-text-on-primary, #fff);
+  color: var(--color-primary-text);
   box-shadow: none;
 }
 
@@ -460,8 +460,8 @@ body:has(.analytics-main) .page-header .page-header-actions {
   width: 28px;
   height: 28px;
   margin: -14px 0 0 -14px;
-  border: 3px solid var(--color-border, #e5e5e5);
-  border-top-color: var(--color-primary, #1650E0);
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: chartSpin 0.7s linear infinite;
   z-index: 2;
@@ -627,7 +627,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   padding: 0 5px;
   border-radius: var(--radius-full);
   background: var(--color-danger);
-  color: var(--color-text-on-primary, #fff);
+  color: var(--color-primary-text);
   font-size: 11px;
   font-weight: 700;
   margin-left: var(--space-2);
@@ -746,9 +746,9 @@ body:has(.analytics-main) .page-header .page-header-actions {
   flex-shrink: 0;
 }
 
-.anomaly-item.warning .anomaly-icon { background: var(--color-warning); color: #fff; }
-.anomaly-item.info    .anomaly-icon { background: var(--color-info);    color: #fff; }
-.anomaly-item.ok      .anomaly-icon { background: var(--color-success); color: #fff; }
+.anomaly-item.warning .anomaly-icon { background: var(--color-warning); color: var(--color-primary-text); }
+.anomaly-item.info    .anomaly-icon { background: var(--color-info);    color: var(--color-primary-text); }
+.anomaly-item.ok      .anomaly-icon { background: var(--color-success); color: var(--color-primary-text); }
 
 .anomaly-label {
   font-size: var(--text-xs);
@@ -1023,8 +1023,8 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
   .app-main { margin: 0; padding: 0; }
   .tab-content { display: block !important; page-break-inside: avoid; margin-bottom: 2rem; }
-  .tab-content::before { content: attr(data-print-title); font-size: 1.25rem; font-weight: 700; display: block; margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+  .tab-content::before { content: attr(data-print-title); font-size: 1.25rem; font-weight: 700; display: block; margin-bottom: 1rem; border-bottom: 2px solid var(--color-text); padding-bottom: 0.5rem; }
   .chart-card { break-inside: avoid; margin-bottom: 1rem; }
   .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
-  body { background: #fff; color: #000; }
+  body { background: var(--color-bg); color: var(--color-text); }
 }
