@@ -1672,7 +1672,7 @@ h4, .h4 {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   line-height: 1;
-  border-radius: var(--radius-badge);
+  border-radius: var(--radius-full);
   white-space: nowrap;
 }
 
