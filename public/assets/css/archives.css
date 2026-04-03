@@ -303,7 +303,7 @@
 
 .archive-badge.no-pv {
   background: var(--color-warning-subtle);
-  color: var(--color-warning-text, #b8860b);
+  color: var(--color-warning-text);
 }
 
 /* =============================================================================
