@@ -137,14 +137,14 @@ class AgVoteButton extends HTMLElement {
           border-color: var(--color-success);
           background: var(--color-success-subtle, #e4ede4);
         }
-        :host([value="for"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px oklch(0.500 0.135 155 / 0.14); }
+        :host([value="for"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px var(--color-success-glow); }
         :host([value="for"]) .icon-circle { background: oklch(0.500 0.135 155 / 0.12); color: var(--color-success); }
 
         :host([value="against"]) button {
           border-color: var(--color-danger);
           background: var(--color-danger-subtle, #f2e4e4);
         }
-        :host([value="against"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px oklch(0.510 0.175 25 / 0.14); }
+        :host([value="against"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px var(--color-danger-glow); }
         :host([value="against"]) .icon-circle { background: oklch(0.510 0.175 25 / 0.12); color: var(--color-danger); }
 
         :host([value="abstain"]) button {

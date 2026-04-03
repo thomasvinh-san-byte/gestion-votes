@@ -925,7 +925,7 @@ h4, .h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 4px rgba(22, 80, 224, .28), inset 0 1px 0 rgba(255, 255, 255, .12);
+  box-shadow: 0 1px 4px oklch(0.520 0.195 265 / 0.28), inset 0 1px 0 oklch(1 0 0 / 0.12);
 }
 
 .hamburger {
@@ -1181,7 +1181,7 @@ h4, .h4 {
   text-align: center;
   margin-left: auto;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(196, 40, 40, .4);
+  box-shadow: 0 1px 3px oklch(0.510 0.175 25 / 0.40);
 }
 .nav-badge[data-count]:not([data-count="0"]) {
   display: inline-flex;
@@ -1227,8 +1227,8 @@ h4, .h4 {
 .app-sidebar.pinned .sidebar-pin {
   color: var(--color-primary);
   opacity: 1;
-  background: rgba(22, 80, 224, .15);
-  border-color: rgba(22, 80, 224, .3);
+  background: oklch(0.520 0.195 265 / 0.15);
+  border-color: oklch(0.520 0.195 265 / 0.30);
 }
 
 /* Device section + footer */
