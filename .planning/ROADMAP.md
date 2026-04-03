@@ -200,7 +200,7 @@
 ## Phases
 
 - [x] **Phase 82: Token Foundation + Palette Shift** - Promote oklch semantic tokens, warm-neutral gray ramp, derived shade computation, dark mode co-update, visible palette change across all pages (completed 2026-04-03)
-- [ ] **Phase 83: Component Geometry + Chrome Cleanup** - Consolidate radius to --radius-base, reduce shadows to 3 named levels, apply alpha-based borders, replace spinners with skeleton shimmer on dashboard and session list
+- [x] **Phase 83: Component Geometry + Chrome Cleanup** - Consolidate radius to --radius-base, reduce shadows to 3 named levels, apply alpha-based borders, replace spinners with skeleton shimmer on dashboard and session list (completed 2026-04-03)
 - [ ] **Phase 84: Hardened Foundation** - Eliminate all hardcoded hex from page CSS, audit Shadow DOM fallback literals, sync critical-tokens inline styles, register animatable tokens, tokenize focus rings
 
 ## Phase Details
@@ -251,5 +251,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 82. Token Foundation + Palette Shift | 2/2 | Complete    | 2026-04-03 |
-| 83. Component Geometry + Chrome Cleanup | 1/2 | In Progress|  |
+| 83. Component Geometry + Chrome Cleanup | 2/2 | Complete   | 2026-04-03 |
 | 84. Hardened Foundation | 0/TBD | Not started | - |

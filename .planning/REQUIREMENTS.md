@@ -13,7 +13,7 @@
 - [x] **COMP-01**: Single --radius-base token controls all border-radius values (consolidated from current multiple values)
 - [x] **COMP-02**: Shadow vocabulary reduced to 3 named levels (sm, md, lg) replacing current proliferation
 - [x] **COMP-03**: Border colors use transparency instead of solid hex for subtle depth on any background
-- [ ] **COMP-04**: Skeleton shimmer loading replaces ag-spinner on dashboard and session list pages
+- [x] **COMP-04**: Skeleton shimmer loading replaces ag-spinner on dashboard and session list pages
 
 ## Hardened Foundation
 
