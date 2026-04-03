@@ -861,6 +861,46 @@
 
   window.GlobalSearch = { open: openSearch, close: closeSearch };
 
+  // ==========================================================================
+  // Navigation Guard — Shell.beforeNavigate
+  // ==========================================================================
+  var _navGuards = [];
+
+  /**
+   * Register an async guard called before in-app navigation.
+   * Guard returns true to allow, false to block.
+   * @param {function(): Promise<boolean>} guardFn
+   */
+  function beforeNavigate(guardFn) {
+    if (typeof guardFn === 'function') _navGuards.push(guardFn);
+  }
+
+  /**
+   * Check all guards. Returns true if navigation allowed.
+   * @returns {Promise<boolean>}
+   */
+  async function checkNavGuards() {
+    for (var i = 0; i < _navGuards.length; i++) {
+      try {
+        var allowed = await _navGuards[i]();
+        if (!allowed) return false;
+      } catch (e) { /* guard error — allow navigation */ }
+    }
+    return true;
+  }
+
+  // Intercept sidebar navigation links
+  document.querySelectorAll('.app-sidebar a[href]').forEach(function(link) {
+    link.addEventListener('click', async function(e) {
+      if (_navGuards.length === 0) return;
+      e.preventDefault();
+      var allowed = await checkNavGuards();
+      if (allowed) window.location.href = link.href;
+    });
+  });
+
+  window.Shell = { beforeNavigate: beforeNavigate };
+
   // Auto-load auth UI banner
   const authScript = document.createElement('script');
   authScript.src = '/assets/js/pages/auth-ui.js';
