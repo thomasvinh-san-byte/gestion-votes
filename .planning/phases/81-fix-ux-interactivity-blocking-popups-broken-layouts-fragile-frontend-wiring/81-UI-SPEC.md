@@ -56,11 +56,11 @@ All values sourced from existing tokens. No new sizes are added.
 | Role | Size | Weight | Line Height | Token |
 |------|------|--------|-------------|-------|
 | Body | 14px (`--text-base`) | 400 (`--weight-regular`) | 1.571 (`--leading-base`) | Primary UI chrome text |
-| Label | 13px (`--text-sm`) | 500 (`--weight-medium`) | 1.55 (`--leading-sm`) | Form labels, table headers, badge text |
+| Label | 12px (`--text-xs`) | 600 (`--weight-semibold`) | 1.55 (`--leading-sm`) | Form labels, table headers, badge text |
 | Heading | 20px (`--text-xl`) | 600 (`--weight-semibold`) | 1.35 (`--leading-xl`) | Page section headings, card titles |
 | Display | 24px (`--text-2xl`) | 600 (`--weight-semibold`) | 1.3 (`--leading-2xl`) | Page-level h1, wizard section title, KPI value |
 
-Font weight system: exactly two weights in regular use — 400 (body, secondary text) and 600 (labels, headings, CTAs). Weight 500 reserved for form labels only.
+Font weight system: exactly two weights — 400 (`--weight-regular`) for body and secondary text, 600 (`--weight-semibold`) for labels, headings, and CTAs. `--weight-medium` (500) is not used in this phase.
 
 ---
 
@@ -87,6 +87,19 @@ Accent must NOT appear on: card borders, table row hover states, badges (use sem
 
 ---
 
+## Focal Anchors
+
+Each high-density page has one designated primary visual focal point that the eye lands on first.
+
+| Page | Focal Anchor |
+|------|-------------|
+| Operator console | The active vote card (resolution title + live vote progress bar) in the center panel — rendered at `--text-xl` weight-semibold with accent-colored progress fill |
+| Dashboard | The KPI row at the top of the content area — four metric tiles in `--color-surface-raised` cards, KPI values rendered at `--text-2xl` weight-semibold |
+
+All other page content is visually subordinate to these anchors.
+
+---
+
 ## Interaction Contracts
 
 ### Confirmation Pattern
@@ -104,7 +117,7 @@ All other actions (status toggles, minor edits, saves) execute directly and disp
 const ok = await AgConfirm.ask({
   title: '[Nom de l\'action] ?',
   message: 'Cette action est irréversible.',
-  confirmLabel: '[Verbe d\'action]',
+  confirmLabel: '[Verbe d\'action + objet]',
   variant: 'danger'
 });
 ```
@@ -161,7 +174,7 @@ When `event-stream.js` detects a connection drop and activates fallback polling:
 
 Forms with meaningful edits (wizard steps, settings page, member edit modal) must warn before navigation away:
 - Trigger: `beforeunload` event or shell navigation intercept
-- Warning approach: `AgConfirm.ask()` with `variant: 'warning'`, title "Quitter sans enregistrer ?", confirm label "Quitter"
+- Warning approach: `AgConfirm.ask()` with `variant: 'warning'`, title "Quitter sans enregistrer ?", confirm label "Quitter la page"
 - Only applies if the user has modified at least one field from its loaded state
 
 ---
@@ -196,7 +209,7 @@ All pages exploit horizontal space. No single-column stacking of form fields unl
 - Each step content uses 2-column CSS grid for fields: `grid-template-columns: 1fr 1fr` with `gap: var(--gap-md)`
 - Fields that span full width (textarea, file upload, title inputs): `grid-column: 1 / -1`
 - No per-step scrolling: each step's content must fit in viewport at 1024px without scroll
-- Labels positioned above inputs (stacked), using 13px weight-500
+- Labels positioned above inputs (stacked), using 12px weight-600
 
 ### Form Field Grid Rule (D-05)
 
@@ -237,12 +250,12 @@ All user-visible text is in French (Decision from CLAUDE.md). No mention of "cop
 
 | Action | Dialog Title | Message | Confirm Button |
 |--------|-------------|---------|----------------|
-| Supprimer une seance | "Supprimer cette seance ?" | "Cette action est irreversible. Les votes enregistres seront perdus." | "Supprimer" |
-| Supprimer un membre | "Supprimer ce membre ?" | "Cette action est irreversible." | "Supprimer" |
-| Supprimer un utilisateur | "Supprimer cet utilisateur ?" | "Cette action est irreversible." | "Supprimer" |
-| Reinitialiser mot de passe | "Reinitialiser le mot de passe ?" | "Un email sera envoye a l'utilisateur." | "Reinitialiser" |
-| Cloturer la seance | "Cloturer la seance ?" | "Les votes en cours seront arretes. Cette action ne peut pas etre annulee." | "Cloturer" |
-| Quitter formulaire avec modifications | "Quitter sans enregistrer ?" | "Vos modifications seront perdues." | "Quitter" |
+| Supprimer une seance | "Supprimer cette seance ?" | "Cette action est irreversible. Les votes enregistres seront perdus." | "Supprimer la seance" |
+| Supprimer un membre | "Supprimer ce membre ?" | "Cette action est irreversible." | "Supprimer le membre" |
+| Supprimer un utilisateur | "Supprimer cet utilisateur ?" | "Cette action est irreversible." | "Supprimer l'utilisateur" |
+| Reinitialiser mot de passe | "Reinitialiser le mot de passe ?" | "Un email sera envoye a l'utilisateur." | "Reinitialiser le mot de passe" |
+| Cloturer la seance | "Cloturer la seance ?" | "Les votes en cours seront arretes. Cette action ne peut pas etre annulee." | "Cloturer la seance" |
+| Quitter formulaire avec modifications | "Quitter sans enregistrer ?" | "Vos modifications seront perdues." | "Quitter la page" |
 
 ### Toast Messages
 
@@ -283,13 +296,13 @@ Components must use exactly these variants — no ad-hoc inline style overrides.
 
 ### Buttons
 
-| Variant | Class | Usage |
-|---------|-------|-------|
-| Primary | `.btn .btn-primary` | One per form/dialog, main CTA |
-| Secondary | `.btn .btn-secondary` | Alternative actions, cancel |
-| Danger | `.btn .btn-danger` | Destructive confirm button inside AgConfirm only |
-| Ghost | `.btn .btn-ghost` | Icon-only toolbar actions, table row actions |
-| Small | `.btn .btn-sm` | Table row actions, compact panels |
+| Variant | Class | Usage | Accessibility |
+|---------|-------|-------|---------------|
+| Primary | `.btn .btn-primary` | One per form/dialog, main CTA | — |
+| Secondary | `.btn .btn-secondary` | Alternative actions, cancel | — |
+| Danger | `.btn .btn-danger` | Destructive confirm button inside AgConfirm only | — |
+| Ghost | `.btn .btn-ghost` | Icon-only toolbar actions, table row actions | **Required:** every icon-only `.btn-ghost` must carry an `aria-label` attribute (or `title` as fallback) that names the action in French, e.g. `aria-label="Supprimer"`. Elements with visible text labels do not require this attribute. |
+| Small | `.btn .btn-sm` | Table row actions, compact panels | — |
 
 ### Badges
 
