@@ -23,20 +23,9 @@
 
   // ═══════════════════════════════════════════════════════
   // NOTIFICATION HELPER
+  // Delegates to global setNotif() defined in utils.js which uses AgToast.
   // ═══════════════════════════════════════════════════════
-  function setNotif(type, msg) {
-    var box = document.getElementById('notif_box');
-    if (!box) return;
-    box.className = 'mb-4 alert alert-' + type;
-    box.textContent = msg;
-    box.hidden = false;
-    box.classList.remove('hidden');
-    clearTimeout(setNotif._timer);
-    setNotif._timer = setTimeout(function() {
-      box.hidden = true;
-      box.classList.add('hidden');
-    }, 5000);
-  }
+  // (local setNotif removed — global setNotif from utils.js is used directly)
 
   function getApiError(body, fallback) {
     return (body && body.error) ? body.error : (fallback || 'Une erreur est survenue');
