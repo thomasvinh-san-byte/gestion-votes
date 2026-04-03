@@ -1947,6 +1947,19 @@ textarea.form-input {
   .form-grid-3 { grid-template-columns: 1fr; }
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--gap-md, 16px);
+}
+.form-grid .field-full,
+.form-grid textarea,
+.form-grid .form-group-full,
+.form-grid .upload-zone { grid-column: 1 / -1; }
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
 /* ─── Tables ─── */
 .table-wrapper {
   overflow-x: auto;
@@ -4464,6 +4477,22 @@ body.app-shell { background: var(--color-bg); color: var(--color-text); }
 @keyframes slideDown {
   from { transform: translateY(-100%); }
   to   { transform: none; }
+}
+
+/* ─── SSE Warning Banner ─── */
+.sse-warning-banner {
+  background: var(--color-warning-subtle, #fef3cd);
+  color: var(--color-warning, #856404);
+  border: 1px solid var(--color-warning, #856404);
+  border-radius: var(--radius-sm, 4px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  font-size: var(--text-sm, 13px);
+  font-weight: var(--weight-semibold, 600);
+  text-align: center;
+  animation: slideDown var(--duration-normal, 200ms) var(--ease-out, ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sse-warning-banner { animation: none; }
 }
 
 .session-timeout-timer {
