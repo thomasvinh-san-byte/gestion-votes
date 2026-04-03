@@ -63,7 +63,7 @@
 }
 
 .role-dist-card[data-role="auditor"] {
-  border-left: 3px solid var(--color-purple, #7c3aed);
+  border-left: 3px solid var(--color-purple);
 }
 
 .role-dist-card[data-role="viewer"] {
@@ -196,7 +196,7 @@
 .filter-tab.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-primary-text, #fff);
+  color: var(--color-primary-text);
 }
 
 .users-count {
@@ -295,13 +295,13 @@
 }
 
 .user-avatar.avatar-auditor {
-  background: var(--color-purple-subtle, rgba(124, 58, 237, 0.1));
-  border-color: var(--color-purple, #7c3aed);
-  color: var(--color-purple, #7c3aed);
+  background: var(--color-purple-subtle);
+  border-color: var(--color-purple);
+  color: var(--color-purple);
 }
 
 .user-avatar.avatar-viewer {
-  background: var(--color-primary-subtle, rgba(22, 80, 224, 0.07));
+  background: var(--color-primary-subtle);
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
@@ -362,9 +362,9 @@
 }
 
 .role-badge.auditor {
-  background: var(--color-purple-subtle, rgba(124, 58, 237, 0.1));
-  border-color: var(--color-purple, #7c3aed);
-  color: var(--color-purple, #7c3aed);
+  background: var(--color-purple-subtle);
+  border-color: var(--color-purple);
+  color: var(--color-purple);
 }
 
 .role-badge.viewer {
@@ -389,7 +389,7 @@
 }
 
 .user-status-badge.active {
-  background: var(--color-success-subtle, rgba(90, 122, 91, 0.1));
+  background: var(--color-success-subtle);
   border-color: var(--color-success);
   color: var(--color-success);
 }
