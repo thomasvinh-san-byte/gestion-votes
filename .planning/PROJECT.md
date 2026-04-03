@@ -91,6 +91,8 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v10.0 Phase 83: Component Geometry + Chrome Cleanup — Single --radius-base (8px) token controls all corners, shadow vocabulary reduced to 3 named levels (sm/md/lg), alpha-based borders for adaptive depth, dashboard KPI + session list skeleton shimmer with prefers-reduced-motion support.
 
+- v10.0 Phase 84: Hardened Foundation — 8 @property color registrations for CSS transition support, zero hardcoded hex/rgba in any per-page CSS file (HARD-01), all Shadow DOM fallback literals updated to current palette (HARD-02), critical-tokens inline blocks verified in sync (HARD-03), focus rings tokenized across all Web Components (HARD-05).
+
 ### Active
 
 **v10.0 Visual Identity Evolution** : Evoluer l'identite visuelle complete — couleurs, typographie, composants — en s'inspirant des meilleures pratiques des sites web modernes tout en preservant l'esprit "officiel et confiance".
