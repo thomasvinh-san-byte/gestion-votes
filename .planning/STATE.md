@@ -3,14 +3,10 @@ gsd_state_version: 1.0
 milestone: v9.0
 milestone_name: Compliance & Robustness
 status: executing
-stopped_at: Completed 80-pagination-quality/80-03-PLAN.md
-last_updated: "2026-04-02T08:42:04.036Z"
+stopped_at: Completed 84-03-PLAN.md — Shadow DOM fallback audit, HARD-02 + HARD-05 satisfied
+last_updated: "2026-04-03T10:46:06.223Z"
 last_activity: 2026-04-02
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
   percent: 99
 ---
 
@@ -51,6 +47,8 @@ Progress: [██████████] 99%
 - [Phase 69-initial-setup]: No CSRF on /setup: pre-auth first-run page, hasAnyAdmin() guard is sufficient idempotency protection
 - [Phase 80-pagination-quality]: sr-only legend used for cnilLevel/textSize groups in settings where card h2 already provides visual context
 - [Phase 80-pagination-quality]: Chart export aria-labels include specific chart title for disambiguation between 8 identical download icons
+- [Phase 84-hardened-foundation]: var(--token) with no fallback is correct for Shadow DOM — fallback literals cause FWCOF during dark mode toggle
+- [Phase 84-hardened-foundation]: ag-vote-button oklch literals used for success/danger glow since tokens from 84-01 are on parallel branch (not yet merged)
 
 ### Existing Infrastructure
 
@@ -88,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T08:38:39.265Z
-Stopped at: Completed 80-pagination-quality/80-03-PLAN.md
+Last session: 2026-04-03T10:46:06.221Z
+Stopped at: Completed 84-03-PLAN.md — Shadow DOM fallback audit, HARD-02 + HARD-05 satisfied
 Resume file: None
