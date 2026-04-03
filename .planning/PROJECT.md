@@ -89,6 +89,8 @@ AG-VOTE is a **brownfield project** with a self-explanatory UX and full session 
 
 - v10.0 Phase 82: Token Foundation + Palette Shift — All semantic tokens migrated from hex/rgba to oklch via primitive var() references, 42+ color-mix(in srgb) upgraded to oklch, warm-neutral stone palette (hue 75-95) preserved, dark mode surfaces warmed from cool navy to espresso (hue 78), 21 critical-tokens inline blocks synced, accent scoped to interactive elements only at token layer.
 
+- v10.0 Phase 83: Component Geometry + Chrome Cleanup — Single --radius-base (8px) token controls all corners, shadow vocabulary reduced to 3 named levels (sm/md/lg), alpha-based borders for adaptive depth, dashboard KPI + session list skeleton shimmer with prefers-reduced-motion support.
+
 ### Active
 
 **v10.0 Visual Identity Evolution** : Evoluer l'identite visuelle complete — couleurs, typographie, composants — en s'inspirant des meilleures pratiques des sites web modernes tout en preservant l'esprit "officiel et confiance".
