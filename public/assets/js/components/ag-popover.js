@@ -378,8 +378,8 @@ class AgPopover extends HTMLElement {
         .default-trigger:hover,
         .default-trigger:focus {
           background: var(--color-primary-subtle, #e8edfa);
-          border-color: var(--color-primary, #1650E0);
-          color: var(--color-primary, #1650E0);
+          border-color: var(--color-primary);
+          color: var(--color-primary);
           outline: none;
         }
       </style>

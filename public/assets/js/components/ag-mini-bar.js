@@ -24,7 +24,7 @@ class AgMiniBar extends HTMLElement {
 
     const segments = values.map((v, i) => {
       const pct = total > 0 ? (v / total * 100) : 0;
-      const color = colors[i] || 'var(--color-primary, #1650E0)';
+      const color = colors[i] || 'var(--color-primary)';
       return `<div class="seg" style="width:${pct}%;background:${color}" title="${v} (${Math.round(pct)}%)"></div>`;
     }).join('');
 

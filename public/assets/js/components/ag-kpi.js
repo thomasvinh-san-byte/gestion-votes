@@ -60,7 +60,7 @@ class AgKpi extends HTMLElement {
         .kpi:hover {
           transform: translateY(-2px);
           box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,.06));
-          border-color: color-mix(in srgb, var(--color-primary, #1650E0) 18%, var(--color-border, #d5dbd2));
+          border-color: color-mix(in oklch, var(--color-primary) 18%, var(--color-border));
         }
         .kpi-icon {
           width: 1.25rem;
@@ -102,13 +102,13 @@ class AgKpi extends HTMLElement {
         :host([size="lg"]) .kpi-label { font-size: 14px; }
 
         /* Color variants */
-        :host([variant="primary"]) .kpi-value { color: var(--color-primary, #1650E0); }
+        :host([variant="primary"]) .kpi-value { color: var(--color-primary); }
         :host([variant="success"]) .kpi-value { color: var(--color-success, #0b7a40); }
         :host([variant="warning"]) .kpi-value { color: var(--color-warning, #b8860b); }
         :host([variant="danger"]) .kpi-value { color: var(--color-danger, #c42828); }
         :host([variant="info"]) .kpi-value { color: var(--color-info, #2563eb); }
 
-        :host([variant="primary"]) .kpi-icon { color: var(--color-primary, #1650E0); }
+        :host([variant="primary"]) .kpi-icon { color: var(--color-primary); }
         :host([variant="success"]) .kpi-icon { color: var(--color-success, #0b7a40); }
         :host([variant="warning"]) .kpi-icon { color: var(--color-warning, #b8860b); }
         :host([variant="danger"]) .kpi-icon { color: var(--color-danger, #c42828); }

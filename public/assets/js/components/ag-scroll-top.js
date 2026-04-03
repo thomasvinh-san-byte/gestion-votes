@@ -42,11 +42,11 @@ class AgScrollTop extends HTMLElement {
           right: 24px;
           width: 40px; height: 40px;
           border-radius: 50%;
-          background: var(--color-primary, #1650E0);
+          background: var(--color-primary);
           color: #fff;
           display: flex; align-items: center; justify-content: center;
           border: none; cursor: pointer;
-          box-shadow: 0 4px 14px rgba(22,80,224,.28);
+          box-shadow: 0 4px 14px var(--color-primary-glow);
           opacity: 0; visibility: hidden;
           transform: translateY(10px);
           transition: opacity .2s ease, visibility .2s ease, transform .2s ease;
@@ -57,7 +57,7 @@ class AgScrollTop extends HTMLElement {
         }
         .scroll-top:hover {
           background: var(--color-primary-hover, #1241b8);
-          box-shadow: 0 6px 20px rgba(22,80,224,.35);
+          box-shadow: 0 6px 20px var(--color-primary-glow);
         }
         .scroll-top svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; }
       </style>

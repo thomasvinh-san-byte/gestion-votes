@@ -75,7 +75,7 @@ class AgTzPicker extends HTMLElement {
           cursor: pointer;
           transition: border-color .15s ease;
         }
-        select:focus { outline: none; border-color: var(--color-primary, #1650E0); }
+        select:focus { outline: none; border-color: var(--color-primary); }
         :host([disabled]) select { opacity: .5; pointer-events: none; }
       </style>
       <select name="${name}" ${disabled ? 'disabled' : ''} aria-label="Fuseau horaire">

@@ -41,7 +41,7 @@ class AgStepper extends HTMLElement {
         }
         .step:last-child::after { display: none; }
         .step.done::after { background: var(--color-success, #16a34a); }
-        .step.active::after { background: var(--color-primary, #1650E0); }
+        .step.active::after { background: var(--color-primary); }
         .dot {
           width: var(--stepper-dot-size, 28px);
           height: var(--stepper-dot-size, 28px);
@@ -61,10 +61,10 @@ class AgStepper extends HTMLElement {
           color: var(--color-text-inverse, #fff);
         }
         .active .dot {
-          background: var(--color-primary, #1650E0);
-          border-color: var(--color-primary, #1650E0);
+          background: var(--color-primary);
+          border-color: var(--color-primary);
           color: var(--color-primary-text, #fff);
-          box-shadow: 0 0 0 3px var(--color-primary-glow, rgba(22,80,224,.18));
+          box-shadow: 0 0 0 3px var(--color-primary-glow);
         }
         .step-label {
           font-size: var(--text-xs, 0.75rem); font-weight: var(--font-semibold, 600);
@@ -72,7 +72,7 @@ class AgStepper extends HTMLElement {
           white-space: nowrap;
         }
         .done .step-label { color: var(--color-success, #16a34a); }
-        .active .step-label { color: var(--color-primary, #1650E0); font-weight: var(--font-bold, 700); }
+        .active .step-label { color: var(--color-primary); font-weight: var(--font-bold, 700); }
       </style>
       <div class="stepper" role="list" aria-label="Étapes">
         ${steps.map((label, i) => {

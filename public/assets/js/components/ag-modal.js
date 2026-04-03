@@ -144,7 +144,7 @@ class AgModal extends HTMLElement {
         .modal-close:hover { background: var(--color-bg-subtle, #e8e7e2); }
         .modal-close:focus-visible {
           outline: none;
-          box-shadow: var(--shadow-focus, 0 0 0 2px var(--color-surface-raised, #fff), 0 0 0 4px rgba(22,80,224,0.35));
+          box-shadow: var(--shadow-focus);
         }
         .modal-close svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
         .modal-b { padding: var(--space-5, 20px); }

@@ -127,7 +127,7 @@ class AgTimeInput extends HTMLElement {
           font-weight: 600;
           transition: border-color .15s ease;
         }
-        .ti-wrap:focus-within { border-color: var(--color-primary, #1650E0); }
+        .ti-wrap:focus-within { border-color: var(--color-primary); }
         :host([disabled]) .ti-wrap { opacity: .5; pointer-events: none; }
         .ti-field {
           width: 24px; border: none; background: none;
