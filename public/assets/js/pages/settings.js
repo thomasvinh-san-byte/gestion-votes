@@ -705,6 +705,81 @@
   }
 
   // ═══════════════════════════════════════════════════════
+  // UNSAVED CHANGES WARNING (D-12)
+  // ═══════════════════════════════════════════════════════
+  var _settingsSnapshot = {};
+  var _settingsDirty = false;
+
+  function captureSettingsSnapshot() {
+    _settingsSnapshot = {};
+    document.querySelectorAll('.settings-form input, .settings-form select, .settings-form textarea').forEach(function(el) {
+      var key = el.name || el.id;
+      if (!key) return;
+      _settingsSnapshot[key] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    _settingsDirty = false;
+  }
+
+  function isSettingsDirty() {
+    if (_settingsDirty) return true;
+    var dirty = false;
+    document.querySelectorAll('.settings-form input, .settings-form select, .settings-form textarea').forEach(function(el) {
+      var key = el.name || el.id;
+      if (!key) return;
+      var current = el.type === 'checkbox' ? el.checked : el.value;
+      if (_settingsSnapshot[key] !== undefined && _settingsSnapshot[key] !== current) dirty = true;
+    });
+    return dirty;
+  }
+
+  function initUnsavedWarning() {
+    // Track dirty state from template editor fields (not auto-saved)
+    var templateEditor = document.getElementById('templateEditor');
+    if (templateEditor) {
+      templateEditor.addEventListener('input', function(e) {
+        if (e.target.closest('#templateEditor')) _settingsDirty = true;
+      });
+      templateEditor.addEventListener('change', function(e) {
+        if (e.target.closest('#templateEditor')) _settingsDirty = true;
+      });
+    }
+
+    // beforeunload warning for template editor unsaved changes
+    window.addEventListener('beforeunload', function(e) {
+      if (_settingsDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Shell navigation intercept (if available)
+    if (window.Shell && Shell.beforeNavigate) {
+      Shell.beforeNavigate(async function() {
+        if (_settingsDirty) {
+          return await AgConfirm.ask({
+            title: 'Quitter sans enregistrer ?',
+            message: 'Vos modifications seront perdues.',
+            confirmLabel: 'Quitter la page',
+            variant: 'warning'
+          });
+        }
+        return true;
+      });
+    }
+
+    // Reset dirty on successful template save
+    var btnSave = document.getElementById('btnSaveTemplate');
+    if (btnSave) {
+      btnSave.addEventListener('click', function() {
+        // dirty will be reset on next successful save from initEmailTemplates
+      }, true);
+    }
+
+    // Capture initial snapshot after settings load
+    setTimeout(captureSettingsSnapshot, 500);
+  }
+
+  // ═══════════════════════════════════════════════════════
   // INIT
   // ═══════════════════════════════════════════════════════
   initTabs();
@@ -715,6 +790,7 @@
   initEmailTemplates();
   initSmtpTest();
   initAccessibilityControls();
+  initUnsavedWarning();
   loadSettings();
   loadQuorumPolicies();
 

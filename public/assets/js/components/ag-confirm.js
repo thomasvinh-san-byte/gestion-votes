@@ -60,7 +60,7 @@ class AgConfirm extends HTMLElement {
           display: flex; align-items: center; justify-content: center;
           z-index: 10200; padding: 16px;
           backdrop-filter: blur(3px);
-          animation: fadeIn var(--duration-fast, 150ms) ease;
+          animation: fadeIn var(--duration-fast, 150ms) var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal {
@@ -70,11 +70,14 @@ class AgConfirm extends HTMLElement {
           border-radius: var(--radius-lg, 0.625rem);
           box-shadow: var(--shadow-lg);
           overflow: hidden;
-          animation: modalIn var(--duration-fast, 150ms) cubic-bezier(.34,1.2,.64,1);
+          animation: modalIn var(--duration-fast, 150ms) var(--ease-spring, cubic-bezier(.34,1.2,.64,1));
         }
         @keyframes modalIn {
           from { opacity: 0; transform: scale(.96) translateY(6px); }
           to { opacity: 1; transform: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .overlay-backdrop, .modal { animation: none; }
         }
         .confirm-dialog { padding: 24px 24px 8px; text-align: center; }
         .confirm-icon-wrap {

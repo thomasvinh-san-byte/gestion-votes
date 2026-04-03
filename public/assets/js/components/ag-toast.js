@@ -77,10 +77,13 @@ class AgToast extends HTMLElement {
         :host {
           display: block;
           pointer-events: auto;
-          animation: toastIn var(--duration-fast, 150ms) ease;
+          animation: toastIn var(--duration-normal, 200ms) var(--ease-out, cubic-bezier(0, 0, 0.2, 1));
         }
         :host(.dismissing) {
-          animation: toastOut .18s ease forwards;
+          animation: toastOut var(--duration-deliberate, 300ms) ease forwards;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :host, :host(.dismissing) { animation: none; }
         }
         .toast {
           display: flex;

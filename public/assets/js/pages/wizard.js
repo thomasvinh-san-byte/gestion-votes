@@ -41,6 +41,36 @@
   // Drag-and-drop state
   var dragSrcIdx = null;
 
+  // Unsaved changes dirty state (D-12)
+  var _wizardSnapshot = null;
+  var _wizardDirty = false;
+  var _wizardSubmitted = false; // suppress warning after successful create
+
+  function captureWizardSnapshot() {
+    var form = document.querySelector('.wizard-form') || document.getElementById('step' + currentStep);
+    if (!form) return;
+    try {
+      _wizardSnapshot = new FormData(form);
+    } catch (e) {
+      _wizardSnapshot = null;
+    }
+    _wizardDirty = false;
+  }
+
+  function isWizardDirty() {
+    if (_wizardDirty) return true;
+    if (!_wizardSnapshot) return false;
+    var form = document.querySelector('.wizard-form') || document.getElementById('step' + currentStep);
+    if (!form) return false;
+    try {
+      var current = new FormData(form);
+      for (var pair of current) {
+        if (_wizardSnapshot.get(pair[0]) !== pair[1]) return true;
+      }
+    } catch (e) { /* ignore — FormData not supported on this form */ }
+    return false;
+  }
+
   /* ── Escape helper ──────────────────────────────── */
 
   function escapeHtml(s) {
@@ -953,8 +983,40 @@
     setupCsvImport();
     setupAddReso();
 
+    // Unsaved changes tracking (D-12)
+    document.addEventListener('input', function(e) {
+      if (e.target.closest('.wiz-step')) _wizardDirty = true;
+    }, true);
+    document.addEventListener('change', function(e) {
+      if (e.target.closest('.wiz-step')) _wizardDirty = true;
+    }, true);
+
+    window.addEventListener('beforeunload', function(e) {
+      if (!_wizardSubmitted && (isWizardDirty() || members.length > 0 || resolutions.length > 0)) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    if (window.Shell && Shell.beforeNavigate) {
+      Shell.beforeNavigate(async function() {
+        if (!_wizardSubmitted && (isWizardDirty() || members.length > 0 || resolutions.length > 0)) {
+          return await AgConfirm.ask({
+            title: 'Quitter sans enregistrer ?',
+            message: 'Vos modifications seront perdues.',
+            confirmLabel: 'Quitter la page',
+            variant: 'warning'
+          });
+        }
+        return true;
+      });
+    }
+
     // Restore draft before first showStep
     restoreDraft();
+
+    // Capture initial snapshot after draft restore (for dirty tracking)
+    setTimeout(captureWizardSnapshot, 0);
 
     // Sync default majority when step 2 becomes visible
     // (this is called when user navigates to step 2, so syncDefaultMaj runs on entry)
@@ -1033,6 +1095,7 @@
               throw err;
             }
             clearDraft();
+            _wizardSubmitted = true;
             var d = res.body.data || {};
             createdMeetingId = d.meeting_id || '';
             var totalMembers = (d.members_created || 0) + (d.members_linked || 0);

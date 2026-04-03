@@ -116,11 +116,15 @@ class AgModal extends HTMLElement {
           border-radius: var(--radius-modal, 12px);
           box-shadow: var(--shadow-xl, var(--shadow-lg));
           overflow: hidden;
-          animation: modalIn var(--duration-fast, 150ms) cubic-bezier(.34,1.2,.64,1);
+          animation: modalIn var(--duration-fast, 150ms) var(--ease-spring, cubic-bezier(.34,1.2,.64,1));
         }
         @keyframes modalIn {
           from { opacity: 0; transform: scale(.96) translateY(6px); }
           to { opacity: 1; transform: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .overlay-backdrop { transition: none; }
+          .modal { animation: none; }
         }
         .modal-h {
           padding: var(--space-4, 16px) var(--space-5, 20px);
