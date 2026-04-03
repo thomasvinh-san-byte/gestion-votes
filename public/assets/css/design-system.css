@@ -699,25 +699,25 @@ table {
   --ring-color: oklch(0.680 0.130 265 / 0.40);  /* was rgba(61,126,248,0.4) */
 
   --persona-preparateur: #818cf8;
-  --persona-preparateur-subtle: rgba(129, 140, 248, 0.15);
+  --persona-preparateur-subtle: color-mix(in oklch, var(--persona-preparateur) 15%, transparent);
   --persona-preparateur-text: #c7d2fe;
   --persona-president: #fbbf24;
-  --persona-president-subtle: rgba(251, 191, 36, 0.15);
+  --persona-president-subtle: color-mix(in oklch, var(--persona-president) 15%, transparent);
   --persona-president-text: #fde68a;
   --persona-operateur: #22d3ee;
-  --persona-operateur-subtle: rgba(34, 211, 238, 0.15);
+  --persona-operateur-subtle: color-mix(in oklch, var(--persona-operateur) 15%, transparent);
   --persona-operateur-text: #a5f3fc;
   --persona-votant: #4ade80;
-  --persona-votant-subtle: rgba(74, 222, 128, 0.15);
+  --persona-votant-subtle: color-mix(in oklch, var(--persona-votant) 15%, transparent);
   --persona-votant-text: #bbf7d0;
   --persona-postsession: #a78bfa;
-  --persona-postsession-subtle: rgba(167, 139, 250, 0.15);
+  --persona-postsession-subtle: color-mix(in oklch, var(--persona-postsession) 15%, transparent);
   --persona-postsession-text: #ddd6fe;
   --persona-auditeur: #f87171;
-  --persona-auditeur-subtle: rgba(248, 113, 113, 0.15);
+  --persona-auditeur-subtle: color-mix(in oklch, var(--persona-auditeur) 15%, transparent);
   --persona-auditeur-text: #fecaca;
   --persona-admin: #94a3b8;
-  --persona-admin-subtle: rgba(148, 163, 184, 0.15);
+  --persona-admin-subtle: color-mix(in oklch, var(--persona-admin) 15%, transparent);
   --persona-admin-text: #e2e8f0;
 
   /* Shadow color override — pure black for dark mode visibility */
