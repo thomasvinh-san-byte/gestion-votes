@@ -200,10 +200,13 @@ class EmailQueueServiceTest extends TestCase
     public function testScheduleInvitationsSkipsMembersWithNoEmail(): void
     {
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => '', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-            ['id' => 'm-002', 'email' => '   ', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => '', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+                ['id' => 'm-002', 'email' => '   ', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
+            ],
+            [], // Second call returns empty => loop ends
+        );
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
 
         $result = $service->scheduleInvitations(self::TENANT_ID, self::MEETING_ID);
@@ -215,9 +218,12 @@ class EmailQueueServiceTest extends TestCase
     public function testScheduleInvitationsSkipsMembersFromOtherTenants(): void
     {
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => 'other-tenant', 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => 'other-tenant', 'full_name' => 'Alice'],
+            ],
+            [],
+        );
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
 
         $result = $service->scheduleInvitations(self::TENANT_ID, self::MEETING_ID);
@@ -229,9 +235,12 @@ class EmailQueueServiceTest extends TestCase
     public function testScheduleInvitationsSkipsAlreadySentWhenOnlyUnsentTrue(): void
     {
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+            ],
+            [],
+        );
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
         $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('sent');
 
@@ -250,9 +259,12 @@ class EmailQueueServiceTest extends TestCase
         //
         // Strategy: queue insert failure — member is valid, invitation checked, queue fails
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+            ],
+            [],
+        );
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
         $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('pending');
         $this->invitationRepo->method('findByMeetingAndMember')->willReturn(['id' => 'inv-001']);
@@ -280,7 +292,7 @@ class EmailQueueServiceTest extends TestCase
     public function testScheduleInvitationsReturnsExpectedStructure(): void
     {
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturn([]);
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
 
         $result = $service->scheduleInvitations(self::TENANT_ID, self::MEETING_ID);
@@ -293,9 +305,12 @@ class EmailQueueServiceTest extends TestCase
     public function testScheduleInvitationsDoesNotSkipWhenOnlyUnsentFalse(): void
     {
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+            ],
+            [],
+        );
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
         // Status is 'sent' but onlyUnsent=false, so should NOT check
         // The code: if ($onlyUnsent) { check status }
@@ -317,6 +332,64 @@ class EmailQueueServiceTest extends TestCase
             // The important thing: no "skipped" increment happened
             $this->assertTrue(true, 'Code reached template service = member was not skipped');
         }
+    }
+
+    // =========================================================================
+    // Batch processing verification — new tests
+    // =========================================================================
+
+    public function testProcessQueueDefaultBatchSizeIs25(): void
+    {
+        $service = $this->buildServiceConfiguredBadSmtp();
+
+        $this->queueRepo->expects($this->once())
+            ->method('fetchPendingBatch')
+            ->with(25)
+            ->willReturn([]);
+
+        $service->processQueue(); // No argument — uses default
+    }
+
+    public function testScheduleInvitationsUsesPaginatedFetchInTwoBatches(): void
+    {
+        $service = $this->buildServiceNotConfigured();
+
+        // Build 30 members: 25 in first batch + 5 in second batch
+        $batch1 = [];
+        for ($i = 1; $i <= 25; $i++) {
+            $batch1[] = [
+                'id' => "m-{$i}",
+                'email' => "member{$i}@test.com",
+                'tenant_id' => self::TENANT_ID,
+                'full_name' => "Member {$i}",
+            ];
+        }
+        $batch2 = [];
+        for ($i = 26; $i <= 30; $i++) {
+            $batch2[] = [
+                'id' => "m-{$i}",
+                'email' => "member{$i}@test.com",
+                'tenant_id' => self::TENANT_ID,
+                'full_name' => "Member {$i}",
+            ];
+        }
+
+        // Expect exactly 2 calls to listActiveWithEmailPaginated (not listActiveWithEmail)
+        $this->memberRepo->expects($this->exactly(2))
+            ->method('listActiveWithEmailPaginated')
+            ->willReturnOnConsecutiveCalls($batch1, $batch2);
+
+        $this->memberRepo->expects($this->never())->method('listActiveWithEmail');
+
+        $this->emailTemplateRepo->method('findDefault')->willReturn(null);
+        // All members are already sent → skipped
+        $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('sent');
+
+        $result = $service->scheduleInvitations(self::TENANT_ID, self::MEETING_ID, null, null, true);
+
+        // All 30 members were seen and skipped (already sent)
+        $this->assertSame(0, $result['scheduled']);
+        $this->assertSame(30, $result['skipped']);
     }
 
     // =========================================================================
@@ -348,7 +421,7 @@ class EmailQueueServiceTest extends TestCase
         ]);
 
         // scheduleInvitations called internally with empty member list
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturn([]);
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
         $this->reminderRepo->expects($this->once())->method('markExecuted')
             ->with('rem-001', self::TENANT_ID);
@@ -399,9 +472,12 @@ class EmailQueueServiceTest extends TestCase
     public function testSendInvitationsNowSkipsMembersWithNoEmail(): void
     {
         $service = $this->buildServiceConfiguredBadSmtp();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => '', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => '', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+            ],
+            [],
+        );
 
         $result = $service->sendInvitationsNow(self::TENANT_ID, self::MEETING_ID);
 
@@ -412,9 +488,12 @@ class EmailQueueServiceTest extends TestCase
     public function testSendInvitationsNowSkipsMembersFromOtherTenants(): void
     {
         $service = $this->buildServiceConfiguredBadSmtp();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => 'wrong-tenant', 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => 'wrong-tenant', 'full_name' => 'Alice'],
+            ],
+            [],
+        );
 
         $result = $service->sendInvitationsNow(self::TENANT_ID, self::MEETING_ID);
 
@@ -425,9 +504,12 @@ class EmailQueueServiceTest extends TestCase
     public function testSendInvitationsNowSkipsAlreadySentWhenOnlyUnsent(): void
     {
         $service = $this->buildServiceConfiguredBadSmtp();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+            ],
+            [],
+        );
         $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('sent');
 
         $result = $service->sendInvitationsNow(self::TENANT_ID, self::MEETING_ID, null, true);
@@ -436,14 +518,17 @@ class EmailQueueServiceTest extends TestCase
         $this->assertSame(1, $result['skipped']);
     }
 
-    public function testSendInvitationsNowWithLimitSlicesMemberList(): void
+    public function testSendInvitationsNowWithLimitUsesSinglePaginatedBatch(): void
     {
         $service = $this->buildServiceConfiguredBadSmtp();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'a@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'A'],
-            ['id' => 'm-002', 'email' => 'b@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'B'],
-            ['id' => 'm-003', 'email' => 'c@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'C'],
-        ]);
+        // With limit=2, service should call listActiveWithEmailPaginated(tenantId, 2, 0) exactly once
+        $this->memberRepo->expects($this->once())
+            ->method('listActiveWithEmailPaginated')
+            ->with(self::TENANT_ID, 2, 0)
+            ->willReturn([
+                ['id' => 'm-001', 'email' => 'a@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'A'],
+                ['id' => 'm-002', 'email' => 'b@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'B'],
+            ]);
         $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('sent');
 
         // Limit to 2 members, both will be skipped
@@ -458,9 +543,12 @@ class EmailQueueServiceTest extends TestCase
         // => renderTemplate returns ['ok' => false], subject/body use fallback strings
         // => mailer.send() with bad SMTP returns ['ok' => false] => error branch covered
         $service = $this->buildServiceConfiguredBadSmtp();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+            ],
+            [],
+        );
         $this->invitationRepo->method('findStatusByMeetingAndMember')->willReturn('pending');
         // emailTemplateRepo->findById returns null → renderTemplate returns ok=false
         $this->emailTemplateRepo->method('findById')->willReturn(null);
@@ -485,9 +573,12 @@ class EmailQueueServiceTest extends TestCase
         // Instead: pass templateId='tmpl-X' where findById returns null
         // This covers lines 330-342 (templateId path) + 350 (send) + 369-375 (error)
         $service = $this->buildServiceConfiguredBadSmtp();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-002', 'email' => 'bob@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-002', 'email' => 'bob@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
+            ],
+            [],
+        );
         // onlyUnsent=false → findStatusByMeetingAndMember NOT called
         $this->invitationRepo->expects($this->never())->method('findStatusByMeetingAndMember');
         $this->emailTemplateRepo->method('findById')->willReturn(null);
@@ -552,11 +643,14 @@ class EmailQueueServiceTest extends TestCase
     {
         $service = $this->buildServiceNotConfigured();
 
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-            ['id' => 'm-002', 'email' => 'bob@test.com',   'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
-            ['id' => 'm-003', 'email' => '',               'tenant_id' => self::TENANT_ID, 'full_name' => 'Charlie'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+                ['id' => 'm-002', 'email' => 'bob@test.com',   'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
+                ['id' => 'm-003', 'email' => '',               'tenant_id' => self::TENANT_ID, 'full_name' => 'Charlie'],
+            ],
+            [],
+        );
 
         $this->emailTemplateRepo->expects($this->once())
             ->method('findDefault')
@@ -583,10 +677,13 @@ class EmailQueueServiceTest extends TestCase
     {
         $service = $this->buildServiceNotConfigured();
 
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => '',  'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-            ['id' => 'm-002', 'email' => '  ', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => '',  'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+                ['id' => 'm-002', 'email' => '  ', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
+            ],
+            [],
+        );
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
 
         $result = $service->scheduleReminders(self::TENANT_ID, self::MEETING_ID);
@@ -600,7 +697,7 @@ class EmailQueueServiceTest extends TestCase
     {
         $service = $this->buildServiceNotConfigured();
 
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturn([]);
         $this->emailTemplateRepo->expects($this->once())
             ->method('findDefault')
             ->with(self::TENANT_ID, 'reminder')
@@ -612,7 +709,7 @@ class EmailQueueServiceTest extends TestCase
     public function testScheduleRemindersReturnsExpectedStructure(): void
     {
         $service = $this->buildServiceNotConfigured();
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturn([]);
         $this->emailTemplateRepo->method('findDefault')->willReturn(null);
 
         $result = $service->scheduleReminders(self::TENANT_ID, self::MEETING_ID);
@@ -631,7 +728,7 @@ class EmailQueueServiceTest extends TestCase
         $service = $this->buildServiceNotConfigured(); // empty config => isConfigured() false
 
         // memberRepo should never be called if SMTP not configured
-        $this->memberRepo->expects($this->never())->method('listActiveWithEmail');
+        $this->memberRepo->expects($this->never())->method('listActiveWithEmailPaginated');
         $this->queueRepo->expects($this->never())->method('enqueue');
 
         $result = $service->scheduleResults(self::TENANT_ID, self::MEETING_ID);
@@ -646,10 +743,13 @@ class EmailQueueServiceTest extends TestCase
         // buildServiceConfiguredBadSmtp uses isConfigured() === true
         $service = $this->buildServiceConfiguredBadSmtp();
 
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([
-            ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
-            ['id' => 'm-002', 'email' => 'bob@test.com',   'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
-        ]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturnOnConsecutiveCalls(
+            [
+                ['id' => 'm-001', 'email' => 'alice@test.com', 'tenant_id' => self::TENANT_ID, 'full_name' => 'Alice'],
+                ['id' => 'm-002', 'email' => 'bob@test.com',   'tenant_id' => self::TENANT_ID, 'full_name' => 'Bob'],
+            ],
+            [],
+        );
         $this->emailTemplateRepo->method('findDefault')
             ->with(self::TENANT_ID, 'results')
             ->willReturn(null);
@@ -669,7 +769,7 @@ class EmailQueueServiceTest extends TestCase
     {
         $service = $this->buildServiceConfiguredBadSmtp();
 
-        $this->memberRepo->method('listActiveWithEmail')->willReturn([]);
+        $this->memberRepo->method('listActiveWithEmailPaginated')->willReturn([]);
         $this->emailTemplateRepo->expects($this->once())
             ->method('findDefault')
             ->with(self::TENANT_ID, 'results')
