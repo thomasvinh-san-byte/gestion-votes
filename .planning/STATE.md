@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Coherence UI/UX et Wiring
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-04-07T14:05:44.109Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-04-07T16:01:54.538Z"
 last_activity: 2026-04-07 -- Phase 05 execution started
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 14
+  completed_plans: 14
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0% (v1.1: 0/3 phases)
 
 *Updated after each plan completion*
 | Phase 05 P01 | 25 | 2 tasks | 2 files |
+| Phase 05-js-audit-et-wiring-repair P03 | 525719min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 Full v1.0 decisions: see git history / previous STATE.md entries.
 - [Phase 05]: Fix only confirmed MISMATCH in plan 01 — ORPHAN IDs removed from HTML are tracked and deferred to plan 02 or Phase 6
 - [Phase 05]: Audit-first before HTML modifications: always run ID contract audit before restructuring HTML to prevent v4.2-style regressions
+- [Phase 05]: False positives corrected: cMeeting, cMember, usersPaginationInfo exist in HTML — incorrectly listed as orphans in initial audit
+- [Phase 05]: Self-healing entries reclassified in ID inventory: app_url (fallback selector), appUrlLocalhostWarning (createElement), opPresenceBadge (createElement), execSpeakerTimer (innerHTML create+query)
 
 ### Pending Todos
 
@@ -84,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T14:05:44.107Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-04-07T16:01:54.536Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
