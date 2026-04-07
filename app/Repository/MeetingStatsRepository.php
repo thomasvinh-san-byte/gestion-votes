@@ -140,6 +140,62 @@ class MeetingStatsRepository extends AbstractRepository {
     }
 
     /**
+     * Returns all meeting dashboard counts in a single SQL round-trip.
+     *
+     * Uses scalar subqueries (not COUNT(*) FILTER) to avoid Cartesian products
+     * across the 5 different tables (attendances, motions, ballots, proxies,
+     * audit_events). Each subquery is independently scoped to meeting_id/tenant_id.
+     *
+     * Keys returned:
+     *   present_count, proxy_count, total_motions, closed_motions, open_motions,
+     *   adopted_motions, rejected_motions, ballots_count, ballot_weight,
+     *   proxies_count, incidents_count, manual_votes_count
+     */
+    public function getDashboardStats(string $meetingId, string $tenantId): array {
+        $row = $this->selectOne(
+            'SELECT
+                (SELECT COUNT(*) FROM attendances
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                   AND mode IN (\'present\', \'remote\')) AS present_count,
+                (SELECT COUNT(*) FROM attendances
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                   AND mode = \'proxy\') AS proxy_count,
+                (SELECT COUNT(*) FROM motions
+                 WHERE meeting_id = :mid AND tenant_id = :tid) AS total_motions,
+                (SELECT COUNT(*) FROM motions
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                   AND closed_at IS NOT NULL) AS closed_motions,
+                (SELECT COUNT(*) FROM motions
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                   AND opened_at IS NOT NULL AND closed_at IS NULL) AS open_motions,
+                (SELECT COUNT(*) FROM motions
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                   AND decision = \'adopted\') AS adopted_motions,
+                (SELECT COUNT(*) FROM motions
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                   AND decision = \'rejected\') AS rejected_motions,
+                (SELECT COUNT(*) FROM ballots b
+                 JOIN motions m ON m.id = b.motion_id
+                 WHERE m.meeting_id = :mid AND b.tenant_id = :tid) AS ballots_count,
+                (SELECT COALESCE(SUM(b.weight), 0) FROM ballots b
+                 JOIN motions m ON m.id = b.motion_id
+                 WHERE m.meeting_id = :mid AND b.tenant_id = :tid) AS ballot_weight,
+                (SELECT COUNT(*) FROM proxies
+                 WHERE meeting_id = :mid AND tenant_id = :tid) AS proxies_count,
+                (SELECT COUNT(*) FROM audit_events
+                 WHERE resource_type = \'meeting\' AND resource_id = :mid
+                   AND tenant_id = :tid AND action LIKE \'%incident%\') AS incidents_count,
+                (SELECT COUNT(*) FROM ballots b
+                 JOIN motions m ON m.id = b.motion_id
+                 WHERE m.meeting_id = :mid AND b.tenant_id = :tid
+                   AND b.source = :manual_src) AS manual_votes_count',
+            [':mid' => $meetingId, ':tid' => $tenantId, ':manual_src' => BallotSource::MANUAL],
+        );
+
+        return $row ?? [];
+    }
+
+    /**
      * List state transitions (reference data).
      */
     public function listStateTransitions(): array {
