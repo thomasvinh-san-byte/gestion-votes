@@ -420,14 +420,6 @@
   function refreshExecKPIs() {
     var stats = computeQuorumStats();
 
-    // ---------- Legacy quorum bar (backward compat) ----------
-    var qBar = document.getElementById('execQuorumBar');
-    if (qBar) {
-      qBar.setAttribute('current', stats.currentVoters);
-      qBar.setAttribute('required', stats.required);
-      qBar.setAttribute('total', stats.totalMembers);
-    }
-
     // ---------- New KPI strip (Plan 01 IDs) ----------
 
     // PRESENTS: x/y — animate leading number, update total span statically

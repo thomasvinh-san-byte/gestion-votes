@@ -685,9 +685,9 @@ Uses only generic selectors passed via options (e.g., `containerSelector`, `navS
 | Category | Count |
 |---|---|
 | Total getElementById/querySelector calls audited | ~230 |
-| **OK** (JS selector matches HTML ID exactly) | **207** |
-| **ORPHAN — JS-generated** (element created by JS, self-contained) | **15** |
-| **ORPHAN — ID removed from HTML** (v4.2 regression) | **9** |
+| **OK** (JS selector matches HTML ID exactly) | **210** (+3 false positives corrected) |
+| **ORPHAN — JS-generated** (element created by JS, self-contained) | **19** (+4 reclassified) |
+| **ORPHAN — ID removed from HTML** (v4.2 regression — dead code removed) | **0** (was 9, all resolved) |
 | **MISMATCH** (naming mismatch, fix required) | **1** |
 
 ### MISMATCH — Fix Required
@@ -696,24 +696,42 @@ Uses only generic selectors passed via options (e.g., `containerSelector`, `navS
 |---|---|---|---|
 | `vote.js` line 852 | `getElementById('voteButtons')` | `id="vote-buttons"` | Change to `getElementById('vote-buttons')` |
 
-### ORPHAN — ID removed from HTML (v4.2 regression)
+### ORPHAN — ID removed from HTML (v4.2 regression) — ALL RESOLVED in plan 03
 
-These IDs were referenced in JS but removed from HTML during v4.2 restructure. They silently return `null` — no crash if guarded, but functionality may be broken:
+All 9 original orphan entries have been resolved. See subsections below for details.
 
-| File | JS Call | Notes |
+#### FALSE POSITIVES — IDs exist in HTML (corrected in plan 03)
+
+These were incorrectly listed as orphans — the IDs actually exist in the current HTML:
+
+| File | JS Call | HTML Location | Resolution |
+|---|---|---|---|
+| `vote-ui.js` | `getElementById('cMeeting')` | `vote.htmx.html` line 333: `<span id="cMeeting">` | FALSE POSITIVE — OK |
+| `vote-ui.js` | `getElementById('cMember')` | `vote.htmx.html` line 334: `<span id="cMember">` | FALSE POSITIVE — OK |
+| `admin.js` | `getElementById('usersPaginationInfo')` | `admin.htmx.html` line 146: `<span id="usersPaginationInfo">` | FALSE POSITIVE — OK |
+
+#### SELF-HEALING / JS-GENERATED — Reclassified in plan 03
+
+These create their own elements or have fallback selectors — acceptable pattern (moved to JS-generated section):
+
+| File | JS Call | Pattern | Resolution |
+|---|---|---|---|
+| `settings.js` | `getElementById('app_url')` | Has fallback: `querySelector('[data-setting="app_url"]')` | RECLASSIFIED → JS-generated |
+| `settings.js` | `getElementById('appUrlLocalhostWarning')` | Creates element when null: `document.createElement('div')` | RECLASSIFIED → JS-generated |
+| `operator-realtime.js` | `getElementById('opPresenceBadge')` | Creates span when null: `document.createElement('span')` | RECLASSIFIED → JS-generated |
+| `operator-exec.js` | `getElementById('execSpeakerTimer')` | JS creates in innerHTML then queries immediately | RECLASSIFIED → JS-generated |
+
+#### FIXED — Dead code removed in plan 03
+
+True orphans where HTML element is gone and JS code was unreachable dead code:
+
+| File | JS Call | Fix Applied |
 |---|---|---|
-| `vote-ui.js` | `getElementById('cMeeting')` | Confirmation panel element removed in v4.2 |
-| `vote-ui.js` | `getElementById('cMember')` | Confirmation panel element removed in v4.2 |
-| `operator-exec.js` | `getElementById('execQuorumBar')` | Quorum bar element removed/renamed in v4.2 |
-| `operator-exec.js` | `getElementById('execSpeakerTimer')` | Speaker timer element removed from exec view in v4.2 |
-| `operator-attendance.js` | `getElementById('proxyStatGivers')` | Proxy stats section reorganized in v4.2 |
-| `operator-attendance.js` | `getElementById('proxyStatReceivers')` | Proxy stats section reorganized in v4.2 |
-| `operator-attendance.js` | `getElementById('tabCountProxies')` | Proxies tab removed from operator.htmx.html tabs |
-| `operator-realtime.js` | `getElementById('opPresenceBadge')` | Presence badge element removed in v4.2 |
-| `dashboard.js` | `getElementById('taches')` | Tasks section removed from dashboard.htmx.html in v4.2 |
-| `admin.js` | `getElementById('usersPaginationInfo')` | Replaced by usersPaginationPages — info span removed |
-| `settings.js` | `getElementById('app_url')` | Settings now use data-setting attributes, not IDs |
-| `settings.js` | `getElementById('appUrlLocalhostWarning')` | Warning element removed from settings.htmx.html |
+| `operator-exec.js` | `getElementById('execQuorumBar')` | Removed legacy quorum bar guard block (lines ~423-429) |
+| `operator-attendance.js` | `getElementById('proxyStatGivers')` | Removed dead assignment line |
+| `operator-attendance.js` | `getElementById('proxyStatReceivers')` | Removed dead assignment line |
+| `operator-attendance.js` | `getElementById('tabCountProxies')` | Removed dead tab count update block |
+| `dashboard.js` | `getElementById('taches')` | Removed tasks section dead block (lines ~165-169) |
 
 ### ORPHAN — JS-generated (acceptable, self-contained)
 
@@ -726,6 +744,10 @@ These IDs do not exist in HTML because JS creates the elements itself, then quer
 - `meetingAttachViewer` — vote.js creates viewer dynamically
 - `dashboardRetryBtn` — dashboard.js creates retry button in error state
 - Dynamic modal IDs in operator-attendance.js, operator-motions.js, operator-speech.js — all modals created with createElement
+- `app_url` — settings.js has fallback selector chain (data-setting attribute) when ID absent
+- `appUrlLocalhostWarning` — settings.js creates div element dynamically when null
+- `opPresenceBadge` — operator-realtime.js creates span element dynamically when count > 1
+- `execSpeakerTimer` — operator-exec.js creates in innerHTML template then queries immediately
 
 ### Convention Notes
 

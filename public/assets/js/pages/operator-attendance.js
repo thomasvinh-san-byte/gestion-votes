@@ -301,14 +301,7 @@
 
     const uniqueReceivers = new Set(activeProxies.map(p => p.receiver_member_id));
     const proxyStatActiveEl = document.getElementById('proxyStatActive');
-    const proxyStatGiversEl = document.getElementById('proxyStatGivers');
-    const proxyStatReceiversEl = document.getElementById('proxyStatReceivers');
     if (proxyStatActiveEl) proxyStatActiveEl.textContent = activeProxies.length;
-    if (proxyStatGiversEl) proxyStatGiversEl.textContent = activeProxies.length;
-    if (proxyStatReceiversEl) proxyStatReceiversEl.textContent = uniqueReceivers.size;
-
-    const tabCount = document.getElementById('tabCountProxies');
-    if (tabCount) tabCount.textContent = activeProxies.length;
 
     if (filtered.length === 0) {
       list.innerHTML = searchTerm

@@ -162,11 +162,6 @@
             }
           }
 
-          // T\u00e2ches — not in dashboard API, show empty state
-          var taches = document.getElementById('taches');
-          if (taches) {
-            taches.innerHTML = '<ag-empty-state icon="generic" title="Aucune t\u00e2che en attente" description="Les t\u00e2ches automatiques appara\u00eetront ici."></ag-empty-state>';
-          }
         })
         .catch(function () {
           if (attempt === 1) {
