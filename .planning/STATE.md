@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
 status: executing
-stopped_at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
-last_updated: "2026-04-03T11:33:35.094Z"
+stopped_at: Completed 01-02-PLAN.md — REDIS-01 and REDIS-03 satisfied, EventBroadcaster is Redis-only, events.php writes heartbeat
+last_updated: "2026-04-07T06:18:39.684Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 3
@@ -55,6 +55,9 @@ Progress: [██████████] 100%
 - [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
 - [Phase 84]: Token name --color-primary-text is canonical for text on primary backgrounds (not --color-text-on-primary or --color-primary-contrast)
 - [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
+- [Phase 01-infrastructure-redis]: HEARTBEAT_KEY='sse:server:active' written by events.php each loop with EX 90 — TTL auto-expires on process death
+- [Phase 01-infrastructure-redis]: isServerRunning() now checks Redis key existence, not /tmp PID file — eliminates false positives from orphan PID files
+- [Phase 01-infrastructure-redis]: All OPT_SERIALIZER toggles wrapped in try/finally to prevent serializer state leaking on exception
 
 ### Existing Infrastructure
 
@@ -80,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:45:51.496Z
-Stopped at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
+Last session: 2026-04-07T06:18:39.681Z
+Stopped at: Completed 01-02-PLAN.md — REDIS-01 and REDIS-03 satisfied, EventBroadcaster is Redis-only, events.php writes heartbeat
 Resume file: None
