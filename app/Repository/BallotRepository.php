@@ -415,6 +415,34 @@ class BallotRepository extends AbstractRepository {
     }
 
     /**
+     * Generator variant of listVotesExportForMeeting() for streaming exports.
+     *
+     * @return \Generator<int, array>
+     */
+    public function yieldVotesExportForMeeting(string $meetingId, string $tenantId): \Generator {
+        return $this->selectGenerator(
+            "SELECT
+                mo.title AS motion_title,
+                mo.position AS motion_position,
+                mb.full_name AS voter_name,
+                b.value::text AS value,
+                b.weight,
+                b.is_proxy_vote,
+                ps.full_name AS proxy_source_name,
+                b.cast_at,
+                COALESCE(b.source, 'electronic') AS source
+             FROM motions mo
+             JOIN meetings mt ON mt.id = mo.meeting_id AND mt.id = :mid AND mt.tenant_id = :tid
+             LEFT JOIN ballots b ON b.motion_id = mo.id
+             LEFT JOIN members mb ON mb.id = b.member_id
+             LEFT JOIN members ps ON ps.id = b.proxy_source_member_id
+             WHERE mo.meeting_id = :mid2
+             ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC, mb.full_name ASC NULLS LAST",
+            [':mid' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId],
+        );
+    }
+
+    /**
      * Liste les bulletins d'une motion avec source (pour anomalies).
      */
     public function listForMotionWithSource(string $tenantId, string $meetingId, string $motionId): array {
