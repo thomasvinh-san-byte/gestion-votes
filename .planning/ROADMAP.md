@@ -57,10 +57,11 @@ Plans:
   2. Les tests RgpdExportController couvrent la validation de scope, l'acces non autorise, et la conformite des donnees exportees
   3. ImportController fait moins de 150 lignes et ne contient aucune logique de validation, transformation, ou matching de colonnes
   4. Un import CSV complet (creation, mise a jour, matching) peut etre teste sans contexte HTTP
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
-- [ ] 03-01-PLAN.md — Tests caracterisation AuthMiddleware session lifecycle + RgpdExportController
-- [ ] 03-02-PLAN.md — Extraction ImportController vers ImportService
+- [x] 03-01-PLAN.md — Tests caracterisation AuthMiddleware session lifecycle + RgpdExportController
+- [x] 03-02-PLAN.md — Extraction ImportController vers ImportService
+- [ ] 03-03-PLAN.md — Gap closure: ImportController sous 150 lignes + tests integration ImportService
 
 ### Phase 4: Tests et Decoupage Controllers
 **Goal**: Les gaps de tests sur les edge cases SSE et import sont fermes, et les controllers encore trop lourds apres extraction sont decoupes
@@ -81,5 +82,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | 1/3 | In progress | - |
-| 3. Extraction Services et Refactoring | 0/2 | Not started | - |
+| 3. Extraction Services et Refactoring | 2/3 | In progress | - |
 | 4. Tests et Decoupage Controllers | 0/TBD | Not started | - |
