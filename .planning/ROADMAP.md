@@ -86,4 +86,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | 1/3 | In progress | - |
 | 3. Extraction Services et Refactoring | 2/3 | In progress | - |
-| 4. Tests et Decoupage Controllers | 0/2 | Not started | - |
+| 4. Tests et Decoupage Controllers | 0/2 | Planned    |  |

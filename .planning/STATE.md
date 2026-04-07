@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-03-PLAN.md — ImportController 149 lines, zero delegation wrappers, 5 ImportService integration tests, TEST-01 and TEST-02 complete
-last_updated: "2026-04-07T10:35:18.306Z"
+stopped_at: Completed 04-01-PLAN.md — EventBroadcasterTest extended with 6 SSE delivery reliability tests, TEST-03 closed
+last_updated: "2026-04-07T10:53:30.582Z"
 last_activity: 2026-04-07
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 7
   percent: 37
 ---
 
@@ -59,6 +59,7 @@ Progress: [███░░░░░░░] 37%
 | Phase 02-optimisations-memoire-et-requetes P03 | 5 | 1 tasks | 3 files |
 | Phase 03-extraction-services-et-refactoring P02 | 10 | 2 tasks | 2 files |
 | Phase 03-extraction-services-et-refactoring P03 | 20 | 2 tasks | 4 files |
+| Phase 04-tests-et-decoupage-controllers P01 | 8 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Progress: [███░░░░░░░] 37%
 - [Phase 03-extraction-services-et-refactoring]: ImportService.checkDuplicateEmails returns duplicate list array instead of throwing — allows controller to pass full duplicate_emails array in api_fail response
 - [Phase 03-extraction-services-et-refactoring]: CSV/XLSX pair consolidation: 8 public methods delegate to 4 run*Import helpers — achieves <150 lines
 - [Phase 03-extraction-services-et-refactoring]: TEST-01 infrastructure limitation accepted: api_require_role() no-op in bootstrap.php prevents 401 testing via callController — direct AuthMiddleware testing is the workaround
+- [Phase 04-tests-et-decoupage-controllers]: Real Redis used for EventBroadcaster tests (no mocking) — @group redis pattern matches RateLimiterTest; tests require Docker environment
+- [Phase 04-tests-et-decoupage-controllers]: Worktree merged with main before Phase 04 execution to pick up Redis-only EventBroadcaster from Phase 01
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T10:31:38.643Z
-Stopped at: Completed 03-03-PLAN.md — ImportController 149 lines, zero delegation wrappers, 5 ImportService integration tests, TEST-01 and TEST-02 complete
+Last session: 2026-04-07T10:53:30.579Z
+Stopped at: Completed 04-01-PLAN.md — EventBroadcasterTest extended with 6 SSE delivery reliability tests, TEST-03 closed
 Resume file: None
