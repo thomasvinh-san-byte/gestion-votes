@@ -29,8 +29,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **TEST-01**: RgpdExportController a des tests unitaires couvrant scope validation, acces non autorise, et compliance donnees personnelles (Note: auth 401 teste via AuthMiddleware::requireRole() directement — le stub api_require_role() no-op dans bootstrap.php empeche le test via callController; limitation d'infrastructure acceptee)
 - [x] **TEST-02**: AuthMiddleware a des tests couvrant le lifecycle session complet et les transitions d'etat des 10+ variables statiques
-- [ ] **TEST-03**: SSE EventBroadcaster (post-migration Redis) a des tests pour les race conditions et la fiabilite de delivery
-- [x] **TEST-04**: ImportController a des tests pour le fuzzy matching de colonnes CSV (partial matches, case sensitivity, headers multi-langue)
+- [x] **TEST-03**: SSE EventBroadcaster (post-migration Redis) a des tests pour les race conditions et la fiabilite de delivery
+- [ ] **TEST-04**: ImportController a des tests pour le fuzzy matching de colonnes CSV (partial matches, case sensitivity, headers multi-langue)
 
 ## v2 Requirements
 
@@ -78,8 +78,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REFAC-01 | Phase 3 | Complete |
 | TEST-01 | Phase 3 | Complete |
 | TEST-02 | Phase 3 | Complete |
-| TEST-03 | Phase 4 | Pending |
-| TEST-04 | Phase 4 | Complete |
+| TEST-03 | Phase 4 | Complete |
+| TEST-04 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 13 total

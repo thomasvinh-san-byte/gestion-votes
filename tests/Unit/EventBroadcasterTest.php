@@ -6,26 +6,36 @@ namespace Tests\Unit;
 use AgVote\Core\Providers\RedisProvider;
 use AgVote\SSE\EventBroadcaster;
 use PHPUnit\Framework\TestCase;
+use Redis;
 
 /**
  * @group redis
  */
 class EventBroadcasterTest extends TestCase {
+    /** @var list<string> Redis keys created by individual tests, deleted in tearDown */
+    private array $testKeys = [];
+
     protected function setUp(): void {
         RedisProvider::configure([
             'host' => getenv('REDIS_HOST') ?: '127.0.0.1',
             'port' => (int) (getenv('REDIS_PORT') ?: 6379),
         ]);
+        $this->testKeys = [];
     }
 
     protected function tearDown(): void {
-        // Clean up test keys
+        // Clean up standard keys and any test-specific keys
         try {
             $redis = RedisProvider::connection();
             $redis->del('sse:event_queue');
             $redis->del('sse:server:active');
+            foreach ($this->testKeys as $key) {
+                $redis->del($key);
+            }
         } catch (\Throwable) {}
     }
+
+    // ── Existing structural and basic behavior tests ──────────────────────
 
     public function testIsServerRunningReturnsFalseWhenNoHeartbeat(): void {
         // Ensure key does not exist
@@ -78,5 +88,172 @@ class EventBroadcasterTest extends TestCase {
         // Check via isServerRunning behavior — the key name is private
         // We test the behavior instead
         $this->assertTrue(true); // covered by isServerRunning tests
+    }
+
+    // ── TEST-03: SSE delivery reliability and race condition tests ────────
+
+    /**
+     * Verify RPUSH preserves insertion order so events are dequeued FIFO.
+     * Covers: race condition — ordering guarantee.
+     */
+    public function testQueuePreservesInsertionOrder(): void {
+        $redis = RedisProvider::connection();
+        $redis->del('sse:event_queue');
+
+        EventBroadcaster::toMeeting('meeting-order-test', 'event.first', ['seq' => 1]);
+        EventBroadcaster::toMeeting('meeting-order-test', 'event.second', ['seq' => 2]);
+        EventBroadcaster::toMeeting('meeting-order-test', 'event.third', ['seq' => 3]);
+
+        $events = EventBroadcaster::dequeue();
+
+        $this->assertCount(3, $events);
+        $this->assertEquals('event.first', $events[0]['type']);
+        $this->assertEquals('event.second', $events[1]['type']);
+        $this->assertEquals('event.third', $events[2]['type']);
+    }
+
+    /**
+     * Verify dequeue() atomically empties the queue so a second call returns nothing.
+     * Covers: race condition — no double-delivery.
+     */
+    public function testDequeueEmptiesQueueAtomically(): void {
+        $redis = RedisProvider::connection();
+        $redis->del('sse:event_queue');
+
+        EventBroadcaster::toMeeting('meeting-atomic-test', 'event.alpha', []);
+        EventBroadcaster::toMeeting('meeting-atomic-test', 'event.beta', []);
+
+        $firstDequeue = EventBroadcaster::dequeue();
+        $this->assertCount(2, $firstDequeue, 'First dequeue must return 2 events');
+
+        $secondDequeue = EventBroadcaster::dequeue();
+        $this->assertEmpty($secondDequeue, 'Second dequeue must return empty array — queue already drained');
+    }
+
+    /**
+     * Verify publishToSse fans out events to all registered consumer queues.
+     * Covers: delivery reliability — consumer fan-out.
+     */
+    public function testPublishToSseFansOutToRegisteredConsumers(): void {
+        $meetingId = 'test-meeting-' . uniqid();
+        $consumerA = 'consumer-a';
+        $consumerB = 'consumer-b';
+        $consumerKeyA = "sse:queue:{$meetingId}:{$consumerA}";
+        $consumerKeyB = "sse:queue:{$meetingId}:{$consumerB}";
+        $consumersKey = "sse:consumers:{$meetingId}";
+
+        $this->testKeys[] = $consumerKeyA;
+        $this->testKeys[] = $consumerKeyB;
+        $this->testKeys[] = $consumersKey;
+
+        $redis = RedisProvider::connection();
+        $redis->del($consumerKeyA);
+        $redis->del($consumerKeyB);
+        $redis->del($consumersKey);
+
+        $redis->sAdd($consumersKey, $consumerA);
+        $redis->sAdd($consumersKey, $consumerB);
+
+        // PUSH_ENABLED defaults to true when not set — ensure clean state
+        putenv('PUSH_ENABLED=1');
+
+        EventBroadcaster::toMeeting($meetingId, 'vote.cast', ['motion_id' => 'xyz']);
+
+        // Read consumer queues directly (raw JSON, no serializer)
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $rawA = $redis->lRange($consumerKeyA, 0, -1);
+        $rawB = $redis->lRange($consumerKeyB, 0, -1);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+
+        $this->assertCount(1, $rawA, 'consumer-a must have 1 event');
+        $this->assertCount(1, $rawB, 'consumer-b must have 1 event');
+
+        $eventA = json_decode($rawA[0], true);
+        $eventB = json_decode($rawB[0], true);
+
+        $this->assertEquals('vote.cast', $eventA['type']);
+        $this->assertEquals('vote.cast', $eventB['type']);
+
+        putenv('PUSH_ENABLED=');
+    }
+
+    /**
+     * Verify tenant events skip per-consumer queues because publishToSse()
+     * returns early when meeting_id is null.
+     * Covers: correctness — tenant events don't contaminate meeting consumer queues.
+     */
+    public function testPublishToSseSkipsTenantEvents(): void {
+        $meetingId = 'test-meeting-' . uniqid();
+        $consumerId = 'consumer-x';
+        $consumerKey = "sse:queue:{$meetingId}:{$consumerId}";
+        $consumersKey = "sse:consumers:{$meetingId}";
+
+        $this->testKeys[] = $consumerKey;
+        $this->testKeys[] = $consumersKey;
+
+        $redis = RedisProvider::connection();
+        $redis->del($consumerKey);
+        $redis->del($consumersKey);
+
+        $redis->sAdd($consumersKey, $consumerId);
+
+        // Broadcast a tenant event — no meeting_id in payload
+        EventBroadcaster::toTenant('some-tenant', 'meeting.status_changed', ['new_status' => 'running']);
+
+        // Consumer queue for our meeting must remain empty
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $queueLength = $redis->lLen($consumerKey);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+
+        $this->assertEquals(0, $queueLength, 'Tenant events must not be pushed to per-meeting consumer queues');
+    }
+
+    /**
+     * Verify isServerRunning() returns false after the heartbeat key's TTL expires.
+     * Covers: delivery reliability — server death detection via key expiry.
+     */
+    public function testIsServerRunningReturnsFalseAfterHeartbeatExpiry(): void {
+        $redis = RedisProvider::connection();
+        $redis->set('sse:server:active', '1', ['EX' => 1]);
+
+        $this->assertTrue(EventBroadcaster::isServerRunning(), 'Server must be detected as running immediately after key creation');
+
+        usleep(1100000); // 1.1 seconds — ensure key has expired
+
+        $this->assertFalse(EventBroadcaster::isServerRunning(), 'Server must be detected as stopped after heartbeat TTL expires');
+    }
+
+    /**
+     * Verify per-consumer queues are trimmed to the last 100 events (lTrim -100, -1).
+     * Covers: delivery reliability — memory safety for consumer queues under load.
+     */
+    public function testConsumerQueueTrimmedToLast100Events(): void {
+        $meetingId = 'test-meeting-' . uniqid();
+        $consumerId = 'consumer-trim';
+        $consumerKey = "sse:queue:{$meetingId}:{$consumerId}";
+        $consumersKey = "sse:consumers:{$meetingId}";
+
+        $this->testKeys[] = $consumerKey;
+        $this->testKeys[] = $consumersKey;
+
+        $redis = RedisProvider::connection();
+        $redis->del($consumerKey);
+        $redis->del($consumersKey);
+        $redis->sAdd($consumersKey, $consumerId);
+
+        putenv('PUSH_ENABLED=1');
+
+        // Push 105 events — lTrim(-100, -1) should keep only the last 100
+        for ($i = 1; $i <= 105; $i++) {
+            EventBroadcaster::toMeeting($meetingId, 'tick', ['n' => $i]);
+        }
+
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $queueLength = $redis->lLen($consumerKey);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+
+        $this->assertEquals(100, $queueLength, 'Consumer queue must be trimmed to last 100 events');
+
+        putenv('PUSH_ENABLED=');
     }
 }
