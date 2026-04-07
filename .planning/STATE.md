@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Coherence UI/UX et Wiring
 status: executing
 stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-04-07T16:01:54.538Z"
-last_activity: 2026-04-07 -- Phase 05 execution started
+last_updated: "2026-04-07T16:48:01.838Z"
+last_activity: 2026-04-07
 progress:
-  total_phases: 7
-  completed_phases: 5
-  total_plans: 14
-  completed_plans: 14
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
   percent: 0
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 
 ## Current Position
 
-Phase: 05 (JS Audit et Wiring Repair) — EXECUTING
-Plan: 1 of 2
+Phase: 6
+Plan: Not started
 Status: Executing Phase 05
-Last activity: 2026-04-07 -- Phase 05 execution started
+Last activity: 2026-04-07
 
 Progress: [░░░░░░░░░░] 0% (v1.1: 0/3 phases)
 
@@ -70,6 +70,7 @@ Recent decisions affecting current work:
 - [v1.1 Research]: Login = moins de complexite JS → premiere cible pour validation de l'approche design tokens
 
 Full v1.0 decisions: see git history / previous STATE.md entries.
+
 - [Phase 05]: Fix only confirmed MISMATCH in plan 01 — ORPHAN IDs removed from HTML are tracked and deferred to plan 02 or Phase 6
 - [Phase 05]: Audit-first before HTML modifications: always run ID contract audit before restructuring HTML to prevent v4.2-style regressions
 - [Phase 05]: False positives corrected: cMeeting, cMember, usersPaginationInfo exist in HTML — incorrectly listed as orphans in initial audit
