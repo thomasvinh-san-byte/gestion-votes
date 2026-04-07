@@ -4,16 +4,29 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
+use AgVote\Core\Providers\RepositoryFactory;
 use finfo;
+use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Throwable;
 
 /**
  * ImportService - Centralized service for file imports (CSV, XLSX)
  *
- * Handles file reading and parsing for import operations.
+ * Handles file reading, parsing, and business logic for import operations.
+ * Can be instantiated with a RepositoryFactory for testability (nullable DI).
  */
 final class ImportService {
+
+    // ========================================================================
+    // INSTANCE PROPERTIES AND CONSTRUCTOR
+    // ========================================================================
+
+    private ?RepositoryFactory $repos;
+
+    public function __construct(?RepositoryFactory $repos = null) {
+        $this->repos = $repos ?? RepositoryFactory::getInstance();
+    }
     // ========================================================================
     // CONSTANTS
     // ========================================================================
@@ -343,5 +356,442 @@ final class ImportService {
         $val = str_replace(',', '.', trim($val));
         $power = (float) $val;
         return $power > 0 ? $power : 1.0;
+    }
+
+    // ========================================================================
+    // DUPLICATE EMAIL CHECK (static — no repo needed)
+    // ========================================================================
+
+    /**
+     * Pre-scan rows for duplicate email addresses.
+     *
+     * Called before any DB transaction so no partial inserts occur.
+     * Case-insensitive. Empty emails are skipped (not treated as duplicates).
+     *
+     * @param array[] $rows     CSV/XLSX rows as indexed arrays
+     * @param array   $colIndex Column index map from ImportService::mapColumns()
+     *
+     * @throws InvalidArgumentException if duplicates are found
+     */
+    public static function checkDuplicateEmails(array $rows, array $colIndex): void {
+        if (!isset($colIndex['email'])) {
+            return;
+        }
+        $emailIdx = $colIndex['email'];
+        $seen = [];
+        $duplicates = [];
+        foreach ($rows as $row) {
+            $raw = strtolower(trim((string) ($row[$emailIdx] ?? '')));
+            if ($raw === '') {
+                continue;
+            }
+            if (isset($seen[$raw])) {
+                $duplicates[] = $raw;
+            } else {
+                $seen[$raw] = true;
+            }
+        }
+        $duplicates = array_values(array_unique($duplicates));
+        if (!empty($duplicates)) {
+            throw new InvalidArgumentException(
+                'Le fichier contient des adresses email en double: ' . implode(', ', $duplicates)
+            );
+        }
+    }
+
+    // ========================================================================
+    // INSTANCE PROCESS METHODS (business logic extracted from ImportController)
+    // ========================================================================
+
+    /**
+     * Processes member import rows: creates or updates members and assigns groups.
+     *
+     * @return array{imported: int, skipped: int, errors: array}
+     */
+    public function processMemberImport(
+        array $rows,
+        array $colIndex,
+        bool $hasName,
+        bool $hasFirstLast,
+        string $tenantId,
+    ): array {
+        $memberRepo = $this->repos->member();
+        $groupRepo = $this->repos->memberGroup();
+
+        $existingGroups = [];
+        foreach ($groupRepo->listForTenant($tenantId, false) as $g) {
+            $existingGroups[mb_strtolower($g['name'])] = $g['id'];
+        }
+
+        $findOrCreateGroup = function (string $name) use ($groupRepo, $tenantId, &$existingGroups): ?string {
+            $name = trim($name);
+            if ($name === '') {
+                return null;
+            }
+            $key = mb_strtolower($name);
+            if (isset($existingGroups[$key])) {
+                return $existingGroups[$key];
+            }
+            $group = $groupRepo->create($tenantId, $name);
+            $existingGroups[$key] = $group['id'];
+            return $group['id'];
+        };
+
+        $seenEmails = [];
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($rows as $lineIndex => $row) {
+            $lineNumber = $lineIndex + 2;
+
+            $data = [];
+            if ($hasName && isset($colIndex['name'])) {
+                $data['full_name'] = trim($row[$colIndex['name']] ?? '');
+            } elseif ($hasFirstLast) {
+                $data['full_name'] = trim(trim($row[$colIndex['first_name']] ?? '') . ' ' . trim($row[$colIndex['last_name']] ?? ''));
+            }
+
+            if (isset($colIndex['email'])) {
+                $data['email'] = strtolower(trim($row[$colIndex['email']] ?? ''));
+            }
+
+            // In-batch duplicate email detection
+            if (!empty($data['email'])) {
+                if (isset($seenEmails[$data['email']])) {
+                    $errors[] = ['line' => $lineNumber, 'error' => "Email en double dans le fichier: {$data['email']} (déjà à la ligne {$seenEmails[$data['email']]})"];
+                    $skipped++;
+                    continue;
+                }
+                $seenEmails[$data['email']] = $lineNumber;
+            }
+            $data['voting_power'] = isset($colIndex['voting_power'])
+                ? self::parseVotingPower($row[$colIndex['voting_power']] ?? '1') : 1.0;
+            $data['is_active'] = isset($colIndex['is_active'])
+                ? self::parseBoolean($row[$colIndex['is_active']] ?? '1') : true;
+
+            if (empty($data['full_name']) || mb_strlen($data['full_name']) < 2) {
+                $errors[] = ['line' => $lineNumber, 'error' => 'Nom invalide'];
+                $skipped++;
+                continue;
+            }
+            if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = ['line' => $lineNumber, 'error' => 'Email invalide'];
+                $skipped++;
+                continue;
+            }
+
+            $existing = null;
+            if (!empty($data['email'])) {
+                $existing = $memberRepo->findByEmail($tenantId, $data['email']);
+            }
+            if (!$existing) {
+                $existing = $memberRepo->findByFullName($tenantId, $data['full_name']);
+            }
+
+            $groupNames = [];
+            if (isset($colIndex['groups'])) {
+                $groupsRaw = trim($row[$colIndex['groups']] ?? '');
+                if ($groupsRaw !== '') {
+                    $groupNames = preg_split('/[|;]/', $groupsRaw);
+                    $groupNames = array_filter(array_map('trim', $groupNames));
+                }
+            }
+
+            $memberId = null;
+            if ($existing) {
+                $memberId = $existing['id'];
+                $memberRepo->updateImport($memberId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active'], $tenantId);
+            } else {
+                $memberId = $memberRepo->createImport($tenantId, $data['full_name'], $data['email'] ?: null, $data['voting_power'], $data['is_active']);
+            }
+
+            if (!empty($groupNames) && $memberId) {
+                $groupIds = [];
+                foreach ($groupNames as $gn) {
+                    $gid = $findOrCreateGroup($gn);
+                    if ($gid) {
+                        $groupIds[] = $gid;
+                    }
+                }
+                if (!empty($groupIds)) {
+                    $groupRepo->setMemberGroups($memberId, $groupIds);
+                }
+            }
+
+            $imported++;
+        }
+
+        return ['imported' => $imported, 'skipped' => $skipped, 'errors' => $errors];
+    }
+
+    /**
+     * Processes attendance import rows: upserts attendance records or builds preview.
+     *
+     * @return array{imported: int, skipped: int, errors: array, preview: array}
+     */
+    public function processAttendanceImport(
+        array $rows,
+        array $colIndex,
+        string $tenantId,
+        string $meetingId,
+        bool $dryRun = false,
+    ): array {
+        [$membersByEmail, $membersByName] = $this->buildMemberLookups($tenantId);
+        $attendanceRepo = $this->repos->attendance();
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
+
+        foreach ($rows as $lineIndex => $row) {
+            $lineNumber = $lineIndex + 2;
+
+            $member = null;
+            if (isset($colIndex['email'])) {
+                $email = strtolower(trim($row[$colIndex['email']] ?? ''));
+                if ($email !== '' && isset($membersByEmail[$email])) {
+                    $member = $membersByEmail[$email];
+                }
+            }
+            if (!$member && isset($colIndex['name'])) {
+                $name = mb_strtolower(trim($row[$colIndex['name']] ?? ''));
+                if ($name !== '' && isset($membersByName[$name])) {
+                    $member = $membersByName[$name];
+                }
+            }
+            if (!$member) {
+                $identifier = isset($colIndex['email']) ? ($row[$colIndex['email']] ?? '') : ($row[$colIndex['name']] ?? '');
+                $errors[] = ['line' => $lineNumber, 'error' => "Membre introuvable: {$identifier}"];
+                $skipped++;
+                continue;
+            }
+
+            $mode = 'present';
+            if (isset($colIndex['mode'])) {
+                $modeRaw = trim($row[$colIndex['mode']] ?? '');
+                $parsedMode = self::parseAttendanceMode($modeRaw);
+                if ($parsedMode === null && $modeRaw !== '') {
+                    $errors[] = ['line' => $lineNumber, 'error' => "Mode invalide: {$modeRaw}"];
+                    $skipped++;
+                    continue;
+                }
+                $mode = $parsedMode ?? 'present';
+            }
+
+            $notes = null;
+            if (isset($colIndex['notes'])) {
+                $notes = trim($row[$colIndex['notes']] ?? '') ?: null;
+            }
+
+            if ($dryRun) {
+                $preview[] = ['line' => $lineNumber, 'member_id' => $member['id'], 'member_name' => $member['full_name'], 'mode' => $mode, 'notes' => $notes];
+            } else {
+                $attendanceRepo->upsert($tenantId, $meetingId, $member['id'], $mode, (float) ($member['voting_power'] ?? 1), $notes);
+            }
+            $imported++;
+        }
+
+        return ['imported' => $imported, 'skipped' => $skipped, 'errors' => $errors, 'preview' => $preview];
+    }
+
+    /**
+     * Processes proxy import rows: creates proxies or builds preview with validation.
+     *
+     * @param array &$proxiesPerReceiver Running count of proxies per receiver ID
+     * @param array &$existingGivers     Map of giver_id => receiver_id for already-assigned proxies
+     *
+     * @return array{imported: int, skipped: int, errors: array, preview: array}
+     */
+    public function processProxyImport(
+        array $rows,
+        array $colIndex,
+        string $tenantId,
+        string $meetingId,
+        bool $dryRun,
+        int $maxPerReceiver,
+        array &$proxiesPerReceiver,
+        array &$existingGivers,
+    ): array {
+        [$membersByEmail, $membersByName] = $this->buildMemberLookups($tenantId);
+        $findMember = $this->buildProxyMemberFinder($colIndex, $membersByEmail, $membersByName);
+        $proxyRepo = $this->repos->proxy();
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
+
+        foreach ($rows as $lineIndex => $row) {
+            $lineNumber = $lineIndex + 2;
+
+            $giver = $findMember($row, 'giver_name', 'giver_email');
+            if (!$giver) {
+                $identifier = $row[$colIndex['giver_email'] ?? $colIndex['giver_name'] ?? 0] ?? 'inconnu';
+                $errors[] = ['line' => $lineNumber, 'error' => "Mandant introuvable: {$identifier}"];
+                $skipped++;
+                continue;
+            }
+
+            $receiver = $findMember($row, 'receiver_name', 'receiver_email');
+            if (!$receiver) {
+                $identifier = $row[$colIndex['receiver_email'] ?? $colIndex['receiver_name'] ?? 0] ?? 'inconnu';
+                $errors[] = ['line' => $lineNumber, 'error' => "Mandataire introuvable: {$identifier}"];
+                $skipped++;
+                continue;
+            }
+
+            if ($giver['id'] === $receiver['id']) {
+                $errors[] = ['line' => $lineNumber, 'error' => 'Auto-délégation interdite'];
+                $skipped++;
+                continue;
+            }
+            if (isset($existingGivers[$giver['id']])) {
+                $errors[] = ['line' => $lineNumber, 'error' => "Le mandant {$giver['full_name']} a déjà une procuration active"];
+                $skipped++;
+                continue;
+            }
+            if (isset($existingGivers[$receiver['id']])) {
+                $errors[] = ['line' => $lineNumber, 'error' => "Chaîne de procuration interdite: {$receiver['full_name']} est déjà mandant"];
+                $skipped++;
+                continue;
+            }
+
+            $currentCount = $proxiesPerReceiver[$receiver['id']] ?? 0;
+            if ($currentCount >= $maxPerReceiver) {
+                $errors[] = ['line' => $lineNumber, 'error' => "Plafond atteint: {$receiver['full_name']} a déjà {$currentCount} procurations (max: {$maxPerReceiver})"];
+                $skipped++;
+                continue;
+            }
+
+            if ($dryRun) {
+                $preview[] = ['line' => $lineNumber, 'giver_id' => $giver['id'], 'giver_name' => $giver['full_name'], 'receiver_id' => $receiver['id'], 'receiver_name' => $receiver['full_name']];
+            } else {
+                $proxyRepo->upsertProxy($tenantId, $meetingId, $giver['id'], $receiver['id']);
+            }
+            $proxiesPerReceiver[$receiver['id']] = $currentCount + 1;
+            $existingGivers[$giver['id']] = $receiver['id'];
+            $imported++;
+        }
+
+        return ['imported' => $imported, 'skipped' => $skipped, 'errors' => $errors, 'preview' => $preview];
+    }
+
+    /**
+     * Processes motion import rows: creates motions or builds preview.
+     *
+     * @param int &$nextPosition Running position counter (modified in place)
+     *
+     * @return array{imported: int, skipped: int, errors: array, preview: array}
+     */
+    public function processMotionImport(
+        array $rows,
+        array $colIndex,
+        string $tenantId,
+        string $meetingId,
+        bool $dryRun = false,
+        int &$nextPosition = 1,
+    ): array {
+        $motionRepo = $this->repos->motion();
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $preview = [];
+
+        foreach ($rows as $lineIndex => $row) {
+            $lineNumber = $lineIndex + 2;
+
+            $title = trim($row[$colIndex['title']] ?? '');
+            $description = isset($colIndex['description']) ? trim($row[$colIndex['description']] ?? '') : null;
+
+            $position = null;
+            if (isset($colIndex['position'])) {
+                $posVal = trim($row[$colIndex['position']] ?? '');
+                if ($posVal !== '' && is_numeric($posVal)) {
+                    $position = (int) $posVal;
+                }
+            }
+            if ($position === null) {
+                $position = $nextPosition++;
+            } else {
+                $nextPosition = max($nextPosition, $position + 1);
+            }
+
+            $secret = false;
+            if (isset($colIndex['secret'])) {
+                $secret = self::parseBoolean($row[$colIndex['secret']] ?? '0');
+            }
+
+            if (empty($title) || mb_strlen($title) < 2) {
+                $errors[] = ['line' => $lineNumber, 'error' => 'Titre invalide ou trop court'];
+                $skipped++;
+                continue;
+            }
+            if (mb_strlen($title) > 500) {
+                $errors[] = ['line' => $lineNumber, 'error' => 'Titre trop long (max 500 caractères)'];
+                $skipped++;
+                continue;
+            }
+
+            if ($dryRun) {
+                $preview[] = [
+                    'line' => $lineNumber, 'title' => $title,
+                    'description' => $description ? mb_substr($description, 0, 100) . (mb_strlen($description) > 100 ? '...' : '') : null,
+                    'position' => $position, 'secret' => $secret,
+                ];
+            } else {
+                $motionId = $motionRepo->generateUuid();
+                $motionRepo->create($motionId, $tenantId, $meetingId, null, $title, $description ?? '', $secret, null, null);
+                $motionRepo->updatePosition($motionId, $tenantId, $position);
+            }
+            $imported++;
+        }
+
+        return ['imported' => $imported, 'skipped' => $skipped, 'errors' => $errors, 'preview' => $preview];
+    }
+
+    // ========================================================================
+    // PRIVATE INSTANCE HELPERS
+    // ========================================================================
+
+    /**
+     * Builds email and name lookup maps for all members in a tenant.
+     *
+     * @return array{0: array, 1: array} [$membersByEmail, $membersByName]
+     */
+    private function buildMemberLookups(string $tenantId): array {
+        $allMembers = $this->repos->member()->listByTenant($tenantId);
+        $membersByEmail = [];
+        $membersByName = [];
+        foreach ($allMembers as $m) {
+            if (!empty($m['email'])) {
+                $membersByEmail[strtolower($m['email'])] = $m;
+            }
+            $membersByName[mb_strtolower($m['full_name'])] = $m;
+        }
+        return [$membersByEmail, $membersByName];
+    }
+
+    /**
+     * Creates a callable that finds a member by name/email fields in a proxy row.
+     */
+    private function buildProxyMemberFinder(array $colIndex, array $membersByEmail, array $membersByName): callable {
+        return function (array $row, string $nameField, string $emailField) use ($colIndex, $membersByEmail, $membersByName): ?array {
+            if (isset($colIndex[$emailField])) {
+                $email = strtolower(trim($row[$colIndex[$emailField]] ?? ''));
+                if ($email !== '' && isset($membersByEmail[$email])) {
+                    return $membersByEmail[$email];
+                }
+            }
+            if (isset($colIndex[$nameField])) {
+                $name = mb_strtolower(trim($row[$colIndex[$nameField]] ?? ''));
+                if ($name !== '' && isset($membersByName[$name])) {
+                    return $membersByName[$name];
+                }
+            }
+            return null;
+        };
     }
 }
