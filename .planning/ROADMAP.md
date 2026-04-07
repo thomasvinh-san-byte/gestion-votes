@@ -65,11 +65,12 @@ Plans:
   2. Toutes les pages chargent sans erreur JavaScript dans la console (fetch handlers, event listeners)
   3. Le timing de la sidebar async (shared.js, shell.js, auth-ui.js) fonctionne sans flash ni echec silencieux
   4. Le helper waitForHtmxSettled() est disponible dans les specs Playwright et elimine les race conditions HTMX
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Inventaire contrats ID + reparation selectors casses
-- [ ] 05-02-PLAN.md — Sidebar async timing hardening + helper waitForHtmxSettled()
+- [x] 05-01-PLAN.md — Inventaire contrats ID + reparation selectors casses
+- [x] 05-02-PLAN.md — Sidebar async timing hardening + helper waitForHtmxSettled()
+- [ ] 05-03-PLAN.md — Gap closure: orphan dead code removal + waitForHtmxSettled integration + tracking update
 
 ### Phase 6: Application Design Tokens
 **Goal**: L'application a un design language uniforme et professionnel visible sur toutes les pages cles
@@ -101,6 +102,6 @@ Plans:
 | 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
-| 5. JS Audit et Wiring Repair | v1.1 | 0/2 | Not started | - |
+| 5. JS Audit et Wiring Repair | v1.1 | 2/3 | In progress | - |
 | 6. Application Design Tokens | v1.1 | 0/? | Not started | - |
 | 7. Playwright Coverage | v1.1 | 0/? | Not started | - |
