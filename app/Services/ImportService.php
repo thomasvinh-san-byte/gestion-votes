@@ -6,7 +6,6 @@ namespace AgVote\Service;
 
 use AgVote\Core\Providers\RepositoryFactory;
 use finfo;
-use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Throwable;
 
@@ -371,11 +370,11 @@ final class ImportService {
      * @param array[] $rows     CSV/XLSX rows as indexed arrays
      * @param array   $colIndex Column index map from ImportService::mapColumns()
      *
-     * @throws InvalidArgumentException if duplicates are found
+     * @return array List of duplicate email addresses found (empty if none)
      */
-    public static function checkDuplicateEmails(array $rows, array $colIndex): void {
+    public static function checkDuplicateEmails(array $rows, array $colIndex): array {
         if (!isset($colIndex['email'])) {
-            return;
+            return [];
         }
         $emailIdx = $colIndex['email'];
         $seen = [];
@@ -391,12 +390,7 @@ final class ImportService {
                 $seen[$raw] = true;
             }
         }
-        $duplicates = array_values(array_unique($duplicates));
-        if (!empty($duplicates)) {
-            throw new InvalidArgumentException(
-                'Le fichier contient des adresses email en double: ' . implode(', ', $duplicates)
-            );
-        }
+        return array_values(array_unique($duplicates));
     }
 
     // ========================================================================
