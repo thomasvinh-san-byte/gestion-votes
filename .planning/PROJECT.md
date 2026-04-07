@@ -21,12 +21,12 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Notifications email avec file d'attente — existing
 - ✓ SSE temps reel pour mises a jour live — existing
 - ✓ Protection CSRF, rate-limiting, middleware de securite — existing
+- ✓ SSE Redis-only (fallback fichier supprime) — Phase 1
+- ✓ Rate-limiting Redis Lua atomique (flock supprime) — Phase 1
+- ✓ Detection serveur SSE via heartbeat Redis (PID-file supprime) — Phase 1
+- ✓ Health check Redis au boot avec erreur claire — Phase 1
 
 ### Active
-
-- [ ] Supprimer les fallbacks fichiers SSE — Redis obligatoire
-- [ ] Supprimer le rate-limiting fichiers — Redis obligatoire
-- [ ] Supprimer le PID-file SSE — detection serveur via Redis
 - [ ] Corriger les exports memoire (streaming ou pagination)
 - [ ] Corriger les COUNT(*) multiples dans MeetingStatsRepository
 - [ ] Ajouter timeout PDO et query timeout PostgreSQL
@@ -95,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after initialization*
+*Last updated: 2026-04-07 after Phase 1 completion*
