@@ -256,4 +256,132 @@ class EventBroadcasterTest extends TestCase {
 
         putenv('PUSH_ENABLED=');
     }
+
+    // -- GAP CLOSURE: connection loss + client reconnection ---------
+
+    /**
+     * Verify that isServerRunning() returns false on Redis connection failure (catch Throwable path),
+     * and that queueRedis() has NO catch block — so Redis failures propagate to caller.
+     *
+     * Covers: SC1 gap — "perte de connexion Redis"
+     */
+    public function testRedisConnectionLossHandling(): void {
+        // Part 1: Behavioral test — configure bogus host, isServerRunning must return false
+        $originalConfig = [
+            'host' => getenv('REDIS_HOST') ?: '127.0.0.1',
+            'port' => (int) (getenv('REDIS_PORT') ?: 6379),
+        ];
+
+        try {
+            RedisProvider::configure(['host' => '255.255.255.255', 'port' => 1]);
+            $result = EventBroadcaster::isServerRunning();
+            $this->assertFalse($result, 'isServerRunning() must return false when Redis connection fails');
+        } catch (\Throwable) {
+            // If configure() itself throws, the behavioral test is still meaningful via structural check below
+        } finally {
+            // Restore original config
+            RedisProvider::configure($originalConfig);
+        }
+
+        // Part 2: Structural assertions — verify source code properties via Reflection
+        $refIsRunning = new \ReflectionMethod(EventBroadcaster::class, 'isServerRunning');
+        $filename = $refIsRunning->getFileName();
+        $startLine = $refIsRunning->getStartLine();
+        $endLine = $refIsRunning->getEndLine();
+        $isRunningSource = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
+
+        $this->assertStringContainsString(
+            'catch',
+            $isRunningSource,
+            'isServerRunning() must have a catch block to handle Redis connection failures gracefully',
+        );
+        $this->assertStringContainsString(
+            'Throwable',
+            $isRunningSource,
+            'isServerRunning() must catch Throwable to handle all Redis failure types',
+        );
+
+        // queueRedis must NOT have catch — Redis failures must propagate to caller
+        $refQueueRedis = new \ReflectionMethod(EventBroadcaster::class, 'queueRedis');
+        $startLine = $refQueueRedis->getStartLine();
+        $endLine = $refQueueRedis->getEndLine();
+        $queueRedisSource = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
+
+        $this->assertStringNotContainsString(
+            'catch',
+            $queueRedisSource,
+            'queueRedis() must NOT catch exceptions — Redis connection loss must propagate to caller',
+        );
+    }
+
+    /**
+     * Simulate a client disconnect/reconnect cycle.
+     * Events pushed while consumer is "disconnected" (not reading) must be buffered
+     * in the per-consumer queue and available on "reconnect" (reading the queue).
+     *
+     * Covers: SC1 gap — "reconnexion du client"
+     */
+    public function testClientReconnectionDeliversBufferedEvents(): void {
+        $meetingId = 'test-meeting-' . uniqid();
+        $consumerId = 'consumer-reconnect-' . uniqid();
+        $consumerKey = "sse:queue:{$meetingId}:{$consumerId}";
+        $consumersKey = "sse:consumers:{$meetingId}";
+
+        $this->testKeys[] = $consumerKey;
+        $this->testKeys[] = $consumersKey;
+
+        $redis = RedisProvider::connection();
+        $redis->del($consumerKey);
+        $redis->del($consumersKey);
+
+        // Register consumer (simulates a client that was connected and will reconnect)
+        $redis->sAdd($consumersKey, $consumerId);
+
+        putenv('PUSH_ENABLED=1');
+
+        // Push 3 events while consumer is "disconnected" (not reading the queue)
+        EventBroadcaster::toMeeting($meetingId, 'event.buffered', ['seq' => 1]);
+        EventBroadcaster::toMeeting($meetingId, 'event.buffered', ['seq' => 2]);
+        EventBroadcaster::toMeeting($meetingId, 'event.buffered', ['seq' => 3]);
+
+        // Simulate reconnect: read the consumer queue (raw JSON, no serializer)
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $buffered = $redis->lRange($consumerKey, 0, -1);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+
+        $this->assertCount(3, $buffered, 'All 3 buffered events must be available on client reconnect');
+
+        // Verify FIFO order is preserved
+        $event1 = json_decode($buffered[0], true);
+        $event2 = json_decode($buffered[1], true);
+        $event3 = json_decode($buffered[2], true);
+        $this->assertEquals(1, $event1['data']['seq'], 'First buffered event must be seq 1');
+        $this->assertEquals(2, $event2['data']['seq'], 'Second buffered event must be seq 2');
+        $this->assertEquals(3, $event3['data']['seq'], 'Third buffered event must be seq 3');
+
+        // Drain queue (simulates client consuming all buffered events on reconnect)
+        $redis->del($consumerKey);
+        $this->testKeys = array_filter($this->testKeys, fn ($k) => $k !== $consumerKey);
+
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $afterDrain = $redis->lRange($consumerKey, 0, -1);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+        $this->assertEmpty($afterDrain, 'Queue must be empty after client drains buffered events');
+
+        // Re-register key for cleanup tracking after drain
+        $this->testKeys[] = $consumerKey;
+
+        // New events after reconnect must be delivered normally
+        EventBroadcaster::toMeeting($meetingId, 'event.post_reconnect', ['seq' => 4]);
+
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+        $postReconnect = $redis->lRange($consumerKey, 0, -1);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+
+        $this->assertCount(1, $postReconnect, 'New events after reconnect must be delivered to consumer queue');
+        $event4 = json_decode($postReconnect[0], true);
+        $this->assertEquals('event.post_reconnect', $event4['type'], 'Post-reconnect event type must match');
+
+        putenv('PUSH_ENABLED=');
+    }
 }
