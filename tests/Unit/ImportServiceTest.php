@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use AgVote\Core\Providers\RepositoryFactory;
+use AgVote\Repository\MemberGroupRepository;
+use AgVote\Repository\MemberRepository;
 use AgVote\Service\ImportService;
 use PHPUnit\Framework\TestCase;
 
@@ -491,5 +494,147 @@ class ImportServiceTest extends TestCase {
         $this->assertCount(2, $result['rows']);
         $this->assertEquals('Alice', $result['rows'][0][0]);
         $this->assertEquals('Bob', $result['rows'][1][0]);
+    }
+
+    // =========================================================================
+    // processMemberImport integration tests (with mock RepositoryFactory)
+    // =========================================================================
+
+    /**
+     * Build a mock RepositoryFactory with pre-populated cache.
+     *
+     * @param array<class-string, object> $repoMocks
+     */
+    private function buildMockFactory(array $repoMocks): RepositoryFactory {
+        $factory = new RepositoryFactory(null);
+        $ref = new \ReflectionClass(RepositoryFactory::class);
+        $cacheProp = $ref->getProperty('cache');
+        $cacheProp->setAccessible(true);
+        $cacheProp->setValue($factory, $repoMocks);
+        return $factory;
+    }
+
+    public function testProcessMemberImportCreatesNewMember(): void {
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->expects($this->once())->method('createImport')
+            ->with('tenant-001', 'Jean Dupont', 'jean@example.com', 1.5, true)
+            ->willReturn('new-member-id');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $factory = $this->buildMockFactory([MemberRepository::class => $memberRepo, MemberGroupRepository::class => $groupRepo]);
+        $service = new ImportService($factory);
+
+        $rows = [['Jean Dupont', 'jean@example.com', '1.5', '1']];
+        $colIndex = ['name' => 0, 'email' => 1, 'voting_power' => 2, 'is_active' => 3];
+
+        $result = $service->processMemberImport($rows, $colIndex, true, false, 'tenant-001');
+
+        $this->assertEquals(1, $result['imported']);
+        $this->assertEquals(0, $result['skipped']);
+        $this->assertEmpty($result['errors']);
+    }
+
+    public function testProcessMemberImportUpdatesExistingMember(): void {
+        $existing = ['id' => 'existing-id', 'full_name' => 'Jean Dupont', 'email' => 'jean@example.com'];
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn($existing);
+        $memberRepo->expects($this->once())->method('updateImport');
+        $memberRepo->expects($this->never())->method('createImport');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $factory = $this->buildMockFactory([MemberRepository::class => $memberRepo, MemberGroupRepository::class => $groupRepo]);
+        $service = new ImportService($factory);
+
+        $rows = [['Jean Dupont', 'jean@example.com', '1', '1']];
+        $colIndex = ['name' => 0, 'email' => 1, 'voting_power' => 2, 'is_active' => 3];
+
+        $result = $service->processMemberImport($rows, $colIndex, true, false, 'tenant-001');
+
+        $this->assertEquals(1, $result['imported']);
+        $this->assertEquals(0, $result['skipped']);
+    }
+
+    public function testProcessMemberImportSkipsInvalidName(): void {
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $factory = $this->buildMockFactory([MemberRepository::class => $memberRepo, MemberGroupRepository::class => $groupRepo]);
+        $service = new ImportService($factory);
+
+        // Empty name — should be skipped with 'Nom invalide' error
+        $rows = [['', 'x@example.com', '1', '1']];
+        $colIndex = ['name' => 0, 'email' => 1, 'voting_power' => 2, 'is_active' => 3];
+
+        $result = $service->processMemberImport($rows, $colIndex, true, false, 'tenant-001');
+
+        $this->assertEquals(0, $result['imported']);
+        $this->assertEquals(1, $result['skipped']);
+        $this->assertStringContainsString('Nom invalide', $result['errors'][0]['error']);
+    }
+
+    public function testProcessMemberImportWithGroupCreation(): void {
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('findByEmail')->willReturn(null);
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->method('createImport')->willReturn('new-id');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+        $groupRepo->expects($this->once())->method('create')
+            ->with('tenant-001', 'Bureau')
+            ->willReturn(['id' => 'group-001']);
+        $groupRepo->expects($this->once())->method('setMemberGroups');
+
+        $factory = $this->buildMockFactory([MemberRepository::class => $memberRepo, MemberGroupRepository::class => $groupRepo]);
+        $service = new ImportService($factory);
+
+        $rows = [['Jean Dupont', 'jean@example.com', '1', '1', 'Bureau']];
+        $colIndex = ['name' => 0, 'email' => 1, 'voting_power' => 2, 'is_active' => 3, 'groups' => 4];
+
+        $result = $service->processMemberImport($rows, $colIndex, true, false, 'tenant-001');
+
+        $this->assertEquals(1, $result['imported']);
+    }
+
+    public function testProcessMemberImportHandlesMultipleRows(): void {
+        $existingMember = ['id' => 'existing-id', 'full_name' => 'Marie Martin', 'email' => 'marie@example.com'];
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        // First call (Jean) — returns null (new), second call (Marie) — returns existing
+        $memberRepo->method('findByEmail')->willReturnCallback(function (string $tid, string $email) use ($existingMember): ?array {
+            return $email === 'marie@example.com' ? $existingMember : null;
+        });
+        $memberRepo->method('findByFullName')->willReturn(null);
+        $memberRepo->method('createImport')->willReturn('new-uuid');
+
+        $groupRepo = $this->createMock(MemberGroupRepository::class);
+        $groupRepo->method('listForTenant')->willReturn([]);
+
+        $factory = $this->buildMockFactory([MemberRepository::class => $memberRepo, MemberGroupRepository::class => $groupRepo]);
+        $service = new ImportService($factory);
+
+        $rows = [
+            ['Jean Dupont', 'jean@example.com', '1', '1'],      // new
+            ['Marie Martin', 'marie@example.com', '1', '1'],     // existing (update)
+            ['', 'bad@example.com', '1', '1'],                   // invalid name — skipped
+        ];
+        $colIndex = ['name' => 0, 'email' => 1, 'voting_power' => 2, 'is_active' => 3];
+
+        $result = $service->processMemberImport($rows, $colIndex, true, false, 'tenant-001');
+
+        $this->assertEquals(2, $result['imported']);
+        $this->assertEquals(1, $result['skipped']);
+        $this->assertCount(1, $result['errors']);
     }
 }
