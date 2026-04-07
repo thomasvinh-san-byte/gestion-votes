@@ -42,7 +42,11 @@ Plans:
   2. EmailQueueService traite les emails par lots de 25 sans jamais charger la queue entiere en memoire
   3. Le tableau de bord d'assemblee n'emet qu'une seule requete SQL pour toutes les statistiques de quorum et votes
   4. Une requete PDO qui depasse le timeout configure retourne une erreur geree, pas un worker bloque indefiniment
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 02-01-PLAN.md — PDO timeouts + MeetingStatsRepository aggregation unique
+- [ ] 02-02-PLAN.md — OpenSpout streaming XLSX (ExportService + ExportController)
+- [ ] 02-03-PLAN.md — EmailQueueService batch processing avec pagination membres
 
 ### Phase 3: Extraction Services et Refactoring
 **Goal**: ImportController est un orchestrateur HTTP pur (sous 150 lignes), et AuthMiddleware est teste et documente avant tout refactoring de ses statics
@@ -73,6 +77,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-07 |
-| 2. Optimisations Memoire et Requetes | 0/TBD | Not started | - |
+| 2. Optimisations Memoire et Requetes | 0/3 | Not started | - |
 | 3. Extraction Services et Refactoring | 0/TBD | Not started | - |
 | 4. Tests et Decoupage Controllers | 0/TBD | Not started | - |
