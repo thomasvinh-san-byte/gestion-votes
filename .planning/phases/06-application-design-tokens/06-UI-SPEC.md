@@ -57,15 +57,15 @@ Font sizes are already declared in design-system.css `--text-*` series. This pha
 | Role | CSS Variable | Value | Weight | Line Height |
 |------|-------------|-------|--------|-------------|
 | Body / UI chrome | `--text-base` | 14px | `--font-normal` (400) | `--leading-base` (1.571) |
-| Label / badge | `--text-xs` | 12px | `--font-medium` (500) | 1 (single-line, fixed) |
-| Heading (card/section) | `--text-xl` | 20px | `--font-semibold` (600) | `--leading-xl` (1.35) |
-| Display (branding panel h1) | `--text-4xl` | 36px | `--font-bold` (700) | `--leading-4xl` (1.1) |
+| Label / badge / heading (card/section) | `--text-xs` / `--text-xl` | 12px / 20px | `--font-semibold` (600) | 1 (labels) / `--leading-xl` (1.35) (headings) |
+
+Weight constraint: exactly two weights in active use per view — `--font-normal` (400) for body and `--font-semibold` (600) for all headings, labels, and badges. `--font-bold` (700) is a one-off exception reserved exclusively for the login branding panel h1 (Fraunces display font, outside the regular type scale); it is not a scale entry and must not be used elsewhere.
 
 Font family rule:
 - All UI elements: `--font-sans` (Bricolage Grotesque)
 - Login branding panel h1 and tagline: `--font-display` (Fraunces) — already used in login.css header
 
-Weight constraint: only two weights in active use per view — 400 (body) + 600 (semibold for headings and labels). 700 reserved exclusively for the login branding panel h1.
+Display size reference (not a scale row): `--text-4xl` (36px) at `--font-bold` (700), `--leading-4xl` (1.1) — login branding panel h1 only.
 
 ---
 
@@ -111,6 +111,14 @@ User member status:
 ---
 
 ## Layout Contracts
+
+### Focal Points per Screen
+
+Each screen has one declared primary visual anchor that the layout must reinforce:
+
+- **Dashboard:** KPI row (4-column stat cards) is the visual anchor — highest contrast, top vertical position, widest span.
+- **Hub (meetings list):** Meeting card grid is the focal zone — cards carry status badges and primary CTAs; the grid must occupy the full content width.
+- **Meetings (operator / session view):** Active motion panel (current resolution under vote) is the focal point — it must visually dominate the screen via border accent or elevated surface.
 
 ### Login 2-Panel Layout (DESIGN-02)
 
@@ -164,7 +172,7 @@ All text is in French. No mention of "copropriété" or "syndic".
 | Error state — network | `Une erreur est survenue. Veuillez réessayer.` |
 | Error state — session expired | `Votre session a expiré. Connectez-vous à nouveau.` |
 | Destructive — close meeting | Label: `Clôturer la séance` / Confirmation: `Cette action est irréversible. Confirmer la clôture ?` |
-| Destructive — delete member | Label: `Supprimer` / Confirmation: `Supprimer ce membre définitivement ?` |
+| Destructive — delete member | Label: `Supprimer le membre` / Confirmation: `Supprimer ce membre définitivement ?` |
 | Status badge — setup | `Brouillon` |
 | Status badge — running | `En cours` |
 | Status badge — paused | `Suspendu` |
