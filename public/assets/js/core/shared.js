@@ -49,10 +49,12 @@
             }
           });
         }
+        window.dispatchEvent(new CustomEvent('sidebar:loaded', { detail: { ok: true } }));
       })
       .catch(function () {
         // Fallback: leave empty sidebar (navigation still works via drawer menu)
         sidebar.innerHTML = '<div class="p-4 text-muted text-sm">Navigation unavailable</div>';
+        window.dispatchEvent(new CustomEvent('sidebar:loaded', { detail: { ok: false } }));
       });
   }
 
