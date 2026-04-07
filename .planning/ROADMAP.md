@@ -12,7 +12,7 @@ Ce milestone assainit le codebase AgVote en quatre phases ordonnees par severite
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Infrastructure Redis** - Eliminer les fallbacks fichiers /tmp, rendre Redis obligatoire avec health check au boot
+- [x] **Phase 1: Infrastructure Redis** - Eliminer les fallbacks fichiers /tmp, rendre Redis obligatoire avec health check au boot (completed 2026-04-07)
 - [ ] **Phase 2: Optimisations Memoire et Requetes** - Streaming XLSX, traitement email par lots, aggregation COUNT unique
 - [ ] **Phase 3: Extraction Services et Refactoring** - Tests de caracterisation AuthMiddleware et RGPD, extraction ImportController
 - [ ] **Phase 4: Tests et Decoupage Controllers** - Tests SSE race conditions et fuzzy matching import, splits conditionnels controllers
@@ -72,7 +72,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Redis | 0/2 | Planned | - |
+| 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | 0/TBD | Not started | - |
 | 3. Extraction Services et Refactoring | 0/TBD | Not started | - |
 | 4. Tests et Decoupage Controllers | 0/TBD | Not started | - |

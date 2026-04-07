@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+stopped_at: Completed 01-infrastructure-redis/01-01-PLAN.md
+last_updated: "2026-04-07T06:18:23.033Z"
+last_activity: 2026-04-07 -- Phase 01 execution started
+progress:
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 0
+---
+
 # Project State
 
 ## Project Reference
@@ -5,20 +21,21 @@
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 1 — Infrastructure Redis
+**Current focus:** Phase 01 — infrastructure-redis
 
 ## Current Position
 
-Phase: 1 of 4 (Infrastructure Redis)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-07 — Roadmap cree, phases derivees des 13 requirements v1
+Phase: 01 (infrastructure-redis) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 01
+Last activity: 2026-04-07 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: —
 - Total execution time: —
@@ -30,10 +47,12 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: —
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-infrastructure-redis P01 | 268 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -45,6 +64,9 @@ Recent decisions affecting current work:
 - Init: Redis obligatoire, plus de fallback fichier — REDIS-01/02/03/04 en Phase 1
 - Init: Fiabilite prod avant refactoring — Phase 2 (memoire/requetes) avant Phase 3 (extraction)
 - Init: Caracterisation tests avant extraction — TEST-02 et TEST-01 inclus en Phase 3, pas Phase 4
+- [Phase 01-infrastructure-redis]: Redis is now mandatory at boot: Application::boot() and bootCli() throw RuntimeException with French message if Redis is unreachable
+- [Phase 01-infrastructure-redis]: Lua EVAL chosen over PIPELINE for rate limiting to fix INCR+EXPIRE race condition
+- [Phase 01-infrastructure-redis]: RateLimiter::configure() removed entirely — no file backend means no storage config needed; cleanup() kept as no-op for API compat
 
 ### Pending Todos
 
@@ -58,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07
-Stopped at: Roadmap cree et STATE.md initialise — pret pour `/gsd:plan-phase 1`
+Last session: 2026-04-07T06:18:23.030Z
+Stopped at: Completed 01-infrastructure-redis/01-01-PLAN.md
 Resume file: None

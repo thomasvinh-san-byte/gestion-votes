@@ -10,9 +10,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Infrastructure Redis
 
 - [ ] **REDIS-01**: SSE EventBroadcaster utilise Redis Pub/Sub exclusivement, fallback fichier supprime
-- [ ] **REDIS-02**: Rate-limiting utilise Redis avec script Lua atomique (INCR+EXPIRE), flock supprime
+- [x] **REDIS-02**: Rate-limiting utilise Redis avec script Lua atomique (INCR+EXPIRE), flock supprime
 - [ ] **REDIS-03**: Detection serveur SSE via heartbeat Redis avec TTL, PID-file supprime
-- [ ] **REDIS-04**: Health check Redis au boot de Application, erreur claire si Redis indisponible
+- [x] **REDIS-04**: Health check Redis au boot de Application, erreur claire si Redis indisponible
 
 ### Performance
 
@@ -68,9 +68,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | REDIS-01 | Phase 1 | Pending |
-| REDIS-02 | Phase 1 | Pending |
+| REDIS-02 | Phase 1 | Complete |
 | REDIS-03 | Phase 1 | Pending |
-| REDIS-04 | Phase 1 | Pending |
+| REDIS-04 | Phase 1 | Complete |
 | PERF-01 | Phase 2 | Pending |
 | PERF-02 | Phase 2 | Pending |
 | PERF-03 | Phase 2 | Pending |
