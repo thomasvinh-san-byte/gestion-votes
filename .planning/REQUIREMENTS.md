@@ -9,8 +9,8 @@ Requirements pour le milestone Coherence UI/UX et Wiring. Chaque requirement map
 
 ### Wiring
 
-- [ ] **WIRE-01**: Inventaire de tous les contrats ID (querySelector/getElementById) et verification vs HTML actuel
-- [ ] **WIRE-02**: Reparation de tous les fetch handlers et event handlers casses sur toutes les pages
+- [x] **WIRE-01**: Inventaire de tous les contrats ID (querySelector/getElementById) et verification vs HTML actuel
+- [x] **WIRE-02**: Reparation de tous les fetch handlers et event handlers casses sur toutes les pages
 - [ ] **WIRE-03**: Reparation du timing sidebar async (shared.js, shell.js, auth-ui.js)
 - [ ] **WIRE-04**: Helper Playwright waitForHtmxSettled() pour eviter les race conditions HTMX
 
@@ -59,8 +59,8 @@ Reporte au prochain milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WIRE-01 | Phase 5 | Pending |
-| WIRE-02 | Phase 5 | Pending |
+| WIRE-01 | Phase 5 | Complete |
+| WIRE-02 | Phase 5 | Complete |
 | WIRE-03 | Phase 5 | Pending |
 | WIRE-04 | Phase 5 | Pending |
 | DESIGN-01 | Phase 6 | Pending |
