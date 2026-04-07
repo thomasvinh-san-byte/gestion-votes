@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Core\Security\AuthMiddleware;
+use AgVote\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../app/Core/Security/AuthMiddleware.php';
@@ -35,10 +37,14 @@ class AuthMiddlewareTest extends TestCase {
         $property->setValue(null, null);
 
         AuthMiddleware::init(['debug' => false]);
+        RepositoryFactory::reset();
     }
 
     protected function tearDown(): void {
         putenv('APP_AUTH_ENABLED=');
+        $_SESSION = [];
+        AuthMiddleware::reset();
+        RepositoryFactory::reset();
     }
 
     public function testIsEnabledReturnsTrueByDefault(): void {
@@ -258,5 +264,217 @@ class AuthMiddlewareTest extends TestCase {
         // Verify flag is cleared
         $value = $prop->getValue(null);
         $this->assertFalse($value, 'reset() must clear the sessionExpired flag');
+    }
+
+    // === Session Lifecycle Tests ===
+
+    /**
+     * Inject a mock UserRepository into the RepositoryFactory singleton.
+     *
+     * Mirrors the pattern from ControllerTestCase::injectRepos().
+     */
+    private function injectMockUserRepository(UserRepository $mockRepo): void
+    {
+        $factory = new RepositoryFactory(null);
+
+        $refFactory = new ReflectionClass(RepositoryFactory::class);
+
+        $cacheProp = $refFactory->getProperty('cache');
+        $cacheProp->setAccessible(true);
+        $cacheProp->setValue($factory, [UserRepository::class => $mockRepo]);
+
+        $instanceProp = $refFactory->getProperty('instance');
+        $instanceProp->setAccessible(true);
+        $instanceProp->setValue(null, $factory);
+    }
+
+    /**
+     * Returns a minimal auth_user session array for the given tenant.
+     */
+    private function buildSessionUser(string $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444'): array
+    {
+        return [
+            'id'        => 'user-uuid-0001',
+            'role'      => 'operator',
+            'name'      => 'Test Operator',
+            'email'     => 'test@example.com',
+            'tenant_id' => $tenantId,
+            'is_active' => true,
+        ];
+    }
+
+    public function testAuthenticateExpiresSessionAfterTimeout(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        // Inject a short timeout (300 seconds)
+        AuthMiddleware::setSessionTimeoutForTest($tenantId, 300);
+
+        // Seed $_SESSION with auth data — last activity 99999 seconds ago (well past timeout)
+        @session_start();
+        $_SESSION['auth_user']          = $this->buildSessionUser($tenantId);
+        $_SESSION['auth_last_activity'] = time() - 99999;
+        $_SESSION['auth_last_db_check'] = time();
+
+        $result = AuthMiddleware::authenticate();
+
+        $this->assertNull($result, 'authenticate() must return null when session has timed out');
+        $this->assertEmpty($_SESSION, '$_SESSION must be empty after session timeout');
+
+        // Verify sessionExpired static flag was set
+        $ref  = new ReflectionClass(AuthMiddleware::class);
+        $prop = $ref->getProperty('sessionExpired');
+        $prop->setAccessible(true);
+        $this->assertTrue($prop->getValue(null), 'sessionExpired flag must be true after timeout');
+    }
+
+    public function testAuthenticateRevokesSessionForDeactivatedUser(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        // Inject mock UserRepository returning an inactive user
+        $mockRepo = $this->createMock(UserRepository::class);
+        $mockRepo->method('findForSessionRevalidation')
+            ->willReturn(['id' => 'user-uuid-0001', 'role' => 'operator', 'name' => 'Test', 'email' => 'test@example.com', 'is_active' => false]);
+        $this->injectMockUserRepository($mockRepo);
+
+        // Seed $_SESSION — auth_last_db_check=0 forces immediate revalidation
+        @session_start();
+        $_SESSION['auth_user']          = $this->buildSessionUser($tenantId);
+        $_SESSION['auth_last_activity'] = time();
+        $_SESSION['auth_last_db_check'] = 0;
+
+        $result = AuthMiddleware::authenticate();
+
+        $this->assertNull($result, 'authenticate() must return null for deactivated user');
+        $this->assertEmpty($_SESSION, '$_SESSION must be empty after session revocation');
+    }
+
+    public function testAuthenticateRegeneratesSessionOnRoleChange(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        // Mock returns user with elevated role 'admin' (was 'operator' in session)
+        $mockRepo = $this->createMock(UserRepository::class);
+        $mockRepo->method('findForSessionRevalidation')
+            ->willReturn(['id' => 'user-uuid-0001', 'role' => 'admin', 'name' => 'Test Admin', 'email' => 'test@example.com', 'is_active' => true]);
+        $this->injectMockUserRepository($mockRepo);
+
+        // Seed $_SESSION with role='operator', auth_last_db_check=0 forces revalidation
+        @session_start();
+        $_SESSION['auth_user']          = $this->buildSessionUser($tenantId);
+        $_SESSION['auth_last_activity'] = time();
+        $_SESSION['auth_last_db_check'] = 0;
+
+        $result = AuthMiddleware::authenticate();
+
+        $this->assertNotNull($result, 'authenticate() must return user after role change');
+        $this->assertSame('admin', $result['role'], 'Role must be updated to the new DB role');
+        $this->assertSame('admin', $_SESSION['auth_user']['role'], 'Session role must reflect the DB role');
+    }
+
+    public function testAuthenticateUpdatesLastActivity(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        // Use a short timeout that won't expire within this test
+        AuthMiddleware::setSessionTimeoutForTest($tenantId, 28800);
+
+        // Seed $_SESSION with recent auth_last_activity and recent auth_last_db_check (no revalidation)
+        $before = time();
+        @session_start();
+        $_SESSION['auth_user']          = $this->buildSessionUser($tenantId);
+        $_SESSION['auth_last_activity'] = $before;
+        $_SESSION['auth_last_db_check'] = $before;
+
+        $result = AuthMiddleware::authenticate();
+
+        $this->assertNotNull($result, 'authenticate() must return user with valid session');
+
+        $after = time();
+        $updatedActivity = $_SESSION['auth_last_activity'] ?? 0;
+        $this->assertGreaterThanOrEqual($before, $updatedActivity, 'auth_last_activity must be updated to approximately now');
+        $this->assertLessThanOrEqual($after + 1, $updatedActivity, 'auth_last_activity must not be in the future');
+    }
+
+    public function testResetClearsAll10StaticProperties(): void
+    {
+        $ref = new ReflectionClass(AuthMiddleware::class);
+
+        // Set all 10 static properties to non-default values
+        $props = [
+            'currentUser'            => ['id' => 'test', 'role' => 'admin'],
+            'currentMeetingId'       => 'meeting-uuid-0001',
+            'currentMeetingRoles'    => ['president'],
+            'debug'                  => true,
+            'accessLog'              => [['action' => 'test']],
+            'sessionExpired'         => true,
+            'cachedSessionTimeout'   => 3600,
+            'cachedTimeoutTenantId'  => 'tenant-uuid-0001',
+            'testSessionTimeout'     => 300,
+            'testTimeoutTenantId'    => 'tenant-uuid-0001',
+        ];
+
+        foreach ($props as $propName => $value) {
+            $prop = $ref->getProperty($propName);
+            $prop->setAccessible(true);
+            $prop->setValue(null, $value);
+        }
+
+        // Call reset()
+        AuthMiddleware::reset();
+
+        // Verify all 9 clearable properties are back to defaults
+        // Note: $debug is not cleared by reset() — this is the documented behavior
+        $clearableDefaults = [
+            'currentUser'           => null,
+            'currentMeetingId'      => null,
+            'currentMeetingRoles'   => null,
+            'accessLog'             => [],
+            'sessionExpired'        => false,
+            'cachedSessionTimeout'  => null,
+            'cachedTimeoutTenantId' => null,
+            'testSessionTimeout'    => null,
+            'testTimeoutTenantId'   => null,
+        ];
+
+        foreach ($clearableDefaults as $propName => $expectedDefault) {
+            $prop = $ref->getProperty($propName);
+            $prop->setAccessible(true);
+            $actual = $prop->getValue(null);
+            $this->assertSame($expectedDefault, $actual, "reset() must clear property '{$propName}' to its default value");
+        }
+    }
+
+    public function testAuthenticateDbRevalidationFailureKeepsSession(): void
+    {
+        putenv('APP_AUTH_ENABLED=1');
+
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        // Mock throws a RuntimeException simulating a DB failure
+        $mockRepo = $this->createMock(UserRepository::class);
+        $mockRepo->method('findForSessionRevalidation')
+            ->willThrowException(new \RuntimeException('DB connection lost'));
+        $this->injectMockUserRepository($mockRepo);
+
+        // Seed $_SESSION — auth_last_db_check=0 forces revalidation attempt
+        @session_start();
+        $_SESSION['auth_user']          = $this->buildSessionUser($tenantId);
+        $_SESSION['auth_last_activity'] = time();
+        $_SESSION['auth_last_db_check'] = 0;
+
+        $result = AuthMiddleware::authenticate();
+
+        $this->assertNotNull($result, 'authenticate() must keep session alive when DB revalidation fails');
+        $this->assertSame('user-uuid-0001', $result['id'], 'User ID must be preserved from session on DB failure');
     }
 }
