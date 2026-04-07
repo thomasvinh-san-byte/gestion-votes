@@ -26,11 +26,12 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Detection serveur SSE via heartbeat Redis (PID-file supprime) — Phase 1
 - ✓ Health check Redis au boot avec erreur claire — Phase 1
 
+- ✓ PDO timeouts + statement_timeout PostgreSQL configurable — Phase 2
+- ✓ Stats aggregation single-query (getDashboardStats) — Phase 2
+- ✓ Streaming XLSX via OpenSpout (sub-3MB memoire) — Phase 2
+- ✓ Email batch processing (lots de 25, pagine) — Phase 2
+
 ### Active
-- [ ] Corriger les exports memoire (streaming ou pagination)
-- [ ] Corriger les COUNT(*) multiples dans MeetingStatsRepository
-- [ ] Ajouter timeout PDO et query timeout PostgreSQL
-- [ ] Ajouter backpressure a EmailQueueService (traitement par lots)
 - [ ] Extraire la logique metier de ImportController en services
 - [ ] Extraire la logique metier de AuthMiddleware en services
 - [ ] Splitter MeetingReportsController si necessaire apres extraction
@@ -95,4 +96,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after Phase 1 completion*
+*Last updated: 2026-04-07 after Phase 2 completion*
