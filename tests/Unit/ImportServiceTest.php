@@ -209,6 +209,144 @@ class ImportServiceTest extends TestCase {
     }
 
     // =========================================================================
+    // mapColumns — fuzzy matching and alias coverage (TEST-04)
+    // =========================================================================
+
+    public function testMapColumnsAllVotingPowerAliases(): void {
+        $aliases = ['voting_power', 'ponderation', 'pondération', 'weight', 'tantiemes', 'tantièmes', 'poids'];
+        $columnMap = ImportService::getMembersColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('voting_power', $result, "Alias '{$alias}' must map to voting_power");
+            $this->assertEquals(0, $result['voting_power'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllFirstNameAliases(): void {
+        $aliases = ['first_name', 'prenom', 'prénom'];
+        $columnMap = ImportService::getMembersColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('first_name', $result, "Alias '{$alias}' must map to first_name");
+            $this->assertEquals(0, $result['first_name'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllGroupsAliases(): void {
+        $aliases = ['groups', 'groupes', 'group', 'groupe', 'college', 'collège', 'categorie', 'catégorie'];
+        $columnMap = ImportService::getMembersColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('groups', $result, "Alias '{$alias}' must map to groups");
+            $this->assertEquals(0, $result['groups'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllMotionTitleAliases(): void {
+        $aliases = ['title', 'titre', 'intitule', 'intitulé', 'resolution', 'résolution'];
+        $columnMap = ImportService::getMotionsColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('title', $result, "Alias '{$alias}' must map to title");
+            $this->assertEquals(0, $result['title'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllMotionDescriptionAliases(): void {
+        $aliases = ['description', 'texte', 'content', 'contenu', 'detail', 'détail'];
+        $columnMap = ImportService::getMotionsColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('description', $result, "Alias '{$alias}' must map to description");
+            $this->assertEquals(0, $result['description'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllAttendanceModeAliases(): void {
+        $aliases = ['mode', 'statut', 'status', 'presence', 'présence', 'etat', 'état'];
+        $columnMap = ImportService::getAttendancesColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('mode', $result, "Alias '{$alias}' must map to mode");
+            $this->assertEquals(0, $result['mode'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllProxyGiverAliases(): void {
+        $aliases = ['giver_name', 'mandant_nom', 'mandant', 'donneur', 'donneur_nom', 'from_name', 'de'];
+        $columnMap = ImportService::getProxiesColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('giver_name', $result, "Alias '{$alias}' must map to giver_name");
+            $this->assertEquals(0, $result['giver_name'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testMapColumnsAllProxyReceiverAliases(): void {
+        $aliases = ['receiver_name', 'mandataire_nom', 'mandataire', 'receveur', 'receveur_nom', 'to_name', 'vers'];
+        $columnMap = ImportService::getProxiesColumnMap();
+
+        foreach ($aliases as $alias) {
+            $result = ImportService::mapColumns([$alias], $columnMap);
+            $this->assertArrayHasKey('receiver_name', $result, "Alias '{$alias}' must map to receiver_name");
+            $this->assertEquals(0, $result['receiver_name'], "Alias '{$alias}' must be at index 0");
+        }
+    }
+
+    public function testReadCsvFileNormalizesUppercaseHeaders(): void {
+        $path = $this->tmpDir . '/uppercase.csv';
+        file_put_contents($path, "NOM,EMAIL,PONDERATION\nAlice,alice@test.com,1\n");
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error'], 'Should parse without error');
+        $this->assertEquals(['nom', 'email', 'ponderation'], $result['headers']);
+
+        $mapResult = ImportService::mapColumns($result['headers'], ImportService::getMembersColumnMap());
+        $this->assertArrayHasKey('name', $mapResult);
+        $this->assertArrayHasKey('email', $mapResult);
+        $this->assertArrayHasKey('voting_power', $mapResult);
+    }
+
+    public function testReadCsvFileNormalizesMixedCaseAccentedHeaders(): void {
+        $path = $this->tmpDir . '/mixed_accented.csv';
+        file_put_contents($path, "Nom,Email,Pondération,Prénom\nDupont,d@test.com,2,Jean\n");
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error'], 'Should parse without error');
+        $this->assertEquals(['nom', 'email', 'pondération', 'prénom'], $result['headers']);
+
+        $mapResult = ImportService::mapColumns($result['headers'], ImportService::getMembersColumnMap());
+        $this->assertArrayHasKey('name', $mapResult);
+        $this->assertArrayHasKey('email', $mapResult);
+        $this->assertArrayHasKey('voting_power', $mapResult);
+        $this->assertArrayHasKey('first_name', $mapResult);
+    }
+
+    public function testReadCsvFileTrimsWhitespacePaddedHeaders(): void {
+        $path = $this->tmpDir . '/padded.csv';
+        file_put_contents($path, "  nom  , email ,ponderation \nAlice,a@test.com,1\n");
+
+        $result = ImportService::readCsvFile($path);
+
+        $this->assertNull($result['error'], 'Should parse without error');
+        $this->assertEquals(['nom', 'email', 'ponderation'], $result['headers']);
+
+        $mapResult = ImportService::mapColumns($result['headers'], ImportService::getMembersColumnMap());
+        $this->assertArrayHasKey('name', $mapResult);
+        $this->assertArrayHasKey('email', $mapResult);
+        $this->assertArrayHasKey('voting_power', $mapResult);
+    }
+
+    // =========================================================================
     // Column map getter tests
     // =========================================================================
 
