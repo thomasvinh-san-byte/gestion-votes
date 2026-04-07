@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 03-03-PLAN.md — ImportController 149 lines, zero delegation wrappers, 5 ImportService integration tests, TEST-01 and TEST-02 complete
-last_updated: "2026-04-07T10:35:18.306Z"
-last_activity: 2026-04-07
+last_updated: "2026-04-07T10:46:32.459Z"
+last_activity: 2026-04-07 -- Phase 04 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
+  total_plans: 10
   completed_plans: 8
   percent: 37
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 03 — extraction-services-et-refactoring
+**Current focus:** Phase 04 — tests-et-decoupage-controllers
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Executing Phase 03
-Last activity: 2026-04-07
+Phase: 04 (tests-et-decoupage-controllers) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 04
+Last activity: 2026-04-07 -- Phase 04 execution started
 
 Progress: [███░░░░░░░] 37%
 
