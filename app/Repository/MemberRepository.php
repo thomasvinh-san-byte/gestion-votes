@@ -154,6 +154,24 @@ class MemberRepository extends AbstractRepository {
     }
 
     /**
+     * Lists active members with email, paginated.
+     * Uses LIMIT/OFFSET for batch processing.
+     * Note: OFFSET pagination is acceptable here because email scheduling
+     * is idempotent (onlyUnsent check skips already-sent members).
+     */
+    public function listActiveWithEmailPaginated(string $tenantId, int $limit, int $offset): array {
+        return $this->selectAll(
+            "SELECT id, full_name, email, tenant_id
+             FROM members
+             WHERE tenant_id = :tid AND is_active = true
+               AND email IS NOT NULL AND email <> ''
+             ORDER BY id
+             LIMIT :limit OFFSET :offset",
+            [':tid' => $tenantId, ':limit' => $limit, ':offset' => $offset],
+        );
+    }
+
+    /**
      * Find the member linked to a user account (via user_id FK).
      * Returns null if no member is linked to this user.
      */

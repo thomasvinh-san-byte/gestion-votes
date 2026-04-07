@@ -52,7 +52,7 @@ final class EmailQueueService {
      *
      * @return array{processed:int,sent:int,failed:int,errors:array}
      */
-    public function processQueue(int $batchSize = 50): array {
+    public function processQueue(int $batchSize = 25): array {
         $result = [
             'processed' => 0,
             'sent' => 0,
@@ -137,9 +137,6 @@ final class EmailQueueService {
             'errors' => [],
         ];
 
-        // Active members with email
-        $members = $this->memberRepo->listActiveWithEmail($tenantId);
-
         // Default template if not specified
         if (!$templateId) {
             $defaultTemplate = $this->emailTemplateRepo
@@ -147,100 +144,106 @@ final class EmailQueueService {
             $templateId = $defaultTemplate['id'] ?? null;
         }
 
-        foreach ($members as $member) {
-            $memberId = (string) $member['id'];
-            $email = trim((string) ($member['email'] ?? ''));
+        $offset = 0;
+        $batchSize = 25;
+        do {
+            $members = $this->memberRepo->listActiveWithEmailPaginated($tenantId, $batchSize, $offset);
+            foreach ($members as $member) {
+                $memberId = (string) $member['id'];
+                $email = trim((string) ($member['email'] ?? ''));
 
-            // Defense-in-depth: skip members from other tenants
-            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
-                $result['skipped']++;
-                continue;
-            }
-
-            if ($email === '') {
-                $result['skipped']++;
-                continue;
-            }
-
-            // Check if already sent
-            if ($onlyUnsent) {
-                $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
-                if ($status === 'sent') {
+                // Defense-in-depth: skip members from other tenants
+                if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
                     $result['skipped']++;
                     continue;
                 }
-            }
 
-            // Generate token
-            $token = bin2hex(random_bytes(16));
+                if ($email === '') {
+                    $result['skipped']++;
+                    continue;
+                }
 
-            // Create/update invitation
-            $this->invitationRepo->upsertBulk(
-                $tenantId,
-                $meetingId,
-                $memberId,
-                $email,
-                $token,
-                'pending',
-                null,
-            );
+                // Check if already sent
+                if ($onlyUnsent) {
+                    $status = $this->invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
+                    if ($status === 'sent') {
+                        $result['skipped']++;
+                        continue;
+                    }
+                }
 
-            // Retrieve invitation ID
-            $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId, $tenantId);
-            $invitationId = $invitation['id'] ?? null;
+                // Generate token
+                $token = bin2hex(random_bytes(16));
 
-            // Rendre le template
-            if ($templateId) {
-                $rendered = $this->templateService->renderTemplate(
+                // Create/update invitation
+                $this->invitationRepo->upsertBulk(
                     $tenantId,
-                    $templateId,
                     $meetingId,
                     $memberId,
+                    $email,
                     $token,
+                    'pending',
+                    null,
                 );
-                if (!$rendered['ok']) {
-                    // Fallback to service default template
+
+                // Retrieve invitation ID
+                $invitation = $this->invitationRepo->findByMeetingAndMember($meetingId, $memberId, $tenantId);
+                $invitationId = $invitation['id'] ?? null;
+
+                // Rendre le template
+                if ($templateId) {
+                    $rendered = $this->templateService->renderTemplate(
+                        $tenantId,
+                        $templateId,
+                        $meetingId,
+                        $memberId,
+                        $token,
+                    );
+                    if (!$rendered['ok']) {
+                        // Fallback to service default template
+                        $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
+                        $subject = $this->templateService->renderHtml('Invitation de vote - {{meeting_title}}', $variables);
+                        $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
+                    } else {
+                        $subject = $rendered['subject'];
+                        $bodyHtml = $rendered['body_html'];
+                    }
+                } else {
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
                     $subject = $this->templateService->renderHtml('Invitation de vote - {{meeting_title}}', $variables);
                     $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
-                } else {
-                    $subject = $rendered['subject'];
-                    $bodyHtml = $rendered['body_html'];
                 }
-            } else {
-                $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, $token);
-                $subject = $this->templateService->renderHtml('Invitation de vote - {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_INVITATION_TEMPLATE, $variables);
-            }
 
-            // Add to queue
-            $queued = $this->queueRepo->enqueue(
-                $tenantId,
-                $email,
-                $subject,
-                $bodyHtml,
-                null,
-                $scheduledAt,
-                $meetingId,
-                $memberId,
-                $invitationId,
-                $templateId,
-                $member['full_name'] ?? null,
-            );
-
-            if ($queued) {
-                // Log event
-                $this->eventRepo->logEvent(
+                // Add to queue
+                $queued = $this->queueRepo->enqueue(
                     $tenantId,
-                    'queued',
+                    $email,
+                    $subject,
+                    $bodyHtml,
+                    null,
+                    $scheduledAt,
+                    $meetingId,
+                    $memberId,
                     $invitationId,
-                    $queued['id'],
+                    $templateId,
+                    $member['full_name'] ?? null,
                 );
-                $result['scheduled']++;
-            } else {
-                $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+
+                if ($queued) {
+                    // Log event
+                    $this->eventRepo->logEvent(
+                        $tenantId,
+                        'queued',
+                        $invitationId,
+                        $queued['id'],
+                    );
+                    $result['scheduled']++;
+                } else {
+                    $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+                }
             }
-        }
+            $offset += $batchSize;
+        } while (count($members) === $batchSize);
 
         return $result;
     }
@@ -259,8 +262,6 @@ final class EmailQueueService {
             'errors' => [],
         ];
 
-        $members = $this->memberRepo->listActiveWithEmail($tenantId);
-
         // Default reminder template if not specified
         if (!$templateId) {
             $defaultTemplate = $this->emailTemplateRepo
@@ -268,71 +269,77 @@ final class EmailQueueService {
             $templateId = $defaultTemplate['id'] ?? null;
         }
 
-        foreach ($members as $member) {
-            $memberId = (string) $member['id'];
-            $email = trim((string) ($member['email'] ?? ''));
+        $offset = 0;
+        $batchSize = 25;
+        do {
+            $members = $this->memberRepo->listActiveWithEmailPaginated($tenantId, $batchSize, $offset);
+            foreach ($members as $member) {
+                $memberId = (string) $member['id'];
+                $email = trim((string) ($member['email'] ?? ''));
 
-            // Defense-in-depth: skip members from other tenants
-            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
-                $result['skipped']++;
-                continue;
-            }
+                // Defense-in-depth: skip members from other tenants
+                if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
+                    $result['skipped']++;
+                    continue;
+                }
 
-            if ($email === '') {
-                $result['skipped']++;
-                continue;
-            }
+                if ($email === '') {
+                    $result['skipped']++;
+                    continue;
+                }
 
-            // Render template
-            if ($templateId) {
-                $rendered = $this->templateService->renderTemplate(
-                    $tenantId,
-                    $templateId,
-                    $meetingId,
-                    $memberId,
-                    '',
-                );
-                if (!$rendered['ok']) {
+                // Render template
+                if ($templateId) {
+                    $rendered = $this->templateService->renderTemplate(
+                        $tenantId,
+                        $templateId,
+                        $meetingId,
+                        $memberId,
+                        '',
+                    );
+                    if (!$rendered['ok']) {
+                        $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
+                        $subject = $this->templateService->renderHtml('Rappel : {{meeting_title}}', $variables);
+                        $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
+                    } else {
+                        $subject = $rendered['subject'];
+                        $bodyHtml = $rendered['body_html'];
+                    }
+                } else {
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
                     $subject = $this->templateService->renderHtml('Rappel : {{meeting_title}}', $variables);
                     $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
-                } else {
-                    $subject = $rendered['subject'];
-                    $bodyHtml = $rendered['body_html'];
                 }
-            } else {
-                $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
-                $subject = $this->templateService->renderHtml('Rappel : {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_REMINDER_TEMPLATE, $variables);
-            }
 
-            // Add to queue
-            $queued = $this->queueRepo->enqueue(
-                $tenantId,
-                $email,
-                $subject,
-                $bodyHtml,
-                null,
-                null,
-                $meetingId,
-                $memberId,
-                null,
-                $templateId,
-                $member['full_name'] ?? null,
-            );
-
-            if ($queued) {
-                $this->eventRepo->logEvent(
+                // Add to queue
+                $queued = $this->queueRepo->enqueue(
                     $tenantId,
-                    'queued',
+                    $email,
+                    $subject,
+                    $bodyHtml,
                     null,
-                    $queued['id'],
+                    null,
+                    $meetingId,
+                    $memberId,
+                    null,
+                    $templateId,
+                    $member['full_name'] ?? null,
                 );
-                $result['scheduled']++;
-            } else {
-                $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+
+                if ($queued) {
+                    $this->eventRepo->logEvent(
+                        $tenantId,
+                        'queued',
+                        null,
+                        $queued['id'],
+                    );
+                    $result['scheduled']++;
+                } else {
+                    $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+                }
             }
-        }
+            $offset += $batchSize;
+        } while (count($members) === $batchSize);
 
         return $result;
     }
@@ -357,8 +364,6 @@ final class EmailQueueService {
             return $result;
         }
 
-        $members = $this->memberRepo->listActiveWithEmail($tenantId);
-
         // Default results template if not specified
         if (!$templateId) {
             $defaultTemplate = $this->emailTemplateRepo
@@ -366,71 +371,77 @@ final class EmailQueueService {
             $templateId = $defaultTemplate['id'] ?? null;
         }
 
-        foreach ($members as $member) {
-            $memberId = (string) $member['id'];
-            $email = trim((string) ($member['email'] ?? ''));
+        $offset = 0;
+        $batchSize = 25;
+        do {
+            $members = $this->memberRepo->listActiveWithEmailPaginated($tenantId, $batchSize, $offset);
+            foreach ($members as $member) {
+                $memberId = (string) $member['id'];
+                $email = trim((string) ($member['email'] ?? ''));
 
-            // Defense-in-depth: skip members from other tenants
-            if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
-                $result['skipped']++;
-                continue;
-            }
+                // Defense-in-depth: skip members from other tenants
+                if (isset($member['tenant_id']) && (string) $member['tenant_id'] !== $tenantId) {
+                    $result['skipped']++;
+                    continue;
+                }
 
-            if ($email === '') {
-                $result['skipped']++;
-                continue;
-            }
+                if ($email === '') {
+                    $result['skipped']++;
+                    continue;
+                }
 
-            // Render template (empty token — results emails have no vote token)
-            if ($templateId) {
-                $rendered = $this->templateService->renderTemplate(
-                    $tenantId,
-                    $templateId,
-                    $meetingId,
-                    $memberId,
-                    '',
-                );
-                if (!$rendered['ok']) {
+                // Render template (empty token — results emails have no vote token)
+                if ($templateId) {
+                    $rendered = $this->templateService->renderTemplate(
+                        $tenantId,
+                        $templateId,
+                        $meetingId,
+                        $memberId,
+                        '',
+                    );
+                    if (!$rendered['ok']) {
+                        $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
+                        $subject = $this->templateService->renderHtml('Resultats de la seance - {{meeting_title}}', $variables);
+                        $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
+                    } else {
+                        $subject = $rendered['subject'];
+                        $bodyHtml = $rendered['body_html'];
+                    }
+                } else {
                     $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
                     $subject = $this->templateService->renderHtml('Resultats de la seance - {{meeting_title}}', $variables);
                     $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
-                } else {
-                    $subject = $rendered['subject'];
-                    $bodyHtml = $rendered['body_html'];
                 }
-            } else {
-                $variables = $this->templateService->getVariables($tenantId, $meetingId, $memberId, '');
-                $subject = $this->templateService->renderHtml('Resultats de la seance - {{meeting_title}}', $variables);
-                $bodyHtml = $this->templateService->renderHtml(EmailTemplateService::DEFAULT_RESULTS_TEMPLATE, $variables);
-            }
 
-            // Add to queue (no invitation_id for results emails)
-            $queued = $this->queueRepo->enqueue(
-                $tenantId,
-                $email,
-                $subject,
-                $bodyHtml,
-                null,
-                null,
-                $meetingId,
-                $memberId,
-                null,
-                $templateId,
-                $member['full_name'] ?? null,
-            );
-
-            if ($queued) {
-                $this->eventRepo->logEvent(
+                // Add to queue (no invitation_id for results emails)
+                $queued = $this->queueRepo->enqueue(
                     $tenantId,
-                    'queued',
+                    $email,
+                    $subject,
+                    $bodyHtml,
                     null,
-                    $queued['id'],
+                    null,
+                    $meetingId,
+                    $memberId,
+                    null,
+                    $templateId,
+                    $member['full_name'] ?? null,
                 );
-                $result['scheduled']++;
-            } else {
-                $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+
+                if ($queued) {
+                    $this->eventRepo->logEvent(
+                        $tenantId,
+                        'queued',
+                        null,
+                        $queued['id'],
+                    );
+                    $result['scheduled']++;
+                } else {
+                    $result['errors'][] = ['member_id' => $memberId, 'error' => 'queue_insert_failed'];
+                }
             }
-        }
+            $offset += $batchSize;
+        } while (count($members) === $batchSize);
 
         return $result;
     }
@@ -489,11 +500,35 @@ final class EmailQueueService {
             return ['sent' => 0, 'skipped' => 0, 'errors' => [['error' => 'smtp_not_configured']]];
         }
 
-        $members = $this->memberRepo->listActiveWithEmail($tenantId);
         if ($limit > 0) {
-            $members = array_slice($members, 0, $limit);
+            // Single paginated batch for limited sends
+            $members = $this->memberRepo->listActiveWithEmailPaginated($tenantId, $limit, 0);
+            $this->sendInvitationsNowBatch($members, $tenantId, $meetingId, $templateId, $onlyUnsent, $result);
+        } else {
+            // Full paginated iteration
+            $offset = 0;
+            $batchSize = 25;
+            do {
+                $members = $this->memberRepo->listActiveWithEmailPaginated($tenantId, $batchSize, $offset);
+                $this->sendInvitationsNowBatch($members, $tenantId, $meetingId, $templateId, $onlyUnsent, $result);
+                $offset += $batchSize;
+            } while (count($members) === $batchSize);
         }
 
+        return $result;
+    }
+
+    /**
+     * Processes a batch of members for sendInvitationsNow().
+     */
+    private function sendInvitationsNowBatch(
+        array $members,
+        string $tenantId,
+        string $meetingId,
+        ?string $templateId,
+        bool $onlyUnsent,
+        array &$result,
+    ): void {
         foreach ($members as $member) {
             $memberId = (string) $member['id'];
             $email = trim((string) ($member['email'] ?? ''));
@@ -565,8 +600,6 @@ final class EmailQueueService {
                 ];
             }
         }
-
-        return $result;
     }
 
     /**
