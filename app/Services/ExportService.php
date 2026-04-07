@@ -6,6 +6,8 @@ namespace AgVote\Service;
 
 use AgVote\Core\BallotSource;
 use DateTime;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\XLSX\Writer;
 use Throwable;
 
 /**
@@ -493,6 +495,100 @@ final class ExportService {
             $this->formatDate($r['token_used_at'] ?? null),
             (string) ($r['manual_justification'] ?? ''),
         ];
+    }
+
+    // ========================================================================
+    // EXPORT XLSX STREAMING (OpenSpout)
+    // ========================================================================
+
+    /**
+     * Streams a single-sheet XLSX file to php://output using OpenSpout.
+     * Memory stays constant regardless of row count.
+     *
+     * @param string $filename Download filename
+     * @param array $headers Column header strings
+     * @param iterable $rows Raw data rows (generator or array) — each row is formatted by $formatter
+     * @param callable $formatter Function to format a raw row into output array
+     * @param string $sheetTitle Sheet name (max 31 chars)
+     */
+    public function streamXlsx(string $filename, array $headers, iterable $rows, callable $formatter, string $sheetTitle = 'Donnees'): void {
+        while (ob_get_level() > 0) { ob_end_clean(); }
+        $this->initXlsxOutput($filename);
+
+        $writer = new Writer();
+        $writer->openToFile('php://output');
+        $writer->getCurrentSheet()->setName(mb_substr($sheetTitle, 0, 31));
+        $writer->addRow(Row::fromValues($headers));
+
+        foreach ($rows as $row) {
+            $formatted = $formatter($row);
+            $writer->addRow(Row::fromValues(array_values($formatted)));
+        }
+
+        $writer->close();
+    }
+
+    /**
+     * Streams a multi-sheet XLSX export for a complete meeting.
+     * All iterables are consumed row-by-row — never materialized.
+     */
+    public function streamFullXlsx(
+        string $filename,
+        array $meeting,
+        iterable $attendanceRows,
+        iterable $motionRows,
+        iterable $voteRows,
+        bool $includeVotes = true,
+    ): void {
+        while (ob_get_level() > 0) { ob_end_clean(); }
+        $this->initXlsxOutput($filename);
+
+        $writer = new Writer();
+        $writer->openToFile('php://output');
+
+        // Sheet 1: Summary
+        $writer->getCurrentSheet()->setName('Resume');
+        $writer->addRow(Row::fromValues(['Information', 'Valeur']));
+        $summaryData = [
+            ['Seance', $meeting['title'] ?? ''],
+            ['Date', $this->formatDate($meeting['scheduled_at'] ?? null, false)],
+            ['Statut', $this->translateMeetingStatus($meeting['status'] ?? '')],
+            ['Validee le', $this->formatDate($meeting['validated_at'] ?? null)],
+        ];
+        foreach ($summaryData as $row) {
+            $writer->addRow(Row::fromValues($row));
+        }
+
+        // Sheet 2: Attendance
+        $sheet2 = $writer->addNewSheetAndMakeItCurrent();
+        $sheet2->setName('Emargement');
+        $writer->addRow(Row::fromValues($this->getAttendanceHeaders()));
+        foreach ($attendanceRows as $row) {
+            $writer->addRow(Row::fromValues(array_values($this->formatAttendanceRow($row))));
+        }
+
+        // Sheet 3: Motion results
+        $sheet3 = $writer->addNewSheetAndMakeItCurrent();
+        $sheet3->setName('Resultats');
+        $writer->addRow(Row::fromValues($this->getMotionResultsHeaders()));
+        foreach ($motionRows as $row) {
+            $writer->addRow(Row::fromValues(array_values($this->formatMotionResultRow($row))));
+        }
+
+        // Sheet 4: Individual votes — always create the sheet if includeVotes is true.
+        // Do NOT use iterator_to_array to check emptiness — that defeats streaming.
+        if ($includeVotes) {
+            $sheet4 = $writer->addNewSheetAndMakeItCurrent();
+            $sheet4->setName('Votes');
+            $writer->addRow(Row::fromValues($this->getVotesHeaders()));
+            foreach ($voteRows as $row) {
+                if (!empty($row['voter_name'])) {
+                    $writer->addRow(Row::fromValues(array_values($this->formatVoteRow($row))));
+                }
+            }
+        }
+
+        $writer->close();
     }
 
     // ========================================================================

@@ -49,6 +49,21 @@ abstract class AbstractRepository {
     }
 
     /**
+     * Executes a SELECT and yields rows one at a time via PDO cursor.
+     * Use for streaming exports to avoid loading full result set in memory.
+     *
+     * @return \Generator<int, array>
+     */
+    protected function selectGenerator(string $sql, array $params = []): \Generator {
+        $st = $this->pdo->prepare($sql);
+        $st->execute($params);
+        while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+            yield $row;
+        }
+        $st->closeCursor();
+    }
+
+    /**
      * Executes a modification query and returns the number of affected rows.
      */
     protected function execute(string $sql, array $params = []): int {

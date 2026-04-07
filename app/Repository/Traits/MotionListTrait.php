@@ -114,6 +114,35 @@ trait MotionListTrait {
         );
     }
 
+    /**
+     * Generator variant of listResultsExportForMeeting() for streaming exports.
+     *
+     * @return \Generator<int, array>
+     */
+    public function yieldResultsExportForMeeting(string $meetingId, string $tenantId): \Generator {
+        return $this->selectGenerator(
+            "SELECT
+                mo.title,
+                mo.position,
+                mo.opened_at,
+                mo.closed_at,
+                COALESCE(SUM(CASE WHEN b.value = 'for' THEN b.weight ELSE 0 END), 0) AS w_for,
+                COALESCE(SUM(CASE WHEN b.value = 'against' THEN b.weight ELSE 0 END), 0) AS w_against,
+                COALESCE(SUM(CASE WHEN b.value = 'abstain' THEN b.weight ELSE 0 END), 0) AS w_abstain,
+                COALESCE(SUM(CASE WHEN b.value = 'nsp' THEN b.weight ELSE 0 END), 0) AS w_nsp,
+                COALESCE(SUM(b.weight), 0) AS w_total,
+                COALESCE(COUNT(b.id), 0) AS ballots_count,
+                COALESCE(mo.decision, '') AS decision,
+                COALESCE(mo.decision_reason, '') AS decision_reason
+             FROM motions mo
+             LEFT JOIN ballots b ON b.motion_id = mo.id
+             WHERE mo.meeting_id = :mid AND mo.tenant_id = :tid
+             GROUP BY mo.id, mo.title, mo.position, mo.opened_at, mo.closed_at, mo.decision, mo.decision_reason
+             ORDER BY mo.position ASC NULLS LAST, mo.created_at ASC",
+            [':mid' => $meetingId, ':tid' => $tenantId],
+        );
+    }
+
     public function listForReportGeneration(string $meetingId, string $tenantId): array {
         return $this->selectAll(
             'SELECT title, evote_results

@@ -325,6 +325,38 @@ class AttendanceRepository extends AbstractRepository {
     }
 
     /**
+     * Generator variant of listExportForMeeting() for streaming exports.
+     *
+     * @return \Generator<int, array>
+     */
+    public function yieldExportForMeeting(string $meetingId, string $tenantId): \Generator {
+        return $this->selectGenerator(
+            "SELECT
+                m.id AS member_id, m.full_name, m.voting_power,
+                COALESCE(a.mode::text, 'absent') AS attendance_mode,
+                a.checked_in_at, a.checked_out_at,
+                pr.receiver_member_id AS proxy_to_member_id,
+                r.full_name AS proxy_to_name,
+                COALESCE(rc.cnt, 0) AS proxies_received
+             FROM members m
+             JOIN meetings mt ON mt.id = :mid1 AND mt.tenant_id = :tid
+             LEFT JOIN attendances a ON a.meeting_id = mt.id AND a.member_id = m.id AND a.tenant_id = mt.tenant_id
+             LEFT JOIN proxies pr ON pr.meeting_id = mt.id AND pr.giver_member_id = m.id AND pr.tenant_id = mt.tenant_id AND pr.revoked_at IS NULL
+             LEFT JOIN members r ON r.id = pr.receiver_member_id AND r.tenant_id = mt.tenant_id
+             LEFT JOIN (
+                SELECT p2.receiver_member_id, COUNT(*)::int AS cnt
+                FROM proxies p2
+                JOIN meetings mt2 ON mt2.id = p2.meeting_id AND mt2.tenant_id = p2.tenant_id
+                WHERE p2.meeting_id = :mid2 AND p2.revoked_at IS NULL
+                GROUP BY p2.receiver_member_id
+             ) rc ON rc.receiver_member_id = m.id
+             WHERE m.tenant_id = mt.tenant_id AND m.is_active = true
+             ORDER BY m.full_name ASC",
+            [':mid1' => $meetingId, ':tid' => $tenantId, ':mid2' => $meetingId],
+        );
+    }
+
+    /**
      * Liste les member_id eligibles (present/remote/proxy) pour une seance.
      */
     public function listEligibleMemberIds(string $tenantId, string $meetingId): array {
