@@ -849,7 +849,7 @@
     badge.className = 'badge badge-info';
     badge.style.cssText = 'margin-bottom:0.5rem;display:inline-flex;align-items:center;gap:0.4rem;';
     badge.textContent = 'Vous avez voté : ' + (LABELS[choix] || choix);
-    var voteArea = document.getElementById('voteButtons') || document.querySelector('.vote-buttons') || document.querySelector('.vote-actions');
+    var voteArea = document.getElementById('vote-buttons') || document.querySelector('.vote-buttons') || document.querySelector('.vote-actions'); // fixed: was 'voteButtons', HTML uses 'vote-buttons'
     if (voteArea) voteArea.insertAdjacentElement('beforebegin', badge);
   }
 
