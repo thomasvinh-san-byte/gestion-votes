@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md — PERF-04 satisfied, paginated member loading in all EmailQueueService schedule methods
-last_updated: "2026-04-07T07:03:40.620Z"
-last_activity: 2026-04-07
+stopped_at: Completed 03-01-PLAN.md — TEST-01 and TEST-02 satisfied, AuthMiddleware session lifecycle and RgpdExportController HTTP guard tests added
+last_updated: "2026-04-07T07:35:00.000Z"
+last_activity: 2026-04-07 -- Phase 03 Plan 01 complete
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 37
+  total_plans: 7
+  completed_plans: 6
+  percent: 45
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 02 — optimisations-memoire-et-requetes
+**Current focus:** Phase 03 — extraction-services-et-refactoring
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Executing Phase 02
-Last activity: 2026-04-07
+Phase: 03 (extraction-services-et-refactoring) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 03
+Last activity: 2026-04-07 -- Phase 03 Plan 01 complete (TEST-01, TEST-02 satisfied)
 
 Progress: [███░░░░░░░] 37%
 
@@ -78,6 +78,8 @@ Progress: [███░░░░░░░] 37%
 - [Phase 02-optimisations-memoire-et-requetes P02]: streamFullXlsx() always creates Votes sheet when includeVotes=true even with empty generator — no iterator_to_array check
 - [Phase 02-optimisations-memoire-et-requetes]: ORDER BY id for stable OFFSET pagination in listActiveWithEmailPaginated; OFFSET acceptable here due to email idempotency (onlyUnsent check)
 - [Phase 02-optimisations-memoire-et-requetes]: processQueue default batch size changed 50→25 satisfying PERF-04; scheduleInvitations/Reminders/Results use do-while paginated loop with batch=25
+- [Phase 03-extraction-services-et-refactoring P01]: api_require_role() is stubbed as no-op in bootstrap.php — auth enforcement tested via AuthMiddleware::requireRole() directly in RgpdExportControllerTest
+- [Phase 03-extraction-services-et-refactoring P01]: AuthMiddleware::reset() clears 9 of 10 static properties — $debug intentionally not cleared; documented in testResetClearsAll10StaticProperties
 
 ### Pending Todos
 
@@ -91,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T06:56:46.203Z
-Stopped at: Completed 02-03-PLAN.md — PERF-04 satisfied, paginated member loading in all EmailQueueService schedule methods
+Last session: 2026-04-07T07:35:00.000Z
+Stopped at: Completed 03-01-PLAN.md — TEST-01 and TEST-02 satisfied, AuthMiddleware session lifecycle and RgpdExportController HTTP guard tests added
 Resume file: None
