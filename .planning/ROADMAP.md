@@ -28,7 +28,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Les evenements SSE sont emis et recus via Redis Pub/Sub — aucun fichier cree dans /tmp/sse*
   3. Deux requetes simultanees de vote se bloquent correctement via le script Lua Redis, jamais via flock()
   4. La detection d'un serveur SSE actif repose sur une cle Redis avec TTL, pas sur un PID-file
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Redis health check au boot + RateLimiter Lua atomique
+- [ ] 01-02-PLAN.md — EventBroadcaster Redis-only + heartbeat SSE
 
 ### Phase 2: Optimisations Memoire et Requetes
 **Goal**: Aucun chemin de code ne charge un jeu de donnees complet en memoire — exports, emails, et stats d'assemblee sont tous traites de facon incrementale
@@ -38,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. L'export XLSX d'une assemblee avec 5 000 participations consomme moins de 3 MB de memoire PHP
   2. EmailQueueService traite les emails par lots de 25 sans jamais charger la queue entiere en memoire
   3. Le tableau de bord d'assemblee n'emet qu'une seule requete SQL pour toutes les statistiques de quorum et votes
-  4. Une requete PDO qui depasse le timeout configuré retourne une erreur geree, pas un worker bloque indefiniment
+  4. Une requete PDO qui depasse le timeout configure retourne une erreur geree, pas un worker bloque indefiniment
 **Plans**: TBD
 
 ### Phase 3: Extraction Services et Refactoring
@@ -65,11 +68,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Redis | 0/TBD | Not started | - |
+| 1. Infrastructure Redis | 0/2 | Planned | - |
 | 2. Optimisations Memoire et Requetes | 0/TBD | Not started | - |
 | 3. Extraction Services et Refactoring | 0/TBD | Not started | - |
 | 4. Tests et Decoupage Controllers | 0/TBD | Not started | - |
