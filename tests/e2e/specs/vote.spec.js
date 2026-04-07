@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 const { E2E_MOTION_1, loginAsVoter } = require('../helpers');
+const { waitForHtmxSettled } = require('../helpers/waitForHtmxSettled');
 
 /**
  * Vote E2E Tests
@@ -20,6 +21,7 @@ test.describe('Voter Interface', () => {
 
     await page.goto('/vote.htmx.html');
     await page.waitForLoadState('networkidle');
+    await waitForHtmxSettled(page);
 
     const meetingSelect = page.locator('#meetingSelect, ag-searchable-select');
     await expect(meetingSelect.first()).toBeVisible({ timeout: 10000 });
