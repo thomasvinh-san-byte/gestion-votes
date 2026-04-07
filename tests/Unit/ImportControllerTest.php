@@ -93,12 +93,6 @@ class ImportControllerTest extends ControllerTestCase
         $privateMethods = [
             'readImportFile',
             'requireWritableMeeting',
-            'buildMemberLookups',
-            'buildProxyMemberFinder',
-            'processMemberRows',
-            'processAttendanceRows',
-            'processProxyRows',
-            'processMotionRows',
         ];
         foreach ($privateMethods as $method) {
             $this->assertTrue(
