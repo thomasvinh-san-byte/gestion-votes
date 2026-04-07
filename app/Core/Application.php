@@ -65,8 +65,17 @@ final class Application {
         // 9. Auth & rate limiter
         SecurityProvider::init(self::$debug);
 
-        // 10. Redis (optional — graceful if unavailable)
+        // 10. Redis (mandatory — application cannot start without it)
         RedisProvider::configure(self::$config['redis'] ?? []);
+        try {
+            RedisProvider::connection();
+        } catch (\Throwable $e) {
+            throw new RuntimeException(
+                'Redis est indisponible — l\'application ne peut pas demarrer. '
+                . 'Verifiez que le service Redis est lance et accessible. '
+                . 'Detail : ' . $e->getMessage(),
+            );
+        }
 
         // 11. Event dispatcher
         self::initEventDispatcher();
@@ -88,6 +97,15 @@ final class Application {
         self::configureErrors();
         DatabaseProvider::connect(self::$config['db'] ?? [], self::$debug);
         RedisProvider::configure(self::$config['redis'] ?? []);
+        try {
+            RedisProvider::connection();
+        } catch (\Throwable $e) {
+            throw new RuntimeException(
+                'Redis est indisponible — l\'application ne peut pas demarrer. '
+                . 'Verifiez que le service Redis est lance et accessible. '
+                . 'Detail : ' . $e->getMessage(),
+            );
+        }
         self::initEventDispatcher();
 
         // Define global helpers needed by repositories (db(), config(), etc.)
