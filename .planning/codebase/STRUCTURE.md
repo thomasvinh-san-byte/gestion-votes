@@ -6,281 +6,218 @@
 
 ```
 gestion_votes_php/
-├── app/                        # Application code (PSR-4: AgVote\)
-│   ├── bootstrap.php           # Autoloading, app boot orchestration
-│   ├── api.php                 # Global API helpers (api_ok, api_fail, etc.)
-│   ├── routes.php              # Centralized route table
-│   ├── Controller/             # Request handlers
-│   ├── Services/               # Business logic
-│   ├── Repository/             # Data access (PDO wrappers)
-│   ├── Core/                   # Framework infrastructure
-│   ├── Event/                  # Event publishing & listeners
-│   ├── View/                   # HTML view rendering
-│   ├── Templates/              # HTML templates (public pages)
-│   ├── Command/                # CLI commands
-│   ├── Helper/                 # Utility functions
-│   ├── SSE/                    # Server-sent events
-│   └── ...
-├── public/                     # Web root
-│   ├── index.php               # Front controller
-│   ├── *.htmx.html             # HTMX UI pages (admin, operator, etc.)
-│   ├── login.html              # Login page
-│   ├── vote.php                # Public voting endpoint
-│   ├── api/v1/                 # Legacy file-based API routes
-│   ├── assets/                 # CSS, JS, fonts
-│   ├── exports/                # Generated PDFs, CSVs (writable)
-│   └── ...
-├── tests/                      # PHPUnit tests
-│   ├── bootstrap.php           # Test autoloading
-│   └── Unit/                   # Unit tests (one per controller/service)
-├── database/                   # Database schema & migration helpers
-│   ├── schema-master.sql       # Current schema
-│   ├── migrations/             # Migration files
-│   ├── seeds/                  # Seed data
-│   └── setup.sh                # Database initialization script
-├── bin/                        # Executable scripts
-│   ├── console                 # CLI entry point
-│   ├── test.sh                 # Run tests
-│   ├── dev.sh                  # Development server
-│   └── ...
-├── docs/                       # User documentation
-├── .planning/                  # GSD planning documents
-│   └── codebase/               # Architecture analysis (this dir)
-└── vendor/                     # Composer dependencies
+├── app/                    # PHP application source
+│   ├── Command/            # CLI commands (6 files)
+│   ├── Controller/         # HTTP controllers (51 PHP files)
+│   ├── Core/               # Framework utilities (25 PHP files)
+│   │   ├── Http/           # ApiResponseException, JsonResponse, Request
+│   │   ├── Middleware/     # MiddlewareInterface, RateLimitGuard, RoleMiddleware
+│   │   ├── Providers/      # DatabaseProvider, EnvProvider, RedisProvider, RepositoryFactory, SecurityProvider
+│   │   ├── Security/       # AuthMiddleware, CsrfMiddleware, IdempotencyGuard, PermissionChecker, RateLimiter, SessionHelper
+│   │   └── Validation/     # InputValidator + Schemas/ValidationSchemas
+│   ├── Event/              # Domain events
+│   │   └── Listener/       # SseListener
+│   ├── Helper/             # PasswordValidator
+│   ├── Repository/         # DB repositories (38 PHP files)
+│   │   └── Traits/         # MotionAnalyticsTrait, MotionFinderTrait, MotionListTrait, MotionWriterTrait
+│   ├── Services/           # Business logic (22 PHP files)
+│   ├── SSE/                # EventBroadcaster (Redis SSE queue)
+│   ├── Templates/          # PHP HTML templates (8 files)
+│   ├── View/               # HtmlView renderer
+│   ├── api.php             # Global HTTP helpers + session/auth init
+│   ├── bootstrap.php       # Low-level boot (autoload, env, db helpers)
+│   ├── config.php          # Config array (reads env vars)
+│   └── routes.php          # Route table (383 lines, ~120 routes)
+├── bin/
+│   └── console             # CLI entry point
+├── database/
+│   ├── migrations/         # 25 SQL migration files
+│   ├── seeds/              # Seed data
+│   ├── schema-master.sql   # Full schema snapshot
+│   └── setup.sh            # Database init script
+├── docs/                   # Documentation (symlinked from public/docs)
+├── public/                 # Web root
+│   ├── api/
+│   │   └── v1/             # 147 legacy PHP endpoint files
+│   ├── assets/
+│   │   ├── css/            # Stylesheets
+│   │   ├── images/         # Static images
+│   │   ├── js/
+│   │   │   ├── core/       # Shared JS (utils, event-stream, shell, page-components)
+│   │   │   └── pages/      # Per-page JS modules
+│   │   └── vendor/         # Frontend vendor libs (HTMX, etc.)
+│   ├── errors/             # Static error pages (403, 404, 500)
+│   ├── partials/           # Reusable HTML partials (_csrf_head.php, sidebar.html, etc.)
+│   ├── *.htmx.html         # 30 HTMX page files (one per route/view)
+│   └── index.php           # Front controller
+├── scripts/                # Deployment/maintenance scripts
+├── tests/
+│   ├── Unit/               # 94 PHPUnit unit test files
+│   ├── Integration/        # 3 integration test files
+│   ├── e2e/                # Playwright e2e tests
+│   ├── fixtures/           # CSV fixtures for import tests
+│   ├── manual/             # Manual test scripts
+│   └── bootstrap.php       # PHPUnit bootstrap
+├── composer.json
+├── phpunit.xml             # PHPUnit config (test suite definitions)
+├── phpstan.neon            # PHPStan level 5 config
+├── phpstan-baseline.neon   # PHPStan allowed issues
+├── .php-cs-fixer.dist.php  # PHP-CS-Fixer config
+├── Dockerfile              # Multi-stage build (assets → runtime)
+├── docker-compose.yml      # Development stack
+└── docker-compose.prod.yml # Production stack
 ```
 
 ## Directory Purposes
 
-**`app/`:**
-- Purpose: All application code organized by layer and concern
-- Contains: Controllers, services, repositories, core framework, templates
-- Key files: `bootstrap.php` (entry point), `routes.php` (route table), `api.php` (global helpers)
+**`app/Controller/` (51 PHP files):**
+- Purpose: HTTP request handlers, one class per API resource or HTML page
+- Contains: All `*Controller.php` classes plus `AbstractController.php`, and exception classes (`AccountRedirectException.php`, `EmailPixelSentException.php`, `FileServedOkException.php`, `PasswordResetRedirectException.php`, `SetupRedirectException.php`)
+- Key files: `AbstractController.php`, `MeetingsController.php` (687 lines), `MotionsController.php` (720 lines), `MeetingReportsController.php` (727 lines), `OperatorController.php` (516 lines)
 
-**`app/Controller/`:**
-- Purpose: HTTP request handlers
-- Contains: One class per logical resource/feature (e.g., `MeetingsController`, `BallotsController`)
-- Pattern: Each extends `AbstractController`, contains pure business logic, delegates to services/repos
-- Examples: `MeetingsController.php`, `AuthController.php`, `VotePublicController.php`
+**`app/Services/` (22 PHP files):**
+- Purpose: Business logic (voting, email, export, import, quorum, workflow)
+- Contains: Domain services with no HTTP or PDO dependencies
+- Key files: `ImportService.php` (791 lines), `ExportService.php` (770 lines), `EmailQueueService.php` (625 lines), `VoteEngine.php`, `QuorumEngine.php`, `MeetingWorkflowService.php`, `ErrorDictionary.php` (357 lines)
 
-**`app/Services/`:**
-- Purpose: Domain business logic and stateless operations
-- Contains: Complex workflows combining multiple repositories
-- Examples: `BallotsService.php` (voting logic), `MeetingWorkflowService.php` (state transitions), `EmailQueueService.php`
-- Pattern: Injected into controllers via constructor, no shared state
+**`app/Repository/` (38 PHP files + 4 traits):**
+- Purpose: Data access objects — typed query methods per entity
+- Contains: `AbstractRepository.php` base, one repository per DB table/entity
+- Key files: `MeetingRepository.php` (557 lines), `MemberRepository.php` (549 lines), `BallotRepository.php` (536 lines), `AnalyticsRepository.php` (410 lines)
+- Traits: `MotionFinderTrait.php`, `MotionWriterTrait.php`, `MotionListTrait.php`, `MotionAnalyticsTrait.php` — compose `MotionRepository`
 
-**`app/Repository/`:**
-- Purpose: Data access abstraction layer
-- Contains: Repository classes encapsulating PDO queries
-- Pattern: One repository per entity (Ballot, Meeting, User, etc.), extends `AbstractRepository`
-- Examples: `BallotRepository.php`, `MeetingRepository.php`, `UserRepository.php`
-- Traits: `app/Repository/Traits/` contains reusable query fragments
+**`app/Core/` (25 PHP files):**
+- Purpose: Framework-level classes, not business-specific
+- Key files: `Application.php` (263 lines — boot orchestrator), `Router.php` (338 lines), `Security/AuthMiddleware.php` (871 lines — largest file), `Core/Validation/Schemas/ValidationSchemas.php` (512 lines), `Core/Validation/InputValidator.php` (464 lines)
 
-**`app/Core/`:**
-- Purpose: Framework-level infrastructure
-- Subdirectories:
-  - `Core/Http/` — Request object, response wrappers, exceptions
-  - `Core/Middleware/` — Role authorization, rate limiting
-  - `Core/Security/` — Authentication, CSRF, session handling
-  - `Core/Validation/` — Input validation schemas
-  - `Core/Providers/` — Dependency injection factories (Database, Redis, Security, etc.)
-- Key files: `Application.php` (boot orchestrator), `Router.php` (route dispatcher)
+**`app/Command/` (6 PHP files):**
+- Purpose: CLI-only background tasks
+- Contains: `DataRetentionCommand.php`, `EmailProcessQueueCommand.php`, `MonitoringCheckCommand.php`, `RateLimitCleanupCommand.php`, `RateLimitResetCommand.php`, `RedisHealthCommand.php`
 
-**`app/Event/`:**
-- Purpose: Domain event publishing for async operations
-- Contains: Event classes, `SseListener` for real-time updates
-- Pattern: Controllers publish events, listeners handle async work (email, notifications)
+**`app/Event/` + `app/SSE/`:**
+- Purpose: Domain event definitions and SSE broadcasting
+- Key files: `Event/VoteEvents.php` (event name constants), `Event/AppEvent.php` (payload), `Event/Listener/SseListener.php` (bridges dispatcher to broadcaster), `SSE/EventBroadcaster.php` (Redis queue writer)
 
-**`app/View/`:**
-- Purpose: HTML template rendering
-- Contains: `HtmlView.php` static renderer
-- Used by: Public pages (vote.php, public.htmx.html) that return HTML instead of JSON
+**`app/Templates/` (8 PHP files):**
+- Purpose: Server-rendered HTML pages for non-HTMX flows
+- Contains: `account_form.php`, `setup_form.php`, `vote_confirm.php`, `vote_already_cast.php`, `reset_request_form.php`, `reset_newpassword_form.php`, `reset_success.php`, `doc_page.php`
+- Rendered via: `AgVote\View\HtmlView::render()` in controllers that do NOT extend `AbstractController`
 
-**`app/Templates/`:**
-- Purpose: PHP templates for HTML pages
-- Contains: Template files included via `HtmlView::render()`
-- Examples: Templates for vote interface, document viewer, etc.
+**`public/api/v1/` (147 PHP files):**
+- Purpose: Legacy file-based API endpoints — each file corresponds to one endpoint
+- Status: Coexists with router-based controllers; served as fallback from `public/index.php`
+- Pattern: Each file bootstraps via `require` chain and processes the request
 
-**`public/`:**
-- Purpose: Web-accessible directory (document root)
-- Contains: Front controller, static assets, generated exports
-- Subdirectories:
-  - `api/v1/` — Legacy file-based API routes (each .php file instantiates a controller)
-  - `assets/` — CSS, JavaScript, fonts, images
-  - `exports/` — Generated PDFs, CSVs (writable, world-readable)
-  - `partials/` — HTML snippets served to frontend
+**`public/*.htmx.html` (30 files):**
+- Purpose: HTMX SPA pages — static HTML shells that load dynamic content via HTMX requests
+- Contains: `dashboard.htmx.html`, `meetings.htmx.html`, `members.htmx.html`, `vote.htmx.html`, `operator.htmx.html`, `admin.htmx.html`, `analytics.htmx.html`, etc.
 
-**`public/api/v1/`:**
-- Purpose: Legacy file-based API routing (backward compatibility)
-- Pattern: Each endpoint is a .php file that requires `api.php` and instantiates a controller
-- Example: `public/api/v1/meetings.php` contains 3 lines:
-  ```php
-  require __DIR__ . '/../../../app/api.php';
-  $c = new MeetingsController();
-  match(api_method()) { ... }
-  ```
-- Migration: New routes should be registered in `app/routes.php` instead, served via front controller
+**`tests/Unit/` (94 PHP files):**
+- Purpose: PHPUnit unit tests — mock repositories, test services and controllers in isolation
+- Contains one test file per class; base class `ControllerTestCase.php` shared by controller tests
 
-**`tests/`:**
-- Purpose: PHPUnit unit tests
-- Pattern: One test file per controller/service/repository
-- Naming: `{Class}Test.php` (e.g., `MeetingsControllerTest.php`)
-- Location: Tests are **colocated** with their subject in subdirectories by type
-- Examples: `tests/Unit/MeetingsControllerTest.php`, `tests/Unit/BallotsServiceTest.php`
-- Bootstrap: `tests/bootstrap.php` sets up test database and fixtures
+**`tests/Integration/` (3 PHP files):**
+- Purpose: Integration tests requiring live DB
+- Contains: `RepositoryTest.php`, `WorkflowValidationTest.php`, `AdminCriticalPathTest.php`
 
-**`database/`:**
-- Purpose: Schema definition and migration helpers
-- Files:
-  - `schema-master.sql` — Complete current schema
-  - `migrations/` — Individual migration SQL files
-  - `seeds/` — Sample data for development
-  - `setup.sh` — Database initialization script
-- Pattern: Schema managed manually; migrations executed via `setup.sh`
-
-**`bin/`:**
-- Purpose: Command-line scripts and entry points
-- Files:
-  - `console` — CLI entry point (Symfony Console wrapper)
-  - `test.sh` — Run PHPUnit
-  - `dev.sh` — Start development server
-  - `validate-env` — Check environment configuration
-- Execution: All scripts use absolute paths to `app/bootstrap.php` for initialization
+**`database/migrations/` (25 SQL files):**
+- Purpose: Incremental schema changes
+- Naming: `001_*.sql` through numbered sequence + date-prefixed files (`20260204_*.sql`, `20260217_*.sql`)
 
 ## Key File Locations
 
 **Entry Points:**
-- `public/index.php` — Web front controller (routes HTTP requests)
-- `bin/console` — CLI entry point (dispatches to commands in `app/Command/`)
-- `public/vote.php` — Public voting interface entry point
-- `public/login.html` — Login page (HTML template)
+- `public/index.php`: HTTP front controller
+- `bin/console`: CLI entry point
+- `app/bootstrap.php`: Low-level PHP bootstrap (autoload, globals)
+- `app/api.php`: HTTP layer bootstrap (session, auth, global helpers)
 
-**Configuration & Bootstrap:**
-- `app/bootstrap.php` — Initializes autoloading, environment, database
-- `app/Application.php` — Boot orchestrator (loads providers, configures security)
-- `.env` — Environment variables (database URL, app secret, etc.) **[NOT COMMITTED]**
+**Route Table:**
+- `app/routes.php`: All ~120 registered routes (383 lines)
 
-**Core Logic:**
-- `app/routes.php` — Route table with middleware declarations
-- `app/api.php` — Global API helpers and middleware chain setup
-- `app/Core/Router.php` — Route dispatcher with exact-match + parameterized matching
-- `app/Controller/AbstractController.php` — Base class with error handling
-- `app/Core/Security/AuthMiddleware.php` — Session validation and RBAC
+**Configuration:**
+- `app/config.php`: Config array assembled from env vars
+- `.env`: Runtime environment variables (not committed)
+- `phpunit.xml`: PHPUnit test suites configuration
+- `phpstan.neon`: Static analysis configuration
 
-**Database:**
-- `app/Core/Providers/DatabaseProvider.php` — PDO connection management
-- `app/Repository/AbstractRepository.php` — Base class for all repositories
-- `database/schema-master.sql` — Complete database schema
+**Core Abstractions:**
+- `app/Controller/AbstractController.php`: Base for all API controllers
+- `app/Repository/AbstractRepository.php`: Base for all repositories
+- `app/Core/Providers/RepositoryFactory.php`: Lazy repository registry (singleton)
+- `app/Core/Security/AuthMiddleware.php`: Session validation + RBAC (871 lines)
 
-**Testing:**
-- `tests/bootstrap.php` — Test setup (in-memory database, fixtures)
-- `tests/Unit/{Class}Test.php` — Unit tests colocated with subject
+**Error Handling:**
+- `app/Core/Http/ApiResponseException.php`: Flow-control exception for API responses
+- `app/Core/Http/JsonResponse.php`: JSON response sender
+- `app/Services/ErrorDictionary.php`: French error code map
 
 ## Naming Conventions
 
 **Files:**
-
-- Controllers: `{Resource}Controller.php` (e.g., `MeetingsController.php`, `BallotsController.php`)
-- Services: `{Domain}Service.php` (e.g., `BallotsService.php`, `EmailQueueService.php`)
-- Repositories: `{Entity}Repository.php` (e.g., `MeetingRepository.php`, `BallotRepository.php`)
-- Commands: `{Action}Command.php` (e.g., `ProcessEmailQueueCommand.php`)
-- Tests: `{Subject}Test.php` (e.g., `MeetingsControllerTest.php`)
-- Templates: Lowercase with underscores (e.g., `email_preview.php`)
-- API routes: Lowercase with underscores matching endpoint name (e.g., `ballots_cast.php`)
+- Controllers: `{Resource}Controller.php` in `app/Controller/`
+- Services: `{Domain}Service.php` or `{Domain}Engine.php` in `app/Services/`
+- Repositories: `{Entity}Repository.php` in `app/Repository/`
+- Tests: `{Subject}Test.php` in `tests/Unit/`
+- Legacy API endpoints: `{action_name}.php` (snake_case) in `public/api/v1/`
 
 **Directories:**
-
-- Resource folders plural: `Controller/`, `Services/`, `Repository/`
-- Feature folders lowercase: `Event/`, `Helper/`, `SSE/`, `Command/`
-- Namespaces match directory structure with first-letter uppercase: `AgVote\Controller\`, `AgVote\Service\`
-
-**Classes:**
-
-- PascalCase: `MeetingsController`, `BallotsService`, `MeetingRepository`
-- Abstract base classes prefix `Abstract`: `AbstractController`, `AbstractRepository`
-- Interfaces suffix `Interface` (rarely used, most patterns duck-typed)
-- Constants UPPER_SNAKE_CASE: `DEFAULT_SESSION_TIMEOUT`, `MAX_UPLOAD_SIZE`
-
-**Functions:**
-
-- Global helpers snake_case: `api_ok()`, `api_fail()`, `api_current_user_id()`
-- Namespace-qualified helpers in `Helper/` directory: `\AgVote\Helper\Crypto::hash()`
-
-**Database:**
-
-- Tables: Lowercase plural (e.g., `meetings`, `ballots`, `audit_events`)
-- Columns: Lowercase snake_case (e.g., `meeting_id`, `created_at`, `is_active`)
-- Primary keys: `id` (UUID format for most tables)
-- Foreign keys: `{table}_id` (e.g., `meeting_id` in ballots table)
-- Timestamps: `created_at`, `updated_at`, `deleted_at` (nullable for soft deletes)
+- PHP source: PascalCase (`Controller/`, `Services/`, `Repository/`)
+- Assets: lowercase (`css/`, `js/`, `images/`)
 
 ## Where to Add New Code
 
-**New Feature (e.g., voting mechanism change):**
-- Primary code: `app/Services/{Feature}Service.php` (business logic)
-- Controller: `app/Controller/{Feature}Controller.php` (if new resource) or modify existing
-- Routes: Register in `app/routes.php` instead of creating new file in `public/api/v1/`
-- Tests: `tests/Unit/{Feature}Test.php`
-- Database: New migrations in `database/migrations/`
+**New API endpoint (controller-based):**
+1. Create `app/Controller/{Resource}Controller.php` extending `AbstractController`
+2. Register route in `app/routes.php`: `$router->map('POST', '/api/v1/...', ResourceController::class, 'methodName', ['role' => 'operator'])`
+3. Tests: `tests/Unit/{Resource}ControllerTest.php` extending `ControllerTestCase`
 
-**New Component/Module (e.g., new user type):**
-- Implementation: `app/Services/{Component}Service.php`
-- Data access: `app/Repository/{Entity}Repository.php`
-- Tests: `tests/Unit/{Component}Test.php`
+**New HTML page (non-API):**
+1. Create `public/{pagename}.htmx.html` for the HTMX shell
+2. If server-rendered: create `app/Templates/{pagename}.php` and render via `HtmlView::render()`
+3. Controller (if needed): does NOT extend `AbstractController`, uses `HtmlView::render()` directly
 
-**New Middleware (e.g., custom authorization):**
-- Implementation: `app/Core/Middleware/{Feature}Middleware.php`
-- Register: Add to middleware chain in `app/api.php` or route-specific in `app/routes.php`
+**New service:**
+1. Create `app/Services/{Name}Service.php` — `final class`, constructor with nullable repo params
+2. Tests: `tests/Unit/{Name}ServiceTest.php`
 
-**New Database Entity:**
-- Schema: Add to `database/schema-master.sql`, also create migration in `database/migrations/`
-- Repository: Create `app/Repository/{Entity}Repository.php` extending `AbstractRepository`
-- Factory: Add accessor in `app/Core/Providers/RepositoryFactory.php`
+**New repository:**
+1. Create `app/Repository/{Entity}Repository.php` extending `AbstractRepository`
+2. Register in `app/Core/Providers/RepositoryFactory.php`: add `use` import, add property, add accessor method
+3. For large repositories: split into traits in `app/Repository/Traits/`
 
-**Utilities:**
-- Global helpers: `app/Helper/{Category}.php` with functions or static methods
-- Shared traits: `app/Repository/Traits/{Trait}.php` for reusable query fragments
-- Domain logic: Services rather than standalone classes
+**New CLI command:**
+1. Create `app/Command/{Name}Command.php`
+2. Register in `bin/console` command map
 
-**Email/Notifications:**
-- Template: `app/Templates/emails/{name}.php`
-- Queuing: Use `EmailQueueService::queue()` (async via queue processing)
-- Listeners: `app/Event/Listener/{Feature}Listener.php` subscribes to domain events
+**New migration:**
+- Add `database/migrations/{YYYYMMDD}_{description}.sql` with `YYYYMMDD` prefix
+
+**New domain event:**
+1. Add constant to `app/Event/VoteEvents.php`
+2. Add listener method in `app/Event/Listener/SseListener.php`
+3. Register listener in `SseListener::subscribe()`
 
 ## Special Directories
 
-**`public/exports/`:**
-- Purpose: Generated PDF, CSV, XLSX files (world-readable, volatile)
-- Generated: On-demand by `ExportController`
-- Committed: No (in `.gitignore`)
-- Writable: Yes (web server must have write permission)
+**`vendor/`:**
+- Purpose: Composer-managed PHP dependencies
+- Generated: Yes
+- Committed: No (`.gitignore`)
 
-**`public/assets/`:**
-- Purpose: Static assets (CSS, JavaScript, fonts)
-- Committed: Yes (part of application)
-- Served: Directly by web server, not through PHP
+**`tests/e2e/`:**
+- Purpose: Playwright browser-automation end-to-end tests
+- Contains: Node.js test suite with `node_modules/` (not committed to main repo)
 
-**`.planning/codebase/`:**
-- Purpose: GSD analysis documents (ARCHITECTURE.md, STRUCTURE.md, etc.)
-- Committed: Yes (reference docs for future phases)
-- Generated: By `/gsd:map-codebase` command
+**`coverage-report/`:**
+- Purpose: PHPUnit HTML coverage output
+- Generated: Yes
+- Committed: No
 
-**`database/migrations/`:**
-- Purpose: SQL migration files (incremental schema changes)
-- Pattern: Numbered files (e.g., `001_initial.sql`, `002_add_users.sql`)
-- Execution: Via `database/setup.sh`
-- Committed: Yes (schema history)
+**`.planning/`:**
+- Purpose: GSD workflow planning artifacts (phases, research, codebase docs)
+- Committed: Yes
 
-**`tests/fixtures/` (if used):**
-- Purpose: Mock data, factories, test doubles
-- Pattern: Reusable across test files
-- Examples: Sample meeting data, user factories, etc.
+---
 
-## Code Organization Principles
-
-1. **One class per file** — Each PHP file contains exactly one class (PSR-1)
-2. **Namespace mirrors directory** — `app/Services/Ballots/VotingService.php` → `AgVote\Service\Ballots\VotingService`
-3. **Layers don't skip** — Controllers → Services → Repositories → Database (no direct DB access from controllers)
-4. **No circular dependencies** — Repository doesn't depend on Service, Service doesn't import Controller
-5. **Public API explicit** — Repository methods represent the public interface for that entity
-6. **Testability** — Services accept dependencies via constructor (DI), nullable for tests
-7. **Single responsibility** — Controller handles HTTP semantics, Service handles business logic, Repository handles SQL
+*Structure analysis: 2026-04-07*

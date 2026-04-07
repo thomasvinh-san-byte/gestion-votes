@@ -5,345 +5,373 @@
 ## Test Framework
 
 **Runner:**
-- PHPUnit 10.5 (configured in `phpunit.xml`)
-- Config file: `phpunit.xml` at project root
-- Coverage reports: HTML to `coverage-report/`, text to stdout, Clover to `coverage.xml`
+- PHPUnit ^10.5
+- Config: `phpunit.xml`
+- Bootstrap: `tests/bootstrap.php`
 
 **Assertion Library:**
-- PHPUnit TestCase built-in assertions: `assertTrue()`, `assertFalse()`, `assertSame()`, `assertContains()`, `assertEquals()`
+- PHPUnit built-in assertions (`assertEquals`, `assertSame`, `assertArrayHasKey`, etc.)
 
 **Run Commands:**
 ```bash
-# Run single test file (REQUIRED per CLAUDE.md)
-php vendor/bin/phpunit tests/Unit/FileName.php --no-coverage
+# Run specific test file (preferred — per CLAUDE.md)
+timeout 60 php vendor/bin/phpunit tests/Unit/SomeTest.php --no-coverage
 
-# Run with timeout (REQUIRED per CLAUDE.md)
-timeout 60 php vendor/bin/phpunit tests/Unit/FileName.php --no-coverage
+# Run all unit tests
+timeout 60 php vendor/bin/phpunit --testsuite Unit --no-coverage
 
-# Run all tests with coverage
-php vendor/bin/phpunit
+# Run all tests (unit + integration — requires DB + Redis)
+timeout 60 php vendor/bin/phpunit --no-coverage
 
-# Watch mode (not standard PHPUnit; use IDE integration or manual reruns)
+# Run tests tagged @group redis
+timeout 60 php vendor/bin/phpunit --group redis --no-coverage
+
+# Run with coverage (slow)
+php vendor/bin/phpunit --coverage-html coverage-report
 ```
 
-**Environment Setup:**
-- Bootstrap: `tests/bootstrap.php` (auto-loaded before tests run)
-- Test constants: `PROJECT_ROOT`, `PHPUNIT_RUNNING`, `APP_SECRET`, `DEFAULT_TENANT_ID`
-- Global stubs: API helpers (`api_ok`, `api_fail`, `api_request`, etc.) are stubbed for tests
-- Auth disabled: `APP_AUTH_ENABLED=0` by default in test env
+## Test Suites
+
+- **Unit** — `tests/Unit/` — No database or Redis required (all dependencies mocked)
+- **Integration** — `tests/Integration/` — Requires live PostgreSQL and Redis
+
+Integration tests (3 files):
+- `tests/Integration/AdminCriticalPathTest.php` — Admin workflow + permission checking
+- `tests/Integration/RepositoryTest.php` — Repository layer against real DB
+- `tests/Integration/WorkflowValidationTest.php` — End-to-end meeting lifecycle
 
 ## Test File Organization
 
-**Location:**
-- All tests in `tests/Unit/` or `tests/Integration/`
-- Co-located with test suite structure, not near source code
-- Separated by concern: controller tests, service tests, repository tests
+**Location pattern:** Co-located by concern, not by class hierarchy.
+- Controller tests: `tests/Unit/{Name}ControllerTest.php` extends `ControllerTestCase`
+- Service tests: `tests/Unit/{Name}ServiceTest.php` extends `PHPUnit\Framework\TestCase`
+- Core/logic tests: `tests/Unit/{Concept}Test.php` extends `PHPUnit\Framework\TestCase`
 
-**Naming:**
-- Pattern: `{Subject}Test.php` (e.g., `QuorumEngineTest.php`, `EmailTemplateServiceTest.php`, `BallotsControllerTest.php`)
-- Namespace: `Tests\Unit` (autoload-dev in `composer.json`)
-- Class names: `{Subject}Test extends TestCase` (or `ControllerTestCase` for controllers)
+**Total:** 91 test files, ~2299 test methods (Unit suite only)
 
-**Structure:**
-```
-tests/
-├── bootstrap.php              # Global test setup and helper stubs
-├── Unit/
-│   ├── ControllerTestCase.php # Base class for all controller tests
-│   ├── QuorumEngineTest.php   # Service tests
-│   ├── BallotsControllerTest.php # Controller tests
-│   └── EmailTemplateServiceTest.php
-└── Integration/
-    └── [future integration tests]
-```
+## Test File Inventory (Unit)
 
-## Test Structure
+Sorted by method count (top 20):
 
-**Suite Organization:**
+| Methods | File |
+|---------|------|
+| 158 | `tests/Unit/MeetingsControllerTest.php` |
+| 155 | `tests/Unit/MeetingWorkflowControllerTest.php` |
+| 144 | `tests/Unit/MotionsControllerTest.php` |
+| 70 | `tests/Unit/ImportControllerTest.php` |
+| 55 | `tests/Unit/MeetingReportsControllerTest.php` |
+| 54 | `tests/Unit/ImportServiceTest.php` |
+| 52 | `tests/Unit/ExportServiceTest.php` |
+| 51 | `tests/Unit/AdminControllerTest.php` |
+| 45 | `tests/Unit/VoteEngineTest.php` |
+| 44 | `tests/Unit/QuorumEngineTest.php` |
+| 44 | `tests/Unit/BallotsServiceTest.php` |
+| 41 | `tests/Unit/MeetingWorkflowServiceTest.php` |
+| 38 | `tests/Unit/MonitoringServiceTest.php` |
+| 38 | `tests/Unit/BallotsControllerTest.php` |
+| 37 | `tests/Unit/OfficialResultsServiceTest.php` |
+| 36 | `tests/Unit/InputValidatorTest.php` |
+| 35 | `tests/Unit/MemberGroupsControllerTest.php` |
+| 35 | `tests/Unit/ExportControllerTest.php` |
+| 34 | `tests/Unit/EmailQueueServiceTest.php` |
+| 33 | `tests/Unit/AuthControllerTest.php` |
+
+Remaining files (all with 3–32 tests each — full list):
+`SpeechControllerTest.php` (32), `EmailControllerTest.php` (32), `DocContentControllerTest.php` (32),
+`DevicesControllerTest.php` (31), `MeetingReportServiceTest.php` (29), `MeetingAttachmentControllerTest.php` (29),
+`AuditControllerTest.php` (29), `VoteTokenServiceTest.php` (28), `AuthMiddlewareTest.php` (28),
+`AttendancesServiceTest.php` (28), `ProxiesControllerTest.php` (27+), `AnalyticsControllerTest.php` (25),
+`ResolutionDocumentControllerTest.php` (24), `MeetingTransitionTest.php` (24), `DocControllerTest.php` (24),
+`AttendancesControllerTest.php` (24), `VoteLogicTest.php` (23), `QuorumLogicTest.php` (23),
+`QuorumControllerTest.php` (23), `ReminderControllerTest.php` (22), `NotificationsServiceTest.php` (22),
+`ExportTemplatesControllerTest.php` (22), `SpeechServiceTest.php` (21), `OperatorControllerTest.php` (21),
+`MailerServiceTest.php` (21), `LoggerTest.php` (21), `InvitationsControllerTest.php` (21),
+`EmergencyControllerTest.php` (21), `PermissionCheckerTest.php` (20), `AgendaControllerTest.php` (20),
+`TrustControllerTest.php` (18), `RateLimiterTest.php` (18), `PoliciesControllerTest.php` (18),
+`DashboardControllerTest.php` (17), `ErrorDictionaryTest.php` (16), `EmailTemplateServiceTest.php` (16),
+`VoteTokenControllerTest.php` (15), `UploadSecurityTest.php` (15), `TenantIsolationTest.php` (15),
+`CsrfMiddlewareTest.php` (15), `ProxiesServiceTest.php` (14), `EventBroadcasterTest.php` (14),
+`DevSeedControllerTest.php` (14), `DataRetentionCommandTest.php` (14), `ProjectorControllerTest.php` (13),
+`EmailTrackingControllerTest.php` (12), `ProcurationPdfControllerTest.php` (11), `NotificationsControllerTest.php` (11),
+`MeetingValidatorTest.php` (11), `VotePublicControllerTest.php` (10), `SetupControllerTest.php` (10),
+`RelaxRoleTransitionsTest.php` (10), `EmailProcessQueueCommandTest.php` (9), `SettingsControllerTest.php` (8),
+`RouterTest.php` (8), `ProcurationPdfServiceTest.php` (7), `PasswordResetServiceTest.php` (7),
+`EmailQueueRepositoryRetryTest.php` (7), `AccountControllerTest.php` (6), `StateTransitionCoherenceTest.php` (5),
+`SecurityHardeningTest.php` (5), `RgpdExportServiceTest.php` (5), `PasswordResetControllerTest.php` (5),
+`DataIntegrityLocksTest.php` (5), `AuthMiddlewareTimeoutTest.php` (5), `ApiHelpersTest.php` (5),
+`RgpdExportControllerTest.php` (4), `DatabaseProviderTest.php` (4), `WeightedVoteRegressionTest.php` (3),
+`MeetingStatsRepositoryTest.php` (3), `ApplicationBootTest.php` (2)
+
+## Base Test Classes
+
+### `ControllerTestCase` (`tests/Unit/ControllerTestCase.php`)
+
+Base class for all controller tests. Provides:
+
+**Setup/teardown (automatic per test):**
+- Resets `RepositoryFactory` singleton
+- Clears superglobals (`$_GET`, `$_POST`, `$_FILES`, `$_SERVER`)
+- Resets `Request::cachedRawBody` via Reflection
+- Resets `AuthMiddleware` state
+- Sets `APP_AUTH_ENABLED=0`
+
+**Helper methods:**
+
 ```php
-<?php
+// Inject mock repositories into RepositoryFactory singleton
+$this->injectRepos([MeetingRepository::class => $mockMeeting]);
 
-declare(strict_types=1);
+// Call a controller method and capture the ApiResponseException response
+$response = $this->callController(BallotsController::class, 'listForMotion');
+// Returns: ['status' => int, 'body' => array]
 
+// Set JSON request body
+$this->injectJsonBody(['motion_id' => 'uuid-here', 'choice' => 'for']);
+
+// Set HTTP method
+$this->setHttpMethod('POST');
+
+// Set GET query parameters
+$this->setQueryParams(['meeting_id' => 'uuid-here']);
+
+// Inject authenticated user into AuthMiddleware
+$this->setAuth('user-id', 'operator', 'tenant-id');
+```
+
+## Test Patterns
+
+### Controller Test Pattern
+
+```php
 namespace Tests\Unit;
 
-use AgVote\Service\MailerService;
-use PHPUnit\Framework\TestCase;
+use AgVote\Controller\BallotsController;
+use AgVote\Repository\MeetingRepository;
+use AgVote\Repository\MotionRepository;
 
-class MailerServiceTest extends TestCase {
-    // Setup
-    protected function setUp(): void {
-        parent::setUp();
-        // Initialize test state
+final class BallotsControllerTest extends ControllerTestCase
+{
+    private const TENANT_ID  = 'tenant-ballots-test';
+    private const MEETING_ID = '11110000-1111-2222-3333-000000000001';
+
+    protected function setUp(): void
+    {
+        parent::setUp(); // always call parent
+        $this->setAuth('operator-01', 'operator', self::TENANT_ID);
     }
 
-    protected function tearDown(): void {
-        // Clean up after test
-        parent::tearDown();
+    public function testControllerIsFinal(): void
+    {
+        $ref = new \ReflectionClass(BallotsController::class);
+        $this->assertTrue($ref->isFinal());
     }
 
-    // Test methods grouped by feature
-    public function testFeatureWorks(): void {
-        // Arrange
-        $service = new MailerService(['smtp' => [...]]);
-        
-        // Act
-        $result = $service->send('test@example.com', 'Subject', '<p>HTML</p>');
-        
-        // Assert
-        $this->assertTrue($result['ok']);
+    public function testListForMotionRequiresGet(): void
+    {
+        $this->setHttpMethod('POST');
+        $response = $this->callController(BallotsController::class, 'listForMotion');
+        $this->assertSame(405, $response['status']);
+    }
+
+    public function testListForMotionReturnsItems(): void
+    {
+        $mockMotion = $this->createMock(MotionRepository::class);
+        $mockMotion->method('findByIdForTenant')->willReturn(['id' => self::MEETING_ID]);
+
+        $this->injectRepos([MotionRepository::class => $mockMotion]);
+        $this->setQueryParams(['motion_id' => self::MEETING_ID]);
+
+        $response = $this->callController(BallotsController::class, 'listForMotion');
+        $this->assertSame(200, $response['status']);
     }
 }
 ```
 
-**Test Method Naming:**
-- Pattern: `test{Feature}{Scenario}` (e.g., `testRenderSubstitutesVariables`, `testListForMotionNotFound`)
-- Readable names describe what is being tested and expected outcome
-- Group related tests with section comments: `// ========= SECTION NAME ==========`
+### Service Test Pattern
 
-**Patterns:**
-- Setup: `setUp()` initializes shared test state (mocks, fixtures, auth)
-- Teardown: `tearDown()` resets global state (RepositoryFactory singleton, superglobals, AuthMiddleware)
-- Assertions: Use specific assertions (`assertSame` for exact equality, `assertContains` for membership)
+```php
+namespace AgVote\Tests\Unit;  // Note: service tests sometimes use AgVote\Tests\Unit namespace
+
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+
+class BallotsServiceTest extends TestCase
+{
+    private BallotRepository&MockObject $ballotRepo;
+    private BallotsService $service;
+
+    protected function setUp(): void
+    {
+        $this->ballotRepo = $this->createMock(BallotRepository::class);
+        // Build real instances of final services with mocked repos
+        $this->service = new BallotsService($this->ballotRepo, ...);
+    }
+
+    public function testCastThrowsWhenMotionNotFound(): void
+    {
+        $this->ballotRepo->method('findMotion')->willReturn(null);
+        $this->expectException(\RuntimeException::class);
+        $this->service->cast([...]);
+    }
+}
+```
+
+### Standard Controller Structure Test
+
+Every controller test file includes these structural assertions:
+
+```php
+public function testControllerIsFinal(): void
+{
+    $ref = new ReflectionClass(SomeController::class);
+    $this->assertTrue($ref->isFinal());
+}
+
+public function testControllerExtendsAbstractController(): void
+{
+    $ref = new ReflectionClass(SomeController::class);
+    $this->assertSame('AgVote\\Controller\\AbstractController', $ref->getParentClass()->getName());
+}
+
+public function testHasExpectedPublicMethods(): void
+{
+    $ref = new ReflectionClass(SomeController::class);
+    $this->assertTrue($ref->hasMethod('methodName'));
+}
+```
 
 ## Mocking
 
-**Framework:** PHPUnit's built-in `createMock()` and `createStub()`
+**Framework:** PHPUnit built-in MockObject (`$this->createMock()`)
 
-**Mock Repositories:**
+**Repository injection for controllers:**
 ```php
-protected function setUp(): void {
-    parent::setUp();
-    
-    $this->motionRepo = $this->createMock(MotionRepository::class);
-    $this->ballotRepo = $this->createMock(BallotRepository::class);
-    
-    // Set up return values
-    $this->motionRepo->method('findByIdForTenant')
-        ->willReturn(['id' => 'motion-1', 'title' => 'Motion 1']);
-}
+// Repositories are NOT final — they CAN be mocked
+$mockMeeting = $this->createMock(MeetingRepository::class);
+$mockMeeting->method('findByIdForTenant')->willReturn(['id' => $meetingId, 'status' => 'running']);
+$this->injectRepos([MeetingRepository::class => $mockMeeting]);
 ```
 
-**Injecting Mocks into Services:**
+**Mocking final service classes (cannot be mocked directly):**
 ```php
-$service = new VoteEngine(
-    $this->motionRepo,      // Inject mock
-    $this->ballotRepo,      // Inject mock
-    $this->memberRepo,      // Inject mock
-    null,                   // Constructor accepts nullable params for testing
-    null,
+// AttendancesService is final — create a real instance with mocked repos instead
+$attendancesService = new AttendancesService(
+    $this->createMock(AttendanceRepository::class),
+    $this->createMock(MeetingRepository::class),
+    $this->createMock(MemberRepository::class),
 );
 ```
 
-**Injecting into Controllers:**
-Controller tests extend `ControllerTestCase` which provides `injectRepos(array)`:
-```php
-$mockMeeting = $this->createMock(MeetingRepository::class);
-$mockMotion = $this->createMock(MotionRepository::class);
+**What to mock:** All repository dependencies, external service dependencies.
+**What NOT to mock:** `RepositoryFactory` (it's final — use `injectRepos()` instead), final service classes (build real instances with mocked repos).
 
-$this->injectRepos([
-    MeetingRepository::class => $mockMeeting,
-    MotionRepository::class => $mockMotion,
-]);
+## Bootstrap Stubs
 
-// Now any controller code calling $this->repo()->meeting() gets $mockMeeting
-```
+`tests/bootstrap.php` stubs these global functions to enable unit testing without infrastructure:
 
-**Pattern: RepositoryFactory Injection (Controllers Only)**
-- RepositoryFactory is final and cannot be mocked directly
-- Create real `RepositoryFactory(null)` and use Reflection to inject mocks into its `cache` property
-- Set this factory as the singleton via Reflection on `instance` property
-- Cache-first pattern in RepositoryFactory ensures mocks are returned before real DB calls
-- Implementation is in `ControllerTestCase::injectRepos()` — use it for all controller tests
+| Function | Stub Behavior |
+|----------|---------------|
+| `db()` | Throws `RuntimeException` (forces explicit PDO injection) |
+| `api_transaction()` | Executes callable directly (no real DB transaction) |
+| `config()` | Returns sensible defaults (e.g., `proxy_max_per_receiver` = 99) |
+| `audit_log()` | No-op |
+| `api_uuid4()` | Returns deterministic random v4 UUID |
+| `api_ok()` | Throws `ApiResponseException` (same as production) |
+| `api_fail()` | Throws `ApiResponseException` (same as production) |
+| `api_method()` | Reads `$_SERVER['REQUEST_METHOD']` |
+| `api_request()` | Validates method, returns merged GET+body |
+| `api_query()` | Reads `$_GET[$key]` |
+| `api_query_int()` | Reads `$_GET[$key]` as int |
+| `api_is_uuid()` | Full UUID regex check |
+| `api_require_uuid()` | Full validation (same as production) |
+| `api_current_user_id()` | Delegates to `AuthMiddleware::getCurrentUserId()` |
+| `api_current_role()` | Delegates to `AuthMiddleware::getCurrentRole()` |
+| `api_current_tenant_id()` | Delegates to `AuthMiddleware::getCurrentTenantId()` |
+| `api_require_role()` | **No-op** — authorization NOT enforced in unit tests |
+| `api_guard_meeting_not_validated()` | No-op |
+| `api_guard_meeting_exists()` | Delegates to mocked `MeetingRepository` |
+| `api_file()` | Reads from `$_FILES` |
 
-**What to Mock:**
-- External dependencies: Database (repositories), third-party libraries (Mailer), file systems
-- Expensive operations: Email sending, file generation, HTTP calls
-- Another service's behavior: When testing service A that depends on service B, mock B
+**Constants defined by bootstrap:**
+- `APP_SECRET` = `'test-secret-for-unit-tests-only-32chars!'`
+- `DEFAULT_TENANT_ID` = `'aaaaaaaa-1111-2222-3333-444444444444'`
+- `AG_UPLOAD_DIR` = `sys_get_temp_dir() . '/ag-vote-test-uploads'`
+- `PHPUNIT_RUNNING` = `true` (causes HTML controllers to throw instead of calling `header()`/`exit()`)
 
-**What NOT to Mock:**
-- Validation logic: Test real validators unless they're external
-- Core business logic: Test vote calculation without mocks to verify accuracy
-- Helper utilities: String formatting, UUID generation (unless randomness matters)
-- Constants and enums: Use real constants
+## Redis-Dependent Tests
 
-## Fixtures and Factories
+Two test files require a live Redis instance and are tagged `@group redis`:
 
-**Test Data:**
-No dedicated fixture/factory files in current codebase. Instead:
-- Hard-coded test data in test methods: `const TENANT_ID = 'tenant-ballots-test';`
-- Sample returns in setUp: `$this->repo->method('find')->willReturn(['id' => '...', ...])`
-- Use realistic test UUIDs: `'11110000-1111-2222-3333-000000000001'` (repeating pattern, easy to spot in test output)
+- `tests/Unit/RateLimiterTest.php` (18 tests) — Tests `RateLimiter` with real Redis Lua scripts
+- `tests/Unit/EventBroadcasterTest.php` (14 tests) — Tests SSE event queue via `RedisProvider`
 
-**Example Pattern:**
-```php
-class BallotsControllerTest extends ControllerTestCase {
-    private const TENANT_ID  = 'tenant-ballots-test';
-    private const MEETING_ID = '11110000-1111-2222-3333-000000000001';
-    private const MOTION_ID  = '22220000-1111-2222-3333-000000000002';
-    private const MEMBER_ID  = '33330000-1111-2222-3333-000000000003';
-    
-    protected function setUp(): void {
-        parent::setUp();
-        $this->setAuth('operator-01', 'operator', self::TENANT_ID);
-    }
-}
-```
+Both files connect using `getenv('REDIS_HOST') ?: '127.0.0.1'` and `getenv('REDIS_PORT') ?: 6379`. They flush their test keys in `tearDown()`. These tests fail gracefully when Redis is unavailable (they do not skip — they throw).
 
-**Location:**
-- Test data constants: Class-level constants at top of test class
-- Sample mock returns: Inline in test method (keep test self-contained)
-- Shared test utilities: Methods like `createMockResult()` in test class itself (not separate files)
-
-## Coverage
-
-**Requirements:** Not enforced; configured to report but not fail
-
-**View Coverage:**
+To exclude Redis tests locally when Redis is unavailable:
 ```bash
-# HTML report (opens in browser)
-open coverage-report/index.html
-
-# Text output (from standard run)
-php vendor/bin/phpunit
+timeout 60 php vendor/bin/phpunit --testsuite Unit --exclude-group redis --no-coverage
 ```
 
-**Coverage Scope (from phpunit.xml):**
-- Included: `app/Core/`, `app/Services/`, `app/Repository/`, `app/SSE/`, `app/Templates/`, `app/Controller/`
-- Excluded: `app/api.php`, `app/bootstrap.php` (entry points, not testable)
-- Output formats: HTML report, text to stdout, Clover XML for CI tools
+## Known Testing Limitations
 
-## Test Types
+**1. `api_require_role()` is a no-op stub.**
+Authorization (role-based access control) cannot be tested via `callController()`. Authentication enforcement via `AuthMiddleware::requireRole()` is directly testable (see `RgpdExportControllerTest`). Role bypass tests must call `AuthMiddleware::requireRole()` directly with `APP_AUTH_ENABLED=1`.
 
-**Unit Tests:**
-- Scope: Single class/method in isolation
-- Dependencies: Mocked (repositories, external services)
-- Database: None (mocked)
-- Location: `tests/Unit/`
-- Examples: `QuorumEngineTest` tests static `computeDecision()` with pure inputs; `EmailTemplateServiceTest` mocks repositories
+**2. Final service classes cannot be mocked.**
+`AttendancesService`, `BallotsService`, `ProxiesService`, and other `final` services must be instantiated with mocked repositories rather than being mocked as a whole. This is by design (final enforces single implementation).
 
-**Integration Tests:**
-- Scope: Multiple classes working together
-- Dependencies: Real or partially mocked
-- Database: Real (if repo tests needed) or test SQLite
-- Location: `tests/Integration/`
-- Status: Directory exists but empty; future tests
+**3. `RepositoryFactory` is final and cannot be mocked.**
+Use `injectRepos()` in `ControllerTestCase` which injects via Reflection into the singleton's cache.
 
-**E2E Tests:**
-- Framework: Not used
-- Why: Out of scope for this codebase (would require browser automation or full HTTP server)
+**4. Database-dependent service methods yield 500 in test env.**
+Controllers that reach the service layer without full repository mocking will return 500 (`RuntimeException` from stub `db()`). This is expected and acceptable for auth guard tests that only care about reaching the service layer.
 
-## Common Patterns
+**5. No coverage for `app/api.php` and `app/bootstrap.php`.**
+These files are excluded from coverage source in `phpunit.xml` (`<exclude>` block).
 
-**Async Testing:**
-Not applicable in synchronous PHP. Use transaction rollback or test isolation.
+**6. HTML controllers tested via PHPUNIT_RUNNING flag.**
+`SetupController`, `PasswordResetController`, `AccountController` use `PHPUNIT_RUNNING` constant to throw exceptions instead of calling `header()`/`exit()`. Tests assert thrown exceptions or use `callController()` on hybrid controllers.
 
-**Error Testing:**
-```php
-public function testCastVoteWithInvalidMotion(): void {
-    $this->setHttpMethod('POST');
-    $this->injectJsonBody(['motion_id' => 'invalid-uuid', ...]);
-    
-    $resp = $this->callController(BallotsController::class, 'cast');
-    $this->assertSame(422, $resp['status']);
-    $this->assertSame('invalid_motion_id', $resp['body']['error']);
-}
-```
+## Coverage Configuration
 
-**Testing Service Methods with Dependencies:**
-```php
-public function testRenderSubstitutesVariables(): void {
-    $service = new EmailTemplateService(
-        ['app' => ['url' => 'https://votes.test']],
-        $this->createMock(EmailTemplateRepository::class),
-        $this->createMock(MeetingRepository::class),
-        $this->createMock(MemberRepository::class),
-        $this->createMock(MeetingStatsRepository::class),
-    );
-    
-    $result = $service->render('Hello {{member_name}}', ['{{member_name}}' => 'Jean']);
-    $this->assertSame('Hello Jean', $result);
-}
-```
+**Coverage source directories (from `phpunit.xml`):**
+- `app/Core`
+- `app/Services`
+- `app/Repository`
+- `app/SSE`
+- `app/Templates`
+- `app/Controller`
 
-**Testing Controller Methods:**
-```php
-public function testListForMotionReturnsMotionData(): void {
-    $this->setHttpMethod('GET');
-    $this->setQueryParams(['motion_id' => self::MOTION_ID]);
-    
-    $motionRepo = $this->createMock(MotionRepository::class);
-    $motionRepo->method('findByIdForTenant')
-        ->willReturn(['id' => self::MOTION_ID, 'title' => 'Motion 1']);
-    
-    $ballotRepo = $this->createMock(BallotRepository::class);
-    $ballotRepo->method('listForMotion')
-        ->willReturn([['member_id' => self::MEMBER_ID, 'value' => 'for']]);
-    
-    $this->injectRepos([
-        MotionRepository::class => $motionRepo,
-        BallotRepository::class => $ballotRepo,
-    ]);
-    
-    $resp = $this->callController(BallotsController::class, 'listForMotion');
-    $this->assertSame(200, $resp['status']);
-    $this->assertArrayHasKey('ballots', $resp['body']);
-}
-```
+**Excluded from coverage:**
+- `app/api.php`
+- `app/bootstrap.php`
 
-**Testing with Reflection (Advanced):**
-Used in `ControllerTestCase` to inject mocks into final RepositoryFactory singleton:
-```php
-$ref = new ReflectionClass(RepositoryFactory::class);
-$cacheProp = $ref->getProperty('cache');
-$cacheProp->setAccessible(true);
-$cacheProp->setValue($factory, ['RepoClass::class' => $mockRepo]);
-```
+**Coverage formats:** HTML (`coverage-report/`), Clover XML (`coverage.xml`), text to stdout.
 
-## Controller Test Base Class
+**No enforced coverage thresholds** — coverage is informational only.
 
-**ControllerTestCase (tests/Unit/ControllerTestCase.php):**
-Provides infrastructure for all controller tests:
+## Areas with Strong Coverage
 
-**Methods:**
-- `setUp()`: Reset RepositoryFactory, superglobals, Request cache, AuthMiddleware
-- `tearDown()`: Clean up all global state
-- `injectRepos(array<class-string, object> $repoMocks)`: Inject mock repositories into RepositoryFactory singleton
-- `callController(string $class, string $method): array{status: int, body: array}`: Instantiate controller and call handle(), catching ApiResponseException
-- `injectJsonBody(array)`: Set Request::cachedRawBody for JSON body tests
-- `setHttpMethod(string)`: Set $_SERVER['REQUEST_METHOD']
-- `setQueryParams(array)`: Set $_GET
-- `setAuth(string $userId, string $role, string $tenantId)`: Inject test user into AuthMiddleware
+- **Core business logic:** `VoteEngineTest` (45 tests), `QuorumEngineTest` (44 tests), `BallotsServiceTest` (44 tests)
+- **Meeting lifecycle:** `MeetingsControllerTest` (158 tests), `MeetingWorkflowControllerTest` (155 tests), `MeetingTransitionTest` (24 tests)
+- **Auth/security:** `AuthMiddlewareTest` (28 tests), `CsrfMiddlewareTest` (15 tests), `PermissionCheckerTest` (20 tests)
+- **All controllers:** Every controller class has a corresponding `*ControllerTest.php`
+- **Error handling:** `ErrorDictionaryTest` (16 tests), `ApiHelpersTest` (5 tests)
 
-**Example Usage:**
-```php
-class BallotsControllerTest extends ControllerTestCase {
-    protected function setUp(): void {
-        parent::setUp();
-        $this->setAuth('operator-01', 'operator', 'tenant-1');
-    }
+## Coverage Gaps
 
-    public function testCastVote(): void {
-        $this->setHttpMethod('POST');
-        $this->injectJsonBody(['motion_id' => self::MOTION_ID, 'value' => 'for']);
-        
-        $mockMotion = $this->createMock(MotionRepository::class);
-        $this->injectRepos([MotionRepository::class => $mockMotion]);
-        
-        $resp = $this->callController(BallotsController::class, 'cast');
-        $this->assertSame(200, $resp['status']);
-    }
-}
-```
+**Not unit-tested:**
+- `app/api.php` global functions (excluded from coverage; integration path only)
+- `app/bootstrap.php` startup sequence
+- Direct file-based legacy routes in `public/api/v1/*.php`
+- HTML view templates in `app/Templates/`
+- SSE streaming behavior beyond broadcaster (no stream-output tests)
+- Database migrations in `database/migrations/`
 
-## Test Execution Rules (from CLAUDE.md)
-
-**Strict Rules:**
-- Always target specific test files: `php vendor/bin/phpunit tests/Unit/FichierConcerne.php --no-coverage`
-- Never run full suite except on explicit request
-- Use timeout: `timeout 60 php vendor/bin/phpunit tests/Unit/FichierConcerne.php --no-coverage`
-- If test fails 2 times in a row: STOP and ask for clarification
-- Maximum 3 test executions per task
+**Partially tested:**
+- `RateLimiter` — covered only when Redis is available (`@group redis`)
+- `EventBroadcaster` — covered only when Redis is available (`@group redis`)
+- Repository queries — `MeetingStatsRepositoryTest` has only 3 tests; most repository SQL is exercised via integration tests or via mocked return values in controller tests
 
 ---
 

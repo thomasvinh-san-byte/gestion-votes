@@ -4,202 +4,190 @@
 
 ## APIs & External Services
 
-**Email Tracking (Optional):**
-- HTTP pixel tracking via email - Optional feature controlled by `EMAIL_TRACKING_ENABLED` env var
-  - When enabled: Generates pixel URLs in outbound emails to track opens
-  - Implementation: `app/Services/MailerService.php` injects tracking pixel as 1x1 transparent GIF
-  - Configurable: Set `EMAIL_TRACKING_ENABLED=0` for RGPD-strict environments
-
-**Monitoring Webhooks (Optional):**
-- Generic webhook notifications for monitoring alerts
-  - Service: `app/Services/MonitoringService.php`
-  - Config: `MONITOR_WEBHOOK_URL` env var
-  - Protocol: HTTP POST with JSON payload
-  - Use cases: Slack, PagerDuty, Datadog, custom endpoints
-  - No standard SDK used - raw cURL via `curl_init()`
+**Monitoring Webhooks (outgoing):**
+- Any Slack, PagerDuty, Datadog, or compatible webhook URL
+  - Triggered by: `MonitoringService::sendWebhook()` in `app/Services/MonitoringService.php`
+  - Payload: `{ event: "system_alert", timestamp, code, severity, message, details, source: "ag-vote" }`
+  - Auth: None (URL is the secret)
+  - Config: `MONITOR_WEBHOOK_URL` env var (optional — disabled when empty)
+  - Transport: cURL with 10s timeout, 5s connect timeout
+  - Trigger: Alert thresholds crossed (auth failures, slow DB, low disk, email backlog)
 
 ## Data Storage
 
-**Databases:**
+**Database:**
 - PostgreSQL 12+
-  - Connection: `DB_DSN`, `DB_USER`, `DB_PASS` env vars
-  - DSN format: `pgsql:host=localhost;port=5432;dbname=vote_app`
-  - Production requires SSL: `pgsql:host=<host>;port=5432;dbname=vote_app;sslmode=require`
-  - Client: PDO with pdo_pgsql extension
-  - Schema: `database/schema-master.sql` (definitive source)
-  - Migrations: `database/migrations/` directory (applied via `database/setup.sh`)
+  - Connection: `DB_DSN` (pgsql DSN), `DB_USER`, `DB_PASS`
+  - Client: PDO with `pdo_pgsql` + `pgsql` extensions
+  - Provider: `app/Core/Providers/DatabaseProvider.php` — singleton PDO, fail-fast on connection error
+  - Options set: `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES = false`, `STRINGIFY_FETCHES = false`, `ATTR_TIMEOUT = 10`
+  - Statement timeout: `SET statement_timeout = {DB_STATEMENT_TIMEOUT_MS}` (default 30,000ms)
+  - Repository base: `AgVote\Repository\AbstractRepository` — provides `selectOne()`, `selectAll()`, `execute()`, `insertReturning()`
+  - Migrations: Sequential SQL files in `database/migrations/` (001–20260310 series), applied via `database/setup.sh`
+  - Production: Add `sslmode=require` to `DB_DSN`
 
 **File Storage:**
-- Local filesystem only
-  - Upload directory: `AGVOTE_UPLOAD_DIR` env var (default: `/var/agvote/uploads`)
-  - Docker: Mounted as persistent volume
-  - Development: Writable directory in project
-  - Contents: User-uploaded files (meeting documents, etc.)
+- Local filesystem at `AGVOTE_UPLOAD_DIR` (default `/var/agvote/uploads`)
+- Must be a persistent Docker volume in production
+- Used for: meeting attachments, uploaded documents
+- Working temp dir: `/tmp/ag-vote`
 
 **Caching:**
-- Redis (optional with automatic fallback)
-  - Connection: `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DATABASE`, `REDIS_PREFIX` env vars
-  - Client: phpredis extension (pecl install redis)
-  - Use cases:
-    - Rate limiting: `AgVote\Core\Security\RateLimiter` uses Redis INCR/EXPIRE
-    - Event queue: `AgVote\SSE\EventBroadcaster` uses Redis LPUSH/LRANGE for SSE events
-    - Session storage: Optional (PHP session files default)
-  - Fallback: If Redis unavailable, EventBroadcaster uses `/tmp/agvote-sse-queue.json` (file-based)
-  - `AgVote\Core\Providers\RedisProvider::isAvailable()` checks if phpredis extension is loaded
+- Redis (see Redis section below) — used for rate limit counters, SSE queues, session heartbeats
+- No separate object cache layer (no Memcached, no APCu for shared data)
+
+## Redis Integration
+
+Redis is **mandatory** — the application refuses to start if Redis is unreachable (throws `RuntimeException` in `app/Core/Application.php` boot sequence).
+
+**Provider:** `app/Core/Providers/RedisProvider.php`
+- Singleton connection with auto-reconnect on ping failure
+- Config: `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DATABASE` (default 0), `REDIS_PREFIX` (default `agvote:`)
+- Options: `OPT_PREFIX` set to prefix, `OPT_SERIALIZER` set to `SERIALIZER_JSON` by default
+- Connect timeout: 2.0 seconds
+
+**Use Cases:**
+
+1. **Rate Limiting** (`app/Core/Security/RateLimiter.php`)
+   - Keys: `ratelimit:{context}:{sha256(identifier)}`
+   - Atomic Lua script: `INCR` + `EXPIRE` in a single Redis command slot (eliminates race conditions)
+   - Returns `{current_count, ttl}`; throws `ApiResponseException` with 429 when limit exceeded
+   - Per-context windows: `auth_login`, `admin_ops`, `public_vote`, etc.
+   - No filesystem fallback — Redis is required
+
+2. **SSE Event Queue** (`app/SSE/EventBroadcaster.php`)
+   - Global queue key: `sse:event_queue` — capped at 1,000 events (`lTrim`)
+   - Per-consumer queue keys: `sse:queue:{meetingId}:{consumerId}` — capped at 100 events, TTL 60s
+   - Consumer registry: `sse:consumers:{meetingId}` (Redis Set)
+   - Fan-out: Pipeline `RPUSH` + `EXPIRE` + `LTRIM` per registered consumer
+   - Heartbeat key: `sse:server:active` — checked by `EventBroadcaster::isServerRunning()`
+   - Push can be disabled via `PUSH_ENABLED=0` env var
+
+3. **SSE Domain Events via EventDispatcher** (`app/Event/Listener/SseListener.php`)
+   - Events broadcast: `vote.cast`, `vote.updated`, `motion.opened`, `motion.closed`, `motion.updated`, `attendance.updated`, `quorum.updated`, `meeting.status_changed`, `speech.queue_updated`, `document.added`, `document.removed`
+   - Target scopes: per-meeting (`toMeeting`) and per-tenant (`toTenant`)
+   - Dispatched by controllers via `Application::dispatcher()` (Symfony EventDispatcher)
+   - SseListener registered in `app/Core/Application.php::initEventDispatcher()`
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Custom session-based authentication
-  - Implementation: `app/Core/Security/AuthMiddleware.php`
-  - Mechanism: PHP sessions (`$_SESSION`) with email/password login
-  - Password hashing: PHP `password_hash()` / `password_verify()`
-  - Session timeout: Configurable per-tenant (default 30 minutes)
-  - Session revalidation: User role/is_active checked every 60 seconds
+- Custom session-based authentication (no OAuth, no external IdP)
+- Implementation: `app/Core/Security/AuthMiddleware.php`
+- Sessions stored in PHP file sessions (`session.save_path = /tmp` — NOT Redis-backed)
+- Session timeout: configurable per-tenant from DB settings, fallback to env default (30 minutes)
+- Re-validation interval: 60 seconds (DB lookup to check `is_active`, role changes)
+- Session ID regenerated on privilege escalation (session fixation prevention)
+- Password auth: bcrypt hashing via `password_hash()`/`password_verify()`
+- API key auth: `API_KEY_ADMIN`, `API_KEY_OPERATOR`, `API_KEY_TRUST` env vars (optional)
+- Public voting: HMAC-signed `VoteToken` via `app/Services/VoteTokenService.php` (no session required)
+- RBAC: Two-level — system roles (`admin`, `operator`, `auditor`, `viewer`) + meeting roles (`president`, `assessor`, `voter`)
 
-**API Key Authentication (Optional):**
-- Header-based API keys for programmatic access
-  - Keys: `API_KEY_ADMIN`, `API_KEY_OPERATOR`, `API_KEY_TRUST` env vars
-  - Delivery: HTTP header `X-API-Key`
-  - Leave empty to disable
-  - Roles tied to keys: different permissions per key type
-  - Implementation: `AgVote\Core\Security\AuthMiddleware.php` checks `$_SERVER['HTTP_X_API_KEY']`
+## Email
 
-**Role-Based Access Control (RBAC):**
-- Two-level permission system:
-  1. System-level roles (in `users.role`): admin, operator, auditor, viewer, president
-  2. Meeting-level roles (in `meeting_roles`): president, assessor, voter
-  - Effective permissions: Union of system role + meeting roles
-  - Implementation: `app/Core/Security/Permissions.php`
+**SMTP via Symfony Mailer** (`app/Services/MailerService.php`):
+- Package: `symfony/mailer` v8.0.4
+- DSN built at runtime from config: `smtp://user:pass@host:port` (STARTTLS) or `smtps://...` (TLS)
+- TLS modes: `starttls` (port 587, Symfony auto-negotiates), `ssl`/`smtps` (port 465 implicit TLS), `none` (disables peer verification — dev only)
+- Mailer instance lazy-initialized and cached per `MailerService` instance
+- SMTP settings merge: DB tenant settings override env vars (via `MailerService::buildMailerConfig()` + `SettingsRepository`)
+- Config env vars: `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_TLS`, `MAIL_FROM`, `MAIL_FROM_NAME`, `MAIL_TIMEOUT`
+
+**Email Queue** (`app/Services/EmailQueueService.php`):
+- Queue stored in PostgreSQL (`email_queue` table)
+- Processed by `app/Command/EmailProcessQueueCommand.php` (CLI/cron)
+- Batch size: 25 emails per run
+- Stuck processing reset: emails stuck for 30+ minutes are re-queued
+- Repository: `app/Repository/EmailQueueRepository.php`
+
+**Email Tracking** (`app/Controller/EmailTrackingController.php`):
+- Open tracking: 1x1 GD pixel served via `GET /api/v1/email_pixel.php`
+- Click tracking: redirect via `GET /api/v1/email_redirect.php`
+- Controlled by `EMAIL_TRACKING_ENABLED` env var (default 1, set to 0 for strict GDPR)
+- Events stored in `email_events` table via `app/Repository/EmailEventRepository.php`
+- Skips API middleware (no session auth required for pixel/redirect endpoints)
+
+**Email Templates** (`app/Services/EmailTemplateService.php`):
+- Templates stored in `email_templates` table (DB-driven, per-tenant)
+- Markdown support via `erusev/parsedown` for template body rendering
+- Repository: `app/Repository/EmailTemplateRepository.php`
+
+## PDF Generation
+
+**DOMPDF** (`app/Services/ProcurationPdfService.php`):
+- Package: `dompdf/dompdf` v3.1.4
+- Purpose: Generate proxy (procuration) documents as PDF for download
+- Options: HTML5 parser enabled, remote resources disabled (`isRemoteEnabled = false`), default font DejaVu Sans
+- Paper: A4 portrait
+- Input: HTML rendered by `ProcurationPdfService::renderHtml()` — inline CSS only
+- Output: Binary PDF string via `$dompdf->output()`
+
+## XLSX/Spreadsheet Export
+
+**OpenSpout — streaming** (`app/Services/ExportService.php`):
+- Package: `openspout/openspout` v5.6.0
+- Class: `OpenSpout\Writer\XLSX\Writer`
+- Method: `ExportService::streamXlsx()` and `ExportService::streamFullXlsx()`
+- Memory: constant regardless of row count (generator/iterable support)
+- Use: preferred path for large exports (attendance, votes, full meeting export)
+- Multi-sheet: up to 4 sheets (Resume, Emargement, Resultats, Votes) in `streamFullXlsx()`
+
+**PhpSpreadsheet — styled** (`app/Services/ExportService.php`):
+- Package: `phpoffice/phpspreadsheet` v1.30.2
+- Class: `PhpOffice\PhpSpreadsheet\Spreadsheet`
+- Method: `ExportService::createSpreadsheet()`, `ExportService::createFullExportSpreadsheet()`
+- Features: bold headers, grey fill, auto-column width, frozen first row
+- Use: smaller datasets requiring styling; loaded entirely in memory
 
 ## Monitoring & Observability
 
-**Error Tracking:**
-- File-based logging only
-  - Sink: PHP error_log (typically `/var/log/php-fpm.log` or syslog)
-  - No external error tracking service (Sentry, Rollbar, etc.)
+**Internal Monitoring** (`app/Services/MonitoringService.php`):
+- Invoked by `app/Command/MonitoringCheckCommand.php` (cron every 5 minutes recommended)
+- Metrics collected: DB latency, active connections, disk space, auth failures (15m), email backlog, counts (meetings, motions, tokens, audit events), PHP version, memory usage
+- Metrics persisted to `system_metrics` table
+- Alerts deduplicated by 10-minute window in `system_alerts` table
+- Alert channels: email (to `MONITOR_ALERT_EMAILS` or all admin users) + outgoing webhook
 
-**Logs:**
-- Structured logging via `AgVote\Core\Logger` static class
-  - Methods: `info()`, `warning()`, `error()`, `debug()`
-  - Output: PHP error_log with JSON context
-  - Request tracing: `X-Request-ID` header generated per request
-  - Audit trail: `AgVote\audit_log()` function logs user actions to `audit_events` table
+**Error Logging:**
+- `error_log()` for technical errors to PHP error log
+- `AgVote\Core\Logger` static methods (`debug`, `info`, `warning`, `error`, etc.) — PSR-3 level structure
+- Request ID tracking via `Logger::getRequestId()` in `X-Request-ID` response header
+- Audit trail: `audit_log()` global function — writes to `audit_events` table for all business events
 
-**Monitoring & Alerts:**
-- System monitoring service: `app/Services/MonitoringService.php`
-  - Runs periodically via CLI command: `bin/console monitoring:check`
-  - Metrics collected:
-    - Database latency (ms)
-    - Database active connections
-    - Disk free space (bytes/percent)
-    - Meeting/motion/vote token counts
-    - Authentication failures (15-min window)
-    - Email queue backlog
-    - PHP memory usage
-  - Alert thresholds (configurable via env):
-    - `MONITOR_AUTH_FAILURES_THRESHOLD` (default: 5)
-    - `MONITOR_DB_LATENCY_MS` (default: 2000)
-    - `MONITOR_DISK_FREE_PCT` (default: 10)
-    - `MONITOR_EMAIL_BACKLOG` (default: 100)
-  - Notification channels:
-    - Email: `MONITOR_ALERT_EMAILS` (comma-separated or "auto" for all admins)
-    - Webhook: `MONITOR_WEBHOOK_URL` (HTTP POST with alert JSON)
+**Health Check:**
+- Endpoint: `GET /api/v1/health.php`
+- Used by Docker healthcheck every 30s
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Docker container (primary)
-  - Image: PHP 8.4-fpm-alpine + Nginx + Supervisor
-  - Port: 8080 (HTTP only)
-  - Health check: `GET /api/v1/health.php` (curl-based)
-  - Entrypoint: `deploy/entrypoint.sh` → supervisord
-  - Non-root user: www-data
+- Docker container (primary); PHP 8.4-FPM + Nginx (alternative)
+- Image source: `Dockerfile` in project root (multi-stage build)
 
 **CI Pipeline:**
-- GitHub Actions (implied by `.github/` directory)
-- No explicit CI config provided (external)
-
-**Build process:**
-- Docker multi-stage:
-  1. Asset minification (Node.js 20 Alpine) - terser + clean-css-cli
-  2. Runtime image (PHP 8.4-fpm Alpine) - Composer install, app code, minified assets
-
-## Environment Configuration
-
-**Required env vars:**
-- `APP_ENV` - development | demo | production
-- `APP_SECRET` - 32-byte hex secret
-- `APP_URL` - Base URL of application
-- `DB_DSN` - PostgreSQL connection string
-- `DB_USER`, `DB_PASS` - Database credentials
-- `DEFAULT_TENANT_ID` - UUID for default organization (multi-tenant support)
-
-**Security env vars:**
-- `APP_AUTH_ENABLED` - 0|1 (default: 1)
-- `CSRF_ENABLED` - 0|1 (default: 1)
-- `RATE_LIMIT_ENABLED` - 0|1 (default: 1)
-- `APP_LOGIN_MAX_ATTEMPTS` - Max login attempts (default: 5)
-- `APP_LOGIN_WINDOW` - Lockout window in seconds (default: 300)
-
-**SMTP/Email env vars:**
-- `MAIL_HOST`, `MAIL_PORT` - SMTP server
-- `MAIL_USER`, `MAIL_PASS` - SMTP credentials
-- `MAIL_FROM`, `MAIL_FROM_NAME` - Sender address/name
-- `MAIL_TLS` - starttls | tls (STARTTLS on 587 or TLS-first on 465)
-- `MAIL_TIMEOUT` - Request timeout in seconds (default: 10)
-
-**Redis env vars:**
-- `REDIS_HOST`, `REDIS_PORT` - Redis server
-- `REDIS_PASSWORD` - Redis auth password
-- `REDIS_DATABASE` - Redis database number (default: 0)
-- `REDIS_PREFIX` - Key prefix for agvote namespace (default: agvote:)
-
-**Optional feature flags:**
-- `LOAD_SEED_DATA` - 0|1 (load test data, must be 0 in production)
-- `EMAIL_TRACKING_ENABLED` - 0|1 (email open tracking)
-- `PUSH_ENABLED` - 0|1 (SSE real-time updates, requires Redis or file fallback)
-- `PROXY_MAX_PER_RECEIVER` - Max proxies per voter (default: 3)
-
-**Secrets location:**
-- `.env` file (development only, contains secrets)
-- `.env.production.example` - Template for production (no actual secrets)
-- Docker: Pass via environment variables or .env file mounted at runtime
-- Never committed: Secrets are in `.gitignore`
+- Not detected in repository (no `.github/workflows/`, no `.gitlab-ci.yml`)
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- Email tracking pixel callback - `/api/v1/email-tracking` (implicit via HTTP GET pixel request)
-  - No explicit webhook endpoint, just HTTP request logging
+- None detected (no inbound webhook endpoints)
 
 **Outgoing:**
-- Monitoring alerts webhook - Optional `MONITOR_WEBHOOK_URL`
-  - HTTP POST with JSON alert payload
-  - Payload structure (from `MonitoringService::sendWebhook()`):
-    ```json
-    {
-      "alert_type": "db_latency|auth_failure|disk_space|email_backlog",
-      "severity": "high|medium",
-      "message": "Alert description",
-      "metrics": { "key": "value" }
-    }
-    ```
-  - No retry mechanism - best-effort delivery
-  - Uses cURL with 5-second timeout
+- `MONITOR_WEBHOOK_URL` — Alert notifications to Slack/PagerDuty/Datadog (optional, via cURL in `MonitoringService`)
 
-**Server-Sent Events (SSE) Push:**
-- Real-time event broadcasting via HTTP streaming
-  - Protocol: HTTP/1.1 Server-Sent Events (RFC 6797)
-  - Endpoint: `/api/v1/sse` (implicit, polling/SSE endpoint)
-  - Backend: `app/SSE/EventBroadcaster.php` queues events to Redis or file
-  - Events:
-    - `motion.opened`, `motion.closed`, `motion.updated`
-    - `vote.cast`, `vote.updated`
-    - `attendance.updated`, `quorum.updated`
-    - `meeting.status_changed`
-    - `session.invalidated`
-  - Storage: Redis list (LPUSH/LRANGE) or `/tmp/agvote-sse-queue.json` fallback
+## Environment Configuration Summary
+
+**Required (application will not start without these):**
+- `DB_DSN`, `DB_USER`, `DB_PASS` — PostgreSQL connection
+- `REDIS_HOST`, `REDIS_PORT` — Redis connection (password optional in dev)
+- `APP_SECRET` — Session security (must be 32-byte hex in production)
+
+**Optional (features degraded or disabled when absent):**
+- `MAIL_HOST`, `MAIL_PORT` — Email disabled if not set (`MailerService::isConfigured()` returns false)
+- `MONITOR_WEBHOOK_URL` — Webhook alerts disabled
+- `MONITOR_ALERT_EMAILS` — Email alerts disabled
+- `API_KEY_*` — API key auth disabled (session auth still works)
+- `EMAIL_TRACKING_ENABLED=0` — Disables open/click tracking pixels
 
 ---
 
