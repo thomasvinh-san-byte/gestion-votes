@@ -72,14 +72,10 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('attendance', $mt['id'], 'xlsx');
 
-        $rows = $this->repo()->attendance()->listExportForMeeting($mt['id'], api_current_tenant_id());
+        $rows = $this->repo()->attendance()->yieldExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
-
-        $formattedRows = array_map([$export, 'formatAttendanceRow'], $rows);
         $filename = $export->generateFilename('presences', $mt['title'] ?? '', 'xlsx');
-        $export->initXlsxOutput($filename);
-        $spreadsheet = $export->createSpreadsheet($export->getAttendanceHeaders(), $formattedRows, 'Émargement');
-        $export->outputSpreadsheet($spreadsheet);
+        $export->streamXlsx($filename, $export->getAttendanceHeaders(), $rows, [$export, 'formatAttendanceRow'], 'Emargement');
     }
 
     // ------------------------------------------------------------------
@@ -112,20 +108,17 @@ final class ExportController extends AbstractController {
         $mt = $this->requireValidatedMeeting($this->requireMeetingId());
         $this->auditExport('votes', $mt['id'], 'xlsx');
 
-        $rows = $this->repo()->ballot()->listVotesExportForMeeting($mt['id'], api_current_tenant_id());
+        $rows = $this->repo()->ballot()->yieldVotesExportForMeeting($mt['id'], api_current_tenant_id());
         $export = new ExportService();
-
-        $formattedRows = [];
-        foreach ($rows as $r) {
-            if (!empty($r['voter_name'])) {
-                $formattedRows[] = $export->formatVoteRow($r);
-            }
-        }
-
         $filename = $export->generateFilename('votes', $mt['title'] ?? '', 'xlsx');
-        $export->initXlsxOutput($filename);
-        $spreadsheet = $export->createSpreadsheet($export->getVotesHeaders(), $formattedRows, 'Votes');
-        $export->outputSpreadsheet($spreadsheet);
+        $filteredRows = (function () use ($rows) {
+            foreach ($rows as $row) {
+                if (!empty($row['voter_name'])) {
+                    yield $row;
+                }
+            }
+        })();
+        $export->streamXlsx($filename, $export->getVotesHeaders(), $filteredRows, [$export, 'formatVoteRow'], 'Votes');
     }
 
     // ------------------------------------------------------------------
@@ -182,14 +175,10 @@ final class ExportController extends AbstractController {
         $this->auditExport('motion_results', $mt['id'], 'xlsx');
         $tenantId = api_current_tenant_id();
 
-        $rows = $this->repo()->motion()->listResultsExportForMeeting($mt['id'], $tenantId);
+        $rows = $this->repo()->motion()->yieldResultsExportForMeeting($mt['id'], $tenantId);
         $export = new ExportService();
-
-        $formattedRows = array_map([$export, 'formatMotionResultRow'], $rows);
         $filename = $export->generateFilename('resultats', $mt['title'] ?? '', 'xlsx');
-        $export->initXlsxOutput($filename);
-        $spreadsheet = $export->createSpreadsheet($export->getMotionResultsHeaders(), $formattedRows, 'Résultats');
-        $export->outputSpreadsheet($spreadsheet);
+        $export->streamXlsx($filename, $export->getMotionResultsHeaders(), $rows, [$export, 'formatMotionResultRow'], 'Resultats');
     }
 
     // ------------------------------------------------------------------
@@ -203,15 +192,13 @@ final class ExportController extends AbstractController {
         $includeVotes = filter_var(api_query('include_votes', '1'), FILTER_VALIDATE_BOOLEAN);
 
         $tenantId = api_current_tenant_id();
-        $attendanceRows = $this->repo()->attendance()->listExportForMeeting($meetingId, $tenantId);
-        $motionRows = $this->repo()->motion()->listResultsExportForMeeting($meetingId, $tenantId);
-        $voteRows = $includeVotes ? $this->repo()->ballot()->listVotesExportForMeeting($meetingId, $tenantId) : [];
+        $attendanceRows = $this->repo()->attendance()->yieldExportForMeeting($meetingId, $tenantId);
+        $motionRows = $this->repo()->motion()->yieldResultsExportForMeeting($meetingId, $tenantId);
+        $voteRows = $this->repo()->ballot()->yieldVotesExportForMeeting($meetingId, $tenantId);
 
         $export = new ExportService();
         $filename = $export->generateFilename('complet', $mt['title'] ?? '', 'xlsx');
-        $export->initXlsxOutput($filename);
-        $spreadsheet = $export->createFullExportSpreadsheet($mt, $attendanceRows, $motionRows, $voteRows);
-        $export->outputSpreadsheet($spreadsheet);
+        $export->streamFullXlsx($filename, $mt, $attendanceRows, $motionRows, $voteRows, $includeVotes);
     }
 
     // ------------------------------------------------------------------

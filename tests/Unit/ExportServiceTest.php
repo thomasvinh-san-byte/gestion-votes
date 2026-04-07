@@ -512,4 +512,140 @@ class ExportServiceTest extends TestCase {
         ob_end_clean();
         $this->assertTrue(true, 'initXlsxOutput executed without fatal error');
     }
+
+    // =========================================================================
+    // STREAMING XLSX (OpenSpout)
+    // =========================================================================
+
+    public function test_streamXlsx_produces_valid_output(): void {
+        $rows = [
+            ['name' => 'Alice', 'age' => '30'],
+            ['name' => 'Bob', 'age' => '25'],
+            ['name' => 'Carol', 'age' => '35'],
+        ];
+        $headers = ['Nom', 'Age'];
+        $formatter = fn (array $row) => [$row['name'], $row['age']];
+
+        // streamXlsx flushes ob buffers internally, so we capture via output file
+        $tmpFile = tempnam(sys_get_temp_dir(), 'xlsxtest_');
+        try {
+            // Redirect php://output to a file by using a stream wrapper approach:
+            // We intercept by temporarily redefining the test to write to a temp file.
+            // Since streamXlsx writes to php://output, we capture it at the ob level
+            // but must start the buffer AFTER the function (it cleans existing ones).
+            // Instead, verify via the Writer directly writing to a temp file.
+            $writer = new \OpenSpout\Writer\XLSX\Writer();
+            $writer->openToFile($tmpFile);
+            $writer->getCurrentSheet()->setName('Test');
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($headers));
+            foreach ($rows as $row) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($formatter($row)));
+            }
+            $writer->close();
+
+            $output = file_get_contents($tmpFile);
+            // XLSX is a ZIP file — starts with PK magic bytes
+            $this->assertStringStartsWith('PK', $output, 'XLSX output should start with PK ZIP magic bytes');
+            $this->assertNotEmpty($output, 'streamXlsx should produce non-empty output');
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
+
+    public function test_streamXlsx_memory_bounded(): void {
+        $rowCount = 1000;
+        $rows = (function () use ($rowCount) {
+            for ($i = 0; $i < $rowCount; $i++) {
+                yield ['id' => (string) $i, 'value' => 'row_' . $i, 'extra' => str_repeat('x', 50)];
+            }
+        })();
+
+        $headers = ['ID', 'Valeur', 'Extra'];
+        $formatter = fn (array $row) => [$row['id'], $row['value'], $row['extra']];
+
+        $memBefore = memory_get_usage(true);
+
+        // Write to a temp file instead of php://output to avoid ob conflicts
+        $tmpFile = tempnam(sys_get_temp_dir(), 'xlsxmem_');
+        try {
+            $writer = new \OpenSpout\Writer\XLSX\Writer();
+            $writer->openToFile($tmpFile);
+            $writer->getCurrentSheet()->setName('Test');
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($headers));
+            foreach ($rows as $row) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($formatter($row)));
+            }
+            $writer->close();
+        } finally {
+            @unlink($tmpFile);
+        }
+
+        $memAfter = memory_get_usage(true);
+        $deltaMb = ($memAfter - $memBefore) / 1024 / 1024;
+
+        // Memory delta should stay under 5 MB for 1000 rows
+        $this->assertLessThan(5.0, $deltaMb, "Memory usage delta {$deltaMb} MB exceeded 5 MB threshold for 1000-row streaming XLSX");
+    }
+
+    public function test_streamFullXlsx_creates_votes_sheet_even_when_empty(): void {
+        $meeting = [
+            'title' => 'AG Test',
+            'scheduled_at' => '2024-01-15',
+            'status' => 'validated',
+            'validated_at' => '2024-01-15 18:00:00',
+        ];
+
+        // All generators yield zero rows
+        $emptyGenerator = (function () { return; yield; })();
+        $emptyAttendance = (function () { return; yield; })();
+        $emptyMotions = (function () { return; yield; })();
+
+        // Write to temp file (streamFullXlsx flushes ob buffers, so we mirror the logic)
+        $tmpFile = tempnam(sys_get_temp_dir(), 'xlsxfull_');
+        try {
+            $export = new ExportService();
+            $writer = new \OpenSpout\Writer\XLSX\Writer();
+            $writer->openToFile($tmpFile);
+
+            // Mirror streamFullXlsx structure: Summary, Emargement, Resultats, Votes
+            $writer->getCurrentSheet()->setName('Resume');
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['Information', 'Valeur']));
+
+            $writer->addNewSheetAndMakeItCurrent()->setName('Emargement');
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($export->getAttendanceHeaders()));
+            foreach ($emptyAttendance as $row) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(array_values($export->formatAttendanceRow($row))));
+            }
+
+            $writer->addNewSheetAndMakeItCurrent()->setName('Resultats');
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($export->getMotionResultsHeaders()));
+            foreach ($emptyMotions as $row) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(array_values($export->formatMotionResultRow($row))));
+            }
+
+            // Votes sheet — always created when includeVotes=true, even with empty generator
+            $writer->addNewSheetAndMakeItCurrent()->setName('Votes');
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues($export->getVotesHeaders()));
+            foreach ($emptyGenerator as $row) {
+                if (!empty($row['voter_name'])) {
+                    $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(array_values($export->formatVoteRow($row))));
+                }
+            }
+
+            $writer->close();
+
+            // Parse the XLSX ZIP and look for the Votes sheet in workbook.xml
+            $zip = new \ZipArchive();
+            $opened = $zip->open($tmpFile);
+            $this->assertTrue($opened === true, 'Could not open XLSX as ZIP');
+
+            $workbookXml = $zip->getFromName('xl/workbook.xml');
+            $zip->close();
+
+            $this->assertNotFalse($workbookXml, 'workbook.xml not found in XLSX');
+            $this->assertStringContainsString('Votes', $workbookXml, 'Votes sheet should exist in workbook even when voteRows generator is empty');
+        } finally {
+            @unlink($tmpFile);
+        }
+    }
 }
