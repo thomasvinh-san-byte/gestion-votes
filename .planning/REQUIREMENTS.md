@@ -59,24 +59,24 @@ Reporte au prochain milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WIRE-01 | TBD | Pending |
-| WIRE-02 | TBD | Pending |
-| WIRE-03 | TBD | Pending |
-| WIRE-04 | TBD | Pending |
-| DESIGN-01 | TBD | Pending |
-| DESIGN-02 | TBD | Pending |
-| DESIGN-03 | TBD | Pending |
-| DESIGN-04 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| TEST-04 | TBD | Pending |
+| WIRE-01 | Phase 5 | Pending |
+| WIRE-02 | Phase 5 | Pending |
+| WIRE-03 | Phase 5 | Pending |
+| WIRE-04 | Phase 5 | Pending |
+| DESIGN-01 | Phase 6 | Pending |
+| DESIGN-02 | Phase 6 | Pending |
+| DESIGN-03 | Phase 6 | Pending |
+| DESIGN-04 | Phase 6 | Pending |
+| TEST-01 | Phase 7 | Pending |
+| TEST-02 | Phase 7 | Pending |
+| TEST-03 | Phase 7 | Pending |
+| TEST-04 | Phase 7 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12
+- Mapped to phases: 12
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-07*
-*Last updated: 2026-04-07 after initial definition*
+*Last updated: 2026-04-07 after roadmap v1.1 creation*
