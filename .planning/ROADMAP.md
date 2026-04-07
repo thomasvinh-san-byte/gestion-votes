@@ -71,10 +71,11 @@ Plans:
   1. Les tests SSE couvrent la perte de connexion Redis, le reordering d'evenements, et la reconnexion du client
   2. Les tests ImportService couvrent le fuzzy matching avec variantes de casse, caracteres accentues, et headers multi-langue
   3. MeetingReportsController et MotionsController font chacun moins de 400 lignes, ou une justification documentee explique pourquoi le seuil n'est pas atteint
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
 - [ ] 04-01-PLAN.md — Tests SSE EventBroadcaster race conditions et delivery reliability
 - [ ] 04-02-PLAN.md — Tests ImportService fuzzy matching aliases et headers multi-langue
+- [ ] 04-03-PLAN.md — Gap closure: tests SSE connection loss + client reconnection + doc fix TEST-04
 
 ## Progress
 
@@ -86,4 +87,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | 1/3 | In progress | - |
 | 3. Extraction Services et Refactoring | 2/3 | In progress | - |
-| 4. Tests et Decoupage Controllers | 0/2 | Planned    |  |
+| 4. Tests et Decoupage Controllers | 2/3 | In progress |  |
