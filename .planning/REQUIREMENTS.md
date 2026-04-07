@@ -23,7 +23,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Refactoring
 
-- [ ] **REFAC-01**: Logique metier de ImportController (921 lignes) extraite dans des services dedies, controller = orchestration HTTP uniquement
+- [x] **REFAC-01**: Logique metier de ImportController (921 lignes) extraite dans des services dedies, controller = orchestration HTTP uniquement
 
 ### Tests
 
@@ -75,7 +75,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-02 | Phase 2 | Complete |
 | PERF-03 | Phase 2 | Complete |
 | PERF-04 | Phase 2 | Complete |
-| REFAC-01 | Phase 3 | Pending |
+| REFAC-01 | Phase 3 | Complete |
 | TEST-01 | Phase 3 | Pending |
 | TEST-02 | Phase 3 | Pending |
 | TEST-03 | Phase 4 | Pending |

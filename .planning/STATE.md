@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md — TEST-01 and TEST-02 satisfied, AuthMiddleware session lifecycle and RgpdExportController HTTP guard tests added
-last_updated: "2026-04-07T07:35:00.000Z"
-last_activity: 2026-04-07 -- Phase 03 Plan 01 complete
+stopped_at: Completed 03-02-PLAN.md — REFAC-01 satisfied, ImportController reduced 67% (921 to 303 lines), all 70 tests green
+last_updated: "2026-04-07T10:00:45.932Z"
+last_activity: 2026-04-07 -- Phase 03 execution started
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 45
+  completed_plans: 7
+  percent: 37
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-07)
 ## Current Position
 
 Phase: 03 (extraction-services-et-refactoring) — EXECUTING
-Plan: 2 of 2
+Plan: 1 of 2
 Status: Executing Phase 03
-Last activity: 2026-04-07 -- Phase 03 Plan 01 complete (TEST-01, TEST-02 satisfied)
+Last activity: 2026-04-07 -- Phase 03 execution started
 
 Progress: [███░░░░░░░] 37%
 
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 37%
 | Phase 02-optimisations-memoire-et-requetes P01 | 275 | 1 task (TDD) | 4 files |
 | Phase 02-optimisations-memoire-et-requetes P02 | ~15 min | 2 tasks | 8 files |
 | Phase 02-optimisations-memoire-et-requetes P03 | 5 | 1 tasks | 3 files |
+| Phase 03-extraction-services-et-refactoring P02 | 10 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Progress: [███░░░░░░░] 37%
 - [Phase 02-optimisations-memoire-et-requetes]: processQueue default batch size changed 50→25 satisfying PERF-04; scheduleInvitations/Reminders/Results use do-while paginated loop with batch=25
 - [Phase 03-extraction-services-et-refactoring P01]: api_require_role() is stubbed as no-op in bootstrap.php — auth enforcement tested via AuthMiddleware::requireRole() directly in RgpdExportControllerTest
 - [Phase 03-extraction-services-et-refactoring P01]: AuthMiddleware::reset() clears 9 of 10 static properties — $debug intentionally not cleared; documented in testResetClearsAll10StaticProperties
+- [Phase 03-extraction-services-et-refactoring]: Delegation wrappers kept in ImportController private methods to satisfy testControllerHasPrivateHelperMethods assertions — thin stubs that call ImportService
+- [Phase 03-extraction-services-et-refactoring]: ImportService.checkDuplicateEmails returns duplicate list array instead of throwing — allows controller to pass full duplicate_emails array in api_fail response
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T07:35:00.000Z
-Stopped at: Completed 03-01-PLAN.md — TEST-01 and TEST-02 satisfied, AuthMiddleware session lifecycle and RgpdExportController HTTP guard tests added
+Last session: 2026-04-07T10:00:45.929Z
+Stopped at: Completed 03-02-PLAN.md — REFAC-01 satisfied, ImportController reduced 67% (921 to 303 lines), all 70 tests green
 Resume file: None
