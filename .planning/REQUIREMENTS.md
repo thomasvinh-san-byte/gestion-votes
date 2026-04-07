@@ -67,9 +67,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| REDIS-01 | Phase 1 | Pending |
+| REDIS-01 | Phase 1 | Complete |
 | REDIS-02 | Phase 1 | Complete |
-| REDIS-03 | Phase 1 | Pending |
+| REDIS-03 | Phase 1 | Complete |
 | REDIS-04 | Phase 1 | Complete |
 | PERF-01 | Phase 2 | Pending |
 | PERF-02 | Phase 2 | Pending |
