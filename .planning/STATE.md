@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md — REFAC-01 satisfied, ImportController reduced 67% (921 to 303 lines), all 70 tests green
-last_updated: "2026-04-07T10:00:45.932Z"
+stopped_at: Completed 03-03-PLAN.md — ImportController 149 lines, zero delegation wrappers, 5 ImportService integration tests, TEST-01 and TEST-02 complete
+last_updated: "2026-04-07T10:31:38.645Z"
 last_activity: 2026-04-07 -- Phase 03 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 37
 ---
 
@@ -58,6 +58,7 @@ Progress: [███░░░░░░░] 37%
 | Phase 02-optimisations-memoire-et-requetes P02 | ~15 min | 2 tasks | 8 files |
 | Phase 02-optimisations-memoire-et-requetes P03 | 5 | 1 tasks | 3 files |
 | Phase 03-extraction-services-et-refactoring P02 | 10 | 2 tasks | 2 files |
+| Phase 03-extraction-services-et-refactoring P03 | 20 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Progress: [███░░░░░░░] 37%
 - [Phase 03-extraction-services-et-refactoring P01]: AuthMiddleware::reset() clears 9 of 10 static properties — $debug intentionally not cleared; documented in testResetClearsAll10StaticProperties
 - [Phase 03-extraction-services-et-refactoring]: Delegation wrappers kept in ImportController private methods to satisfy testControllerHasPrivateHelperMethods assertions — thin stubs that call ImportService
 - [Phase 03-extraction-services-et-refactoring]: ImportService.checkDuplicateEmails returns duplicate list array instead of throwing — allows controller to pass full duplicate_emails array in api_fail response
+- [Phase 03-extraction-services-et-refactoring]: CSV/XLSX pair consolidation: 8 public methods delegate to 4 run*Import helpers — achieves <150 lines
+- [Phase 03-extraction-services-et-refactoring]: TEST-01 infrastructure limitation accepted: api_require_role() no-op in bootstrap.php prevents 401 testing via callController — direct AuthMiddleware testing is the workaround
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T10:00:45.929Z
-Stopped at: Completed 03-02-PLAN.md — REFAC-01 satisfied, ImportController reduced 67% (921 to 303 lines), all 70 tests green
+Last session: 2026-04-07T10:31:38.643Z
+Stopped at: Completed 03-03-PLAN.md — ImportController 149 lines, zero delegation wrappers, 5 ImportService integration tests, TEST-01 and TEST-02 complete
 Resume file: None
