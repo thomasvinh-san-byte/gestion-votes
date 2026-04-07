@@ -71,15 +71,13 @@ if ($meetingId === '' || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
 
 // Handle heartbeat request (cheaply renews presence TTL without starting SSE loop)
 if (!empty($_GET['heartbeat'])) {
-    if (RedisProvider::isAvailable()) {
-        try {
-            $redis = RedisProvider::connection();
-            $presenceKey = "sse:operators:{$meetingId}";
-            $redis->sAdd($presenceKey, $consumerId);
-            $redis->expire($presenceKey, 90);
-        } catch (Throwable $e) {
-            // Graceful degradation
-        }
+    try {
+        $redis = RedisProvider::connection();
+        $presenceKey = "sse:operators:{$meetingId}";
+        $redis->sAdd($presenceKey, $consumerId);
+        $redis->expire($presenceKey, 90);
+    } catch (Throwable $e) {
+        // Graceful degradation
     }
     http_response_code(204);
     exit;
@@ -106,7 +104,7 @@ ignore_user_abort(false);
 // The broadcaster also publishes to a channel (we add this capability).
 
 $channelKey = "sse:meeting:{$meetingId}";
-$fallbackKey = 'sse:event_queue'; // Fallback queue key
+$fallbackKey = 'sse:event_queue'; // General queue key
 
 // Send initial connection event
 sendEvent('connected', ['meeting_id' => $meetingId, 'server_time' => date('c')]);
@@ -114,20 +112,18 @@ sendEvent('connected', ['meeting_id' => $meetingId, 'server_time' => date('c')])
 // Register this consumer in the meeting's consumer SET so the publisher
 // can fan out events to its personal queue.
 $presenceKey = null;
-if (RedisProvider::isAvailable()) {
-    try {
-        $redis = RedisProvider::connection();
-        $redis->sAdd("sse:consumers:{$meetingId}", $consumerId);
-        // Consumer set TTL: 2× event loop duration as a safety net for ungraceful exits
-        $redis->expire("sse:consumers:{$meetingId}", 120);
-    } catch (Throwable $e) {
-        // Graceful degradation — file fallback still works without registration
-    }
+try {
+    $redis = RedisProvider::connection();
+    $redis->sAdd("sse:consumers:{$meetingId}", $consumerId);
+    // Consumer set TTL: 2× event loop duration as a safety net for ungraceful exits
+    $redis->expire("sse:consumers:{$meetingId}", 120);
+} catch (Throwable $e) {
+    // Propagate — Redis is mandatory
 }
 
 // Track operator presence in Redis SET for multi-operator badge
 $actorRole = $_SESSION['auth_user']['role'] ?? '';
-if (in_array($actorRole, ['operator', 'admin', 'president'], true) && RedisProvider::isAvailable()) {
+if (in_array($actorRole, ['operator', 'admin', 'president'], true)) {
     try {
         $redis = RedisProvider::connection();
         $presenceKey = "sse:operators:{$meetingId}";
@@ -168,6 +164,10 @@ while ((time() - $startTime) < $maxDuration) {
         break;
     }
 
+    // Write heartbeat for isServerRunning() detection
+    $redis = RedisProvider::connection();
+    $redis->set('sse:server:active', '1', ['EX' => 90]);
+
     $events = pollEvents($meetingId, $consumerId);
 
     foreach ($events as $event) {
@@ -192,18 +192,16 @@ while ((time() - $startTime) < $maxDuration) {
 }
 
 // Deregister consumer on graceful exit (TTL is the safety net for ungraceful exits)
-if (RedisProvider::isAvailable()) {
-    try {
-        $redis = RedisProvider::connection();
-        $redis->sRem("sse:consumers:{$meetingId}", $consumerId);
-        $redis->del("sse:queue:{$meetingId}:{$consumerId}");
-        // Clean up presence entry on graceful exit
-        if ($presenceKey !== null) {
-            $redis->sRem($presenceKey, $consumerId);
-        }
-    } catch (Throwable $e) {
-        // Ignore — TTL will clean up stale entries
+try {
+    $redis = RedisProvider::connection();
+    $redis->sRem("sse:consumers:{$meetingId}", $consumerId);
+    $redis->del("sse:queue:{$meetingId}:{$consumerId}");
+    // Clean up presence entry on graceful exit
+    if ($presenceKey !== null) {
+        $redis->sRem($presenceKey, $consumerId);
     }
+} catch (Throwable $e) {
+    // Ignore — TTL will clean up stale entries
 }
 
 // Close gracefully
@@ -228,47 +226,35 @@ function sendEvent(string $type, array $data, string $id = ''): void {
  * Poll for events from this consumer's personal queue.
  *
  * Uses per-consumer Redis list (safe LRANGE+DEL — single reader per queue).
- * Falls back to file-based queue (EventBroadcaster) otherwise.
+ * Redis is mandatory — throws on connection failure.
  */
 function pollEvents(string $meetingId, string $consumerId): array {
-    // Try Redis first
-    if (RedisProvider::isAvailable()) {
-        try {
-            $redis = RedisProvider::connection();
-            $queueKey = "sse:queue:{$meetingId}:{$consumerId}";
-            $consumerSetKey = "sse:consumers:{$meetingId}";
+    $redis = RedisProvider::connection();
+    $queueKey = "sse:queue:{$meetingId}:{$consumerId}";
+    $consumerSetKey = "sse:consumers:{$meetingId}";
 
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+    $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+    try {
+        $pipe = $redis->multi(Redis::PIPELINE);
+        $pipe->lRange($queueKey, 0, -1);
+        $pipe->del($queueKey);
+        $pipe->expire($consumerSetKey, 120);
+        $results = $pipe->exec();
 
-            // LRANGE+DEL is safe: only this consumer reads from its own queue
-            $pipe = $redis->multi(Redis::PIPELINE);
-            $pipe->lRange($queueKey, 0, -1);
-            $pipe->del($queueKey);
-            // Refresh TTLs to keep the consumer alive across reconnects
-            $pipe->expire($queueKey, 60);
-            $pipe->expire($consumerSetKey, 120);
-            $results = $pipe->exec();
-
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
-
-            $raw = $results[0] ?? [];
-            if (is_array($raw) && count($raw) > 0) {
-                $events = [];
-                foreach ($raw as $item) {
-                    $decoded = is_string($item) ? json_decode($item, true) : $item;
-                    if (is_array($decoded)) {
-                        $events[] = $decoded;
-                    }
+        $raw = $results[0] ?? [];
+        if (is_array($raw) && count($raw) > 0) {
+            $events = [];
+            foreach ($raw as $item) {
+                $decoded = is_string($item) ? json_decode($item, true) : $item;
+                if (is_array($decoded)) {
+                    $events[] = $decoded;
                 }
-                return $events;
             }
-
-            return [];
-        } catch (Throwable $e) {
-            // Fall through to file-based polling
+            return $events;
         }
-    }
 
-    // File-based fallback (works without Redis — single-consumer only)
-    return EventBroadcaster::dequeueSseFile($meetingId);
+        return [];
+    } finally {
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+    }
 }
