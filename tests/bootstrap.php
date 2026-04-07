@@ -243,10 +243,4 @@ if (!function_exists('api_file')) {
 // across different PHPUnit invocation modes.
 require_once __DIR__ . '/Unit/ControllerTestCase.php';
 
-// Use namespaced classes
-use AgVote\Core\Security\RateLimiter;
-
-// Configure RateLimiter for tests
-RateLimiter::configure([
-    'storage_dir' => sys_get_temp_dir() . '/ag-vote-test-ratelimit',
-]);
+// RateLimiter configuration removed — Redis is now mandatory, no file fallback.

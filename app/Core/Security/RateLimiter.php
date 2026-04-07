@@ -6,25 +6,36 @@ namespace AgVote\Core\Security;
 
 use AgVote\Core\Providers\RedisProvider;
 use Redis;
-use Throwable;
 
 /**
  * RateLimiter - Brute force attack protection.
  *
- * Uses Redis INCR+EXPIRE when available, falls back to file-based storage.
- * Sliding window algorithm with atomic counter operations.
+ * Uses Redis Lua EVAL for atomic INCR+EXPIRE. Redis is mandatory — no file fallback.
+ * The Lua script guarantees atomicity: INCR and EXPIRE happen in a single Redis command slot,
+ * eliminating the race condition present in non-atomic multi-command approaches.
  */
 final class RateLimiter {
-    private static string $storageDir = '/tmp/ag-vote-ratelimit';
-
-    public static function configure(array $config): void {
-        if (!empty($config['storage_dir'])) {
-            self::$storageDir = $config['storage_dir'];
-        }
-    }
+    /**
+     * Lua script for atomic rate-limit increment with sliding TTL.
+     *
+     * KEYS[1] = rate limit key
+     * ARGV[1] = window seconds (string)
+     *
+     * Returns {current_count, ttl}
+     */
+    private const RATE_LIMIT_LUA = <<<'LUA'
+        local current = redis.call('INCR', KEYS[1])
+        if current == 1 then
+            redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1]))
+        end
+        local ttl = redis.call('TTL', KEYS[1])
+        return {current, ttl}
+    LUA;
 
     /**
      * Checks and increments the rate limit counter.
+     *
+     * @throws \AgVote\Core\Http\ApiResponseException in strict mode when limit is exceeded
      */
     public static function check(
         string $context,
@@ -34,12 +45,7 @@ final class RateLimiter {
         bool $strict = true,
     ): bool {
         $key = self::buildKey($context, $identifier);
-
-        if (self::useRedis()) {
-            $result = self::checkRedis($key, $maxAttempts, $windowSeconds);
-        } else {
-            $result = self::checkFile($key, $maxAttempts, $windowSeconds, time());
-        }
+        $result = self::checkRedis($key, $maxAttempts, $windowSeconds);
 
         if (!$result['allowed']) {
             if ($strict) {
@@ -47,222 +53,70 @@ final class RateLimiter {
             }
             return false;
         }
-
         return true;
     }
 
+    /**
+     * Returns true if the identifier has exceeded the rate limit (without incrementing).
+     */
     public static function isLimited(string $context, string $identifier, int $maxAttempts, int $windowSeconds): bool {
         $key = self::buildKey($context, $identifier);
-
-        if (self::useRedis()) {
-            return self::getCountRedis($key) >= $maxAttempts;
-        }
-
-        return self::getCountFile($key, $windowSeconds, time()) >= $maxAttempts;
+        return self::getCountRedis($key) >= $maxAttempts;
     }
 
+    /**
+     * Resets the rate limit counter for the given context + identifier.
+     */
     public static function reset(string $context, string $identifier): void {
         $key = self::buildKey($context, $identifier);
-
-        if (self::useRedis()) {
-            try {
-                $redis = RedisProvider::connection();
-                $redis->del($key);
-            } catch (Throwable) {
-                // fall through to file cleanup
-            }
-        }
-
-        $file = self::getFilePath($key);
-        if (file_exists($file)) {
-            @unlink($file);
-        }
+        $redis = RedisProvider::connection();
+        $redis->del($key);
     }
 
+    /**
+     * No-op. Redis TTL handles counter expiry automatically.
+     * Kept for API compatibility with callers that may invoke cleanup() on a schedule.
+     */
     public static function cleanup(int $maxAge = 3600): int {
-        // File cleanup (always run — may have legacy files)
-        if (!is_dir(self::$storageDir)) {
-            return 0;
-        }
-
-        $cleaned = 0;
-        $now = time();
-
-        foreach (glob(self::$storageDir . '/*') as $file) {
-            if (is_file($file) && ($now - filemtime($file)) > $maxAge) {
-                @unlink($file);
-                $cleaned++;
-            }
-        }
-
-        return $cleaned;
+        return 0;
     }
 
     // ── Redis backend ───────────────────────────────────────────────────
 
-    private static bool $redisWarningLogged = false;
-
-    private static function useRedis(): bool {
-        if (!RedisProvider::isAvailable()) {
-            if (!self::$redisWarningLogged) {
-                self::$redisWarningLogged = true;
-                error_log('[RateLimiter] Redis unavailable — falling back to file-based rate limiting');
-            }
-            return false;
-        }
-        try {
-            RedisProvider::connection();
-            return true;
-        } catch (Throwable) {
-            if (!self::$redisWarningLogged) {
-                self::$redisWarningLogged = true;
-                error_log('[RateLimiter] Redis connection failed — falling back to file-based rate limiting');
-            }
-            return false;
-        }
-    }
-
+    /**
+     * @return array{allowed: bool, remaining: int, retry_after?: int}
+     */
     private static function checkRedis(string $key, int $maxAttempts, int $windowSeconds): array {
+        $redis = RedisProvider::connection();
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
         try {
-            $redis = RedisProvider::connection();
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+            /** @var array{0: int, 1: int} $result */
+            $result = $redis->eval(self::RATE_LIMIT_LUA, [$key, (string) $windowSeconds], 1);
 
-            // Atomic increment + set TTL if new
-            $pipe = $redis->multi(Redis::PIPELINE);
-            $pipe->incr($key);
-            $pipe->ttl($key);
-            $results = $pipe->exec();
-
-            $count = (int) $results[0];
-            $ttl = (int) $results[1];
-
-            // If this is the first hit, set expiry
-            if ($count === 1 || $ttl < 0) {
-                $redis->expire($key, $windowSeconds);
-                $ttl = $windowSeconds;
-            }
-
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
+            $count = (int) $result[0];
+            $ttl = (int) $result[1];
 
             if ($count > $maxAttempts) {
-                return [
-                    'allowed' => false,
-                    'remaining' => 0,
-                    'retry_after' => max(1, $ttl),
-                ];
+                return ['allowed' => false, 'remaining' => 0, 'retry_after' => max(1, $ttl)];
             }
-
-            return [
-                'allowed' => true,
-                'remaining' => $maxAttempts - $count,
-            ];
-        } catch (Throwable $e) {
-            error_log('RateLimiter Redis error: ' . $e->getMessage());
-            // Fallback to file
-            return self::checkFile($key, $maxAttempts, $windowSeconds, time());
+            return ['allowed' => true, 'remaining' => $maxAttempts - $count];
+        } finally {
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
         }
     }
 
     private static function getCountRedis(string $key): int {
+        $redis = RedisProvider::connection();
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
         try {
-            $redis = RedisProvider::connection();
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
-            $count = (int) $redis->get($key);
+            return (int) $redis->get($key);
+        } finally {
             $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_JSON);
-            return $count;
-        } catch (Throwable) {
-            return 0;
         }
     }
-
-    // ── File backend (fallback) ─────────────────────────────────────────
 
     private static function buildKey(string $context, string $identifier): string {
         return "ratelimit:{$context}:" . hash('sha256', $identifier);
-    }
-
-    private static function checkFile(string $key, int $maxAttempts, int $windowSeconds, int $now): array {
-        self::ensureStorageDir();
-
-        $file = self::getFilePath($key);
-        $windowStart = $now - $windowSeconds;
-
-        $lockFile = $file . '.lock';
-        $lock = @fopen($lockFile, 'c');
-
-        if ($lock === false) {
-            error_log("RateLimiter: cannot open lock file {$lockFile} — denying request for safety");
-            return ['allowed' => false, 'remaining' => 0, 'retry_after' => $windowSeconds];
-        }
-
-        if (!flock($lock, LOCK_EX)) {
-            fclose($lock);
-            error_log("RateLimiter: cannot acquire lock on {$lockFile} — denying request for safety");
-            return ['allowed' => false, 'remaining' => 0, 'retry_after' => $windowSeconds];
-        }
-
-        try {
-            $timestamps = [];
-            if (file_exists($file)) {
-                $content = file_get_contents($file);
-                if ($content !== false) {
-                    $timestamps = array_filter(
-                        array_map('intval', explode("\n", trim($content))),
-                        fn ($t) => $t > $windowStart,
-                    );
-                }
-            }
-
-            $count = count($timestamps);
-
-            if ($count >= $maxAttempts) {
-                if (!empty($timestamps)) {
-                    sort($timestamps);
-                    $retryAfter = ($timestamps[0] + $windowSeconds) - $now;
-                } else {
-                    $retryAfter = $windowSeconds;
-                }
-                return ['allowed' => false, 'remaining' => 0, 'retry_after' => max(1, $retryAfter)];
-            }
-
-            $timestamps[] = $now;
-            file_put_contents($file, implode("\n", $timestamps));
-
-            return ['allowed' => true, 'remaining' => $maxAttempts - count($timestamps)];
-
-        } finally {
-            flock($lock, LOCK_UN);
-            fclose($lock);
-        }
-    }
-
-    private static function getCountFile(string $key, int $windowSeconds, int $now): int {
-        $file = self::getFilePath($key);
-        $windowStart = $now - $windowSeconds;
-
-        if (!file_exists($file)) {
-            return 0;
-        }
-
-        $content = file_get_contents($file);
-        if ($content === false) {
-            return 0;
-        }
-
-        return count(array_filter(
-            array_map('intval', explode("\n", trim($content))),
-            fn ($t) => $t > $windowStart,
-        ));
-    }
-
-    private static function getFilePath(string $key): string {
-        return self::$storageDir . '/' . preg_replace('/[^a-z0-9_:-]/i', '_', $key);
-    }
-
-    private static function ensureStorageDir(): void {
-        if (!is_dir(self::$storageDir)) {
-            @mkdir(self::$storageDir, 0o755, true);
-        }
     }
 
     private static function denyWithRetryAfter(int $retryAfter, string $context): never {
