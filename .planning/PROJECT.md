@@ -37,7 +37,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(Fresh for next milestone)
+(Defined in REQUIREMENTS.md for v1.1)
 
 ### Out of Scope
 
@@ -48,6 +48,18 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - PDFs de convocation/emargement — hors perimetre de l'app
 - Raccourcis clavier — hors perimetre
 
+## Current Milestone: v1.1 Coherence UI/UX et Wiring
+
+**Goal:** Rendre l'application professionnelle, moderne et coherente — etablir un design language uniforme, reparer le wiring JS/HTMX, et garantir zero bugs evidents via tests Playwright.
+
+**Target features:**
+- Etablir un design language moderne et pro (typographie, couleurs, espacements, composants) applique uniformement
+- Soigner le cosmetique sur les pages cles : accueil, login 2-panels (branding + formulaire)
+- Reparer le wiring JS/HTMX casse sur toutes les pages (event handlers, DOM selectors, HTMX targets)
+- Refactoriser l'UI/UX en profondeur si necessaire — pas de fonctionnel plat, un vrai rendu pro
+- Tests Playwright end-to-end — si ca casse dans un vrai browser, on repare
+- Zero bugs evidents constatables a l'utilisation
+
 ## Current State
 
 Shipped v1.0 — Dette Technique milestone complete. Application assainie:
@@ -56,10 +68,14 @@ Shipped v1.0 — Dette Technique milestone complete. Application assainie:
 - ImportController reduit de 921 a 149 lignes, logique metier dans ImportService
 - 251+ tests unitaires couvrant auth, RGPD, SSE, et import
 
-Tech debt reportee a v2:
+Tech debt reportee:
 - getDashboardStats() non branche dans DashboardController (perf unrealized)
 - MeetingReportsController (727 lignes) et MotionsController (720 lignes) non decoupes
 - 10/14 tests EventBroadcaster necessitent phpredis (Docker uniquement)
+
+UI/UX cassee apres v4.2:
+- Wiring JS/HTMX casse sur toutes les pages (event handlers, DOM selectors, HTMX targets)
+- Design incoherent et fonctionnel plat — pas au niveau professionnel attendu
 
 ## Context
 
@@ -108,4 +124,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after v1.0 milestone completion*
+*Last updated: 2026-04-07 after v1.1 milestone start*

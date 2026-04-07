@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 04-03-PLAN.md — EventBroadcasterTest extended with Redis connection loss and client reconnection tests, TEST-04 marked Complete
-last_updated: "2026-04-07T11:41:35.160Z"
+milestone: v1.1
+milestone_name: Coherence UI/UX et Wiring
+status: defining
+stopped_at: null
+last_updated: "2026-04-07T12:00:00.000Z"
 last_activity: 2026-04-07
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
-  percent: 37
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 03 — extraction-services-et-refactoring
+**Current focus:** Defining requirements for v1.1
 
 ## Current Position
 
-Phase: 04
-Plan: Not started
-Status: Executing Phase 03
-Last activity: 2026-04-07
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-07 — Milestone v1.1 started
 
-Progress: [███░░░░░░░] 37%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
