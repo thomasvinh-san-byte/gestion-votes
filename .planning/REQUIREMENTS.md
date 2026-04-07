@@ -16,10 +16,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Performance
 
-- [ ] **PERF-01**: PDO::ATTR_TIMEOUT configure pour connection timeout, statement_timeout PostgreSQL pour query timeout, configurable par environnement
-- [ ] **PERF-02**: MeetingStatsRepository utilise une seule requete d'aggregation avec FILTER au lieu de 10+ COUNT(*) separes
+- [x] **PERF-01**: PDO::ATTR_TIMEOUT configure pour connection timeout, statement_timeout PostgreSQL pour query timeout, configurable par environnement
+- [x] **PERF-02**: MeetingStatsRepository utilise une seule requete d'aggregation avec FILTER au lieu de 10+ COUNT(*) separes
 - [ ] **PERF-03**: ExportService utilise openspout/openspout pour streaming XLSX, memoire sub-3MB quelle que soit la taille des donnees
-- [ ] **PERF-04**: EmailQueueService traite les emails par lots (batch de 25), avec backpressure et pas de chargement complet en memoire
+- [x] **PERF-04**: EmailQueueService traite les emails par lots (batch de 25), avec backpressure et pas de chargement complet en memoire
 
 ### Refactoring
 
@@ -71,10 +71,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REDIS-02 | Phase 1 | Complete |
 | REDIS-03 | Phase 1 | Complete |
 | REDIS-04 | Phase 1 | Complete |
-| PERF-01 | Phase 2 | Pending |
-| PERF-02 | Phase 2 | Pending |
+| PERF-01 | Phase 2 | Complete |
+| PERF-02 | Phase 2 | Complete |
 | PERF-03 | Phase 2 | Pending |
-| PERF-04 | Phase 2 | Pending |
+| PERF-04 | Phase 2 | Complete |
 | REFAC-01 | Phase 3 | Pending |
 | TEST-01 | Phase 3 | Pending |
 | TEST-02 | Phase 3 | Pending |

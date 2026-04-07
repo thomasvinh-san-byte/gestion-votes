@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 01-infrastructure-redis plans 01-01 and 01-02
-last_updated: "2026-04-07T06:23:34.114Z"
-last_activity: 2026-04-07
+status: executing
+stopped_at: Completed 02-03-PLAN.md — PERF-04 satisfied, paginated member loading in all EmailQueueService schedule methods
+last_updated: "2026-04-07T06:56:46.206Z"
+last_activity: 2026-04-07 -- Completed Plan 02-01 (PDO timeouts + getDashboardStats)
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 25
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
+  percent: 37
 ---
 
 # Project State
@@ -21,30 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 01 — infrastructure-redis
+**Current focus:** Phase 02 — optimisations-memoire-et-requetes
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: All plans complete, awaiting verification
-Last activity: 2026-04-07
+Phase: 02 (optimisations-memoire-et-requetes) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 02
+Last activity: 2026-04-07 -- Completed Plan 02-01 (PDO timeouts + getDashboardStats)
 
-Progress: [██░░░░░░░░] 25%
+Progress: [███░░░░░░░] 37%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 2
-- Average duration: ~7 min
-- Total execution time: ~14 min
+- Total plans completed: 3
+- Average duration: ~6 min
+- Total execution time: ~19 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-infrastructure-redis | 2 | ~14 min | ~7 min |
+| 02-optimisations-memoire-et-requetes | 1 | ~5 min | ~5 min |
 
 **Recent Trend:**
 
@@ -53,6 +54,9 @@ Progress: [██░░░░░░░░] 25%
 
 *Updated after each plan completion*
 | Phase 01-infrastructure-redis P01 | 268 | 2 tasks | 5 files |
+| Phase 02-optimisations-memoire-et-requetes P01 | 275 | 1 task (TDD) | 4 files |
+| Phase 02-optimisations-memoire-et-requetes P02 | ~15 min | 2 tasks | 8 files |
+| Phase 02-optimisations-memoire-et-requetes P03 | 5 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -67,6 +71,13 @@ Progress: [██░░░░░░░░] 25%
 - [Phase 01-infrastructure-redis]: HEARTBEAT_KEY='sse:server:active' written by events.php each loop with EX 90 — TTL auto-expires on process death
 - [Phase 01-infrastructure-redis]: isServerRunning() now checks Redis key existence, not /tmp PID file — eliminates false positives from orphan PID files
 - [Phase 01-infrastructure-redis]: All OPT_SERIALIZER toggles wrapped in try/finally to prevent serializer state leaking on exception
+- [Phase 02-optimisations-memoire-et-requetes P01]: PDO::ATTR_TIMEOUT => 10 added to all connections; statement_timeout configurable via DB_STATEMENT_TIMEOUT_MS (default 30000ms, 0 disables)
+- [Phase 02-optimisations-memoire-et-requetes P01]: getDashboardStats() uses scalar subqueries (not JOIN+FILTER) to avoid Cartesian products across 5 independent tables
+- [Phase 02-optimisations-memoire-et-requetes P02]: openspout/openspout v5.6 chosen for XLSX streaming (constant memory vs PhpSpreadsheet in-memory DOM)
+- [Phase 02-optimisations-memoire-et-requetes P02]: selectGenerator() in AbstractRepository yields PDO rows one-at-a-time via fetch loop — never fetchAll for streaming paths
+- [Phase 02-optimisations-memoire-et-requetes P02]: streamFullXlsx() always creates Votes sheet when includeVotes=true even with empty generator — no iterator_to_array check
+- [Phase 02-optimisations-memoire-et-requetes]: ORDER BY id for stable OFFSET pagination in listActiveWithEmailPaginated; OFFSET acceptable here due to email idempotency (onlyUnsent check)
+- [Phase 02-optimisations-memoire-et-requetes]: processQueue default batch size changed 50→25 satisfying PERF-04; scheduleInvitations/Reminders/Results use do-while paginated loop with batch=25
 
 ### Pending Todos
 
@@ -80,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T06:18:39.681Z
-Stopped at: Completed 01-infrastructure-redis plans 01-01 and 01-02
+Last session: 2026-04-07T06:56:46.203Z
+Stopped at: Completed 02-03-PLAN.md — PERF-04 satisfied, paginated member loading in all EmailQueueService schedule methods
 Resume file: None
