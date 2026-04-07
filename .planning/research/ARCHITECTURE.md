@@ -1,451 +1,422 @@
 # Architecture Research
 
-**Domain:** PHP technical debt reduction — brownfield MVC voting application
+**Domain:** UI/UX coherence + Playwright E2E tests for existing PHP 8.4 + HTMX app
 **Researched:** 2026-04-07
-**Confidence:** HIGH (existing codebase analyzed directly; refactoring patterns verified with multiple sources)
+**Confidence:** HIGH — based on direct codebase inspection
 
 ## Standard Architecture
 
 ### System Overview
 
-Current state — components and their debt locations:
-
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        HTTP Entry Point                              │
-│  public/index.php  →  Router  →  Middleware Chain                   │
-├─────────────────────────────────────────────────────────────────────┤
-│                     Middleware & Security                            │
-│  ┌──────────────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  AuthMiddleware       │  │ RateLimitGuard│  │  CsrfMiddleware  │  │
-│  │  [DEBT: 10+ statics] │  │ [DEBT: files]│  │  [OK]            │  │
-│  └──────────────────────┘  └──────────────┘  └──────────────────┘  │
-├─────────────────────────────────────────────────────────────────────┤
-│                          Controllers                                  │
-│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────────┐  │
-│  │ ImportController│  │MeetingReports  │  │  MotionsController   │  │
-│  │ [DEBT: 921 LOC]│  │[DEBT: 727 LOC] │  │  [DEBT: 720 LOC]     │  │
-│  └────────┬───────┘  └───────┬────────┘  └──────────┬───────────┘  │
-│           │                  │                       │              │
-├───────────┴──────────────────┴───────────────────────┴──────────────┤
-│                       Service Layer                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │
-│  │BallotsService│  │ExportService │  │  EmailQueueService        │  │
-│  │  [OK]        │  │[DEBT: memory]│  │  [DEBT: full queue load]  │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────────┘  │
-├─────────────────────────────────────────────────────────────────────┤
-│                      Repository Layer                                 │
-│  ┌───────────────────┐  ┌────────────────────────────────────────┐  │
-│  │MeetingStatsRepo   │  │  Other Repositories (OK)               │  │
-│  │[DEBT: 10+ COUNTs] │  │  MeetingRepository, BallotRepository   │  │
-│  └───────────────────┘  └────────────────────────────────────────┘  │
-├─────────────────────────────────────────────────────────────────────┤
-│                      Infrastructure                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │
-│  │  PostgreSQL  │  │    Redis     │  │  SSE/EventBroadcaster     │  │
-│  │  [no timeout]│  │  [already    │  │  [DEBT: file fallback,    │  │
-│  │              │  │   present]   │  │   PID-file health check]  │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         BROWSER (Client)                                 │
+│  ┌──────────────┐  ┌────────────────┐  ┌─────────────────────────────┐  │
+│  │ *.htmx.html  │  │  *.html        │  │  Custom Elements (ag-*)     │  │
+│  │  (app pages) │  │ (login/public) │  │  Web Components             │  │
+│  └──────┬───────┘  └───────┬────────┘  └─────────────┬───────────────┘  │
+│         │                  │                          │                  │
+│  ┌──────▼──────────────────▼──────────────────────────▼───────────────┐  │
+│  │              JS Layer (IIFE modules, no bundler)                    │  │
+│  │  core/: shell.js, shared.js, page-components.js, utils.js          │  │
+│  │  pages/: dashboard.js, operator-*.js, meetings.js, ...             │  │
+│  │  components/: ag-modal.js, ag-toast.js, ag-badge.js, ...           │  │
+│  │  services/: meeting-context.js                                      │  │
+│  └──────────────────────────────┬──────────────────────────────────────┘  │
+│                                 │ fetch() / SSE                          │
+└─────────────────────────────────┼──────────────────────────────────────┘
+                                  │ HTTP
+┌─────────────────────────────────▼──────────────────────────────────────┐
+│                         PHP 8.4 Server                                   │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  Router (app/Core/Router.php) + SecurityProvider                 │   │
+│  ├──────────────────────────────────────────────────────────────────┤   │
+│  │  Controllers:  API Controllers  │  HTML Controllers              │   │
+│  │  (extend AbstractController)    │  (use HtmlView::render())      │   │
+│  ├──────────────────────────────────────────────────────────────────┤   │
+│  │  Services: VoteEngine, BallotsService, MeetingWorkflowService    │   │
+│  ├──────────────────────────────────────────────────────────────────┤   │
+│  │  Repositories: MeetingRepository, BallotRepository, ...          │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌──────────────┐  ┌──────────────────┐                                  │
+│  │  PostgreSQL  │  │   Redis          │  (sessions, SSE events,          │
+│  └──────────────┘  └──────────────────┘   rate-limit counters)          │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│                     Playwright E2E Tests                                 │
+│  tests/e2e/playwright.config.js                                          │
+│  tests/e2e/specs/*.spec.js    (15+ spec files, per page/feature)        │
+│  tests/e2e/setup/auth.setup.js (global: 4 role logins via API)          │
+│  tests/e2e/helpers.js          (auth injection, shared constants)        │
+│  tests/e2e/.auth/{role}.json   (cached PHPSESSID per role)              │
+│                                                                          │
+│  Requires: Docker stack running at localhost:8080                        │
+│  Seed data: database/seeds/04_e2e.sql (fixed UUIDs for determinism)     │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Debt Status |
-|-----------|----------------|-------------|
-| `Router` | Route table dispatch, middleware wiring | Clean |
-| `AuthMiddleware` | Session validation, RBAC, tenant isolation | Critical debt: 10+ static vars, test injection |
-| `RateLimitGuard` | Per-context sliding window enforcement | Critical debt: file locks in /tmp |
-| `ImportController` | CSV/XLSX member import orchestration | Critical debt: 921 LOC, business logic inline |
-| `MeetingReportsController` | Report generation orchestration | Moderate debt: 727 LOC |
-| `MotionsController` | Motion/vote lifecycle orchestration | Moderate debt: 720 LOC |
-| `ExportService` | XLSX/PDF generation | Critical debt: full in-memory load |
-| `EmailQueueService` | Async email processing | Moderate debt: full queue in memory |
-| `MeetingStatsRepository` | Meeting dashboard statistics | Moderate debt: 10+ individual COUNT queries |
-| `EventBroadcaster` (SSE) | Real-time event push to clients | Critical debt: /tmp file queue, PID-file health |
-| `DatabaseProvider` | PDO singleton | Critical debt: no timeouts configured |
-| All Repositories | Typed SQL access via PDO | Clean pattern, no changes needed |
-| `BallotsService` | Vote casting with concurrency guards | Clean |
-| `QuorumEngine` | Quorum calculation | Clean |
+| Component | Responsibility | Location |
+|-----------|---------------|---------|
+| `design-system.css` | All CSS custom properties (tokens), base reset, component styles | `public/assets/css/design-system.css` (5278 lines) |
+| `app.css` | Single entry point — imports design-system.css + pages.css, adds app-level overrides | `public/assets/css/app.css` (809 lines) |
+| `pages.css` | Page-specific styles extracted from inline HTML `<style>` blocks | `public/assets/css/pages.css` (1433 lines) |
+| Per-page CSS | One CSS file per page for login/report/wizard/etc. (not included in app.css) | `public/assets/css/{page}.css` |
+| Custom Elements | 20+ `ag-*` web components (modal, toast, badge, spinner, etc.) | `public/assets/js/components/ag-*.js` |
+| `core/` JS | Shell layout (sidebar, drawer, theme), shared utilities, HTMX page-component patterns | `public/assets/js/core/` |
+| `pages/` JS | Per-page logic — event handlers, API calls, DOM wiring | `public/assets/js/pages/{page}.js` |
+| `.htmx.html` pages | App shell + content area HTML. Sidebar loaded via `fetch('/partials/sidebar.html')` | `public/*.htmx.html` |
+| `partials/sidebar.html` | Shared navigation sidebar, loaded asynchronously by `shared.js` | `public/partials/sidebar.html` |
+| Playwright config | Multi-browser config (chromium, firefox, webkit, mobile, tablet) | `tests/e2e/playwright.config.js` |
+| Playwright specs | One spec file per page or feature domain | `tests/e2e/specs/*.spec.js` |
+| Auth setup | Global setup: 4 API logins → `.auth/{role}.json` (run once before all tests) | `tests/e2e/setup/auth.setup.js` |
+| E2E seed data | PostgreSQL seed with fixed UUIDs for deterministic test state | `database/seeds/04_e2e.sql` |
 
-## Refactoring Build Order
+---
 
-The ordering principle: **remove production risks before improving code structure**. A crash in prod is worse than a fat controller.
+## Recommended Project Structure
 
-### Phase 1: Infrastructure Hardening (no API surface changes)
-
-These changes are self-contained. Each can be merged independently. No controller changes, no API breakage.
-
-**1a. PDO Timeouts**
-
-Add to `DatabaseProvider` DSN or `setAttribute()` calls:
-- `PDO::ATTR_TIMEOUT` for connection timeout (TCP connect only)
-- Execute `SET statement_timeout = '30s'` immediately after connect for query-level protection
-- Requires `PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION` to take effect
-
-Safe because: additive change, no existing callers change. Catch `PDOException` already in `AbstractController::handle()`.
-
-**1b. Redis Rate Limiting**
-
-Replace `RateLimiter` file-based locking with Redis atomic `INCR` + `EXPIRE`:
-- Redis is already configured via `RedisProvider` — no new dependency
-- Sliding window: store counter in key `ratelimit:{context}:{client}`, set TTL on first increment
-- Atomic via `MULTI`/`EXEC` or Lua script to prevent TOCTOU
-- Drop all `/tmp/agvote-ratelimit-*.lock` files
-
-Safe because: `RateLimitGuard` is called from Router middleware, interface stays identical.
-
-**1c. Redis SSE Queue + PID Removal**
-
-Replace `EventBroadcaster` file queue with Redis List:
-- `RPUSH agvote:sse:{meeting_id}` to publish, `BLPOP` with timeout to consume
-- TTL on the list key (e.g., 24h) prevents unbounded growth
-- Replace `/tmp/agvote-sse.pid` health check with Redis key `agvote:sse:heartbeat` with 10s TTL, refreshed by SSE server loop
-- Remove `MAX_FILE_SIZE` 1000-event queue cap — Redis list has no hard cap by default
-
-Safe because: `EventBroadcaster` interface stays identical from caller's perspective. Internal transport swapped.
-
-### Phase 2: Query & Memory Optimizations (no API surface changes)
-
-These require changing SQL or data processing but not controller signatures.
-
-**2a. MeetingStatsRepository Aggregation**
-
-Replace 10+ individual `COUNT(*)` queries with one query using PostgreSQL `FILTER` clause:
-
-```sql
-SELECT
-  COUNT(*) FILTER (WHERE attendance_mode = 'present') AS present_count,
-  COUNT(*) FILTER (WHERE attendance_mode = 'proxy')   AS proxy_count,
-  COUNT(*) FILTER (WHERE voted = true)                 AS voted_count,
-  -- ... remaining stats
-FROM attendances
-WHERE meeting_id = :meeting_id
-```
-
-Safe because: the repository method signatures remain the same. Callers receive the same data structure.
-
-**2b. ExportService Streaming**
-
-Replace `PhpSpreadsheet` full-load with streaming approach:
-- Option A: Use `openspout/openspout` (successor to `box/spout`) — streams row-by-row, low memory footprint (MEDIUM confidence — verify current package name)
-- Option B: Chunk `array_map()` transformations, flush via `ob_flush()` between sheets
-- For very large meetings (10k+ rows): offer CSV download path as fallback (no library required)
-
-The key constraint: `ExportController` must stream directly to `php://output` with correct `Content-Disposition` headers rather than building in memory first.
-
-**2c. EmailQueueService Pagination**
-
-Replace full queue load with batch cursor:
-- `LIMIT 50 OFFSET 0` processing loop
-- After batch completes, query next batch; stop when query returns empty
-- Add `max_attempts` column check to skip permanently failed messages
-
-### Phase 3: Service Extraction (changes controller internal structure only)
-
-The Strangler Fig approach: extract business logic into services, keep controllers as thin HTTP adapters. API signatures must not change.
-
-**Principle:** Extract, do not rewrite. Move code block by block with tests before and after each move.
-
-**3a. ImportController (921 LOC → target: <150 LOC)**
-
-Extract in this order:
-1. `ImportValidationService` — file type checks, size validation, column mapping validation
-2. `CsvParserService` (or reuse `ImportService` if it already exists) — streaming row parsing, fuzzy header matching
-3. `MemberImportService` — business rules: deduplication, upsert logic, error reporting
-4. Leave in `ImportController`: read file handle from request, call services in sequence, return JSON
-
-Tests to write before extraction: fuzzy column matching edge cases (partial match, case sensitivity).
-
-**3b. AuthMiddleware Static State (871 LOC, 10+ statics)**
-
-This is the highest-risk extraction. Order matters:
-
-1. First: add a comprehensive `AuthMiddlewareTest` covering all static state transitions (SESSION_REVALIDATE_INTERVAL, multi-tenant timeout cache). Do not extract yet.
-2. Then: introduce a `SessionContext` value object holding `currentUserId`, `currentTenantId`, `currentMeetingId`, `currentMeetingRoles`. Pass as constructor argument.
-3. Move static getters (`api_current_user_id()` etc.) to read from a request-scoped `SessionContext` stored in a well-known location (e.g., request attribute or thread-local equivalent).
-4. Replace `$testSessionTimeout` / `$testTimeoutTenantId` injection with proper constructor injection of a `SessionTimeoutResolver` interface — implementable with a test double.
-
-**3c. MeetingReportsController and MotionsController**
-
-Only after extracting their business logic into services:
-- `MeetingReportService` likely already exists — verify what remains inline in the controller
-- `MotionsController`: extract vote state transition logic into `VoteLifecycleService`
-- Split the controller file only if distinct concerns remain (e.g., one class for reads, one for writes)
-
-### Phase 4: Test Coverage Gaps
-
-Fill test gaps introduced by Phase 3 extractions and previously uncovered areas:
-
-| Target | What to Test | Priority |
-|--------|-------------|----------|
-| `RgpdExportController` | Data scope validation (own-data only), unauthorized rejection | High |
-| `AuthMiddleware` static transitions | SESSION_REVALIDATE_INTERVAL cache invalidation lifecycle | High |
-| `EventBroadcaster` (post-Redis) | Queue overflow, consumer reconnect, heartbeat expiry | Medium |
-| `ImportController` fuzzy matching | Partial column name match, case sensitivity, missing columns | Medium |
-| `BallotsService` race conditions | Concurrent ballot transitions | Medium |
-
-## Component Boundaries
-
-### What Talks to What (dependency direction)
+The structure already exists. New files must fit within it. Do not introduce new directories.
 
 ```
-HTTP Request
-    ↓
-Router → [AuthMiddleware → RateLimitGuard → CsrfMiddleware]
-    ↓
-Controller
-    ↓  calls
-Services (BallotsService, ExportService, ImportService, EmailQueueService)
-    ↓  calls
-Repositories (MeetingRepository, BallotRepository, MeetingStatsRepository)
-    ↓  calls
-PDO → PostgreSQL
+public/
+├── assets/
+│   ├── css/
+│   │   ├── design-system.css   ← ONLY place for CSS tokens + base components
+│   │   ├── app.css             ← Entry point (imports design-system + pages)
+│   │   ├── pages.css           ← Page-generic styles extracted from HTML
+│   │   ├── login.css           ← Per-page: login only (loaded via <link>)
+│   │   ├── wizard.css          ← Per-page: wizard only
+│   │   └── {page}.css          ← Add new per-page files here only if needed
+│   ├── js/
+│   │   ├── components/
+│   │   │   └── ag-{name}.js    ← Web components (self-contained)
+│   │   ├── core/
+│   │   │   ├── shell.js        ← Sidebar/drawer/theme — loaded on all pages
+│   │   │   ├── shared.js       ← Sidebar loader, label maps, modal helpers
+│   │   │   ├── page-components.js ← TabManager, FilterManager, etc.
+│   │   │   └── utils.js        ← Escape helpers, formatters
+│   │   ├── pages/
+│   │   │   └── {page}.js       ← One file per page for page-specific logic
+│   │   └── services/
+│   │       └── meeting-context.js ← Meeting ID state across pages
+│   └── vendor/
+│       ├── htmx.min.js         ← HTMX (copied from node_modules by npm script)
+│       └── chart.umd.js        ← Chart.js (copied from node_modules)
+├── partials/
+│   └── sidebar.html            ← Shared sidebar HTML (fetched async)
+└── *.htmx.html                 ← App shell pages (one per route)
 
-Controllers also call:
-    EventBroadcaster → Redis (after migration)
-    RepositoryFactory (singleton) → Repositories
-
-AuthMiddleware calls:
-    Redis (session) → falls back to DB session
-    UserRepository (60s revalidation)
+tests/e2e/
+├── playwright.config.js        ← Multi-browser config, auth setup reference
+├── helpers.js                  ← loginAs*, credentials, E2E UUIDs
+├── setup/
+│   └── auth.setup.js           ← Global: logs in 4 roles via API before tests
+├── specs/
+│   └── {feature}.spec.js       ← Tests named after features/pages, NOT controllers
+└── .auth/                      ← Runtime: {role}.json cached session cookies
+    └── (gitignored)
 ```
 
-**Inversion rules that must not be violated:**
-- Repositories never call Services
-- Services never call Controllers
-- Controllers never call other Controllers
-- Infrastructure (Redis, PDO) never knows about domain objects
+### Structure Rationale
 
-### Shared Infrastructure (cross-cutting, not a layer)
+- **`design-system.css` is the only token source:** All CSS custom properties (`--color-*`, `--space-*`, `--text-*`, etc.) live here. Component CSS in per-page files must use tokens, never raw values. This is the established contract — violating it creates maintenance chaos.
+- **`app.css` is the universal entry point:** Every `.htmx.html` includes exactly `<link rel="stylesheet" href="/assets/css/app.css">`. Per-page CSS files (`login.css`, `wizard.css`) are loaded via additional `<link>` only for pages that need them.
+- **HTMX is only loaded where needed:** Most pages are custom-JS-driven (fetch-based). Only `postsession.htmx.html` and `vote.htmx.html` include `htmx.min.js`. The "HTMX app" label is partly aspirational — the bulk of pages use vanilla JS calling REST APIs.
+- **Sidebar is fetched async:** `shared.js` does `fetch('/partials/sidebar.html')` and injects it into `<aside data-include-sidebar>`. This means sidebar DOM is unavailable at DOMContentLoaded. Playwright tests targeting sidebar elements must `waitForSelector` or use `networkidle`.
+- **Playwright auth is session-cookie-based:** `auth.setup.js` calls the API login endpoint once per role, stores `PHPSESSID` in `.auth/{role}.json`. `helpers.js` injects these cookies before each test, avoiding the 10/300s rate limit. Tests that deliberately test the login UX form (8 total across suite) stay safely under the limit.
+- **E2E test data is deterministic:** `database/seeds/04_e2e.sql` uses fixed UUIDs (`eeeeeeee-e2e0-...`) that match constants in `helpers.js`. Tests reset only the records they need, not the whole database.
 
-| Concern | Current Implementation | After Milestone |
-|---------|----------------------|-----------------|
-| Rate limiting | File locks `/tmp/` | Redis INCR+EXPIRE |
-| SSE queue | File queue `/tmp/` + PID file | Redis List + TTL heartbeat key |
-| Session storage | Redis (already) or DB fallback | Redis only |
-| PDO connection | No timeouts | Connection timeout + statement_timeout |
-| Audit logging | `audit_log()` global function | Unchanged |
-
-## Data Flow
-
-### Request Flow (post-refactoring, unchanged externally)
-
-```
-HTTP Request
-    ↓
-public/index.php (front controller)
-    ↓
-Router::dispatch()
-    ↓
-AuthMiddleware (reads session from Redis → validates → sets SessionContext)
-    ↓
-RateLimitGuard (Redis INCR — replaces file locks)
-    ↓
-Controller::handle() [<150 LOC after extraction]
-    ↓
-Service calls (extracted business logic)
-    ↓
-Repository calls (PDO with statement_timeout)
-    ↓
-PostgreSQL
-    ↓
-api_ok() / api_fail() → JSON response
-```
-
-### SSE Event Flow (after Redis migration)
-
-```
-Domain event (e.g., ballot cast)
-    ↓
-EventDispatcher::dispatch()
-    ↓
-SseListener::onEvent()
-    ↓
-Redis RPUSH agvote:sse:{meeting_id}   ← replaces file write + flock
-    ↓
-SSE server process (long-poll loop)
-    BLPOP agvote:sse:{meeting_id} timeout=5
-    ↓
-text/event-stream response to browser
-    ↓
-Redis SETEX agvote:sse:heartbeat 10   ← replaces /tmp PID file
-```
-
-### Export Flow (after streaming fix)
-
-```
-ExportController receives request
-    ↓
-Set header: Content-Disposition: attachment; filename=export.xlsx
-Set header: Content-Type: application/vnd.openxmlformats...
-    ↓
-Open php://output as write stream
-    ↓
-ExportService::streamFullExport(meetingId, outputStream)
-    ↓
-For each data chunk (50 rows):
-    Repository query (paginated)
-    ↓
-    Write rows to stream writer (openspout or chunked PhpSpreadsheet)
-    ↓
-    ob_flush() — release memory for next chunk
-    ↓
-Close stream → response complete
-```
-
-### Email Queue Flow (after pagination fix)
-
-```
-Cron: bin/console email:process
-    ↓
-EmailQueueService::processQueue()
-    ↓
-Loop:
-    SELECT * FROM email_queue WHERE status='pending' LIMIT 50
-    ↓
-    For each email: send via MailerService → mark sent
-    ↓
-    Repeat until query returns 0 rows
-    ↓
-    Sleep until next cron interval
-```
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Strangler Fig for Controller Extraction
+### Pattern 1: CSS Token Cascade (design-system.css to component CSS)
 
-**What:** Extract business logic method-by-method into service classes while keeping the controller signature unchanged. Old code and new service coexist briefly.
+**What:** All visual values go through CSS custom properties defined in `:root` in `design-system.css`. Component CSS references tokens, never raw values.
 
-**When to use:** Any controller > 300 LOC with inline business logic.
+**When to use:** Every time new or modified CSS is written.
 
-**Trade-offs:** Requires writing tests before moving code. Slower than a rewrite. Much safer.
+**Trade-offs:** High consistency, tokens documented in one place. Cost: finding the right token name requires reading design-system.css.
 
-**Steps:**
-1. Write characterization tests for the method being extracted (tests that assert current behavior, not ideal behavior)
-2. Create new service class with the extracted logic
-3. Replace controller method body with service call
-4. Run tests — they must pass unchanged
-5. Delete dead code (old inline logic)
+**Example:**
+```css
+/* CORRECT — tokens only */
+.my-component {
+  background: var(--color-surface);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
 
-### Pattern 2: Value Object for Request Context
-
-**What:** Replace `AuthMiddleware` static variables with a `SessionContext` value object created per-request and injected where needed.
-
-**When to use:** Any static state that should be request-scoped.
-
-**Trade-offs:** Requires changing function signatures (e.g., `api_current_user_id()` global function becomes `$ctx->getUserId()`). Thread-safe. Testable without static reset.
-
-**Example migration path:**
-```php
-// Before (static):
-AuthMiddleware::$currentUserId = $user['id'];
-// ... later:
-$id = api_current_user_id(); // reads static
-
-// After (injected):
-$ctx = new SessionContext(userId: $user['id'], tenantId: ...);
-// passed via constructor or request attribute
-$id = $ctx->getUserId();
+/* WRONG — raw values create drift */
+.my-component {
+  background: #F2F0EB;  /* bypasses dark-mode token overrides */
+  padding: 16px;         /* not aligned to spacing scale */
+}
 ```
 
-### Pattern 3: Repository Aggregation Query
+### Pattern 2: CSS `@layer` for Override Safety
 
-**What:** Replace N sequential `COUNT(*)` queries with one query using `COUNT(*) FILTER (WHERE condition)`.
+**What:** `design-system.css` declares `@layer base, components, v4;`. Base reset goes in `@layer base`, component styles in `@layer components`. Page-level CSS outside a layer wins over all layered styles.
 
-**When to use:** Any repository method that makes multiple queries to the same table to compute related statistics.
+**When to use:** Any new component style added to `design-system.css` should go in `@layer components`. Page overrides in per-page CSS files need no layer — they win by cascade order.
 
-**Trade-offs:** More complex SQL, but eliminates N-1 round trips. Easier to cache (one cache key, not N).
+**Trade-offs:** Prevents specificity wars. Requires understanding which layer a rule belongs to.
 
-### Pattern 4: Redis Key TTL as Health Signal
+### Pattern 3: Web Components for Reusable UI (ag-*)
 
-**What:** SSE server process writes `SETEX agvote:sse:heartbeat 10` every 5 seconds. Consumers check key existence instead of reading PID files.
+**What:** Reusable UI elements are implemented as custom elements (`ag-modal`, `ag-toast`, `ag-badge`, etc.) in `public/assets/js/components/`. They are instantiated declaratively in HTML with attributes.
 
-**When to use:** Any liveness signal that crosses process boundaries.
+**When to use:** Any UI element used on 3+ pages, or any element with internal state (show/hide, loading, etc.).
 
-**Trade-offs:** Requires SSE process to have Redis access (already true). TTL must be 2x the write interval. Stale key auto-expires — no manual cleanup needed.
+**Trade-offs:** Self-contained, no framework needed. Cost: verbose attribute-based API, no JSX/template syntax. Cannot use `import` — scripts are loaded as plain `<script>` tags.
 
-## Anti-Patterns
+**Example:**
+```html
+<!-- Usage in HTML -->
+<ag-toast id="myToast"></ag-toast>
+<ag-modal id="confirmModal" title="Confirmer ?">
+  <p>Action irreversible.</p>
+</ag-modal>
+```
 
-### Anti-Pattern 1: Extracting Without Tests First
+```javascript
+// Programmatic control in page JS
+document.getElementById('myToast').show('Enregistre', 'success');
+document.getElementById('confirmModal').open();
+```
 
-**What people do:** Move code to a new service class, then write tests.
+### Pattern 4: Sidebar Async Load Pattern
 
-**Why it's wrong:** Silent behavioral changes during extraction. Tests written after the fact test the new behavior, not whether it matches the old behavior. Bugs introduced during extraction go undetected.
+**What:** Every `.htmx.html` page has `<aside class="app-sidebar" data-include-sidebar data-page="{pageName}"></aside>`. `shared.js` detects this, fetches `/partials/sidebar.html`, injects it, and sets the active nav link.
 
-**Do this instead:** Write characterization tests against the controller method before touching it. Move code. Run same tests.
+**When to use:** Every app shell page.
 
-### Anti-Pattern 2: Splitting Before Extracting
+**Trade-offs:** Sidebar HTML is fresh on each navigation (no stale state). Cost: sidebar DOM is unavailable synchronously at DOMContentLoaded — any code targeting sidebar elements must bind after the fetch resolves.
 
-**What people do:** See `MeetingReportsController` at 727 LOC and immediately split into two controller files.
+**Playwright implication:** Tests checking sidebar state must use `page.waitForLoadState('networkidle')` or `page.waitForSelector('.app-sidebar a')` before asserting sidebar content.
 
-**Why it's wrong:** Splitting distributes debt across more files without reducing it. You now have two 360-LOC controllers with the same inline business logic problem.
+### Pattern 5: Role-Based Auth Injection for Playwright
 
-**Do this instead:** Extract business logic into services first. Only split if the controller is still too large after extraction and serves genuinely distinct concerns.
+**What:** `auth.setup.js` (global setup) calls `POST /api/v1/auth_login.php` once per role, saves `PHPSESSID` to `.auth/{role}.json`. `helpers.js` `loginAs*` functions inject these cookies via `page.context().addCookies()` rather than filling the login form.
 
-### Anti-Pattern 3: Removing File Fallback Before Redis is Validated
+**When to use:** All Playwright tests that require an authenticated session. Only tests explicitly testing the login form UX should use `loginWithEmail()`.
 
-**What people do:** Delete the file-based SSE queue in the same commit that adds the Redis queue.
+**Trade-offs:** Avoids the 10-request/300s rate limit when running specs in parallel. Cost: auth state must be refreshed if sessions expire (run global setup again).
 
-**Why it's wrong:** If Redis is misconfigured in production, the entire SSE system fails with no fallback. Debugging a production outage with no fallback is painful.
+**Example:**
+```javascript
+const { loginAsOperator } = require('../helpers');
 
-**Do this instead:** Shadow-write to Redis alongside files for one release cycle. Validate Redis events are received correctly. Then remove file path.
+test.beforeEach(async ({ page }) => {
+  await loginAsOperator(page);  // injects PHPSESSID — no form interaction
+});
 
-### Anti-Pattern 4: Global statement_timeout Without Per-Route Awareness
+test('should see dashboard', async ({ page }) => {
+  await page.goto('/dashboard.htmx.html');
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('.page-title')).toBeVisible();
+});
+```
 
-**What people do:** Set `statement_timeout = 5s` globally in postgresql.conf.
+### Pattern 6: E2E Seed Data with Fixed UUIDs
 
-**Why it's wrong:** Export queries and batch operations legitimately take longer. A global 5s timeout breaks valid long-running operations.
+**What:** `database/seeds/04_e2e.sql` inserts test fixtures with deterministic UUIDs in the `eeeeeeee-e2e0-*` range. `helpers.js` exports these as constants (`E2E_MEETING_ID`, `E2E_MOTION_1`, etc.).
 
-**Do this instead:** Set a permissive global default (e.g., `30s`), then override per-operation: `SET LOCAL statement_timeout = '300s'` inside long-running transactions.
+**When to use:** Any Playwright test that needs a meeting, member, or motion to exist. Reference constants from `helpers.js`, not hardcoded strings.
+
+**Trade-offs:** Tests are reproducible. Cost: seed must be re-applied if test data is mutated by a destructive test. `04_e2e.sql` starts with DELETEs to reset state before re-inserting.
+
+---
+
+## Data Flow
+
+### CSS Rendering Flow
+
+```
+Browser request for *.htmx.html
+    ↓
+<link rel="stylesheet" href="/assets/css/app.css">
+    ↓ app.css
+@import design-system.css   (tokens, base reset, all components)
+@import pages.css            (page-level extracted styles)
+    ↓ (optional per-page)
+<link rel="stylesheet" href="/assets/css/login.css">  (login page only)
+    ↓
+CSS custom properties from :root cascade to all elements
+Dark mode: [data-theme="dark"] overrides token values
+    ↓
+theme-init.js runs synchronously in <head> to set data-theme
+before paint (avoids flash of wrong theme)
+```
+
+### Page Bootstrap Flow (JS)
+
+```
+HTML loads → theme-init.js sets data-theme (sync, in <head>)
+    ↓
+DOMContentLoaded fires
+    ↓ (all pages)
+shared.js: fetch('/partials/sidebar.html') → inject into <aside>
+    ↓
+shell.js: bind sidebar pin, theme toggle, drawer system
+    ↓
+page-specific JS (e.g. dashboard.js): initialize page components
+    ↓
+Custom elements (ag-*) upgrade: connectedCallback() runs
+    ↓
+API calls: fetch('/api/v1/{endpoint}') → JSON → DOM update
+    ↓ (SSE pages only)
+event-stream.js: EventStream.connect(meetingId) → Redis SSE
+```
+
+### Playwright Test Flow
+
+```
+npm run test:e2e
+    ↓
+playwright.config.js: trigger globalSetup (auth.setup.js)
+    ↓
+auth.setup.js: POST /api/v1/auth_login.php x 4 roles
+    → writes .auth/{role}.json
+    ↓
+Specs run in parallel (fullyParallel: true, CI: 1 worker)
+    ↓
+test.beforeEach: loginAs*(page) → addCookies from .auth file
+    ↓
+page.goto('/target.htmx.html')
+page.waitForLoadState('networkidle')  ← wait for sidebar fetch
+    ↓
+Assertions on DOM state, API responses, visible text
+```
+
+---
 
 ## Integration Points
 
-### External Services
+### New CSS vs Existing Templates
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| PostgreSQL | PDO singleton per process | Add `ATTR_TIMEOUT` + `SET statement_timeout` at connect time |
-| Redis | `RedisProvider` singleton | Already used for sessions; extend for rate limiting and SSE |
-| Symfony Mailer | `MailerService` wrapper | Synchronous in-process; EmailQueueService batches calls |
-| PhpSpreadsheet | `ExportService` | Replace full-load with streaming writer (openspout) |
+| What to modify | How | Risk |
+|---------------|-----|------|
+| Fix broken component style | Edit `design-system.css` in `@layer components` section | LOW — scoped by component class |
+| Add new design token | Add to `:root` in `design-system.css` primitives section | LOW — additive |
+| Page-level fix | Edit matching `{page}.css` or `pages.css` | LOW — isolated |
+| Change app shell (sidebar/header) | Modify `design-system.css` + verify `partials/sidebar.html` | MEDIUM — affects all pages |
 
-### Internal Boundaries
+**Rule:** Never add `<style>` blocks to `.htmx.html` pages. Extract to `pages.css` or a per-page CSS file.
 
-| Boundary | Communication | Constraint |
-|----------|---------------|------------|
-| Controller → Service | Direct method call | Controller must not contain business logic |
-| Service → Repository | Direct method call via `RepositoryFactory` | Services must not write raw SQL |
-| Middleware → Controller | Router dispatch; middleware sets request context | AuthMiddleware sets `SessionContext`, not global statics |
-| EventBroadcaster → SSE clients | Redis List (after migration) | One Redis key per meeting_id, TTL-bounded |
-| Controller → EventBroadcaster | `EventDispatcher::dispatch()` | Synchronous in current architecture; keep synchronous |
+### New Playwright Specs vs Existing Infrastructure
+
+| What to add | Where | How |
+|------------|-------|-----|
+| New spec file | `tests/e2e/specs/{feature}.spec.js` | Import helpers.js, use `loginAs*` |
+| New auth role needed | `tests/e2e/setup/auth.setup.js` | Add to ACCOUNTS array |
+| New E2E fixture | `database/seeds/04_e2e.sql` | Use `eeeeeeee-e2e0-*` UUID range |
+| New shared helper | `tests/e2e/helpers.js` | Export from module.exports |
+
+**Rule:** Spec files test page behavior from a user perspective (URLs, visible text, form interactions). Never test internal PHP classes in Playwright — that belongs in PHPUnit.
+
+### HTMX vs Vanilla JS Architecture Note
+
+Despite the `.htmx.html` naming convention, the application is primarily **vanilla JS + fetch() + custom elements**. HTMX attributes (`hx-get`, `hx-target`, etc.) appear in only 2 pages (`postsession.htmx.html`, `vote.htmx.html`). The rest use imperative `fetch()` calls in page JS files.
+
+This means:
+- "Fix HTMX wiring" in v1.1 context means fixing broken fetch() event handlers and DOM selectors in `pages/` JS files
+- Playwright tests verify the result of these JS-driven DOM updates, not HTMX-specific responses
+- `htmx.min.js` only needs to load on pages that actually use HTMX attributes
+
+### PHP Templates vs Static HTML
+
+Two distinct template patterns coexist:
+
+| Type | Location | How rendered | When used |
+|------|----------|-------------|----------|
+| Static HTML + JS | `public/*.htmx.html` | Served as static files, JS fetches data via API | All app shell pages (dashboard, operator, meetings, etc.) |
+| PHP templates | `app/Templates/*.php` | `HtmlView::render()` from controller | Public-facing forms only (vote form, password reset, setup, account) |
+
+New pages follow the static HTML + JS pattern. PHP templates are only for unauthenticated public flows.
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Inline `<style>` in HTML pages
+
+**What people do:** Add a `<style>` block inside a `.htmx.html` page for a quick fix.
+
+**Why it's wrong:** Bypasses the design system, creates invisible overrides, breaks dark mode token cascade, cannot be reused.
+
+**Do this instead:** Add rules to `pages.css` (generic styles) or the matching per-page CSS file loaded via `<link>`.
+
+### Anti-Pattern 2: Raw color/spacing values in CSS
+
+**What people do:** Write `color: #1650E0` or `padding: 16px` in component CSS.
+
+**Why it's wrong:** These values do not respond to theme changes. Dark mode works by overriding CSS custom properties — raw values ignore it.
+
+**Do this instead:** Use `var(--color-primary)` and `var(--space-4)`. Check `design-system.css` for the full token catalog.
+
+### Anti-Pattern 3: loginWithEmail() in Playwright beforeEach
+
+**What people do:** Call `loginWithEmail(page, email, password)` in each test's beforeEach.
+
+**Why it's wrong:** Each call consumes one of the 10 auth_login attempts per 300s. A parallel test run with 15+ spec files will hit the rate limit, causing cascading test failures.
+
+**Do this instead:** Use `loginAsOperator(page)` (or the matching role helper). This injects the cached PHPSESSID cookie — no HTTP login request.
+
+### Anti-Pattern 4: Targeting sidebar elements without waiting for async load
+
+**What people do:** `await expect(page.locator('.app-sidebar a')).toBeVisible()` immediately after `page.goto()`.
+
+**Why it's wrong:** The sidebar HTML is fetched asynchronously by `shared.js`. The `<aside>` element exists but is empty at DOMContentLoaded.
+
+**Do this instead:** Use `await page.waitForLoadState('networkidle')` after `page.goto()` to ensure the sidebar fetch completes before asserting.
+
+### Anti-Pattern 5: Adding new JS as `<script>` blocks in HTML
+
+**What people do:** Add inline `<script>` to a `.htmx.html` page for page-specific logic.
+
+**Why it's wrong:** Breaks the module structure, cannot be linted by ESLint, duplicates initialization logic.
+
+**Do this instead:** Add logic to the matching `public/assets/js/pages/{page}.js` file, which is already loaded by the page.
+
+### Anti-Pattern 6: Skipping `@layer` structure in design-system.css
+
+**What people do:** Add new component styles outside any `@layer` declaration at the top of design-system.css.
+
+**Why it's wrong:** Unlayered styles have higher specificity than layered styles, overriding things they should not.
+
+**Do this instead:** Place new component styles inside `@layer components { }`.
+
+---
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| Current (single server) | All changes in this milestone are valid and sufficient |
-| 2-5 servers | Redis already handles rate limiting and SSE; PDO timeouts prevent cascading; no additional changes needed |
-| 5+ servers + high concurrency | PgBouncer for connection pooling; read replicas for stats queries; separate SSE server process |
+| Current (v1.1) | Monolithic CSS + IIFE JS modules, no build step for JS. Sufficient for this app size. |
+| If CSS grows past 10k lines | Split design-system.css into sub-files, use `@import` from a manifest. No tool change needed. |
+| If JS complexity grows | Consider a lightweight bundler (esbuild) for tree-shaking. Not needed now. |
+| If Playwright suite grows past 50 specs | CI workers set to 1 to avoid rate limit. May need to increase rate limit window in Redis config or add a test-mode bypass. |
 
-### Scaling Priorities
-
-1. **First bottleneck (current):** File locks under concurrent requests — fixed by Redis migration (Phase 1).
-2. **Second bottleneck:** Memory exhaustion during large exports — fixed by streaming (Phase 2).
-3. **Third bottleneck:** PDO single connection under load — not addressed in this milestone; document for next milestone (PgBouncer).
+---
 
 ## Sources
 
-- PHP refactoring patterns: [Design Patterns in PHP 8.4: Refactoring Architecture Without Breaking Everything](https://medium.com/@mathewsfrj/design-patterns-in-php-8-4-part-7-refactoring-architecture-without-breaking-everything-03aeadc691f8) — MEDIUM confidence (Medium blog)
-- Strangler Fig for PHP: [Modernizing PHP Legacy Apps: Strangler Fig, ACL & Parallel Models](https://devm.io/php/php-legacy-apps-modernize) — MEDIUM confidence
-- Redis rate limiting: [Build 5 Rate Limiters with Redis: Algorithm Comparison Guide](https://redis.io/tutorials/howtos/ratelimiting/) — HIGH confidence (official Redis docs)
-- PDO timeout configuration: [How to set connection timeout on PostgreSQL connection via PHP PDO pgsql driver](https://pracucci.com/php-pdo-pgsql-connection-timeout.html) — HIGH confidence (well-documented behavior)
-- PostgreSQL statement_timeout: [PostgreSQL Documentation: statement_timeout](https://postgresqlco.nf/doc/en/param/statement_timeout/) — HIGH confidence (official docs)
-- PostgreSQL multiple COUNTs: [How to Get Multiple Counts With Single Query in PostgreSQL](https://www.geeksforgeeks.org/postgresql/how-to-get-multiple-counts-with-single-query-in-postgresql/) — HIGH confidence (standard SQL)
-- XLSX streaming: [openspout/openspout on GitHub](https://github.com/openspout/openspout) — MEDIUM confidence (verify current package status)
-- SSE with Redis Pub/Sub: [Real Time Magic: SSE with Redis for Instant Updates](https://www.zerone-consulting.com/resources/blog/Real-Time-Magic-Harnessing-Server-Sent-Events-(SSE)-with-Redis-for-Instant-Updates/) — MEDIUM confidence
-- Codebase analysis: `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/CONCERNS.md` — HIGH confidence (direct code audit)
+- Codebase inspection: `public/assets/css/`, `public/assets/js/`, `tests/e2e/`, `public/*.htmx.html`
+- `tests/e2e/playwright.config.js` — confirms multi-browser targets, globalSetup path, Docker dependency
+- `tests/e2e/helpers.js` — auth strategy, rate-limit avoidance pattern, E2E UUID constants
+- `tests/e2e/setup/auth.setup.js` — global auth setup, rate-limit clearing via Redis
+- `database/seeds/04_e2e.sql` — E2E seed data structure
+- `public/assets/css/design-system.css` — token structure, @layer declarations, component catalog
+- `public/assets/css/app.css` — CSS entry point and import order
+- `public/assets/js/core/shared.js` — sidebar async load pattern
+- `public/assets/js/pages/operator-realtime.js` — SSE + fetch() API pattern (not HTMX)
+- `app/View/HtmlView.php` — PHP template rendering for public-facing flows
 
 ---
-*Architecture research for: AgVote PHP technical debt reduction*
+*Architecture research for: AgVote v1.1 UI/UX coherence + Playwright E2E tests*
 *Researched: 2026-04-07*
