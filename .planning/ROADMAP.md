@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Infrastructure Redis** - Eliminer les fallbacks fichiers /tmp, rendre Redis obligatoire avec health check au boot (completed 2026-04-07)
 - [ ] **Phase 2: Optimisations Memoire et Requetes** - Streaming XLSX, traitement email par lots, aggregation COUNT unique
 - [ ] **Phase 3: Extraction Services et Refactoring** - Tests de caracterisation AuthMiddleware et RGPD, extraction ImportController
-- [ ] **Phase 4: Tests et Decoupage Controllers** - Tests SSE race conditions et fuzzy matching import, splits conditionnels controllers
+- [x] **Phase 4: Tests et Decoupage Controllers** - Tests SSE race conditions et fuzzy matching import, splits conditionnels controllers (completed 2026-04-07)
 
 ## Phase Details
 
@@ -87,4 +87,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | 1/3 | In progress | - |
 | 3. Extraction Services et Refactoring | 2/3 | In progress | - |
-| 4. Tests et Decoupage Controllers | 2/3 | In progress |  |
+| 4. Tests et Decoupage Controllers | 3/3 | Complete   | 2026-04-07 |

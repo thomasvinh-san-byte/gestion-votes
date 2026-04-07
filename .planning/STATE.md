@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md — EventBroadcasterTest extended with 6 SSE delivery reliability tests, TEST-03 closed
-last_updated: "2026-04-07T10:53:30.582Z"
+stopped_at: Completed 04-03-PLAN.md — EventBroadcasterTest extended with Redis connection loss and client reconnection tests, TEST-04 marked Complete
+last_updated: "2026-04-07T11:29:28.604Z"
 last_activity: 2026-04-07
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
   percent: 37
 ---
 
@@ -60,6 +60,7 @@ Progress: [███░░░░░░░] 37%
 | Phase 03-extraction-services-et-refactoring P02 | 10 | 2 tasks | 2 files |
 | Phase 03-extraction-services-et-refactoring P03 | 20 | 2 tasks | 4 files |
 | Phase 04-tests-et-decoupage-controllers P01 | 8 | 1 tasks | 1 files |
+| Phase 04-tests-et-decoupage-controllers P03 | 165 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Progress: [███░░░░░░░] 37%
 - [Phase 03-extraction-services-et-refactoring]: TEST-01 infrastructure limitation accepted: api_require_role() no-op in bootstrap.php prevents 401 testing via callController — direct AuthMiddleware testing is the workaround
 - [Phase 04-tests-et-decoupage-controllers]: Real Redis used for EventBroadcaster tests (no mocking) — @group redis pattern matches RateLimiterTest; tests require Docker environment
 - [Phase 04-tests-et-decoupage-controllers]: Worktree merged with main before Phase 04 execution to pick up Redis-only EventBroadcaster from Phase 01
+- [Phase 04-tests-et-decoupage-controllers]: Structural assertions via ReflectionMethod source extraction verify isServerRunning has catch/Throwable and queueRedis has no catch — tests pass in CI without phpredis
 
 ### Pending Todos
 
@@ -102,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T10:53:30.579Z
-Stopped at: Completed 04-01-PLAN.md — EventBroadcasterTest extended with 6 SSE delivery reliability tests, TEST-03 closed
+Last session: 2026-04-07T11:29:28.601Z
+Stopped at: Completed 04-03-PLAN.md — EventBroadcasterTest extended with Redis connection loss and client reconnection tests, TEST-04 marked Complete
 Resume file: None
