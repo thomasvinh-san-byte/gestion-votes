@@ -13,7 +13,7 @@
   --shadow-danger-glow: 0 2px 6px color-mix(in oklch, var(--color-danger) 35%, transparent);
   --color-warning-bg-8: color-mix(in oklch, var(--color-warning) 8%, transparent);
   --color-warning-border-25: color-mix(in oklch, var(--color-warning) 25%, transparent);
-  --vote-shadow-hover: 0 2px 12px rgb(var(--shadow-color) / 0.08);
+  --vote-shadow-hover: var(--shadow-sm);
   --vote-btn-for-shadow: 0 10px 40px color-mix(in oklch, var(--color-success) 30%, transparent);
   --vote-btn-for-shadow-hover: 0 15px 50px color-mix(in oklch, var(--color-success) 40%, transparent);
   --vote-btn-against-shadow: 0 10px 40px color-mix(in oklch, var(--color-danger) 30%, transparent);
@@ -1495,7 +1495,7 @@
   .vote-app {
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
-    box-shadow: 0 0 40px rgb(var(--shadow-color) / 0.06);
+    box-shadow: var(--shadow-sm);
   }
 }
 
