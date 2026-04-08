@@ -63,6 +63,13 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   4. `tests/e2e/specs/critical-path-votant.spec.js` execute vote token -> page de vote -> soumettre -> confirmation en passant
   5. Les 4 specs sont re-runnable (unique IDs, pas de cleanup manuel requis)
 
+**Plans:** 5 plans
+- [ ] 09-01-PLAN.md — Cookie domain fix in auth.setup.js (prerequisite, Wave 1)
+- [ ] 09-02-PLAN.md — E2E-01 admin critical path spec (Wave 2)
+- [ ] 09-03-PLAN.md — E2E-02 operator critical path spec (Wave 2)
+- [ ] 09-04-PLAN.md — E2E-03 president critical path spec (Wave 2)
+- [ ] 09-05-PLAN.md — E2E-04 votant critical path spec (Wave 2)
+
 ### Phase 10: Validation Manuelle Bout-en-Bout
 **Goal**: Toi + moi parcourons l'app en vrai dans un browser, role par role, page par page, et notons exactement ce qui marche et ce qui casse
 **Depends on**: Phase 9
@@ -99,6 +106,6 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
-| 9. Tests E2E par Role | v1.2 | 0/? | Not started | - |
+| 9. Tests E2E par Role | v1.2 | 0/5 | Not started | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
 | 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |
