@@ -1,99 +1,87 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Coherence UI/UX et Wiring
+milestone: v10.0
+milestone_name: Visual Identity Evolution
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-04-08T04:55:16.541Z"
-last_activity: 2026-04-08 -- Phase 06 execution started
+stopped_at: Completed 06-02-PLAN.md — DESIGN-02 satisfied, login 2-panel layout implemented
+last_updated: "2026-04-08T04:56:44.730Z"
+last_activity: 2026-04-03
 progress:
-  total_phases: 7
-  completed_phases: 5
-  total_plans: 18
-  completed_plans: 16
-  percent: 0
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
-# Project State
+# AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-07)
+See: .planning/PROJECT.md (updated 2026-04-02)
 
-**Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 06 — Application Design Tokens
+**Core value:** Self-hosted voting platform with legal compliance for French general assemblies
+**Current focus:** Phase 84 — Hardened Foundation
 
 ## Current Position
 
-Phase: 06 (Application Design Tokens) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 06
-Last activity: 2026-04-08 -- Phase 06 execution started
+Phase: 84
+Plan: Not started
+Status: Executing Phase 84
+Last activity: 2026-04-03
 
-Progress: [░░░░░░░░░░] 0% (v1.1: 0/3 phases)
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 10 (v1.0 milestone)
-- Average duration: ~6 min
-- Total execution time: ~19 min
-
-**By Phase (v1.0):**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-infrastructure-redis | 2 | ~14 min | ~7 min |
-| 02-optimisations-memoire-et-requetes | 4 | ~25 min | ~6 min |
-| 03-extraction-services-et-refactoring | 3 | ~30 min | ~10 min |
-| 04-tests-et-decoupage-controllers | 3 | ~173 min | ~58 min |
-
-**Recent Trend:**
-
-- Last 5 plans: 268, 275, ~15min, 10, 165 (tokens/time mixed — data inconsistent)
-- Trend: Stable
-
-*Updated after each plan completion*
-| Phase 05 P01 | 25 | 2 tasks | 2 files |
-| Phase 05-js-audit-et-wiring-repair P03 | 525719min | 3 tasks | 6 files |
-| Phase 06 P01 | 3 | 3 tasks | 3 files |
-| Phase 06 P04 | 5 | 2 tasks | 4 files |
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
 ### Decisions
 
-Recent decisions affecting current work:
+- [v10.0 roadmap]: 3 phases derived from 14 requirements — token layer → component geometry → hardening
+- [v10.0 roadmap]: Phase 82 changes design-system.css @layer base only; no per-page CSS files touched in this phase
+- [v10.0 roadmap]: Dark mode [data-theme="dark"] block and critical-tokens inline styles must update in the same commit as any :root color primitive change (Pitfall 2 from research)
+- [v10.0 roadmap]: Token names must never be renamed — add new alongside old to avoid Shadow DOM fallback staleness (Pitfall 3 from research)
+- [v10.0 roadmap]: Phase 83 deferred skeleton shimmer scope requires pre-phase audit of which pages use spinners vs. HTMX-managed states
+- [v9.0 roadmap]: AgConfirm.ask() is the universal confirmation pattern across all 7 page modules
+- [Phase 81-fix-ux]: Shared.openModal() preserved for form-containing modals only
+- [Phase 82-01]: color-mix(in oklch) used for all hover/active derivations — perceptually uniform darkening vs srgb
+- [Phase 82-01]: --color-accent aliased to var(--purple-600) confirming COLOR-03 accent sparsity at token level
+- [Phase 82-token-foundation-palette-shift]: Dark mode surface hue set to 78 (warm-neutral) replacing cool hue ~260 — warm identity now consistent across both modes
+- [Phase 82-token-foundation-palette-shift]: Dark mode hover direction uses color-mix(in oklch, base 88%, white) — lightening in dark context is correct interactive cue
+- [Phase 83-01]: All component corners unified to --radius-base (8px) — no per-component radius overrides remain
+- [Phase 83-01]: Shadow scale reduced 9→3 levels: sm=0.06 opacity, md unchanged, lg=old xl 0.14 opacity
+- [Phase 83-01]: --color-border-alpha uses oklch alpha for adaptive depth (black/white based for light/dark modes)
+- [Phase 83]: Skeleton KPI height 88px matches kpi-card approx height; .kpi-card-wrapper wrapper enables CSS-only show/hide toggle
+- [Phase 84]: @property registered for 8 core color tokens — derived tokens excluded (no var() in initial-value per CSS spec)
+- [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
+- [Phase 84]: Token name --color-primary-text is canonical for text on primary backgrounds (not --color-text-on-primary or --color-primary-contrast)
+- [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
+- [Phase 06-02]: .login-orb changed from position: fixed to position: absolute — orb scoped to brand panel, not viewport
+- [Phase 06-02]: Tagline updated to 'Gestion des votes pour votre association' per DESIGN-02 copywriting contract
 
-- [v1.1 Research]: JS audit AVANT toute modification HTML — v4.2 a casse 1,269 querySelector/getElementById en restructurant le HTML sans audit prealable
-- [v1.1 Research]: "HTMX app" est en realite vanilla JS + fetch() — seulement 2 pages utilisent htmx.min.js (postsession, vote)
-- [v1.1 Research]: design-system.css est complet (5,278 lignes, OKLCH) — pas de nouvelle infrastructure CSS necessaire
-- [v1.1 Research]: Login = moins de complexite JS → premiere cible pour validation de l'approche design tokens
+### Existing Infrastructure
 
-Full v1.0 decisions: see git history / previous STATE.md entries.
+- design-system.css: 5,258 lines, three @layer stack (base/components/v4), oklch values already present as trailing comments on every primitive
+- 23 Web Components with Shadow DOM — inherit tokens but fallback hex literals require manual update after palette changes
+- 25 per-page CSS files — ~15 hardcoded hex/rgba values identified: analytics.css, meetings.css, hub.css, vote.css, public.css, users.css
+- critical-tokens inline styles in 22 HTML files — 6 hex values that prevent flash-of-wrong-color on load
+- color-mix(in srgb, ...) calls in design-system.css — need upgrade to color-mix(in oklch, ...)
 
-- [Phase 05]: Fix only confirmed MISMATCH in plan 01 — ORPHAN IDs removed from HTML are tracked and deferred to plan 02 or Phase 6
-- [Phase 05]: Audit-first before HTML modifications: always run ID contract audit before restructuring HTML to prevent v4.2-style regressions
-- [Phase 05]: False positives corrected: cMeeting, cMember, usersPaginationInfo exist in HTML — incorrectly listed as orphans in initial audit
-- [Phase 05]: Self-healing entries reclassified in ID inventory: app_url (fallback selector), appUrlLocalhostWarning (createElement), opPresenceBadge (createElement), execSpeakerTimer (innerHTML create+query)
-- [Phase 06-01]: hub-checklist-badge--pending left unchanged — separate BEM component from canonical .badge system, double-dash is valid for its own component
-- [Phase 06-01]: Badge canonical pattern established: class="badge badge-{variant}" with single hyphen; @layer base, components, v4, pages declared before @import in app.css
-- [Phase 06]: skeleton-row elements inside .htmx-indicator wrapped block — existing bare skeleton-row in members.htmx.html moved inside indicator for proper CSS toggling
-- [Phase 06]: pv_sent placed after frozen in MEETING_STATUS_MAP — keeps badge-info variant statuses grouped together
+### Known Tech Debt Carried Forward
+
+- Controller coverage at 64.6% structural ceiling (3 exit()-based controllers)
+- CI e2e job runs chromium only; mobile-chrome/tablet are local-only
+- Migration idempotency check is local-only, not CI-gated
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- [Phase 5]: Risque de repeter v4.2 si HTML modifie avant inventaire des contrats ID — mitigation : audit Phase 5 obligatoire avant Phase 6
-- [v1.0 Tech Debt (reporte v2)]: getDashboardStats() non branche dans DashboardController
-- [v1.0 Tech Debt (reporte v2)]: MeetingReportsController (727 lignes) et MotionsController (720 lignes) non decoupes
+- Phase 84 HARD-03: exact list of .htmx.html files with critical-tokens blocks should be verified before planning (research said 22 files)
 
 ## Session Continuity
 
-Last session: 2026-04-08T04:55:16.538Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-04-08T04:56:44.545Z
+Stopped at: Completed 06-02-PLAN.md — DESIGN-02 satisfied, login 2-panel layout implemented
 Resume file: None
