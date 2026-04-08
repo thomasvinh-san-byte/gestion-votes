@@ -1151,7 +1151,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testListForMeetingResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // Logic moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $expectedKeys = ['meeting_id', 'current_motion_id', 'items'];
         foreach ($expectedKeys as $key) {
@@ -1171,7 +1172,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testDeleteMotionResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // audit_log moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         // deleteMotion audit log includes meeting_id and agenda_id
         $this->assertStringContainsString("'motion_deleted'", $source);
@@ -1241,7 +1243,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testCreateSimpleAuditsMotionCreation(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // audit_log moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString("'motion_created'", $source);
         $this->assertStringContainsString("'created_via' => 'simple_endpoint'", $source);
@@ -1249,14 +1252,16 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testDeleteMotionAuditsMotionDeletion(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // audit_log moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString("'motion_deleted'", $source);
     }
 
     public function testReorderAuditsMotionReorder(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // audit_log moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString("'motions_reordered'", $source);
     }
@@ -1277,7 +1282,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testDegradedTallyAuditsManualTally(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // audit_log moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString("'manual_tally_set'", $source);
     }
@@ -1384,7 +1390,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testDegradedTallyEmitsNotification(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // NotificationsService moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString('degraded_manual_tally', $source);
         $this->assertStringContainsString('NotificationsService', $source);
@@ -1396,7 +1403,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testCloseRevokesVoteTokens(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // VoteTokenService moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString('revokeForMotion', $source);
         $this->assertStringContainsString('VoteTokenService', $source);
@@ -1408,7 +1416,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testCloseComputesOfficialResults(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // OfficialResultsService moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         $this->assertStringContainsString('OfficialResultsService', $source);
         $this->assertStringContainsString('computeOfficialTallies', $source);
@@ -1421,7 +1430,8 @@ class MotionsControllerTest extends ControllerTestCase
 
     public function testOpenResolvesPolicyFromMotionThenMeetingThenDefault(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MotionsController.php');
+        // Policy resolution cascade moved to MotionsService — check service source
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MotionsService.php');
 
         // The open() method resolves vote_policy_id in a cascade:
         // motion -> meeting -> tenant defaults
