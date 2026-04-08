@@ -30,7 +30,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 **Milestone Goal:** Boucler le projet — verifier que toutes les fonctionnalites du chemin critique fonctionnent pour les 4 roles, validees par tests automatises ET parcours manuel browser. Stop aux ajouts, on s'assure que le tout fonctionne comme un tout.
 
-- [ ] **Phase 8: Test Infrastructure Docker** — Make Playwright actually run in a containerized environment with all browsers + system libs
+- [x] **Phase 8: Test Infrastructure Docker** — Make Playwright actually run in a containerized environment with all browsers + system libs (completed 2026-04-08)
 - [ ] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs covering admin, operator, president, votant
 - [ ] **Phase 10: Validation Manuelle Bout-en-Bout** — Conversational UAT par role, checklists, regression discovery
 - [ ] **Phase 11: Reparation et Dette Technique Carry-Over** — Fix discovered regressions + close v1.0 carry-over debt
@@ -98,7 +98,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 5. JS Audit et Wiring Repair | v1.1 | 3/3 | Complete | 2026-04-08 |
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
-| 8. Test Infrastructure Docker | 2/3 | In Progress|  | - |
+| 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
 | 9. Tests E2E par Role | v1.2 | 0/? | Not started | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
 | 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |

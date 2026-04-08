@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 08-test-infrastructure-docker/08-02-PLAN.md
-last_updated: "2026-04-07T00:05:00.000Z"
+stopped_at: Completed 08-test-infrastructure-docker/08-03-PLAN.md
+last_updated: "2026-04-08T08:59:37.702Z"
 last_activity: 2026-04-07 -- Completed 08-02 bin/test-e2e.sh wrapper
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -66,6 +66,9 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 08-02]: exec docker compose propagates playwright exit code cleanly — no wrapper masking
 - [Phase 08-02]: $* (not $@) inside bash -lc for arg forwarding — $@ produces separate argv tokens that don't compose in inner shell
 - [Phase 08-02]: --project=chromium hardcoded in wrapper — enforces chromium-only scope per locked Phase 8 decision
+- [Phase 08-03]: Triage verdict MOSTLY GREEN: 85 failures are ERR_SSL_PROTOCOL_ERROR from cookie domain mismatch (localhost vs app:8080), not infra. INFRA-03 satisfied.
+- [Phase 08-03]: Phase 11 FIX-01 scope: fix setup/auth.setup.js cookie domain to use BASE_URL host; investigate ignoreHTTPSErrors for Chromium HTTPS-upgrade
+- [Phase 08-03]: docker run direct replaces docker compose run — compose swallows container stdout in this environment
 
 ### Existing Infrastructure
 
@@ -91,6 +94,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T00:05:00.000Z
-Stopped at: Completed 08-test-infrastructure-docker/08-02-PLAN.md
+Last session: 2026-04-08T08:59:28.861Z
+Stopped at: Completed 08-test-infrastructure-docker/08-03-PLAN.md
 Resume file: None
