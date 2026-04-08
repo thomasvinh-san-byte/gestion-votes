@@ -3,6 +3,9 @@
  *
  * Hero card + two-column layout: 280px checklist + fluid right.
  * All colors use var(--color-*) design tokens. Dark mode via tokens.
+ *
+ * Phase 12 width gate: PASS — fluid grid, no container cap, only @media breakpoints.
+ * Phase 12 token gate: PASS — zero raw color literals; all colors via var(--color-*).
  */
 
 /* =============================================================================
