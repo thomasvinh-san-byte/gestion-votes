@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Coherence UI/UX et Wiring
-status: shipped
-stopped_at: v1.1 milestone shipped — 11 plans complete + 3 hotfixes
-last_updated: "2026-04-08T07:00:00.000Z"
+milestone: v1.2
+milestone_name: Bouclage et Validation Bout-en-Bout
+status: defining
+stopped_at: null
+last_updated: "2026-04-08T07:30:00.000Z"
 last_activity: 2026-04-08
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.1 shipped — ready for v1.2 (run /gsd:new-milestone)
+**Current focus:** Defining requirements for v1.2 Bouclage
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: v1.1 shipped, awaiting next milestone
-Last activity: 2026-04-08 — v1.1 milestone archived
+Status: Defining requirements
+Last activity: 2026-04-08 — Milestone v1.2 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 

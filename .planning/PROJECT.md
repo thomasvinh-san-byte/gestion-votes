@@ -48,7 +48,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(Fresh for next milestone — run /gsd:new-milestone)
+(Defined in REQUIREMENTS.md for v1.2)
 
 ### Out of Scope
 
@@ -58,6 +58,18 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - Migration vers un framework (Symfony, Laravel) — refactoring incremental uniquement
 - PDFs de convocation/emargement — hors perimetre de l'app
 - Raccourcis clavier — hors perimetre
+
+## Current Milestone: v1.2 Bouclage et Validation Bout-en-Bout
+
+**Goal:** Boucler le projet — verifier que toutes les fonctionnalites du chemin critique fonctionnent pour les 4 roles (admin, operator, president, votant), validees par tests automatises ET parcours manuel browser. Aucune regression silencieuse. Stop aux ajouts, on s'assure que le tout fonctionne comme un tout.
+
+**Target features:**
+- Setup Playwright executable dans Docker (libatk + browsers preinstalles)
+- 4 tests E2E par role couvrant le chemin critique (admin/operator/president/votant)
+- Parcours manuel + checklist de validation par role et par page-cle
+- Reparation immediate de toute regression decouverte
+- Dette tech v1.0 close: getDashboardStats wiring + MeetingReports/Motions decoupage
+- Audit final fonctionnel certifiant le chemin critique end-to-end pour les 4 roles
 
 ## Current State
 
@@ -133,4 +145,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after v1.1 milestone completion*
+*Last updated: 2026-04-08 after v1.2 milestone start*
