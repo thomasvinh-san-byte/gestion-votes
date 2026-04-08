@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Coherence UI/UX et Wiring
 status: executing
-stopped_at: Completed 06-02-PLAN.md — DESIGN-02 satisfied, login 2-panel layout implemented
-last_updated: "2026-04-08T05:55:30.728Z"
-last_activity: 2026-04-08
+stopped_at: Completed 07-02-PLAN.md — TEST-03 satisfied, Playwright 1.59.1 + axe accessibility audits
+last_updated: "2026-04-08T06:07:59.748Z"
+last_activity: 2026-04-08 -- Phase 07 execution started
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 22
+  completed_plans: 19
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 84 — Hardened Foundation
+**Current focus:** Phase 07 — Playwright Coverage
 
 ## Current Position
 
-Phase: 7
-Plan: Not started
-Status: Executing Phase 84
-Last activity: 2026-04-08
+Phase: 07 (Playwright Coverage) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 07
+Last activity: 2026-04-08 -- Phase 07 execution started
 
 Progress: [██████████] 100%
 
@@ -57,6 +57,9 @@ Progress: [██████████] 100%
 - [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
 - [Phase 06-02]: .login-orb changed from position: fixed to position: absolute — orb scoped to brand panel, not viewport
 - [Phase 06-02]: Tagline updated to 'Gestion des votes pour votre association' per DESIGN-02 copywriting contract
+- [Phase 07-playwright-coverage]: Pin @playwright/test to exact 1.59.1 (no caret) per TEST-03 exact version requirement
+- [Phase 07-playwright-coverage]: color-contrast disabled in axeAudit — visual contrast is design-token scope, structural accessibility is the target
+- [Phase 07-playwright-coverage]: axeAudit filters to critical/serious violations only — moderate/minor are not CI-blocking
 
 ### Existing Infrastructure
 
@@ -82,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T04:56:44.545Z
-Stopped at: Completed 06-02-PLAN.md — DESIGN-02 satisfied, login 2-panel layout implemented
+Last session: 2026-04-08T06:07:53.774Z
+Stopped at: Completed 07-02-PLAN.md — TEST-03 satisfied, Playwright 1.59.1 + axe accessibility audits
 Resume file: None

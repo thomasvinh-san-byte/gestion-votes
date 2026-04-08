@@ -98,7 +98,13 @@ Plans:
   2. Chaque page cle a un test d'interaction : chargement + clic bouton principal + assertion changement DOM
   3. Playwright est mis a jour vers 1.59.1 et @axe-core/playwright est integre avec au moins un audit d'accessibilite par page
   4. Un test E2E couvre le workflow complet operateur : connexion → creation reunion → ajout membres → lancement vote → cloture
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Baseline green: replace networkidle in 6 specs and validate chromium suite
+- [ ] 07-02-PLAN.md — Upgrade Playwright 1.59.1 + @axe-core/playwright with per-page axe audits
+- [ ] 07-03-PLAN.md — Per-page interaction tests (load + click main button + DOM assertion)
+- [ ] 07-04-PLAN.md — Full operator E2E workflow (login → meeting → members → vote → close)
 
 ## Progress
 

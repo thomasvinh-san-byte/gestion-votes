@@ -25,7 +25,7 @@ Requirements pour le milestone Coherence UI/UX et Wiring. Chaque requirement map
 
 - [ ] **TEST-01**: Tous les specs Playwright existants passent sans erreur (baseline green)
 - [ ] **TEST-02**: Tests d interaction par page — load + click bouton principal + assertion DOM
-- [ ] **TEST-03**: Upgrade Playwright 1.58 vers 1.59.1 + ajout @axe-core/playwright
+- [x] **TEST-03**: Upgrade Playwright 1.58 vers 1.59.1 + ajout @axe-core/playwright
 - [ ] **TEST-04**: Workflow complet operateur en test end-to-end Playwright
 
 ## v2 Requirements
@@ -69,7 +69,7 @@ Reporte au prochain milestone.
 | DESIGN-04 | Phase 6 | Complete |
 | TEST-01 | Phase 7 | Pending |
 | TEST-02 | Phase 7 | Pending |
-| TEST-03 | Phase 7 | Pending |
+| TEST-03 | Phase 7 | Complete |
 | TEST-04 | Phase 7 | Pending |
 
 **Coverage:**
