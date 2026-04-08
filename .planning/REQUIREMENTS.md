@@ -29,7 +29,7 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 ### Reparation des Regressions
 
 - [x] **FIX-01**: Reparer toutes les regressions decouvertes pendant E2E ou UAT (scope determine pendant l'execution)
-- [ ] **FIX-02**: Resolution des 11 items 'human verification deferred' de v1.1 (3 phase 5, 4 phase 6, 4 phase 7)
+- [x] **FIX-02**: Resolution des 11 items 'human verification deferred' de v1.1 (3 phase 5, 4 phase 6, 4 phase 7)
 
 ### Dette Technique v1.0
 
@@ -87,7 +87,7 @@ Reporte au prochain milestone (post-bouclage):
 | UAT-02 | Phase 10 | Pending |
 | UAT-03 | Phase 10 | Pending |
 | FIX-01 | Phase 11 | Complete |
-| FIX-02 | Phase 10 | Pending |
+| FIX-02 | Phase 10 | Complete |
 | DEBT-01 | Phase 11 | Pending |
 | DEBT-02 | Phase 11 | Pending |
 | DEBT-03 | Phase 11 | Pending |
