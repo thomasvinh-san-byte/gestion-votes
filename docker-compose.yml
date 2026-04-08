@@ -141,6 +141,34 @@ services:
         reservations:
           memory: 32M
 
+  # ---------------------------------------------------------------------------
+  # Playwright E2E test runner (profile: test)
+  # ---------------------------------------------------------------------------
+  # Usage: docker compose --profile test run --rm tests npx playwright test
+  # Or via wrapper: ./bin/test-e2e.sh
+  # ---------------------------------------------------------------------------
+  tests:
+    image: mcr.microsoft.com/playwright:v1.59.1-jammy
+    container_name: agvote-tests
+    profiles:
+      - test
+    working_dir: /work/tests/e2e
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      IN_DOCKER: "true"
+      CI: "${CI:-}"
+      BASE_URL: "http://app:8080"
+    volumes:
+      - ./:/work
+      - tests-node-modules:/work/tests/e2e/node_modules
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - backend
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["npm install --no-audit --no-fund --silent && npx playwright test"]
+
 networks:
   backend:
     driver: bridge
@@ -151,4 +179,6 @@ volumes:
   app-storage:
     driver: local
   uploads:
+    driver: local
+  tests-node-modules:
     driver: local
