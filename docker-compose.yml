@@ -14,6 +14,10 @@ services:
   app:
     build: .
     container_name: agvote-app
+    # Network alias `agvote` avoids Chrome HSTS preload collision with .app TLD.
+    # Chromium force-upgrades hosts matching .app to HTTPS, producing
+    # ERR_SSL_PROTOCOL_ERROR when tests goto http://app:8080. Tests reach the
+    # app via http://agvote:8080 to bypass the preload list.
     restart: unless-stopped
     ports:
       - "0.0.0.0:${APP_PORT:-8080}:8080"     # HTTP
@@ -71,7 +75,9 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - backend
+      backend:
+        aliases:
+          - agvote
     deploy:
       resources:
         limits:
@@ -157,7 +163,12 @@ services:
     environment:
       IN_DOCKER: "true"
       CI: "${CI:-}"
-      BASE_URL: "http://app:8080"
+      # Use `agvote` alias (not `app`) — Chrome HSTS preload force-upgrades
+      # any host matching .app TLD to HTTPS, breaking page.goto in Playwright.
+      BASE_URL: "http://agvote:8080"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-agvote-redis-dev}"
     volumes:
       - ./:/work
       - tests-node-modules:/work/tests/e2e/node_modules

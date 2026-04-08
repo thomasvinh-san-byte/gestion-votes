@@ -61,6 +61,9 @@ exec docker run --rm \
   --user "${DOCKER_UID}:${DOCKER_GID}" \
   -e IN_DOCKER=true \
   -e CI="${CI:-}" \
-  -e BASE_URL=http://app:8080 \
+  -e BASE_URL=http://agvote:8080 \
+  -e REDIS_HOST=redis \
+  -e REDIS_PORT=6379 \
+  -e REDIS_PASSWORD="${REDIS_PASSWORD:-agvote-redis-dev}" \
   mcr.microsoft.com/playwright:v1.59.1-jammy \
   bash -lc "npm install --no-audit --no-fund --silent && npx playwright test --project=chromium $*"

@@ -2,8 +2,8 @@
   "cookies": [
     {
       "name": "PHPSESSID",
-      "value": "06eb227fc6243c18375ff2c19df5b8dc",
-      "domain": "app",
+      "value": "2ed975009cfed39f6d1497422bc08b2d",
+      "domain": "agvote",
       "path": "/",
       "expires": -1,
       "httpOnly": true,

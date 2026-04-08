@@ -21,7 +21,7 @@ module.exports = defineConfig({
   globalSetup: require.resolve('./setup/auth.setup.js'),
 
   use: {
-    baseURL: process.env.BASE_URL || (process.env.IN_DOCKER ? 'http://app:8080' : 'http://localhost:8080'),
+    baseURL: process.env.BASE_URL || (process.env.IN_DOCKER ? 'http://agvote:8080' : 'http://localhost:8080'),
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -29,7 +29,18 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Disable Chromium HTTPS auto-upgrade. When tests target http://app:8080
+        // (Docker network) Chromium tries https first → ERR_SSL_PROTOCOL_ERROR.
+        // The app is HTTP-only inside the Docker network — terminator (Cloudflare/
+        // HAProxy) handles TLS in production. Local + CI tests must skip the upgrade.
+        launchOptions: {
+          args: [
+            '--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,HttpsFirstModeV2,HttpsOnlyMode',
+          ],
+        },
+      },
     },
     {
       name: 'firefox',
@@ -60,7 +71,7 @@ module.exports = defineConfig({
   // Use `docker compose up -d` before running tests.
   webServer: {
     command: 'echo "Docker stack expected at port 8080"',
-    url: (process.env.IN_DOCKER ? 'http://app:8080' : 'http://localhost:8080') + '/login.html',
+    url: (process.env.IN_DOCKER ? 'http://agvote:8080' : 'http://localhost:8080') + '/login.html',
     reuseExistingServer: !process.env.CI,
     cwd: '../../',
   },
