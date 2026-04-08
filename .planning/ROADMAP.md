@@ -113,12 +113,18 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   1. **Width gate** : main content uses full screen width responsibly. Pages applicatives = aucune `max-width` artificielle. Pages de contenu (docs, help) = `max-width: 80ch` pour la lisibilite. Verifie par grep CSS + visual snapshot.
   2. **Design language gate** : zero hex/oklch literal dans le CSS de la page. Tout en `var(--*)` du design-system.css. Verifie par grep `! grep -nE 'oklch\\(\\|#[0-9a-f]{6}' public/assets/css/{page}.css`.
   3. **Function gate** : un test Playwright `critical-path-{page}.spec.js` (ou extension de l'existant) qui pour CHAQUE bouton/input/lien principal de la page declenche l'interaction et assert un changement d'etat reel : DOM update OU API 2xx response OU DB row visible apres reload OU state metier verifie.
-**Plans**: TBD — sweep par waves de 4-5 pages, ordre par criticite :
-  - Wave 1 (les pires) : settings, operator, hub, dashboard
-  - Wave 2 : meetings, members, vote, wizard
-  - Wave 3 : audit, archives, users, admin
-  - Wave 4 : analytics, report, postsession, validate
-  - Wave 5 : trust, public, email-templates, docs, help
+
+**Execution model**: 5 waves with mandatory user checkpoint between waves. Each wave = 4-5 page plans (parallelizable, no file conflicts).
+
+**Plans (Wave 1 only — Wave 2-5 will be planned with fresh context after Wave 1 ships):**
+- [ ] 12-01-PLAN.md — settings page sweep (3 gates) [Wave 1]
+- [ ] 12-02-PLAN.md — operator page sweep (3 gates) [Wave 1]
+- [ ] 12-03-PLAN.md — hub page sweep (3 gates) [Wave 1]
+- [ ] 12-04-PLAN.md — dashboard page sweep (3 gates) [Wave 1]
+- [ ] Wave 2 (TBD) — meetings, members, vote, wizard
+- [ ] Wave 3 (TBD) — audit, archives, users, admin
+- [ ] Wave 4 (TBD) — analytics, report, postsession, validate
+- [ ] Wave 5 (TBD) — trust, public, email-templates, docs, help
 
 ### Phase 13: MVP Validation Finale
 **Goal**: Lancer la suite Playwright complete sur toutes les pages, executer le UAT manuel par les 4 roles, produire le verdict final "MVP shipped" ou liste de blockers.
@@ -147,5 +153,5 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
-| 12. Page-by-Page MVP Sweep | v1.2 | 0/? | Not started | - |
+| 12. Page-by-Page MVP Sweep | v1.2 | 0/4+ | Wave 1 planned | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
