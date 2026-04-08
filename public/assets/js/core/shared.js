@@ -103,6 +103,7 @@
     draft:     { badge: 'badge-neutral',          text: 'Brouillon' },
     scheduled: { badge: 'badge-info',             text: 'Programmée' },
     frozen:    { badge: 'badge-info',             text: 'Verrouillée' },
+    pv_sent:   { badge: 'badge-info',             text: 'PV envoyé' },
     live:      { badge: 'badge-danger badge-dot', text: 'En cours' },
     paused:    { badge: 'badge-warning',          text: 'En pause' },
     closed:    { badge: 'badge-success',          text: 'Terminée' },
