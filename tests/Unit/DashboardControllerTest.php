@@ -153,7 +153,6 @@ class DashboardControllerTest extends ControllerTestCase
         ]);
 
         $proxyRepo = $this->createMock(ProxyRepository::class);
-        $proxyRepo->method('countActive')->willReturn(0);
 
         $motionRepo = $this->createMock(MotionRepository::class);
         $motionRepo->method('findCurrentOpen')->willReturn(null);
@@ -161,7 +160,12 @@ class DashboardControllerTest extends ControllerTestCase
         $motionRepo->method('listClosedWithManualTally')->willReturn([]);
 
         $statsRepo = $this->createMock(MeetingStatsRepository::class);
-        $statsRepo->method('countOpenMotions')->willReturn(0);
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 5, 'proxy_count' => 0, 'total_motions' => 0,
+            'closed_motions' => 0, 'open_motions' => 0, 'adopted_motions' => 0,
+            'rejected_motions' => 0, 'ballots_count' => 0, 'ballot_weight' => 0.0,
+            'proxies_count' => 0, 'incidents_count' => 0, 'manual_votes_count' => 0,
+        ]);
 
         $ballotRepo = $this->createMock(BallotRepository::class);
         $ballotRepo->method('tally')->willReturn([
@@ -210,7 +214,6 @@ class DashboardControllerTest extends ControllerTestCase
         ]);
 
         $proxyRepo = $this->createMock(ProxyRepository::class);
-        $proxyRepo->method('countActive')->willReturn(0);
 
         $motionRepo = $this->createMock(MotionRepository::class);
         $motionRepo->method('findCurrentOpen')->willReturn(null);
@@ -218,7 +221,13 @@ class DashboardControllerTest extends ControllerTestCase
         $motionRepo->method('listClosedWithManualTally')->willReturn([]);
 
         $statsRepo = $this->createMock(MeetingStatsRepository::class);
-        $statsRepo->method('countOpenMotions')->willReturn(0);
+        // present_count=6 comes from getDashboardStats (not dashboardSummary) after wiring.
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 6, 'proxy_count' => 0, 'total_motions' => 0,
+            'closed_motions' => 0, 'open_motions' => 0, 'adopted_motions' => 0,
+            'rejected_motions' => 0, 'ballots_count' => 0, 'ballot_weight' => 0.0,
+            'proxies_count' => 0, 'incidents_count' => 0, 'manual_votes_count' => 0,
+        ]);
 
         $ballotRepo = $this->createMock(BallotRepository::class);
         $ballotRepo->method('tally')->willReturn([
@@ -286,7 +295,6 @@ class DashboardControllerTest extends ControllerTestCase
         ]);
 
         $proxyRepo = $this->createMock(ProxyRepository::class);
-        $proxyRepo->method('countActive')->willReturn(0);
 
         $motionRepo = $this->createMock(MotionRepository::class);
         $motionRepo->method('findCurrentOpen')->willReturn(null);
@@ -294,7 +302,13 @@ class DashboardControllerTest extends ControllerTestCase
         $motionRepo->method('listClosedWithManualTally')->willReturn([]);
 
         $statsRepo = $this->createMock(MeetingStatsRepository::class);
-        $statsRepo->method('countOpenMotions')->willReturn(1); // blocks sign
+        // open_motions=1 blocks sign (replaces old countOpenMotions call).
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 3, 'proxy_count' => 0, 'total_motions' => 1,
+            'closed_motions' => 0, 'open_motions' => 1, 'adopted_motions' => 0,
+            'rejected_motions' => 0, 'ballots_count' => 0, 'ballot_weight' => 0.0,
+            'proxies_count' => 0, 'incidents_count' => 0, 'manual_votes_count' => 0,
+        ]);
 
         $ballotRepo = $this->createMock(BallotRepository::class);
 
@@ -336,7 +350,6 @@ class DashboardControllerTest extends ControllerTestCase
         ]);
 
         $proxyRepo = $this->createMock(ProxyRepository::class);
-        $proxyRepo->method('countActive')->willReturn(0);
 
         $motionRepo = $this->createMock(MotionRepository::class);
         $motionRepo->method('findCurrentOpen')->willReturn(null);
@@ -344,7 +357,12 @@ class DashboardControllerTest extends ControllerTestCase
         $motionRepo->method('listClosedWithManualTally')->willReturn([]);
 
         $statsRepo = $this->createMock(MeetingStatsRepository::class);
-        $statsRepo->method('countOpenMotions')->willReturn(0);
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 2, 'proxy_count' => 0, 'total_motions' => 0,
+            'closed_motions' => 0, 'open_motions' => 0, 'adopted_motions' => 0,
+            'rejected_motions' => 0, 'ballots_count' => 0, 'ballot_weight' => 0.0,
+            'proxies_count' => 0, 'incidents_count' => 0, 'manual_votes_count' => 0,
+        ]);
 
         $ballotRepo = $this->createMock(BallotRepository::class);
 
@@ -385,7 +403,6 @@ class DashboardControllerTest extends ControllerTestCase
         ]);
 
         $proxyRepo = $this->createMock(ProxyRepository::class);
-        $proxyRepo->method('countActive')->willReturn(0);
 
         $motionRepo = $this->createMock(MotionRepository::class);
         $motionRepo->method('findByIdForTenant')->willReturn([
@@ -395,7 +412,12 @@ class DashboardControllerTest extends ControllerTestCase
         $motionRepo->method('listClosedWithManualTally')->willReturn([]);
 
         $statsRepo = $this->createMock(MeetingStatsRepository::class);
-        $statsRepo->method('countOpenMotions')->willReturn(0);
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 3, 'proxy_count' => 0, 'total_motions' => 1,
+            'closed_motions' => 0, 'open_motions' => 0, 'adopted_motions' => 0,
+            'rejected_motions' => 0, 'ballots_count' => 0, 'ballot_weight' => 0.0,
+            'proxies_count' => 0, 'incidents_count' => 0, 'manual_votes_count' => 0,
+        ]);
 
         $ballotRepo = $this->createMock(BallotRepository::class);
         $ballotRepo->method('tally')->willReturn([
@@ -410,6 +432,139 @@ class DashboardControllerTest extends ControllerTestCase
         $data = $res['body']['data'];
         $this->assertSame(self::MOTION_ID, $data['current_motion']['id']);
         $this->assertSame(3, $data['current_motion_votes']['ballots_count']);
+    }
+
+    // =========================================================================
+    // index() — getDashboardStats wiring (DEBT-01)
+    // =========================================================================
+
+    /**
+     * Proves that DashboardController::index() calls getDashboardStats() exactly
+     * once and that the returned values flow into the response payload.
+     */
+    public function testIndexCallsGetDashboardStatsAndMapsResponse(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingData = [
+            'id'               => self::MEETING_ID,
+            'status'           => 'live',
+            'current_motion_id' => '',
+            'president_name'   => 'Alice',
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(20);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(20.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 7, 'present_weight' => 12.5,
+        ]);
+
+        // Expect getDashboardStats called exactly once with correct args.
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->expects($this->once())
+            ->method('getDashboardStats')
+            ->with(self::MEETING_ID, self::TENANT)
+            ->willReturn([
+                'present_count' => 7, 'proxy_count' => 3, 'total_motions' => 5,
+                'closed_motions' => 4, 'open_motions' => 1, 'adopted_motions' => 3,
+                'rejected_motions' => 1, 'ballots_count' => 21, 'ballot_weight' => 35.5,
+                'proxies_count' => 3, 'incidents_count' => 0, 'manual_votes_count' => 0,
+            ]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
+        $data = $res['body']['data'];
+
+        // present_count comes from getDashboardStats (not dashboardSummary).
+        $this->assertSame(7, $data['attendance']['present_count']);
+        // present_weight still comes from dashboardSummary (not in getDashboardStats).
+        $this->assertSame(12.5, $data['attendance']['present_weight']);
+        // proxy count mapped from proxy_count.
+        $this->assertSame(3, $data['proxies']['count']);
+        // full stats block exposed for frontend.
+        $this->assertSame(5, $data['stats']['total_motions']);
+        $this->assertSame(21, $data['stats']['ballots_count']);
+        $this->assertSame(3, $data['stats']['proxy_count']);
+        // open_motions=1 means ready_to_sign is blocked.
+        $this->assertFalse($data['ready_to_sign']['can']);
+    }
+
+    /**
+     * Proves that countOpenMotions is NOT called — open_motions is sourced from getDashboardStats.
+     */
+    public function testIndexDoesNotCallCountOpenMotions(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('GET');
+        $this->setQueryParams(['meeting_id' => self::MEETING_ID]);
+
+        $meetingData = [
+            'id'               => self::MEETING_ID,
+            'status'           => 'live',
+            'current_motion_id' => '',
+            'president_name'   => 'Bob',
+        ];
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('listForDashboard')->willReturn([
+            ['id' => self::MEETING_ID, 'status' => 'live'],
+        ]);
+        $meetingRepo->method('findByIdForTenant')->willReturn($meetingData);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(5);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(5.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn([
+            'present_count' => 2, 'present_weight' => 2.0,
+        ]);
+
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 2, 'proxy_count' => 0, 'total_motions' => 0,
+            'closed_motions' => 0, 'open_motions' => 0, 'adopted_motions' => 0,
+            'rejected_motions' => 0, 'ballots_count' => 0, 'ballot_weight' => 0.0,
+            'proxies_count' => 0, 'incidents_count' => 0, 'manual_votes_count' => 0,
+        ]);
+        // countOpenMotions must never be called — open_motions comes from getDashboardStats.
+        $statsRepo->expects($this->never())->method('countOpenMotions');
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $proxyRepo = $this->createMock(ProxyRepository::class);
+
+        $this->injectIndexRepos($meetingRepo, $statsRepo, $memberRepo, $attRepo, $motionRepo, $ballotRepo, $proxyRepo);
+
+        $res = $this->callController(DashboardController::class, 'index');
+
+        $this->assertSame(200, $res['status']);
     }
 
     // =========================================================================

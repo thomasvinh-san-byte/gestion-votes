@@ -60,16 +60,24 @@ final class DashboardController extends AbstractController {
 
             $eligibleCount = $memberRepo->countNotDeleted($tenantId);
             $eligibleWeight = $memberRepo->sumNotDeletedVoteWeight($tenantId);
+
+            // Single round-trip replacing 3+ individual COUNT queries (v1.0 perf win).
+            // Note: dashboardSummary is still called for present_weight (not in getDashboardStats).
+            $stats = $statsRepo->getDashboardStats($meetingId, $tenantId);
             $att = $attRepo->dashboardSummary($tenantId, $meetingId);
 
             $data['attendance'] = [
                 'eligible_count' => $eligibleCount,
                 'eligible_weight' => $eligibleWeight,
-                'present_count' => (int) $att['present_count'],
+                'present_count' => (int) ($stats['present_count'] ?? 0),
                 'present_weight' => (float) $att['present_weight'],
             ];
 
-            $data['proxies'] = ['count' => $this->repo()->proxy()->countActive($meetingId, $tenantId)];
+            // proxy count from aggregated stats — no separate round-trip needed.
+            $data['proxies'] = ['count' => (int) ($stats['proxy_count'] ?? 0)];
+
+            // expose full stats block for frontend consumption.
+            $data['stats'] = $stats;
 
             $currentMotionId = (string) ($meeting['current_motion_id'] ?? '');
             if ($currentMotionId === '') {
@@ -101,7 +109,8 @@ final class DashboardController extends AbstractController {
                 $reasons[] = 'Président non renseigné.';
             }
 
-            $openCount = $statsRepo->countOpenMotions($meetingId, $tenantId);
+            // open_motions is already available from the aggregated getDashboardStats call above.
+            $openCount = (int) ($stats['open_motions'] ?? 0);
             if ($openCount > 0) {
                 $reasons[] = 'Une motion est encore ouverte.';
             }
