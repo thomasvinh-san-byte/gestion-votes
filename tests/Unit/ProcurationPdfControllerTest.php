@@ -150,4 +150,105 @@ class ProcurationPdfControllerTest extends ControllerTestCase
         $this->assertEquals(404, $result['status']);
         $this->assertEquals('proxy_not_found', $result['body']['error']);
     }
+
+    // =========================================================================
+    // HAPPY PATH — PDF byte stream
+    // =========================================================================
+
+    /**
+     * Integration test: download() must emit a real PDF byte stream.
+     *
+     * Mocks repos via RepositoryFactory injection. Calls download() directly
+     * inside an output buffer because the method echoes the PDF without calling
+     * api_ok() (it streams binary data directly to stdout).
+     */
+    public function testDownloadHappyPathEmitsPdfBytes(): void
+    {
+        // The default test tenant ID matches what api_current_tenant_id() returns
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id'           => $this->validUuid2,
+            'tenant_id'    => $tenantId,
+            'title'        => 'AG 2026',
+            'scheduled_at' => '2026-04-10 10:00:00',
+            'status'       => 'open',
+        ]);
+
+        $mockProxy = $this->createMock(ProxyRepository::class);
+        $mockProxy->method('findWithNames')->willReturn([
+            'id'                 => $this->validUuid,
+            'giver_name'         => 'Jean Dupont',
+            'receiver_name'      => 'Marie Curie',
+            'giver_member_id'    => 'gggggggg-gggg-gggg-gggg-gggggggggggg',
+            'receiver_member_id' => 'rrrrrrrr-rrrr-rrrr-rrrr-rrrrrrrrrrrr',
+        ]);
+
+        $mockSettings = $this->createMock(SettingsRepository::class);
+        $mockSettings->method('get')->willReturn('Assoc Test');
+
+        $this->injectRepos([
+            MeetingRepository::class  => $mockMeeting,
+            ProxyRepository::class    => $mockProxy,
+            SettingsRepository::class => $mockSettings,
+        ]);
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_GET = [
+            'proxy_id'   => $this->validUuid,
+            'meeting_id' => $this->validUuid2,
+        ];
+
+        ob_start();
+        try {
+            (new ProcurationPdfController())->download();
+        } catch (\AgVote\Core\Http\ApiResponseException $e) {
+            ob_end_clean();
+            $this->fail('download() threw an ApiResponseException unexpectedly: ' . $e->getMessage());
+        }
+        $output = ob_get_clean();
+
+        $this->assertStringStartsWith('%PDF-', $output, 'Output must be a PDF byte stream starting with %PDF-');
+        $this->assertNotEmpty($output, 'PDF output must not be empty');
+    }
+
+    /**
+     * Integration test: download() with proxy not found must return 404.
+     *
+     * This verifies the error path executes api_fail('proxy_not_found', 404).
+     */
+    public function testDownloadProxyNotFoundReturns404(): void
+    {
+        $tenantId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+        $mockMeeting = $this->createMock(MeetingRepository::class);
+        $mockMeeting->method('findByIdForTenant')->willReturn([
+            'id'           => $this->validUuid2,
+            'tenant_id'    => $tenantId,
+            'title'        => 'AG 2026',
+            'scheduled_at' => '2026-04-10 10:00:00',
+            'status'       => 'open',
+        ]);
+
+        $mockProxy = $this->createMock(ProxyRepository::class);
+        $mockProxy->method('findWithNames')->willReturn(null);
+
+        $mockSettings = $this->createMock(SettingsRepository::class);
+        $mockSettings->method('get')->willReturn('Assoc Test');
+
+        $this->injectRepos([
+            MeetingRepository::class  => $mockMeeting,
+            ProxyRepository::class    => $mockProxy,
+            SettingsRepository::class => $mockSettings,
+        ]);
+
+        $result = $this->call([
+            'proxy_id'   => $this->validUuid,
+            'meeting_id' => $this->validUuid2,
+        ]);
+
+        $this->assertEquals(404, $result['status']);
+        $this->assertEquals('proxy_not_found', $result['body']['error']);
+    }
 }
