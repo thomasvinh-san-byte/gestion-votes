@@ -20,30 +20,95 @@
 
   <main class="login-page" role="main">
 
-    <!-- Left panel — branding -->
-    <div class="login-panel-brand">
-      <!-- Animated gradient orb — Clerk/Vercel style -->
-      <div class="login-orb" aria-hidden="true"></div>
+    <!-- ════════════════════════════════════════════════════════════════
+         BRAND PANEL — 40% — Hero, value props, trust strip
+         ════════════════════════════════════════════════════════════════ -->
+    <aside class="login-brand-panel" aria-label="À propos d'AG-VOTE">
+      <!-- Subtle decorative grid background -->
+      <div class="login-brand-grid" aria-hidden="true"></div>
+      <div class="login-brand-glow" aria-hidden="true"></div>
 
-      <!-- Brand -->
-      <div class="login-brand">
-        <div class="login-brand-mark">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-        </div>
-        <h1>AG-VOTE</h1>
-        <p class="login-tagline">Gestion des votes pour votre association</p>
+      <!-- Wordmark + tagline -->
+      <header class="login-brand-header">
+        <a href="/" class="login-brand-logo" aria-label="AG-VOTE — Accueil">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span class="login-brand-wordmark">AG-VOTE</span>
+        </a>
+      </header>
+
+      <!-- Hero content — fills the panel -->
+      <div class="login-brand-hero">
+        <h1 class="login-brand-title">
+          La plateforme de vote pour vos assemblées délibératives
+        </h1>
+        <p class="login-brand-lede">
+          Pilotez, sécurisez et archivez vos séances de vote en toute sérénité.
+        </p>
+
+        <ul class="login-brand-features">
+          <li>
+            <span class="login-feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </span>
+            <div>
+              <strong>Quorum paramétrable</strong>
+              <span>Simple ou évolutif, calculé en temps réel</span>
+            </div>
+          </li>
+          <li>
+            <span class="login-feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <div>
+              <strong>Vote sécurisé</strong>
+              <span>Token unique, chiffrement, anti-rejeu</span>
+            </div>
+          </li>
+          <li>
+            <span class="login-feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </span>
+            <div>
+              <strong>PV signé et figé</strong>
+              <span>Hash d'intégrité, archivage horodaté</span>
+            </div>
+          </li>
+        </ul>
       </div>
-    </div><!-- .login-panel-brand -->
 
-    <!-- Right panel — form -->
-    <div class="login-panel-form">
-      <div class="login-card">
+      <!-- Trust strip — bottom of brand panel -->
+      <footer class="login-brand-trust">
+        <div class="trust-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Sécurisé
+        </div>
+        <div class="trust-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-4z"/><path d="m9 12 2 2 4-4"/></svg>
+          Conforme
+        </div>
+        <div class="trust-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Temps réel
+        </div>
+      </footer>
+    </aside>
 
-        <!-- Form -->
-        <form class="login-form" id="loginForm" action="/api/v1/auth_login" method="POST" autocomplete="on" aria-labelledby="login-heading">
-          <h2 id="login-heading" class="sr-only">Formulaire de connexion</h2>
+    <!-- ════════════════════════════════════════════════════════════════
+         FORM PANEL — 60% — Greeting, form, footer
+         ════════════════════════════════════════════════════════════════ -->
+    <section class="login-form-panel" aria-labelledby="login-heading">
+      <div class="login-form-inner">
 
-          <!-- Email field group — floating label -->
+        <header class="login-form-greeting">
+          <h2 id="login-heading">Connexion</h2>
+          <p>Accédez à votre espace de gestion des votes.</p>
+        </header>
+
+        <form class="login-form" id="loginForm" action="/api/v1/auth_login" method="POST" autocomplete="on">
+
           <div class="field-group" id="emailGroup">
             <input type="email" id="email" name="email" class="field-input"
                    placeholder=" " required autofocus autocomplete="email">
@@ -51,7 +116,6 @@
             <span class="field-error-msg" id="emailError"></span>
           </div>
 
-          <!-- Password field group — floating label + eye toggle -->
           <div class="field-group" id="passwordGroup">
             <div class="field-input-wrap">
               <input type="password" id="password" name="password" class="field-input"
@@ -66,42 +130,31 @@
             <span class="field-error-msg" id="passwordError"></span>
           </div>
 
-          <!-- Status messages -->
           <div id="errorBox" class="login-error" role="alert" aria-live="assertive" tabindex="-1"></div>
           <div id="successBox" class="login-success" role="status" aria-live="polite"></div>
 
-          <!-- Submit button with gradient + micro-interaction -->
           <button type="submit" class="login-btn" id="submitBtn">
             <span class="login-btn-text">Se connecter</span>
             <span class="login-spinner" id="loginSpinner" aria-hidden="true"></span>
           </button>
 
-          <!-- Forgot password -->
           <div class="login-forgot">
-            <a href="/reset-password" class="btn-link">Mot de passe oublie ?</a>
+            <a href="/reset-password" class="btn-link">Mot de passe oublié ?</a>
           </div>
         </form>
-      </div><!-- .login-card -->
 
-      <!-- Trust signal — below card -->
-      <div class="login-trust">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Plateforme securisee — donnees chiffrees
+        <footer class="login-form-footer">
+          <a href="/index.html">← Retour à l'accueil</a>
+          <button type="button" class="login-theme-toggle" id="btnTheme" aria-label="Basculer le thème clair/sombre">
+            <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+        </footer>
+
+        <!-- Demo accounts panel — populated by login.js only when APP_ENV=demo|development -->
+        <div id="demoPanel" class="demo-panel" hidden></div>
       </div>
-
-      <!-- Demo credentials panel (outside card, below trust) -->
-      <div id="demoPanel" class="demo-panel" hidden></div>
-
-      <!-- Footer — below card -->
-      <div class="login-footer">
-        <a href="/index.html">Retour a l'accueil</a>
-        <button type="button" class="login-theme-toggle" id="btnTheme" aria-label="Basculer le theme clair/sombre">
-          <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
-        <span class="login-version">v4.3</span>
-      </div>
-    </div><!-- .login-panel-form -->
+    </section>
 
   </main>
 

@@ -1,145 +1,256 @@
 /**
- * login.css — Login page styles.
+ * login.css — 2-panel login page (40% brand / 60% form).
  *
- * Complete rewrite for v4.3: floating labels, animated gradient orb,
- * 420px elevated card, focus-within glow, dark mode parity, responsive.
- * All values use design system tokens — no raw hex or spacing values.
+ * Brand panel: deep primary background, hero content, value props, trust strip.
+ * Form panel: warm surface, centered form, footer.
+ * All values use design system tokens — no raw colors or spacing.
  */
 
-/* =============================================================================
-   SECTION 1 — LOGIN PAGE LAYOUT (2-panel grid)
-   ============================================================================= */
+/* ─────────────────────────────────────────────────────────────────────
+   LAYOUT — 40/60 grid, full viewport
+   ───────────────────────────────────────────────────────────────────── */
 
 .login-page {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 3fr;
   min-height: 100vh;
+  background: var(--color-bg);
 }
 
-/* =============================================================================
-   SECTION 1B — BRAND PANEL (left, gradient background + orb)
-   ============================================================================= */
+/* ─────────────────────────────────────────────────────────────────────
+   BRAND PANEL — left, primary background, content-rich
+   ───────────────────────────────────────────────────────────────────── */
 
-.login-panel-brand {
+.login-brand-panel {
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-12);
-  background: radial-gradient(circle at 30% 40%, var(--color-primary-subtle), var(--color-primary-glow) 60%, var(--color-bg) 100%);
-}
-
-/* =============================================================================
-   SECTION 1C — FORM PANEL (right, white surface)
-   ============================================================================= */
-
-.login-panel-form {
-  background: var(--color-surface-raised);
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8);
-  gap: var(--space-6);
+  padding: var(--space-10) var(--space-10) var(--space-8);
+  color: var(--color-primary-text);
+  background:
+    linear-gradient(160deg,
+      color-mix(in oklch, var(--color-primary) 92%, black) 0%,
+      var(--color-primary) 50%,
+      color-mix(in oklch, var(--color-primary) 80%, var(--color-accent)) 100%);
+  isolation: isolate;
 }
 
-/* =============================================================================
-   SECTION 2 — ANIMATED GRADIENT ORB
-   ============================================================================= */
-
-@keyframes orb-drift {
-  0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
-  50%  { transform: translate(-50%, -48%) scale(1.08); opacity: 0.55; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
-}
-
-.login-orb {
+/* Subtle grid texture (CSS-only, no image) */
+.login-brand-grid {
   position: absolute;
-  top: 40%;
-  left: 50%;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
-  animation: orb-drift 8s var(--ease-emphasized) infinite;
+  inset: 0;
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 30% 30%, black 30%, transparent 80%);
   pointer-events: none;
-  z-index: 0;
-  will-change: transform, opacity;
+  z-index: -1;
 }
 
-/* =============================================================================
-   SECTION 3 — LOGIN CARD (420px, elevated, focus-within glow)
-   ============================================================================= */
-
-.login-card {
-  width: 100%;
-  max-width: 420px;
-  background: var(--color-surface-raised);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-base);
-  padding: var(--space-8);
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  z-index: 1;
-  transition: box-shadow var(--duration-deliberate) var(--ease-standard),
-              border-color var(--duration-deliberate) var(--ease-standard);
+/* Soft glow blob — depth without an image */
+.login-brand-glow {
+  position: absolute;
+  top: -20%;
+  right: -25%;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(1 0 0 / 0.18) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(20px);
+  animation: brand-glow-drift 14s ease-in-out infinite;
 }
 
-.login-card:focus-within {
-  border-color: var(--color-border-focus);
-  box-shadow: var(--shadow-lg), 0 0 0 3px var(--color-primary-glow);
+@keyframes brand-glow-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-4%, 6%) scale(1.06); }
 }
 
-@starting-style {
-  .login-card { opacity: 0; transform: translateY(12px); }
+/* ── Brand header (logo + wordmark) ─────────────────────────────────── */
+
+.login-brand-header {
+  margin-bottom: auto;
 }
 
-/* =============================================================================
-   SECTION 4 — BRAND HEADER (48px mark, Fraunces h1, tagline)
-   ============================================================================= */
-
-.login-brand {
-  text-align: center;
-  margin-bottom: var(--space-8);
-  position: relative;
-  z-index: 1;
-}
-
-.login-brand-mark {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-lg);
-  background: var(--color-primary);
-  display: flex;
+.login-brand-logo {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto var(--space-3);
+  gap: var(--space-3);
+  color: var(--color-primary-text);
+  text-decoration: none;
+  transition: opacity var(--duration-fast);
 }
 
-.login-brand-mark svg {
-  width: 24px;
-  height: 24px;
+.login-brand-logo:hover {
+  opacity: 0.85;
 }
 
-.login-brand h1 {
+.login-brand-logo svg {
+  flex-shrink: 0;
+}
+
+.login-brand-wordmark {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   letter-spacing: var(--tracking-tight);
-  color: var(--color-text);
-  margin: 0 0 var(--space-1);
 }
 
-.login-tagline {
-  color: var(--color-text-secondary);
-  font-size: var(--text-sm);
+/* ── Hero block (title + lede + features) ───────────────────────────── */
+
+.login-brand-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin: var(--space-12) 0;
+  max-width: 480px;
+}
+
+.login-brand-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 2.4vw + 0.5rem, 2.75rem);
+  font-weight: var(--font-bold);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+  color: var(--color-primary-text);
+}
+
+.login-brand-lede {
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  color: oklch(1 0 0 / 0.82);
   margin: 0;
 }
 
-/* =============================================================================
-   SECTION 5 — FLOATING LABEL FIELD GROUPS
-   ============================================================================= */
+/* ── Feature list ────────────────────────────────────────────────────── */
+
+.login-brand-features {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-brand-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.login-feature-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: oklch(1 0 0 / 0.12);
+  border: 1px solid oklch(1 0 0 / 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-text);
+  backdrop-filter: blur(8px);
+}
+
+.login-feature-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.login-brand-features li > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+}
+
+.login-brand-features strong {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  color: var(--color-primary-text);
+}
+
+.login-brand-features span {
+  font-size: var(--text-sm);
+  color: oklch(1 0 0 / 0.72);
+  line-height: 1.45;
+}
+
+/* ── Trust strip (bottom) ────────────────────────────────────────────── */
+
+.login-brand-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-6);
+  border-top: 1px solid oklch(1 0 0 / 0.15);
+  margin-top: auto;
+}
+
+.trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  background: oklch(1 0 0 / 0.10);
+  border: 1px solid oklch(1 0 0 / 0.18);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: oklch(1 0 0 / 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.trust-pill svg {
+  flex-shrink: 0;
+  color: var(--color-primary-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   FORM PANEL — right, warm surface, centered card
+   ───────────────────────────────────────────────────────────────────── */
+
+.login-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-8);
+  background: var(--color-surface-raised);
+}
+
+.login-form-inner {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* ── Greeting ────────────────────────────────────────────────────────── */
+
+.login-form-greeting h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+  letter-spacing: var(--tracking-tight);
+}
+
+.login-form-greeting p {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   FORM — floating labels, eye toggle, submit, forgot
+   ───────────────────────────────────────────────────────────────────── */
 
 .login-form {
   display: flex;
@@ -147,37 +258,44 @@
   gap: var(--space-4);
 }
 
+/* ── Field group ─────────────────────────────────────────────────────── */
+
 .field-group {
   position: relative;
-  margin-bottom: var(--space-1);
 }
 
 .field-input {
   width: 100%;
-  height: 52px;
-  padding: 18px var(--space-3) 6px;
+  height: 56px;
+  padding: 22px var(--space-4) 8px;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  background: var(--color-bg);
-  color: var(--color-text);
+  font-size: var(--text-base);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   box-sizing: border-box;
   transition: border-color var(--duration-fast) var(--ease-standard),
-              box-shadow var(--duration-moderate) var(--ease-standard);
+              box-shadow var(--duration-moderate) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard);
+}
+
+.field-input:hover:not(:focus) {
+  border-color: var(--color-border-strong, var(--color-text-muted));
 }
 
 .field-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0 0 4px var(--color-primary-subtle);
 }
 
 .field-label {
   position: absolute;
-  left: var(--space-3);
+  left: var(--space-4);
   top: 50%;
   transform: translateY(-50%);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   color: var(--color-text-muted);
   pointer-events: none;
   transition: transform var(--duration-deliberate) var(--ease-emphasized),
@@ -186,23 +304,22 @@
               top var(--duration-deliberate) var(--ease-emphasized);
 }
 
-/* Float trigger: focus or has content (placeholder not shown) */
 .field-input:focus ~ .field-label,
 .field-input:not(:placeholder-shown) ~ .field-label {
-  top: 8px;
+  top: 10px;
   transform: translateY(0);
   font-size: var(--text-xs);
-  color: var(--color-text-secondary);
+  color: var(--color-primary);
+  font-weight: var(--font-medium);
 }
 
-/* Password field: label is sibling of .field-input-wrap, not direct sibling of input.
-   JS adds .has-value class on the .field-group when password has content. */
 .field-group.has-value .field-label,
 .field-group:focus-within .field-label {
-  top: 8px;
+  top: 10px;
   transform: translateY(0);
   font-size: var(--text-xs);
-  color: var(--color-text-secondary);
+  color: var(--color-primary);
+  font-weight: var(--font-medium);
 }
 
 .field-input-wrap {
@@ -210,12 +327,10 @@
 }
 
 .field-input-wrap .field-input {
-  padding-right: 48px; /* space for eye toggle */
+  padding-right: 52px;
 }
 
-/* =============================================================================
-   SECTION 6 — PASSWORD EYE TOGGLE
-   ============================================================================= */
+/* ── Eye toggle ──────────────────────────────────────────────────────── */
 
 .field-eye {
   position: absolute;
@@ -225,20 +340,20 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-text-secondary);
-  padding: var(--space-1);
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  transition: color var(--duration-fast);
+  transition: color var(--duration-fast), background var(--duration-fast);
 }
 
 .field-eye:hover {
   color: var(--color-primary);
+  background: var(--color-primary-subtle);
 }
 
-/* =============================================================================
-   SECTION 7 — FIELD ERROR STATES
-   ============================================================================= */
+/* ── Field errors ────────────────────────────────────────────────────── */
 
 .field-error-msg {
   font-size: var(--text-xs);
@@ -249,75 +364,81 @@
 
 .field-group.field-error .field-input {
   border-color: var(--color-danger);
-  box-shadow: 0 0 0 3px var(--color-danger-subtle);
+  box-shadow: 0 0 0 4px var(--color-danger-subtle);
 }
 
 .field-group.field-error .field-error-msg {
   display: block;
 }
 
-/* =============================================================================
-   SECTION 8 — STATUS MESSAGES (error/success boxes)
-   ============================================================================= */
+/* ── Status messages ─────────────────────────────────────────────────── */
 
-.login-error {
+.login-error,
+.login-success {
   display: none;
-  padding: var(--space-3);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
+  font-weight: var(--font-medium);
 }
 
-.login-error.visible {
-  display: block;
+.login-error {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in oklch, var(--color-danger) 25%, transparent);
 }
 
 .login-success {
-  display: none;
-  padding: var(--space-3);
   background: var(--color-success-subtle);
   color: var(--color-success);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  border: 1px solid color-mix(in oklch, var(--color-success) 25%, transparent);
 }
 
+.login-error.visible,
 .login-success.visible {
   display: block;
 }
 
-/* =============================================================================
-   SECTION 9 — SUBMIT BUTTON (gradient, hover scale, spinner)
-   ============================================================================= */
+/* ── Submit button ───────────────────────────────────────────────────── */
 
 .login-btn {
   width: 100%;
-  min-height: 44px;
-  padding: var(--space-3) var(--space-4);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  min-height: 52px;
+  padding: var(--space-3) var(--space-5);
+  background: linear-gradient(135deg,
+    var(--color-primary) 0%,
+    color-mix(in oklch, var(--color-primary) 80%, var(--color-accent)) 100%);
   color: var(--color-primary-text);
   border: none;
-  border-radius: var(--radius-lg);
-  font-size: var(--text-md);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   font-weight: var(--font-semibold);
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: var(--transition-ui), transform var(--duration-moderate) var(--ease-standard);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  box-shadow: 0 4px 14px color-mix(in oklch, var(--color-primary) 28%, transparent);
+  transition: transform var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-moderate) var(--ease-standard),
+              filter var(--duration-fast) var(--ease-standard);
+  margin-top: var(--space-2);
 }
 
 .login-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary-active, var(--color-primary-hover)) 100%);
-  transform: translateY(-1px) scale(1.01);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px color-mix(in oklch, var(--color-primary) 38%, transparent);
+  filter: brightness(1.05);
 }
 
 .login-btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: none;
+  box-shadow: 0 2px 8px color-mix(in oklch, var(--color-primary) 24%, transparent);
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -325,12 +446,10 @@
   display: none;
   width: 18px;
   height: 18px;
-  border: 2px solid color-mix(in oklch, var(--color-text-inverse) 30%, transparent);
+  border: 2px solid oklch(1 0 0 / 0.30);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: login-spin 0.6s linear infinite;
-  vertical-align: middle;
-  margin-left: var(--space-2);
 }
 
 .login-spinner.visible {
@@ -341,13 +460,10 @@
   to { transform: rotate(360deg); }
 }
 
-/* =============================================================================
-   SECTION 10 — FORGOT PASSWORD
-   ============================================================================= */
+/* ── Forgot password link ────────────────────────────────────────────── */
 
 .login-forgot {
   text-align: center;
-  margin-top: var(--space-1);
 }
 
 .login-forgot .btn-link {
@@ -357,6 +473,9 @@
   background: none;
   border: none;
   cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast);
 }
 
 .login-forgot .btn-link:hover {
@@ -364,132 +483,92 @@
   text-decoration: underline;
 }
 
-.login-forgot-msg {
-  display: none;
-  margin-top: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-info-subtle);
-  color: var(--color-info);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-}
+/* ─────────────────────────────────────────────────────────────────────
+   FORM PANEL FOOTER — back link + theme toggle
+   ───────────────────────────────────────────────────────────────────── */
 
-.login-forgot-msg.visible {
-  display: block;
-}
-
-/* =============================================================================
-   SECTION 11 — TRUST SIGNAL (below card)
-   ============================================================================= */
-
-.login-trust {
+.login-form-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
-  font-size: var(--text-xs);
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
-  position: relative;
-  z-index: 1;
 }
 
-.login-trust svg {
-  color: var(--color-success);
-  flex-shrink: 0;
+.login-form-footer a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast);
 }
 
-/* =============================================================================
-   SECTION 12 — DEMO PANEL (outside card, collapsible)
-   ============================================================================= */
+.login-form-footer a:hover {
+  color: var(--color-primary);
+}
+
+.login-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast),
+              border-color var(--duration-fast),
+              background var(--duration-fast);
+}
+
+.login-theme-toggle:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   DEMO PANEL — only visible in demo/dev env (populated by login.js)
+   ───────────────────────────────────────────────────────────────────── */
 
 .demo-panel {
-  width: 100%;
-  max-width: 420px;
-  margin-top: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-  position: relative;
-  z-index: 1;
+  background: var(--color-primary-subtle);
+  border: 1px solid color-mix(in oklch, var(--color-primary) 22%, transparent);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
 }
 
 .demo-panel[hidden] {
   display: none;
 }
 
-/* =============================================================================
-   SECTION 13 — FOOTER (below card)
-   ============================================================================= */
-
-.login-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  position: relative;
-  z-index: 1;
-}
-
-.login-footer a {
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-.login-footer a:hover {
-  text-decoration: underline;
-}
-
-.login-version {
-  color: var(--color-text-muted);
-}
-
-/* =============================================================================
-   SECTION 14 — THEME TOGGLE
-   ============================================================================= */
-
-.login-theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: color var(--duration-fast), border-color var(--duration-fast);
-}
-
-.login-theme-toggle:hover {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-/* =============================================================================
-   SECTION 15 — DARK MODE
-   ============================================================================= */
+/* ─────────────────────────────────────────────────────────────────────
+   DARK MODE
+   ───────────────────────────────────────────────────────────────────── */
 
 [data-theme="dark"] .login-page {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-primary-muted) 0%, transparent 60%), var(--color-bg);
+  background: var(--color-bg);
 }
 
-[data-theme="dark"] .login-orb {
-  opacity: 0.7;
+[data-theme="dark"] .login-brand-panel {
+  background:
+    linear-gradient(160deg,
+      color-mix(in oklch, var(--color-primary) 60%, black) 0%,
+      color-mix(in oklch, var(--color-primary) 75%, black) 50%,
+      color-mix(in oklch, var(--color-accent) 50%, black) 100%);
 }
 
-[data-theme="dark"] .login-card {
-  border-color: var(--color-border-subtle);
+[data-theme="dark"] .login-form-panel {
+  background: var(--color-surface);
 }
 
 [data-theme="dark"] .field-input {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-color: var(--color-border);
 }
 
@@ -497,76 +576,76 @@
   background: var(--color-surface-raised);
 }
 
-[data-theme="dark"] .login-btn {
-  background: var(--color-primary);
+[data-theme="dark"] .login-form-footer {
+  border-top-color: var(--color-border);
 }
 
-[data-theme="dark"] .login-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+[data-theme="dark"] .login-theme-toggle {
+  background: var(--color-bg);
+  border-color: var(--color-border);
 }
 
-[data-theme="dark"] .demo-panel {
-  background: var(--color-surface);
-  border-color: var(--color-border-subtle);
-}
+/* ─────────────────────────────────────────────────────────────────────
+   RESPONSIVE — Tablet and below
+   ───────────────────────────────────────────────────────────────────── */
 
-/* =============================================================================
-   SECTION 16 — RESPONSIVE — Tablet (max-width: 1024px)
-   ============================================================================= */
-
-@media (max-width: 1024px) {
-  .login-card {
-    max-width: 420px;
-    padding: var(--space-6);
-    box-shadow: var(--shadow-lg);
+@media (max-width: 1100px) {
+  .login-page {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .login-brand h1 {
-    font-size: var(--text-xl);
+  .login-brand-panel {
+    padding: var(--space-8);
+  }
+
+  .login-brand-hero {
+    margin: var(--space-8) 0;
   }
 }
-
-/* =============================================================================
-   SECTION 16 — RESPONSIVE — Mobile (max-width: 768px)
-   ============================================================================= */
 
 @media (max-width: 768px) {
   .login-page {
     grid-template-columns: 1fr;
   }
 
-  .login-panel-brand {
+  .login-brand-panel {
     display: none;
   }
 
-  .login-panel-form {
-    padding: var(--space-6);
-  }
-
-  .login-card {
-    max-width: none;
-    padding: var(--space-6);
+  .login-form-panel {
+    padding: var(--space-8) var(--space-6);
   }
 }
 
-/* =============================================================================
-   SECTION 16 — RESPONSIVE — Small phones (max-width: 480px)
-   ============================================================================= */
-
 @media (max-width: 480px) {
-  .login-panel-form {
-    padding: var(--space-4) var(--space-3);
+  .login-form-panel {
+    padding: var(--space-6) var(--space-4);
   }
 
-  .login-card {
-    padding: var(--space-4) var(--space-3);
+  .login-form-inner {
+    gap: var(--space-6);
   }
 
-  .login-brand h1 {
-    font-size: var(--text-lg);
+  .login-form-greeting h2 {
+    font-size: var(--text-2xl);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   REDUCED MOTION
+   ───────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .login-brand-glow {
+    animation: none;
   }
 
-  .login-tagline {
-    font-size: var(--text-xs);
+  .login-btn,
+  .field-input,
+  .field-label,
+  .login-theme-toggle,
+  .field-eye,
+  .login-form-footer a {
+    transition: none;
   }
 }
