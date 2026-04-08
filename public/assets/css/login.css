@@ -7,19 +7,41 @@
  */
 
 /* =============================================================================
-   SECTION 1 — LOGIN PAGE LAYOUT
+   SECTION 1 — LOGIN PAGE LAYOUT (2-panel grid)
    ============================================================================= */
 
 .login-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   min-height: 100vh;
+}
+
+/* =============================================================================
+   SECTION 1B — BRAND PANEL (left, gradient background + orb)
+   ============================================================================= */
+
+.login-panel-brand {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  background: radial-gradient(circle at 30% 40%, var(--color-primary-subtle), var(--color-primary-glow) 60%, var(--color-bg) 100%);
+}
+
+/* =============================================================================
+   SECTION 1C — FORM PANEL (right, white surface)
+   ============================================================================= */
+
+.login-panel-form {
+  background: var(--color-surface-raised);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, var(--color-primary-subtle) 0%, transparent 60%), var(--color-bg);
-  padding: var(--space-4);
-  position: relative;
-  overflow: hidden;
+  padding: var(--space-8);
+  gap: var(--space-6);
 }
 
 /* =============================================================================
@@ -33,7 +55,7 @@
 }
 
 .login-orb {
-  position: fixed;
+  position: absolute;
   top: 40%;
   left: 50%;
   width: 600px;
@@ -80,6 +102,8 @@
 .login-brand {
   text-align: center;
   margin-bottom: var(--space-8);
+  position: relative;
+  z-index: 1;
 }
 
 .login-brand-mark {
@@ -508,21 +532,20 @@
 
 @media (max-width: 768px) {
   .login-page {
-    padding: var(--space-3);
+    grid-template-columns: 1fr;
+  }
+
+  .login-panel-brand {
+    display: none;
+  }
+
+  .login-panel-form {
+    padding: var(--space-6);
   }
 
   .login-card {
     max-width: none;
     padding: var(--space-6);
-  }
-
-  .login-brand h1 {
-    font-size: var(--text-xl);
-  }
-
-  .login-orb {
-    width: 400px;
-    height: 400px;
   }
 }
 
@@ -531,8 +554,8 @@
    ============================================================================= */
 
 @media (max-width: 480px) {
-  .login-page {
-    padding: var(--space-2);
+  .login-panel-form {
+    padding: var(--space-4) var(--space-3);
   }
 
   .login-card {
@@ -545,9 +568,5 @@
 
   .login-tagline {
     font-size: var(--text-xs);
-  }
-
-  .login-orb {
-    display: none;
   }
 }
