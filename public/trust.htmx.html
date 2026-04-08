@@ -223,9 +223,6 @@
                   <button class="audit-view-btn active" data-view="table" type="button">Tableau</button>
                   <button class="audit-view-btn" data-view="timeline" type="button">Timeline</button>
                 </div>
-                <button class="btn btn-sm btn-secondary" id="btnExportSelection" disabled title="Exporter la s&eacute;lection">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> S&eacute;lection
-                </button>
                 <button class="btn btn-sm btn-secondary" id="btnExportAudit">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Export complet
                 </button>
@@ -276,16 +273,6 @@
             </div>
           </div>
 
-          <!-- Export bar (shown when items selected) -->
-          <div class="audit-export-bar" id="auditExportBar" hidden>
-            <span class="selected-count" id="auditSelectedCount">0 s&eacute;lectionn&eacute;(s)</span>
-            <button class="btn btn-sm btn-secondary" id="btnExportSelectedCsv">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> CSV
-            </button>
-            <button class="btn btn-sm btn-secondary" id="btnExportSelectedJson">
-              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> JSON
-            </button>
-          </div>
         </div>
 
         <!-- Event detail modal (hidden) -->
