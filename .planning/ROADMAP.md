@@ -146,6 +146,6 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
-| 11. Backend Wiring Fixes | 7/7 | Complete   | 2026-04-08 | - |
+| 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
 | 12. Page-by-Page MVP Sweep | v1.2 | 0/? | Not started | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
