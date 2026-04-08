@@ -46,10 +46,11 @@ test.describe('E2E-DASH Dashboard critical path', () => {
     const urgentCard = page.locator('#actionUrgente');
     const urgentVisible = await urgentCard.isVisible().catch(() => false);
     if (urgentVisible) {
-      // Card revealed by JS → must point to /hub
+      // Card revealed by JS — href points to /hub (meeting selector) OR
+      // /operator/{id} (direct console for the live meeting). Both are valid.
       const href = await urgentCard.getAttribute('href');
       expect(href).toBeTruthy();
-      expect(href).toContain('/hub');
+      expect(href).toMatch(/\/(hub|operator)/);
     } else {
       // Card stays hidden (no active session) — verify hidden attribute still present
       await expect.soft(urgentCard).toHaveAttribute('hidden', /.*/, { timeout: 2000 });
