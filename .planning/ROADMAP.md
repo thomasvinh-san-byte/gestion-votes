@@ -81,7 +81,13 @@ Plans:
   2. Toutes les pages utilisent les design tokens de design-system.css — aucune valeur de couleur ou d'espacement codee en dur dans les CSS par-page
   3. Un indicateur de chargement CSS s'affiche sur .htmx-request pendant chaque appel reseau
   4. Les badges de statut (actif, ferme, archive, en cours) ont des couleurs semantiques coherentes sur toutes les pages
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — @layer pages foundation + badge defect fixes (hub HTML + QuorumController)
+- [ ] 06-02-PLAN.md — Login 2-panel layout (HTML restructure + login.css grid)
+- [ ] 06-03-PLAN.md — Token sweep: operator/settings/report/vote/audit CSS colour violations
+- [ ] 06-04-PLAN.md — HTMX loading state wiring + pv_sent badge map entry
 
 ### Phase 7: Playwright Coverage
 **Goal**: Toute regression visible dans un vrai navigateur est detectee par la suite Playwright
