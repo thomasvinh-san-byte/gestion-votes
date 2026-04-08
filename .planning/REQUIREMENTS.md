@@ -39,9 +39,9 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 
 ### MVP — 3 criteres stricts par page (escalade scope)
 
-- [ ] **MVP-01** (Width): Chaque page applicative utilise la largeur totale de l'ecran (pas de max-width artificielle). Pages de contenu (docs, help) restent contraintes a ~80ch pour la lisibilite. Verifie par grep CSS sur les 21 pages.
-- [ ] **MVP-02** (Design Language): Aucun hex/oklch literal dans le CSS d'aucune page applicative. Tout en `var(--*)` du design-system.css. Verifie par `! grep -nE 'oklch\(|#[0-9a-f]{6}' public/assets/css/*.css` sur les 21 fichiers CSS par-page.
-- [ ] **MVP-03** (Function): Chaque page-cle a un test Playwright `critical-path-{page}.spec.js` qui pour CHAQUE bouton/input/lien principal declenche l'interaction et assert un changement d'etat reel (DOM update OU API 2xx OU DB persisted state OU comportement metier verifie). Plus jamais "shows cards = done".
+- [x] **MVP-01** (Width): Chaque page applicative utilise la largeur totale de l'ecran (pas de max-width artificielle). Pages de contenu (docs, help) restent contraintes a ~80ch pour la lisibilite. Verifie par grep CSS sur les 21 pages.
+- [x] **MVP-02** (Design Language): Aucun hex/oklch literal dans le CSS d'aucune page applicative. Tout en `var(--*)` du design-system.css. Verifie par `! grep -nE 'oklch\(|#[0-9a-f]{6}' public/assets/css/*.css` sur les 21 fichiers CSS par-page.
+- [x] **MVP-03** (Function): Chaque page-cle a un test Playwright `critical-path-{page}.spec.js` qui pour CHAQUE bouton/input/lien principal declenche l'interaction et assert un changement d'etat reel (DOM update OU API 2xx OU DB persisted state OU comportement metier verifie). Plus jamais "shows cards = done".
 
 ### Validation Finale MVP
 
@@ -91,9 +91,9 @@ Reporte au prochain milestone (post-bouclage):
 | DEBT-01 | Phase 11 | Complete |
 | DEBT-02 | Phase 11 | Complete |
 | DEBT-03 | Phase 11 | Complete |
-| MVP-01 | Phase 12 | Pending |
-| MVP-02 | Phase 12 | Pending |
-| MVP-03 | Phase 12 | Pending |
+| MVP-01 | Phase 12 | Complete |
+| MVP-02 | Phase 12 | Complete |
+| MVP-03 | Phase 12 | Complete |
 | VAL-01 | Phase 13 | Pending |
 | VAL-02 | Phase 13 | Pending |
 
