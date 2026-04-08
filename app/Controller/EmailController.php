@@ -10,6 +10,23 @@ use AgVote\Service\MailerService;
 use DateTime;
 
 final class EmailController extends AbstractController {
+    /**
+     * Optional factory used to build an EmailQueueService instance.
+     *
+     * Defaults to null (production: build via MailerService::buildMailerConfig +
+     * new EmailQueueService). Inject a callable in tests to return a stub:
+     *   new EmailController(fn($config) => $mockEmailQueueService)
+     *
+     * @var (callable(array): EmailQueueService)|null
+     */
+    private $emailQueueFactory;
+
+    public function __construct(?callable $emailQueueFactory = null)
+    {
+        parent::__construct();
+        $this->emailQueueFactory = $emailQueueFactory;
+    }
+
     public function preview(): void {
         $input = api_request('POST');
 
@@ -229,7 +246,9 @@ final class EmailController extends AbstractController {
         global $config;
         $tenantId = api_current_tenant_id();
         $mergedConfig = MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
-        $service = new EmailQueueService($mergedConfig);
+        $service = $this->emailQueueFactory !== null
+            ? ($this->emailQueueFactory)($mergedConfig)
+            : new EmailQueueService($mergedConfig);
         $result = $service->scheduleReminders($tenantId, $meetingId);
 
         audit_log('email.reminder', 'meeting', $meetingId, [

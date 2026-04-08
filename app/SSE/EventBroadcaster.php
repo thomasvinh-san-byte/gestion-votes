@@ -139,13 +139,25 @@ class EventBroadcaster {
 
     /**
      * Ajoute un evenement a la queue.
+     *
+     * Redis errors are caught and logged but never propagated — SSE broadcasts
+     * are best-effort. A Redis failure must never abort the HTTP response.
      */
     private static function queue(array $event): void {
         $event['queued_at'] = microtime(true);
-        self::queueRedis($event);
+        try {
+            self::queueRedis($event);
+        } catch (Throwable $e) {
+            error_log('EventBroadcaster::queue failed: ' . $e->getMessage());
+            return;
+        }
 
         if (self::isPushEnabled()) {
-            self::publishToSse($event);
+            try {
+                self::publishToSse($event);
+            } catch (Throwable $e) {
+                error_log('EventBroadcaster::publishToSse failed: ' . $e->getMessage());
+            }
         }
     }
 
