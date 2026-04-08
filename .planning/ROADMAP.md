@@ -153,5 +153,5 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
-| 12. Page-by-Page MVP Sweep | 2/4 | In Progress|  | - |
+| 12. Page-by-Page MVP Sweep | 3/4 | In Progress|  | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
