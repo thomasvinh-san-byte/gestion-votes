@@ -16,10 +16,10 @@ Requirements pour le milestone Coherence UI/UX et Wiring. Chaque requirement map
 
 ### Design
 
-- [ ] **DESIGN-01**: Application uniforme des design tokens de design-system.css sur tous les fichiers CSS par page
+- [x] **DESIGN-01**: Application uniforme des design tokens de design-system.css sur tous les fichiers CSS par page
 - [ ] **DESIGN-02**: Login 2-panels — branding a gauche, formulaire a droite, responsive <768px
 - [ ] **DESIGN-03**: Loading states CSS pour .htmx-request — feedback visuel pendant les chargements
-- [ ] **DESIGN-04**: Status badges avec couleurs semantiques (actif, ferme, archive, en cours, etc.)
+- [x] **DESIGN-04**: Status badges avec couleurs semantiques (actif, ferme, archive, en cours, etc.)
 
 ### Tests
 
@@ -63,10 +63,10 @@ Reporte au prochain milestone.
 | WIRE-02 | Phase 5 | Complete |
 | WIRE-03 | Phase 5 | Complete |
 | WIRE-04 | Phase 5 | Complete |
-| DESIGN-01 | Phase 6 | Pending |
+| DESIGN-01 | Phase 6 | Complete |
 | DESIGN-02 | Phase 6 | Pending |
 | DESIGN-03 | Phase 6 | Pending |
-| DESIGN-04 | Phase 6 | Pending |
+| DESIGN-04 | Phase 6 | Complete |
 | TEST-01 | Phase 7 | Pending |
 | TEST-02 | Phase 7 | Pending |
 | TEST-03 | Phase 7 | Pending |

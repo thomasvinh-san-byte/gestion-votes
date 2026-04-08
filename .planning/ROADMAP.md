@@ -109,5 +109,5 @@ Plans:
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 5. JS Audit et Wiring Repair | v1.1 | 2/3 | In progress | - |
-| 6. Application Design Tokens | v1.1 | 0/? | Not started | - |
+| 6. Application Design Tokens | 1/4 | In Progress|  | - |
 | 7. Playwright Coverage | v1.1 | 0/? | Not started | - |
