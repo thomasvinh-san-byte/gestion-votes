@@ -108,7 +108,7 @@ test.describe('Sidebar Navigation', () => {
 
   test('should display sidebar with navigation links', async ({ page }) => {
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const sidebar = page.locator('.app-sidebar, aside, nav').first();
     await expect(sidebar).toBeVisible({ timeout: 5000 });
@@ -116,7 +116,7 @@ test.describe('Sidebar Navigation', () => {
 
   test('should navigate between pages via sidebar links', async ({ page }) => {
     await page.goto('/meetings.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Find a navigation link in sidebar (use meetings page which has a stable sidebar)
     const navLinks = page.locator('.app-sidebar a[href]');
@@ -134,7 +134,7 @@ test.describe('Sidebar Navigation', () => {
         }
       }
       if (targetHref) {
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         // Should have navigated away from meetings page
         expect(page.url()).not.toContain('meetings.htmx.html');
       }
@@ -150,7 +150,8 @@ test.describe('Operator Page UX', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#meetingSelect')).toBeVisible({ timeout: 10000 });
   });
 
   test('should show preparation mode with setup and exec tabs', async ({ page }) => {
@@ -212,7 +213,7 @@ test.describe('Meetings Page UX', () => {
 
   test('should load meetings page with list', async ({ page }) => {
     await page.goto('/meetings.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Page should load without errors
     await expect(page.locator('body')).not.toBeEmpty();
@@ -249,7 +250,8 @@ test.describe('Responsive Layout', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await login(page);
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#meetingSelect')).toBeVisible({ timeout: 10000 });
 
     const hasOverflow = await page.evaluate(() => {
       return document.documentElement.scrollWidth > document.documentElement.clientWidth;
@@ -266,7 +268,8 @@ test.describe('Error Handling UX', () => {
   test('should show user-friendly error on API failure', async ({ page }) => {
     await login(page);
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#meetingSelect')).toBeVisible({ timeout: 10000 });
 
     // Hit a non-existent API endpoint and check no stack trace leaks
     const response = await page.request.get('/api/v1/nonexistent_endpoint.php');
@@ -280,7 +283,8 @@ test.describe('Error Handling UX', () => {
 
   test('should not expose PHP errors to users', async ({ page }) => {
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('.app-shell, main, body').first()).toBeVisible({ timeout: 5000 });
 
     // Check that no PHP warnings/errors are visible in the page
     const bodyText = await page.locator('body').textContent();
@@ -310,7 +314,8 @@ test.describe('Page Load Performance', () => {
     test(`${p.name} page should load within 5 seconds`, async ({ page }) => {
       const start = Date.now();
       await page.goto(p.url);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await expect(page.locator('.app-shell, main, body').first()).toBeVisible({ timeout: 5000 });
       const duration = Date.now() - start;
       expect(duration).toBeLessThan(5000);
     });

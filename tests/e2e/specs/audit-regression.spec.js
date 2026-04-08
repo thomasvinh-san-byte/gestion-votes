@@ -50,7 +50,8 @@ test.describe('P1: Critical Fixes', () => {
     await loginAsOperator(page);
     await page.goto('/docs.htmx.html');
     // Wait for full page load including auth-ui.js async boot
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('.app-shell, main, body').first()).toBeVisible({ timeout: 10000 });
 
     // Verify the script tag points to vendor, not CDN — this is the
     // primary assertion: marked.min.js must be served locally, not from CDN.

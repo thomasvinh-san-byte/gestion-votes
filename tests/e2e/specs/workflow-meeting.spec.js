@@ -71,7 +71,7 @@ test.describe('Operator Meeting Management', () => {
 
   test('should load operator page and show meeting selector', async ({ page }) => {
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const meetingSelect = page.locator('#meetingSelect');
     await expect(meetingSelect).toBeVisible({ timeout: 10000 });
@@ -79,7 +79,7 @@ test.describe('Operator Meeting Management', () => {
 
   test('should list E2E meeting in selector', async ({ page }) => {
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for options to be populated
     const meetingSelect = page.locator('#meetingSelect');
@@ -94,7 +94,7 @@ test.describe('Operator Meeting Management', () => {
 
   test('should select E2E meeting and show status badge', async ({ page }) => {
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const meetingSelect = page.locator('#meetingSelect');
     await expect(meetingSelect).toBeVisible({ timeout: 10000 });
@@ -120,7 +120,8 @@ test.describe('Operator Meeting Management', () => {
 
   test('should show preparation mode with setup tabs', async ({ page }) => {
     await page.goto('/operator.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('#meetingSelect')).toBeVisible({ timeout: 10000 });
 
     // Check mode switches exist
     await expect(page.locator('#btnModeSetup')).toBeVisible();
@@ -206,7 +207,7 @@ test.describe('Vote Interface', () => {
     await loginAsVoter(page);
 
     await page.goto('/vote.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Vote page should have a meeting selector
     const meetingSelect = page.locator('#meetingSelect, ag-searchable-select');
@@ -225,7 +226,7 @@ test.describe('Dashboard', () => {
 
   test('should load dashboard with KPI cards', async ({ page }) => {
     await page.goto('/dashboard.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Dashboard should have content
     await expect(page.locator('body')).not.toBeEmpty();
@@ -245,7 +246,7 @@ test.describe('Admin Panel', () => {
 
   test('should load admin page', async ({ page }) => {
     await page.goto('/admin.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('.app-shell, main, [role="main"]').first()).toBeVisible({ timeout: 5000 });
   });
