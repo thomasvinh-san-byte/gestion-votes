@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
 status: executing
-stopped_at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
-last_updated: "2026-04-03T11:33:35.094Z"
+stopped_at: Completed 06-02-PLAN.md — DESIGN-02 satisfied, login 2-panel layout implemented
+last_updated: "2026-04-08T04:56:44.730Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 3
@@ -55,6 +55,8 @@ Progress: [██████████] 100%
 - [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
 - [Phase 84]: Token name --color-primary-text is canonical for text on primary backgrounds (not --color-text-on-primary or --color-primary-contrast)
 - [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
+- [Phase 06-02]: .login-orb changed from position: fixed to position: absolute — orb scoped to brand panel, not viewport
+- [Phase 06-02]: Tagline updated to 'Gestion des votes pour votre association' per DESIGN-02 copywriting contract
 
 ### Existing Infrastructure
 
@@ -80,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:45:51.496Z
-Stopped at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
+Last session: 2026-04-08T04:56:44.545Z
+Stopped at: Completed 06-02-PLAN.md — DESIGN-02 satisfied, login 2-panel layout implemented
 Resume file: None
