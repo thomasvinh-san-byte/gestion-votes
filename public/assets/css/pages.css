@@ -1003,9 +1003,10 @@
    ============================================================================= */
 
 .dashboard-content {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
-  padding: var(--space-4) 0;
+  padding: var(--space-4) var(--space-6);
 }
 
 /* KPI grid: 4-column */
