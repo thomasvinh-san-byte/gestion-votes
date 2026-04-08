@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Coherence UI/UX et Wiring
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-04-08T04:52:07.618Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-04-08T04:55:16.541Z"
 last_activity: 2026-04-08 -- Phase 06 execution started
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 0
 ---
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0% (v1.1: 0/3 phases)
 | Phase 05 P01 | 25 | 2 tasks | 2 files |
 | Phase 05-js-audit-et-wiring-repair P03 | 525719min | 3 tasks | 6 files |
 | Phase 06 P01 | 3 | 3 tasks | 3 files |
+| Phase 06 P04 | 5 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Full v1.0 decisions: see git history / previous STATE.md entries.
 - [Phase 05]: Self-healing entries reclassified in ID inventory: app_url (fallback selector), appUrlLocalhostWarning (createElement), opPresenceBadge (createElement), execSpeakerTimer (innerHTML create+query)
 - [Phase 06-01]: hub-checklist-badge--pending left unchanged — separate BEM component from canonical .badge system, double-dash is valid for its own component
 - [Phase 06-01]: Badge canonical pattern established: class="badge badge-{variant}" with single hyphen; @layer base, components, v4, pages declared before @import in app.css
+- [Phase 06]: skeleton-row elements inside .htmx-indicator wrapped block — existing bare skeleton-row in members.htmx.html moved inside indicator for proper CSS toggling
+- [Phase 06]: pv_sent placed after frozen in MEETING_STATUS_MAP — keeps badge-info variant statuses grouped together
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T04:52:07.616Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-04-08T04:55:16.538Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
