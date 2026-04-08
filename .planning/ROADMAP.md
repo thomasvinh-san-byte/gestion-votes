@@ -47,6 +47,11 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   3. Tous les specs existants v1.0 et v1.1 (~20 fichiers) plus page-interactions.spec.js et operator-e2e.spec.js passent en chromium dans le container — baseline verte
   4. Le rapport final est lisible (line reporter ou html) et identifie clairement les tests pass/fail
 
+**Plans**: 3 plans
+  - [ ] 08-01-PLAN.md — Add tests service to docker-compose.yml + conditional playwright.config.js
+  - [ ] 08-02-PLAN.md — Create bin/test-e2e.sh wrapper script
+  - [ ] 08-03-PLAN.md — Baseline green run + human-verified HTML report
+
 ### Phase 9: Tests E2E par Role
 **Goal**: Chacun des 4 roles a un test E2E qui exerce son chemin critique de bout-en-bout, sans intervention manuelle
 **Depends on**: Phase 8 (infra must run)
@@ -93,7 +98,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 5. JS Audit et Wiring Repair | v1.1 | 3/3 | Complete | 2026-04-08 |
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
-| 8. Test Infrastructure Docker | v1.2 | 0/? | Not started | - |
+| 8. Test Infrastructure Docker | 1/3 | In Progress|  | - |
 | 9. Tests E2E par Role | v1.2 | 0/? | Not started | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
 | 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |

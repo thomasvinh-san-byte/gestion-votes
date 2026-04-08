@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-08T07:35:00.000Z"
-last_activity: 2026-04-08
+status: executing
+stopped_at: Completed 08-test-infrastructure-docker/08-01-PLAN.md
+last_updated: "2026-04-08T07:55:53.797Z"
+last_activity: 2026-04-08 -- Phase 08 execution started
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 8 — Test Infrastructure Docker
+**Current focus:** Phase 08 — Test Infrastructure Docker
 
 ## Current Position
 
-Phase: 8 of 11 (Test Infrastructure Docker)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-04-08 — Roadmap v1.2 cree, phases 8-11 definies
+Phase: 08 (Test Infrastructure Docker) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 08
+Last activity: 2026-04-08 -- Phase 08 execution started
 
 Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 
@@ -61,6 +61,8 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 07-playwright-coverage]: color-contrast disabled in axeAudit — visual contrast is design-token scope, structural accessibility is the target
 - [Phase 07-playwright-coverage]: axeAudit filters to critical/serious violations only — moderate/minor are not CI-blocking
 - [Phase 07-01]: Strategy C mandatory for public.htmx.html SSE pages — networkidle can never resolve, use domcontentloaded + waitForSelector
+- [Phase 08-test-infrastructure-docker]: Playwright jammy image pinned to v1.59.1 — matches @playwright/test 1.59.1 in package.json, avoids Alpine musl browser hell
+- [Phase 08-test-infrastructure-docker]: profiles: [test] gates tests service — never starts on plain docker compose up
 
 ### Existing Infrastructure
 
@@ -86,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T06:11:23.855Z
-Stopped at: Completed 07-01-PLAN.md — TEST-01 networkidle removal complete
+Last session: 2026-04-08T07:55:53.794Z
+Stopped at: Completed 08-test-infrastructure-docker/08-01-PLAN.md
 Resume file: None

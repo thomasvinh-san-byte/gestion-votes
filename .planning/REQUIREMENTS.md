@@ -9,7 +9,7 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 
 ### Infrastructure de Test
 
-- [ ] **INFRA-01**: Container Docker avec libatk + browsers Playwright preinstalles, capable de lancer la suite E2E complete
+- [x] **INFRA-01**: Container Docker avec libatk + browsers Playwright preinstalles, capable de lancer la suite E2E complete
 - [ ] **INFRA-02**: Script bin/test-e2e.sh qui lance Playwright dans le container et retourne le rapport
 - [ ] **INFRA-03**: Baseline verte sur tous les specs existants + page-interactions + operator-e2e (de v1.1)
 
@@ -65,7 +65,7 @@ Reporte au prochain milestone (post-bouclage):
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 8 | Pending |
+| INFRA-01 | Phase 8 | Complete |
 | INFRA-02 | Phase 8 | Pending |
 | INFRA-03 | Phase 8 | Pending |
 | E2E-01 | Phase 9 | Pending |
