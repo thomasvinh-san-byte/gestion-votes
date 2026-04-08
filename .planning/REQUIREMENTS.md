@@ -65,26 +65,26 @@ Reporte au prochain milestone (post-bouclage):
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | TBD | Pending |
-| INFRA-02 | TBD | Pending |
-| INFRA-03 | TBD | Pending |
-| E2E-01 | TBD | Pending |
-| E2E-02 | TBD | Pending |
-| E2E-03 | TBD | Pending |
-| E2E-04 | TBD | Pending |
-| UAT-01 | TBD | Pending |
-| UAT-02 | TBD | Pending |
-| UAT-03 | TBD | Pending |
-| FIX-01 | TBD | Pending |
-| FIX-02 | TBD | Pending |
-| DEBT-01 | TBD | Pending |
-| DEBT-02 | TBD | Pending |
-| DEBT-03 | TBD | Pending |
+| INFRA-01 | Phase 8 | Pending |
+| INFRA-02 | Phase 8 | Pending |
+| INFRA-03 | Phase 8 | Pending |
+| E2E-01 | Phase 9 | Pending |
+| E2E-02 | Phase 9 | Pending |
+| E2E-03 | Phase 9 | Pending |
+| E2E-04 | Phase 9 | Pending |
+| UAT-01 | Phase 10 | Pending |
+| UAT-02 | Phase 10 | Pending |
+| UAT-03 | Phase 10 | Pending |
+| FIX-01 | Phase 11 | Pending |
+| FIX-02 | Phase 10 | Pending |
+| DEBT-01 | Phase 11 | Pending |
+| DEBT-02 | Phase 11 | Pending |
+| DEBT-03 | Phase 11 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15
+- Mapped to phases: 15
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-08*

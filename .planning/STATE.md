@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
-status: defining
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-04-08T07:30:00.000Z"
+last_updated: "2026-04-08T07:35:00.000Z"
 last_activity: 2026-04-08
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Defining requirements for v1.2 Bouclage
+**Current focus:** Phase 8 — Test Infrastructure Docker
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-08 — Milestone v1.2 started
+Phase: 8 of 11 (Test Infrastructure Docker)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-04-08 — Roadmap v1.2 cree, phases 8-11 definies
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 
 ## Accumulated Context
 
