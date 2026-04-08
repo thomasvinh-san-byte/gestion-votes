@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-04-08T11:03:56.516Z"
+stopped_at: Completed 11-backend-wiring-fixes plan 01
+last_updated: "2026-04-08T11:11:14.373Z"
 last_activity: 2026-04-08 -- Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 9
+  completed_plans: 11
   percent: 0
 ---
 
@@ -75,6 +75,9 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 09-tests-e2e-par-role]: Admin E2E spec uses read-only assertions only (tab clicks, page loads) — fully re-runnable without DB cleanup
 - [Phase 09-tests-e2e-par-role]: E2E-02: operator critical path spec uses hybrid API+UI strategy (setup via API, console via browser); CSRF endpoint is /api/v1/auth_csrf; meeting ID field is data.meeting_id
 - [Phase 11-backend-wiring-fixes]: Separate PublicTest class for dual-auth coverage rather than appending to existing test file
+- [Phase 11-backend-wiring-fixes]: EventBroadcaster::queue() now catches Redis failures silently — SSE is best-effort, must never abort HTTP responses
+- [Phase 11-backend-wiring-fixes]: EmailController accepts optional emailQueueFactory callable constructor param to enable testing against the final EmailQueueService
+- [Phase 11-backend-wiring-fixes]: settVoteMode/settMajority/settQuorumThreshold wired into VoteEngine+QuorumEngine via fallback policy synthesis; explicit policies still win
 
 ### Existing Infrastructure
 
@@ -100,6 +103,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T11:03:51.910Z
-Stopped at: Completed 11-03-PLAN.md
+Last session: 2026-04-08T11:11:14.371Z
+Stopped at: Completed 11-backend-wiring-fixes plan 01
 Resume file: None
