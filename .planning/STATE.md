@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 11-backend-wiring-fixes/11-05-PLAN.md
-last_updated: "2026-04-08T11:16:53.381Z"
+stopped_at: Completed 11-06-PLAN.md (MeetingReportsService extraction)
+last_updated: "2026-04-08T11:25:49.932Z"
 last_activity: 2026-04-08 -- Phase 11 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -80,6 +80,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 11-backend-wiring-fixes]: settVoteMode/settMajority/settQuorumThreshold wired into VoteEngine+QuorumEngine via fallback policy synthesis; explicit policies still win
 - [Phase 11-backend-wiring-fixes]: Removed orphan buttons and dead settings instead of wiring to nothing — MVP discipline enforced
 - [Phase 11-backend-wiring-fixes]: getDashboardStats() wired in DashboardController::index() — present_count from aggregated query, present_weight kept from dashboardSummary; full stats dict exposed as data.stats in response
+- [Phase 11-backend-wiring-fixes]: Created MeetingReportsService (plural) rather than extending MeetingReportService (singular) — avoids 1000+ line god service
 
 ### Existing Infrastructure
 
@@ -105,6 +106,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T11:16:53.378Z
-Stopped at: Completed 11-backend-wiring-fixes/11-05-PLAN.md
+Last session: 2026-04-08T11:25:49.929Z
+Stopped at: Completed 11-06-PLAN.md (MeetingReportsService extraction)
 Resume file: None

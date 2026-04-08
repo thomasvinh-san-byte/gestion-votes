@@ -34,7 +34,7 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 ### Dette Technique v1.0
 
 - [x] **DEBT-01**: getDashboardStats() branche dans DashboardController (perf gain v1.0 unrealized)
-- [ ] **DEBT-02**: MeetingReportsController (727 lignes) decoupe en service + controller mince
+- [x] **DEBT-02**: MeetingReportsController (727 lignes) decoupe en service + controller mince
 - [ ] **DEBT-03**: MotionsController (720 lignes) decoupe en service + controller mince
 
 ### MVP — 3 criteres stricts par page (escalade scope)
@@ -89,7 +89,7 @@ Reporte au prochain milestone (post-bouclage):
 | FIX-01 | Phase 11 | Complete |
 | FIX-02 | Phase 10 | Complete |
 | DEBT-01 | Phase 11 | Complete |
-| DEBT-02 | Phase 11 | Pending |
+| DEBT-02 | Phase 11 | Complete |
 | DEBT-03 | Phase 11 | Pending |
 | MVP-01 | Phase 12 | Pending |
 | MVP-02 | Phase 12 | Pending |
