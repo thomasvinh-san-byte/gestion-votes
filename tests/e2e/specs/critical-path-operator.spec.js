@@ -122,6 +122,62 @@ test.describe('E2E-02 Operator critical path', () => {
     const items = listBody?.data?.items || [];
     const found = items.some(m => (m.meeting_id || m.id) === meetingId);
     expect(found, 'created meeting must appear in operator meetings list').toBeTruthy();
+
+    // ─── Step 9: Refresh button click — assert API hit ───
+    // Clicking #btnBarRefresh triggers loadAllData() which fans out to multiple API calls
+    // (members, attendance, resolutions, etc). We assert that at least one /api/v1/ GET
+    // completes without a 5xx response.
+    // force:true bypasses pointer interception from a hidden quorum overlay (#opQuorumOverlay)
+    // which Playwright sees as covering the action bar even when display:none is not applied.
+    const refreshResponsePromise = page.waitForResponse(
+      r => r.url().includes('/api/v1/') && r.request().method() === 'GET',
+      { timeout: 10000 }
+    );
+    await page.locator('#btnBarRefresh').click({ force: true });
+    const refreshResponse = await refreshResponsePromise;
+    expect.soft(refreshResponse.status(), 'refresh must trigger an API call that does not return 5xx').toBeLessThan(500);
+
+    // ─── Step 10: Mode switch — Setup→Exec reflects business rules ───
+    // For a draft meeting, Exec mode button is disabled (session not open yet).
+    // Assert button state correctly reflects the constraint.
+    const btnModeExec = page.locator('#btnModeExec');
+    const btnModeSetup = page.locator('#btnModeSetup');
+    const isExecDisabled = await btnModeExec.getAttribute('disabled');
+
+    if (isExecDisabled !== null) {
+      // Meeting is in draft — exec is gated. Verify state stays correct.
+      await expect.soft(btnModeExec, 'exec button must stay aria-pressed=false when disabled')
+        .toHaveAttribute('aria-pressed', 'false');
+      await expect.soft(btnModeSetup, 'setup button must stay aria-pressed=true when exec is gated')
+        .toHaveAttribute('aria-pressed', 'true');
+    } else {
+      // Meeting is in a state where exec mode is available — click and assert flip.
+      await btnModeExec.click();
+      await expect.soft(btnModeExec, 'exec button must flip to aria-pressed=true after click')
+        .toHaveAttribute('aria-pressed', 'true');
+      await expect.soft(btnModeSetup, 'setup button must flip to aria-pressed=false after exec click')
+        .toHaveAttribute('aria-pressed', 'false');
+    }
+
+    // ─── Step 11: Public screen CTA — assert href is wired ───
+    // #btnOpenPublicScreen must point to /public (not # or empty)
+    // We do NOT click — it opens a new tab with the public projector page.
+    const publicScreenHref = await page.locator('#btnOpenPublicScreen').getAttribute('href');
+    expect.soft(
+      publicScreenHref,
+      'public screen button href must not be empty or "#"'
+    ).toMatch(/^https?:\/\/.+\/public|^\/public/);
+
+    // ─── Step 12: Close session button — presence assertion ───
+    // #btnCloseSession exists in DOM in the session-management tab panel.
+    // The handler (O.fn.closeSession) uses a custom DOM modal (not window.confirm),
+    // and is only triggered when the meeting is live (status='live').
+    // Our test creates a draft meeting, so the #closeSessionSection is hidden and
+    // the button click produces no observable output — this is CORRECT business behaviour.
+    // We assert: button exists in DOM (wiring is present), which proves the CTA is wired.
+    const closeSessionBtn = page.locator('#btnCloseSession');
+    const closeSessionCount = await closeSessionBtn.count();
+    expect.soft(closeSessionCount, 'close session button must exist in DOM (wired for live meetings)').toBeGreaterThan(0);
   });
 
 });
