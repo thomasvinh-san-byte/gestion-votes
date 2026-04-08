@@ -10,6 +10,7 @@ use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\SettingsRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -24,6 +25,7 @@ final class VoteEngine {
     private MemberRepository $memberRepo;
     private PolicyRepository $policyRepo;
     private AttendanceRepository $attendanceRepo;
+    private SettingsRepository $settingsRepo;
 
     public function __construct(
         ?MotionRepository $motionRepo = null,
@@ -31,12 +33,46 @@ final class VoteEngine {
         ?MemberRepository $memberRepo = null,
         ?PolicyRepository $policyRepo = null,
         ?AttendanceRepository $attendanceRepo = null,
+        ?SettingsRepository $settingsRepo = null,
     ) {
         $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
         $this->ballotRepo = $ballotRepo ?? RepositoryFactory::getInstance()->ballot();
         $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
         $this->policyRepo = $policyRepo ?? RepositoryFactory::getInstance()->policy();
         $this->attendanceRepo = $attendanceRepo ?? RepositoryFactory::getInstance()->attendance();
+        $this->settingsRepo = $settingsRepo ?? RepositoryFactory::getInstance()->settings();
+    }
+
+    /**
+     * Synthesize a minimal vote policy from settMajority tenant setting.
+     *
+     * Returns null when the setting is absent or unrecognized, so the caller
+     * can fall back to the no-policy behavior.
+     *
+     * @param string $tenantId Tenant UUID
+     *
+     * @return array|null Synthetic vote policy or null if no valid setting exists
+     */
+    private function resolveFallbackVotePolicy(string $tenantId): ?array {
+        $rawMajority = $this->settingsRepo->get($tenantId, 'settMajority');
+        if ($rawMajority === null || $rawMajority === '') {
+            return null;
+        }
+        $threshold = match ($rawMajority) {
+            'simple', 'absolute' => 0.5,
+            'two_thirds'         => 2.0 / 3.0,
+            'three_quarters'     => 0.75,
+            default              => null,
+        };
+        if ($threshold === null) {
+            return null;
+        }
+        return [
+            'name'                  => 'Réglages tenant',
+            'base'                  => 'expressed',
+            'threshold'             => $threshold,
+            'abstention_as_against' => false,
+        ];
     }
 
     /**
@@ -220,6 +256,20 @@ final class VoteEngine {
             $votePolicy = $this->policyRepo->findVotePolicy($appliedVotePolicyId, $tenantId);
         }
 
+        // Fallback: when no explicit vote policy, synthesize one from tenant settings
+        if ($votePolicy === null) {
+            $votePolicy = $this->resolveFallbackVotePolicy($tenantId);
+        }
+
+        // Override motion secrecy from settVoteMode tenant setting
+        $motionSecret = (bool) ($motion['secret'] ?? false);
+        $settVoteMode = $this->settingsRepo->get($tenantId, 'settVoteMode');
+        if ($settVoteMode === 'secret') {
+            $motionSecret = true;
+        } elseif ($settVoteMode === 'public') {
+            $motionSecret = false;
+        }
+
         // Resolve present weight for 'present' majority base
         $presentWeight = null;
         if ($votePolicy && ($votePolicy['base'] ?? '') === 'present') {
@@ -274,7 +324,7 @@ final class VoteEngine {
                 'tenant_id' => $tenantId,
                 'vote_policy_id' => $appliedVotePolicyId,
                 'quorum_policy_id' => $motion['quorum_policy_id'],
-                'secret' => (bool) $motion['secret'],
+                'secret' => $motionSecret,
             ],
             'tallies' => $tallies,
             'eligible' => [

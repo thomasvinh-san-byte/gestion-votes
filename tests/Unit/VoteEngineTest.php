@@ -9,6 +9,7 @@ use AgVote\Repository\BallotRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\SettingsRepository;
 use AgVote\Service\VoteEngine;
 use PHPUnit\Framework\TestCase;
 
@@ -766,8 +767,10 @@ class VoteEngineTest extends TestCase {
         $memberRepo     = $overrides['memberRepo']     ?? $this->createMock(MemberRepository::class);
         $policyRepo     = $overrides['policyRepo']     ?? $this->createMock(PolicyRepository::class);
         $attendanceRepo = $overrides['attendanceRepo'] ?? $this->createMock(AttendanceRepository::class);
+        // Default settingsRepo returns null for all keys → existing tests retain no-settings behavior.
+        $settingsRepo   = $overrides['settingsRepo']   ?? $this->createMock(SettingsRepository::class);
 
-        return new VoteEngine($motionRepo, $ballotRepo, $memberRepo, $policyRepo, $attendanceRepo);
+        return new VoteEngine($motionRepo, $ballotRepo, $memberRepo, $policyRepo, $attendanceRepo, $settingsRepo);
     }
 
     /**

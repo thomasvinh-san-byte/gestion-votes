@@ -10,6 +10,7 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\SettingsRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -39,6 +40,7 @@ final class QuorumEngine {
     private AttendanceRepository $attendanceRepo;
     private MemberRepository $memberRepo;
     private MeetingRepository $meetingRepo;
+    private SettingsRepository $settingsRepo;
 
     public function __construct(
         ?MotionRepository $motionRepo = null,
@@ -46,13 +48,16 @@ final class QuorumEngine {
         ?AttendanceRepository $attendanceRepo = null,
         ?MemberRepository $memberRepo = null,
         ?MeetingRepository $meetingRepo = null,
+        ?SettingsRepository $settingsRepo = null,
     ) {
         $this->motionRepo = $motionRepo ?? RepositoryFactory::getInstance()->motion();
         $this->policyRepo = $policyRepo ?? RepositoryFactory::getInstance()->policy();
         $this->attendanceRepo = $attendanceRepo ?? RepositoryFactory::getInstance()->attendance();
         $this->memberRepo = $memberRepo ?? RepositoryFactory::getInstance()->member();
         $this->meetingRepo = $meetingRepo ?? RepositoryFactory::getInstance()->meeting();
+        $this->settingsRepo = $settingsRepo ?? RepositoryFactory::getInstance()->settings();
     }
+
 
     /**
      * Compute quorum status for a specific motion.
@@ -119,16 +124,62 @@ final class QuorumEngine {
         $convocationNo = (int) ($row['convocation_no'] ?? 1);
 
         if ($policyId === '') {
+            // No explicit meeting-level policy: try settings fallback before returning noPolicy.
+            // NOTE: computeForMotion() is not touched here — it has its own fallback chain.
+            $fallbackPolicy = $this->resolveFallbackQuorumPolicy($tenantId);
+            if ($fallbackPolicy !== null) {
+                return $this->computeInternal($meetingId, $tenantId, $convocationNo, $fallbackPolicy, null) + [
+                    'policy' => ['id' => 'settings-fallback', 'name' => 'Réglages tenant', 'mode' => 'single'],
+                ];
+            }
             return self::noPolicy($meetingId, $tenantId);
         }
 
         $policy = $this->policyRepo->findQuorumPolicy($policyId, $tenantId);
         if (!$policy) {
+            $fallbackPolicy = $this->resolveFallbackQuorumPolicy($tenantId);
+            if ($fallbackPolicy !== null) {
+                return $this->computeInternal($meetingId, $tenantId, $convocationNo, $fallbackPolicy, null) + [
+                    'policy' => ['id' => 'settings-fallback', 'name' => 'Réglages tenant', 'mode' => 'single'],
+                ];
+            }
             return self::noPolicy($meetingId, $tenantId);
         }
 
         return $this->computeInternal($meetingId, $tenantId, $convocationNo, $policy, null) + [
             'policy' => ['id' => (string) $policy['id'], 'name' => (string) $policy['name'], 'mode' => (string) $policy['mode']],
+        ];
+    }
+
+    /**
+     * Synthesize a minimal quorum policy from the settQuorumThreshold tenant setting.
+     *
+     * Returns null when the setting is absent or out of range (0-100),
+     * so the caller can fall back to noPolicy() behavior.
+     *
+     * @param string $tenantId Tenant UUID
+     *
+     * @return array|null Synthetic policy array or null if no valid setting exists
+     */
+    private function resolveFallbackQuorumPolicy(string $tenantId): ?array {
+        $raw = $this->settingsRepo->get($tenantId, 'settQuorumThreshold');
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        $pct = (float) $raw;
+        if ($pct < 0.0 || $pct > 100.0) {
+            return null;
+        }
+        return [
+            'name' => 'Réglages tenant',
+            'mode' => 'single',
+            'denominator' => 'eligible_members',
+            'threshold' => $pct / 100.0,
+            'threshold_call2' => null,
+            'denominator2' => null,
+            'threshold2' => null,
+            'include_proxies' => true,
+            'count_remote' => true,
         ];
     }
 

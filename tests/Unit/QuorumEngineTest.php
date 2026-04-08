@@ -9,6 +9,7 @@ use AgVote\Repository\MeetingRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\PolicyRepository;
+use AgVote\Repository\SettingsRepository;
 use AgVote\Service\QuorumEngine;
 use PHPUnit\Framework\TestCase;
 
@@ -450,9 +451,11 @@ class QuorumEngineTest extends TestCase {
         $policyRepo     = $overrides['policyRepo']     ?? $this->createMock(PolicyRepository::class);
         $attendanceRepo = $overrides['attendanceRepo'] ?? $this->createMock(AttendanceRepository::class);
         $memberRepo     = $overrides['memberRepo']     ?? $this->createMock(MemberRepository::class);
-        $meetingRepo    = $overrides['meetingRepo']     ?? $this->createMock(MeetingRepository::class);
+        $meetingRepo    = $overrides['meetingRepo']    ?? $this->createMock(MeetingRepository::class);
+        // Default settingsRepo returns null for all keys → existing tests retain noPolicy() behavior.
+        $settingsRepo   = $overrides['settingsRepo']   ?? $this->createMock(SettingsRepository::class);
 
-        return new QuorumEngine($motionRepo, $policyRepo, $attendanceRepo, $memberRepo, $meetingRepo);
+        return new QuorumEngine($motionRepo, $policyRepo, $attendanceRepo, $memberRepo, $meetingRepo, $settingsRepo);
     }
 
     public function testComputeForMeetingNoPolicyApplied(): void {
