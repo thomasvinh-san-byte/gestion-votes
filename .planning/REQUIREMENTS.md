@@ -18,7 +18,7 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 - [x] **E2E-01**: Test critical path admin: login - settings - users management - audit - logout
 - [ ] **E2E-02**: Test critical path operator: login - creer assemblee - ajouter membres - lancer vote - cloturer - rapport
 - [ ] **E2E-03**: Test critical path president: login - assemblee active - ouvrir vote - modifier quorum - cloturer
-- [ ] **E2E-04**: Test critical path votant: vote token - page de vote - soumettre - confirmation
+- [x] **E2E-04**: Test critical path votant: vote token - page de vote - soumettre - confirmation
 
 ### Validation Manuelle (UAT)
 
@@ -71,7 +71,7 @@ Reporte au prochain milestone (post-bouclage):
 | E2E-01 | Phase 9 | Complete |
 | E2E-02 | Phase 9 | Pending |
 | E2E-03 | Phase 9 | Pending |
-| E2E-04 | Phase 9 | Pending |
+| E2E-04 | Phase 9 | Complete |
 | UAT-01 | Phase 10 | Pending |
 | UAT-02 | Phase 10 | Pending |
 | UAT-03 | Phase 10 | Pending |
