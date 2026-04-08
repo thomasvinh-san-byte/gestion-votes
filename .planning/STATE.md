@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 11-07-PLAN.md
-last_updated: "2026-04-08T11:41:28.097Z"
-last_activity: 2026-04-08
+stopped_at: Completed 12-03-PLAN.md (hub page MVP sweep)
+last_updated: "2026-04-08T12:00:08.957Z"
+last_activity: 2026-04-08 -- Phase 12 execution started
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 19
+  completed_plans: 17
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 11 — Backend Wiring Fixes
+**Current focus:** Phase 12 — Page-by-Page MVP Sweep
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Executing Phase 11
-Last activity: 2026-04-08
+Phase: 12 (Page-by-Page MVP Sweep) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 12
+Last activity: 2026-04-08 -- Phase 12 execution started
 
 Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 
@@ -83,6 +83,9 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 11-backend-wiring-fixes]: Created MeetingReportsService (plural) rather than extending MeetingReportService (singular) — avoids 1000+ line god service
 - [Phase 11]: MotionsService: lazy-load repo accessors prevent PDO errors in partial-mock tests
 - [Phase 11]: EventBroadcaster stays in controller post-service (HTTP concern, not business logic)
+- [Phase 12-page-by-page-mvp-sweep]: hub.css both CSS gates passed by inspection with no edits required (already fluid + token-pure)
+- [Phase 12-page-by-page-mvp-sweep]: Dashboard width cap removed: max-width 1200px → 100% with padding-inline space-6
+- [Phase 12-page-by-page-mvp-sweep]: KPI Playwright assertion uses not.toHaveText('-') to prove getDashboardStats() DEBT-01 wiring
 
 ### Existing Infrastructure
 
@@ -108,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T11:36:28.971Z
-Stopped at: Completed 11-07-PLAN.md
+Last session: 2026-04-08T12:00:07.879Z
+Stopped at: Completed 12-03-PLAN.md (hub page MVP sweep)
 Resume file: None
