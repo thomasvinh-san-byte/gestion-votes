@@ -33,7 +33,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [ ] **Phase 8: Test Infrastructure Docker** — Make Playwright actually run in a containerized environment with all browsers + system libs
 - [ ] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs covering admin, operator, president, votant
 - [ ] **Phase 10: Validation Manuelle Bout-en-Bout** — Conversational UAT par role, checklists, regression discovery
-- [ ] **Phase 11: Reparation et Dette Technique v1.0** — Fix discovered regressions + close v1.0 carry-over debt
+- [ ] **Phase 11: Reparation et Dette Technique Carry-Over** — Fix discovered regressions + close v1.0 carry-over debt
 
 ## Phase Details
 
@@ -68,7 +68,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   3. Les 11 items "human verification deferred" de v1.1 sont confirmes ou marques cassees
   4. Un rapport `.planning/v1.2-UAT-REPORT.md` documente: ce qui marche, ce qui casse, par role et par page, avec evidence (screenshots/notes)
 
-### Phase 11: Reparation et Dette Technique v1.0
+### Phase 11: Reparation et Dette Technique Carry-Over
 **Goal**: Toutes les regressions decouvertes en Phase 10 sont reparees, et la dette technique v1.0 carry-over est close
 **Depends on**: Phase 10 (FIX-01 scope is determined by Phase 10 UAT findings)
 **Requirements**: FIX-01, DEBT-01, DEBT-02, DEBT-03
@@ -78,6 +78,9 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   3. `MeetingReportsController` est descendu sous 300 lignes via extraction `MeetingReportsService` (logique metier dans le service)
   4. `MotionsController` est descendu sous 300 lignes via extraction `MotionsService`
   5. Tous les tests existants (PHPUnit + Playwright) passent toujours apres les refactorings
+**Plans**: TBD
+
+---
 
 ## Progress
 
@@ -93,4 +96,4 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 8. Test Infrastructure Docker | v1.2 | 0/? | Not started | - |
 | 9. Tests E2E par Role | v1.2 | 0/? | Not started | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
-| 11. Reparation et Dette Technique v1.0 | v1.2 | 0/? | Not started | - |
+| 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |
