@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 Dette Technique** - Phases 1-4 (shipped 2026-04-07) — see `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Coherence UI/UX et Wiring** - Phases 5-7 (shipped 2026-04-08) — see `.planning/milestones/v1.1-ROADMAP.md`
-- 🚧 **v1.2 Bouclage et Validation Bout-en-Bout** - Phases 8-11 (in progress)
+- 🚧 **v1.2 Bouclage et Validation Bout-en-Bout** - Phases 8-13 (in progress, escalated to MVP scope)
 
 ## Phases
 
@@ -28,12 +28,14 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 ### 🚧 v1.2 Bouclage et Validation Bout-en-Bout (In Progress)
 
-**Milestone Goal:** Boucler le projet — verifier que toutes les fonctionnalites du chemin critique fonctionnent pour les 4 roles, validees par tests automatises ET parcours manuel browser. Stop aux ajouts, on s'assure que le tout fonctionne comme un tout.
+**Milestone Goal (v2 — escalated):** Livrer un MVP qui passe 3 criteres stricts sur les 21 pages : (1) UI moderne pleine largeur (sauf pages de contenu docs/help qui restent ~80ch), (2) design language partage via design-system.css, (3) **chaque element fonctionnel** prouve par Playwright. Plus jamais "shows cards != fonctionne".
 
-- [x] **Phase 8: Test Infrastructure Docker** — Make Playwright actually run in a containerized environment with all browsers + system libs (completed 2026-04-08)
-- [x] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs covering admin, operator, president, votant (completed 2026-04-08)
-- [ ] **Phase 10: Validation Manuelle Bout-en-Bout** — Conversational UAT par role, checklists, regression discovery
-- [ ] **Phase 11: Reparation et Dette Technique Carry-Over** — Fix discovered regressions + close v1.0 carry-over debt
+- [x] **Phase 8: Test Infrastructure Docker** — Playwright runs in container (completed 2026-04-08)
+- [x] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs GREEN (completed 2026-04-08)
+- [ ] **Phase 10: Validation Manuelle Bout-en-Bout** — UAT artifacts generated, awaiting human walkthrough OR superseded by Phase 12 page sweep
+- [ ] **Phase 11: Backend Wiring Fixes** — Fix 5 phantom endpoints + wire 6 dead settings + close v1.0 carry-over tech debt
+- [ ] **Phase 12: Page-by-Page MVP Sweep** — 21 pages each must pass 3 gates: width audit, design tokens audit, function audit (Playwright assertion of real result)
+- [ ] **Phase 13: MVP Validation Finale** — Full Playwright suite + final UAT + ship verdict
 
 ## Phase Details
 
@@ -80,16 +82,44 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   3. Les 11 items "human verification deferred" de v1.1 sont confirmes ou marques cassees
   4. Un rapport `.planning/v1.2-UAT-REPORT.md` documente: ce qui marche, ce qui casse, par role et par page, avec evidence (screenshots/notes)
 
-### Phase 11: Reparation et Dette Technique Carry-Over
-**Goal**: Toutes les regressions decouvertes en Phase 10 sont reparees, et la dette technique v1.0 carry-over est close
-**Depends on**: Phase 10 (FIX-01 scope is determined by Phase 10 UAT findings)
-**Requirements**: FIX-01, DEBT-01, DEBT-02, DEBT-03
+### Phase 11: Backend Wiring Fixes
+**Goal**: Eliminer tous les endpoints fantomes et settings DEAD identifies dans v1.2-PAGES-AUDIT.md, plus la dette tech v1.0 carry-over. Phase prerequis avant Phase 12 (page sweep ne peut pas tester "le bouton fonctionne" si l'endpoint n'existe pas).
+**Depends on**: Phase 9 (audit results)
+**Requirements**: FIX-01, FIX-02, DEBT-01, DEBT-02, DEBT-03
 **Success Criteria** (what must be TRUE):
-  1. Toutes les regressions du rapport Phase 10 ont un commit de fix associe (zero items "broken" residuels)
-  2. `getDashboardStats()` est appele par `DashboardController` et la page dashboard charge ses metriques en une seule requete SQL (perf gain mesurable)
-  3. `MeetingReportsController` est descendu sous 300 lignes via extraction `MeetingReportsService` (logique metier dans le service)
-  4. `MotionsController` est descendu sous 300 lignes via extraction `MotionsService`
-  5. Tous les tests existants (PHPUnit + Playwright) passent toujours apres les refactorings
+  1. Les 3 settings core vote (`settVoteMode`, `settQuorumThreshold`, `settMajority`) sont LUS par VoteEngine + QuorumEngine, prouve par un test PHPUnit qui change la valeur et verifie que le calcul change
+  2. Les 5 endpoints fantomes sont crees et retournent 200 OK pour un appel valide : `procuration_pdf.php`, `motions_override_decision.php`, `invitations_send_reminder.php`, `meeting_attachments_public.php`, `meeting_attachment_serve.php`
+  3. Les 4 boutons orphelins (3 dans /trust + 1 #btnStartTour /meetings) sont soit wires soit supprimes du HTML
+  4. Les 3 settings DEAD restants (`settMaxLoginAttempts`, `settPasswordMinLength`, `settHighContrast`) sont soit wires dans le code metier soit supprimes du HTML
+  5. `getDashboardStats()` est appele par `DashboardController`, dashboard charge en une seule requete (perf gain mesurable)
+  6. `MeetingReportsController` < 300 lignes via extraction `MeetingReportsService`
+  7. `MotionsController` < 300 lignes via extraction `MotionsService`
+  8. Tous les tests existants (PHPUnit + Playwright) passent apres les refactorings
+**Plans**: TBD
+
+### Phase 12: Page-by-Page MVP Sweep
+**Goal**: Sweep des 21 pages, chacune doit passer 3 gates avant d'etre marquee done. Le coeur du MVP. Aucune page ne ship sans les 3 gates verts.
+**Depends on**: Phase 11 (backend wiring complet)
+**Requirements**: MVP-01 (width), MVP-02 (design language), MVP-03 (function)
+**Success Criteria** (what must be TRUE for EACH page):
+  1. **Width gate** : main content uses full screen width responsibly. Pages applicatives = aucune `max-width` artificielle. Pages de contenu (docs, help) = `max-width: 80ch` pour la lisibilite. Verifie par grep CSS + visual snapshot.
+  2. **Design language gate** : zero hex/oklch literal dans le CSS de la page. Tout en `var(--*)` du design-system.css. Verifie par grep `! grep -nE 'oklch\\(\\|#[0-9a-f]{6}' public/assets/css/{page}.css`.
+  3. **Function gate** : un test Playwright `critical-path-{page}.spec.js` (ou extension de l'existant) qui pour CHAQUE bouton/input/lien principal de la page declenche l'interaction et assert un changement d'etat reel : DOM update OU API 2xx response OU DB row visible apres reload OU state metier verifie.
+**Plans**: TBD — sweep par waves de 4-5 pages, ordre par criticite :
+  - Wave 1 (les pires) : settings, operator, hub, dashboard
+  - Wave 2 : meetings, members, vote, wizard
+  - Wave 3 : audit, archives, users, admin
+  - Wave 4 : analytics, report, postsession, validate
+  - Wave 5 : trust, public, email-templates, docs, help
+
+### Phase 13: MVP Validation Finale
+**Goal**: Lancer la suite Playwright complete sur toutes les pages, executer le UAT manuel par les 4 roles, produire le verdict final "MVP shipped" ou liste de blockers.
+**Depends on**: Phase 12 (toutes les pages swept)
+**Requirements**: VAL-01, VAL-02
+**Success Criteria** (what must be TRUE):
+  1. `bin/test-e2e.sh` (full suite, ~25 specs) retourne exit 0 sans flake (3 runs consecutifs identiques)
+  2. UAT manuel (checklists Phase 10) PASS pour les 4 roles, zero blocker, zero gap critique
+  3. Rapport `.planning/v1.2-MVP-VALIDATION.md` documente : suite Playwright verte, UAT verdict, screenshots de toutes les pages cles, liste des items "polish" (non-blocking) reportes a v1.3
 **Plans**: TBD
 
 ---
@@ -108,4 +138,6 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
-| 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |
+| 11. Backend Wiring Fixes | v1.2 | 0/? | Not started | - |
+| 12. Page-by-Page MVP Sweep | v1.2 | 0/? | Not started | - |
+| 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
