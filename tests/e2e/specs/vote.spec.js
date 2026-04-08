@@ -19,8 +19,7 @@ test.describe('Voter Interface', () => {
     // Vote page requires auth (redirects to login without a session or inv token).
     await loginAsVoter(page);
 
-    await page.goto('/vote.htmx.html');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/vote.htmx.html', { waitUntil: 'domcontentloaded' });
     await waitForHtmxSettled(page);
 
     const meetingSelect = page.locator('#meetingSelect, ag-searchable-select');
