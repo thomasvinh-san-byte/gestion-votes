@@ -11,14 +11,17 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['line'],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+  ],
 
   // Global setup: authenticate once per role to avoid auth_login rate limits
   // when running tests in parallel.
   globalSetup: require.resolve('./setup/auth.setup.js'),
 
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:8080',
+    baseURL: process.env.BASE_URL || (process.env.IN_DOCKER ? 'http://app:8080' : 'http://localhost:8080'),
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -57,7 +60,7 @@ module.exports = defineConfig({
   // Use `docker compose up -d` before running tests.
   webServer: {
     command: 'echo "Docker stack expected at port 8080"',
-    url: 'http://localhost:8080/login.html',
+    url: (process.env.IN_DOCKER ? 'http://app:8080' : 'http://localhost:8080') + '/login.html',
     reuseExistingServer: !process.env.CI,
     cwd: '../../',
   },
