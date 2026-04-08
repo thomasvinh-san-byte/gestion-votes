@@ -49,18 +49,18 @@ final class QuorumController extends AbstractController {
             $just = (string) ($r['justification'] ?? '');
 
             if (!$applied) {
-                echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">Aucune politique appliquée.</div></div><span class="badge muted">—</span></div></section>';
+                echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">Aucune politique appliquée.</div></div><span class="badge badge-neutral">—</span></div></section>';
                 return;
             }
 
-            $badgeClass = 'muted';
+            $badgeClass = 'badge-neutral';
             $badgeText = '—';
             if ($met === true) {
-                $badgeClass = 'success';
+                $badgeClass = 'badge-success';
                 $badgeText = 'atteint';
             }
             if ($met === false) {
-                $badgeClass = 'danger';
+                $badgeClass = 'badge-danger';
                 $badgeText = 'non atteint';
             }
 
@@ -84,7 +84,7 @@ final class QuorumController extends AbstractController {
         } catch (Throwable $e) {
             error_log('quorum_card error: ' . $e->getMessage());
             $safe = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-            echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">' . $safe . '</div></div><span class="badge danger">erreur</span></div></section>';
+            echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">' . $safe . '</div></div><span class="badge badge-danger">erreur</span></div></section>';
         }
     }
 
