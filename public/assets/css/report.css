@@ -177,10 +177,10 @@
 
 .pv-file-meta {
   font-size: var(--text-xs);
-  color: oklch(1 0 0 / 0.75);
+  color: var(--color-primary-text);
   font-weight: 400;
-  background: oklch(1 0 0 / 0.15);
-  padding: 2px 8px;
+  background: color-mix(in oklch, var(--color-surface-raised) 15%, transparent);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
 }
 
