@@ -92,7 +92,7 @@
   padding: 0.25rem 0.625rem;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
@@ -105,7 +105,7 @@
   padding: 0.25rem 0.625rem;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
   white-space: nowrap;
 }
@@ -116,7 +116,7 @@
   padding: 0.25rem 0.625rem;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: 0.8rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -625,7 +625,7 @@
   font-size: 0.65rem;
   font-weight: 800;
   padding: 2px 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   animation: deltaPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
   white-space: nowrap;
@@ -654,7 +654,7 @@
   align-items: center;
   gap: 4px;
   padding: 0.2rem 0.6rem;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: 500;
   background: var(--color-bg-subtle);
@@ -1060,7 +1060,7 @@
   justify-content: center;
   width: 18px;
   height: 18px;
-  background: oklch(1 0 0 / 0.20);
+  background: color-mix(in oklch, var(--color-surface-raised) 20%, transparent);
   border-radius: 3px;
   font-size: 0.65rem;
   font-weight: 700;
