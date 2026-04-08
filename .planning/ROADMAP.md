@@ -95,7 +95,15 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   6. `MeetingReportsController` < 300 lignes via extraction `MeetingReportsService`
   7. `MotionsController` < 300 lignes via extraction `MotionsService`
   8. Tous les tests existants (PHPUnit + Playwright) passent apres les refactorings
-**Plans**: TBD
+
+**Plans:** 7 plans (2 waves)
+- [ ] 11-01-PLAN.md — Wire settVoteMode/settQuorumThreshold/settMajority into VoteEngine + QuorumEngine [FIX-01, Wave 1]
+- [ ] 11-02-PLAN.md — Integration tests for procuration_pdf, motions_override_decision, invitations_send_reminder [FIX-01, Wave 1]
+- [ ] 11-03-PLAN.md — Integration tests for meeting_attachments_public + meeting_attachment_serve dual-auth [FIX-01, Wave 1]
+- [ ] 11-04-PLAN.md — Remove 4 orphan buttons + 3 dead settings, lock with regression test [FIX-02, Wave 2]
+- [ ] 11-05-PLAN.md — Wire getDashboardStats in DashboardController [DEBT-01, Wave 2]
+- [ ] 11-06-PLAN.md — Extract MeetingReportsService, slim controller to <300 lines [DEBT-02, Wave 2]
+- [ ] 11-07-PLAN.md — Extract MotionsService, slim controller to <300 lines [DEBT-03, Wave 2]
 
 ### Phase 12: Page-by-Page MVP Sweep
 **Goal**: Sweep des 21 pages, chacune doit passer 3 gates avant d'etre marquee done. Le coeur du MVP. Aucune page ne ship sans les 3 gates verts.
@@ -138,6 +146,6 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
-| 11. Backend Wiring Fixes | v1.2 | 0/? | Not started | - |
+| 11. Backend Wiring Fixes | v1.2 | 0/7 | Not started | - |
 | 12. Page-by-Page MVP Sweep | v1.2 | 0/? | Not started | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
