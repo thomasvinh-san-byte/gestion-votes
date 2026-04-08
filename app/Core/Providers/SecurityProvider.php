@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AgVote\Core\Providers;
 
 use AgVote\Core\Security\AuthMiddleware;
-use AgVote\Core\Security\RateLimiter;
 
 /**
  * Security initialization provider.
@@ -69,13 +68,10 @@ final class SecurityProvider {
     }
 
     /**
-     * Initialize auth middleware and rate limiter.
+     * Initialize auth middleware. RateLimiter is Redis-only since v1.0 Phase 1
+     * (no configuration needed — Redis client is resolved at call time).
      */
     public static function init(bool $debug = false): void {
-        RateLimiter::configure([
-            'storage_dir' => sys_get_temp_dir() . '/ag-vote-ratelimit',
-        ]);
-
         AuthMiddleware::init(['debug' => $debug]);
     }
 }

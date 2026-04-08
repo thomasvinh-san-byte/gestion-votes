@@ -17,8 +17,7 @@ use PHPUnit\Framework\TestCase;
  */
 class WorkflowValidationTest extends TestCase {
     protected function setUp(): void {
-        // Nettoyer le rate limiter avant chaque test
-        RateLimiter::configure(['storage_dir' => '/tmp/ag-vote-test-ratelimit']);
+        // RateLimiter is Redis-only since v1.0 Phase 1 — no configure() needed
         RateLimiter::reset('test-context', 'test-user');
     }
 
