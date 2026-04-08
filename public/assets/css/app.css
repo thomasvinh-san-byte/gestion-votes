@@ -8,6 +8,9 @@
  * Do NOT @import Google Fonts here — it creates a blocking waterfall.
  */
 
+/* Layer order declaration — must precede all @import statements */
+@layer base, components, v4, pages;
+
 /* Import Design System (foundation + legacy compat) */
 @import url("/assets/css/design-system.css");
 
