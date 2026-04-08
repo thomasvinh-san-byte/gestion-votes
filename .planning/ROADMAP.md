@@ -31,7 +31,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 **Milestone Goal:** Boucler le projet — verifier que toutes les fonctionnalites du chemin critique fonctionnent pour les 4 roles, validees par tests automatises ET parcours manuel browser. Stop aux ajouts, on s'assure que le tout fonctionne comme un tout.
 
 - [x] **Phase 8: Test Infrastructure Docker** — Make Playwright actually run in a containerized environment with all browsers + system libs (completed 2026-04-08)
-- [ ] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs covering admin, operator, president, votant
+- [x] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs covering admin, operator, president, votant (completed 2026-04-08)
 - [ ] **Phase 10: Validation Manuelle Bout-en-Bout** — Conversational UAT par role, checklists, regression discovery
 - [ ] **Phase 11: Reparation et Dette Technique Carry-Over** — Fix discovered regressions + close v1.0 carry-over debt
 
@@ -63,7 +63,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   4. `tests/e2e/specs/critical-path-votant.spec.js` execute vote token -> page de vote -> soumettre -> confirmation en passant
   5. Les 4 specs sont re-runnable (unique IDs, pas de cleanup manuel requis)
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 - [ ] 09-01-PLAN.md — Cookie domain fix in auth.setup.js (prerequisite, Wave 1)
 - [ ] 09-02-PLAN.md — E2E-01 admin critical path spec (Wave 2)
 - [ ] 09-03-PLAN.md — E2E-02 operator critical path spec (Wave 2)
@@ -106,6 +106,6 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
-| 9. Tests E2E par Role | v1.2 | 0/5 | Not started | - |
+| 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
 | 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |

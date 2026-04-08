@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 09-04-PLAN.md
-last_updated: "2026-04-08T09:20:47.208Z"
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-04-08T09:24:43.135Z"
 last_activity: 2026-04-07 -- Phase 09 plan 01 complete (cookie domain fix)
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 09-01]: auth.setup.js BASE_URL fallback mirrors playwright.config.js (IN_DOCKER ? app:8080 : localhost:8080) — prevents split-brain on cookie domain
 - [Phase 09-tests-e2e-par-role]: 09-05: Follow session-based auth for vote page (not token-based), no DB writes for re-runnability, btnConfirm DOM presence check not visibility
 - [Phase 09-tests-e2e-par-role]: Admin E2E spec uses read-only assertions only (tab clicks, page loads) — fully re-runnable without DB cleanup
+- [Phase 09-tests-e2e-par-role]: E2E-02: operator critical path spec uses hybrid API+UI strategy (setup via API, console via browser); CSRF endpoint is /api/v1/auth_csrf; meeting ID field is data.meeting_id
 
 ### Existing Infrastructure
 
@@ -98,6 +99,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T09:20:47.206Z
-Stopped at: Completed 09-04-PLAN.md
+Last session: 2026-04-08T09:24:43.133Z
+Stopped at: Completed 09-03-PLAN.md
 Resume file: None

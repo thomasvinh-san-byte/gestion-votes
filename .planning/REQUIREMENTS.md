@@ -16,7 +16,7 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 ### Tests E2E par Role
 
 - [x] **E2E-01**: Test critical path admin: login - settings - users management - audit - logout
-- [ ] **E2E-02**: Test critical path operator: login - creer assemblee - ajouter membres - lancer vote - cloturer - rapport
+- [x] **E2E-02**: Test critical path operator: login - creer assemblee - ajouter membres - lancer vote - cloturer - rapport
 - [x] **E2E-03**: Test critical path president: login - assemblee active - ouvrir vote - modifier quorum - cloturer
 - [x] **E2E-04**: Test critical path votant: vote token - page de vote - soumettre - confirmation
 
@@ -69,7 +69,7 @@ Reporte au prochain milestone (post-bouclage):
 | INFRA-02 | Phase 8 | Complete |
 | INFRA-03 | Phase 8 | Complete |
 | E2E-01 | Phase 9 | Complete |
-| E2E-02 | Phase 9 | Pending |
+| E2E-02 | Phase 9 | Complete |
 | E2E-03 | Phase 9 | Complete |
 | E2E-04 | Phase 9 | Complete |
 | UAT-01 | Phase 10 | Pending |
