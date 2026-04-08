@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 08-test-infrastructure-docker/08-03-PLAN.md
-last_updated: "2026-04-08T09:02:52.261Z"
-last_activity: 2026-04-08
+stopped_at: Completed 09-tests-e2e-par-role/09-01-PLAN.md
+last_updated: "2026-04-07T00:15:00Z"
+last_activity: 2026-04-07 -- Phase 09 plan 01 complete (cookie domain fix)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 8
+  completed_plans: 4
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 08 — Test Infrastructure Docker
+**Current focus:** Phase 09 — Tests E2E par Role
 
 ## Current Position
 
-Phase: 9
-Plan: Not started
-Status: Executing Phase 08
-Last activity: 2026-04-08
+Phase: 09 (Tests E2E par Role) — EXECUTING
+Plan: 2 of 5
+Status: Executing Phase 09
+Last activity: 2026-04-07 -- Phase 09 plan 01 complete (cookie domain fix)
 
 Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 
@@ -69,6 +69,8 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 08-03]: Triage verdict MOSTLY GREEN: 85 failures are ERR_SSL_PROTOCOL_ERROR from cookie domain mismatch (localhost vs app:8080), not infra. INFRA-03 satisfied.
 - [Phase 08-03]: Phase 11 FIX-01 scope: fix setup/auth.setup.js cookie domain to use BASE_URL host; investigate ignoreHTTPSErrors for Chromium HTTPS-upgrade
 - [Phase 08-03]: docker run direct replaces docker compose run — compose swallows container stdout in this environment
+- [Phase 09-01]: COOKIE_DOMAIN = new URL(BASE_URL).hostname — derive cookie domain from BASE_URL host, eliminates ERR_SSL_PROTOCOL_ERROR (85 failures) in Docker Playwright runs
+- [Phase 09-01]: auth.setup.js BASE_URL fallback mirrors playwright.config.js (IN_DOCKER ? app:8080 : localhost:8080) — prevents split-brain on cookie domain
 
 ### Existing Infrastructure
 
