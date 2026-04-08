@@ -33,13 +33,15 @@ test.describe('E2E-02 Operator critical path', () => {
     expect(whoami.ok()).toBeTruthy();
 
     // ─── Step 2: CSRF token for state-changing requests ───
-    const csrfResp = await page.request.get('/api/v1/csrf_token.php');
+    // Endpoint: GET /api/v1/auth_csrf → { ok, data: { csrf_token, header_name } }
+    const csrfResp = await page.request.get('/api/v1/auth_csrf');
     let csrfToken = '';
     if (csrfResp.ok()) {
       const csrfData = await csrfResp.json();
-      csrfToken = csrfData.token || csrfData.data?.token || '';
+      csrfToken = csrfData.data?.csrf_token || csrfData.token || csrfData.data?.token || '';
     }
-    const csrfHeaders = csrfToken ? { 'X-Csrf-Token': csrfToken } : {};
+    // Backend uses X-CSRF-Token header (note case)
+    const csrfHeaders = csrfToken ? { 'X-CSRF-Token': csrfToken } : {};
 
     // ─── Step 3: Create meeting via API ───
     const createResp = await page.request.post('/api/v1/meetings', {
@@ -55,17 +57,19 @@ test.describe('E2E-02 Operator critical path', () => {
     let meetingId = null;
     if (createResp.ok()) {
       const body = await createResp.json();
-      meetingId = body?.data?.id || body?.id || body?.meeting?.id || null;
+      // API returns { ok, data: { meeting_id, title, ... } }
+      meetingId = body?.data?.meeting_id || body?.data?.id || body?.id || body?.meeting?.id || null;
     }
 
-    // Fallback to seed meeting if create endpoint contract drifted
+    // Fallback to first existing meeting if create endpoint contract drifted
     if (!meetingId) {
       const meetingsResp = await page.request.get('/api/v1/meetings');
       if (meetingsResp.ok()) {
         const list = await meetingsResp.json();
-        const meetings = list?.data || list || [];
+        // API returns { ok, data: { items: [...] } }
+        const meetings = list?.data?.items || list?.data || list || [];
         if (Array.isArray(meetings) && meetings.length > 0) {
-          meetingId = meetings[0].id || meetings[0].meeting_id;
+          meetingId = meetings[0].meeting_id || meetings[0].id;
         }
       }
     }
