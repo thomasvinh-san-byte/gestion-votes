@@ -33,7 +33,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [x] **Phase 8: Test Infrastructure Docker** — Playwright runs in container (completed 2026-04-08)
 - [x] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs GREEN (completed 2026-04-08)
 - [x] **Phase 10: Validation Manuelle Bout-en-Bout** — UAT artifacts generated, awaiting human walkthrough OR superseded by Phase 12 page sweep (completed 2026-04-08)
-- [ ] **Phase 11: Backend Wiring Fixes** — Fix 5 phantom endpoints + wire 6 dead settings + close v1.0 carry-over tech debt
+- [x] **Phase 11: Backend Wiring Fixes** — Fix 5 phantom endpoints + wire 6 dead settings + close v1.0 carry-over tech debt (completed 2026-04-08)
 - [ ] **Phase 12: Page-by-Page MVP Sweep** — 21 pages each must pass 3 gates: width audit, design tokens audit, function audit (Playwright assertion of real result)
 - [ ] **Phase 13: MVP Validation Finale** — Full Playwright suite + final UAT + ship verdict
 
@@ -96,7 +96,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   7. `MotionsController` < 300 lignes via extraction `MotionsService`
   8. Tous les tests existants (PHPUnit + Playwright) passent apres les refactorings
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 - [ ] 11-01-PLAN.md — Wire settVoteMode/settQuorumThreshold/settMajority into VoteEngine + QuorumEngine [FIX-01, Wave 1]
 - [ ] 11-02-PLAN.md — Integration tests for procuration_pdf, motions_override_decision, invitations_send_reminder [FIX-01, Wave 1]
 - [ ] 11-03-PLAN.md — Integration tests for meeting_attachments_public + meeting_attachment_serve dual-auth [FIX-01, Wave 1]
@@ -146,6 +146,6 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 8. Test Infrastructure Docker | 3/3 | Complete   | 2026-04-08 | - |
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
-| 11. Backend Wiring Fixes | 6/7 | In Progress|  | - |
+| 11. Backend Wiring Fixes | 7/7 | Complete   | 2026-04-08 | - |
 | 12. Page-by-Page MVP Sweep | v1.2 | 0/? | Not started | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
