@@ -2,8 +2,8 @@
   "cookies": [
     {
       "name": "PHPSESSID",
-      "value": "3cb7375841e3c3cdbdf9b92fb9c25b9c",
-      "domain": "localhost",
+      "value": "3041d7a5e89a3c1278144c95d34ed39f",
+      "domain": "app",
       "path": "/",
       "expires": -1,
       "httpOnly": true,
