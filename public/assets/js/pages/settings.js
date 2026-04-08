@@ -522,13 +522,6 @@
       if (radio) radio.checked = true;
     }
 
-    var storedContrast = localStorage.getItem('ag_high_contrast');
-    if (storedContrast === '1') {
-      document.documentElement.setAttribute('data-high-contrast', '1');
-      var hcToggle = document.getElementById('settHighContrast');
-      if (hcToggle) hcToggle.checked = true;
-    }
-
     // Text size A/A+/A++
     document.querySelectorAll('input[name="settTextSize"]').forEach(function(radio) {
       radio.addEventListener('change', function() {
@@ -547,26 +540,6 @@
       });
     });
 
-    // High contrast toggle
-    var highContrastToggle = document.getElementById('settHighContrast');
-    if (highContrastToggle) {
-      highContrastToggle.addEventListener('change', function() {
-        if (highContrastToggle.checked) {
-          document.documentElement.setAttribute('data-high-contrast', '1');
-          localStorage.setItem('ag_high_contrast', '1');
-        } else {
-          document.documentElement.removeAttribute('data-high-contrast');
-          localStorage.setItem('ag_high_contrast', '0');
-        }
-        api('/api/v1/admin_settings.php', { action: 'update', key: 'settHighContrast', value: highContrastToggle.checked })
-          .then(function(r) {
-            if (r.body && r.body.ok) {
-              AgToast.show('success', 'Contraste enregistr\u00e9');
-            }
-          })
-          .catch(function() {});
-      });
-    }
   }
 
   // ═══════════════════════════════════════════════════════
