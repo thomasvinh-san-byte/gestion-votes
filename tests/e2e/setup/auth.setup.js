@@ -23,7 +23,20 @@ const { execSync } = require('child_process');
  * = 8  <  10 (limit)  → safe margin of 2.
  */
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
+const BASE_URL = process.env.BASE_URL
+  || (process.env.IN_DOCKER ? 'http://app:8080' : 'http://localhost:8080');
+
+// Derive cookie domain from BASE_URL host. Playwright requires the cookie
+// domain to exactly match the request host, otherwise the cookie is dropped.
+// Phase 8 baseline (08-03-BASELINE.md) discovered that hard-coding 'localhost'
+// here breaks all browser-based tests in Docker (host = 'app').
+const COOKIE_DOMAIN = (() => {
+  try {
+    return new URL(BASE_URL).hostname;
+  } catch (e) {
+    return 'localhost';
+  }
+})();
 
 const ACCOUNTS = [
   { role: 'operator',  email: 'operator@ag-vote.local',  password: 'Operator2026!'  },
@@ -145,13 +158,15 @@ module.exports = async function globalSetup() {
     }
 
     // Write Playwright-compatible storageState with just the session cookie.
-    // domain "localhost" matches http://localhost:8080 in Playwright.
+    // domain is derived from BASE_URL host so it matches http://app:8080 in Docker
+    // and http://localhost:8080 on the host — hard-coding 'localhost' would break
+    // all browser-based tests in Docker (Phase 8 baseline, 08-03-BASELINE.md).
     const state = {
       cookies: [
         {
           name:     'PHPSESSID',
           value:    phpsessid,
-          domain:   'localhost',
+          domain:   COOKIE_DOMAIN,
           path:     '/',
           expires:  -1,
           httpOnly: true,
@@ -163,6 +178,6 @@ module.exports = async function globalSetup() {
     };
 
     fs.writeFileSync(authFile, JSON.stringify(state, null, 2));
-    console.log(`[auth-setup] Saved auth state for ${account.role} (session: ${phpsessid.substr(0, 8)}...)`);
+    console.log(`[auth-setup] Saved auth state for ${account.role} (session: ${phpsessid.substr(0, 8)}..., domain: ${COOKIE_DOMAIN})`);
   }
 };
