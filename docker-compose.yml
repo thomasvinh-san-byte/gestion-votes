@@ -153,7 +153,7 @@ services:
     profiles:
       - test
     working_dir: /work/tests/e2e
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
     environment:
       IN_DOCKER: "true"
       CI: "${CI:-}"

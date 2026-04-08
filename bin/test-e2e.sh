@@ -28,14 +28,39 @@ if ! docker compose ps --services --filter "status=running" | grep -qx app; then
   docker compose up -d app db redis
 fi
 
-# Export UID/GID so container runs as host user (non-root, avoids root-owned files)
-export UID="${UID:-$(id -u)}"
-export GID="${GID:-$(id -g)}"
+# Note: UID is readonly in bash — capture host uid/gid in separate vars
+DOCKER_UID="$(id -u)"
+DOCKER_GID="$(id -g)"
 
-# Run Playwright in the tests container.
+# Derive compose project network and node_modules volume names from the project directory name.
+# Matches docker compose default: lowercase dirname with special chars replaced by underscores.
+PROJECT_NAME="$(basename "$REPO_ROOT" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]/_/g')"
+NETWORK="${PROJECT_NAME}_backend"
+NM_VOLUME="${PROJECT_NAME}_tests-node-modules"
+
+# Ensure the node_modules volume is writable by the host user.
+# This is a one-time fix needed when the volume was first created by root
+# (e.g., via `docker compose run` before this script was in use).
+docker run --rm \
+  --volume "${NM_VOLUME}:/nm" \
+  mcr.microsoft.com/playwright:v1.59.1-jammy \
+  bash -c "chown -R ${DOCKER_UID}:${DOCKER_GID} /nm 2>/dev/null || true" 2>/dev/null
+
+# Run Playwright via docker run directly.
+# Using docker run (not docker compose run) avoids output-buffering issues where
+# docker compose run swallows container stdout in non-TTY environments.
 # --rm: remove container after exit
-# --profile test: activate the test profile so `tests` service is resolvable
-# Override the service command to forward user args; default to chromium project.
+# --network: join the compose backend network so `app` hostname resolves
+# Forwards all user args to `npx playwright test --project=chromium`
 echo "[test-e2e] Running Playwright in container (chromium only)..."
-exec docker compose --profile test run --rm tests \
+exec docker run --rm \
+  --network "$NETWORK" \
+  --volume "${REPO_ROOT}:/work" \
+  --volume "${NM_VOLUME}:/work/tests/e2e/node_modules" \
+  --workdir /work/tests/e2e \
+  --user "${DOCKER_UID}:${DOCKER_GID}" \
+  -e IN_DOCKER=true \
+  -e CI="${CI:-}" \
+  -e BASE_URL=http://app:8080 \
+  mcr.microsoft.com/playwright:v1.59.1-jammy \
   bash -lc "npm install --no-audit --no-fund --silent && npx playwright test --project=chromium $*"
