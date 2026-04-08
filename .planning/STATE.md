@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 08-test-infrastructure-docker/08-01-PLAN.md
-last_updated: "2026-04-08T07:55:53.797Z"
-last_activity: 2026-04-08 -- Phase 08 execution started
+stopped_at: Completed 08-test-infrastructure-docker/08-02-PLAN.md
+last_updated: "2026-04-07T00:05:00.000Z"
+last_activity: 2026-04-07 -- Completed 08-02 bin/test-e2e.sh wrapper
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 08 (Test Infrastructure Docker) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 Status: Executing Phase 08
-Last activity: 2026-04-08 -- Phase 08 execution started
+Last activity: 2026-04-07 -- Completed 08-02 bin/test-e2e.sh wrapper
 
 Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 
@@ -63,6 +63,9 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 07-01]: Strategy C mandatory for public.htmx.html SSE pages — networkidle can never resolve, use domcontentloaded + waitForSelector
 - [Phase 08-test-infrastructure-docker]: Playwright jammy image pinned to v1.59.1 — matches @playwright/test 1.59.1 in package.json, avoids Alpine musl browser hell
 - [Phase 08-test-infrastructure-docker]: profiles: [test] gates tests service — never starts on plain docker compose up
+- [Phase 08-02]: exec docker compose propagates playwright exit code cleanly — no wrapper masking
+- [Phase 08-02]: $* (not $@) inside bash -lc for arg forwarding — $@ produces separate argv tokens that don't compose in inner shell
+- [Phase 08-02]: --project=chromium hardcoded in wrapper — enforces chromium-only scope per locked Phase 8 decision
 
 ### Existing Infrastructure
 
@@ -88,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-08T07:55:53.794Z
-Stopped at: Completed 08-test-infrastructure-docker/08-01-PLAN.md
+Last session: 2026-04-07T00:05:00.000Z
+Stopped at: Completed 08-test-infrastructure-docker/08-02-PLAN.md
 Resume file: None

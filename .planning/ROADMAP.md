@@ -98,7 +98,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 5. JS Audit et Wiring Repair | v1.1 | 3/3 | Complete | 2026-04-08 |
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
-| 8. Test Infrastructure Docker | 1/3 | In Progress|  | - |
+| 8. Test Infrastructure Docker | 2/3 | In Progress|  | - |
 | 9. Tests E2E par Role | v1.2 | 0/? | Not started | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Not started | - |
 | 11. Reparation et Dette Technique Carry-Over | v1.2 | 0/? | Not started | - |
