@@ -751,29 +751,31 @@ class MeetingReportsControllerTest extends ControllerTestCase
 
     public function testGeneratePdfIncludesQuorumSection(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+        // PDF HTML template lives in MeetingReportsService::buildPdfHtml() after extraction
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MeetingReportsService.php');
 
-        // generatePdf() must contain a meeting-level quorum section header
+        // buildPdfHtml() must contain a meeting-level quorum section header
         $this->assertStringContainsString(
             'Quorum de la',
             $source,
-            'generatePdf() must include a meeting-level quorum block with "Quorum de la séance" text',
+            'buildPdfHtml() must include a meeting-level quorum block with "Quorum de la séance" text',
         );
     }
 
     public function testGeneratePdfIncludesDualSignatureBlocks(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingReportsController.php');
+        // PDF HTML template lives in MeetingReportsService::buildPdfHtml() after extraction
+        $source = file_get_contents(PROJECT_ROOT . '/app/Services/MeetingReportsService.php');
 
         $this->assertStringContainsString(
             'Le Pr',
             $source,
-            'generatePdf() must include President signature block starting with "Le Pr"',
+            'buildPdfHtml() must include President signature block starting with "Le Pr"',
         );
         $this->assertStringContainsString(
             'Le Secr',
             $source,
-            'generatePdf() must include Secretaire signature block starting with "Le Secr"',
+            'buildPdfHtml() must include Secretaire signature block starting with "Le Secr"',
         );
     }
 
