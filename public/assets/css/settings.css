@@ -326,7 +326,7 @@
   left: 3px;
   width: 18px;
   height: 18px;
-  background: white;
+  background: var(--color-surface-raised, var(--color-surface));
   border-radius: 50%;
   transition: transform var(--duration-fast) var(--ease-standard);
   box-shadow: var(--shadow-sm);
