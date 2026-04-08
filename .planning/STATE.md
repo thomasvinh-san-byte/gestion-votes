@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Coherence UI/UX et Wiring
-status: executing
-stopped_at: Completed 07-01-PLAN.md — TEST-01 networkidle removal complete
-last_updated: "2026-04-08T06:56:34.906Z"
+status: shipped
+stopped_at: v1.1 milestone shipped — 11 plans complete + 3 hotfixes
+last_updated: "2026-04-08T07:00:00.000Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 3
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: .planning/PROJECT.md (updated 2026-04-08)
 
-**Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 07 — Playwright Coverage
+**Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
+**Current focus:** v1.1 shipped — ready for v1.2 (run /gsd:new-milestone)
 
 ## Current Position
 
-Phase: 07
-Plan: Not started
-Status: Executing Phase 07
-Last activity: 2026-04-08
+Phase: —
+Plan: —
+Status: v1.1 shipped, awaiting next milestone
+Last activity: 2026-04-08 — v1.1 milestone archived
 
 Progress: [██████████] 100%
 

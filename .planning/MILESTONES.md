@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.1 Coherence UI/UX et Wiring (Shipped: 2026-04-08)
+
+**Phases completed:** 3 phases, 11 plans
+
+**Key accomplishments:**
+
+- JS audit + wiring repair: 1,269 querySelector calls audited, 1 confirmed mismatch fixed (vote.js voteButtons), 5 dead-code blocks removed for v4.2 orphan selectors, sidebar async timing hardened with sidebar:loaded event, waitForHtmxSettled() Playwright helper created
+- Login redesigned 2x: first 50/50 then 40/60 brand panel with hero title, 3 feature highlights, trust pills, gradient + animated glow, all coherent with project tokens
+- Design tokens uniformly applied: 7 raw color literals replaced across operator/settings/report/vote/audit.css, @layer pages cascade declared, 5 badge defects fixed (hub BEM, QuorumController PHP)
+- HTMX skeleton-row loading wired into operator/members/meetings list containers, pv_sent badge entry added
+- Playwright upgraded to 1.59.1 with @axe-core/playwright + per-page accessibility audits (7 pages)
+- 22 networkidle calls removed from 6 spec files; new page-interactions.spec.js (8 tests, 7 pages) and operator-e2e.spec.js (full workflow with hybrid API+UI strategy)
+- 3 critical hotfixes delivered: RateLimiter::configure() boot regression (v1.0 cleanup leftover blocked all API requests), nginx clean URL routing (multi-week regression that served index.html instead of htmx.html for /dashboard, /meetings, /hub), login redesign polish
+
+**Tech debt carried to v1.2:** Browser test execution requires installing libatk system libraries or running in Docker. 11 human verification items deferred. Phase 5 + Phase 6 nyquist_compliant flag never flipped. Backend tech debt from v1.0 still pending (getDashboardStats wiring, MeetingReports/Motions controller split).
+
+---
+
 ## v1.0 Dette Technique (Shipped: 2026-04-07)
 
 **Phases completed:** 4 phases, 11 plans, 18 tasks

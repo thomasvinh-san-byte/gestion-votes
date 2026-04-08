@@ -34,10 +34,21 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Tests RgpdExportController (4 tests) — v1.0 Phase 3
 - ✓ Tests SSE EventBroadcaster race conditions (14 tests) — v1.0 Phase 4
 - ✓ Tests ImportService fuzzy matching aliases (54 tests) — v1.0 Phase 4
+- ✓ Inventaire contrats ID JS + reparation selectors casses — v1.1 Phase 5
+- ✓ Sidebar async timing hardening + sidebar:loaded event — v1.1 Phase 5
+- ✓ waitForHtmxSettled() Playwright helper — v1.1 Phase 5
+- ✓ Design tokens uniformes sur tous les CSS par-page — v1.1 Phase 6
+- ✓ Login 2-panels 40/60 avec brand panel rich — v1.1 Phase 6
+- ✓ Loading states CSS .htmx-request avec skeleton-row — v1.1 Phase 6
+- ✓ Status badges semantiques coherents — v1.1 Phase 6
+- ✓ Playwright baseline green (networkidle elimine) — v1.1 Phase 7
+- ✓ Tests d'interaction par page (page-interactions.spec.js) — v1.1 Phase 7
+- ✓ Playwright 1.59.1 + @axe-core/playwright — v1.1 Phase 7
+- ✓ Workflow operateur E2E (operator-e2e.spec.js) — v1.1 Phase 7
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.1)
+(Fresh for next milestone — run /gsd:new-milestone)
 
 ### Out of Scope
 
@@ -48,34 +59,32 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - PDFs de convocation/emargement — hors perimetre de l'app
 - Raccourcis clavier — hors perimetre
 
-## Current Milestone: v1.1 Coherence UI/UX et Wiring
-
-**Goal:** Rendre l'application professionnelle, moderne et coherente — etablir un design language uniforme, reparer le wiring JS/HTMX, et garantir zero bugs evidents via tests Playwright.
-
-**Target features:**
-- Etablir un design language moderne et pro (typographie, couleurs, espacements, composants) applique uniformement
-- Soigner le cosmetique sur les pages cles : accueil, login 2-panels (branding + formulaire)
-- Reparer le wiring JS/HTMX casse sur toutes les pages (event handlers, DOM selectors, HTMX targets)
-- Refactoriser l'UI/UX en profondeur si necessaire — pas de fonctionnel plat, un vrai rendu pro
-- Tests Playwright end-to-end — si ca casse dans un vrai browser, on repare
-- Zero bugs evidents constatables a l'utilisation
-
 ## Current State
 
-Shipped v1.0 — Dette Technique milestone complete. Application assainie:
-- Redis est le seul broker pour SSE, rate-limiting, et detection serveur (aucun fallback fichier)
-- Exports XLSX en streaming, emails par lots de 25, stats en une seule requete SQL
-- ImportController reduit de 921 a 149 lignes, logique metier dans ImportService
-- 251+ tests unitaires couvrant auth, RGPD, SSE, et import
+Shipped v1.1 — Coherence UI/UX et Wiring milestone complete. Application now coherent and reliable:
+- JS/HTMX wiring repaired: 1,269 selectors audited, vote.js mismatch fixed, 5 dead-code blocks removed, sidebar timing hardened
+- Design tokens applied uniformly across 5 per-page CSS files, 5 badge defects fixed
+- Login redesigned as 40/60 2-panel layout with hero content, features, trust pills (no more empty space)
+- HTMX skeleton-row loading wired into operator/members/meetings list containers
+- Playwright upgraded to 1.59.1, @axe-core/playwright integrated with per-page audits
+- New tests: page-interactions.spec.js (8 tests, 7 pages) + operator-e2e.spec.js (full workflow)
+- 3 critical hotfixes delivered: RateLimiter::configure() boot regression (v1.0 leftover blocked all API requests), nginx clean URL routing (multi-week regression that served index.html instead of htmx.html), login 2-panel polish
 
-Tech debt reportee:
-- getDashboardStats() non branche dans DashboardController (perf unrealized)
-- MeetingReportsController (727 lignes) et MotionsController (720 lignes) non decoupes
-- 10/14 tests EventBroadcaster necessitent phpredis (Docker uniquement)
+v1.0 base still in place:
+- Redis only broker (SSE, rate-limiting, heartbeat)
+- Streaming XLSX exports, paginated email batches, single-query stats
+- ImportController 921 → 149 lines
 
-UI/UX cassee apres v4.2:
-- Wiring JS/HTMX casse sur toutes les pages (event handlers, DOM selectors, HTMX targets)
-- Design incoherent et fonctionnel plat — pas au niveau professionnel attendu
+Tech debt carried to v1.2:
+- Browser test execution requires libatk system libraries or Docker
+- 11 human verification items deferred from Phases 5-7
+- getDashboardStats() not wired into DashboardController (from v1.0)
+- MeetingReportsController (727 lignes) et MotionsController (720 lignes) not split (from v1.0)
+- 10/14 tests EventBroadcaster necessitent phpredis (Docker uniquement) (from v1.0)
+
+## Next Milestone
+
+(Not yet started — run `/gsd:new-milestone` to begin v1.2)
 
 ## Context
 
@@ -124,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after v1.1 milestone start*
+*Last updated: 2026-04-08 after v1.1 milestone completion*
