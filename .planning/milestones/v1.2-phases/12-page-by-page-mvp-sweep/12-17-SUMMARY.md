@@ -122,3 +122,10 @@ Wave 5 (5 pages): trust (1/5 complete)
 - COMMIT `984a6530`: fix(12-17) — trust.css modal overlay fix
 - COMMIT `68329786`: test(12-17) — spec + trust.js handlers
 - Test result: 1 passed in 5.8s
+
+## Post-milestone audit
+
+**Status update (Phase 17-03 audit):** Two issues flagged here are **Deferred to v2**:
+1. Severity-pill `page.evaluate(el.click())` workaround for the trust modal overlay hit-test — same root cause as 12-02, tracked as `V2-OVERLAY-HITTEST` in `.planning/REQUIREMENTS.md`.
+2. Stale `agvote-app` container serving April-8 minified trust.js that predates the audit chip / view-toggle handlers — tracked as `V2-TRUST-DEPLOY`.
+See entries #4 and #5 in `.planning/phases/17-loose-ends-phase-12/17-AUDIT-LEDGER.md`.

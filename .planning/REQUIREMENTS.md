@@ -28,7 +28,7 @@
 
 - [x] **LOOSE-01**: Settings.js loadSettings race condition — input #settQuorumThreshold ne se populate pas apres reload (documente dans 12-01 SUMMARY)
 - [x] **LOOSE-02**: Postsession eIDAS chip click delegation fragile (documente dans 12-15 SUMMARY)
-- [ ] **LOOSE-03**: Audit autres SUMMARY files de Phase 12 pour trouver les notes "documented but not fixed"
+- [x] **LOOSE-03**: Audit autres SUMMARY files de Phase 12 pour trouver les notes "documented but not fixed"
 
 ## v2 Requirements (deferred to next milestone)
 
@@ -36,6 +36,9 @@
 - Visual regression testing (snapshot comparison)
 - Lighthouse perf baseline + budget
 - phpredis on host install (PHPUnit run on host)
+- **V2-OVERLAY-HITTEST**: Hidden modal overlays (`#opQuorumOverlay` in operator, trust severity modal) still intercept Playwright pointer events despite the `hidden` attribute. Current mitigation is `force: true` / `page.evaluate(el.click())`. Proper fix requires reworking the overlay CSS so `hidden` also removes it from the hit-test layer (e.g. `display: none` or `pointer-events: none` while hidden). Surfaced by Phase 17-03 audit (12-02, 12-17).
+- **V2-TRUST-DEPLOY**: `agvote-app` container serves a minified trust.js baked April 8 that predates the audit chip / view-toggle handlers added in 12-17. Rebuild the image and republish so the JS wiring tests can run structurally instead of via `page.evaluate`. Surfaced by Phase 17-03 audit (12-17).
+- **V2-CSP-INLINE-THEME**: Strict CSP (`script-src 'self'`) in the Docker test env blocks the inline `<script>` that sets `data-theme='dark'` on public pages. Current test accepts both `dark` and `null`. Proper fix is either a nonce-based CSP or moving the theme bootstrap to an external file. Surfaced by Phase 17-03 audit (12-18).
 
 ## Out of Scope
 
@@ -63,7 +66,7 @@
 | A11Y-03 | Phase 16 | Complete |
 | LOOSE-01 | Phase 17 | Complete |
 | LOOSE-02 | Phase 17 | Complete |
-| LOOSE-03 | Phase 17 | Pending |
+| LOOSE-03 | Phase 17 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 13 total

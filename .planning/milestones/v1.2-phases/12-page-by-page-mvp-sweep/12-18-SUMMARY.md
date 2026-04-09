@@ -178,6 +178,10 @@ Wave 5 (public-facing pages): 2/5 complete
 - `.planning/phases/12-page-by-page-mvp-sweep/12-18-SUMMARY.md` — FOUND
 - Commits `f73c9eb8` and `6804096a` — FOUND in git log
 
+## Post-milestone audit
+
+**Status update (Phase 17-03 audit):** The CSP-blocks-inline-theme-script compromise (`expect(['dark', null]).toContain(...)`) is **Deferred to v2** — see `V2-CSP-INLINE-THEME` in `.planning/REQUIREMENTS.md` and entry #6 in `.planning/phases/17-loose-ends-phase-12/17-AUDIT-LEDGER.md`. Proper fix is either a nonce-based CSP or moving the theme bootstrap to an external file.
+
 ---
 *Phase: 12-page-by-page-mvp-sweep*
 *Completed: 2026-04-07*

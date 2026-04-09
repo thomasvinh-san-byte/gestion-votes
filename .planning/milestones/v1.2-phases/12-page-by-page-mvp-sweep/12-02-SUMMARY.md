@@ -112,3 +112,7 @@ Function gate: PASS.
 - `tests/e2e/specs/critical-path-operator.spec.js` — FOUND
 - commit `aad4b5bb` (width gate) — FOUND
 - commit `da80d73f` (function gate) — FOUND
+
+## Post-milestone audit
+
+**Status update (Phase 17-03 audit):** The `force: true` mitigation for `#opQuorumOverlay` pointer interception is **Deferred to v2** — see `V2-OVERLAY-HITTEST` in `.planning/REQUIREMENTS.md` and entry #3 in `.planning/phases/17-loose-ends-phase-12/17-AUDIT-LEDGER.md`. The overlay CSS needs reworking so the `hidden` attribute also removes it from the hit-test layer.
