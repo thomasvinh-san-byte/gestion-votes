@@ -26,12 +26,12 @@
 }
 
 /* =============================================================================
-   900px CONTENT TRACK
+   FULL-WIDTH CONTENT TRACK (applicative page — no artificial cap)
    ============================================================================= */
 
 .wiz-content,
 .wizard-page {
-  max-width: 960px;
+  max-width: 100%;
   margin: 0 auto;
   padding: var(--space-4);
   overflow: hidden; /* clip slide animations */
@@ -71,7 +71,7 @@
    ============================================================================= */
 
 .wiz-progress-wrap {
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto var(--space-4);
   display: flex;
   justify-content: center;
