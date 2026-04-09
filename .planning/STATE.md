@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: completed
-stopped_at: Completed 17-01-PLAN.md (LOOSE-01 settings race fixed)
-last_updated: "2026-04-09T11:07:43.146Z"
+stopped_at: Completed 17-03-PLAN.md (LOOSE-03 audit ledger)
+last_updated: "2026-04-09T11:12:31.681Z"
 last_activity: 2026-04-09 -- Completed 16-05-PLAN.md (v1.3-A11Y-REPORT.md, 7 sections, A11Y-03 satisfied)
 progress:
   total_phases: 10
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 12
+  completed_plans: 13
   percent: 100
 ---
 
@@ -70,6 +70,7 @@ Progress: [██████████] 100%
 - [Phase 16]: 16-05: v1.3-A11Y-REPORT.md declares partial WCAG 2.1 AA conformance — structural+keyboard conformant, contrast deferred to token remediation phase
 - [Phase 17]: 17-02: document-level eIDAS chip click delegation (panel-visibility independent)
 - [Phase 17-loose-ends-phase-12]: LOOSE-01 root cause: loadSettings used POST {action:list} which raced CSRF/middleware; fix swaps to GET ?action=list and adds window.__settingsLoaded handshake
+- [Phase 17-loose-ends-phase-12]: Phase 12 SUMMARY audit: 6 findings, 2 already resolved by 17-01/17-02, 3 deferred to v2 (V2-OVERLAY-HITTEST, V2-TRUST-DEPLOY, V2-CSP-INLINE-THEME), 0 fix-now
 
 ### Existing Infrastructure
 
@@ -96,6 +97,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T11:07:38.436Z
-Stopped at: Completed 17-01-PLAN.md (LOOSE-01 settings race fixed)
+Last session: 2026-04-09T11:12:31.678Z
+Stopped at: Completed 17-03-PLAN.md (LOOSE-03 audit ledger)
 Resume file: None

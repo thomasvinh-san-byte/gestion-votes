@@ -46,7 +46,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 - [x] **Phase 14: Visual Polish** — Toast notifications + dark mode parity + role-specific sidebar + micro-interactions (completed 2026-04-09)
 - [x] **Phase 15: Multi-Browser Tests** — Etendre Playwright a firefox + webkit + mobile-chromium, fix divergences (completed 2026-04-09)
 - [x] **Phase 16: Accessibility Deep Audit** — axe-core complet sur 21 pages, fix violations critical+serious, WCAG 2.1 AA (completed 2026-04-09)
-- [ ] **Phase 17: Loose Ends Phase 12** — Settings race condition, postsession chip, autres notes "documented but not fixed"
+- [x] **Phase 17: Loose Ends Phase 12** — Settings race condition, postsession chip, autres notes "documented but not fixed" (completed 2026-04-09)
 
 ## Phase Details — Current Milestone
 
@@ -100,7 +100,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. Postsession eIDAS chip click delegation robuste (pas de page.evaluate workaround dans les tests)
   3. Audit complet des SUMMARY files de Phase 12 — toutes les notes "documented but not fixed" sont soit fixees soit reportees a v2 explicitement
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 - [ ] 17-01-PLAN.md — Fix loadSettings race + regression assertion [LOOSE-01, Wave 1]
 - [ ] 17-02-PLAN.md — Fix eIDAS chip delegation + remove page.evaluate workaround [LOOSE-02, Wave 1]
 - [ ] 17-03-PLAN.md — Audit Phase 12 SUMMARY files + classification ledger [LOOSE-03, Wave 2]
@@ -241,4 +241,4 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 14. Visual Polish | 4/4 | Complete   | Complete    | 2026-04-09 |
 | 15. Multi-Browser Tests | v1.3 | 0/? | Complete    | 2026-04-09 |
 | 16. Accessibility Deep Audit | 5/5 | Complete   | 2026-04-09 | - |
-| 17. Loose Ends Phase 12 | 2/3 | In Progress|  | - |
+| 17. Loose Ends Phase 12 | 3/3 | Complete   | 2026-04-09 | - |
