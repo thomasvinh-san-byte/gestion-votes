@@ -48,7 +48,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 - [ ] **Phase 16: Accessibility Deep Audit** — axe-core complet sur 21 pages, fix violations critical+serious, WCAG 2.1 AA
 - [ ] **Phase 17: Loose Ends Phase 12** — Settings race condition, postsession chip, autres notes "documented but not fixed"
 
-## Phase Details v1.3
+## Phase Details — Current Milestone
 
 ### Phase 14: Visual Polish
 **Goal**: L'app feel pro — feedback unifie, dark mode coherent, navigation adaptee par role
