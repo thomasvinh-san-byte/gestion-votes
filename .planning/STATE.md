@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: defining_requirements
-stopped_at: Milestone started — defining requirements
+status: roadmap_created
+stopped_at: Roadmap created — awaiting /gsd:plan-phase 1
 last_updated: "2026-04-09T12:00:00.000Z"
 last_activity: 2026-04-09
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,18 +21,47 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Milestone v1.4 — defining requirements
+**Current focus:** Milestone v1.4 — 6 phases derived from 24 requirements, ready for Phase 1 planning
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 1 — Contrast AA Remediation (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-09 — Milestone v1.4 started
+Status: Roadmap created, awaiting `/gsd:plan-phase 1`
+Last activity: 2026-04-09 — v1.4 roadmap written, 24/24 requirements mapped
+
+**Progress:** `[------]` 0/6 phases complete (v1.4)
+
+## v1.4 Phase Summary
+
+| Phase | Goal | Requirements |
+|-------|------|--------------|
+| 1 — Contrast AA Remediation | WCAG 2.1 AA conforme sur 316 nœuds via 4 shifts de tokens oklch dual-theme | CONTRAST-01..04 |
+| 2 — Overlay Hittest Sweep | Règle base `:where([hidden])!important` + audit codebase-wide | OVERLAY-01..03 |
+| 3 — Trust Fixtures Deploy | `loginAsAuditor`/`loginAsAssessor` + endpoint seed test-gated | TRUST-01..03 |
+| 4 — HTMX 2.0 Upgrade | Migration 1.x→2.0.6 + `htmx-1-compat` safety net | HTMX-01..05 |
+| 5 — CSP Nonce Enforcement | `SecurityProvider::nonce()` + `strict-dynamic`, report-only first | CSP-01..04 |
+| 6 — Controller Refactoring | 4 controllers >500 LOC → <300 LOC via ImportService pattern | CTRL-01..05 |
 
 ## Accumulated Context
 
-### Decisions
+### v1.4 Decisions
+
+- [v1.4 roadmap]: 6 phases derived from 24 requirements, 1 phase per category — clean boundaries, minimal cross-phase coupling
+- [v1.4 roadmap]: Phase numbering reset to 1 (v1.3 phases archived to `.planning/milestones/v1.3-phases/`); `--reset-phase-numbers` mode active
+- [v1.4 roadmap]: Build order Contrast → Overlay → Trust → HTMX → CSP → Controllers reconciles STACK/PITFALLS/ARCHITECTURE conflicts. Disjoint file regions minimize merge conflicts.
+- [v1.4 roadmap]: Phase 1 first — contrast `<style>` blocks disjoint from HTMX `hx-on` attributes in same `.htmx.html` files; reverse order forces rebase
+- [v1.4 roadmap]: Phase 4 MUST precede Phase 5 — `hx-on:*` is inline script, would break under strict CSP `strict-dynamic` if un-migrated
+- [v1.4 roadmap]: Phase 5 report-only gate — CSP runs in `Content-Security-Policy-Report-Only` for ≥1 full phase before enforcement flip
+- [v1.4 roadmap]: Phase 6 entry gate — pre-split reflection audit (`ReflectionClass`/`hasMethod` grep) on tests is MANDATORY before each controller split (pitfall #6)
+- [v1.4 roadmap]: 300 LOC ceiling per extracted service to prevent god-service anti-pattern (pitfall #7)
+- [v1.4 roadmap]: CSP nonce lives on `SecurityProvider`, NOT middleware — middleware runs post-routing and is API-only; CSP header must ship from `index.php` before dispatch
+- [v1.4 roadmap]: Controller splits mirror ImportService pattern — `final class`, nullable constructor DI, `RepositoryFactory::getInstance()` fallback, no DI container
+- [v1.4 roadmap]: Token dual-name safety — never rename tokens in `design-system.css`; only add aliases. Shadow DOM `@property` `initial-value` silently swallows renames (pitfall #3).
+- [v1.4 roadmap]: Critical-tokens same-commit rule — `<style id="critical-tokens">` in 22 `.htmx.html` must update atomically with `:root`/`[data-theme="dark"]` (pitfall #2)
+- [v1.4 roadmap]: 4 token value edits (`#988d7a`, `#bdb7a9`, `#9d9381`, `#4d72d8` to oklch L* 45-48) fix ~71% of 316 nodes per research
+
+### Decisions (carry-over from v1.3)
 
 - [v10.0 roadmap]: 3 phases derived from 14 requirements — token layer → component geometry → hardening
 - [v10.0 roadmap]: Phase 82 changes design-system.css @layer base only; no per-page CSS files touched in this phase
@@ -63,9 +92,9 @@ Last activity: 2026-04-09 — Milestone v1.4 started
 - [Phase 16]: 16-02: baseline captured via Docker (bin/test-e2e.sh), 5 unique rule-ids fixed across admin/public/vote/operator — final 26/26 GREEN, no waivers needed
 - [Phase 16]: Phase 16-03: Focus-trap spec injects deterministic ag-modal via page.evaluate() to decouple from fixture-specific modal triggers; shadow DOM check uses two-branch pattern (slotted closest + host.shadowRoot.activeElement) matching ag-modal Light+Shadow hybrid
 - [Phase 16]: 16-04: contrast audit runner gated by CONTRAST_AUDIT env; requires Docker playwright image (host libs missing)
+- [Phase 16]: 16-05: v1.3-A11Y-REPORT.md declares partial WCAG 2.1 AA conformance — structural+keyboard conformant, contrast deferred to token remediation phase
 - [Phase 16]: 16-02: bind-mount public/ into app container via dev-only docker-compose.override.yml — production image bakes public/ read-only, dev edits were invisible
 - [Phase 16]: 16-02: ag-searchable-select forwards host aria-label to inner [role=combobox] for accessible name on all consumers
-- [Phase 16]: 16-05: v1.3-A11Y-REPORT.md declares partial WCAG 2.1 AA conformance — structural+keyboard conformant, contrast deferred to token remediation phase
 - [Phase 17]: 17-02: document-level eIDAS chip click delegation (panel-visibility independent)
 - [Phase 17-loose-ends-phase-12]: LOOSE-01 root cause: loadSettings used POST {action:list} which raced CSRF/middleware; fix swaps to GET ?action=list and adds window.__settingsLoaded handshake
 - [Phase 17-loose-ends-phase-12]: Phase 12 SUMMARY audit: 6 findings, 2 already resolved by 17-01/17-02, 3 deferred to v2 (V2-OVERLAY-HITTEST, V2-TRUST-DEPLOY, V2-CSP-INLINE-THEME), 0 fix-now
@@ -77,6 +106,10 @@ Last activity: 2026-04-09 — Milestone v1.4 started
 - 25 per-page CSS files — ~15 hardcoded hex/rgba values identified: analytics.css, meetings.css, hub.css, vote.css, public.css, users.css
 - critical-tokens inline styles in 22 HTML files — 6 hex values that prevent flash-of-wrong-color on load
 - color-mix(in srgb, ...) calls in design-system.css — need upgrade to color-mix(in oklch, ...)
+- v1.3-CONTRAST-AUDIT.json baseline: 316 contrast violations across 22 pages, 42 unique (fg, bg) pairs, dominant `#988d7a` muted-foreground
+- 4 fat controllers pending split: MeetingsController 687, MeetingWorkflowController 559, OperatorController 516, AdminController 510
+- ImportService pattern validated in v1.0 Phase 3 — reusable blueprint for Phase 6 splits
+- SecurityProvider::headers() called before router dispatch — correct injection point for CSP nonce
 
 ### Known Tech Debt Carried Forward
 
@@ -86,7 +119,7 @@ Last activity: 2026-04-09 — Milestone v1.4 started
 
 ### Pending Todos
 
-None.
+None — awaiting Phase 1 plan generation.
 
 ### Blockers/Concerns
 
@@ -95,5 +128,12 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-09
-Stopped at: Milestone v1.4 started — defining requirements
+Stopped at: v1.4 roadmap created — 6 phases, 24/24 requirements mapped, ready for `/gsd:plan-phase 1`
 Resume file: None
+
+**Next action:** `/gsd:plan-phase 1` — plan Phase 1 (Contrast AA Remediation)
+
+**Files written this session:**
+- `.planning/ROADMAP.md` (v1.4 section appended)
+- `.planning/STATE.md` (updated with v1.4 context)
+- `.planning/REQUIREMENTS.md` (traceability section populated)

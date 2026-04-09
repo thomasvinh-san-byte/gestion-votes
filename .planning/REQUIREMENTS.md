@@ -68,4 +68,31 @@
 
 ## Traceability
 
-(Filled by roadmapper — maps each REQ-ID to its phase)
+Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CONTRAST-01 | Phase 1 — Contrast AA Remediation | Pending |
+| CONTRAST-02 | Phase 1 — Contrast AA Remediation | Pending |
+| CONTRAST-03 | Phase 1 — Contrast AA Remediation | Pending |
+| CONTRAST-04 | Phase 1 — Contrast AA Remediation | Pending |
+| OVERLAY-01 | Phase 2 — Overlay Hittest Sweep | Pending |
+| OVERLAY-02 | Phase 2 — Overlay Hittest Sweep | Pending |
+| OVERLAY-03 | Phase 2 — Overlay Hittest Sweep | Pending |
+| TRUST-01 | Phase 3 — Trust Fixtures Deploy | Pending |
+| TRUST-02 | Phase 3 — Trust Fixtures Deploy | Pending |
+| TRUST-03 | Phase 3 — Trust Fixtures Deploy | Pending |
+| HTMX-01 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| HTMX-02 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| HTMX-03 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| HTMX-04 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| HTMX-05 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| CSP-01 | Phase 5 — CSP Nonce Enforcement | Pending |
+| CSP-02 | Phase 5 — CSP Nonce Enforcement | Pending |
+| CSP-03 | Phase 5 — CSP Nonce Enforcement | Pending |
+| CSP-04 | Phase 5 — CSP Nonce Enforcement | Pending |
+| CTRL-01 | Phase 6 — Controller Refactoring | Pending |
+| CTRL-02 | Phase 6 — Controller Refactoring | Pending |
+| CTRL-03 | Phase 6 — Controller Refactoring | Pending |
+| CTRL-04 | Phase 6 — Controller Refactoring | Pending |
+| CTRL-05 | Phase 6 — Controller Refactoring | Pending |
