@@ -7,6 +7,7 @@
   let currentAnomalies = [];
   let currentAuditEntries = [];
   let currentSeverityFilter = 'all';
+  let currentCategoryFilter = 'all';
   const meetingSelect = document.getElementById('meetingSelect');
 
   // Load meetings list and auto-select active one
@@ -414,6 +415,15 @@
     const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
 
     let entries = currentAuditEntries;
+
+    // Category filter
+    if (currentCategoryFilter && currentCategoryFilter !== 'all') {
+      entries = entries.filter(entry => {
+        const cat = (entry.category || '').toLowerCase();
+        return cat === currentCategoryFilter;
+      });
+    }
+
     if (query) {
       entries = entries.filter(entry => {
         const text = [
@@ -456,6 +466,37 @@
 
   // P6-2: Filter audit log on input
   document.getElementById('auditLogFilter')?.addEventListener('input', renderAuditLog);
+
+  // Audit category chip click handler
+  document.getElementById('auditCategoryChips')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('.audit-chip');
+    if (!chip) return;
+
+    document.querySelectorAll('.audit-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentCategoryFilter = chip.dataset.category || 'all';
+    renderAuditLog();
+  });
+
+  // Audit view toggle (table ↔ timeline)
+  document.getElementById('auditViewToggle')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.audit-view-btn');
+    if (!btn) return;
+
+    const view = btn.dataset.view;
+    document.querySelectorAll('.audit-view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const tableView = document.getElementById('auditTableView');
+    const timelineView = document.getElementById('auditTimelineView');
+    if (view === 'timeline') {
+      if (tableView) tableView.hidden = true;
+      if (timelineView) timelineView.hidden = false;
+    } else {
+      if (tableView) tableView.hidden = false;
+      if (timelineView) timelineView.hidden = true;
+    }
+  });
 
   // Export audit log
   document.getElementById('btnExportAudit').addEventListener('click', () => {
