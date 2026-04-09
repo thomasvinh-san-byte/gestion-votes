@@ -211,6 +211,10 @@
   color: var(--color-text);
   font-size: 0.95rem;
   line-height: 1.7;
+  /* MVP-01: content page reading cap — docs is a CONTENT page, prose text
+     column is clamped to 80ch for reading comfort (not an applicative clamp).
+     Outer .doc-layout grid remains full-width. */
+  max-width: 80ch;
 }
 
 /* ─── Headings ─── */
