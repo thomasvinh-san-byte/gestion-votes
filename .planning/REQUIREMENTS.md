@@ -20,7 +20,7 @@
 
 ### Accessibility Deep Audit
 
-- [ ] **A11Y-01**: axe-core scan complet sur les 21 pages applicatives (Phase 7 a la baseline, deep audit ici)
+- [x] **A11Y-01**: axe-core scan complet sur les 21 pages applicatives (Phase 7 a la baseline, deep audit ici)
 - [ ] **A11Y-02**: Fix toutes les violations critical + serious detectees
 - [ ] **A11Y-03**: Conformance WCAG 2.1 AA documentee (aria-labels, color contrast, keyboard nav, focus management)
 
@@ -58,7 +58,7 @@
 | CROSS-01 | Phase 15 | Complete |
 | CROSS-02 | Phase 15 | Complete |
 | CROSS-03 | Phase 15 | Complete |
-| A11Y-01 | Phase 16 | Pending |
+| A11Y-01 | Phase 16 | Complete |
 | A11Y-02 | Phase 16 | Pending |
 | A11Y-03 | Phase 16 | Pending |
 | LOOSE-01 | Phase 17 | Pending |

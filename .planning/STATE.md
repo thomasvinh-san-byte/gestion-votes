@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: Completed 14-visual-polish-02-PLAN.md
-last_updated: "2026-04-09T07:19:56.102Z"
-last_activity: 2026-04-09
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-04-09T09:21:10.165Z"
+last_activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 5
-  percent: 0
+  total_plans: 9
+  completed_plans: 6
+  percent: 67
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 14 — Visual Polish
+**Current focus:** Phase 16 — accessibility-deep-audit
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
-Status: Executing Phase 14
-Last activity: 2026-04-09
+Phase: 16 (accessibility-deep-audit) — EXECUTING
+Plan: 2 of 5
+Status: Executing Phase 16
+Last activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███████░░░] 67%
 
 ## Accumulated Context
 
@@ -60,6 +60,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 14-visual-polish]: assessor removed from /trust data-requires-role — assessor is a meeting role, /trust is a system-wide audit dashboard (admin+auditor only per POLISH-03 matrix)
 - [Phase 14-visual-polish]: POLISH-01: members.js converted to AgToast.show() (27 call sites); adoption now at 9 pages
 - [Phase 14-visual-polish]: 14-02: Remove hex fallbacks from var(--token, #hex) in Shadow DOM — tokens guaranteed-present via shell.js load order
+- [Phase 16-accessibility-deep-audit]: Phase 16-01: Parametrized axeAudit matrix to 22 pages via PAGES array; extraDisabledRules plumbing ready for per-page waivers (D-10)
+- [Phase 16-accessibility-deep-audit]: Phase 16-01: trust.htmx.html uses loginAsAdmin fallback (auditor/assessor not in fixtures) — to validate at baseline run in 16-02
 
 ### Existing Infrastructure
 
@@ -85,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T07:02:25.823Z
-Stopped at: Completed 14-visual-polish-02-PLAN.md
+Last session: 2026-04-09T09:21:10.162Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
