@@ -116,12 +116,15 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 **Execution model**: 5 waves with mandatory user checkpoint between waves. Each wave = 4-5 page plans (parallelizable, no file conflicts).
 
-**Plans (Wave 1 only — Wave 2-5 will be planned with fresh context after Wave 1 ships):**
+**Plans:** 8 plans (Wave 1-2 planned, Wave 3-5 TBD)
 - [ ] 12-01-PLAN.md — settings page sweep (3 gates) [Wave 1]
 - [ ] 12-02-PLAN.md — operator page sweep (3 gates) [Wave 1]
 - [ ] 12-03-PLAN.md — hub page sweep (3 gates) [Wave 1]
 - [ ] 12-04-PLAN.md — dashboard page sweep (3 gates) [Wave 1]
-- [ ] Wave 2 (TBD) — meetings, members, vote, wizard
+- [ ] 12-05-PLAN.md — meetings page sweep (3 gates) [Wave 2]
+- [ ] 12-06-PLAN.md — members page sweep (3 gates) [Wave 2]
+- [ ] 12-07-PLAN.md — vote page sweep (3 gates) [Wave 2]
+- [ ] 12-08-PLAN.md — wizard page sweep (3 gates) [Wave 2]
 - [ ] Wave 3 (TBD) — audit, archives, users, admin
 - [ ] Wave 4 (TBD) — analytics, report, postsession, validate
 - [ ] Wave 5 (TBD) — trust, public, email-templates, docs, help
@@ -153,5 +156,5 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
-| 12. Page-by-Page MVP Sweep | 3/4 | In Progress|  | - |
+| 12. Page-by-Page MVP Sweep | 4/8 | In Progress|  | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
