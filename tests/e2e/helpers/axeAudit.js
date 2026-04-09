@@ -9,14 +9,27 @@ const AxeBuilder = require('@axe-core/playwright').default;
  * design-token layer and are tuned separately (TEST-03 scope is structural
  * accessibility, not visual contrast ratios).
  *
+ * Per-page waivers (Phase 16 D-10) can be passed via
+ * `options.extraDisabledRules` — each rule is merged with the default
+ * `['color-contrast']` disable list. Use sparingly and always justify with a
+ * `A11Y-WAIVER` comment at the call site (D-09).
+ *
  * @param {import('@playwright/test').Page} page
  * @param {string} pageName - label used in error messages
+ * @param {{ extraDisabledRules?: string[] }} [options]
+ * @param {string[]} [options.extraDisabledRules] - rule ids to disable on top
+ *   of the default `color-contrast` (e.g. `['region']` for pages embedding a
+ *   third-party iframe). Empty array or omitted = default behavior.
  * @returns {Promise<import('axe-core').AxeResults>}
+ *
+ * @example
+ *   await axeAudit(page, '/trust.htmx.html', { extraDisabledRules: ['region'] });
  */
-async function axeAudit(page, pageName) {
+async function axeAudit(page, pageName, options = {}) {
+  const { extraDisabledRules = [] } = options;
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa'])
-    .disableRules(['color-contrast']) // tuned separately via design tokens
+    .disableRules(['color-contrast', ...extraDisabledRules]) // tuned separately via design tokens
     .analyze();
 
   const blockers = results.violations.filter(
