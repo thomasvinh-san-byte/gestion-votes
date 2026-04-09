@@ -3,10 +3,18 @@
 # bin/test-e2e.sh — Run Playwright E2E tests in the `tests` Docker service
 # =============================================================================
 # Usage:
-#   ./bin/test-e2e.sh                         # full chromium suite
-#   ./bin/test-e2e.sh --grep @smoke           # filter by tag
-#   ./bin/test-e2e.sh specs/login.spec.js     # single spec
-#   ./bin/test-e2e.sh --list                  # list tests without running
+#   ./bin/test-e2e.sh                            # full chromium suite (default)
+#   ./bin/test-e2e.sh --grep @smoke              # filter by tag
+#   ./bin/test-e2e.sh specs/login.spec.js        # single spec
+#   ./bin/test-e2e.sh --list                     # list tests without running
+#
+#   # Cross-browser (Phase 15):
+#   PROJECT=firefox ./bin/test-e2e.sh --grep @critical-path
+#   PROJECT=webkit ./bin/test-e2e.sh --grep @critical-path
+#   PROJECT=mobile-chrome ./bin/test-e2e.sh --grep @critical-path
+#
+# Available projects (defined in playwright.config.js):
+#   chromium (default), firefox, webkit, mobile-chrome, tablet
 #
 # Requirements:
 #   - docker compose stack running: docker compose up -d
@@ -16,6 +24,9 @@
 # HTML report written to tests/e2e/playwright-report/ (host-visible via bind mount).
 # =============================================================================
 set -euo pipefail
+
+# Project selection — defaults to chromium if PROJECT env var not set.
+PROJECT="${PROJECT:-chromium}"
 
 # Resolve repo root (script lives in bin/)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,7 +63,7 @@ docker run --rm \
 # --rm: remove container after exit
 # --network: join the compose backend network so `app` hostname resolves
 # Forwards all user args to `npx playwright test --project=chromium`
-echo "[test-e2e] Running Playwright in container (chromium only)..."
+echo "[test-e2e] Running Playwright in container (project=${PROJECT})..."
 exec docker run --rm \
   --network "$NETWORK" \
   --volume "${REPO_ROOT}:/work" \
@@ -66,4 +77,4 @@ exec docker run --rm \
   -e REDIS_PORT=6379 \
   -e REDIS_PASSWORD="${REDIS_PASSWORD:-agvote-redis-dev}" \
   mcr.microsoft.com/playwright:v1.59.1-jammy \
-  bash -lc "npm install --no-audit --no-fund --silent && npx playwright test --project=chromium $*"
+  bash -lc "npm install --no-audit --no-fund --silent && npx playwright test --project=${PROJECT} $*"
