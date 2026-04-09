@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-20-PLAN.md
-last_updated: "2026-04-09T05:50:25.045Z"
+stopped_at: Completed 12-page-by-page-mvp-sweep/12-17-PLAN.md
+last_updated: "2026-04-09T05:56:50.754Z"
 last_activity: 2026-04-09 -- Completed 12-12 admin page MVP sweep
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 36
-  completed_plans: 34
+  completed_plans: 35
   percent: 0
 ---
 
@@ -110,6 +110,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-16]: Non-destructive modal assertions: wrap in isEnabled() guard, assert dual-guard wiring via cancel path, never click irreversible archive button
 - [Phase 12-page-by-page-mvp-sweep]: help is CONTENT page — max-width 80ch cap (not removed), .help-search 480px is a component cap
 - [Phase 12-page-by-page-mvp-sweep]: docs is a CONTENT page — .prose clamped to 80ch, .doc-layout grid stays full-width (per user MVP-01 decision)
+- [Phase 12-page-by-page-mvp-sweep]: page.evaluate JS dispatch bypasses modal overlay hit-test for severity pills; chip/view handlers committed to trust.js for next container rebuild
 
 ### Existing Infrastructure
 
@@ -135,6 +136,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:50:19.654Z
-Stopped at: Completed 12-20-PLAN.md
+Last session: 2026-04-09T05:56:50.751Z
+Stopped at: Completed 12-page-by-page-mvp-sweep/12-17-PLAN.md
 Resume file: None
