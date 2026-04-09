@@ -1,100 +1,91 @@
 # Phase 16 — Axe Baseline (before fixes)
 
 **Run date:** 2026-04-09
-**Runner:** `cd tests/e2e && npx playwright test specs/accessibility.spec.js --project=chromium --reporter=line`
-**Pages covered:** 22 (21 HTMX + login) — configured
-**Pages actually scanned:** 0 (environment blocker, see below)
+**Runner:** `bin/test-e2e.sh specs/accessibility.spec.js --reporter=line` (Docker, chromium)
+**Pages covered:** 22 (21 HTMX + login)
 **Disabled rules:** color-contrast (D-04, structural runner only)
 
 ## Summary
 
-- Tests passing: 0/26
-- Tests failing: 26/26 (22 axe matrix + 4 legacy unit tests)
-- Unique rule-ids with critical/serious impact: **UNKNOWN — axe never executed**
-- Total offending nodes: **UNKNOWN — axe never executed**
+- Tests passing: **18/22** axe matrix (4 unit-style legacy tests pass; counted separately)
+- Tests failing: **4/22** axe matrix
+- Unique rule-ids with critical/serious impact: **5**
+- Total offending nodes: **47**
 
-## Environment blocker — browser fails to launch
+## Environment note — stale image discovery
 
-**Every test failed at the Playwright browser-launch stage with identical error:**
+The baseline run executed against the running `agvote-app` container, which is built from a baked image (no bind mount on `/var/www/public`). The image hash predates the 16-01 commit (`357d84c0 fix(16-01): seed a11y WIP …`) that added `role="status"`/`role="progressbar"` to the operator live regions.
 
-```
-browserType.launch: Target page, context or browser has been closed
-Browser logs:
-[pid=XXXXXX][err] /home/user/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell:
-  error while loading shared libraries: libatk-1.0.so.0: cannot open shared object file: No such file or directory
-```
-
-**Diagnostic confirmed:**
-
-- Both chromium binaries (`chromium-1217/chrome-linux64/chrome` and `chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell`) exit 127 with the same `libatk-1.0.so.0` missing-library error.
-- `find / -name "libatk-1.0*"` returns zero hits — the shared library is entirely absent from the host filesystem.
-- `dpkg -l libatk1.0-0` → package not installed.
-- `sudo -n apt-get install …` → `a password is required` (no passwordless sudo).
-- `npx playwright install-deps chromium` → `sudo: a terminal is required` — also requires elevation.
-
-**The required system packages that must be installed as root** (from `npx playwright install-deps chromium`):
-
-```
-libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon0 libxcomposite1
-libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64 libnss3
-```
-
-On Debian/Ubuntu:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2t64 libnss3
-# or, preferred, as the user who ran `npx playwright install`:
-npx playwright install-deps chromium
-```
-
-**Prior context:** Phase 15 (cross-browser matrix, committed 3 days ago as `c255c846`) ran Playwright successfully against chromium — so the environment has regressed since then. Likely cause: a host-level package cleanup or a fresh container/VM without the dependency layer installed.
+As a consequence, the baseline reflects partly-stale source for `operator.htmx.html` and `public.htmx.html`. Because `docker compose up --build app` failed (apk virtual deps unreachable in this sandbox), this plan mounts the host `public/` directory read-only into the container via `docker-compose.override.yml` so the next run picks up the up-to-date HTML and the 16-02 batch fixes. The override is removed after Task 2 completes.
 
 ## Violations grouped by rule-id (fix order = descending node count)
 
-**N/A — no axe assertions reached. Cannot enumerate until the browser launches.**
+### 1. button-name — critical — 40 nodes on /admin.htmx.html (1 page)
+Buttons must have discernible text.
+- /admin.htmx.html: 40 nodes
+  - `.btn-edit-user`, `.btn-password-user`, `.btn-toggle-user`, `.btn-delete-user` rows in user list — icon-only buttons rendered by `users-admin.js` without `aria-label`.
+  - Pattern: 4 action buttons × 10 user rows = 40 nodes. Single fix in the JS row template.
 
-This section will be populated after the environment is fixed and the runner is re-executed. The plan was written assuming a working browser stack.
+### 2. aria-prohibited-attr — serious — 4 nodes on 3 pages
+Elements must only use permitted ARIA attributes (`aria-label` not allowed on roleless elements / generic `<span>`/`<div>`).
+- /operator.htmx.html: 2 nodes — STALE-IMAGE FALSE POSITIVE (16-01 already added `role="status"` and `role="progressbar"`; bind mount unblocks this)
+  - `span.op-live-dot[aria-label="Session en cours"]`
+  - `#opResolutionProgress`
+- /public.htmx.html: 1 node — `#resolutionTracker` `<div hidden aria-label="Progression des résolutions">` needs `role="status"`
+- /vote.htmx.html: 1 node — `#voteProgressDots` `<div hidden aria-label="Progression des résolutions">` needs `role="status"`
+
+### 3. aria-input-field-name — serious — 2 nodes on /vote.htmx.html (1 page)
+ARIA input fields must have an accessible name.
+- /vote.htmx.html: 2 nodes
+  - `#meetingSelect .select-trigger[role="combobox"]`
+  - `#memberSelect .select-trigger[role="combobox"]`
+  - Combobox triggers need `aria-label` or `aria-labelledby`.
+
+### 4. select-name — critical — 1 node on /admin.htmx.html (1 page)
+Select element must have an accessible name.
+- /admin.htmx.html: 1 node
+  - `<select id="newRole" class="form-input">` — needs `<label for="newRole">` or `aria-label`.
+
+### 5. scrollable-region-focusable — serious — 1 node on /vote.htmx.html (1 page)
+Scrollable region must have keyboard access.
+- /vote.htmx.html: 1 node
+  - `<main class="vote-main" id="main-content" role="main">` — empty `<main>` populated by JS later; either ensure it is not scrollable until populated, or add `tabindex="0"`.
 
 ## Per-page failure summary
 
-| Page                        | Passing | Failing rules                                  |
-| --------------------------- | ------- | ---------------------------------------------- |
-| /login.html                 | ❌      | (browser launch failure — libatk-1.0.so.0)     |
-| /dashboard.htmx.html        | ❌      | (browser launch failure)                       |
-| /meetings.htmx.html         | ❌      | (browser launch failure)                       |
-| /members.htmx.html          | ❌      | (browser launch failure)                       |
-| /operator.htmx.html         | ❌      | (browser launch failure)                       |
-| /settings.htmx.html         | ❌      | (browser launch failure)                       |
-| /audit.htmx.html            | ❌      | (browser launch failure)                       |
-| /admin.htmx.html            | ❌      | (browser launch failure)                       |
-| /analytics.htmx.html        | ❌      | (browser launch failure)                       |
-| /archives.htmx.html         | ❌      | (browser launch failure)                       |
-| /docs.htmx.html             | ❌      | (browser launch failure)                       |
-| /email-templates.htmx.html  | ❌      | (browser launch failure)                       |
-| /help.htmx.html             | ❌      | (browser launch failure)                       |
-| /hub.htmx.html              | ❌      | (browser launch failure)                       |
-| /postsession.htmx.html      | ❌      | (browser launch failure)                       |
-| /public.htmx.html           | ❌      | (browser launch failure)                       |
-| /report.htmx.html           | ❌      | (browser launch failure)                       |
-| /trust.htmx.html            | ❌      | (browser launch failure)                       |
-| /users.htmx.html            | ❌      | (browser launch failure)                       |
-| /validate.htmx.html         | ❌      | (browser launch failure)                       |
-| /vote.htmx.html             | ❌      | (browser launch failure)                       |
-| /wizard.htmx.html           | ❌      | (browser launch failure)                       |
-
-## Open questions raised by baseline
-
-- **Environment provenance**: What changed between phase 15 (2026-04-06, passing cross-browser matrix) and now? Was a new dev container spun up? Was a cleanup removing GTK/ATK runtime libraries performed?
-- **Unblock path**: Requires operator with root/sudo to run `npx playwright install-deps chromium` or the equivalent `apt-get install` command listed above. No other blocker exists — the Playwright binary itself, test runner, auth fixtures and PAGES array are all intact from 16-01.
-- **Once unblocked**: Re-run the same command (`cd tests/e2e && timeout 300 npx playwright test specs/accessibility.spec.js --project=chromium --reporter=line 2>&1 | tee /tmp/16-02-axe-baseline.txt`). Because 16-01 already applied 6 WIP seed fixes (operator live regions, settings aria-labels, SettingsController unwrap, strict-mode `.first()` fix) the first real run should produce a meaningful violation inventory that plan 16-02's Task 2 can batch-fix.
+| Page                         | Passing | Failing rules                                                   |
+| ---------------------------- | ------- | --------------------------------------------------------------- |
+| /login.html                  | OK      | —                                                               |
+| /dashboard.htmx.html         | OK      | —                                                               |
+| /meetings.htmx.html          | OK      | —                                                               |
+| /members.htmx.html           | OK      | —                                                               |
+| /operator.htmx.html          | FAIL    | aria-prohibited-attr (stale image — already fixed in HTML)      |
+| /settings.htmx.html          | OK      | —                                                               |
+| /audit.htmx.html             | OK      | —                                                               |
+| /admin.htmx.html             | FAIL    | button-name (40), select-name (1)                               |
+| /analytics.htmx.html         | OK      | —                                                               |
+| /archives.htmx.html          | OK      | —                                                               |
+| /docs.htmx.html              | OK      | —                                                               |
+| /email-templates.htmx.html   | OK      | —                                                               |
+| /help.htmx.html              | OK      | —                                                               |
+| /hub.htmx.html               | OK      | —                                                               |
+| /postsession.htmx.html       | OK      | —                                                               |
+| /public.htmx.html            | FAIL    | aria-prohibited-attr (`#resolutionTracker`)                     |
+| /report.htmx.html            | OK      | —                                                               |
+| /trust.htmx.html             | OK      | —                                                               |
+| /users.htmx.html             | OK      | —                                                               |
+| /validate.htmx.html          | OK      | —                                                               |
+| /vote.htmx.html              | FAIL    | aria-prohibited-attr, aria-input-field-name, scrollable-region  |
+| /wizard.htmx.html            | OK      | —                                                               |
 
 ## Proposed batch-fix order
 
-**Blocked** — cannot be derived without baseline data. Per plan rules ("Baseline run confirms actual set" — interfaces block of 16-02-PLAN) we must not pre-invent the list. When the environment is repaired and the run produces real violations, this section will be rewritten with the empirical rule-id frequency list.
+1. **button-name (40 nodes)** — fix `users-admin.js` row template: add French `aria-label` to edit/password/toggle/delete buttons.
+2. **aria-prohibited-attr (4 nodes)** — add `role="status"` to `#resolutionTracker` (public.htmx.html) and `#voteProgressDots` (vote.htmx.html). Operator nodes already fixed; bind mount in place so next run will pick them up.
+3. **aria-input-field-name (2 nodes)** — add `aria-label` (French) to `#meetingSelect` and `#memberSelect` `.select-trigger[role="combobox"]` in vote.htmx.html.
+4. **select-name (1 node)** — add `aria-label` to `#newRole` `<select>` in admin.htmx.html (or wrap in `<label>`).
+5. **scrollable-region-focusable (1 node)** — add `tabindex="0"` to `<main id="main-content">` in vote.htmx.html (or remove the scrollable property until JS populates it).
 
 ## Raw output
 
-Full baseline log (26 failures, all identical cause) preserved at `/tmp/16-02-axe-baseline.txt` for the session. It is 52 occurrences of the `libatk-1.0.so.0` error across the 26 test invocations (one per test case × 2 retry attempts on some).
+Full baseline log preserved at `/tmp/16-02-axe-baseline.txt` for the session.
