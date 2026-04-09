@@ -1108,6 +1108,11 @@
   animation: fadeIn 0.25s ease-out;
 }
 
+/* Ensure [hidden] attribute is respected despite display:flex override */
+.op-transition-card[hidden] {
+  display: none;
+}
+
 .op-transition-text {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
