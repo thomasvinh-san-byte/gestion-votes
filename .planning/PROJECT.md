@@ -83,32 +83,12 @@ Hotfixes critiques delivres en cours de v1.2 :
 
 (Not yet started — run `/gsd:new-milestone` to begin v1.3 polish post-MVP)
 
-## Next Milestone
+## Tech Debt Carried to v1.3 (post-MVP)
 
-(Not yet started — run `/gsd:new-milestone` to begin v1.3 polish post-MVP)
-
-## Current State
-
-Shipped v1.1 — Coherence UI/UX et Wiring milestone complete. Application now coherent and reliable:
-- JS/HTMX wiring repaired: 1,269 selectors audited, vote.js mismatch fixed, 5 dead-code blocks removed, sidebar timing hardened
-- Design tokens applied uniformly across 5 per-page CSS files, 5 badge defects fixed
-- Login redesigned as 40/60 2-panel layout with hero content, features, trust pills (no more empty space)
-- HTMX skeleton-row loading wired into operator/members/meetings list containers
-- Playwright upgraded to 1.59.1, @axe-core/playwright integrated with per-page audits
-- New tests: page-interactions.spec.js (8 tests, 7 pages) + operator-e2e.spec.js (full workflow)
-- 3 critical hotfixes delivered: RateLimiter::configure() boot regression (v1.0 leftover blocked all API requests), nginx clean URL routing (multi-week regression that served index.html instead of htmx.html), login 2-panel polish
-
-v1.0 base still in place:
-- Redis only broker (SSE, rate-limiting, heartbeat)
-- Streaming XLSX exports, paginated email batches, single-query stats
-- ImportController 921 → 149 lines
-
-Tech debt carried to v1.2:
-- Browser test execution requires libatk system libraries or Docker
-- 11 human verification items deferred from Phases 5-7
-- getDashboardStats() not wired into DashboardController (from v1.0)
-- MeetingReportsController (727 lignes) et MotionsController (720 lignes) not split (from v1.0)
-- 10/14 tests EventBroadcaster necessitent phpredis (Docker uniquement) (from v1.0)
+- Multi-browser test matrix (firefox/webkit) — currently chromium-only via Phase 8 setup
+- axe-core accessibility deep audit — baseline integrated in v1.1, deep audit deferred
+- HTMX 2.0 upgrade — breaking changes (hx-on case sensitivity), separate milestone
+- Visual regression testing (snapshot comparison) — separate milestone
 
 ## Next Milestone
 
