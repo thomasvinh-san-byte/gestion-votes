@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-21-PLAN.md
-last_updated: "2026-04-09T05:39:06.867Z"
+stopped_at: Completed 12-20-PLAN.md
+last_updated: "2026-04-09T05:50:25.045Z"
 last_activity: 2026-04-09 -- Completed 12-12 admin page MVP sweep
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 36
-  completed_plans: 32
+  completed_plans: 34
   percent: 0
 ---
 
@@ -109,6 +109,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-16]: URL param injection for MeetingContext (?meeting_id=UUID) is required for validate page specs — sessionStorage set via page.evaluate is lost across navigation
 - [Phase 12-16]: Non-destructive modal assertions: wrap in isEnabled() guard, assert dual-guard wiring via cancel path, never click irreversible archive button
 - [Phase 12-page-by-page-mvp-sweep]: help is CONTENT page — max-width 80ch cap (not removed), .help-search 480px is a component cap
+- [Phase 12-page-by-page-mvp-sweep]: docs is a CONTENT page — .prose clamped to 80ch, .doc-layout grid stays full-width (per user MVP-01 decision)
 
 ### Existing Infrastructure
 
@@ -134,6 +135,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:39:02.080Z
-Stopped at: Completed 12-21-PLAN.md
+Last session: 2026-04-09T05:50:19.654Z
+Stopped at: Completed 12-20-PLAN.md
 Resume file: None
