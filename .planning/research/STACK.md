@@ -1,160 +1,143 @@
-# Stack Research
+# STACK Research — v1.4 Tech Debt Remediation
 
-**Domain:** Admin panel UI/UX coherence + E2E testing for PHP 8.4 + HTMX application
-**Researched:** 2026-04-07
-**Confidence:** HIGH (existing setup verified from codebase; library versions verified from npm)
+**Mode:** Ecosystem (subsequent milestone, targeted additions only)
+**Confidence:** HIGH
 
----
+## Executive Summary
 
-## Context: What Already Exists
+**Core recommendation: v1.4 is a ZERO-NEW-DEPENDENCY milestone.** Every one of the 6 chantiers can be delivered with what's already in the stack plus one version upgrade (HTMX 1.x → 2.0.6). Adding libraries would contradict the tech debt goal.
 
-The project already has a substantial design and testing foundation. This file documents only **new capabilities** needed for v1.1.
+The existing Playwright + axe-core audit loop already measures contrast, PHP's `random_bytes()` + a 40-line middleware already does CSP nonces, and CSS custom properties + `oklch()` is a native browser feature requiring no build step.
 
-**Already in place (do not re-add):**
-- `design-system.css` — custom CSS design tokens (OKLCH palette, Bricolage Grotesque / Fraunces / JetBrains Mono fonts, spacing scale, component classes)
-- `app.css` — single entrypoint importing design system + page-specific overrides
-- `@playwright/test` ^1.50.0 declared in root `package.json` (1.58.2 installed in `tests/e2e/`)
-- Full Playwright suite: 18 spec files, multi-browser (Chromium/Firefox/WebKit/mobile), global auth setup, helpers with cookie injection
-- HTMX 1.9.12 vendored in `public/assets/vendor/htmx.min.js`
-- Chart.js 4.4.1 for analytics
+## Stack Changes Summary
 
----
+| Chantier | Change | Type | Risk |
+|---|---|---|---|
+| 1. Contrast remediation | CSS `oklch()` + `color-mix()` (native, no lib) | Native CSS | LOW |
+| 2. OVERLAY-HITTEST sweep | None | — | NONE |
+| 3. TRUST-DEPLOY fixtures | Reuse existing Playwright `loginAs*` helpers | — | NONE |
+| 4. CSP-INLINE-THEME | New `CspNonceMiddleware.php` or extend `SecurityProvider` (~40 lines) | New file | LOW |
+| 5. HTMX 2.0 upgrade | `htmx.org` 1.x → **2.0.6** (latest stable) | Version bump | **MEDIUM** |
+| 6. Controller splits | None (pure refactor) | — | NONE |
 
-## Recommended Stack Additions
+## Detailed Recommendations
 
-### Core Technologies
+### 1. Contrast Remediation — Native CSS only
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@playwright/test` | ^1.59.1 | E2E browser automation | Already in use; upgrade from 1.50.0/1.58.2 to get bug fixes and new locator APIs. Latest as of April 2026. No breaking changes within 1.x. |
-| Custom CSS design system | existing (v2.0) | Design language | The project already has a complete, well-structured design system with OKLCH tokens. The problem is **broken wiring and inconsistent application**, not missing infrastructure. DO NOT add Tailwind, Bootstrap, or daisyUI — they conflict with the custom token architecture already established. |
-| HTMX | 2.0.8 (optional, defer) | Server-driven UI | HTMX 2.0 has been stable since June 2024. The project currently uses 1.9.12. Upgrading provides cleaner event syntax but requires auditing `hx-on` attributes (case-sensitivity changed), DELETE request semantics, and cross-domain config. **Defer unless 1.9 bugs are root cause of broken wiring.** |
+**Don't add:** `culori`, `chroma-js`, `@csstools/postcss-oklab-function`, PostCSS, `style-dictionary`, Tailwind. The project has no build pipeline beyond minification.
 
-### Supporting Libraries
+**Use what's already there:**
+- **axe-core 4.10** (via `@axe-core/playwright`) — produces `v1.3-CONTRAST-AUDIT.json`
+- **Native `oklch()` CSS function** — baseline since Chrome 111 / Firefox 113 / Safari 15.4 (Q1 2023)
+- **Native `color-mix(in oklch, ...)`** — baseline since Chrome 111 / Firefox 113 / Safari 16.2
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `@axe-core/playwright` | ^4.10.x | Automated WCAG accessibility checks embedded in Playwright tests | Add to `tests/e2e/` alongside existing `accessibility.spec.js`. Detects contrast failures, missing labels, duplicate IDs without separate tooling. |
-| Google Fonts (already linked) | n/a | Bricolage Grotesque, Fraunces, JetBrains Mono | Already loaded via `<link rel="preconnect">` in all HTML heads. No change needed. |
+**Rationale:** v1.3 A11Y report identifies 6 token pairs causing ~71% of 316 failures. Fix is **3-4 token value changes** — not tooling. Report already specifies: "Relever `#988d7a` (muted-foreground) vers un ratio ≥ 4.5 sur `#f6f5f0`. Un L* autour de 45-48 en oklch rapproche du seuil."
 
-### Development Tools
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| Playwright HTML reporter | Visual test result inspection with screenshots on failure | Already configured (`reporter: 'html'` in `playwright.config.js`). No change needed. |
-| Playwright trace viewer | Debug flaky tests with full action timeline | Already configured (`trace: 'on-first-retry'`). Run `npx playwright show-trace trace.zip` after a failure. |
-| PHP-CS-Fixer | Code style | Already configured, no change. |
-
----
-
-## Installation
-
+**Verification loop (no new tools):**
 ```bash
-# In tests/e2e/ — upgrade Playwright and add axe accessibility checker
-cd tests/e2e
-npm install --save-dev @playwright/test@^1.59.1 @axe-core/playwright@^4.10.0
-
-# Update browser binaries after version bump
-npx playwright install
-
-# In root — sync version declaration
-# Edit package.json: "@playwright/test": "^1.59.1"
-npm install
+bin/test-e2e.sh specs/contrast-audit.spec.js  # existing runner, CONTRAST_AUDIT=1
+# Diff v1.3-CONTRAST-AUDIT.json vs prior snapshot
 ```
 
-No CSS framework installation needed — the design system is handcrafted in `public/assets/css/design-system.css`.
+### 2. V2-OVERLAY-HITTEST Sweep — No tooling
 
----
+Pure grep + manual audit. Pattern: `[hidden]` attribute overridden by `position: fixed; display: flex`. Fix is a single global CSS rule (`[hidden] { display: none !important }`) plus a codemod-style search for `display: flex` on elements that also receive `[hidden]`.
 
-## Alternatives Considered
+### 3. V2-TRUST-DEPLOY — Reuse existing fixtures
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| Custom CSS design tokens (existing) | Tailwind CSS | Tailwind's utility classes fight the existing token-based component architecture. Mixing both produces specificity wars. The design system is already built; the problem is incorrect application, not missing framework. |
-| Custom CSS design tokens (existing) | daisyUI | daisyUI is Tailwind-dependent. Same conflict as Tailwind. The project's hand-rolled component classes (`.btn`, `.card`, `.field-group`) would need complete replacement. |
-| Custom CSS design tokens (existing) | Bootstrap 5 | Bootstrap's opinionated grid and component classes conflict with the existing OKLCH color system and custom spacing scale. Migration cost exceeds benefit. |
-| HTMX 1.9 (keep current) | HTMX 2.0 upgrade now | Upgrading 1.9 → 2.0 requires auditing `hx-on` attributes (case-sensitivity changed), DELETE request query-vs-body semantics, and cross-domain config. The broken wiring is likely DOM selector / event handler bugs, not HTMX version bugs. Defer upgrade to v1.2. |
-| `@playwright/test` (JS/Node) | `playwright-php/playwright` | The project already has a mature 18-spec JS Playwright suite with global auth setup, helpers, and cookie injection. Rebuilding in PHP would be wasted effort. |
-| Playwright (existing) | Cypress | Playwright already installed, configured, and used. Cypress would be a full replacement with no net benefit. |
+Existing `tests/e2e/helpers/` already provides `loginAsAdmin`, `loginAsOperator`, `loginAsVoter`. Task: add sibling helpers `loginAsAuditor` and `loginAsAssessor` following the exact pattern.
 
----
+**DO NOT bump Playwright** — v1.3 cross-browser matrix was captured against 1.59.1 and bumping invalidates the baseline.
 
-## What NOT to Add
+### 4. V2-CSP-INLINE-THEME — Write middleware, don't install one
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| React / Vue / Alpine.js | Any component framework competes with HTMX's server-driven model. Alpine.js is tempting but adds a second declarative system alongside HTMX — two reactive systems on the same DOM cause hard-to-debug conflicts. | HTMX attributes + vanilla JS in `public/assets/js/` |
-| Sass/SCSS preprocessor | The design system already uses CSS custom properties and `@layer` — native CSS features that make Sass unnecessary. Adding Sass would require a build step while providing no new capability. | Native CSS custom properties (already in use) |
-| CSS-in-JS / Emotion / styled-components | PHP server renders HTML; CSS-in-JS has no role here. | Static CSS files |
-| Storybook | Overhead of maintaining a component catalog is not justified for an app this size. Component states are tested through Playwright page tests. | Playwright visual tests |
-| Webpack / Vite | The project uses a simple `cp` script to vendor HTMX and Chart.js. A bundler would add significant complexity for a project that doesn't bundle modules. | `npm run vendor:copy` (existing) |
-| `playwright-axe` (old package) | Deprecated in favour of `@axe-core/playwright`. | `@axe-core/playwright` |
+**Reject Spatie `laravel-csp`** and any Composer package. Need is ~40 lines plus template helper.
 
----
+**Approach:**
+1. **Nonce injection:** extend `SecurityProvider::headers()` (runs before router; middleware runs after and is bypassed by HTML endpoints — confirmed by ARCHITECTURE research)
+2. **Template helper:** `HtmlView::render()` exposes `$cspNonce` in template context, or global `csp_nonce()` helper
+3. **Theme init scripts:** `<script nonce="<?= csp_nonce() ?>">`
+4. **CSP header:** `script-src 'self' 'nonce-{NONCE}' 'strict-dynamic'`
 
-## Stack Patterns by Variant
+**Pitfall — HTMX `hx-on:*`:** These execute inline event code and are governed by `script-src-attr` / `unsafe-hashes`, not nonces. Recommendation: `strict-dynamic` for `script-src` + `unsafe-hashes` for `script-src-attr`. Refactoring every `hx-on` defeats HTMX's locality-of-behavior principle.
 
-**For the login 2-panel redesign:**
-- Pure CSS grid: `display: grid; grid-template-columns: 1fr 1fr` on `.login-page`, left panel for branding, right panel for form
-- No JS needed; existing `login.css` handles the implementation
-- On mobile (`max-width: 768px`): `grid-template-columns: 1fr` with left panel hidden or collapsed above form
+### 5. HTMX 2.0 Upgrade — The only real version bump
 
-**For HTMX wiring fixes:**
-- Use `htmx:afterRequest`, `htmx:responseError`, `htmx:sendError` event listeners in vanilla JS to debug broken targets
-- Use Playwright's `page.waitForResponse('/api/v1/*')` pattern for asserting HTMX requests complete before DOM assertions
-- Pattern: `await page.waitForResponse(resp => resp.url().includes('/api/v1/') && resp.status() === 200)`
+**Target version:** `htmx.org@2.0.6` (verify at phase start).
 
-**For SSE testing with Playwright:**
-- SSE streams cannot be fully intercepted by Playwright's `waitForResponse` (stream never closes)
-- Pattern: test SSE effect on DOM rather than the stream itself — `await page.waitForSelector('[data-live-updated]')` after triggering the event source
-- Avoid testing the SSE endpoint directly in E2E; that belongs in PHPUnit integration tests
+**Breaking changes (verified against official migration guide):**
 
-**For accessibility testing:**
-```javascript
-// In any spec that renders a full page:
-const { checkA11y, injectAxe } = require('@axe-core/playwright');
-await injectAxe(page);
-await checkA11y(page, null, { runOnly: ['wcag2a', 'wcag2aa'] });
-```
+| Change | Impact | Action |
+|---|---|---|
+| **`hx-on` syntax** — kebab-case `hx-on:event-name` | Every `hx-on="htmx:afterRequest: ..."` → `hx-on:htmx:after-request="..."` | Grep + rewrite sweep |
+| **DELETE uses URL params** (not form-encoded body) | `hx-delete` endpoints reading `$_POST` will break silently | Audit all handlers; transition via `methodsThatUseUrlParams` |
+| **Cross-domain restricted by default** | Low (single-origin) | Smoke test |
+| **Extensions unbundled** | Check SSE / preload refs | Load extensions separately |
+| **`htmx:beforeRequest` → `htmx:configRequest`** | Any listener renamed | Grep + rewrite |
 
----
+**Safety net:** `htmx-1-compat` extension for gradual migration.
 
-## Version Compatibility
+**Risk: MEDIUM.** `hx-on` rewrite is mechanical but high-volume. DELETE change is a **silent behavioral break**. Dedicated phase needed:
+1. Full grep inventory (`hx-on`, `hx-delete`, `htmx:beforeRequest`, extensions)
+2. Sweep rewrite
+3. Full Playwright run (chromium + firefox + webkit + mobile) against v1.3 baseline
+4. Manual smoke of every `hx-delete` endpoint
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| `@playwright/test@1.59.1` | Node 18+ | Project already requires Node >=18 (declared in `tests/e2e/package.json`). |
-| `@axe-core/playwright@4.10.x` | `@playwright/test@1.50+` | Peer dep satisfied by 1.59.1. |
-| HTMX 1.9.12 | Chart.js 4.4.1 | No conflicts — different concerns. |
-| HTMX 2.0.8 (if upgraded) | Existing `hx-on` attributes | Breaking: `hx-on` attribute case-sensitivity changed; DELETE request body becomes query params; cross-domain requests disabled by default. Full audit required before upgrade. |
+**Sanity:** v1.3 A11Y and keyboard baselines captured with HTMX 1.x — re-run post-upgrade.
 
----
+### 6. Controller Refactoring — Pure PHP refactor
 
-## Key Insight: The Problem Is Not the Stack
+Targets:
+- `MeetingsController` 687
+- `MeetingWorkflowController` 559
+- `OperatorController` 516
+- `AdminController` 510
 
-The v1.1 milestone's core problems (broken wiring, design incoherence) are **application-layer bugs**, not missing tools:
+**Reuse v1.0 playbook:** ImportController 687 → 149 + ImportService with constructor DI nullable.
 
-1. **Broken JS/HTMX wiring** — DOM selectors or event handler registrations broken after v4.2 CSS refactor. Fix by auditing `public/assets/js/` files against current DOM structure. Playwright tests catch regressions.
+**Pitfall (v1.0 Key Decision):** "Existing tests assert private method existence, making splits disruptive." Audit test files for reflection usage and rewrite through public entry points first.
 
-2. **Design incoherence** — `design-system.css` defines the tokens; individual page CSS files (`meetings.css`, `admin.css`, etc.) do not consistently reference those tokens. Fix by auditing each page CSS against the design system variables.
+## Explicit "Do NOT Add" List
 
-3. **Login 2-panel layout** — Implement in `login.css` using CSS grid. No new dependencies.
+| Package | Why rejected |
+|---|---|
+| `spatie/laravel-csp` | Laravel-only |
+| `paragonie/csp-builder` | 40 lines of `random_bytes` + header is clearer |
+| `culori` / `chroma-js` | Native CSS suffices |
+| `style-dictionary` / PostCSS | No build pipeline |
+| `htmx.org@4.x` alpha | Pre-release; double migration pain |
+| Playwright 1.60+ | Invalidates v1.3 cross-browser baseline |
 
-The only genuine stack addition for v1.1 is **upgrading Playwright to 1.59.1** and optionally **adding `@axe-core/playwright`** for automated accessibility regression detection.
+## Integration Points
 
----
+- **CSP nonce** plugs into `SecurityProvider::headers()`
+- **HTMX 2.0** coordinated changes across `public/*.htmx.html`, `public/assets/js/`, PHP `hx-delete` handlers, `htmx.config`, CSP nonce on htmx script tag
+- **Contrast tokens** — values change only in existing design-token CSS
+- **Controller splits** use existing `RepositoryFactory` DI + `AbstractController` base
+- **Playwright fixtures** extend `tests/e2e/helpers/`
+
+## Confidence Assessment
+
+| Area | Confidence |
+|---|---|
+| HTMX 2.0 breaking changes | HIGH (official migration guide) |
+| Native OKLCH/color-mix support | HIGH (baseline since 2023) |
+| CSP nonce middleware pattern | HIGH (OWASP + MDN idiom) |
+| HTMX + strict CSP empirical behavior | MEDIUM (not tested in-repo) |
+| "No new packages needed" | HIGH |
+
+## Open Questions for Phase Research
+
+1. Complete `hx-on` grep inventory
+2. `hx-delete` body-reading audit (silent-break risk)
+3. HTMX extension inventory (SSE, preload, response-targets?)
+4. `strict-dynamic` + `unsafe-hashes` empirical test across browser matrix
+5. Dark mode contrast re-audit post token shifts
 
 ## Sources
 
-- [npm @playwright/test](https://www.npmjs.com/package/@playwright/test) — version 1.59.1 confirmed as latest (April 2026)
-- [npm htmx.org](https://www.npmjs.com/package/htmx.org) — version 2.0.8 confirmed as latest stable
-- [htmx migration guide 1.x to 2.x](https://htmx.org/migration-guide-htmx-1/) — breaking changes verified, HIGH confidence
-- [Playwright accessibility testing docs](https://playwright.dev/docs/accessibility-testing) — `@axe-core/playwright` integration pattern
-- [Playwright release notes](https://playwright.dev/docs/release-notes) — 1.59.x changelog
-- `tests/e2e/package.json` in codebase — 1.58.2 currently installed (verified via node)
-- `public/assets/css/design-system.css` in codebase — custom design token system verified as complete (OKLCH palette, type scale, spacing, components)
-
----
-
-*Stack research for: AgVote v1.1 UI/UX coherence + Playwright E2E*
-*Researched: 2026-04-07*
+- [HTMX 1.x → 2.x Migration Guide](https://htmx.org/migration-guide-htmx-1/)
+- [htmx-1-compat extension](https://htmx.org/extensions/htmx-1-compat/)
+- [OWASP CSP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)
+- [MDN CSP Reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP)
+- [WebAIM Contrast and Color Accessibility](https://webaim.org/articles/contrast/)

@@ -1,192 +1,468 @@
-# Pitfalls Research
+# Pitfalls Research — v1.4 Régler Deferred et Dette Technique
 
-**Domain:** UI/UX design system + Playwright E2E tests on an existing HTMX/PHP 8.4 app
-**Researched:** 2026-04-07
-**Confidence:** HIGH (grounded in codebase inspection + verified community patterns)
+**Domain:** Brownfield tech-debt remediation on PHP 8.4 + HTMX + Web Components voting app
+**Researched:** 2026-04-09
+**Confidence:** HIGH (grounded in v10.0/v1.3 post-mortems from STATE.md + PROJECT.md)
+
+Scope: six concrete chantiers — (1) contrast palette shift, (2) [hidden]+display:flex sweep,
+(3) Playwright auditor/assessor fixtures, (4) CSP nonce/externalization of inline theme init,
+(5) HTMX 1→2 upgrade, (6) splitting >500-line controllers.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: The v4.2 Disaster — Restructuring HTML Without Verifying JS Contracts
+### Pitfall 1: Hex→oklch palette shift leaves Shadow DOM fallbacks stale
 
 **What goes wrong:**
-Visual improvements require changing HTML structure (wrapping elements, adding containers, renaming/removing IDs, restructuring tab panels). The JS wiring that depended on exact IDs and class names silently breaks. Nothing throws an error — `getElementById()` returns `null`, the null check is missing, and the feature simply stops working. Users see a visually improved page that does nothing.
+Web Components use `var(--color-foo, #deadbe)` fallback literals inside shadowRoot. When the
+palette shifts from hex to oklch at the `:root` level, the 23 custom elements keep rendering the
+*old* hex color whenever token resolution briefly fails (load order, disconnected fragments,
+document.adoptNode, pre-hydration paint). The bug is invisible in light mode but screams in
+dark mode where the stale fallback becomes a high-contrast gash.
 
 **Why it happens:**
-JS files in this codebase contain 1,269 `querySelector`/`getElementById` calls across all page files. These calls reference specific IDs and class names as implicit contracts between HTML and JS. These contracts are invisible — there is no type system, no import, no linkage that would flag a broken reference at build time. When HTML is restructured for visual reasons, the author does not see the JS impact. The v4.2 redesign restructured HTML for cosmetic improvements and broke event handlers, HTMX targets, and state management on every page.
-
-**Real examples found in this codebase:**
-- `vote.js` line 852: `getElementById('voteButtons')` — the ID does not exist in `vote.htmx.html`; only `class="vote-buttons"` exists. The code has a fallback querySelector, but this is an example of a pre-existing mismatch surviving from a previous restructure.
-- `shell.js` binds sidebar pin/collapse/scroll behavior after the sidebar HTML is fetched asynchronously. Changing the sidebar partial structure without checking `shell.js` breaks all sidebar interactions.
-- `auth-ui.js` uses a `MutationObserver` to detect when the sidebar is dynamically inserted (`data-include-sidebar`). Changing the attribute name or the sidebar inclusion mechanism breaks role filtering silently.
+Shadow DOM inherits custom props but silently falls back to the literal if the host `:root` hasn't
+been resolved at paint time. Developers search-replace `:root` hex values and forget the
+`--color-foo, #hex` second operands scattered across 23 component files. v10.0 Phase 84 HARD-03
+caught exactly this and had to patch 21 critical-tokens blocks *after* research claimed they were
+in sync.
 
 **How to avoid:**
-1. Before touching any HTML file, extract all IDs and data attributes it uses: `grep -n 'id="\|data-' page.htmx.html`. Cross-reference against the companion JS file to build an explicit ID contract list.
-2. Treat every `id=` attribute in HTML as a public API — renaming requires updating all JS references.
-3. Write the Playwright test for a page's JS interactions BEFORE restructuring the HTML. The test acts as a regression guard.
-4. Apply an explicit HTML comment above JS-critical IDs: `<!-- JS: vote.js:852 getElementById -->` to make the dependency visible during review.
-5. Never restructure HTML and add visual CSS in the same commit. Separate concerns: first CSS-only visual changes (safe), then structural HTML changes (require JS audit).
+- Adopt the v1.3 Phase 14-02 policy **project-wide in Phase 1 of this milestone**: remove every
+  hex fallback from `var(--token, #hex)` inside Shadow DOM. Tokens are guaranteed-present via
+  shell.js load order (documented in STATE.md Phase 14-02 decision).
+- Grep gate in CI: `grep -rn 'var(--color[^,)]*,\s*#' app/Web/Components/ public/assets/components/`
+  must return zero matches after Phase 1.
+- If a fallback *must* exist (e.g. offline doc fragment), use an `oklch()` literal, not hex, so
+  it matches the palette space.
 
 **Warning signs:**
-- You find yourself adding a wrapper div around an existing element for layout purposes.
-- You rename a CSS class that is also referenced in a JS `querySelector`.
-- You split a large `<section>` into multiple tabs or panels — JS tab managers bind by class name.
-- The page "looks fine" after a change but buttons do nothing when clicked.
+- Visual diff shows stale old-palette color in one Web Component while the rest of the page is
+  on the new palette
+- Bug only reproduces on first paint / cold reload
+- Only dark-mode users report it
 
-**Phase to address:**
-Phase 1 (JS Audit and Wiring Repair) — before any HTML restructuring for design. Build the ID contract inventory. Phase 2 (Design System Application) — only CSS-scope changes allowed unless Phase 1 audit is done.
+**Phase to address:** Phase 1 (Contrast remediation) — *before* touching any `:root` value.
 
 ---
 
-### Pitfall 2: CSS Infrastructure Delivered, Visible Results Absent
+### Pitfall 2: critical-tokens inline HTML block forgotten during palette sync
 
 **What goes wrong:**
-A design system phase produces a comprehensive token file (`design-system.css` with 5,278 lines already exists), `@property` declarations, OKLCH color scales, spacing scales, and component primitives. Pages look exactly the same as before because the tokens are defined but not applied — existing page-specific CSS files still use hardcoded values, and no visible page was redesigned end-to-end.
+Every `public/*.htmx.html` ships a `<style>` block with 6 hex critical-tokens to prevent
+flash-of-wrong-color. Palette changes that only touch `design-system.css` leave these 22 files on
+the old hex values. Users see a 50–200ms flash of the old palette on every navigation.
 
 **Why it happens:**
-Token infrastructure work feels like progress. Defining `--color-primary: oklch(0.520 0.195 265)` is satisfying but zero value until page CSS actually uses it. The app already has a `design-system.css` and it already uses OKLCH tokens. The infrastructure exists. Doing it again differently delivers nothing visible.
+Two sources of truth: (a) `design-system.css @layer base`, and (b) 22 inline critical-tokens
+blocks copied for FOUC prevention. v10.0 Phase 84 research *incorrectly claimed files were
+already in sync* — they weren't, and the phase had to patch all 21 files retroactively.
 
 **How to avoid:**
-1. Never plan a phase whose entire output is CSS variable definitions or token files. Token work is only valid if it produces at least one fully redesigned page as output in the same phase.
-2. For each phase, define a "page-complete" criterion: login page ships as 2-panel layout, dashboard ships with redesigned KPI cards, etc. If no page looks different, the phase failed.
-3. Resist the urge to "generalize first, apply later." Apply first, then extract common patterns.
+- Convert critical-tokens to a **generator**: a single `critical-tokens.json` + a build step (or
+  a PHP partial) that emits the inline `<style>` block so there is one source of truth.
+- Failing that, add a unit test that parses every `public/*.htmx.html`, extracts the
+  critical-tokens block, and asserts every hex value matches the canonical palette.
+- CI grep: any hex matching the *old* palette in `public/*.htmx.html` → fail.
 
 **Warning signs:**
-- Phase deliverable is described as "establish design tokens" with no page name attached.
-- CSS changes touch only `:root {}` and no page-specific selectors.
-- Design review finds pages unchanged despite a "design system" phase being complete.
+- Flash of old color on page load
+- Diff touching `design-system.css` without touching any `public/*.htmx.html`
+- Search for one new oklch value finds 1 hit; search for the hex it replaced finds 23 hits
 
-**Phase to address:**
-Every design phase must have a named, visible page deliverable. SUMMARY.md phase structure must list pages by name, not abstract concepts.
+**Phase to address:** Phase 1 (Contrast remediation) — mechanical sync as sub-phase 1.2.
 
 ---
 
-### Pitfall 3: Horizontal Layout Ignored — Vertical Stacking Regresses
+### Pitfall 3: Token rename breaks Shadow DOM silently (never rename, only alias)
 
 **What goes wrong:**
-Forms and content sections are styled with `max-width: 600px; margin: auto` or stack fields vertically in a single column. On horizontal screens (the target platform), this wastes 60-70% of the screen width. The app looks like a mobile app displayed on desktop.
+Renaming a token like `--color-text-primary` → `--color-text-on-surface` breaks every Shadow DOM
+consumer that references the old name. Because shadow trees fall back to their hex literal (or
+inherit `initial`), the breakage is *silent* — no error, just wrong colors.
 
 **Why it happens:**
-Default CSS frameworks and AI code generators default to single-column, centered, max-width-constrained layouts because they are safe and work on mobile. The developer applies these defaults without questioning the target context. Wizard forms are the highest-risk surface — multi-step forms with 8-10 fields naturally stack vertically.
-
-**Specific context:**
-- Wizard form (`wizard.htmx.html`): must fit all fields for a step on one screen using horizontal arrangement, NOT a vertical scroll.
-- Members import form: upload zone + configuration fields must be side-by-side.
-- Operator console (`operator.htmx.html`): already horizontal with tabs — do not regress to stacked panels.
+v10.0 Phase 82 codified the rule "token names must never be renamed — add new alongside old."
+The v1.4 contrast work will be tempted to rename for consistency (e.g. `--color-muted-foreground`
+which is the worst offender at 1.83:1). Renaming cascades across 25 per-page CSS, 23 Web
+Components, 22 critical-tokens blocks, 5258-line design-system.css.
 
 **How to avoid:**
-1. Use CSS Grid with named areas for all form layouts. Default to two or three columns, not one.
-2. Playwright viewport: set `1440x900` or `1280x800` as the default test viewport — never `375px mobile`.
-3. Visual check protocol: after any layout change, screenshot at 1440px width and verify content fills at least 70% of width.
-4. Ban `max-width` on inner content containers unless it is a prose reading block (help page, email template preview).
+- **Hard rule:** v1.4 adds `--color-X-v2` alongside `--color-X`; old token becomes a
+  `var(--color-X-v2)` alias. No deletes in this milestone.
+- Enforced by PR checklist + a grep gate: `git diff` must not remove any `--color-*:` definition
+  without also adding a `var(--color-*-v2)` alias in the same commit.
+- Old tokens flagged for removal in v1.5 (a full cycle after consumers migrate).
 
 **Warning signs:**
-- Any new `max-width: [number]px` applied to a form wrapper.
-- Fields stacked as `<div class="field">` inside a single-column flex/grid.
-- Playwright screenshot shows large whitespace on left and right of a form.
+- PR diff contains a `-` line deleting `--color-*:` with no corresponding alias
+- Shadow DOM components suddenly using `initial` color (usually black text on dark mode)
 
-**Phase to address:**
-Phase 2 (Login + Landing visual redesign). Phase 3 (Wizard refactor). Playwright tests must include viewport-width assertions.
+**Phase to address:** Phase 1 — enforced by PR template and CI grep across the whole milestone.
 
 ---
 
-### Pitfall 4: Custom Element / Web Component Interactions Break Under DOM Restructuring
+### Pitfall 4: color-mix(in oklch) renders differently from color-mix(in srgb) on WebKit/older Chrome
 
 **What goes wrong:**
-The codebase uses custom elements (`ag-badge`, `ag-modal`, `ag-toast`, `ag-popover`, `ag-pdf-viewer`, `ag-tooltip`, `ag-spinner`, `ag-stepper`, `ag-kpi`, `ag-donut`, `ag-quorum-bar`, `ag-pagination`, `ag-searchable-select`). These are defined in `public/assets/js/components/`. When their parent container is restructured for layout (adding a wrapper div, changing the DOM depth), three failure modes occur: (1) `connectedCallback` has already run and the component has captured stale parent references, (2) slots stop working because a wrapping div broke the slot projection path, (3) `ag-pdf-viewer` and `ag-modal` use `document.body.appendChild` for overlay — if HTML adds a `position: relative` ancestor with overflow hidden, the overlay is clipped.
+Hover/active derivations use `color-mix(in srgb, base, white 10%)`. Upgrading to
+`color-mix(in oklch, ...)` gives perceptually-uniform results in Chromium but WebKit and any
+Chrome <111 fall back differently — hover states become *invisible* (too close to base) or
+*wrong hue*.
 
 **Why it happens:**
-Custom elements initialize once when connected. If layout restructuring moves an element to a different DOM position after definition, the component does not re-initialize. Shadow DOM selectors only see within their own shadow root — a structural change outside the shadow DOM can still break slot projection.
+`color-mix(in oklch)` is Baseline 2023 but WebKit shipped it in 16.2 and has had several rendering
+bugs in interpolation direction. v10.0 Phase 82-01 committed to `color-mix(in oklch)` — works in
+Chromium but the Phase 15 webkit deferrals (2/25 critical-path specs) may partly stem from this.
 
 **How to avoid:**
-1. Never wrap a custom element in a new `<div>` without verifying slot structure. Check the component's `render()` or `connectedCallback` for slot names.
-2. For modal and overlay components (`ag-modal`, `ag-pdf-viewer`, `ag-popover`): verify they append to `document.body`, not to a local parent. If they do use local parent, no `overflow: hidden` or `position: relative` ancestor is safe.
-3. After any structural change near a custom element, manually test open/close and slot content in the browser.
-4. Playwright test: for each modal-type component, assert it appears visually above all other content (bounding box check).
+- Add a `@supports (color: color-mix(in oklch, red, blue))` guard **with an srgb fallback** for
+  each derived token. Tedious but safe.
+- Or: pre-compute hover/active as static oklch literals at build time (no runtime color-mix at
+  all). This is the recommended path for v1.4 because it also speeds up paint.
+- Add a cross-browser visual test specifically for hover states on Chromium + WebKit + Firefox.
 
 **Warning signs:**
-- You add `overflow: hidden` to a layout container that contains `ag-pdf-viewer` or `ag-modal`.
-- A popover or tooltip is clipped by a parent container.
-- Slot content disappears after a wrapper div is added.
+- Chromium tests green, WebKit tests flaky on anything touching `:hover`
+- Hover state "feels off" on Safari but looks fine on Chrome
+- Computed-style assertions differ between browsers for the same element
 
-**Phase to address:**
-Phase 1 (JS Audit) should inventory all custom element placements. Phase 2+ must not restructure containers holding overlay-type components without explicit verification.
+**Phase to address:** Phase 1 — decide static-literal vs. runtime-mix before touching any hover
+token.
 
 ---
 
-### Pitfall 5: Sidebar Dynamic Loading Creates Timing-Dependent Behavior
+### Pitfall 5: Dark mode drift — `[data-theme="dark"]` block edited separately from `:root`
 
 **What goes wrong:**
-The sidebar is loaded asynchronously: `fetch('/partials/sidebar.html')` injects HTML into `<aside data-include-sidebar>`. Code in `shell.js` (pin button, scroll fade, nav-group collapse) and `auth-ui.js` (role filtering, MutationObserver) depends on the sidebar HTML being present before it runs. If a design change modifies when or how `shared.js` runs the sidebar fetch, or if a new structural element is added before the `aside`, the MutationObserver target changes and role filtering breaks silently.
+Contrast fix lands for light mode; dark mode still has the old (broken) ratios, or vice versa.
+Worse: the *hue* drifts between modes — v10.0 Phase 82 already caught this (dark was cool hue
+~260 while light was warm-neutral 78, had to warm-unify).
 
 **Why it happens:**
-The `bindPinButton()` call in `shell.js` runs at parse time — before the sidebar HTML exists. It checks `btn.dataset.pinBound` to avoid double-binding, but if the sidebar loads after `bindPinButton()` runs and the ID `sidebarPin` did not exist yet, the pin button is never bound. This is a known timing issue acknowledged in the code comment: "Bind pin button (may be loaded dynamically via sidebar partial)."
+`:root` and `[data-theme="dark"]` live in the same file but developers edit them in separate
+passes. v10.0 decision: "Dark mode `[data-theme='dark']` block and critical-tokens inline styles
+must update in the same commit as any `:root` color primitive change."
 
 **How to avoid:**
-1. Never restructure the `<aside data-include-sidebar>` element or change its attributes without reading all code that queries `[data-include-sidebar]` (three files: `shared.js`, `shell.js`, `auth-ui.js`).
-2. Any design change to `sidebar.html` partial must verify: pin button has `id="sidebarPin"`, scroll container has `id="sidebarScroll"`, fade wrapper has `id="sidebarFade"`, nav items have `data-page` and `data-requires-role` attributes.
-3. The `sidebar.html` partial has its own implicit ID/attribute contract — document it explicitly.
+- Carry the v10.0 rule forward: every commit touching `:root` color primitives must also touch
+  `[data-theme="dark"]` in the same commit, or the commit is rejected.
+- Run the contrast audit (axe + `v1.3-CONTRAST-AUDIT.json` format) in **both** modes per phase
+  exit; not just light.
+- Add `data-theme="dark"` variant to every parametrized axe spec (currently 22 pages × 1 theme =
+  22; make it × 2 = 44).
 
 **Warning signs:**
-- Sidebar active page highlight stops working.
-- Pinned state reverts on page reload.
-- Role-filtered nav items are shown to wrong roles.
-- Scroll fade indicators are absent.
+- Contrast audit passes on light, fails on dark (or vice versa)
+- Dark-mode parity report shows hue mismatch
+- Reviewer comment: "did you update the dark block?"
 
-**Phase to address:**
-Phase 1 (JS Audit). The sidebar partial contract must be documented before any visual redesign of the sidebar.
+**Phase to address:** Phase 1 — dual-theme audit gate at phase exit.
 
 ---
 
-### Pitfall 6: Playwright Tests Written for Happy Path Only — Missing the Wiring Regressions
+### Pitfall 6: HTMX 2.0 hx-on:* case sensitivity silently drops handlers
 
 **What goes wrong:**
-Playwright tests verify that pages load and display content. They do not verify that button clicks produce the expected JS behavior (state changes, modal opens, vote submission). A test suite passes at 100% while every interactive feature is broken — because the tests never interact with anything beyond navigation.
+HTMX 2.0 made `hx-on:` event names **case-sensitive** and switched to `hx-on:click` style with
+a colon. The legacy `hx-on="click: ..."` attribute and mixed-case variants silently **stop
+firing** — no console error, the handler just doesn't run. In a voting app that is a silent bug
+where "Submit ballot" appears to work but nothing happens.
 
 **Why it happens:**
-Happy-path tests are faster to write. Testing JS interactions requires understanding what each button should do and what DOM state change proves it worked. For HTMX apps, there is an additional issue: HTMX requests fire asynchronously, and naive tests do not wait for `htmx:afterSettle` before asserting.
-
-**HTMX-specific race condition (confirmed by community):**
-HTMX actions can fail in Playwright because interactions occur before HTMX has installed callbacks. The solution is to wait for `window.htmx` to exist, then wait for HTMX state classes (`htmx-request`, `htmx-settling`, `htmx-swapping`, `htmx-added`) to reach count 0 before asserting post-interaction state.
+HTMX 2.0 removed the legacy `hx-on` parser. Old attributes become no-ops, not errors. Event
+names are normalized (`htmx:afterRequest` stays, `htmx:afterrequest` does not). Across 22
+htmx.html files + per-page JS this is a big search surface.
 
 **How to avoid:**
-1. Define a `waitForHtmxSettled()` utility in Playwright setup: `await page.waitForFunction(() => document.querySelectorAll('.htmx-request, .htmx-settling, .htmx-swapping').length === 0)`.
-2. For each page test, include at least one interaction test: click a primary button, assert a state change (modal appears, form field updates, API call fires, DOM element becomes visible).
-3. Use `page.waitForResponse()` set up BEFORE the click (not after) to avoid race conditions. Pattern: `const resp = page.waitForResponse('/api/v1/...'); await page.click('#btn'); await resp;`.
-4. Never use `page.waitForTimeout()` — use actionability checks (`waitForSelector`, `waitForResponse`, `waitForFunction`).
-5. Test at `1440x900` viewport. Add one test at `768px` to catch mobile regressions.
+- **Phase 0 of the HTMX upgrade:** inventory every `hx-on` attribute and every `htmx:*` event
+  name across the codebase. Produce a before/after diff table.
+- Add a smoke test per page that asserts *the action actually mutated state*, not just "button
+  was clicked" — i.e. test the outcome, not the event.
+- Keep HTMX 1.x pinned until the full sweep is done. Don't upgrade incrementally on a subset of
+  pages; HTMX is global.
 
 **Warning signs:**
-- All Playwright tests are `page.goto()` + `expect(page).toHaveTitle()` — no clicks, no interactions.
-- Tests pass in headless mode but fail interactively (classic HTMX timing race).
-- Test suite runs in under 30 seconds for 20 pages — interaction tests take time, fast = superficial.
+- Console shows no errors but a click does nothing
+- Integration tests that mock HTMX pass, but real clicks don't mutate
+- Mixed-case `hx-on:Click` or `htmx:afterRequest` in grep output
 
-**Phase to address:**
-Phase dedicated to Playwright — every page must have at minimum: load test + one primary interaction test + one API call assertion.
+**Phase to address:** Phase 5 (HTMX 2.0 upgrade). **Must include a full-page outcome test suite
+in the same phase.**
 
 ---
 
-### Pitfall 7: Per-Page CSS Files Create Specificity Wars With Design System
+### Pitfall 7: HTMX 2.0 swap fragment parser breaks SSE partial updates
 
 **What goes wrong:**
-The app has 20+ per-page CSS files (`meetings.css`, `members.css`, `operator.css`, etc.). When the design system tokens are applied to shared components (`btn`, `card`, `kpi-card`), per-page overrides written with higher specificity block the design system from taking effect. Visual changes appear on some pages but not others, with no obvious reason.
+HTMX 2.0 uses a stricter fragment parser; illegal HTML constructs that 1.x tolerated are now
+silently dropped. In AgVote this hits the real-time results table and SSE-driven scrutin updates
+(`<tr>` fragments streamed without a `<table>` wrapper).
 
 **Why it happens:**
-Per-page CSS files accumulate overrides over time. A selector like `.members-main .btn { background: #old-color }` will override a design system rule `.btn { background: var(--color-primary) }` because of element chain specificity. When the design system is retrofitted, it cannot win these specificity battles without `!important` — which creates its own problems.
+Browsers' fragment parsing rejects bare `<tr>` outside `<table>`, `<li>` outside `<ul>`, etc.
+HTMX 1.x silently worked around this; 2.0 is stricter.
 
 **How to avoid:**
-1. When applying design system tokens to shared components, add a specificity reset layer using `@layer`: `@layer base, components, pages`. The design system goes in `components`, page overrides go in `pages`. This gives explicit cascade control without `!important`.
-2. Audit per-page CSS files for hardcoded color values before applying design system: `grep -rn "#[0-9a-fA-F]\{3,6\}\|rgb(" public/assets/css/ --include="*.css"`. Every hardcoded value is a candidate for token replacement.
-3. Migrate page-specific overrides before applying the design system, not after.
+- Wrap every `<tr>`/`<td>`/`<li>` OOB swap target in a `<template>` with
+  `hx-swap-oob="outerHTML:#target"`.
+- Add a test for the SSE results stream specifically (it was not in Phase 15's critical-path).
+- Enable `htmx:oobErrorNoTarget` and `htmx:swapError` listeners in dev mode to surface drops.
 
 **Warning signs:**
-- A button has the correct color on dashboard but wrong color on members page.
-- `!important` appears in design system CSS rules.
-- Developer tools show a design system rule being overridden by a page-specific rule.
+- SSE events fire but UI does not update
+- Table rows disappear on partial update
+- `htmx:swapError` events in the console
 
-**Phase to address:**
-Phase 2 (Design System Application). Must audit per-page CSS specificity before applying tokens to shared components.
+**Phase to address:** Phase 5 (HTMX 2.0 upgrade).
+
+---
+
+### Pitfall 8: CSP nonce added to `<script>` but inline theme init runs *before* nonce can be trusted
+
+**What goes wrong:**
+The inline theme init (reads localStorage, sets `data-theme="dark"` before first paint to prevent
+flash) is in `<head>`, intentionally blocking. Adding CSP `script-src 'nonce-XXX'` means the
+nonce must be generated per-request server-side and injected into *every* inline script. If the
+nonce is generated after the script is flushed, or if any script is left without the nonce, CSP
+blocks it and the page is unstyled / untreated.
+
+**Why it happens:**
+- Nonce must be fresh per-request (cannot be static)
+- Nonce must exist at the moment the template renders — in PHP this means generating it in a
+  very early middleware before `HtmlView::render()` runs
+- Any third-party or legacy inline script forgotten in the sweep = CSP violation = feature broken
+
+**How to avoid:**
+- **Prefer externalization over nonce.** For the theme init specifically, externalize to
+  `public/assets/js/theme-init.js` with `<script src>` (not defer/async — must be blocking).
+  External scripts with `script-src 'self'` don't need a nonce.
+- If you must nonce: generate in a `SecurityProvider` bootstrap step, store on `Request`
+  attributes (or a static), expose via `HtmlView::nonce()`. Test with CSP **report-only** first
+  for at least one full phase before enforcing.
+- Audit every inline `<script>` and `<style>` in `public/*.htmx.html` and `app/Templates/*` —
+  produce a before/after table.
+
+**Warning signs:**
+- CSP violations in report-only mode mentioning `'unsafe-inline'`
+- Theme flashes to light then back to dark on load
+- One page works, another does not — nonce generation ordering issue
+
+**Phase to address:** Phase 4 (CSP inline theme). **Report-only mode first**, enforce only after
+a full audit cycle passes with zero violations.
+
+---
+
+### Pitfall 9: CSP enforcement breaks HTMX `hx-on:*` handlers
+
+**What goes wrong:**
+Strict CSP (`script-src 'self' 'nonce-XXX'`) **blocks HTMX's `hx-on:*` handlers** because HTMX
+evaluates them via `Function()` / eval-like mechanisms. You either need `'unsafe-eval'` (bad) or
+`'unsafe-hashes'` with per-handler hashes (tedious), or you migrate every `hx-on` to a JS file.
+
+**Why it happens:**
+HTMX's `hx-on` attribute is essentially an inline event handler — CSP treats it as inline script.
+HTMX 2.0 added `htmx.config.allowEval`, but CSP still sees the inline attribute.
+
+**How to avoid:**
+- **Sequence matters:** do the HTMX 2.0 upgrade (Phase 5) and the `hx-on` migration *before*
+  CSP enforcement (Phase 4) — OR keep CSP in report-only mode until both are done.
+- Migrate every `hx-on:click="..."` to a real JS event listener attached in the per-page module.
+  This is easier than it sounds because v1.1 Phase 5 already inventoried ID contracts.
+
+**Warning signs:**
+- CSP violations mentioning inline attribute values
+- HTMX buttons do nothing after CSP enforcement
+- `hx-on` grep returns matches after Phase 5
+
+**Phase to address:** Phase 4 depends on Phase 5 — **must be sequenced Phase 5 → Phase 4**.
+
+---
+
+### Pitfall 10: Controller split breaks tests that assert private method existence
+
+**What goes wrong:**
+Splitting `MeetingsController` (687 lines) into `MeetingsController` + `MeetingLifecycleService`
+moves methods out. Existing PHPUnit tests use `ReflectionClass::hasMethod('privateMethodName')`
+or call via reflection — they pass with the old API, fail with the new one. Or tests that
+instantiate the controller with a specific constructor signature break when the signature
+changes.
+
+**Why it happens:**
+PROJECT.md Key Decisions explicitly flags: "Controller splits deferred to v2: Existing tests
+assert private method existence, making splits disruptive." This is a known trap, now due.
+
+**How to avoid:**
+- **Phase 0 of each split:** grep the test file for every `->`, `::`, `hasMethod`, `getMethod`,
+  `ReflectionClass`, `ReflectionMethod` reference to the controller being split. Categorize:
+    - Tests that exercise *public HTTP behavior* → keep, retarget to the new HTTP entry point
+    - Tests that exercise *private helpers* → extract the helper to the new service and rewrite
+      the test to target the service directly
+    - Tests that assert *method existence* → delete (they were implementation tests anyway)
+- Keep the controller as a thin HTTP wrapper delegating to a new service. The service is the new
+  test target. Use nullable DI (CLAUDE.md rule) so the service is testable without HTTP.
+- Run the targeted test file after *each* extraction (not at the end). CLAUDE.md: max 3 test
+  executions per task — budget them.
+
+**Warning signs:**
+- Test failure mentions `ReflectionException: Method X does not exist`
+- Constructor mismatch errors after refactor
+- Coverage drops on the new service because tests still target the old controller
+
+**Phase to address:** Phase 6 (Controller refactoring). One controller at a time, not in parallel.
+
+---
+
+### Pitfall 11: Controller split creates a god-service (moving the problem, not solving it)
+
+**What goes wrong:**
+You extract `MeetingLifecycleService` from `MeetingsController` but the service ends up at 650
+lines because you moved everything. You've renamed the file, not reduced complexity.
+
+**Why it happens:**
+Mechanical extraction without domain analysis. v1.0 Phase 3 succeeded (`ImportService` 149
+lines) because import has a clear domain boundary. Meetings mix lifecycle + reports + workflow +
+motions — extracting them all into one service = god-service.
+
+**How to avoid:**
+- Before extracting, **do a responsibility inventory**: list every public method and classify by
+  domain (lifecycle, reporting, workflow, state transitions, member roster, ...).
+- Extract to **multiple** services along domain lines, e.g. `MeetingsController` (687) →
+  `MeetingLifecycleService` + `MeetingReportsService` + `MeetingMembershipService`.
+- Set a **size ceiling** per extracted service: "no service > 300 lines in this milestone." If a
+  service exceeds it, re-split before declaring the phase done.
+
+**Warning signs:**
+- Extracted service is > 400 lines
+- Service constructor takes > 5 dependencies
+- Test file for the service mirrors the old controller test file 1:1
+
+**Phase to address:** Phase 6 — pre-split inventory is a phase-entry gate.
+
+---
+
+### Pitfall 12: Playwright auditor/assessor fixtures leak into production seed data
+
+**What goes wrong:**
+Adding `auditor@test.local` and `assessor@test.local` fixtures for Playwright. Developer uses
+`database/migrations/` to insert them — they end up in staging, then prod, as real user accounts
+with known passwords. Or worse, the fixture seeder is tenant-unaware and creates cross-tenant
+accounts.
+
+**Why it happens:**
+Multi-tenant RBAC makes test fixtures tricky: each test-tenant needs its own auditor/assessor.
+The easy path is a global SQL seed; the correct path is a per-test factory tied to a fresh
+tenant.
+
+**How to avoid:**
+- Fixtures live in `tests/e2e/fixtures/` **never** in `database/migrations/`. Use Playwright
+  `globalSetup` or per-test `beforeEach` that calls a `POST /api/v1/test/seed-user` endpoint
+  **gated by `APP_ENV=development|test`** (returns 404 in prod).
+- Each fixture is scoped to a test-only tenant (`tenant_id = 'test-e2e-<uuid>'`) deleted in
+  `globalTeardown`.
+- Passwords generated per-run, never hardcoded.
+- CI must fail if `APP_ENV=production` and any `/api/v1/test/*` route is registered.
+
+**Warning signs:**
+- Seed file in `database/migrations/` with hardcoded emails
+- Hardcoded test password in `playwright.config.js`
+- Grep for `auditor@test.local` finds matches in `database/` or `src/`
+
+**Phase to address:** Phase 3 (Playwright fixtures). **Build the test-only endpoint first**,
+then the fixtures.
+
+---
+
+### Pitfall 13: Auditor/assessor fixture logs in but lacks meeting-scoped role
+
+**What goes wrong:**
+Per CLAUDE.md architecture: "system roles: admin, operator, auditor, viewer, president. Meeting
+roles: president, assessor, voter." Assessor is a *meeting* role, not a system role. A fixture
+that seeds a user but does not attach them to a meeting with the assessor role → `RoleMiddleware`
+rejects with "not assessor for this meeting" on every test.
+
+**Why it happens:**
+Two-level RBAC is subtle. Phase 14 already caught the dual of this: "assessor removed from
+`/trust` data-requires-role — assessor is a meeting role, /trust is system-wide." The inverse
+trap is building assessor fixtures without building an associated test-meeting.
+
+**How to avoid:**
+- The seed endpoint must create the *full graph*: user → tenant → meeting → meeting-role
+  assignment → optional ballot. Not just the user.
+- Use a factory pattern: `createTestAssessor($meeting)` returns a session cookie for a user who
+  is assessor *on that specific meeting*.
+- For `/trust` (system-wide auditor view), use `createTestAuditor($tenant)` — no meeting needed.
+- Document the two fixture types in `tests/e2e/fixtures/README.md` so future devs do not reuse
+  the wrong one.
+
+**Warning signs:**
+- Playwright auditor test works, assessor test fails at `RoleMiddleware`
+- Fixture uses `assessor` as `users.role` column value (wrong — that's a meeting role)
+- 403 Forbidden mid-test despite successful login
+
+**Phase to address:** Phase 3 (Playwright fixtures).
+
+---
+
+### Pitfall 14: `[hidden]` + `display:flex` sweep introduces specificity wars
+
+**What goes wrong:**
+The HTML `[hidden]` attribute sets `display:none` via the UA stylesheet. Any CSS rule with
+`display:flex` at equal-or-greater specificity *wins* because of cascade order, so the element
+is still visible or click-targetable. v1.3 fixed two sites reactively; v1.4's codebase-wide
+sweep risks naive fixes that introduce new specificity bugs, especially inside Shadow DOM.
+
+**Why it happens:**
+The correct fix is `[hidden] { display: none !important }` in `design-system.css @layer base` —
+but `!important` can break component authors who explicitly set display. OR developers write
+`.overlay[hidden] { display: none }` which requires editing every overlay rule individually.
+
+**How to avoid:**
+- Land a **single base rule** in `design-system.css @layer base`:
+  `:where([hidden]) { display: none !important; }`. `:where()` keeps specificity at 0,
+  `!important` beats component rules. This is the WAI-ARIA APG recommended pattern.
+- Then grep for every `display:flex`, `display:grid`, `display:block` rule and verify it does
+  not target a `[hidden]`-capable element as a bare selector.
+- Add a Playwright assertion: for every element in the DOM with `[hidden]` attribute,
+  `getComputedStyle(el).display === 'none'`.
+- Do **not** use `hx-swap-oob` to toggle `[hidden]` — HTMX attribute handling can desync.
+
+**Warning signs:**
+- Element is clickable but `[hidden]` is set (pointer-events trap)
+- Operator overlay reappears after route change
+- Playwright `expect(locator).toBeHidden()` passes but `toBeVisible()` also passes
+
+**Phase to address:** Phase 2 (V2-OVERLAY-HITTEST). Land the base rule **first**, audit **second**.
+
+---
+
+### Pitfall 15: "Fixed" contrast reintroduces at runtime via inline style or JS
+
+**What goes wrong:**
+Token-level contrast fix lands, axe passes. Then a runtime JS sets `el.style.color = '#988d7a'`
+based on data state (e.g. "muted row"). The contrast audit is clean because it runs after page
+load but before the JS runs; real users see the broken contrast.
+
+**Why it happens:**
+Inline `style=` from PHP templates or JS bypasses the token layer entirely. The v1.3 contrast
+audit ran at a specific moment — it does not catch dynamic state changes.
+
+**How to avoid:**
+- Grep for `style="color:` and `style="background` in `public/**/*.html`, `app/Templates/`,
+  `public/assets/**/*.js` — these are the offenders. Convert to class-based styling referencing
+  tokens.
+- Grep for `.style.color`, `.style.backgroundColor` in JS — same treatment.
+- Contrast audit must run in **multiple states** per page: default, loading, error, selected,
+  disabled, hover. Parametrize the existing `contrast-audit.spec.js` over these states.
+- CI grep gate: zero `style="color|background"` in templates after Phase 1.
+
+**Warning signs:**
+- Axe passes in CI, user reports bad contrast on a specific row type
+- Grep finds `style="color:` in templates
+- Disabled states look identical to enabled states
+
+**Phase to address:** Phase 1 (Contrast remediation). Stateful audit is a phase-exit gate.
 
 ---
 
@@ -194,12 +470,15 @@ Phase 2 (Design System Application). Must audit per-page CSS specificity before 
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Hardcoded pixel values in per-page CSS instead of tokens | Faster to write one-off styles | Design inconsistency accumulates; changing brand color requires 20+ file edits | Never — always use `var(--spacing-*)` or `var(--color-*)` |
-| CSS class rename without grep across JS | Faster visual iteration | Breaks JS `querySelector` silently | Never — always grep before renaming |
-| `waitForTimeout(2000)` in Playwright | Test passes reliably on fast machines | Flaky on CI, masks real async issues | Never — use actionability-based waits |
-| Global `!important` overrides in design system | Forces visual consistency fast | Creates specificity debt that cannot be resolved without refactor | Never — use `@layer` instead |
-| Skipping Playwright test for a "simple" page | Saves time | Simple pages break too; no regression coverage | Only for pure static content pages (help, docs) |
-| Single-column form layout for "simplicity" | Easier to implement | Wastes horizontal space; violates user expectation for desktop app | Never — use 2-column grid minimum |
+| Keep `hx-on:*` inline and add `'unsafe-inline'` to CSP | CSP ships in a day | CSP provides zero XSS protection; must redo sweep later | Never — defeats the purpose of Phase 4 |
+| Rename tokens during contrast fix for "consistency" | Cleaner names | Silent Shadow DOM breakage (Pitfall 3) | Never in v1.4 — defer renames to v1.5 |
+| Mechanical controller split (move all methods to one service) | Quick line-count win | God-service with same complexity (Pitfall 11) | Never — always split by domain |
+| Hardcode test fixture users in `database/migrations/` | Fixtures work locally immediately | Prod pollution + cross-tenant leaks (Pitfall 12) | Never — use test-gated seed endpoint |
+| Keep HTMX 1.x and cherry-pick 2.0 features | No big-bang upgrade | HTMX is global; mixed versions = undefined behavior | Never — HTMX upgrade is all-or-nothing |
+| Add `!important` to every overlay rule to beat `[hidden]` | Overlay hides | Specificity chaos, next dev can't override anything | Never — use `:where([hidden]) !important` base rule once |
+| Waive axe contrast violations per-page | Unblocks CI | Debt accumulates, v1.5 inherits partial AA again | Only for known non-token offenders with an explicit v1.5 ticket |
+| Skip dark-mode contrast audit this phase | Half the work | Dark mode ships broken, reported in prod | Never — dark mode is in scope |
+| Generate CSP nonce in `HtmlView::render()` without early middleware | Simpler | Some scripts flushed before nonce exists → CSP violations | Never — nonce must be in bootstrap middleware |
 
 ---
 
@@ -207,13 +486,16 @@ Phase 2 (Design System Application). Must audit per-page CSS specificity before 
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| HTMX + Playwright | Clicking a button immediately asserting result | Set up `waitForResponse` promise before click, await after |
-| Custom elements + layout restructuring | Adding wrapper div without checking slot/shadow behavior | Verify no `overflow: hidden` on ancestors; check `connectedCallback` for parent references |
-| Sidebar async load + shell.js | Assuming sidebar DOM exists when `shell.js` runs | Use the existing `bindPinButton()` re-call pattern; verify `sidebarPin` ID is preserved |
-| Design tokens + per-page CSS | Applying tokens to base classes without checking page overrides | Audit per-page CSS specificity first; use `@layer` for cascade control |
-| Google Fonts + CSP headers | Fonts fail to load when CSP `font-src` does not include `fonts.gstatic.com` | Verify Content-Security-Policy headers allow `fonts.googleapis.com` and `fonts.gstatic.com` |
-| `oklch()` color function + browser compat | Assuming oklch works everywhere — it does not in Safari < 15.4 | Already in use; verify target browser support; add fallback hex values for critical colors |
-| MutationObserver for sidebar + role filtering | Observer fires before `data-requires-role` elements are inserted | Existing code handles this correctly — do not remove the subtree:true option |
+| HTMX 2.0 ↔ Web Components | Assume events bubble through shadowRoot | Explicit `composed: true` on custom events; test event propagation per-component |
+| HTMX 2.0 ↔ SSE (`hx-ext="sse"`) | Assume 1.x extension config carries over | Re-verify the `sse` extension is loaded and `sse-swap` attribute syntax (may have changed) |
+| CSP nonce ↔ HtmlView | Pass nonce as template var but forget HTMX partial templates | Every `HtmlView::render()` call site must get the nonce; audit via grep |
+| CSP nonce ↔ inline `<style>` | Only nonce `<script>`, forget `style-src` | `style-src 'self' 'nonce-XXX'` too; or externalize all inline styles first |
+| Playwright ↔ Redis sessions | Each test login floods Redis with session keys | `globalTeardown` must FLUSH test-prefix session keys; use `test:` prefix convention |
+| Playwright ↔ Multi-tenant | Tests race on shared tenant fixtures | Per-test tenant UUID, teardown isolated |
+| axe-core ↔ Shadow DOM | Audit stops at shadow boundary by default | Pass `include: ['ag-modal::shadow']` etc. — already done for ag-modal, verify for all 23 components |
+| PHPUnit ↔ refactored controller | Test uses `new MeetingsController(...)` with old constructor | Use nullable DI — CLAUDE.md rule — and update test constructors in the same commit as refactor |
+| oklch ↔ older Safari | `color-mix(in oklch)` falls back unpredictably | `@supports` guard OR pre-compute static literals (see Pitfall 4) |
+| `[hidden]` ↔ `hx-swap-oob` | HTMX swap reapplies element without `[hidden]` | OOB template must include the `hidden` attribute explicitly on every swap |
 
 ---
 
@@ -221,21 +503,25 @@ Phase 2 (Design System Application). Must audit per-page CSS specificity before 
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Google Fonts loaded on every page from CDN | 300-600ms font load adds latency, FOUC on slow connections | Self-host fonts via `@font-face` in production; current CDN approach is acceptable in dev | Every page load — cumulative across the app |
-| 5,278-line `design-system.css` loaded on every page | Page CSS bundle is large | Split into critical (tokens + layout) and non-critical (components) — lazy load component styles | Not a current problem at current scale; revisit at 500+ concurrent users |
-| SSE connection held open while Playwright tests run | Tests that navigate away leave SSE connections open; port exhaustion on CI | Always disconnect SSE in `afterEach` Playwright hook; verify `event-stream.js` cleanup runs on navigation | CI environment with many parallel test workers |
-| Skeleton placeholders never replaced if API fails silently | Users see "loading" state forever | Playwright test: verify skeletons are removed within 5s; set explicit API timeout in JS | Any page with skeleton loading pattern (dashboard KPI, members list) |
+| `@property` with `var()` in initial-value | CSS parse errors, tokens do not register | Only register primitives with literal initial-values (v10.0 Phase 84 decision) | Immediate on any browser |
+| Contrast audit across 22 pages × 2 themes × 6 states | CI job 20+ min | Cache login state; shard; skip states where class combinations don't vary | When parametrization lands without sharding |
+| Every HTMX request reloads full theme init | TTFB +100ms | Externalize theme init so it's cached; add `Cache-Control: immutable` | Once theme-init.js is a separate file |
+| Controller split creates N+1 service instantiation | Slower page loads | Lazy-instantiate via `RepositoryFactory`; cache per request | When multiple services share a repo (most of them) |
+| Playwright full suite runs serially | 30+ min feedback loop | `fullyParallel: true` + sharding; per-tenant isolation enables this | Now — Phase 15 already has this pain |
 
 ---
 
 ## Security Mistakes
 
-These are unchanged from v1.0 — no new security surface is introduced by UI/UX work. The relevant concern for this milestone:
-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Playwright test credentials committed to repo | CI leaks valid user credentials | Use dedicated test tenant with non-production credentials; never commit `.env.playwright` |
-| CSRF token not included in Playwright-triggered form submissions | Tests pass (no CSRF on test env) but form fails in production | Verify CSRF middleware is active in test environment; include CSRF token fetch in test setup |
+| CSP report-only forever, never enforce | Zero real protection despite the work | Phase 4 must include an enforcement cutover date + rollback plan |
+| Test-seed endpoint in prod | Anyone can create admin users | Guard with `APP_ENV !== 'production'` check at *route registration time*, not runtime |
+| Playwright session cookies logged in CI artifacts | Session theft if CI artifacts leak | Strip cookies from traces; use test-only sessions with 5 min TTL |
+| HTMX `hx-headers` with hardcoded CSRF | CSRF token stale on retry | Use `htmx:configRequest` listener to inject fresh token from `meta[name=csrf-token]` each request |
+| Contrast fix lowers opacity instead of changing color | WCAG measures final rendered contrast; opacity still fails | Never use opacity to "fix" contrast — change the color token |
+| Auditor fixture given admin role "just for tests" | Tests pass but they test the wrong access | Fixture must match production role exactly; if admin is needed, use `createTestAdmin` |
+| CSP nonce reused across requests | Predictable nonce defeats the purpose | Generate per-request via `random_bytes(16)`; never cache |
 
 ---
 
@@ -243,24 +529,44 @@ These are unchanged from v1.0 — no new security surface is introduced by UI/UX
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Wizard form spans multiple scroll lengths vertically | Users lose context; cannot see what they filled above | Two-column grid; all fields for one step visible without scrolling at 1440x900 |
-| Login page is a centered card on plain background | Looks generic; no brand identity | Two-panel layout: left panel = branding/product value, right panel = form |
-| Action buttons at bottom of long pages | Users scroll down, complete action, page jumps — disorienting | Sticky footer bar for primary actions on long pages (operator console already does this correctly) |
-| Status badges without consistent color convention | Operator cannot quickly scan session state | Use `ag-badge` variants consistently: `live`=green+pulse, `draft`=muted, `closed`=primary, etc. — already defined, enforce uniformly |
-| Form validation errors in alert box below form | User must scroll past form to see error | Inline field-level errors using `aria-describedby`; existing `ag-toast` for global errors |
+| Contrast fix makes muted text *too* prominent (over-correction) | "Muted" no longer reads as secondary | Target exactly 4.5:1, not 7:1; use weight/size to convey secondariness alongside color |
+| Palette shift changes brand identity accidentally | Users feel "something is off" without knowing why | Keep hue stable; shift only lightness/chroma for contrast |
+| HTMX 2.0 upgrade drops a loading indicator pattern | Users think clicks did nothing | Smoke test every `hx-indicator` across 22 pages post-upgrade |
+| CSP nonce rotation causes `<form>` POST to be refused on retry | Vote submission appears to fail | CSRF token ≠ CSP nonce — don't conflate them |
+| `[hidden]` sweep hides elements that were intentionally keyboard-reachable | Keyboard users lose access | Verify `keyboard-nav.spec.js` still green after the sweep — mandatory gate |
+| Dark mode contrast fix makes one state invisible (disabled vs. default) | Can't tell what's clickable | Audit in both themes + all 6 states (see Pitfall 15) |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Login redesign:** Verify the 2-panel layout works at 1440px AND collapses gracefully at 768px. Check dark mode. Verify CSRF token is in the form. Verify redirect after login still works.
-- [ ] **Wizard form:** All fields for each step visible without vertical scroll at 1440x900. Tab navigation between steps works. Back button restores previous field values.
-- [ ] **Sidebar:** Active page highlight works. Pin state persists on reload. Role-filtered items hidden for non-admin users. Sidebar loads correctly on pages where `MeetingContext` is undefined.
-- [ ] **HTMX wiring:** Playwright test clicks primary action on each page and verifies state change — not just page load.
-- [ ] **Custom elements:** `ag-modal`, `ag-popover`, `ag-pdf-viewer` open above all other content (no clipping). `ag-toast` appears and auto-dismisses.
-- [ ] **Dark mode:** Design tokens apply correctly to redesigned pages. No hardcoded colors visible in dark mode.
-- [ ] **Operator console:** Real-time updates via SSE still fire and update DOM after any HTML changes. Motion list updates. Quorum bar updates. Timer runs.
-- [ ] **Vote page:** Presence toggle works. Vote buttons appear when a motion is open. Confirmation state shows after vote. Blocked overlay appears for non-eligible voters.
+- [ ] **Contrast remediation:** Axe passes in light mode — verify dark mode **and** all 6
+      interaction states (default, hover, focus, active, disabled, loading)
+- [ ] **Contrast remediation:** `:root` updated — verify all 22 critical-tokens inline blocks
+      + all 23 Shadow DOM fallback literals + all 25 per-page CSS files
+- [ ] **Contrast remediation:** No `style="color|background"` inline attributes left in
+      templates or JS
+- [ ] **[hidden] sweep:** Base `:where([hidden])` rule landed — verify no per-component
+      override re-applies `display:flex`
+- [ ] **[hidden] sweep:** `keyboard-nav.spec.js` still 6/6 green (no element became
+      keyboard-unreachable)
+- [ ] **Playwright fixtures:** Auditor works against `/trust` — verify assessor works against a
+      *meeting-scoped* route (not system-wide)
+- [ ] **Playwright fixtures:** Test-seed endpoint returns 404 when `APP_ENV=production` — add a
+      test for this
+- [ ] **Playwright fixtures:** `globalTeardown` deletes test tenants — verify no `test-e2e-*`
+      tenant rows remain after suite
+- [ ] **CSP:** Nonce present on every `<script>` and `<style>` — grep for inline ones missing it
+- [ ] **CSP:** Report-only mode shipped for ≥1 phase before enforcement
+- [ ] **CSP:** `hx-on:*` migration complete *before* CSP enforcement
+- [ ] **HTMX 2.0:** Every `hx-on` grep returns zero — migrated to JS listeners
+- [ ] **HTMX 2.0:** SSE real-time results stream smoke test passes
+- [ ] **HTMX 2.0:** Every `hx-indicator` still shows during real network activity
+- [ ] **Controller split:** Each extracted service < 300 lines
+- [ ] **Controller split:** Tests target the service directly, not via the controller
+- [ ] **Controller split:** No test uses `ReflectionClass::hasMethod` to assert structure
+- [ ] **All phases:** `php -l` on every touched PHP file before commit (CLAUDE.md rule)
+- [ ] **All phases:** Targeted PHPUnit only, max 3 runs per task (CLAUDE.md rule)
 
 ---
 
@@ -268,38 +574,72 @@ These are unchanged from v1.0 — no new security surface is introduced by UI/UX
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| v4.2-style JS breakage discovered after HTML restructure | HIGH | Run Playwright suite to identify broken pages; diff HTML IDs before/after using git; restore broken IDs or update JS references; add regression test before re-merging |
-| Per-page CSS specificity wars | MEDIUM | Add `@layer` declarations to CSS files; move page overrides into a `pages` layer; avoid `!important` |
-| Playwright race conditions on HTMX | LOW | Add `waitForHtmxSettled()` utility; replace all `waitForTimeout` calls; re-run suite |
-| Custom element overlay clipping | MEDIUM | Remove `overflow: hidden` from parent chain; verify custom element appends to `document.body`; add Playwright assertion for overlay z-index/position |
-| Horizontal layout regression | LOW | Playwright screenshot comparison at 1440px; restore CSS Grid layout; remove `max-width` constraints |
+| #1 Stale Shadow DOM fallback | LOW | Grep `var(--color[^,)]*,\s*#`, delete fallbacks, re-run contrast audit |
+| #2 critical-tokens drift | LOW | Script that syncs from `design-system.css :root` into every htmx.html `<style>` block |
+| #3 Token renamed by accident | MEDIUM | Revert the rename, add new token as alias, migrate consumers async |
+| #4 color-mix oklch WebKit drift | MEDIUM | Switch to pre-computed static literals for affected derived tokens |
+| #5 Dark-mode drift | LOW | Re-run dual-theme audit, patch missing `[data-theme="dark"]` block |
+| #6 HTMX 2.0 hx-on silent drop | HIGH | Full grep + outcome test per page; revert to 1.x if deadline pressure |
+| #7 HTMX 2.0 swap fragment parser | MEDIUM | Wrap fragments in `<template>`, re-test SSE stream |
+| #8 CSP nonce ordering | MEDIUM | Move nonce generation to earliest middleware; report-only until clean |
+| #9 CSP breaks `hx-on` | HIGH | Revert to report-only, complete Phase 5 `hx-on` migration, retry |
+| #10 Private-method test failures | MEDIUM | Rewrite tests against extracted service; delete pure-structure tests |
+| #11 God-service extraction | HIGH | Re-split; painful because consumers already migrated — do an inventory first next time |
+| #12 Test fixtures in prod | HIGH | Emergency migration to delete test users from prod; rotate passwords; post-mortem |
+| #13 Assessor fixture rejects at RoleMiddleware | LOW | Add meeting + meeting-role assignment to seed factory |
+| #14 `[hidden]` specificity war | MEDIUM | Add `:where([hidden]) !important` base rule, remove per-rule overrides |
+| #15 Runtime inline style contrast | LOW | Grep + migrate to classes; add stateful audit to CI |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| v4.2 HTML restructure breaks JS (Pitfall 1) | Phase 1: JS Audit before any HTML changes | ID contract inventory complete; no `getElementById` returning null in Playwright |
-| CSS infrastructure without visible results (Pitfall 2) | Every phase: require named page deliverable | Design review shows at least one page visually changed per phase |
-| Horizontal layout regression (Pitfall 3) | Phase 2: Login redesign, Phase 3: Wizard | Playwright screenshot at 1440px shows no wasted horizontal space |
-| Custom element DOM breakage (Pitfall 4) | Phase 1: JS Audit inventories all custom element placements | Modal/popover/overlay Playwright tests pass |
-| Sidebar timing-dependent breakage (Pitfall 5) | Phase 1: Document sidebar partial contract | Sidebar pin, role filter, active-page tests pass |
-| Playwright happy-path only (Pitfall 6) | Phase for Playwright: require interaction tests | Every page has click + state-change test, not just navigation |
-| CSS specificity wars (Pitfall 7) | Phase 2: Audit per-page CSS before token rollout | No design system rule overridden by page-specific rule in DevTools |
+Recommended phase ordering derived from dependency analysis (**CSP must come after HTMX upgrade**):
+
+| # | Pitfall | Prevention Phase | Verification Gate |
+|---|---------|------------------|-------------------|
+| 1 | Stale Shadow DOM fallback | Phase 1 (Contrast) sub-phase 1.1 | Grep gate: zero `var(--color*,\s*#*)` in components |
+| 2 | critical-tokens drift | Phase 1 sub-phase 1.2 | Grep gate: old hex values absent from every `public/*.htmx.html` |
+| 3 | Token rename | Phase 1 (milestone-wide rule) | PR checklist + `git diff` grep on `--color-*:` deletions |
+| 4 | oklch WebKit rendering | Phase 1 sub-phase 1.3 | WebKit contrast audit passes; decision logged |
+| 5 | Dark mode drift | Phase 1 exit gate | Contrast audit runs in both themes per phase exit |
+| 6 | HTMX `hx-on` case sensitivity | Phase 5 (HTMX upgrade) | Zero `hx-on` in grep; outcome smoke tests green |
+| 7 | HTMX fragment parser | Phase 5 | SSE stream smoke test green |
+| 8 | CSP nonce ordering | Phase 4 (CSP) | Report-only produces zero violations for one full phase |
+| 9 | CSP breaks `hx-on` | Phase 4 (after Phase 5) | `hx-on` grep empty *before* Phase 4 starts |
+| 10 | Private-method test failures | Phase 6 sub-phase per controller | Pre-split test inventory; no `ReflectionClass` in tests |
+| 11 | God-service extraction | Phase 6 entry gate | Each extracted service < 300 lines; ≤5 constructor deps |
+| 12 | Test fixtures leak to prod | Phase 3 (Playwright fixtures) | Prod env rejects `/api/v1/test/*` with 404 |
+| 13 | Assessor fixture role-scope | Phase 3 | Fixture factory requires meeting context for assessor |
+| 14 | `[hidden]` specificity wars | Phase 2 (V2-OVERLAY-HITTEST) | `:where([hidden])` rule landed first; keyboard-nav green |
+| 15 | Runtime inline style bypass | Phase 1 sub-phase 1.4 | Stateful contrast audit (6 states); grep gate on inline styles |
+
+**Phase ordering rationale:**
+1. **Phase 1 — Contrast remediation** (largest surface, biggest user value, blocks no other phase)
+2. **Phase 2 — `[hidden]` overlay sweep** (CSS-only, can parallelize with Phase 3)
+3. **Phase 3 — Playwright fixtures** (unblocks auditor/assessor coverage used by later phases)
+4. **Phase 5 — HTMX 2.0 upgrade** (must precede Phase 4; introduces `hx-on` migration)
+5. **Phase 4 — CSP nonce/externalization** (depends on Phase 5 `hx-on` migration complete)
+6. **Phase 6 — Controller refactoring** (last; highest test-breakage risk, benefits from stable
+   Playwright fixtures from Phase 3)
 
 ---
 
 ## Sources
 
-- Codebase inspection: `vote.js` (1,473 lines, 1,269 total `querySelector`/`getElementById` calls across all pages), `shell.js` (sidebar pin/scroll binding patterns), `auth-ui.js` (MutationObserver sidebar role filtering), `shared.js` (async sidebar fetch), `operator-exec.js` (DOM ID contracts for operator console)
-- Confirmed ID mismatch: `vote.js:852` searches `getElementById('voteButtons')` — ID absent in `vote.htmx.html` (only `class="vote-buttons"` exists)
-- HTMX + Playwright race condition: [htmx GitHub Discussion #2360](https://github.com/bigskysoftware/htmx/discussions/2360) — HTMX callbacks not installed before Playwright interaction
-- Playwright best practices: [Playwright Official Docs — Best Practices](https://playwright.dev/docs/best-practices), [17 Playwright Mistakes to Avoid](https://elaichenkov.github.io/posts/17-playwright-testing-mistakes-you-should-avoid/)
-- Custom elements + HTMX: [htmx Web Components documentation](https://htmx.org/examples/web-components/), [HTMX and Web Components — a Perfect Match](https://binaryigor.com/htmx-and-web-components-a-perfect-match.html)
-- CSS cascade layers for specificity control: [CSS Cascade Layers Guide — CSS-Tricks](https://css-tricks.com/css-cascade-layers/)
-- Project history: v4.2 broke JS interactions after HTML restructure (documented in PROJECT.md and MEMORY.md)
+- `.planning/PROJECT.md` Key Decisions (2026-04-09) — controller split deferral, axeAudit
+  methodology split, docker-compose.override.yml
+- `.planning/STATE.md` Decisions — v10.0 Phase 82/84 palette shift, oklch decision, token rename
+  prohibition (Pitfall 3), Phase 14-02 Shadow DOM fallback removal policy, Phase 17 loose ends
+  (V2-OVERLAY-HITTEST, V2-TRUST-DEPLOY, V2-CSP-INLINE-THEME)
+- v10.0 Phase 84 HARD-03 retrospective — critical-tokens sync claim was wrong, 21 files patched
+- v1.3 Phase 16-02 — ag-modal focus trap shadow DOM traversal fix
+- v1.3 Phase 16-04 — contrast audit methodology, 316 nodes deferred
+- CLAUDE.md — PHPUnit targeted/3-run rule, nullable DI pattern, namespaces, no copropriété
+- HTMX 2.0 release notes (general knowledge — MEDIUM confidence; verify against
+  htmx.org/migration-guide-htmx-1/ in Phase 5 entry research)
+- W3C CSP Level 3 spec + MDN `script-src` guidance (HIGH confidence for nonce semantics)
 
 ---
-*Pitfalls research for: UI/UX design system + Playwright E2E on existing HTMX/PHP 8.4 app (AgVote v1.1)*
-*Researched: 2026-04-07*
+*Pitfalls research for: v1.4 tech-debt remediation on AgVote PHP/HTMX/Web Components stack*
+*Researched: 2026-04-09*
