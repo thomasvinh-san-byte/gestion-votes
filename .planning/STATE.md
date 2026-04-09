@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Bouclage et Validation Bout-en-Bout
-status: shipped
-stopped_at: Completed 12-page-by-page-mvp-sweep/12-18-PLAN.md
-last_updated: "2026-04-09T06:08:02.920Z"
+milestone: v1.3
+milestone_name: Polish Post-MVP
+status: defining
+stopped_at: null
+last_updated: "2026-04-09T07:00:00.000Z"
 last_activity: 2026-04-09
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 36
-  completed_plans: 36
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-02)
+See: .planning/PROJECT.md (updated 2026-04-09)
 
-**Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** v1.2 SHIPPED — ready for v1.3 (run /gsd:new-milestone)
+**Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
+**Current focus:** Defining requirements for v1.3 Polish Post-MVP
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-Status: v1.2 shipped, awaiting next milestone
-Last activity: 2026-04-09
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-09 — Milestone v1.3 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 

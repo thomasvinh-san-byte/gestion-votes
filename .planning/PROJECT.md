@@ -79,9 +79,15 @@ Hotfixes critiques delivres en cours de v1.2 :
 - Chrome HSTS preload .app collision (network alias agvote)
 - Login 2-panel redesign polish
 
-## Next Milestone
+## Current Milestone: v1.3 Polish Post-MVP
 
-(Not yet started — run `/gsd:new-milestone` to begin v1.3 polish post-MVP)
+**Goal:** Faire passer l'app de "fonctionnelle prouvee" (v1.2) a "delicieuse a utiliser et solide cross-browser". Polish visuel + robustesse tests.
+
+**Target features:**
+- Visual polish: toast notification system, dark mode parity audit, role-specific sidebar nav, micro-interactions
+- Multi-browser tests: extend Phase 8 to firefox + webkit + mobile-chromium, run 23 critical-path specs cross-browser
+- a11y deep audit: axe-core complet sur les 21 pages, fix critical + serious violations, WCAG 2.1 AA
+- Loose ends Phase 12: settings loadSettings race, postsession eIDAS chip, minor known issues
 
 ## Tech Debt Carried to v1.3 (post-MVP)
 
