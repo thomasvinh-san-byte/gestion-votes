@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: Polish Post-MVP
-status: completed
-stopped_at: Completed 17-03-PLAN.md (LOOSE-03 audit ledger)
-last_updated: "2026-04-09T11:22:50.941Z"
+milestone: v1.4
+milestone_name: Régler Deferred et Dette Technique
+status: defining_requirements
+stopped_at: Milestone started — defining requirements
+last_updated: "2026-04-09T12:00:00.000Z"
 last_activity: 2026-04-09
 progress:
-  total_phases: 10
-  completed_phases: 3
-  total_plans: 12
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 17 — Loose Ends Phase 12 (next)
+**Current focus:** Milestone v1.4 — defining requirements
 
 ## Current Position
 
-Phase: 16 (accessibility-deep-audit) — COMPLETE
-Plan: 5 of 5 done (phase closed)
-Status: Phase 16 complete — ready for Phase 17
-Last activity: 2026-04-09
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-09 — Milestone v1.4 started
 
 ## Accumulated Context
 
@@ -92,11 +90,10 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 84 HARD-03: exact list of .htmx.html files with critical-tokens blocks should be verified before planning (research said 22 files)
-- (cleared 2026-04-09) Phase 16-02 blocker resolved: bin/test-e2e.sh runs Playwright in Docker; docker-compose.override.yml now bind-mounts public/ so dev HTML edits are picked up without rebuild.
+None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T11:12:31.678Z
-Stopped at: Completed 17-03-PLAN.md (LOOSE-03 audit ledger)
+Last session: 2026-04-09
+Stopped at: Milestone v1.4 started — defining requirements
 Resume file: None

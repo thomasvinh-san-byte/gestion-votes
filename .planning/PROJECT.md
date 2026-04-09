@@ -87,9 +87,17 @@ Shipped v1.3 — Polish Post-MVP milestone complete (2026-04-09).
 - **HTMX 2.0 upgrade** — breaking changes (hx-on case sensitivity), separate milestone
 - **Visual regression testing** — snapshot comparison, separate milestone
 
-## Next Milestone
+## Current Milestone: v1.4 Régler Deferred et Dette Technique
 
-(Not yet started — run `/gsd:new-milestone` to begin v1.4)
+**Goal:** Éliminer la dette technique reportée de v1.0-v1.3 : design-system contrast, patterns CSS fragiles, debt test/CSP, upgrade HTMX 2.0, et refactoring des controllers volumineux restants.
+
+**Target features:**
+- Contrast remediation au niveau des design tokens (316 nœuds, 42 paires, WCAG AA 4.5:1)
+- V2-OVERLAY-HITTEST — audit codebase-wide du pattern `[hidden]` + `display:flex`
+- V2-TRUST-DEPLOY — fixtures auditor/assessor pour trust.htmx.html
+- V2-CSP-INLINE-THEME — externaliser ou nonce-ifier les scripts inline theme init
+- HTMX 2.0 upgrade — migration breaking changes (hx-on case sensitivity)
+- Refactoring des controllers >500 lignes (Meetings 687, MeetingWorkflow 559, Operator 516, Admin 510)
 
 ## Context
 
@@ -141,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 after v1.3 milestone completion*
+*Last updated: 2026-04-09 — v1.4 milestone started*
