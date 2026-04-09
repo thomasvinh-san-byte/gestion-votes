@@ -227,7 +227,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
 | 12. Page-by-Page MVP Sweep | 20/21 | In Progress| Complete    | 2026-04-09 |
 | 13. MVP Validation Finale | v1.2 | 0/? | Complete    | 2026-04-09 |
-| 14. Visual Polish | 4/4 | Complete   | 2026-04-09 | - |
+| 14. Visual Polish | 4/4 | Complete   | Complete    | 2026-04-09 |
 | 15. Multi-Browser Tests | v1.3 | 0/? | Not started | - |
 | 16. Accessibility Deep Audit | v1.3 | 0/? | Not started | - |
 | 17. Loose Ends Phase 12 | v1.3 | 0/? | Not started | - |
