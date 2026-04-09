@@ -18,6 +18,7 @@
   var meetingId = null;
   var _meetingData = null;
   var _sigCount = 0;
+  var _eidasChipDelegated = false;
 
   // =========================================================================
   // HELPERS
@@ -521,16 +522,10 @@
       });
     }
 
-    // eIDAS chip toggle
-    var chipGroup = document.getElementById('eidasChips');
-    if (chipGroup) {
-      chipGroup.addEventListener('click', function (e) {
-        var chip = e.target.closest('.chip');
-        if (!chip) return;
-        chipGroup.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
-        chip.classList.add('active');
-      });
-    }
+    // eIDAS chip toggle — delegation moved to module init (see bindEidasChipDelegation)
+    // LOOSE-02 fix: previously bound here on #eidasChips, but the listener was attached
+    // while panel-3 was hidden, which made Playwright real-clicks fail to dispatch through
+    // actionability checks. Document-level delegation is panel-visibility independent.
 
     // Sign button handlers
     click('btnSignPresident', function () {
@@ -566,11 +561,31 @@
     if (el) el.addEventListener('click', fn);
   }
 
+  // LOOSE-02 fix: document-level delegation for eIDAS chips, idempotent and
+  // independent of panel visibility at bind time. Real Playwright clicks now
+  // trigger the toggle without needing page.evaluate() workarounds.
+  function bindEidasChipDelegation() {
+    if (_eidasChipDelegated) return;
+    _eidasChipDelegated = true;
+    document.addEventListener('click', function (e) {
+      var chip = e.target && e.target.closest && e.target.closest('#eidasChips .chip[data-eidas]');
+      if (!chip) return;
+      var group = chip.parentElement;
+      if (!group) return;
+      group.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+    });
+  }
+
   // =========================================================================
   // INIT
   // =========================================================================
 
   async function init() {
+    // LOOSE-02 fix: bind eIDAS chip delegation before any early returns so it
+    // is always wired regardless of meetingId resolution.
+    bindEidasChipDelegation();
+
     // Wait for MeetingContext
     if (typeof MeetingContext !== 'undefined') {
       meetingId = MeetingContext.get();
