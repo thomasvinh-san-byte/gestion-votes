@@ -146,23 +146,65 @@
   // ═══════════════════════════════════════════════════════
   // LOAD SETTINGS FROM API
   // ═══════════════════════════════════════════════════════
+
+  // LOOSE-01 fix: extracted populate logic so the snapshot can be re-applied
+  // defensively if the input is not yet present in DOM at first try, and so a
+  // reliable readiness signal can be exposed for tests / future regressions.
+  var _settingsLoadedSnapshot = null;
+
+  function _applySettingsSnapshot(settings) {
+    if (!settings || typeof settings !== 'object') return 0;
+    var applied = 0;
+    Object.keys(settings).forEach(function(key) {
+      var el = document.getElementById(key);
+      if (!el) return;
+      var val = settings[key];
+      if (val === null || val === undefined) val = '';
+      if (el.type === 'checkbox') {
+        el.checked = !!val;
+        _prevValues.set(key, !!val);
+      } else {
+        el.value = val;
+        _prevValues.set(key, val);
+      }
+      applied++;
+    });
+    if (window.DEBUG_SETTINGS) {
+      console.debug('[settings] _applySettingsSnapshot applied', applied, 'of', Object.keys(settings).length);
+    }
+    return applied;
+  }
+
   function loadSettings() {
-    api('/api/v1/admin_settings.php', { action: 'list' })
+    // LOOSE-01 fix: use GET with query string instead of POST with JSON body.
+    // The previous call passed a body, which forced api() into POST mode and
+    // could race with CSRF/session middleware in fresh contexts. The list
+    // endpoint is idempotent and side-effect free — GET is the correct verb.
+    api('/api/v1/admin_settings.php?action=list', null, 'GET')
       .then(function(r) {
-        if (!r.body || !r.body.ok || !r.body.data) return;
-        var settings = r.body.data;
-        Object.keys(settings).forEach(function(key) {
-          var el = document.getElementById(key);
-          if (!el) return;
-          var val = settings[key];
-          if (el.type === 'checkbox') {
-            el.checked = !!val;
-            _prevValues.set(key, !!val);
-          } else {
-            el.value = val;
-            _prevValues.set(key, val);
+        if (!r.body || !r.body.ok || !r.body.data) {
+          if (window.DEBUG_SETTINGS) {
+            console.debug('[settings] loadSettings: empty response', r);
           }
-        });
+          return;
+        }
+        var settings = r.body.data;
+        _settingsLoadedSnapshot = settings;
+
+        // Apply now (DOM is ready: script tag is at end of <body>)
+        var applied = _applySettingsSnapshot(settings);
+
+        // LOOSE-01 fix: defensive re-apply on next tick. Guards against any
+        // late-attached panel content or dynamic UI mutations that may have
+        // raced the first apply.
+        setTimeout(function() { _applySettingsSnapshot(settings); }, 0);
+
+        // Expose readiness signal for Playwright regression tests and future
+        // race-condition debugging.
+        window.__settingsLoaded = true;
+        if (window.DEBUG_SETTINGS) {
+          console.debug('[settings] loadSettings done; applied=', applied);
+        }
         // APP_URL localhost warning
         var appUrlEl = document.getElementById('app_url') || document.querySelector('[data-setting="app_url"]') || document.querySelector('input[name="app_url"]');
         if (appUrlEl) {
