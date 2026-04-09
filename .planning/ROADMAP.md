@@ -84,7 +84,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. Toutes les violations critical + serious sont fixees ou explicitement justifiees (avec waiver documente)
   3. Conformance WCAG 2.1 AA documentee dans .planning/v1.3-A11Y-REPORT.md (aria-labels, color contrast, keyboard nav, focus management)
   4. Tests Playwright a11y integrent axe-core sur chaque critical-path spec
-**Plans:** 1/5 plans executed
+**Plans:** 3/5 plans executed
 - [ ] 16-01-PLAN.md — Seed WIP + extend axeAudit + parametrize accessibility.spec.js to 22 pages [A11Y-01, Wave 1]
 - [ ] 16-02-PLAN.md — Baseline axe run + batch-fix critical/serious by rule-id [A11Y-01, A11Y-02, Wave 2]
 - [ ] 16-03-PLAN.md — keyboard-nav.spec.js (skip-link, Tab order, ag-modal focus trap) [A11Y-03, Wave 2]
@@ -235,5 +235,5 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 13. MVP Validation Finale | v1.2 | 0/? | Complete    | 2026-04-09 |
 | 14. Visual Polish | 4/4 | Complete   | Complete    | 2026-04-09 |
 | 15. Multi-Browser Tests | v1.3 | 0/? | Complete    | 2026-04-09 |
-| 16. Accessibility Deep Audit | 1/5 | In Progress|  | - |
+| 16. Accessibility Deep Audit | 3/5 | In Progress|  | - |
 | 17. Loose Ends Phase 12 | v1.3 | 0/? | Not started | - |

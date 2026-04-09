@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-04-09T09:21:10.165Z"
+stopped_at: 16-02 BLOCKED — libatk missing, needs root to install Playwright deps
+last_updated: "2026-04-09T09:26:22.813Z"
 last_activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 8
   percent: 67
 ---
 
@@ -62,6 +62,7 @@ Progress: [███████░░░] 67%
 - [Phase 14-visual-polish]: 14-02: Remove hex fallbacks from var(--token, #hex) in Shadow DOM — tokens guaranteed-present via shell.js load order
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: Parametrized axeAudit matrix to 22 pages via PAGES array; extraDisabledRules plumbing ready for per-page waivers (D-10)
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: trust.htmx.html uses loginAsAdmin fallback (auditor/assessor not in fixtures) — to validate at baseline run in 16-02
+- [Phase 16]: 16-02 halted at Task 1 per Rule 4: baseline cannot be derived because chromium fails to launch (libatk-1.0.so.0 missing); Task 2 not attempted to avoid guessed fixes
 
 ### Existing Infrastructure
 
@@ -84,9 +85,10 @@ None.
 ### Blockers/Concerns
 
 - Phase 84 HARD-03: exact list of .htmx.html files with critical-tokens blocks should be verified before planning (research said 22 files)
+- Phase 16-02 blocked: Playwright chromium cannot launch — libatk-1.0.so.0 missing on host. Run 'npx playwright install-deps chromium' as root to unblock. See 16-02-BASELINE.md.
 
 ## Session Continuity
 
-Last session: 2026-04-09T09:21:10.162Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-04-09T09:26:22.713Z
+Stopped at: 16-02 BLOCKED — libatk missing, needs root to install Playwright deps
 Resume file: None
