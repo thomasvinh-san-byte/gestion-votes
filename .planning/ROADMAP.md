@@ -116,7 +116,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 **Execution model**: 5 waves with mandatory user checkpoint between waves. Each wave = 4-5 page plans (parallelizable, no file conflicts).
 
-**Plans:** 16/16 plans complete
+**Plans:** 17/21 plans executed
 - [ ] 12-01-PLAN.md — settings page sweep (3 gates) [Wave 1]
 - [ ] 12-02-PLAN.md — operator page sweep (3 gates) [Wave 1]
 - [ ] 12-03-PLAN.md — hub page sweep (3 gates) [Wave 1]
@@ -133,7 +133,11 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [ ] 12-14-PLAN.md — report page sweep (3 gates) [Wave 4]
 - [ ] 12-15-PLAN.md — postsession page sweep (3 gates) [Wave 4]
 - [ ] 12-16-PLAN.md — validate page sweep (3 gates) [Wave 4]
-- [ ] Wave 5 (TBD) — trust, public, email-templates, docs, help
+- [ ] 12-17-PLAN.md — trust page sweep (3 gates) [Wave 5]
+- [ ] 12-18-PLAN.md — public projection page sweep (3 gates) [Wave 5]
+- [ ] 12-19-PLAN.md — email-templates page sweep (3 gates) [Wave 5]
+- [ ] 12-20-PLAN.md — docs content page sweep (3 gates, 80ch cap) [Wave 5]
+- [ ] 12-21-PLAN.md — help content page sweep (3 gates, 80ch cap) [Wave 5]
 
 ### Phase 13: MVP Validation Finale
 **Goal**: Lancer la suite Playwright complete sur toutes les pages, executer le UAT manuel par les 4 roles, produire le verdict final "MVP shipped" ou liste de blockers.
@@ -162,5 +166,5 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
-| 12. Page-by-Page MVP Sweep | 16/16 | Complete   | 2026-04-09 | - |
+| 12. Page-by-Page MVP Sweep | 17/21 | In Progress|  | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
