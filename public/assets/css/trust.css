@@ -512,6 +512,11 @@
   animation: fadeIn var(--duration-fast) ease-out;
 }
 
+/* Ensure [hidden] suppresses the overlay despite display:flex override */
+.audit-modal-overlay[hidden] {
+  display: none;
+}
+
 .audit-modal {
   background: var(--color-surface-raised); /* QA-02: elevated modal panel above page surface and backdrop */
   border: 1px solid var(--color-border);
