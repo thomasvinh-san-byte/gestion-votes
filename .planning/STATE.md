@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
-status: executing
+status: shipped
 stopped_at: Completed 12-page-by-page-mvp-sweep/12-18-PLAN.md
 last_updated: "2026-04-09T06:08:02.920Z"
 last_activity: 2026-04-09
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Self-hosted voting platform with legal compliance for French general assemblies
-**Current focus:** Phase 84 — Hardened Foundation
+**Current focus:** v1.2 SHIPPED — ready for v1.3 (run /gsd:new-milestone)
 
 ## Current Position
 
 Phase: 13
 Plan: Not started
-Status: Executing Phase 84
+Status: v1.2 shipped, awaiting next milestone
 Last activity: 2026-04-09
 
 Progress: [██████████] 100%

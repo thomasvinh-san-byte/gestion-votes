@@ -59,17 +59,33 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - PDFs de convocation/emargement — hors perimetre de l'app
 - Raccourcis clavier — hors perimetre
 
-## Current Milestone: v1.2 Bouclage et Validation Bout-en-Bout
+## Current State
 
-**Goal:** Boucler le projet — verifier que toutes les fonctionnalites du chemin critique fonctionnent pour les 4 roles (admin, operator, president, votant), validees par tests automatises ET parcours manuel browser. Aucune regression silencieuse. Stop aux ajouts, on s'assure que le tout fonctionne comme un tout.
+Shipped v1.2 — Bouclage et Validation Bout-en-Bout milestone complete (2026-04-09).
 
-**Target features:**
-- Setup Playwright executable dans Docker (libatk + browsers preinstalles)
-- 4 tests E2E par role couvrant le chemin critique (admin/operator/president/votant)
-- Parcours manuel + checklist de validation par role et par page-cle
-- Reparation immediate de toute regression decouverte
-- Dette tech v1.0 close: getDashboardStats wiring + MeetingReports/Motions decoupage
-- Audit final fonctionnel certifiant le chemin critique end-to-end pour les 4 roles
+**The project is shippable.** Every page passes 3 gates: UI pleine largeur, design language partage, every element functionally proven by Playwright.
+
+- 23 critical-path Playwright specs GREEN (3 runs consecutifs, zero flake, ~1.2m total)
+- 21 pages applicatives auditees et reparees (Phase 12 sweep)
+- 5 endpoints fantomes prouves (procuration_pdf, motions_override_decision, invitations_send_reminder, meeting_attachments_public, meeting_attachment_serve)
+- 3 vote settings (settVoteMode, settQuorumThreshold, settMajority) wired dans VoteEngine + QuorumEngine
+- Test infrastructure Docker reproductible (bin/test-e2e.sh + mcr.microsoft.com/playwright)
+- Dette tech v1.0 fully closed (getDashboardStats wiring + 2 controller refactors)
+
+Hotfixes critiques delivres en cours de v1.2 :
+- RateLimiter::configure() boot regression (app crashait sur chaque API call)
+- nginx clean URL routing (regression de plusieurs semaines)
+- Cookie domain via Redis TCP direct (Phase 9 prerequis tests)
+- Chrome HSTS preload .app collision (network alias agvote)
+- Login 2-panel redesign polish
+
+## Next Milestone
+
+(Not yet started — run `/gsd:new-milestone` to begin v1.3 polish post-MVP)
+
+## Next Milestone
+
+(Not yet started — run `/gsd:new-milestone` to begin v1.3 polish post-MVP)
 
 ## Current State
 

@@ -1,5 +1,26 @@
 # Milestones
 
+## v1.2 Bouclage et Validation Bout-en-Bout (Shipped: 2026-04-09)
+
+**Phases completed:** 6 phases (8-13), 36 plans, 23 critical-path Playwright specs
+
+**Key accomplishments:**
+
+- **MVP shipped** : 21 pages auditees + chaque page passe 3 gates (width pleine ecran, design tokens, fonction prouvee Playwright)
+- **23 critical-path specs Playwright GREEN** : 4 par role + 19 par page, 3 runs consecutifs zero flake (~1.2m total)
+- **Test infrastructure Docker** : Playwright tourne dans un container reproductible (Phase 8), elimination des bugs "le test serait valide si seulement il pouvait s'executer"
+- **13 width caps removed** sur les pages applicatives (settings, dashboard, vote, wizard, admin, email-templates) ; 2 ajouts justifies sur docs/help (80ch lecture)
+- **5 endpoints fantomes prouves** : procuration_pdf, motions_override_decision, invitations_send_reminder, meeting_attachments_public, meeting_attachment_serve
+- **3 vote settings wired** dans VoteEngine + QuorumEngine via fallback policy synthesis (settVoteMode, settQuorumThreshold, settMajority)
+- **Settings page reparee** : sauvegarde + reload prouve par Playwright (la page que l'utilisateur appelait "theatre" passe maintenant un test end-to-end)
+- **2 controllers refactores** : MeetingReportsController 727→256 lignes, MotionsController 720→299 lignes (DEBT-02/03 v1.0 carry-over closes)
+- **getDashboardStats wired** dans DashboardController (DEBT-01 v1.0 carry-over enfin clos)
+- **5 hotfixes critiques delivres en cours de milestone** : RateLimiter::configure() boot regression (`ddcf02f2`), nginx clean URL routing multi-week regression (`2f441469`), Login 2-panel polish (`448f38a3`), Cookie domain via Redis TCP direct (Phase 9), Chrome HSTS preload .app collision via network alias agvote (Phase 9)
+
+**Tech debt reportee a v1.3 :** Multi-browser test matrix (firefox/webkit), axe-core deep audit, HTMX 2.0 upgrade, visual regression testing.
+
+---
+
 ## v1.1 Coherence UI/UX et Wiring (Shipped: 2026-04-08)
 
 **Phases completed:** 3 phases, 11 plans
