@@ -21,6 +21,32 @@ const { loginAsOperator } = require('../helpers');
 
 test.describe('members — @critical-path', () => {
 
+  test('members: AgToast appears after validation error on empty group name @critical-path', async ({ page }) => {
+    test.setTimeout(60000);
+    await loginAsOperator(page);
+
+    // Navigate to members page
+    await page.goto('/members.htmx.html', { waitUntil: 'domcontentloaded' });
+
+    // Switch to the Groups tab so the group form is visible
+    const groupsTab = page.locator('.mgmt-tab[data-mgmt-tab="groups"]');
+    await expect(groupsTab).toBeVisible({ timeout: 10000 });
+    await groupsTab.click();
+
+    const groupsPanel = page.locator('#groupsPanel');
+    await expect(groupsPanel).toBeVisible({ timeout: 5000 });
+
+    // Ensure groupName input is empty (no mutation — client-side validation only)
+    await page.fill('#groupName', '');
+
+    // Click btnCreateGroup — members.js fires AgToast.show('error', ...) client-side
+    await page.click('#btnCreateGroup');
+
+    // Assert <ag-toast> element appears in the DOM within 3 seconds
+    await expect(page.locator('ag-toast')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('ag-toast')).toHaveAttribute('type', 'error');
+  });
+
   test('members: KPIs + add member + search + tabs + groups', async ({ page }) => {
     test.setTimeout(120000);
     await loginAsOperator(page);
