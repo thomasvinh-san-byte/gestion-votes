@@ -114,6 +114,28 @@ test.describe('Settings critical path', () => {
     });
     expect(String(reloadedList)).toBe('60');
 
+    // ── LOOSE-01 regression: loadSettings() must populate the input via UI ───
+    // Phase 12 shipped with a workaround that bypassed settings.js::loadSettings
+    // because of a race / wrong-verb bug. Phase 17-01 fixed it. This block
+    // proves the fix is alive: after a reload, the input value comes from the
+    // real UI population path, not a direct fetch in test code.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+    await page.waitForFunction(
+      () => window.__settingsLoaded === true,
+      { timeout: 5000 },
+    );
+    await page.waitForFunction(
+      () => {
+        const el = document.getElementById('settQuorumThreshold');
+        return el && el.value !== '' && el.value !== null;
+      },
+      { timeout: 5000 },
+    );
+    const quorumValue = await page.locator('#settQuorumThreshold').inputValue();
+    expect(quorumValue).not.toBe('');
+    expect(String(quorumValue)).toBe('60');
+
     // Restore to 50 (common default) — best-effort, no assertion
     await page.evaluate(async () => {
       const csrfToken = (window.Utils && window.Utils.getCsrfToken)
