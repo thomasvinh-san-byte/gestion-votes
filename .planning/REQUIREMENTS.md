@@ -10,7 +10,7 @@
 - [ ] **POLISH-01**: Toast notification system unifie pour save/error/info feedback (deferred de v1.1)
 - [ ] **POLISH-02**: Dark mode parity audit + fixes — chaque page rendue identiquement bonne en light et dark (4 items deferred de v1.1)
 - [ ] **POLISH-03**: Role-specific sidebar nav — chaque role (admin/operator/president/votant) voit son menu adapte (deferred de v1.1)
-- [ ] **POLISH-04**: Micro-interactions — focus rings coherents, hover states, loading transitions, button press feedback
+- [x] **POLISH-04**: Micro-interactions — focus rings coherents, hover states, loading transitions, button press feedback
 
 ### Multi-Browser Tests
 
@@ -54,7 +54,7 @@
 | POLISH-01 | Phase 14 | Pending |
 | POLISH-02 | Phase 14 | Pending |
 | POLISH-03 | Phase 14 | Pending |
-| POLISH-04 | Phase 14 | Pending |
+| POLISH-04 | Phase 14 | Complete |
 | CROSS-01 | Phase 15 | Pending |
 | CROSS-02 | Phase 15 | Pending |
 | CROSS-03 | Phase 15 | Pending |
