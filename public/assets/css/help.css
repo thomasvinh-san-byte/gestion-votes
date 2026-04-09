@@ -12,7 +12,10 @@
 .app-main.help-main {
   padding: var(--space-6);
   padding-left: calc(var(--sidebar-rail) + var(--space-6));
-  max-width: 900px;
+  /* MVP-01: content page reading cap — help & FAQ is a CONTENT page (not
+     applicative), reading column clamped to 80ch per locked user decision
+     on content pages. */
+  max-width: 80ch;
 }
 
 @media (max-width: 768px) {
