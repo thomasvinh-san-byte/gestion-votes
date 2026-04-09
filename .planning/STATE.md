@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-09-PLAN.md (audit page MVP sweep)
-last_updated: "2026-04-09T05:03:52.159Z"
+stopped_at: Completed 12-page-by-page-mvp-sweep/12-11-PLAN.md
+last_updated: "2026-04-09T05:04:41.545Z"
 last_activity: 2026-04-08 -- Phase 12 execution started
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 27
-  completed_plans: 25
+  completed_plans: 27
   percent: 0
 ---
 
@@ -97,6 +97,8 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-page-by-page-mvp-sweep]: archives.css already compliant in v4.4 — zero changes needed for width or token gates
 - [Phase 12-page-by-page-mvp-sweep]: critical-path-archives.spec.js: single test covers all 7 interactions to avoid auth overhead
 - [Phase 12-09]: audit.css was already token-pure and full-width at v4.3; KPI gate adapted to visibility-only for empty test DB
+- [Phase 12-11]: users.css already clean — width and token gates passed without any edits
+- [Phase 12-11]: ag-modal Shadow DOM: assert open/close via aria-hidden attribute; use inputValue() for fields in unmatched slots
 
 ### Existing Infrastructure
 
@@ -122,6 +124,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:03:52.156Z
-Stopped at: Completed 12-09-PLAN.md (audit page MVP sweep)
+Last session: 2026-04-09T05:04:41.542Z
+Stopped at: Completed 12-page-by-page-mvp-sweep/12-11-PLAN.md
 Resume file: None

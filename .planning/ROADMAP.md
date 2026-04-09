@@ -116,7 +116,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 **Execution model**: 5 waves with mandatory user checkpoint between waves. Each wave = 4-5 page plans (parallelizable, no file conflicts).
 
-**Plans:** 10/12 plans executed
+**Plans:** 12/12 plans complete
 - [ ] 12-01-PLAN.md — settings page sweep (3 gates) [Wave 1]
 - [ ] 12-02-PLAN.md — operator page sweep (3 gates) [Wave 1]
 - [ ] 12-03-PLAN.md — hub page sweep (3 gates) [Wave 1]
@@ -156,5 +156,5 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 9. Tests E2E par Role | 5/5 | Complete   | 2026-04-08 | - |
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
-| 12. Page-by-Page MVP Sweep | 10/12 | In Progress|  | - |
+| 12. Page-by-Page MVP Sweep | 12/12 | Complete   | 2026-04-09 | - |
 | 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
