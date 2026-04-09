@@ -81,6 +81,7 @@
           id="meetingSelect"
           placeholder="Rechercher une séance..."
           empty-text="Aucune séance trouvée"
+          aria-label="Sélectionner une séance"
         ></ag-searchable-select>
       </div>
       <div class="form-group">
@@ -89,12 +90,13 @@
           id="memberSelect"
           placeholder="Rechercher votre nom..."
           empty-text="Aucun votant trouvé"
+          aria-label="Sélectionner votre nom de votant"
         ></ag-searchable-select>
       </div>
     </div>
 
     <!-- Motion progress dots -->
-    <div class="vote-progress-dots" id="voteProgressDots" hidden aria-label="Progression des r&eacute;solutions">
+    <div class="vote-progress-dots" id="voteProgressDots" hidden role="status" aria-label="Progression des r&eacute;solutions">
       <!-- Dots dynamically filled by JS -->
       <span class="vote-dot-counter" id="voteDotCounter"></span>
     </div>
@@ -106,7 +108,7 @@
     </div>
 
     <!-- Main content -->
-    <main class="vote-main" id="main-content" role="main">
+    <main class="vote-main" id="main-content" role="main" tabindex="0">
       <!-- Waiting state (shown when no vote is open) -->
       <div class="vote-waiting-state" id="voteWaitingState">
         <div class="vote-waiting-pulse" aria-hidden="true"></div>

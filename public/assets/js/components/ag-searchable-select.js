@@ -30,7 +30,7 @@
  */
 class AgSearchableSelect extends HTMLElement {
   static get observedAttributes() {
-    return ['placeholder', 'empty-text', 'disabled', 'value', 'name', 'required'];
+    return ['placeholder', 'empty-text', 'disabled', 'value', 'name', 'required', 'aria-label'];
   }
 
   constructor() {
@@ -455,7 +455,7 @@ class AgSearchableSelect extends HTMLElement {
       </style>
 
       <div class="select-container">
-        <div class="select-trigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" ${isDisabled ? 'aria-disabled="true"' : ''}>
+        <div class="select-trigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-label="${this.escapeHtml(this.getAttribute('aria-label') || placeholder)}" ${isDisabled ? 'aria-disabled="true"' : ''}>
           <span class="select-value placeholder">${this.escapeHtml(placeholder)}</span>
           <button type="button" class="clear-btn" aria-label="Effacer" tabindex="-1">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
