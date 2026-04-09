@@ -290,7 +290,7 @@
     const color = document.getElementById('groupColor').value || '#6366f1';
 
     if (!name) {
-      setNotif('error', 'Le nom du groupe est requis');
+      AgToast.show('error', 'Le nom du groupe est requis');
       return;
     }
 
@@ -302,14 +302,14 @@
       const { body } = await api('/api/v1/member_groups.php', { name, color });
 
       if (body?.ok) {
-        setNotif('success', 'Groupe créé');
+        AgToast.show('success', 'Groupe créé');
         document.getElementById('groupName').value = '';
         await fetchGroups();
       } else {
-        setNotif('error', body?.detail || body?.error || 'Erreur');
+        AgToast.show('error', body?.detail || body?.error || 'Erreur');
       }
     } catch (err) {
-      setNotif('error', err.message);
+      AgToast.show('error', err.message);
     } finally {
       _createGroupPending = false;
       Shared.btnLoading(btn, false);
@@ -343,7 +343,7 @@
         const newColor = modal.querySelector('#editGroupColor').value;
 
         if (!newName) {
-          setNotif('error', 'Le nom est requis');
+          AgToast.show('error', 'Le nom est requis');
           return false;
         }
 
@@ -356,15 +356,15 @@
           }, 'PATCH');
 
           if (body?.ok) {
-            setNotif('success', 'Groupe modifié');
+            AgToast.show('success', 'Groupe modifié');
             await fetchGroups();
             return true;
           } else {
-            setNotif('error', body?.detail || body?.error || 'Erreur');
+            AgToast.show('error', body?.detail || body?.error || 'Erreur');
             return false;
           }
         } catch (err) {
-          setNotif('error', err.message);
+          AgToast.show('error', err.message);
           return false;
         }
       }
@@ -386,17 +386,17 @@
     try {
       var r = await api('/api/v1/member_groups.php?id=' + encodeURIComponent(groupId), null, 'DELETE');
       if (r.body?.ok) {
-        setNotif('success', 'Groupe supprim\u00e9');
+        AgToast.show('success', 'Groupe supprimé');
         if (currentGroupFilter === groupId) {
           currentGroupFilter = null;
         }
         await fetchGroups();
         await fetchMembers();
       } else {
-        setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+        AgToast.show('error', r.body?.detail || r.body?.error || 'Erreur');
       }
     } catch (err) {
-      setNotif('error', err.message);
+      AgToast.show('error', err.message);
     }
   };
 
@@ -673,7 +673,7 @@
       });
 
       if (body?.ok) {
-        setNotif('success', 'Membre ajout\u00e9');
+        AgToast.show('success', 'Membre ajouté');
         document.getElementById('mName').value = '';
         document.getElementById('mEmail').value = '';
         document.getElementById('mActive').checked = true;
@@ -681,10 +681,10 @@
         Shared.fieldClear(emailInput);
         await fetchMembers();
       } else {
-        setNotif('error', body?.detail || body?.error || 'Erreur');
+        AgToast.show('error', body?.detail || body?.error || 'Erreur');
       }
     } catch (err) {
-      setNotif('error', err.message);
+      AgToast.show('error', err.message);
     } finally {
       Shared.btnLoading(btn, false);
     }
@@ -711,10 +711,10 @@
         updateStats(allMembers);
         renderMembers(allMembers);
       } else {
-        setNotif('error', body?.detail || body?.error || 'Erreur');
+        AgToast.show('error', body?.detail || body?.error || 'Erreur');
       }
     } catch (err) {
-      setNotif('error', err.message);
+      AgToast.show('error', err.message);
     }
   };
 
@@ -733,13 +733,13 @@
     try {
       var r = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
       if (r.body?.ok) {
-        setNotif('success', 'Membre supprim\u00e9');
+        AgToast.show('success', 'Membre supprimé');
         await fetchMembers();
       } else {
-        setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+        AgToast.show('error', r.body?.detail || r.body?.error || 'Erreur');
       }
     } catch (err) {
-      setNotif('error', err.message);
+      AgToast.show('error', err.message);
     }
   };
 
@@ -813,7 +813,7 @@
           }, 'PATCH');
 
           if (!body?.ok) {
-            setNotif('error', body?.detail || body?.error || 'Erreur');
+            AgToast.show('error', body?.detail || body?.error || 'Erreur');
             return false;
           }
 
@@ -824,19 +824,19 @@
               group_ids: selectedGroups
             }, 'PUT');
             if (!grpRes.body?.ok) {
-              setNotif('warning', 'Membre modifié mais les groupes n\u2019ont pas été mis à jour.');
+              AgToast.show('warning', 'Membre modifié mais les groupes n\'ont pas été mis à jour.');
               await fetchGroups();
               await fetchMembers();
               return true;
             }
           }
 
-          setNotif('success', 'Membre modifié');
+          AgToast.show('success', 'Membre modifié');
           await fetchGroups();
           await fetchMembers();
           return true;
         } catch (err) {
-          setNotif('error', err.message);
+          AgToast.show('error', err.message);
           return false;
         }
       }
@@ -957,7 +957,7 @@
 
         importOut.innerHTML = html;
         importOut.className = 'import-result';
-        setNotif('success', `Import terminé : ${imported} membres`);
+        AgToast.show('success', `Import terminé : ${imported} membres`);
         await fetchMembers();
       } else {
         importOut.innerHTML = `<div class="import-summary import-summary-err">${escapeHtml(body?.error || body?.detail || 'Erreur import')}</div>`;
@@ -989,13 +989,13 @@
     try {
       var r = await api('/api/v1/dev_seed_members.php', { count: 10 });
       if (r.body?.ok) {
-        setNotif('success', (r.body.data?.created || 0) + ' membres g\u00e9n\u00e9r\u00e9s');
+        AgToast.show('success', (r.body.data?.created || 0) + ' membres générés');
         await fetchMembers();
       } else {
-        setNotif('error', r.body?.detail || r.body?.error || 'Erreur');
+        AgToast.show('error', r.body?.detail || r.body?.error || 'Erreur');
       }
     } catch (err) {
-      setNotif('error', err.message);
+      AgToast.show('error', err.message);
     } finally {
       Shared.btnLoading(btn, false);
     }
