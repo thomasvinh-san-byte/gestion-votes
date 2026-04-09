@@ -295,7 +295,44 @@ test.describe('Error Handling UX', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 7. Page Load Performance
+// 7. POLISH-04: Micro-interaction hover states
+// ---------------------------------------------------------------------------
+test.describe('POLISH-04: Button micro-interactions', () => {
+
+  test('POLISH-04: .btn-primary has interactive hover state', async ({ page }) => {
+    // Use login page — has a visible .btn-primary submit button without requiring auth.
+    await page.goto('/login.html');
+    await page.waitForLoadState('domcontentloaded');
+
+    const btn = page.locator('.btn-primary, button[type="submit"]').first();
+    await expect(btn).toBeVisible({ timeout: 10000 });
+
+    const beforeStyles = await btn.evaluate((el) => {
+      const cs = window.getComputedStyle(el);
+      return { transform: cs.transform, boxShadow: cs.boxShadow };
+    });
+
+    await btn.hover();
+    // Allow the CSS transition to complete (--duration-normal = 150ms)
+    await page.waitForTimeout(250);
+
+    const afterStyles = await btn.evaluate((el) => {
+      const cs = window.getComputedStyle(el);
+      return { transform: cs.transform, boxShadow: cs.boxShadow };
+    });
+
+    const changed =
+      beforeStyles.transform !== afterStyles.transform ||
+      beforeStyles.boxShadow !== afterStyles.boxShadow;
+    expect(
+      changed,
+      `btn-primary hover must change transform or box-shadow (before=${JSON.stringify(beforeStyles)}, after=${JSON.stringify(afterStyles)})`
+    ).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Page Load Performance
 // ---------------------------------------------------------------------------
 test.describe('Page Load Performance', () => {
 
