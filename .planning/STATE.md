@@ -4,7 +4,7 @@ milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
 stopped_at: 16-02 BLOCKED — libatk missing, needs root to install Playwright deps
-last_updated: "2026-04-09T09:26:22.813Z"
+last_updated: "2026-04-09T09:26:41.840Z"
 last_activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
 progress:
   total_phases: 10
@@ -63,6 +63,7 @@ Progress: [███████░░░] 67%
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: Parametrized axeAudit matrix to 22 pages via PAGES array; extraDisabledRules plumbing ready for per-page waivers (D-10)
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: trust.htmx.html uses loginAsAdmin fallback (auditor/assessor not in fixtures) — to validate at baseline run in 16-02
 - [Phase 16]: 16-02 halted at Task 1 per Rule 4: baseline cannot be derived because chromium fails to launch (libatk-1.0.so.0 missing); Task 2 not attempted to avoid guessed fixes
+- [Phase 16]: Phase 16-03: Focus-trap spec injects deterministic ag-modal via page.evaluate() to decouple from fixture-specific modal triggers; shadow DOM check uses two-branch pattern (slotted closest + host.shadowRoot.activeElement) matching ag-modal Light+Shadow hybrid
 
 ### Existing Infrastructure
 
