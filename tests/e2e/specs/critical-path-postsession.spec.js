@@ -156,27 +156,17 @@ test.describe('E2E-POSTSESSION Post-session page critical path', () => {
     // Advanced chip is active by default (static HTML)
     await expect(chipAdvanced).toHaveClass(/active/, { timeout: 5000 });
 
-    // Click qualified via JS evaluate (chip toggle is a delegated click on #eidasChips)
-    await page.evaluate(() => {
-      const chip = document.querySelector('.chip[data-eidas="qualified"]');
-      if (chip) chip.click();
-    });
+    // LOOSE-02: natural Playwright clicks now that chip delegation is panel-visibility
+    // independent (document-level handler in postsession.js).
+    await page.locator('.chip[data-eidas="qualified"]').click();
     await expect(chipQualified).toHaveClass(/active/, { timeout: 5000 });
     await expect(chipAdvanced).not.toHaveClass(/active/, { timeout: 5000 });
 
-    // Click manuscript
-    await page.evaluate(() => {
-      const chip = document.querySelector('.chip[data-eidas="manuscript"]');
-      if (chip) chip.click();
-    });
+    await page.locator('.chip[data-eidas="manuscript"]').click();
     await expect(chipManuscript).toHaveClass(/active/, { timeout: 5000 });
     await expect(chipQualified).not.toHaveClass(/active/, { timeout: 5000 });
 
-    // Restore to advanced
-    await page.evaluate(() => {
-      const chip = document.querySelector('.chip[data-eidas="advanced"]');
-      if (chip) chip.click();
-    });
+    await page.locator('.chip[data-eidas="advanced"]').click();
     await expect(chipAdvanced).toHaveClass(/active/, { timeout: 5000 });
 
     // ── Interaction 8: Generate/Export PDF buttons present ───────────────────
