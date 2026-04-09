@@ -36,7 +36,7 @@ Fix three "documented but not blocking" issues from Phase 12, and audit Phase 12
 - **D-06:** Test: remove the `page.evaluate` workaround in the postsession spec and use a plain `page.click('[data-chip-type="eidas"]')` or similar natural click. If the test passes with a real click, LOOSE-02 is satisfied.
 
 ### LOOSE-03 — Phase 12 SUMMARY audit
-- **D-07:** Grep pattern: `grep -rEn "documented but not|TODO|known issue|to revisit|not blocking|déféré" .planning/phases/12-*/12-*-SUMMARY.md`
+- **D-07:** Grep pattern: `grep -rEn "documented but not|TODO|known issue|to revisit|not blocking|déféré" .planning/milestones/v1.2-phases/12-page-by-page-mvp-sweep/12-*-SUMMARY.md` (Phase 12 is archived under the v1.2 milestone)
 - **D-08:** For each finding, classify in a ledger `.planning/phases/17-loose-ends-phase-12/17-AUDIT-LEDGER.md`:
   - **Fix now:** Small enough to fix in this phase → open mini-task, commit
   - **V2 deferred:** Too large for closeout → add explicit "deferred to v2" note in original SUMMARY, document reason
@@ -56,8 +56,8 @@ Fix three "documented but not blocking" issues from Phase 12, and audit Phase 12
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Existing issue trail
-- `.planning/phases/12-page-by-page-mvp-sweep/12-01-SUMMARY.md` — LOOSE-01 source (settings race condition note)
-- `.planning/phases/12-page-by-page-mvp-sweep/12-15-SUMMARY.md` — LOOSE-02 source (postsession eIDAS chip fragility)
+- `.planning/milestones/v1.2-phases/12-page-by-page-mvp-sweep/12-01-SUMMARY.md` — LOOSE-01 source (settings race condition note)
+- `.planning/milestones/v1.2-phases/12-page-by-page-mvp-sweep/12-15-SUMMARY.md` — LOOSE-02 source (postsession eIDAS chip fragility)
 - All `.planning/phases/12-*/12-*-SUMMARY.md` files — LOOSE-03 audit scope
 
 ### Code touchpoints
