@@ -54,7 +54,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-4);
-  max-width: 1200px;
+  /* v1.2 MVP-01: full-width applicative grid — no artificial clamp */
 }
 
 /* =============================================================================
