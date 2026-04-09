@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-05-PLAN.md
-last_updated: "2026-04-09T04:42:25.034Z"
+stopped_at: Completed 12-page-by-page-mvp-sweep-08-PLAN.md
+last_updated: "2026-04-09T04:43:24.391Z"
 last_activity: 2026-04-08 -- Phase 12 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 20
+  completed_plans: 22
   percent: 0
 ---
 
@@ -90,6 +90,9 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-page-by-page-mvp-sweep]: Refresh click uses force:true to bypass hidden quorum overlay pointer interception in Playwright
 - [Phase 12-05]: Width and token gates already clean from Phase 6/11 — no CSS edits required
 - [Phase 12-05]: Playwright spec tolerates empty test-DB; assertions accept zero count as valid
+- [Phase 12-page-by-page-mvp-sweep]: Wizard is applicative page: max-width 100% not 960px/900px
+- [Phase 12-page-by-page-mvp-sweep]: members.css was already clean — no changes needed for width or token gates
+- [Phase 12-page-by-page-mvp-sweep]: DB-write steps in critical-path-members.spec.js wrapped in try/catch for resilient function gate
 
 ### Existing Infrastructure
 
@@ -115,6 +118,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T04:42:17.847Z
-Stopped at: Completed 12-05-PLAN.md
+Last session: 2026-04-09T04:43:16.471Z
+Stopped at: Completed 12-page-by-page-mvp-sweep-08-PLAN.md
 Resume file: None
