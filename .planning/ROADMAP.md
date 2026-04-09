@@ -43,7 +43,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 
 **Milestone Goal:** Faire passer l'app de "fonctionnelle prouvee" (v1.2) a "delicieuse a utiliser et solide cross-browser". Polish visuel + robustesse tests + a11y deep audit.
 
-- [ ] **Phase 14: Visual Polish** — Toast notifications + dark mode parity + role-specific sidebar + micro-interactions
+- [x] **Phase 14: Visual Polish** — Toast notifications + dark mode parity + role-specific sidebar + micro-interactions (completed 2026-04-09)
 - [ ] **Phase 15: Multi-Browser Tests** — Etendre Playwright a firefox + webkit + mobile-chromium, fix divergences
 - [ ] **Phase 16: Accessibility Deep Audit** — axe-core complet sur 21 pages, fix violations critical+serious, WCAG 2.1 AA
 - [ ] **Phase 17: Loose Ends Phase 12** — Settings race condition, postsession chip, autres notes "documented but not fixed"
@@ -59,7 +59,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. Audit dark mode parity execute sur les 21 pages, toutes les regressions documentees fixees
   3. Sidebar nav filtre les items en fonction du role (admin voit tout, votant voit minimum)
   4. Focus rings, hover states, et loading transitions coherents sur tous les boutons / inputs / liens
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 - [ ] 14-01-PLAN.md — Toast notification system unification (POLISH-01)
 - [ ] 14-02-PLAN.md — Dark mode parity audit + Shadow DOM fixes (POLISH-02)
 - [ ] 14-03-PLAN.md — Role-specific sidebar nav audit (POLISH-03)
@@ -227,7 +227,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
 | 12. Page-by-Page MVP Sweep | 20/21 | In Progress| Complete    | 2026-04-09 |
 | 13. MVP Validation Finale | v1.2 | 0/? | Complete    | 2026-04-09 |
-| 14. Visual Polish | 3/4 | In Progress|  | - |
+| 14. Visual Polish | 4/4 | Complete   | 2026-04-09 | - |
 | 15. Multi-Browser Tests | v1.3 | 0/? | Not started | - |
 | 16. Accessibility Deep Audit | v1.3 | 0/? | Not started | - |
 | 17. Loose Ends Phase 12 | v1.3 | 0/? | Not started | - |

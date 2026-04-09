@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: Completed 14-03-PLAN.md
-last_updated: "2026-04-09T07:01:03.629Z"
+stopped_at: Completed 14-visual-polish-02-PLAN.md
+last_updated: "2026-04-09T07:02:25.826Z"
 last_activity: 2026-04-09 -- Phase 14 execution started
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 14-visual-polish]: Used login page for POLISH-04 hover assertion — no auth required, idempotent
 - [Phase 14-visual-polish]: assessor removed from /trust data-requires-role — assessor is a meeting role, /trust is a system-wide audit dashboard (admin+auditor only per POLISH-03 matrix)
 - [Phase 14-visual-polish]: POLISH-01: members.js converted to AgToast.show() (27 call sites); adoption now at 9 pages
+- [Phase 14-visual-polish]: 14-02: Remove hex fallbacks from var(--token, #hex) in Shadow DOM — tokens guaranteed-present via shell.js load order
 
 ### Existing Infrastructure
 
@@ -84,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T07:01:01.240Z
-Stopped at: Completed 14-03-PLAN.md
+Last session: 2026-04-09T07:02:25.823Z
+Stopped at: Completed 14-visual-polish-02-PLAN.md
 Resume file: None
