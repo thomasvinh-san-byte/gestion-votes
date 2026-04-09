@@ -99,7 +99,7 @@ class AgModal extends HTMLElement {
           display: none;
           position: fixed;
           inset: 0;
-          background: var(--color-backdrop, rgba(0,0,0,0.5));
+          background: var(--color-backdrop);
           align-items: center;
           justify-content: center;
           z-index: var(--z-modal, 100);
@@ -111,8 +111,8 @@ class AgModal extends HTMLElement {
         .overlay-backdrop.open { opacity: 1; }
         .modal {
           width: min(${maxW}, 100%);
-          background: var(--color-surface-raised, #fff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface-raised);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           box-shadow: var(--shadow-lg);
           overflow: hidden;
@@ -128,7 +128,7 @@ class AgModal extends HTMLElement {
         }
         .modal-h {
           padding: var(--space-4, 16px) var(--space-5, 20px);
-          border-bottom: 1px solid var(--color-border-subtle, #e8e7e2);
+          border-bottom: 1px solid var(--color-border-subtle);
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -136,16 +136,16 @@ class AgModal extends HTMLElement {
         .modal-h .t {
           font-size: var(--text-sm, 0.875rem);
           font-weight: var(--font-semibold, 600);
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
         }
         .modal-close {
           width: 28px; height: 28px;
           display: flex; align-items: center; justify-content: center;
           border: none; background: none; border-radius: var(--radius-base, 8px);
-          cursor: pointer; color: var(--color-text-muted, #95a3a4);
+          cursor: pointer; color: var(--color-text-muted);
           transition: background var(--duration-fast, 150ms) ease;
         }
-        .modal-close:hover { background: var(--color-bg-subtle, #e8e7e2); }
+        .modal-close:hover { background: var(--color-bg-subtle); }
         .modal-close:focus-visible {
           outline: none;
           box-shadow: var(--shadow-focus);
@@ -154,7 +154,7 @@ class AgModal extends HTMLElement {
         .modal-b { padding: var(--space-5, 20px); }
         .modal-f {
           padding: var(--space-4, 16px) var(--space-5, 20px);
-          border-top: 1px solid var(--color-border-subtle, #e8e7e2);
+          border-top: 1px solid var(--color-border-subtle);
           display: flex;
           justify-content: flex-end;
           gap: var(--space-2, 8px);
