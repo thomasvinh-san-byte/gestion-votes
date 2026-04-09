@@ -1133,6 +1133,11 @@
   justify-content: center;
 }
 
+/* Ensure [hidden] attribute is respected despite display:flex override */
+.op-quorum-overlay[hidden] {
+  display: none;
+}
+
 .op-quorum-modal {
   max-width: 480px; /* component-internal cap (modal dialog), not a page container */
   width: 90%;
