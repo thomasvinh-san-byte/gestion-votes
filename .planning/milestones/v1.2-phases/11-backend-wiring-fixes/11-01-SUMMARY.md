@@ -85,4 +85,8 @@ All 136 tests (9 new + 127 pre-existing) pass in the combined run.
 
 None — plan executed exactly as written.
 
-## Self-Check
+## Self-Check: PASSED
+
+All key files exist. Both task commits verified:
+- `13b785d0` — QuorumEngine settings wiring + test
+- `00a0fb3b` — VoteEngine settings wiring + test
