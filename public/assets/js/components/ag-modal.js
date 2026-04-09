@@ -76,10 +76,16 @@ class AgModal extends HTMLElement {
     if (!all.length) return;
     const first = all[0];
     const last = all[all.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
+    // Traverse shadow DOM to find the real active element (document.activeElement
+    // stops at shadow boundaries and returns the ag-modal host instead of the focused button).
+    let active = document.activeElement;
+    while (active?.shadowRoot?.activeElement) {
+      active = active.shadowRoot.activeElement;
+    }
+    if (e.shiftKey && active === first) {
       e.preventDefault();
       last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
+    } else if (!e.shiftKey && active === last) {
       e.preventDefault();
       first.focus();
     }
