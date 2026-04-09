@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-10-PLAN.md
-last_updated: "2026-04-09T05:02:59.488Z"
+stopped_at: Completed 12-09-PLAN.md (audit page MVP sweep)
+last_updated: "2026-04-09T05:03:52.159Z"
 last_activity: 2026-04-08 -- Phase 12 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 27
-  completed_plans: 24
+  completed_plans: 25
   percent: 0
 ---
 
@@ -96,6 +96,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-07]: Removed 5 artificial max-width caps on vote page containers; kept blocked-overlay-inner 520px modal constraint
 - [Phase 12-page-by-page-mvp-sweep]: archives.css already compliant in v4.4 — zero changes needed for width or token gates
 - [Phase 12-page-by-page-mvp-sweep]: critical-path-archives.spec.js: single test covers all 7 interactions to avoid auth overhead
+- [Phase 12-09]: audit.css was already token-pure and full-width at v4.3; KPI gate adapted to visibility-only for empty test DB
 
 ### Existing Infrastructure
 
@@ -121,6 +122,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:02:51.021Z
-Stopped at: Completed 12-10-PLAN.md
+Last session: 2026-04-09T05:03:52.156Z
+Stopped at: Completed 12-09-PLAN.md (audit page MVP sweep)
 Resume file: None
