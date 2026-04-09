@@ -44,8 +44,8 @@ Declared values (8px base grid, expressed as `--space-*` tokens):
 | 3xl | 64px (`--space-16`) | Page-level outer padding |
 
 Exceptions:
-- Toast container offset from viewport edge: 20px (`--space-5`) — fixed position, not on grid
-- Sidebar collapsed rail: 58px (`--sidebar-rail`) — fixed by sidebar design contract
+- Toast container offset from viewport edge: 16px (`--space-4`) — fixed position, on grid
+- Sidebar collapsed rail: 56px (`--sidebar-rail`) — 4×14, fixed by sidebar design contract
 - Sidebar expanded: 252px (`--sidebar-expanded`) — fixed by sidebar design contract
 - Touch targets for sidebar nav items: minimum 44px height enforced by existing nav-item styles
 
@@ -55,16 +55,16 @@ Source: `design-system.css` lines 252–293
 
 ## Typography
 
+### Formal scale (4 sizes, 2 weights)
+
 | Role | Size | Weight | Line Height | Token |
 |------|------|--------|-------------|-------|
-| Body / UI chrome | 14px | 400 (regular) | 1.571 | `--text-base`, `--leading-base` |
-| Label / small UI | 13px | 500 (medium) | 1.55 | `--text-sm`, `--leading-sm` |
-| Subheading / card title | 16px | 600 (semibold) | 1.5 | `--text-md`, `--leading-md` |
-| Page heading | 20px | 700 (bold) | 1.35 | `--text-xl`, `--leading-xl` |
+| Micro / toast message | 12px | 400 (regular) | 1.45 | `--text-xs`, `--leading-xs` |
+| Body / UI chrome / nav label | 14px | 400 (regular) | 1.571 | `--text-base`, `--leading-base` |
+| Subheading / card title / label | 16px | 600 (semibold) | 1.5 | `--text-md`, `--leading-md` |
+| Page heading | 20px | 600 (semibold) | 1.35 | `--text-xl`, `--leading-xl` |
 
 Rules for this phase:
-- Toast message text: 12px (`--text-xs`), weight 500, line-height 1.45 — already implemented in `ag-toast.js`
-- Sidebar nav labels: 14px (`--text-base`), weight 400
 - Focus ring label text: never smaller than 12px
 - No additional font sizes introduced in this phase — polish only, no new typographic patterns
 
@@ -107,6 +107,20 @@ Source: `design-system.css` lines 318–398, 418–449, 616+
 
 ---
 
+## Focal Points
+
+One primary focal point declared per screen family. The focal point is the element that carries the most visual weight and draws the eye first.
+
+| Screen | Focal point element | Implementation |
+|--------|---------------------|----------------|
+| Dashboard (`dashboard.html`) | KPI row (`<ag-kpi>` cards) — 4-column grid at top of content area | Larger type (`--text-xl`) and accent border-top on active KPI, full bleed on mobile |
+| Operator page (`operator.html`) | Action bar — vote control cluster (open/close/cancel buttons) centered in a `--color-surface-alt` raised panel | `var(--shadow-md)` + 24px internal padding; distinguishes action zone from status list below |
+| Vote app member selector (`vote.html`) | Member selection list — full-height scrollable panel left of the ballot form | `var(--color-primary)` left border on selected row; empty state centered with CTA |
+
+No other screens require a declared focal point in this phase. Remaining pages use standard card hierarchy (heading → content → actions).
+
+---
+
 ## Component Contracts
 
 ### POLISH-01 — Toast Notification System
@@ -122,7 +136,7 @@ AgToast.show(type, message, duration?)
 ```
 
 **Visual contract:**
-- Container: `position: fixed; top: 20px; right: 20px; z-index: var(--z-toast, 800)`
+- Container: `position: fixed; top: 16px; right: 16px; z-index: var(--z-toast, 800)`
 - Toast width: 356px (`--toast-width`)
 - Accent stripe: 3px left inset box-shadow in semantic color (`--toast-accent-width`)
 - Dismiss animation: `translateX(20px) scale(0.96)` over 300ms
