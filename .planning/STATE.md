@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: 16-02 BLOCKED — libatk missing, needs root to install Playwright deps
-last_updated: "2026-04-09T09:26:41.840Z"
+stopped_at: Completed 16-04-PLAN.md
+last_updated: "2026-04-09T09:28:36.947Z"
 last_activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 67
 ---
 
@@ -64,6 +64,7 @@ Progress: [███████░░░] 67%
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: trust.htmx.html uses loginAsAdmin fallback (auditor/assessor not in fixtures) — to validate at baseline run in 16-02
 - [Phase 16]: 16-02 halted at Task 1 per Rule 4: baseline cannot be derived because chromium fails to launch (libatk-1.0.so.0 missing); Task 2 not attempted to avoid guessed fixes
 - [Phase 16]: Phase 16-03: Focus-trap spec injects deterministic ag-modal via page.evaluate() to decouple from fixture-specific modal triggers; shadow DOM check uses two-branch pattern (slotted closest + host.shadowRoot.activeElement) matching ag-modal Light+Shadow hybrid
+- [Phase 16]: 16-04: contrast audit runner gated by CONTRAST_AUDIT env; requires Docker playwright image (host libs missing)
 
 ### Existing Infrastructure
 
@@ -90,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T09:26:22.713Z
-Stopped at: 16-02 BLOCKED — libatk missing, needs root to install Playwright deps
+Last session: 2026-04-09T09:28:36.944Z
+Stopped at: Completed 16-04-PLAN.md
 Resume file: None
