@@ -13,7 +13,7 @@ namespace AgVote\Controller;
 class SettingsController extends AbstractController {
 
     public function settings(): void {
-        $body = api_request();
+        $body = api_request('GET', 'POST');
         $action = $body['action'] ?? '';
         $tenantId = api_current_tenant_id();
 
@@ -24,7 +24,7 @@ class SettingsController extends AbstractController {
                 if (isset($data['settSmtpPass']) && $data['settSmtpPass'] !== '') {
                     $data['settSmtpPass'] = '*****';
                 }
-                api_ok(['data' => $data]);
+                api_ok($data);
                 break;
 
             case 'update':

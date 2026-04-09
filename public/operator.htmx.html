@@ -1177,7 +1177,7 @@
           <!-- Execution mode header -->
           <div class="op-exec-header" id="opExecHeader">
             <div class="op-exec-header-left">
-              <span class="op-live-dot" aria-label="Session en cours"></span>
+              <span class="op-live-dot" role="status" aria-label="Session en cours"></span>
               <h1 class="op-exec-title" id="opExecTitle">--</h1>
             </div>
             <div class="op-exec-header-right">
@@ -1258,7 +1258,7 @@
             </div>
 
             <!-- Resolution progress bar (segmented) -->
-            <div class="op-resolution-progress" id="opResolutionProgress" hidden aria-label="Progression des résolutions">
+            <div class="op-resolution-progress" id="opResolutionProgress" hidden role="progressbar" aria-label="Progression des résolutions">
               <!-- Segments filled dynamically by JS -->
             </div>
 
@@ -1294,7 +1294,7 @@
               <!-- Resolution card with live dot, title, tags, sub-tabs -->
               <div class="op-resolution-card" id="opResolutionCard">
                 <div class="op-resolution-header">
-                  <span class="op-live-dot" id="opResLiveDot" hidden aria-label="Vote en cours"></span>
+                  <span class="op-live-dot" id="opResLiveDot" hidden role="status" aria-label="Vote en cours"></span>
                   <h2 class="op-resolution-title" id="opResTitle">Aucune résolution sélectionnée</h2>
                   <div class="op-resolution-tags" id="opResTags">
                     <!-- Tags filled by JS: majorite, cle, secret -->

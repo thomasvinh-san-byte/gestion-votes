@@ -25,7 +25,13 @@ async function axeAudit(page, pageName) {
 
   if (blockers.length > 0) {
     const msg = blockers
-      .map((v) => `  - [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} nodes)`)
+      .map((v) => {
+        const nodeList = v.nodes
+          .slice(0, 5)
+          .map((n) => `      → ${n.target.join(' ')} | ${(n.html || '').slice(0, 80)}`)
+          .join('\n');
+        return `  - [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} nodes)\n${nodeList}`;
+      })
       .join('\n');
     throw new Error(`Axe audit failed on ${pageName}:\n${msg}`);
   }

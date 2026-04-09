@@ -77,42 +77,42 @@ test.describe('Axe audits per key page', () => {
   test('dashboard.htmx.html has no critical axe violations', async ({ page }) => {
     await loginAsOperator(page);
     await page.goto('/dashboard.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
     await axeAudit(page, 'dashboard.htmx.html');
   });
 
   test('meetings.htmx.html has no critical axe violations', async ({ page }) => {
     await loginAsOperator(page);
     await page.goto('/meetings.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
     await axeAudit(page, 'meetings.htmx.html');
   });
 
   test('members.htmx.html has no critical axe violations', async ({ page }) => {
     await loginAsOperator(page);
     await page.goto('/members.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
     await axeAudit(page, 'members.htmx.html');
   });
 
   test('operator.htmx.html has no critical axe violations', async ({ page }) => {
     await loginAsOperator(page);
     await page.goto('/operator.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
     await axeAudit(page, 'operator.htmx.html');
   });
 
   test('settings.htmx.html has no critical axe violations', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/settings.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
     await axeAudit(page, 'settings.htmx.html');
   });
 
   test('audit.htmx.html has no critical axe violations', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/audit.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
     await axeAudit(page, 'audit.htmx.html');
   });
 });

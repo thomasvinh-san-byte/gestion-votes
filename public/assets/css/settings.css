@@ -91,6 +91,11 @@
   gap: var(--space-6);
 }
 
+/* Ensure [hidden] attribute is respected despite display:flex override */
+.settings-panel[hidden] {
+  display: none;
+}
+
 /* =============================================================================
    CARD OVERRIDES FOR SETTINGS
    ============================================================================= */
