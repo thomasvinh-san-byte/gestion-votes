@@ -1,0 +1,28 @@
+# =============================================================================
+# docker-compose.override.yml — DEV ONLY
+# =============================================================================
+# Bind-mounts the host `public/` directory into the running app container so
+# that edits to HTML/CSS/JS are picked up without rebuilding the image.
+#
+# Why: the production Dockerfile COPYs `public/` at build time and runs the
+# rootfs read-only. In development this means HTML edits are invisible to the
+# running container until `docker compose build app` is re-executed. This
+# override removes that friction so e2e/a11y tests run against the live tree.
+#
+# Phase 16 (a11y deep audit) discovered the issue when 16-02 axe baseline ran
+# against a stale image and reported violations that had already been fixed in
+# 16-01. Adding this override unblocks the loop.
+#
+# Production safety: docker compose ignores this file when an explicit
+# `-f docker-compose.yml` is used (e.g. in CI/CD deploys). Local `docker
+# compose up` picks it up automatically. Do NOT use in production deploy
+# pipelines.
+# =============================================================================
+services:
+  app:
+    read_only: false
+    volumes:
+      - type: bind
+        source: ./public
+        target: /var/www/public
+        read_only: true
