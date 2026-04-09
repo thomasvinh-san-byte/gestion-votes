@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { loginAsOperator, loginAsAdmin, OPERATOR_KEY } = require('../helpers');
+const { loginAsOperator, loginAsAdmin, loginAsVoter, OPERATOR_KEY } = require('../helpers');
 const { axeAudit } = require('../helpers/axeAudit');
 
 /**
@@ -59,60 +59,41 @@ test.describe('Accessibility', () => {
 
 });
 
-/**
- * Axe-core WCAG 2.0 A/AA audits per key page.
- * Each test navigates to the page, waits for content to settle, then runs
- * an automated audit asserting zero critical/serious violations.
- *
- * If an audit fails due to pre-existing violations in source HTML/CSS,
- * the test is skipped with a TODO referencing the rule ID (per TEST-03 scope).
- */
-test.describe('Axe audits per key page', () => {
-  test('login.html has no critical axe violations', async ({ page }) => {
-    await page.goto('/login.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#email')).toBeVisible();
-    await axeAudit(page, 'login.html');
-  });
+// Axe audit matrix — A11Y-01 — 21 HTMX pages + login.
+// loginFn: null = anonymous. requiredLocator: must be visible before axe runs (HTMX hydration safety).
+// extraDisabled: per-page waivers (D-09/D-10); keep empty until baseline run in plan 16-02.
+const PAGES = [
+  { path: '/login.html',                loginFn: null,            requiredLocator: '#email' },
+  { path: '/dashboard.htmx.html',       loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/meetings.htmx.html',        loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/members.htmx.html',         loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/operator.htmx.html',        loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/settings.htmx.html',        loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
+  { path: '/audit.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
+  { path: '/admin.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
+  { path: '/analytics.htmx.html',       loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/archives.htmx.html',        loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/docs.htmx.html',            loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/email-templates.htmx.html', loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
+  { path: '/help.htmx.html',            loginFn: null,            requiredLocator: 'h1' },
+  { path: '/hub.htmx.html',             loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/postsession.htmx.html',     loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/public.htmx.html',          loginFn: null,            requiredLocator: '.projection-header, main, [data-page]' },
+  { path: '/report.htmx.html',          loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/trust.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' }, // RESEARCH Pitfall 5: admin fallback
+  { path: '/users.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
+  { path: '/validate.htmx.html',        loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
+  { path: '/vote.htmx.html',            loginFn: loginAsVoter,    requiredLocator: '#meetingSelect, [data-page], main' },
+  { path: '/wizard.htmx.html',          loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' }, // wizard step 1 only, per RESEARCH p.362
+];
 
-  test('dashboard.htmx.html has no critical axe violations', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/dashboard.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
-    await axeAudit(page, 'dashboard.htmx.html');
-  });
-
-  test('meetings.htmx.html has no critical axe violations', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/meetings.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
-    await axeAudit(page, 'meetings.htmx.html');
-  });
-
-  test('members.htmx.html has no critical axe violations', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/members.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
-    await axeAudit(page, 'members.htmx.html');
-  });
-
-  test('operator.htmx.html has no critical axe violations', async ({ page }) => {
-    await loginAsOperator(page);
-    await page.goto('/operator.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
-    await axeAudit(page, 'operator.htmx.html');
-  });
-
-  test('settings.htmx.html has no critical axe violations', async ({ page }) => {
-    await loginAsAdmin(page);
-    await page.goto('/settings.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
-    await axeAudit(page, 'settings.htmx.html');
-  });
-
-  test('audit.htmx.html has no critical axe violations', async ({ page }) => {
-    await loginAsAdmin(page);
-    await page.goto('/audit.htmx.html', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('main, #content, [data-page]').first()).toBeVisible({ timeout: 10000 });
-    await axeAudit(page, 'audit.htmx.html');
-  });
+test.describe('Axe audits — 21 HTMX pages + login (A11Y-01)', () => {
+  for (const p of PAGES) {
+    test(`${p.path} has no critical/serious axe violations`, async ({ page }) => {
+      if (p.loginFn) await p.loginFn(page);
+      await page.goto(p.path, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator(p.requiredLocator).first()).toBeVisible({ timeout: 10000 });
+      await axeAudit(page, p.path, { extraDisabledRules: p.extraDisabled || [] });
+    });
+  }
 });
