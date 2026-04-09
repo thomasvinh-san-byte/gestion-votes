@@ -4,7 +4,8 @@
 
 - ✅ **v1.0 Dette Technique** - Phases 1-4 (shipped 2026-04-07) — see `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Coherence UI/UX et Wiring** - Phases 5-7 (shipped 2026-04-08) — see `.planning/milestones/v1.1-ROADMAP.md`
-- 🚧 **v1.2 Bouclage et Validation Bout-en-Bout** - Phases 8-13 (in progress, escalated to MVP scope)
+- ✅ **v1.2 Bouclage et Validation Bout-en-Bout** - Phases 8-13 (shipped 2026-04-09) — see `.planning/milestones/v1.2-ROADMAP.md`
+- 🚧 **v1.3 Polish Post-MVP** - Phases 14-17 (in progress)
 
 ## Phases
 
@@ -26,16 +27,70 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v1.2 Bouclage et Validation Bout-en-Bout (In Progress)
+<details>
+<summary>✅ v1.2 Bouclage et Validation Bout-en-Bout (Phases 8-13) - SHIPPED 2026-04-09</summary>
 
-**Milestone Goal (v2 — escalated):** Livrer un MVP qui passe 3 criteres stricts sur les 21 pages : (1) UI moderne pleine largeur (sauf pages de contenu docs/help qui restent ~80ch), (2) design language partage via design-system.css, (3) **chaque element fonctionnel** prouve par Playwright. Plus jamais "shows cards != fonctionne".
+See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 
-- [x] **Phase 8: Test Infrastructure Docker** — Playwright runs in container (completed 2026-04-08)
-- [x] **Phase 9: Tests E2E par Role** — 4 critical-path E2E specs GREEN (completed 2026-04-08)
-- [x] **Phase 10: Validation Manuelle Bout-en-Bout** — UAT artifacts generated, awaiting human walkthrough OR superseded by Phase 12 page sweep (completed 2026-04-08)
-- [x] **Phase 11: Backend Wiring Fixes** — Fix 5 phantom endpoints + wire 6 dead settings + close v1.0 carry-over tech debt (completed 2026-04-08)
-- [x] **Phase 12: Page-by-Page MVP Sweep** — 21 pages each must pass 3 gates: width audit, design tokens audit, function audit (Playwright assertion of real result) (completed 2026-04-09)
-- [x] **Phase 13: MVP Validation Finale** — Full Playwright suite + final UAT + ship verdict (completed 2026-04-09)
+**Phases:** 6 (8-13)
+**Plans:** 36
+**Critical-path Playwright specs:** 23 GREEN x 3 runs zero flake
+**Hotfixes delivered:** 5 (RateLimiter boot, nginx routing, login polish, cookie domain, HSTS preload)
+
+</details>
+
+### 🚧 v1.3 Polish Post-MVP (In Progress)
+
+**Milestone Goal:** Faire passer l'app de "fonctionnelle prouvee" (v1.2) a "delicieuse a utiliser et solide cross-browser". Polish visuel + robustesse tests + a11y deep audit.
+
+- [ ] **Phase 14: Visual Polish** — Toast notifications + dark mode parity + role-specific sidebar + micro-interactions
+- [ ] **Phase 15: Multi-Browser Tests** — Etendre Playwright a firefox + webkit + mobile-chromium, fix divergences
+- [ ] **Phase 16: Accessibility Deep Audit** — axe-core complet sur 21 pages, fix violations critical+serious, WCAG 2.1 AA
+- [ ] **Phase 17: Loose Ends Phase 12** — Settings race condition, postsession chip, autres notes "documented but not fixed"
+
+## Phase Details v1.3
+
+### Phase 14: Visual Polish
+**Goal**: L'app feel pro — feedback unifie, dark mode coherent, navigation adaptee par role
+**Depends on**: Phase 13 (v1.2 shipped)
+**Requirements**: POLISH-01, POLISH-02, POLISH-03, POLISH-04
+**Success Criteria** (what must be TRUE):
+  1. Un systeme de toast notification existe et est utilise par toutes les pages pour save/error/info feedback (au moins 5 pages converties)
+  2. Audit dark mode parity execute sur les 21 pages, toutes les regressions documentees fixees
+  3. Sidebar nav filtre les items en fonction du role (admin voit tout, votant voit minimum)
+  4. Focus rings, hover states, et loading transitions coherents sur tous les boutons / inputs / liens
+**Plans**: TBD
+
+### Phase 15: Multi-Browser Tests
+**Goal**: Les 23 critical-path specs passent en firefox + webkit + mobile-chromium en plus de chromium
+**Depends on**: Phase 14 (visual polish stable avant cross-browser)
+**Requirements**: CROSS-01, CROSS-02, CROSS-03
+**Success Criteria** (what must be TRUE):
+  1. playwright.config.js active firefox + webkit + mobile-chromium projects
+  2. bin/test-e2e.sh accepte --project flag pour cibler un browser
+  3. Les 23 critical-path specs passent en chromium + firefox + webkit + mobile-chromium (ou divergences documentees + fixes appliques)
+  4. Aucun spec en error ou skip non-justifie
+
+### Phase 16: Accessibility Deep Audit
+**Goal**: Aucune violation a11y critical/serious sur les 21 pages, conformance WCAG 2.1 AA
+**Depends on**: Phase 14
+**Requirements**: A11Y-01, A11Y-02, A11Y-03
+**Success Criteria** (what must be TRUE):
+  1. axe-core scan execute sur les 21 pages applicatives (rapport produit)
+  2. Toutes les violations critical + serious sont fixees ou explicitement justifiees (avec waiver documente)
+  3. Conformance WCAG 2.1 AA documentee dans .planning/v1.3-A11Y-REPORT.md (aria-labels, color contrast, keyboard nav, focus management)
+  4. Tests Playwright a11y integrent axe-core sur chaque critical-path spec
+
+### Phase 17: Loose Ends Phase 12
+**Goal**: Fix les issues "documented but not blocking" remontees pendant Phase 12
+**Depends on**: Phase 14
+**Requirements**: LOOSE-01, LOOSE-02, LOOSE-03
+**Success Criteria** (what must be TRUE):
+  1. Settings.js loadSettings race condition fixed — input #settQuorumThreshold se populate apres reload (test Playwright assertion ajoutee)
+  2. Postsession eIDAS chip click delegation robuste (pas de page.evaluate workaround dans les tests)
+  3. Audit complet des SUMMARY files de Phase 12 — toutes les notes "documented but not fixed" sont soit fixees soit reportees a v2 explicitement
+
+---
 
 ## Phase Details
 
@@ -168,3 +223,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
 | 12. Page-by-Page MVP Sweep | 20/21 | In Progress| Complete    | 2026-04-09 |
 | 13. MVP Validation Finale | v1.2 | 0/? | Complete    | 2026-04-09 |
+| 14. Visual Polish | v1.3 | 0/? | Not started | - |
+| 15. Multi-Browser Tests | v1.3 | 0/? | Not started | - |
+| 16. Accessibility Deep Audit | v1.3 | 0/? | Not started | - |
+| 17. Loose Ends Phase 12 | v1.3 | 0/? | Not started | - |
