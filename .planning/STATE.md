@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-page-by-page-mvp-sweep/12-12-PLAN.md
-last_updated: "2026-04-09T05:05:13.209Z"
+stopped_at: Completed 12-13-PLAN.md
+last_updated: "2026-04-09T05:17:08.240Z"
 last_activity: 2026-04-09 -- Completed 12-12 admin page MVP sweep
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 27
-  completed_plans: 27
+  completed_phases: 3
+  total_plans: 31
+  completed_plans: 28
   percent: 0
 ---
 
@@ -102,6 +102,8 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-12]: admin-content width: 100% — applicative pages (KPI dashboard + management tables) must fill viewport, not be constrained by content-narrow token
 - [Phase 12-12]: Spec named critical-path-admin-PAGE.spec.js to avoid collision with critical-path-admin.spec.js (admin ROLE flow)
 - [Phase 12-12]: E2E test fills create-user form but does NOT submit — avoids test user creation in DB; fields cleared after assertion
+- [Phase 12-13]: analytics.css width gate passes: only .donut-card max-width:360px (legacy, overridden by .donut-card--horizontal { max-width: none }). No applicative container cap.
+- [Phase 12-13]: analytics.css token gate passes: 83 var(--color-*) references, zero raw oklch/hex/rgba literals.
 
 ### Existing Infrastructure
 
@@ -127,6 +129,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:04:41.542Z
-Stopped at: Completed 12-page-by-page-mvp-sweep/12-11-PLAN.md
+Last session: 2026-04-09T05:17:00.481Z
+Stopped at: Completed 12-13-PLAN.md
 Resume file: None
