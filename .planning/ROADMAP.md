@@ -35,7 +35,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [x] **Phase 10: Validation Manuelle Bout-en-Bout** — UAT artifacts generated, awaiting human walkthrough OR superseded by Phase 12 page sweep (completed 2026-04-08)
 - [x] **Phase 11: Backend Wiring Fixes** — Fix 5 phantom endpoints + wire 6 dead settings + close v1.0 carry-over tech debt (completed 2026-04-08)
 - [x] **Phase 12: Page-by-Page MVP Sweep** — 21 pages each must pass 3 gates: width audit, design tokens audit, function audit (Playwright assertion of real result) (completed 2026-04-09)
-- [ ] **Phase 13: MVP Validation Finale** — Full Playwright suite + final UAT + ship verdict
+- [x] **Phase 13: MVP Validation Finale** — Full Playwright suite + final UAT + ship verdict (completed 2026-04-09)
 
 ## Phase Details
 
@@ -167,4 +167,4 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 10. Validation Manuelle Bout-en-Bout | v1.2 | 0/? | Complete    | 2026-04-08 |
 | 11. Backend Wiring Fixes | 7/7 | Complete   | Complete    | 2026-04-08 |
 | 12. Page-by-Page MVP Sweep | 20/21 | In Progress| Complete    | 2026-04-09 |
-| 13. MVP Validation Finale | v1.2 | 0/? | Not started | - |
+| 13. MVP Validation Finale | v1.2 | 0/? | Complete    | 2026-04-09 |

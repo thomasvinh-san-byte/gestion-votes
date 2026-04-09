@@ -45,8 +45,8 @@ Requirements pour le milestone Bouclage. Stop aux ajouts, focus sur la validatio
 
 ### Validation Finale MVP
 
-- [ ] **VAL-01**: `bin/test-e2e.sh` (full suite) retourne exit 0 sans flake (3 runs consecutifs identiques)
-- [ ] **VAL-02**: UAT manuel par les 4 roles PASS, zero blocker, zero gap critique. Rapport `.planning/v1.2-MVP-VALIDATION.md` produit avec verdict ship.
+- [x] **VAL-01**: `bin/test-e2e.sh` (full suite) retourne exit 0 sans flake (3 runs consecutifs identiques)
+- [x] **VAL-02**: UAT manuel par les 4 roles PASS, zero blocker, zero gap critique. Rapport `.planning/v1.2-MVP-VALIDATION.md` produit avec verdict ship.
 
 ## v2 Requirements
 
@@ -94,8 +94,8 @@ Reporte au prochain milestone (post-bouclage):
 | MVP-01 | Phase 12 | Complete |
 | MVP-02 | Phase 12 | Complete |
 | MVP-03 | Phase 12 | Complete |
-| VAL-01 | Phase 13 | Pending |
-| VAL-02 | Phase 13 | Pending |
+| VAL-01 | Phase 13 | Complete |
+| VAL-02 | Phase 13 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 20 total (15 original + 5 escalated MVP/VAL)
