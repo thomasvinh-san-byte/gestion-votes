@@ -163,7 +163,7 @@
   flex-direction: column;
   padding: 1.5rem;
   overflow-y: auto;
-  max-width: 720px;
+  max-width: 100%;
   margin-inline: auto;
   width: 100%;
 }
@@ -677,7 +677,7 @@
   grid-template-columns: 1fr;
   align-items: stretch;
   gap: 10px;
-  max-width: 480px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
 }
@@ -1332,7 +1332,7 @@
 @media (min-width: 769px) and (orientation: landscape) {
   .vote-buttons {
     grid-template-columns: 1fr;
-    max-width: 480px;
+    max-width: 100%;
   }
 }
 
@@ -1484,7 +1484,7 @@
 
 /* ─── Tablet frame constraint ─── */
 .vote-app {
-  max-width: 780px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -1726,7 +1726,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  max-width: 480px;
+  max-width: 100%;
 }
 
 [data-vote-state="voting"] .vote-btn {
