@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: Completed 16-04-PLAN.md
-last_updated: "2026-04-09T09:28:36.947Z"
-last_activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-04-09T09:46:41.467Z"
+last_activity: 2026-04-09 -- Completed 16-02-PLAN.md (axe baseline + batch-fix, 26/26 GREEN)
 progress:
   total_phases: 10
   completed_phases: 1
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 16 (accessibility-deep-audit) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Executing Phase 16
-Last activity: 2026-04-09 -- Completed 16-01-PLAN.md (a11y audit infrastructure)
+Last activity: 2026-04-09 -- Completed 16-02-PLAN.md (axe baseline + batch-fix, 26/26 GREEN)
 
 Progress: [███████░░░] 67%
 
@@ -62,9 +62,11 @@ Progress: [███████░░░] 67%
 - [Phase 14-visual-polish]: 14-02: Remove hex fallbacks from var(--token, #hex) in Shadow DOM — tokens guaranteed-present via shell.js load order
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: Parametrized axeAudit matrix to 22 pages via PAGES array; extraDisabledRules plumbing ready for per-page waivers (D-10)
 - [Phase 16-accessibility-deep-audit]: Phase 16-01: trust.htmx.html uses loginAsAdmin fallback (auditor/assessor not in fixtures) — to validate at baseline run in 16-02
-- [Phase 16]: 16-02 halted at Task 1 per Rule 4: baseline cannot be derived because chromium fails to launch (libatk-1.0.so.0 missing); Task 2 not attempted to avoid guessed fixes
+- [Phase 16]: 16-02: baseline captured via Docker (bin/test-e2e.sh), 5 unique rule-ids fixed across admin/public/vote/operator — final 26/26 GREEN, no waivers needed
 - [Phase 16]: Phase 16-03: Focus-trap spec injects deterministic ag-modal via page.evaluate() to decouple from fixture-specific modal triggers; shadow DOM check uses two-branch pattern (slotted closest + host.shadowRoot.activeElement) matching ag-modal Light+Shadow hybrid
 - [Phase 16]: 16-04: contrast audit runner gated by CONTRAST_AUDIT env; requires Docker playwright image (host libs missing)
+- [Phase 16]: 16-02: bind-mount public/ into app container via dev-only docker-compose.override.yml — production image bakes public/ read-only, dev edits were invisible
+- [Phase 16]: 16-02: ag-searchable-select forwards host aria-label to inner [role=combobox] for accessible name on all consumers
 
 ### Existing Infrastructure
 
@@ -87,10 +89,10 @@ None.
 ### Blockers/Concerns
 
 - Phase 84 HARD-03: exact list of .htmx.html files with critical-tokens blocks should be verified before planning (research said 22 files)
-- Phase 16-02 blocked: Playwright chromium cannot launch — libatk-1.0.so.0 missing on host. Run 'npx playwright install-deps chromium' as root to unblock. See 16-02-BASELINE.md.
+- (cleared 2026-04-09) Phase 16-02 blocker resolved: bin/test-e2e.sh runs Playwright in Docker; docker-compose.override.yml now bind-mounts public/ so dev HTML edits are picked up without rebuild.
 
 ## Session Continuity
 
-Last session: 2026-04-09T09:28:36.944Z
-Stopped at: Completed 16-04-PLAN.md
+Last session: 2026-04-09T09:46:41.464Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
