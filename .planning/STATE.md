@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Visual Identity Evolution
 status: executing
-stopped_at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
-last_updated: "2026-04-03T11:33:35.094Z"
+stopped_at: Completed 12-page-by-page-mvp-sweep/12-18-PLAN.md
+last_updated: "2026-04-09T05:57:37.864Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 3
@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 - [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
 - [Phase 84]: Token name --color-primary-text is canonical for text on primary backgrounds (not --color-text-on-primary or --color-primary-contrast)
 - [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
+- [Phase 12-page-by-page-mvp-sweep]: Docker CSP blocks inline scripts (script-src without unsafe-inline) — DISP-01 dark theme assertion must be CSP-aware: accept null or dark
 
 ### Existing Infrastructure
 
@@ -80,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:45:51.496Z
-Stopped at: Completed 84-02-PLAN.md — HARD-01 satisfied, all hardcoded hex/rgba stripped from 17 CSS files
+Last session: 2026-04-09T05:57:37.861Z
+Stopped at: Completed 12-page-by-page-mvp-sweep/12-18-PLAN.md
 Resume file: None
