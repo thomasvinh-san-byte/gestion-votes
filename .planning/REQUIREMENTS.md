@@ -14,9 +14,9 @@
 
 ### Multi-Browser Tests
 
-- [ ] **CROSS-01**: Etendre playwright.config.js pour activer firefox + webkit + mobile-chromium (chromium-only en v1.2)
-- [ ] **CROSS-02**: Run les 23 critical-path specs sur les 4 browsers, fix les divergences (CSS prefixes, focus behavior, layout differences)
-- [ ] **CROSS-03**: bin/test-e2e.sh accepte un --project flag pour cibler un browser specifique
+- [x] **CROSS-01**: Etendre playwright.config.js pour activer firefox + webkit + mobile-chromium (chromium-only en v1.2)
+- [x] **CROSS-02**: Run les 23 critical-path specs sur les 4 browsers, fix les divergences (CSS prefixes, focus behavior, layout differences)
+- [x] **CROSS-03**: bin/test-e2e.sh accepte un --project flag pour cibler un browser specifique
 
 ### Accessibility Deep Audit
 
@@ -55,9 +55,9 @@
 | POLISH-02 | Phase 14 | Complete |
 | POLISH-03 | Phase 14 | Complete |
 | POLISH-04 | Phase 14 | Complete |
-| CROSS-01 | Phase 15 | Pending |
-| CROSS-02 | Phase 15 | Pending |
-| CROSS-03 | Phase 15 | Pending |
+| CROSS-01 | Phase 15 | Complete |
+| CROSS-02 | Phase 15 | Complete |
+| CROSS-03 | Phase 15 | Complete |
 | A11Y-01 | Phase 16 | Pending |
 | A11Y-02 | Phase 16 | Pending |
 | A11Y-03 | Phase 16 | Pending |

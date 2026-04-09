@@ -44,7 +44,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 **Milestone Goal:** Faire passer l'app de "fonctionnelle prouvee" (v1.2) a "delicieuse a utiliser et solide cross-browser". Polish visuel + robustesse tests + a11y deep audit.
 
 - [x] **Phase 14: Visual Polish** — Toast notifications + dark mode parity + role-specific sidebar + micro-interactions (completed 2026-04-09)
-- [ ] **Phase 15: Multi-Browser Tests** — Etendre Playwright a firefox + webkit + mobile-chromium, fix divergences
+- [x] **Phase 15: Multi-Browser Tests** — Etendre Playwright a firefox + webkit + mobile-chromium, fix divergences (completed 2026-04-09)
 - [ ] **Phase 16: Accessibility Deep Audit** — axe-core complet sur 21 pages, fix violations critical+serious, WCAG 2.1 AA
 - [ ] **Phase 17: Loose Ends Phase 12** — Settings race condition, postsession chip, autres notes "documented but not fixed"
 
@@ -124,7 +124,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   4. `tests/e2e/specs/critical-path-votant.spec.js` execute vote token -> page de vote -> soumettre -> confirmation en passant
   5. Les 4 specs sont re-runnable (unique IDs, pas de cleanup manuel requis)
 
-**Plans:** 5/5 plans complete
+**Plans:** 1/0 plans complete
 - [ ] 09-01-PLAN.md — Cookie domain fix in auth.setup.js (prerequisite, Wave 1)
 - [ ] 09-02-PLAN.md — E2E-01 admin critical path spec (Wave 2)
 - [ ] 09-03-PLAN.md — E2E-02 operator critical path spec (Wave 2)
@@ -228,6 +228,6 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 12. Page-by-Page MVP Sweep | 20/21 | In Progress| Complete    | 2026-04-09 |
 | 13. MVP Validation Finale | v1.2 | 0/? | Complete    | 2026-04-09 |
 | 14. Visual Polish | 4/4 | Complete   | Complete    | 2026-04-09 |
-| 15. Multi-Browser Tests | v1.3 | 0/? | Not started | - |
+| 15. Multi-Browser Tests | v1.3 | 0/? | Complete    | 2026-04-09 |
 | 16. Accessibility Deep Audit | v1.3 | 0/? | Not started | - |
 | 17. Loose Ends Phase 12 | v1.3 | 0/? | Not started | - |
