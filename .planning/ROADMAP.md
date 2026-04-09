@@ -100,7 +100,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. Postsession eIDAS chip click delegation robuste (pas de page.evaluate workaround dans les tests)
   3. Audit complet des SUMMARY files de Phase 12 — toutes les notes "documented but not fixed" sont soit fixees soit reportees a v2 explicitement
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 - [ ] 17-01-PLAN.md — Fix loadSettings race + regression assertion [LOOSE-01, Wave 1]
 - [ ] 17-02-PLAN.md — Fix eIDAS chip delegation + remove page.evaluate workaround [LOOSE-02, Wave 1]
 - [ ] 17-03-PLAN.md — Audit Phase 12 SUMMARY files + classification ledger [LOOSE-03, Wave 2]
@@ -241,4 +241,4 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 14. Visual Polish | 4/4 | Complete   | Complete    | 2026-04-09 |
 | 15. Multi-Browser Tests | v1.3 | 0/? | Complete    | 2026-04-09 |
 | 16. Accessibility Deep Audit | 5/5 | Complete   | 2026-04-09 | - |
-| 17. Loose Ends Phase 12 | 1/3 | In Progress|  | - |
+| 17. Loose Ends Phase 12 | 2/3 | In Progress|  | - |

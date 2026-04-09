@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: completed
-stopped_at: Completed 16-05-PLAN.md — phase 16 done
-last_updated: "2026-04-09T11:05:49.924Z"
+stopped_at: Completed 17-01-PLAN.md (LOOSE-01 settings race fixed)
+last_updated: "2026-04-09T11:07:43.146Z"
 last_activity: 2026-04-09 -- Completed 16-05-PLAN.md (v1.3-A11Y-REPORT.md, 7 sections, A11Y-03 satisfied)
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
   percent: 100
 ---
 
@@ -69,6 +69,7 @@ Progress: [██████████] 100%
 - [Phase 16]: 16-02: ag-searchable-select forwards host aria-label to inner [role=combobox] for accessible name on all consumers
 - [Phase 16]: 16-05: v1.3-A11Y-REPORT.md declares partial WCAG 2.1 AA conformance — structural+keyboard conformant, contrast deferred to token remediation phase
 - [Phase 17]: 17-02: document-level eIDAS chip click delegation (panel-visibility independent)
+- [Phase 17-loose-ends-phase-12]: LOOSE-01 root cause: loadSettings used POST {action:list} which raced CSRF/middleware; fix swaps to GET ?action=list and adds window.__settingsLoaded handshake
 
 ### Existing Infrastructure
 
@@ -95,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T09:56:18.698Z
-Stopped at: Completed 16-05-PLAN.md — phase 16 done
+Last session: 2026-04-09T11:07:38.436Z
+Stopped at: Completed 17-01-PLAN.md (LOOSE-01 settings race fixed)
 Resume file: None
