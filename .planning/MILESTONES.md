@@ -1,5 +1,25 @@
 # Milestones
 
+## v1.3 Polish Post-MVP (Shipped: 2026-04-09)
+
+**Phases completed:** 4 phases, 12 plans, 14 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- One-liner:
+- One-liner:
+- Pre-existing (no changes needed):
+- Status:
+- Axe audit matrix extended from 7 hand-written tests to a 22-page parametrized PAGES array with per-page waiver plumbing, unblocking A11Y-01 baseline.
+- None.
+- File created:
+- `tests/e2e/specs/contrast-audit.spec.js`
+- File created:
+- Switched settings.js loadSettings from POST to GET, extracted snapshot applier with defensive re-apply, exposed window.__settingsLoaded handshake, and locked the UI population path with a Playwright regression assertion that previously had to be bypassed.
+
+---
+
 ## v1.2 Bouclage et Validation Bout-en-Bout (Shipped: 2026-04-09)
 
 **Phases completed:** 6 phases (8-13), 36 plans, 23 critical-path Playwright specs

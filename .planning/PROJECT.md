@@ -61,44 +61,35 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-Shipped v1.2 — Bouclage et Validation Bout-en-Bout milestone complete (2026-04-09).
+Shipped v1.3 — Polish Post-MVP milestone complete (2026-04-09).
 
-**The project is shippable.** Every page passes 3 gates: UI pleine largeur, design language partage, every element functionally proven by Playwright.
+**The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance.
 
-- 23 critical-path Playwright specs GREEN (3 runs consecutifs, zero flake, ~1.2m total)
-- 21 pages applicatives auditees et reparees (Phase 12 sweep)
-- 5 endpoints fantomes prouves (procuration_pdf, motions_override_decision, invitations_send_reminder, meeting_attachments_public, meeting_attachment_serve)
-- 3 vote settings (settVoteMode, settQuorumThreshold, settMajority) wired dans VoteEngine + QuorumEngine
-- Test infrastructure Docker reproductible (bin/test-e2e.sh + mcr.microsoft.com/playwright)
-- Dette tech v1.0 fully closed (getDashboardStats wiring + 2 controller refactors)
+- **Visual polish shipped:** toast notification system unifié, dark mode parity audit (21 pages), role-specific sidebar nav filter, micro-interactions (focus rings, hover states, loading transitions)
+- **Multi-browser matrix:** chromium 25/25, firefox 25/25, webkit 23/25, mobile-chrome 21/25 (deferred webkit/mobile critical-path gaps documented in 15-CROSS-BROWSER-REPORT.md)
+- **Accessibility:**
+  - 22 pages parametrized axe audit (from 7 hand-written tests)
+  - 47 critical/serious structural violations fixed across 5 rule-id batches (zero waivers)
+  - keyboard-nav.spec.js created — 6/6 tests green (skip-link, Tab order, ag-modal shadow DOM focus trap)
+  - contrast-audit.spec.js + v1.3-CONTRAST-AUDIT.json produced (22/22 pages)
+  - v1.3-A11Y-REPORT.md — partial WCAG 2.1 AA conformance declared
+  - 4 real a11y regressions discovered by runtime validation and fixed: login autofocus, auth-banner ordering, operator overlay [hidden] CSS x2, ag-modal `_trapFocus` shadow DOM traversal
+- **Loose ends Phase 12 closed:** settings loadSettings race (POST→GET + defensive re-apply + __settingsLoaded handshake), postsession eIDAS chip delegation (document-level with idempotency guard), Phase 12 SUMMARY audit ledger (6 findings: 2 resolved, 3 v2 deferred, 0 fix-now)
+- **Dev infra:** dev-only docker-compose.override.yml bind-mounts public/ for live JS iteration without rebuilds
 
-Hotfixes critiques delivres en cours de v1.2 :
-- RateLimiter::configure() boot regression (app crashait sur chaque API call)
-- nginx clean URL routing (regression de plusieurs semaines)
-- Cookie domain via Redis TCP direct (Phase 9 prerequis tests)
-- Chrome HSTS preload .app collision (network alias agvote)
-- Login 2-panel redesign polish
+## Tech Debt Carried to v1.4
 
-## Current Milestone: v1.3 Polish Post-MVP
-
-**Goal:** Faire passer l'app de "fonctionnelle prouvee" (v1.2) a "delicieuse a utiliser et solide cross-browser". Polish visuel + robustesse tests.
-
-**Target features:**
-- Visual polish: toast notification system, dark mode parity audit, role-specific sidebar nav, micro-interactions
-- Multi-browser tests: extend Phase 8 to firefox + webkit + mobile-chromium, run 23 critical-path specs cross-browser
-- a11y deep audit: axe-core complet sur les 21 pages, fix critical + serious violations, WCAG 2.1 AA
-- Loose ends Phase 12: settings loadSettings race, postsession eIDAS chip, minor known issues
-
-## Tech Debt Carried to v1.3 (post-MVP)
-
-- Multi-browser test matrix (firefox/webkit) — currently chromium-only via Phase 8 setup
-- axe-core accessibility deep audit — baseline integrated in v1.1, deep audit deferred
-- HTMX 2.0 upgrade — breaking changes (hx-on case sensitivity), separate milestone
-- Visual regression testing (snapshot comparison) — separate milestone
+- **Contrast remediation** — 316 nodes across 22 pages, 42 unique (fg, bg) pairs, dominant `#988d7a` muted-foreground. Worst ratio 1.83 on wizard. User accepted Option A (ship with partial AA, schedule token remediation phase). Design-system-level work.
+- **V2-OVERLAY-HITTEST** — systematic sweep of `[hidden]` + `display:flex` overlay pattern (16-02 fixed 2 reactively; codebase-wide audit pending)
+- **V2-TRUST-DEPLOY** — trust.htmx.html auditor/assessor role fixtures missing (loginAsAdmin fallback in place)
+- **V2-CSP-INLINE-THEME** — inline theme init scripts conflict with strict CSP; needs nonce or externalization
+- **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
+- **HTMX 2.0 upgrade** — breaking changes (hx-on case sensitivity), separate milestone
+- **Visual regression testing** — snapshot comparison, separate milestone
 
 ## Next Milestone
 
-(Not yet started — run `/gsd:new-milestone` to begin v1.2)
+(Not yet started — run `/gsd:new-milestone` to begin v1.4)
 
 ## Context
 
@@ -128,6 +119,9 @@ Hotfixes critiques delivres en cours de v1.2 :
 | Fiabilite prod avant qualite de code | Un crash prod est pire qu'un controller trop long | ✓ Good — all file fallbacks eliminated, timeouts configured |
 | DI nullable constructors for testability | Enables mock injection without framework overhead | ✓ Good — ImportService tested with mock RepositoryFactory |
 | Controller splits deferred to v2 | Existing tests assert private method existence, making splits disruptive | ⚠️ Revisit — MeetingReportsController and MotionsController still >700 lines |
+| axeAudit.js disables color-contrast in structural runner | Contrast depends on light/dark theme and design tokens; avoid blocking CI on false positives tuned elsewhere | ✓ Good — D-04 methodology split, contrast audited separately via v1.3-CONTRAST-AUDIT.json, 316 nodes DEFERRED to token phase |
+| ag-modal focus trap must traverse shadowRoot.activeElement chain | `document.activeElement` stops at shadow boundary and returns the host, not the focused button inside shadow root — Shift+Tab wrap was silently broken | ✓ Good — fixed in phase 16 gap closure (commit ef0fc529), documented as reusable pattern in RESEARCH.md |
+| Dev-only docker-compose.override.yml bind-mounts public/ | Production Dockerfile COPYs public/ at build time; live JS iteration required a rebuild cycle, blocking fast a11y test loops | ✓ Good — unblocked phase 16-02 baseline capture, kept out of production image |
 
 ## Evolution
 
@@ -147,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after v1.2 milestone start*
+*Last updated: 2026-04-09 after v1.3 milestone completion*

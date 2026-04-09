@@ -4,8 +4,8 @@ milestone: v1.3
 milestone_name: Polish Post-MVP
 status: completed
 stopped_at: Completed 17-03-PLAN.md (LOOSE-03 audit ledger)
-last_updated: "2026-04-09T11:12:31.681Z"
-last_activity: 2026-04-09 -- Completed 16-05-PLAN.md (v1.3-A11Y-REPORT.md, 7 sections, A11Y-03 satisfied)
+last_updated: "2026-04-09T11:22:50.941Z"
+last_activity: 2026-04-09
 progress:
   total_phases: 10
   completed_phases: 3
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 Phase: 16 (accessibility-deep-audit) — COMPLETE
 Plan: 5 of 5 done (phase closed)
 Status: Phase 16 complete — ready for Phase 17
-Last activity: 2026-04-09 -- Completed 16-05-PLAN.md (v1.3-A11Y-REPORT.md, 7 sections, A11Y-03 satisfied)
+Last activity: 2026-04-09
 
 Progress: [██████████] 100%
 
