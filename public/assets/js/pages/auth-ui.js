@@ -149,7 +149,29 @@
       '</div>';
 
     var shell = document.querySelector('.app-shell') || document.body;
-    shell.prepend(b);
+    // A11Y: preserve skip-links as first focusable children. When falling back
+    // to document.body, insert the banner after any leading .skip-link anchors
+    // so the first Tab still reaches the skip-link.
+    if (shell === document.body) {
+      var anchor = null;
+      var children = shell.children;
+      for (var i = 0; i < children.length; i++) {
+        if (children[i].classList && children[i].classList.contains('skip-link')) {
+          anchor = children[i];
+        } else {
+          break;
+        }
+      }
+      if (anchor && anchor.nextSibling) {
+        shell.insertBefore(b, anchor.nextSibling);
+      } else if (anchor) {
+        shell.appendChild(b);
+      } else {
+        shell.prepend(b);
+      }
+    } else {
+      shell.prepend(b);
+    }
 
     // Update sidebar top offset to account for auth banner height
     requestAnimationFrame(function () {
