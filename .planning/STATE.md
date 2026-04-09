@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-15-PLAN.md
-last_updated: "2026-04-09T05:20:12.709Z"
+stopped_at: Completed 12-14-PLAN.md (critical-path-report.spec.js)
+last_updated: "2026-04-09T05:21:11.234Z"
 last_activity: 2026-04-09 -- Completed 12-12 admin page MVP sweep
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 31
-  completed_plans: 29
+  completed_plans: 30
   percent: 0
 ---
 
@@ -105,6 +105,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-13]: analytics.css width gate passes: only .donut-card max-width:360px (legacy, overridden by .donut-card--horizontal { max-width: none }). No applicative container cap.
 - [Phase 12-13]: analytics.css token gate passes: 83 var(--color-*) references, zero raw oklch/hex/rgba literals.
 - [Phase 12-15]: MeetingContext uses sessionStorage not localStorage — addInitScript must use sessionStorage.setItem
+- [Phase 12-14]: Use toBeAttached() over toBeVisible() for elements managed by report.js disableExports()
 
 ### Existing Infrastructure
 
@@ -130,6 +131,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:20:12.706Z
-Stopped at: Completed 12-15-PLAN.md
+Last session: 2026-04-09T05:21:11.231Z
+Stopped at: Completed 12-14-PLAN.md (critical-path-report.spec.js)
 Resume file: None
