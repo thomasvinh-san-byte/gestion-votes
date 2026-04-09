@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-04-09T09:46:41.467Z"
-last_activity: 2026-04-09 -- Completed 16-02-PLAN.md (axe baseline + batch-fix, 26/26 GREEN)
+stopped_at: Completed 16-05-PLAN.md — phase 16 done
+last_updated: "2026-04-09T09:56:18.702Z"
+last_activity: 2026-04-09 -- Completed 16-05-PLAN.md (v1.3-A11Y-REPORT.md, phase 16 done, A11Y-03 satisfied)
 progress:
   total_phases: 10
-  completed_phases: 1
-  total_plans: 9
-  completed_plans: 9
-  percent: 67
+  completed_phases: 3
+  total_plans: 10
+  completed_plans: 10
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 16 — accessibility-deep-audit
+**Current focus:** Phase 17 — Loose Ends Phase 12 (next)
 
 ## Current Position
 
-Phase: 16 (accessibility-deep-audit) — EXECUTING
-Plan: 3 of 5
-Status: Executing Phase 16
-Last activity: 2026-04-09 -- Completed 16-02-PLAN.md (axe baseline + batch-fix, 26/26 GREEN)
+Phase: 16 (accessibility-deep-audit) — COMPLETE
+Plan: 5 of 5 done (phase closed)
+Status: Phase 16 complete — ready for Phase 17
+Last activity: 2026-04-09 -- Completed 16-05-PLAN.md (v1.3-A11Y-REPORT.md, 7 sections, A11Y-03 satisfied)
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
@@ -67,6 +67,7 @@ Progress: [███████░░░] 67%
 - [Phase 16]: 16-04: contrast audit runner gated by CONTRAST_AUDIT env; requires Docker playwright image (host libs missing)
 - [Phase 16]: 16-02: bind-mount public/ into app container via dev-only docker-compose.override.yml — production image bakes public/ read-only, dev edits were invisible
 - [Phase 16]: 16-02: ag-searchable-select forwards host aria-label to inner [role=combobox] for accessible name on all consumers
+- [Phase 16]: 16-05: v1.3-A11Y-REPORT.md declares partial WCAG 2.1 AA conformance — structural+keyboard conformant, contrast deferred to token remediation phase
 
 ### Existing Infrastructure
 
@@ -93,6 +94,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T09:46:41.464Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-04-09T09:56:18.698Z
+Stopped at: Completed 16-05-PLAN.md — phase 16 done
 Resume file: None
