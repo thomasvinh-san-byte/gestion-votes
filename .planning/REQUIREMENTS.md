@@ -27,7 +27,7 @@
 ### Loose Ends Phase 12
 
 - [ ] **LOOSE-01**: Settings.js loadSettings race condition — input #settQuorumThreshold ne se populate pas apres reload (documente dans 12-01 SUMMARY)
-- [ ] **LOOSE-02**: Postsession eIDAS chip click delegation fragile (documente dans 12-15 SUMMARY)
+- [x] **LOOSE-02**: Postsession eIDAS chip click delegation fragile (documente dans 12-15 SUMMARY)
 - [ ] **LOOSE-03**: Audit autres SUMMARY files de Phase 12 pour trouver les notes "documented but not fixed"
 
 ## v2 Requirements (deferred to next milestone)
@@ -62,7 +62,7 @@
 | A11Y-02 | Phase 16 | Complete |
 | A11Y-03 | Phase 16 | Complete |
 | LOOSE-01 | Phase 17 | Pending |
-| LOOSE-02 | Phase 17 | Pending |
+| LOOSE-02 | Phase 17 | Complete |
 | LOOSE-03 | Phase 17 | Pending |
 
 **Coverage:**
