@@ -1534,6 +1534,11 @@ h4, .h4 {
   border-color: var(--color-border-strong);
 }
 
+.btn-secondary:active:not(:disabled) {
+  transform: scale(.98) translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
 .btn-success {
   background: linear-gradient(180deg, var(--color-success) 0%, color-mix(in oklch, var(--color-success), black 8%) 100%);
   color: var(--color-text-inverse);
@@ -1568,6 +1573,10 @@ h4, .h4 {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 1px 2px rgba(220,38,38,.2);
 }
 
+.btn-danger:focus-visible {
+  box-shadow: var(--shadow-focus-danger);
+}
+
 .btn-warning {
   background: var(--color-warning);
   color: var(--color-text-inverse);
@@ -1599,6 +1608,11 @@ h4, .h4 {
 .btn-ghost:hover:not(:disabled) {
   background: var(--color-bg-subtle);
   color: var(--color-text);
+}
+
+.btn-ghost:active:not(:disabled) {
+  transform: scale(.98) translateY(0);
+  background: var(--color-neutral-subtle);
 }
 
 /* Button sizes */
@@ -1653,6 +1667,16 @@ h4, .h4 {
 
 .btn-link:hover {
   color: var(--color-primary-hover);
+}
+
+/* Reduced-motion safety for button transforms */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:hover,
+  .btn:active {
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* ─── Cards ─── */
