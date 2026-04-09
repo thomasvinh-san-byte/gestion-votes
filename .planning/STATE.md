@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Bouclage et Validation Bout-en-Bout
 status: executing
-stopped_at: Completed 12-page-by-page-mvp-sweep/12-06-PLAN.md
-last_updated: "2026-04-09T04:43:31.370Z"
+stopped_at: Completed 12-07-PLAN.md
+last_updated: "2026-04-09T04:44:26.153Z"
 last_activity: 2026-04-08 -- Phase 12 execution started
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
   percent: 0
 ---
 
@@ -93,6 +93,7 @@ Progress: [░░░░░░░░░░] 0% (v1.2: 0/4 phases)
 - [Phase 12-page-by-page-mvp-sweep]: Wizard is applicative page: max-width 100% not 960px/900px
 - [Phase 12-page-by-page-mvp-sweep]: members.css was already clean — no changes needed for width or token gates
 - [Phase 12-page-by-page-mvp-sweep]: DB-write steps in critical-path-members.spec.js wrapped in try/catch for resilient function gate
+- [Phase 12-07]: Removed 5 artificial max-width caps on vote page containers; kept blocked-overlay-inner 520px modal constraint
 
 ### Existing Infrastructure
 
@@ -118,6 +119,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T04:43:31.365Z
-Stopped at: Completed 12-page-by-page-mvp-sweep/12-06-PLAN.md
+Last session: 2026-04-09T04:44:26.147Z
+Stopped at: Completed 12-07-PLAN.md
 Resume file: None
