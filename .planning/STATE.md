@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Polish Post-MVP
 status: executing
-stopped_at: Completed 14-04-PLAN.md
-last_updated: "2026-04-09T07:00:19.740Z"
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-04-09T07:01:03.629Z"
 last_activity: 2026-04-09 -- Phase 14 execution started
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 3
   percent: 0
 ---
 
@@ -57,6 +57,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
 - [Phase 12-page-by-page-mvp-sweep]: Docker CSP blocks inline scripts (script-src without unsafe-inline) — DISP-01 dark theme assertion must be CSP-aware: accept null or dark
 - [Phase 14-visual-polish]: Used login page for POLISH-04 hover assertion — no auth required, idempotent
+- [Phase 14-visual-polish]: assessor removed from /trust data-requires-role — assessor is a meeting role, /trust is a system-wide audit dashboard (admin+auditor only per POLISH-03 matrix)
+- [Phase 14-visual-polish]: POLISH-01: members.js converted to AgToast.show() (27 call sites); adoption now at 9 pages
 
 ### Existing Infrastructure
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09T07:00:14.782Z
-Stopped at: Completed 14-04-PLAN.md
+Last session: 2026-04-09T07:01:01.240Z
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None
