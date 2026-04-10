@@ -10,12 +10,12 @@
 - [x] **CONTRAST-01** : L'application atteint WCAG 2.1 AA contrast 4.5:1 sur toutes les paires fg/bg identifiées dans v1.3-CONTRAST-AUDIT.json (316 nœuds → 0 violation)
 - [x] **CONTRAST-02** : Les tokens modifiés sont propagés dans les critical-tokens inline blocks des 22 .htmx.html dans le même commit que `:root` / `[data-theme="dark"]`
 - [x] **CONTRAST-03** : Les fallbacks hex des Shadow DOM (`var(--token, #hex)`) sont retirés pour les 23 Web Components
-- [ ] **CONTRAST-04** : v1.3-A11Y-REPORT.md est mis à jour — conformance WCAG 2.1 AA déclarée (plus "partial")
+- [x] **CONTRAST-04** : v1.3-A11Y-REPORT.md est mis à jour — conformance WCAG 2.1 AA déclarée (plus "partial")
 
 ### Overlay Hittest (OVERLAY)
 
-- [ ] **OVERLAY-01** : Une règle CSS globale `:where([hidden]) { display: none !important }` bloque le conflit `[hidden]` + `display: flex`
-- [ ] **OVERLAY-02** : Un audit codebase-wide recense tous les sites `display: flex` sur éléments pouvant recevoir `[hidden]` et documente leur statut
+- [x] **OVERLAY-01** : Une règle CSS globale `:where([hidden]) { display: none !important }` bloque le conflit `[hidden]` + `display: flex`
+- [x] **OVERLAY-02** : Un audit codebase-wide recense tous les sites `display: flex` sur éléments pouvant recevoir `[hidden]` et documente leur statut
 - [ ] **OVERLAY-03** : Un test Playwright smoke vérifie que `[hidden]` → computed `display: none` sur ≥3 pages représentatives
 
 ### Trust Fixtures (TRUST)
@@ -75,9 +75,9 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | CONTRAST-01 | Phase 1 — Contrast AA Remediation | Complete |
 | CONTRAST-02 | Phase 1 — Contrast AA Remediation | Complete |
 | CONTRAST-03 | Phase 1 — Contrast AA Remediation | Complete |
-| CONTRAST-04 | Phase 1 — Contrast AA Remediation | Pending |
-| OVERLAY-01 | Phase 2 — Overlay Hittest Sweep | Pending |
-| OVERLAY-02 | Phase 2 — Overlay Hittest Sweep | Pending |
+| CONTRAST-04 | Phase 1 — Contrast AA Remediation | Complete |
+| OVERLAY-01 | Phase 2 — Overlay Hittest Sweep | Complete |
+| OVERLAY-02 | Phase 2 — Overlay Hittest Sweep | Complete |
 | OVERLAY-03 | Phase 2 — Overlay Hittest Sweep | Pending |
 | TRUST-01 | Phase 3 — Trust Fixtures Deploy | Pending |
 | TRUST-02 | Phase 3 — Trust Fixtures Deploy | Pending |

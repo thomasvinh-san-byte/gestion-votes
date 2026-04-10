@@ -178,8 +178,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | CONTRAST-01 | 1 | 3/3 | Complete   | 2026-04-10 | 1 | Contrast |
 | CONTRAST-03 | 1 | Contrast |
 | CONTRAST-04 | 1 | Contrast |
-| OVERLAY-01 | 2 | Overlay |
-| OVERLAY-02 | 2 | Overlay |
+| OVERLAY-01 | 2 | 1/2 | In Progress|  | 2 | Overlay |
 | OVERLAY-03 | 2 | Overlay |
 | TRUST-01 | 3 | Trust |
 | TRUST-02 | 3 | Trust |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: verifying
-stopped_at: Completed 01-03-PLAN.md (0 violations, CONFORME declared, checkpoint pending)
-last_updated: "2026-04-10T05:51:28.495Z"
-last_activity: 2026-04-10
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-04-10T06:08:40.293Z"
+last_activity: 2026-04-10 -- Completed 02-01-PLAN.md
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 5
+  completed_plans: 4
+  percent: 80
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 01 — contrast-aa-remediation
+**Current focus:** Phase 02 — overlay-hittest-sweep
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase 01 complete — awaiting human-verify checkpoint
-Last activity: 2026-04-10
+Phase: 02 (overlay-hittest-sweep) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 02 (Plan 1 complete)
+Last activity: 2026-04-10 -- Completed 02-01-PLAN.md
 
-**Progress:** [██████████] 100%
+**Progress:** [████████░░] 80%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,8 @@ Last activity: 2026-04-10
 
 ### v1.4 Decisions
 
+- [02-01]: Single :where([hidden]) rule with !important in @layer base replaces all 16 per-selector overrides
+- [02-01]: :not([hidden]) selectors in design-system.css (transition reveal animations) intentionally preserved -- positive selectors, not overrides
 - [01-01]: Audit hex values (#988d7a, #bdb7a9, #9d9381, #4d72d8) are COMPUTED RGB, not source literals — zero grep matches across public/. Source tokens identified via CSS cascade analysis.
 - [01-01]: One --color-text-muted shift (L* 0.648 → 0.47 light, cool 0.45 → warm 0.78 dark) covers 3 of 4 audit families (muted text + wizard step opacity blend + kpi tooltip variant)
 - [01-01]: --color-primary left untouched (brand identity); new --color-primary-on-subtle companion token added for chip-on-primary-subtle. Wiring deferred to plan 01-02.
@@ -142,8 +144,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T05:35:00.000Z
-Stopped at: Completed 01-03-PLAN.md (0 violations, CONFORME declared, checkpoint pending)
+Last session: 2026-04-10T06:08:40.290Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
 
 **Next action:** Approve visual checkpoint (Task 4 of 01-03) then `/gsd:transition` to Phase 2
