@@ -30,6 +30,24 @@ final class SecurityProvider {
     }
 
     /**
+     * Build the report-only CSP header value (testable, no side effects).
+     *
+     * Uses nonce + strict-dynamic for script-src. style-src keeps unsafe-inline
+     * alongside nonce for JS innerHTML style attributes and older browsers.
+     *
+     * @return string CSP header value (without header name prefix)
+     */
+    public static function buildReportOnlyCsp(): string {
+        $nonce = self::nonce();
+
+        return "default-src 'self'; "
+            . "script-src 'nonce-{$nonce}' 'strict-dynamic'; "
+            . "style-src 'self' 'nonce-{$nonce}' 'unsafe-inline' https://fonts.googleapis.com; "
+            . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
+            . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'";
+    }
+
+    /**
      * Send standard security headers (CSP, HSTS, etc.).
      */
     public static function headers(): void {
@@ -45,13 +63,17 @@ final class SecurityProvider {
         header('Cross-Origin-Opener-Policy: same-origin');
         header('Cross-Origin-Resource-Policy: same-origin');
 
-        // CSP — no unsafe-inline for scripts (no inline <script> in templates).
-        // style-src keeps unsafe-inline: 50+ dynamic inline styles in JS innerHTML.
+        // Enforcing CSP — baseline defense with script-src 'self' (no nonce yet).
         header("Content-Security-Policy: default-src 'self'; "
             . "script-src 'self'; "
             . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
             . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
+
+        // Report-only CSP — nonce + strict-dynamic for safe rollout validation.
+        // Violations appear in browser console as [Report Only] warnings without
+        // blocking resources. Once validated, this becomes the enforcing header.
+        header('Content-Security-Policy-Report-Only: ' . self::buildReportOnlyCsp());
 
         // HSTS in HTTPS (also detect TLS-terminating reverse proxy via X-Forwarded-Proto)
         $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
