@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-10T05:31:04.417Z",
+  "generatedAt": "2026-04-10T05:33:40.088Z",
   "runner": "@axe-core/playwright withRules([color-contrast])",
   "wcagLevel": "wcag2aa",
   "pages": [
@@ -35,82 +35,8 @@
     },
     {
       "path": "/audit.htmx.html",
-      "violationCount": 1,
-      "violations": [
-        {
-          "id": "color-contrast",
-          "impact": "serious",
-          "help": "Elements must meet minimum color contrast ratio thresholds",
-          "nodes": [
-            {
-              "target": [
-                "button[data-type=\"\"]"
-              ],
-              "html": "<button class=\"filter-tab active\" data-type=\"\" role=\"tab\" aria-selected=\"true\">Tous</button>",
-              "contrastRatio": 3.99,
-              "fgColor": "#faf9f7",
-              "bgColor": "#5777d4",
-              "fontSize": "9.8pt (13px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".audit-col-timestamp > ag-tooltip"
-              ],
-              "html": "<ag-tooltip text=\"Date et heure précise de l'événement (UTC)\" position=\"bottom\">Horodatage</ag-tooltip>",
-              "contrastRatio": 4.14,
-              "fgColor": "#6e6757",
-              "bgColor": "#e2ddd2",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".audit-col-event > ag-tooltip"
-              ],
-              "html": "<ag-tooltip text=\"Type et description de l'action enregistrée\" position=\"bottom\">Événement</ag-tooltip>",
-              "contrastRatio": 4.14,
-              "fgColor": "#6e6757",
-              "bgColor": "#e2ddd2",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".audit-col-user > ag-tooltip"
-              ],
-              "html": "<ag-tooltip text=\"Compte utilisateur à l'origine de l'action\" position=\"bottom\">Utilisateur</ag-tooltip>",
-              "contrastRatio": 4.14,
-              "fgColor": "#6e6757",
-              "bgColor": "#e2ddd2",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".audit-col-hash > ag-tooltip"
-              ],
-              "html": "<ag-tooltip text=\"Hash SHA-256 garantissant l'intégrité de l'entrée\" position=\"bottom\">Empreinte</ag-tooltip>",
-              "contrastRatio": 4.14,
-              "fgColor": "#6e6757",
-              "bgColor": "#e2ddd2",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "td > .empty-state.animate-fade-in > .empty-state-description"
-              ],
-              "html": "<div class=\"empty-state-description\">Ouvrez une séance depuis le tableau de bord pour afficher son journal d'audit.</div",
-              "contrastRatio": 3.91,
-              "fgColor": "#7f776a",
-              "bgColor": "#f3f1eb",
-              "fontSize": "9.8pt (13px)",
-              "fontWeight": "normal"
-            }
-          ]
-        }
-      ]
+      "violationCount": 0,
+      "violations": []
     },
     {
       "path": "/admin.htmx.html",
@@ -124,27 +50,8 @@
     },
     {
       "path": "/archives.htmx.html",
-      "violationCount": 1,
-      "violations": [
-        {
-          "id": "color-contrast",
-          "impact": "serious",
-          "help": "Elements must meet minimum color contrast ratio thresholds",
-          "nodes": [
-            {
-              "target": [
-                ".empty-state-description"
-              ],
-              "html": "<div class=\"empty-state-description\">Les séances validées et archivées apparaissent ici.</div>",
-              "contrastRatio": 3.79,
-              "fgColor": "#827a6c",
-              "bgColor": "#f4f2ed",
-              "fontSize": "9.8pt (13px)",
-              "fontWeight": "normal"
-            }
-          ]
-        }
-      ]
+      "violationCount": 0,
+      "violations": []
     },
     {
       "path": "/docs.htmx.html",
@@ -153,38 +60,8 @@
     },
     {
       "path": "/email-templates.htmx.html",
-      "violationCount": 1,
-      "violations": [
-        {
-          "id": "color-contrast",
-          "impact": "serious",
-          "help": "Elements must meet minimum color contrast ratio thresholds",
-          "nodes": [
-            {
-              "target": [
-                "#emptyState > p"
-              ],
-              "html": "<p class=\"text-muted\">Créez des templates email pour personnaliser vos invitations.</p>",
-              "contrastRatio": 4.43,
-              "fgColor": "#6f6758",
-              "bgColor": "#e8e5dc",
-              "fontSize": "10.5pt (14px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "#btnEmptyCreate"
-              ],
-              "html": "<button class=\"btn btn-primary mt-4\" id=\"btnEmptyCreate\">\n          <svg class=\"icon icon-text\" aria-hidden=\"true\"><use ",
-              "contrastRatio": 3.95,
-              "fgColor": "#faf9f7",
-              "bgColor": "#5778d4",
-              "fontSize": "9.8pt (13px)",
-              "fontWeight": "normal"
-            }
-          ]
-        }
-      ]
+      "violationCount": 0,
+      "violations": []
     },
     {
       "path": "/help.htmx.html",
@@ -208,49 +85,8 @@
     },
     {
       "path": "/report.htmx.html",
-      "violationCount": 1,
-      "violations": [
-        {
-          "id": "color-contrast",
-          "impact": "serious",
-          "help": "Elements must meet minimum color contrast ratio thresholds",
-          "nodes": [
-            {
-              "target": [
-                "div[data-step=\"validated\"] > .pv-step-label"
-              ],
-              "html": "<span class=\"pv-step-label\">Validé</span>",
-              "contrastRatio": 4.45,
-              "fgColor": "#6e6757",
-              "bgColor": "#e8e5dc",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "div[data-step=\"sent\"] > .pv-step-label"
-              ],
-              "html": "<span class=\"pv-step-label\">Envoyé</span>",
-              "contrastRatio": 4.45,
-              "fgColor": "#6e6757",
-              "bgColor": "#e8e5dc",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "div[data-step=\"archived\"] > .pv-step-label"
-              ],
-              "html": "<span class=\"pv-step-label\">Archivé</span>",
-              "contrastRatio": 4.45,
-              "fgColor": "#6e6757",
-              "bgColor": "#e8e5dc",
-              "fontSize": "9.0pt (12px)",
-              "fontWeight": "normal"
-            }
-          ]
-        }
-      ]
+      "violationCount": 0,
+      "violations": []
     },
     {
       "path": "/trust.htmx.html",
@@ -278,6 +114,6 @@
       "violations": []
     }
   ],
-  "totalViolations": 4,
-  "uniquePairs": 7
+  "totalViolations": 0,
+  "uniquePairs": 0
 }

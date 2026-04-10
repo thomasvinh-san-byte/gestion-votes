@@ -327,7 +327,7 @@ table {
   --color-text:           var(--stone-700);  /* oklch(0.530 0.025 80) */
   --color-text-dark:      var(--stone-900);  /* oklch(0.180 0.012 75) */
   --color-text-secondary: var(--stone-900);  /* oklch(0.180 0.012 75) */
-  --color-text-muted:     oklch(0.360 0.030 82);  /* was oklch(0.470) — iteratively darkened for AA on all warm surfaces incl. striped rows (01-03) */
+  --color-text-muted:     oklch(0.340 0.030 82);  /* was oklch(0.470) — iteratively darkened for AA on all warm surfaces incl. mid-animation states (01-03) */
   --color-text-light:     var(--stone-500);  /* oklch(0.760 0.028 85) */
   --color-text-inverse:   oklch(1 0 0);      /* white */
   --color-text-disabled:  var(--stone-400);  /* oklch(0.833 0.022 88) */

@@ -61,6 +61,8 @@ test.describe('Contrast audit (manual, one-shot)', () => {
         if (p.loginFn) await p.loginFn(page);
         await page.goto(p.path, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector(p.requiredLocator.split(',')[0].trim(), { timeout: 10_000 }).catch(() => {});
+        // Wait for CSS animations (fadeIn, etc.) to settle before measuring contrast
+        await page.waitForTimeout(500);
         const results = await new AxeBuilder({ page })
           .withTags(['wcag2aa'])
           .withRules(['color-contrast'])
