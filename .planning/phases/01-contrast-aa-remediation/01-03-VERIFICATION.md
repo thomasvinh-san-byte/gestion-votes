@@ -78,6 +78,46 @@
   25. design-system.css: tag-accent/success/purple -> on-subtle tokens, stripped tag-purple hex fallbacks
   26. contrast-audit.spec.js: added totalViolations + uniquePairs aggregation to output
 
+### Run 4 (cache-disabled, post all fixes)
+
+- **Timestamp:** 2026-04-10T05:31:00Z
+- **Result:** 1 violation (1 unique pair) — archives empty-state-description mid-fadeIn animation
+- **Fix applied:** Bumped --color-text-muted L0.360 -> L0.340, added 500ms animation settle wait in spec
+
+### Run 5 (definitive)
+
+- **Timestamp:** 2026-04-10T05:33:00Z
+- **Result:** **0 violations, 0 unique pairs across 22 pages**
+- **Commits:** 04a90287, 7fe099b1, b2a4e109
+
+### Token Summary (final values)
+
+| Token | Light mode | Dark mode |
+|-------|-----------|-----------|
+| --color-text-muted | oklch(0.340 0.030 82) | oklch(0.780 0.020 82) |
+| --color-primary | oklch(0.480 0.195 265) | var(--blue-400) unchanged |
+| --color-success-text | oklch(0.350 0.135 155) | oklch(0.650 0.155 155) |
+| --color-success-on-subtle | oklch(0.350 0.135 155) | oklch(0.650 0.155 155) |
+| --color-danger-text | oklch(0.430 0.175 25) | var(--red-500) unchanged |
+| --color-accent-text | oklch(0.400 0.170 298) | oklch(0.700 0.175 298) |
+| --color-accent-on-subtle | oklch(0.400 0.170 298) | oklch(0.700 0.175 298) |
+| --color-purple-on-subtle | oklch(0.400 0.170 298) | oklch(0.700 0.175 298) |
+| --color-primary-on-subtle | oklch(0.440 0.190 265) | oklch(0.820 0.100 265) |
+
 ## Regression Tests
 
-(Documented in Task 2 section below — pending execution)
+### accessibility.spec.js
+
+- **Command:** `bin/test-e2e.sh specs/accessibility.spec.js`
+- **Timestamp:** 2026-04-10T05:25:00Z
+- **Result:** 26 passed (52.3s)
+- **Baseline match:** 26/26 (v1.3 Phase 16-02 baseline)
+- **Conclusion:** No structural regression
+
+### keyboard-nav.spec.js
+
+- **Command:** `bin/test-e2e.sh specs/keyboard-nav.spec.js`
+- **Timestamp:** 2026-04-10T05:26:00Z
+- **Result:** 6 passed (12.7s)
+- **Baseline match:** 6/6 (v1.3 Phase 16-04 baseline)
+- **Conclusion:** No keyboard navigation regression
