@@ -108,8 +108,8 @@ final class MeetingAttachmentController extends AbstractController {
     }
 
     public function delete(): void {
-        $input = api_request('DELETE');
-        $id = trim((string) ($input['id'] ?? ''));
+        api_request('DELETE');
+        $id = api_query('id');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_id', 400);
         }

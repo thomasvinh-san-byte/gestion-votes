@@ -3476,7 +3476,7 @@ window.OpS = { fn: {} };
 
   function deleteMeetingAttachment(id, name) {
     if (!confirm('Supprimer "' + (name || 'ce document') + '" ?')) return;
-    window.api('/api/v1/meeting_attachments', { id: id }, 'DELETE')
+    window.api('/api/v1/meeting_attachments?id=' + encodeURIComponent(id), null, 'DELETE')
       .then(function(resp) {
         if (resp && resp.body && resp.body.data && resp.body.data.deleted) {
           var card = document.querySelector('[data-att-id="' + id + '"]');

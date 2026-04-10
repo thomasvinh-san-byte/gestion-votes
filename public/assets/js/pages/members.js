@@ -731,7 +731,7 @@
     if (!ok) return;
 
     try {
-      var r = await api('/api/v1/members.php', { member_id: memberId }, 'DELETE');
+      var r = await api('/api/v1/members.php?member_id=' + encodeURIComponent(memberId), null, 'DELETE');
       if (r.body?.ok) {
         AgToast.show('success', 'Membre supprimé');
         await fetchMembers();

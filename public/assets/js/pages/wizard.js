@@ -733,7 +733,7 @@
         variant: 'danger'
       }).then(function(confirmed) {
         if (!confirmed) return;
-        window.api('/api/v1/resolution_documents', { id: doc.id }, 'DELETE').then(function() {
+        window.api('/api/v1/resolution_documents?id=' + encodeURIComponent(doc.id), null, 'DELETE').then(function() {
           card.remove();
           AgToast.show('success', 'Document supprim\u00e9');
         }).catch(function() {

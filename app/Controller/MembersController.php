@@ -123,9 +123,9 @@ final class MembersController extends AbstractController {
     }
 
     public function delete(): void {
-        $input = api_request('DELETE');
+        api_request('DELETE');
 
-        $id = trim($input['id'] ?? $input['member_id'] ?? '');
+        $id = api_query('member_id') ?: api_query('id');
         if ($id === '' || !api_is_uuid($id)) {
             api_fail('missing_member_id', 422, ['detail' => 'ID membre requis.']);
         }
