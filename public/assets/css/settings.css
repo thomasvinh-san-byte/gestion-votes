@@ -55,7 +55,7 @@
 
 .settings-sidenav-item.active {
   background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  color: var(--color-primary-on-subtle);
   font-weight: var(--font-medium);
 }
 

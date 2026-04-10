@@ -17,6 +17,12 @@ test.describe('Contrast audit (manual, one-shot)', () => {
   test('collect color-contrast violations across 22 pages', async ({ page }) => {
     test.setTimeout(300_000); // 5 min — 22 pages x login x axe
 
+    // Disable browser cache so CSS token changes are picked up immediately.
+    // Nginx serves static assets with Cache-Control: immutable which prevents
+    // revalidation within the same browser session (auth-setup loads pages first).
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+
     // Duplicated from accessibility.spec.js PAGES — keep in sync manually.
     const PAGES = [
       { path: '/login.html',                loginFn: null,            requiredLocator: '#email' },

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-10T05:21:25.356Z",
+  "generatedAt": "2026-04-10T05:31:04.417Z",
   "runner": "@axe-core/playwright withRules([color-contrast])",
   "wcagLevel": "wcag2aa",
   "pages": [
@@ -44,12 +44,67 @@
           "nodes": [
             {
               "target": [
+                "button[data-type=\"\"]"
+              ],
+              "html": "<button class=\"filter-tab active\" data-type=\"\" role=\"tab\" aria-selected=\"true\">Tous</button>",
+              "contrastRatio": 3.99,
+              "fgColor": "#faf9f7",
+              "bgColor": "#5777d4",
+              "fontSize": "9.8pt (13px)",
+              "fontWeight": "normal"
+            },
+            {
+              "target": [
+                ".audit-col-timestamp > ag-tooltip"
+              ],
+              "html": "<ag-tooltip text=\"Date et heure précise de l'événement (UTC)\" position=\"bottom\">Horodatage</ag-tooltip>",
+              "contrastRatio": 4.14,
+              "fgColor": "#6e6757",
+              "bgColor": "#e2ddd2",
+              "fontSize": "9.0pt (12px)",
+              "fontWeight": "normal"
+            },
+            {
+              "target": [
+                ".audit-col-event > ag-tooltip"
+              ],
+              "html": "<ag-tooltip text=\"Type et description de l'action enregistrée\" position=\"bottom\">Événement</ag-tooltip>",
+              "contrastRatio": 4.14,
+              "fgColor": "#6e6757",
+              "bgColor": "#e2ddd2",
+              "fontSize": "9.0pt (12px)",
+              "fontWeight": "normal"
+            },
+            {
+              "target": [
+                ".audit-col-user > ag-tooltip"
+              ],
+              "html": "<ag-tooltip text=\"Compte utilisateur à l'origine de l'action\" position=\"bottom\">Utilisateur</ag-tooltip>",
+              "contrastRatio": 4.14,
+              "fgColor": "#6e6757",
+              "bgColor": "#e2ddd2",
+              "fontSize": "9.0pt (12px)",
+              "fontWeight": "normal"
+            },
+            {
+              "target": [
+                ".audit-col-hash > ag-tooltip"
+              ],
+              "html": "<ag-tooltip text=\"Hash SHA-256 garantissant l'intégrité de l'entrée\" position=\"bottom\">Empreinte</ag-tooltip>",
+              "contrastRatio": 4.14,
+              "fgColor": "#6e6757",
+              "bgColor": "#e2ddd2",
+              "fontSize": "9.0pt (12px)",
+              "fontWeight": "normal"
+            },
+            {
+              "target": [
                 "td > .empty-state.animate-fade-in > .empty-state-description"
               ],
               "html": "<div class=\"empty-state-description\">Ouvrez une séance depuis le tableau de bord pour afficher son journal d'audit.</div",
-              "contrastRatio": 4.26,
-              "fgColor": "#797263",
-              "bgColor": "#f4f2ed",
+              "contrastRatio": 3.91,
+              "fgColor": "#7f776a",
+              "bgColor": "#f3f1eb",
               "fontSize": "9.8pt (13px)",
               "fontWeight": "normal"
             }
@@ -81,9 +136,9 @@
                 ".empty-state-description"
               ],
               "html": "<div class=\"empty-state-description\">Les séances validées et archivées apparaissent ici.</div>",
-              "contrastRatio": 4.31,
-              "fgColor": "#7a7264",
-              "bgColor": "#f5f4ef",
+              "contrastRatio": 3.79,
+              "fgColor": "#827a6c",
+              "bgColor": "#f4f2ed",
               "fontSize": "9.8pt (13px)",
               "fontWeight": "normal"
             }
@@ -98,11 +153,6 @@
     },
     {
       "path": "/email-templates.htmx.html",
-      "violationCount": 0,
-      "violations": []
-    },
-    {
-      "path": "/help.htmx.html",
       "violationCount": 1,
       "violations": [
         {
@@ -112,140 +162,23 @@
           "nodes": [
             {
               "target": [
-                "a[href=\"/dashboard?tour=1\"] > .tour-body > .tour-launch"
+                "#emptyState > p"
               ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
+              "html": "<p class=\"text-muted\">Créez des templates email pour personnaliser vos invitations.</p>",
+              "contrastRatio": 4.43,
+              "fgColor": "#6f6758",
+              "bgColor": "#e8e5dc",
+              "fontSize": "10.5pt (14px)",
               "fontWeight": "normal"
             },
             {
               "target": [
-                "a[href=\"/meetings?tour=1\"] > .tour-body > .tour-launch"
+                "#btnEmptyCreate"
               ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".tour-card[href=\"/hub?tour=1\"][data-required-role=\"admin,operator\"]:nth-child(3) > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "a[href=\"/members?tour=1\"] > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".tour-card[href=\"/hub?tour=1\"][data-required-role=\"admin,operator\"]:nth-child(5) > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "a[href=\"/operator?tour=1\"] > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "a[href=\"/vote?tour=1\"] > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "a[href=\"/postsession?tour=1\"] > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "a[href=\"/trust?tour=1\"] > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                "a[href=\"/analytics?tour=1\"] > .tour-body > .tour-launch"
-              ],
-              "html": "<span class=\"tour-launch\">Lancer</span>",
-              "contrastRatio": 3.61,
-              "fgColor": "#5778d4",
-              "bgColor": "#ebeff6",
-              "fontSize": "8.3pt (11px)",
-              "fontWeight": "normal"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "path": "/hub.htmx.html",
-      "violationCount": 0,
-      "violations": []
-    },
-    {
-      "path": "/postsession.htmx.html",
-      "violationCount": 1,
-      "violations": [
-        {
-          "id": "color-contrast",
-          "impact": "serious",
-          "help": "Elements must meet minimum color contrast ratio thresholds",
-          "nodes": [
-            {
-              "target": [
-                "#verifyAlert"
-              ],
-              "html": "<div class=\"alert alert-success mb-4\" id=\"verifyAlert\" hidden=\"\">\n            <svg class=\"icon icon-text\" aria-hidden=\"t",
-              "contrastRatio": 3.4,
-              "fgColor": "#558d67",
-              "bgColor": "#eaf2e8",
+              "html": "<button class=\"btn btn-primary mt-4\" id=\"btnEmptyCreate\">\n          <svg class=\"icon icon-text\" aria-hidden=\"true\"><use ",
+              "contrastRatio": 3.95,
+              "fgColor": "#faf9f7",
+              "bgColor": "#5778d4",
               "fontSize": "9.8pt (13px)",
               "fontWeight": "normal"
             }
@@ -254,22 +187,27 @@
       ]
     },
     {
+      "path": "/help.htmx.html",
+      "violationCount": 0,
+      "violations": []
+    },
+    {
+      "path": "/hub.htmx.html",
+      "violationCount": 0,
+      "violations": []
+    },
+    {
+      "path": "/postsession.htmx.html",
+      "violationCount": 0,
+      "violations": []
+    },
+    {
       "path": "/public.htmx.html",
       "violationCount": 0,
       "violations": []
     },
     {
       "path": "/report.htmx.html",
-      "violationCount": 0,
-      "violations": []
-    },
-    {
-      "path": "/trust.htmx.html",
-      "violationCount": 0,
-      "violations": []
-    },
-    {
-      "path": "/users.htmx.html",
       "violationCount": 1,
       "violations": [
         {
@@ -279,84 +217,50 @@
           "nodes": [
             {
               "target": [
-                ".user-row.is-active:nth-child(1) > .avatar-admin.user-avatar[aria-hidden=\"true\"]"
+                "div[data-step=\"validated\"] > .pv-step-label"
               ],
-              "html": "<div class=\"user-avatar avatar-admin\" aria-hidden=\"true\">AT</div>",
-              "contrastRatio": 4.43,
-              "fgColor": "#825cb9",
-              "bgColor": "#f3eff9",
+              "html": "<span class=\"pv-step-label\">Validé</span>",
+              "contrastRatio": 4.45,
+              "fgColor": "#6e6757",
+              "bgColor": "#e8e5dc",
               "fontSize": "9.0pt (12px)",
               "fontWeight": "normal"
             },
             {
               "target": [
-                ".user-row.is-active:nth-child(1) > .user-row-body > .user-row-meta > .admin.role-badge"
+                "div[data-step=\"sent\"] > .pv-step-label"
               ],
-              "html": "<span class=\"role-badge admin\">Administrateur</span>",
-              "contrastRatio": 4.43,
-              "fgColor": "#825cb9",
-              "bgColor": "#f3eff9",
-              "fontSize": "7.8pt (10.4px)",
+              "html": "<span class=\"pv-step-label\">Envoyé</span>",
+              "contrastRatio": 4.45,
+              "fgColor": "#6e6757",
+              "bgColor": "#e8e5dc",
+              "fontSize": "9.0pt (12px)",
               "fontWeight": "normal"
             },
             {
               "target": [
-                ".user-row.is-active:nth-child(1) > .user-row-body > .user-row-meta > .user-status-badge.active"
+                "div[data-step=\"archived\"] > .pv-step-label"
               ],
-              "html": "<span class=\"user-status-badge active\">Actif</span>",
-              "contrastRatio": 3.94,
-              "fgColor": "#0f8a58",
-              "bgColor": "#ebf6ec",
-              "fontSize": "7.8pt (10.4px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".user-row.is-active:nth-child(2) > .user-row-body > .user-row-meta > .admin.role-badge"
-              ],
-              "html": "<span class=\"role-badge admin\">Administrateur</span>",
-              "contrastRatio": 4.43,
-              "fgColor": "#825cb9",
-              "bgColor": "#f3eff9",
-              "fontSize": "7.8pt (10.4px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".user-row.is-active:nth-child(2) > .user-row-body > .user-row-meta > .user-status-badge.active"
-              ],
-              "html": "<span class=\"user-status-badge active\">Actif</span>",
-              "contrastRatio": 3.94,
-              "fgColor": "#0f8a58",
-              "bgColor": "#ebf6ec",
-              "fontSize": "7.8pt (10.4px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".user-row.is-active:nth-child(3) > .user-row-body > .user-row-meta > .auditor.role-badge"
-              ],
-              "html": "<span class=\"role-badge auditor\">Auditeur</span>",
-              "contrastRatio": 4.43,
-              "fgColor": "#825cb9",
-              "bgColor": "#f3eff9",
-              "fontSize": "7.8pt (10.4px)",
-              "fontWeight": "normal"
-            },
-            {
-              "target": [
-                ".user-row.is-active:nth-child(3) > .user-row-body > .user-row-meta > .user-status-badge.active"
-              ],
-              "html": "<span class=\"user-status-badge active\">Actif</span>",
-              "contrastRatio": 3.94,
-              "fgColor": "#0f8a58",
-              "bgColor": "#ebf6ec",
-              "fontSize": "7.8pt (10.4px)",
+              "html": "<span class=\"pv-step-label\">Archivé</span>",
+              "contrastRatio": 4.45,
+              "fgColor": "#6e6757",
+              "bgColor": "#e8e5dc",
+              "fontSize": "9.0pt (12px)",
               "fontWeight": "normal"
             }
           ]
         }
       ]
+    },
+    {
+      "path": "/trust.htmx.html",
+      "violationCount": 0,
+      "violations": []
+    },
+    {
+      "path": "/users.htmx.html",
+      "violationCount": 0,
+      "violations": []
     },
     {
       "path": "/validate.htmx.html",
@@ -373,5 +277,7 @@
       "violationCount": 0,
       "violations": []
     }
-  ]
+  ],
+  "totalViolations": 4,
+  "uniquePairs": 7
 }

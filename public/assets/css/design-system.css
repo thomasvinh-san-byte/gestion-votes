@@ -327,7 +327,7 @@ table {
   --color-text:           var(--stone-700);  /* oklch(0.530 0.025 80) */
   --color-text-dark:      var(--stone-900);  /* oklch(0.180 0.012 75) */
   --color-text-secondary: var(--stone-900);  /* oklch(0.180 0.012 75) */
-  --color-text-muted:     oklch(0.380 0.030 82);  /* was oklch(0.470) — iteratively darkened for AA on all warm surfaces incl. card bgs (01-03) */
+  --color-text-muted:     oklch(0.360 0.030 82);  /* was oklch(0.470) — iteratively darkened for AA on all warm surfaces incl. striped rows (01-03) */
   --color-text-light:     var(--stone-500);  /* oklch(0.760 0.028 85) */
   --color-text-inverse:   oklch(1 0 0);      /* white */
   --color-text-disabled:  var(--stone-400);  /* oklch(0.833 0.022 88) */
@@ -337,14 +337,14 @@ table {
   --color-border-subtle: oklch(0.912 0.015 92);  /* between stone-200 and stone-300, no exact primitive */
   --color-border-strong: var(--stone-500);  /* oklch(0.760 0.028 85) */
   --color-border-dash:   var(--stone-500);  /* oklch(0.760 0.028 85) */
-  --color-border-focus:  oklch(0.505 0.195 265 / 0.50);  /* aligned with --color-primary L* (01-03) */
+  --color-border-focus:  oklch(0.480 0.195 265 / 0.50);  /* aligned with --color-primary L* (01-03) */
 
-  --color-primary:        oklch(0.505 0.195 265);  /* was var(--blue-600) oklch(0.520) — bumped darker for white-on-primary AA (01-03) */
+  --color-primary:        oklch(0.480 0.195 265);  /* was var(--blue-600) oklch(0.520) — bumped darker for white-on-primary AA (01-03) */
   --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, black);
   --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, black);
   --color-primary-subtle: var(--blue-50);     /* oklch(0.960 0.018 265) */
-  --color-primary-muted:  oklch(0.505 0.195 265 / 0.12);  /* aligned with --color-primary L* (01-03) */
-  --color-primary-glow:   oklch(0.505 0.195 265 / 0.12);  /* aligned with --color-primary L* (01-03) */
+  --color-primary-muted:  oklch(0.480 0.195 265 / 0.12);  /* aligned with --color-primary L* (01-03) */
+  --color-primary-glow:   oklch(0.480 0.195 265 / 0.12);  /* aligned with --color-primary L* (01-03) */
   --color-primary-text:   oklch(1 0 0);       /* white */
   --color-primary-on-subtle: oklch(0.440 0.190 265);  /* darker blue for text/chip on primary-subtle bg (01-01) */
   --color-text-on-primary-muted: oklch(1 0 0 / 0.85);
