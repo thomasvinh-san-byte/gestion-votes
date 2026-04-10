@@ -64,7 +64,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-v1.4 Phase 5 complete (2026-04-10) — CSP nonce enforcement in report-only.
+v1.4 Phase 6 complete (2026-04-10) — All 6 phases done. Milestone complete.
 
 **The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance. Contrast remediation now complete: 316 violations → 0, CONFORME declared.
 
@@ -152,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — v1.4 Phase 5 complete (CSP Nonce Enforcement)*
+*Last updated: 2026-04-10 — v1.4 Phase 6 complete (Controller Refactoring)*
