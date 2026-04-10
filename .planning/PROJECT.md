@@ -56,7 +56,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(No active requirements — milestone v1.4 complete. Run `/gsd:new-milestone` to define next.)
+(Defined in REQUIREMENTS.md for v1.5)
 
 ### Out of Scope
 
@@ -94,6 +94,22 @@ Shipped v1.4 (2026-04-10) — Tech debt milestone complete. All deferred items f
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Current Milestone: v1.5 Nettoyage et Refactoring Services
+
+**Goal:** Nettoyer le codebase (console.log, code deprecie, superglobals, TODOs) et refactorer les 5 services >600 LOC en respectant le plafond 300 LOC.
+
+**Target features:**
+- Supprimer 50+ console.log/warn/error du JS de production
+- Supprimer le code deprecie (PermissionChecker, VoteTokenService deprecated methods)
+- Migrer 9 fichiers de $_GET/$_POST vers Request
+- Ajouter test pour PageController
+- Nettoyer les TODOs restants
+- Refactorer AuthMiddleware (871 LOC → <300 + SessionManager + RbacEngine)
+- Refactorer ImportService (791 LOC → <300 + CsvImporter/XlsxImporter)
+- Refactorer ExportService (770 LOC → <300 + ValueTranslator)
+- Refactorer MeetingReportsService (731 LOC → <300 + ReportGenerator)
+- Refactorer EmailQueueService (625 LOC → <300 + RetryPolicy)
 
 ## Completed Milestone: v1.4 Régler Deferred et Dette Technique
 
@@ -151,4 +167,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 after v1.4 milestone*
+*Last updated: 2026-04-10 — v1.5 milestone started*

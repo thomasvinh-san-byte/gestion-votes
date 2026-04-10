@@ -1,33 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Régler Deferred et Dette Technique
-status: completed
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-04-10T10:20:23.825Z"
+milestone: v1.5
+milestone_name: Nettoyage et Refactoring Services
+status: active
+stopped_at: null
+last_updated: "2026-04-10T20:30:00.000Z"
 last_activity: 2026-04-10
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-09)
+See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 06 — controller-refactoring
+**Current focus:** Defining requirements for v1.5
 
 ## Current Position
 
-Phase: 06
-Plan: Not started
-Status: Phase 06 complete — all 4 controllers under 300 LOC
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-10 — Milestone v1.5 started
 Last activity: 2026-04-10
 
 **Progress:** [██████████] 100%
