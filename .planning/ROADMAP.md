@@ -98,7 +98,10 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   1. Une règle `:where([hidden]) { display: none !important }` existe dans la couche base du design-system et une spec Playwright vérifie `getComputedStyle(el).display === 'none'` sur ≥3 pages représentatives quand `[hidden]` est appliqué
   2. Un document d'audit (`docs/audits/v1.4-overlay-hittest.md` ou équivalent) liste tous les sélecteurs `display: flex|grid|block` sur éléments susceptibles de recevoir `[hidden]` avec leur statut (OK/fixé/n/a)
   3. Aucune régression sur specs Playwright existantes (`keyboard-nav.spec.js`, `page-interactions.spec.js`) — baseline chromium maintenue
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
+- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
 
 ### Phase 3: Trust Fixtures Deploy
 **Goal**: Les rôles auditor et assessor sont testables de bout en bout avec fixtures Playwright réelles, plus de fallback `loginAsAdmin`
@@ -109,7 +112,10 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   2. `POST /api/v1/test/seed-user` retourne 200 en développement/test et 404 en production (gate vérifiable : route conditionnellement enregistrée sur `APP_ENV !== 'production'` dans `app/routes.php`) — un test assert le 404 en mode production
   3. `trust.htmx.html` specs utilisent les nouvelles fixtures : grep `loginAsAdmin` dans `tests/e2e/specs/trust*.spec.js` retourne 0 occurrences
   4. La fixture construit le graphe complet (user → tenant → meeting → meeting-role) — assertée par un smoke test qui navigue et vérifie au moins un élément role-gated visible
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
+- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
 
 ### Phase 4: HTMX 2.0 Upgrade
 **Goal**: htmx.org migre de 1.x vers 2.0.6 sans régression sur la suite Playwright cross-browser
@@ -121,7 +127,10 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   3. Tous les handlers DELETE lisent leurs paramètres depuis query string : audit documenté sur l'ensemble des endpoints `hx-delete`, aucun n'utilise `$_POST` / `php://input`
   4. Les extensions HTMX (SSE, preload) sont chargées comme scripts individuels dans le shell HTML — plus de bundle monolithique
   5. Playwright full suite passe chromium + firefox + webkit + mobile-chrome contre baseline v1.3 (ou explicit rationale documenté pour toute régression pré-existante)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
+- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
 
 ### Phase 5: CSP Nonce Enforcement
 **Goal**: Les scripts inline theme init portent des nonces CSP ; `'unsafe-inline'` est retiré de `script-src` après une période report-only
@@ -132,7 +141,10 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   2. `HtmlView::render()` expose `$cspNonce` aux templates ; tous les `<script>` et `<style>` inline des 22 `.htmx.html` portent `nonce="<?= $cspNonce ?>"` (grep : 0 inline sans nonce)
   3. La directive CSP `script-src` contient `'nonce-{NONCE}' 'strict-dynamic'` et ne contient plus `'unsafe-inline'` (header assertion dans un spec)
   4. La CSP a tourné en `Content-Security-Policy-Report-Only` pendant ≥1 phase complète avant le flip en enforcement ; un spec Playwright écoute `page.on('pageerror')` + `page.on('console')` et assert zéro violation CSP sur les 22 pages
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
+- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
 
 ### Phase 6: Controller Refactoring
 **Goal**: Les 4 controllers >500 LOC sont réduits à <300 LOC via extraction vers des services finaux avec DI nullable, sans casser les URLs publiques ni les tests existants
@@ -144,7 +156,10 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   3. Un audit pré-split documenté existe pour chaque controller cible : grep `ReflectionClass|hasMethod|getMethod` dans les tests associés, résultats listés, tests réécrits vers l'API publique des services AVANT le split (vérifiable dans git log — commits de tests précèdent les commits de split)
   4. Aucune URL publique ne change : `app/routes.php` ne modifie que la classe handler ; suite PHPUnit ciblée sur les tests des 4 controllers passe au vert ; spec Playwright critical-path reste green
   5. Chaque service a au moins un test unitaire avec mock `RepositoryFactory` démontrant le pattern DI nullable (minimum 1 test par service)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
+- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
 
 ## Build Order Rationale (v1.4)
 
