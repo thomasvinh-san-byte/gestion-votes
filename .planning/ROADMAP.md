@@ -186,8 +186,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | HTMX-03 | 4 | HTMX |
 | HTMX-04 | 4 | HTMX |
 | HTMX-05 | 4 | HTMX |
-| CSP-01 | 5 | CSP |
-| CSP-02 | 5 | CSP |
+| CSP-01 | 5 | 1/2 | In Progress|  | 5 | CSP |
 | CSP-03 | 5 | CSP |
 | CSP-04 | 5 | CSP |
 | CTRL-01 | 6 | Controller |

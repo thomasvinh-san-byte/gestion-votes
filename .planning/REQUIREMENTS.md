@@ -34,8 +34,8 @@
 
 ### CSP Nonce (CSP)
 
-- [ ] **CSP-01** : `SecurityProvider::nonce()` génère un nonce par requête via `random_bytes(16)` et l'injecte dans l'header CSP
-- [ ] **CSP-02** : `HtmlView::render()` expose `$cspNonce` au template ; tous les inline theme init scripts portent `nonce="..."`
+- [x] **CSP-01** : `SecurityProvider::nonce()` génère un nonce par requête via `random_bytes(16)` et l'injecte dans l'header CSP
+- [x] **CSP-02** : `HtmlView::render()` expose `$cspNonce` au template ; tous les inline theme init scripts portent `nonce="..."`
 - [ ] **CSP-03** : La directive CSP `script-src` utilise `'nonce-{NONCE}' 'strict-dynamic'` ; `'unsafe-inline'` est retiré de script-src
 - [ ] **CSP-04** : La CSP tourne en report-only pendant ≥1 phase avant enforcement ; un test Playwright vérifie zéro violation console
 
@@ -87,8 +87,8 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | HTMX-03 | Phase 4 — HTMX 2.0 Upgrade | Complete |
 | HTMX-04 | Phase 4 — HTMX 2.0 Upgrade | Complete |
 | HTMX-05 | Phase 4 — HTMX 2.0 Upgrade | Complete |
-| CSP-01 | Phase 5 — CSP Nonce Enforcement | Pending |
-| CSP-02 | Phase 5 — CSP Nonce Enforcement | Pending |
+| CSP-01 | Phase 5 — CSP Nonce Enforcement | Complete |
+| CSP-02 | Phase 5 — CSP Nonce Enforcement | Complete |
 | CSP-03 | Phase 5 — CSP Nonce Enforcement | Pending |
 | CSP-04 | Phase 5 — CSP Nonce Enforcement | Pending |
 | CTRL-01 | Phase 6 — Controller Refactoring | Pending |

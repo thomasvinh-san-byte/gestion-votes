@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: verifying
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-10T08:40:52.389Z"
-last_activity: 2026-04-10
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-10T09:06:25.391Z"
+last_activity: 2026-04-10 -- Phase 05 execution started
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_plans: 11
+  completed_plans: 10
+  percent: 91
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Phase 04 complete -- htmx 2.0.6 upgrade verified across 4 browsers
-Last activity: 2026-04-10
+Phase: 05 (csp-nonce-enforcement) — EXECUTING
+Plan: 2 of 2
+Status: Plan 01 complete, ready for Plan 02
+Last activity: 2026-04-10 -- Completed 05-01-PLAN.md
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 91%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,10 @@ Last activity: 2026-04-10
 
 ### v1.4 Decisions
 
+- [05-01]: PageController uses serveFromUri() extracting page from REQUEST_URI -- Router map() does not support extra params
+- [05-01]: /vote route split: POST for VotePublicController (form submission), GET for PageController (page shell)
+- [05-01]: %%CSP_NONCE%% placeholder in .htmx.html preserved over PHP tags to keep .htmx.html extension intact
+- [05-01]: All script src tags carry nonce for strict-dynamic CSP compatibility (browsers ignore 'self')
 - [03-01]: Route-level env gate wraps all dev seed routes for defense-in-depth (not just seed-user)
 - [03-01]: seedUser endpoint uses no auth middleware; route-level env gate is the security boundary for bootstrapping
 - [03-01]: Assessor user added to SQL seed (04_e2e.sql) for database-level reliability rather than API-only creation
@@ -156,8 +160,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T08:35:09Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-04-10T09:05:19Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 **Next action:** Execute Phase 05 (CSP Nonce Enforcement)
