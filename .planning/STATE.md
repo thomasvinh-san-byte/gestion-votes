@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: completed
+status: executing
 stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-10T09:16:04.458Z"
-last_activity: 2026-04-10
+last_updated: "2026-04-10T09:32:30.585Z"
+last_activity: 2026-04-10 -- Phase 06 execution started
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_plans: 14
+  completed_plans: 12
+  percent: 86
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 05 — csp-nonce-enforcement
+**Current focus:** Phase 06 — controller-refactoring
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
-Status: Phase 05 complete, ready for Phase 06
-Last activity: 2026-04-10
+Phase: 06 (controller-refactoring) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 06
+Last activity: 2026-04-10 -- Completed 06-01-PLAN.md (pre-split reflection audit)
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 86%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,8 @@ Last activity: 2026-04-10
 
 ### v1.4 Decisions
 
+- [06-01]: Service tests use @group pending-service for exclusion until services exist in Plans 02/03
+- [06-01]: Existing controller structural tests preserved intact alongside new service tests
 - [05-02]: Report-only CSP emitted alongside existing enforcing CSP (dual-header strategy for safe rollout)
 - [05-02]: buildReportOnlyCsp() extracted as testable static method for CSP string construction
 - [05-02]: Nginx server-level CSP removed; CSP per-location for non-PHP responses only
@@ -165,7 +167,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-10T09:13:11.497Z
-Stopped at: Completed 05-02-PLAN.md
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
 
 **Next action:** Execute Phase 05 (CSP Nonce Enforcement)
