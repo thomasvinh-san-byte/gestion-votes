@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { loginAsOperator, loginAsAdmin, loginAsVoter, OPERATOR_KEY } = require('../helpers');
+const { loginAsOperator, loginAsAdmin, loginAsAuditor, loginAsVoter, OPERATOR_KEY } = require('../helpers');
 const { axeAudit } = require('../helpers/axeAudit');
 
 /**
@@ -80,7 +80,7 @@ const PAGES = [
   { path: '/postsession.htmx.html',     loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
   { path: '/public.htmx.html',          loginFn: null,            requiredLocator: '.projection-header, main, [data-page]' },
   { path: '/report.htmx.html',          loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
-  { path: '/trust.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' }, // RESEARCH Pitfall 5: admin fallback
+  { path: '/trust.htmx.html',           loginFn: loginAsAuditor,  requiredLocator: 'main, [data-page]' },
   { path: '/users.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
   { path: '/validate.htmx.html',        loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
   { path: '/vote.htmx.html',            loginFn: loginAsVoter,    requiredLocator: '#meetingSelect, [data-page], main' },

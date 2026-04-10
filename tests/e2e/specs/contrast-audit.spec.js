@@ -3,7 +3,7 @@ const { test } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
 const fs = require('fs');
 const path = require('path');
-const { loginAsOperator, loginAsAdmin, loginAsVoter } = require('../helpers');
+const { loginAsOperator, loginAsAdmin, loginAsAuditor, loginAsVoter } = require('../helpers');
 
 // Manual-only: run via `CONTRAST_AUDIT=1 npx playwright test specs/contrast-audit.spec.js --project=chromium`
 // Gated so default CI (bin/test-e2e.sh) does NOT execute this — contrast is tuned separately.
@@ -42,7 +42,7 @@ test.describe('Contrast audit (manual, one-shot)', () => {
       { path: '/postsession.htmx.html',     loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
       { path: '/public.htmx.html',          loginFn: null,            requiredLocator: '.projection-header, main, [data-page]' },
       { path: '/report.htmx.html',          loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
-      { path: '/trust.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
+      { path: '/trust.htmx.html',           loginFn: loginAsAuditor,  requiredLocator: 'main, [data-page]' },
       { path: '/users.htmx.html',           loginFn: loginAsAdmin,    requiredLocator: 'main, [data-page]' },
       { path: '/validate.htmx.html',        loginFn: loginAsOperator, requiredLocator: 'main, [data-page]' },
       { path: '/vote.htmx.html',            loginFn: loginAsVoter,    requiredLocator: '#meetingSelect, [data-page], main' },
