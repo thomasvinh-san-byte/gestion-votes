@@ -38,9 +38,9 @@ created: 2026-04-10
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 03-01-01 | 01 | 1 | TRUST-01 | integration | `grep 'loginAsAuditor' tests/e2e/helpers/auditor.js` | ❌ W0 | ⬜ pending |
-| 03-01-02 | 01 | 1 | TRUST-01 | integration | `grep 'loginAsAssessor' tests/e2e/helpers/assessor.js` | ❌ W0 | ⬜ pending |
-| 03-01-03 | 01 | 1 | TRUST-02 | unit | `php -l app/Controller/TestSeedController.php` | ❌ W0 | ⬜ pending |
+| 03-01-01 | 01 | 1 | TRUST-02 | unit | `php -l app/Controller/DevSeedController.php` | ✅ | ⬜ pending |
+| 03-01-02 | 01 | 1 | TRUST-01 | integration | `grep 'loginAsAuditor' tests/e2e/helpers.js` | ❌ W0 | ⬜ pending |
+| 03-01-03 | 01 | 1 | TRUST-01 | integration | `grep 'loginAsAssessor' tests/e2e/helpers.js` | ❌ W0 | ⬜ pending |
 | 03-02-01 | 02 | 2 | TRUST-03 | e2e | `docker exec agvote-playwright npx playwright test trust --project=chromium` | ✅ | ⬜ pending |
 | 03-02-02 | 02 | 2 | TRUST-02 | e2e | `grep -c 'loginAsAdmin' tests/e2e/specs/trust*.spec.js` | ✅ | ⬜ pending |
 
@@ -50,9 +50,8 @@ created: 2026-04-10
 
 ## Wave 0 Requirements
 
-- [ ] `tests/e2e/helpers/auditor.js` — login helper for auditor role
-- [ ] `tests/e2e/helpers/assessor.js` — login helper for assessor role
-- [ ] Seed endpoint controller — `app/Controller/TestSeedController.php`
+- [ ] `tests/e2e/helpers.js` — loginAsAuditor + loginAsAssessor added to existing monolithic helpers
+- [ ] `app/Controller/DevSeedController.php` — seed-user endpoint (existing controller extended)
 
 *New files created during execution. Existing test infrastructure covers regression.*
 
