@@ -99,7 +99,6 @@
   cursor: pointer;
   position: relative;
   transition: color 150ms;
-  opacity: 0.6;
   border-radius: var(--radius);
 }
 

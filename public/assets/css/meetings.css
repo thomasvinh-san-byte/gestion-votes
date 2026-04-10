@@ -135,7 +135,7 @@
 }
 
 .filter-pill.active .filter-pill-count {
-  background: color-mix(in oklch, var(--color-text-inverse) 25%, transparent);
+  background: oklch(0 0 0 / 0.08);  /* subtle dark tint instead of white mix — preserves AA white-on-primary (01-03) */
 }
 
 /* =============================================================================

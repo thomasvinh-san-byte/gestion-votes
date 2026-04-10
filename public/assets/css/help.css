@@ -80,7 +80,7 @@
   height: 44px;
   border-radius: var(--radius-md);
   background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  color: var(--color-primary-on-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,7 +112,7 @@
   padding: 2px 8px;
   border-radius: var(--radius-full);
   background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  color: var(--color-primary-on-subtle);
   margin-bottom: var(--space-1);
   transition: background var(--duration-fast), color var(--duration-fast);
 }

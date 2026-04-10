@@ -86,8 +86,21 @@ test.describe('Contrast audit (manual, one-shot)', () => {
       }
     }
 
+    // Compute aggregate metrics for verification gates
+    const totalViolations = report.pages.reduce((sum, p) => sum + (p.violationCount || 0), 0);
+    const uniquePairs = new Set();
+    for (const p of report.pages) {
+      for (const v of (p.violations || [])) {
+        for (const n of v.nodes) {
+          if (n.fgColor && n.bgColor) uniquePairs.add(`${n.fgColor}|${n.bgColor}`);
+        }
+      }
+    }
+    report.totalViolations = totalViolations;
+    report.uniquePairs = uniquePairs.size;
+
     const out = path.resolve(__dirname, '../../../.planning/v1.3-CONTRAST-AUDIT.json');
     fs.writeFileSync(out, JSON.stringify(report, null, 2));
-    console.log(`Contrast audit written: ${out} (${report.pages.length} pages)`);
+    console.log(`Contrast audit written: ${out} (${report.pages.length} pages, ${totalViolations} violations, ${uniquePairs.size} unique pairs)`);
   });
 });

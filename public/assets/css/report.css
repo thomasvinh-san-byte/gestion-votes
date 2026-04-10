@@ -131,7 +131,7 @@
 }
 
 .pv-timeline-step.done .pv-step-label {
-  color: var(--color-success);
+  color: var(--color-success-on-subtle);
 }
 
 .pv-timeline-step.active .pv-step-label {

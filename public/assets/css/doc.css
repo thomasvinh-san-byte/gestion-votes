@@ -32,7 +32,7 @@
 }
 
 .doc-breadcrumb a {
-  color: var(--color-primary);
+  color: var(--color-primary-on-subtle);
   text-decoration: none;
 }
 
@@ -173,7 +173,7 @@
 }
 
 .doc-index li.active a {
-  color: var(--color-primary);
+  color: var(--color-primary-on-subtle);
   background: var(--color-primary-subtle);
   font-weight: 500;
 }
@@ -273,7 +273,7 @@
 /* ─── Links ─── */
 
 .prose a {
-  color: var(--color-primary);
+  color: var(--color-primary-on-subtle);
   text-decoration: underline;
   text-underline-offset: 2px;
   transition: color var(--duration-fast);
