@@ -4,8 +4,8 @@ milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
 status: executing
 stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-10T12:04:59.254Z"
-last_activity: 2026-04-10 -- Phase 04 execution started
+last_updated: "2026-04-10T12:06:47.774Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 7
   completed_phases: 4
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 ## Current Position
 
-Phase: 04 (refactoring-exportservice) — EXECUTING
-Plan: 1 of 1
+Phase: 05
+Plan: Not started
 Status: Executing Phase 04
-Last activity: 2026-04-10 -- Phase 04 execution started
+Last activity: 2026-04-10
 
 **Progress:** [██████████] 100%
 
