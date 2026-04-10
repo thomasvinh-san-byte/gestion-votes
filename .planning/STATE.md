@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-04-10T11:04:18.552Z"
-last_activity: 2026-04-10 -- Completed 01-01-PLAN.md (JS/CSS cleanup + dead code removal)
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-04-10T11:09:11Z"
+last_activity: 2026-04-10 -- Completed 01-02-PLAN.md (superglobal migration + PageController test)
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 ## Current Position
 
-Phase: 01 (nettoyage-codebase) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 01
-Last activity: 2026-04-10 -- Completed 01-01-PLAN.md (JS/CSS cleanup + dead code removal)
+Phase: 01 (nettoyage-codebase) — COMPLETE
+Plan: 2 of 2 (all complete)
+Status: Phase 01 complete, ready for Phase 02
+Last activity: 2026-04-10 -- Completed 01-02-PLAN.md (superglobal migration + PageController test)
 
-**Progress:** [█████░░░░░] 50%
+**Progress:** [██████████] 100%
 
 ## v1.5 Phase Summary
 
@@ -60,6 +60,7 @@ Last activity: 2026-04-10 -- Completed 01-01-PLAN.md (JS/CSS cleanup + dead code
 
 ## Accumulated Context
 | Phase 01 P01 | 4min | 2 tasks | 22 files |
+| Phase 01 P02 | 4min | 2 tasks | 7 files |
 
 ### Decisions
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [v1.5 roadmap]: Phases 3-6 parallelizable (no inter-service dependencies), but sequenced for focus
 - [v1.5 roadmap]: 300 LOC ceiling from v1.4 carries forward — all extracted classes must be <300 LOC
 - [Phase 01]: Vendor JS files excluded from console.log cleanup scope
+- [Phase 01 P02]: Standalone HTML controllers use new Request() locally, not constructor injection
+- [Phase 01 P02]: PageController tests use @runInSeparateProcess for header() isolation
 
 ### Pending Todos
 
@@ -83,8 +86,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T11:04:18.550Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-04-10T11:09:11Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
 
-**Next action:** `/gsd:plan-phase 1` to plan Nettoyage Codebase
+**Next action:** `/gsd:execute-phase 2` to start Refactoring AuthMiddleware

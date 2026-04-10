@@ -84,7 +84,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 
 **Milestone Goal:** Nettoyer le codebase (console.log, code deprecie, superglobals, TODOs) et refactorer les 5 services >600 LOC en respectant le plafond 300 LOC.
 
-- [ ] **Phase 1: Nettoyage Codebase** - Supprimer console.log, code deprecie, TODOs, migrer superglobals, tester PageController
+- [x] **Phase 1: Nettoyage Codebase** - Supprimer console.log, code deprecie, TODOs, migrer superglobals, tester PageController (completed 2026-04-10)
 - [ ] **Phase 2: Refactoring AuthMiddleware** - Extraire SessionManager et RbacEngine, ramener AuthMiddleware <300 LOC
 - [ ] **Phase 3: Refactoring ImportService** - Extraire CsvImporter et XlsxImporter, ramener ImportService <300 LOC
 - [ ] **Phase 4: Refactoring ExportService** - Extraire ValueTranslator, ramener ExportService <300 LOC
@@ -196,7 +196,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Infrastructure Redis | 1/2 | In Progress|  | 2026-04-07 |
+| 1. Infrastructure Redis | 2/2 | Complete   | 2026-04-10 | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |

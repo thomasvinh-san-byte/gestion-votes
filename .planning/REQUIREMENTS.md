@@ -12,11 +12,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **CLEAN-01**: Zero console.log/warn/error dans le JS de production (hors error handlers critiques)
 - [x] **CLEAN-02**: Zero code deprecie dans le codebase (PermissionChecker supprime, VoteTokenService deprecated methods supprimes)
 - [x] **CLEAN-03**: Zero TODO/FIXME dans les fichiers CSS et JS de production
-- [ ] **CLEAN-04**: Test unitaire PageController couvrant nonce injection et 404
+- [x] **CLEAN-04**: Test unitaire PageController couvrant nonce injection et 404
 
 ### Nettoyage PHP
 
-- [ ] **CLEAN-05**: Zero $_GET/$_POST/$_REQUEST direct — tous migres vers Request::query()/Request::body() ou api_query()/api_request()
+- [x] **CLEAN-05**: Zero $_GET/$_POST/$_REQUEST direct — tous migres vers Request::query()/Request::body() ou api_query()/api_request()
 
 ### Refactoring AuthMiddleware
 
@@ -82,8 +82,8 @@ Deferred to next milestone.
 | CLEAN-01 | Phase 1 | Complete |
 | CLEAN-02 | Phase 1 | Complete |
 | CLEAN-03 | Phase 1 | Complete |
-| CLEAN-04 | Phase 1 | Pending |
-| CLEAN-05 | Phase 1 | Pending |
+| CLEAN-04 | Phase 1 | Complete |
+| CLEAN-05 | Phase 1 | Complete |
 | REFAC-01 | Phase 2 | Pending |
 | REFAC-02 | Phase 2 | Pending |
 | REFAC-03 | Phase 3 | Pending |
