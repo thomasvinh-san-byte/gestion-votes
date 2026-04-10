@@ -14,6 +14,7 @@ use AgVote\Repository\MotionRepository;
 use AgVote\Repository\NotificationRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\UserRepository;
+use AgVote\Service\MeetingLifecycleService;
 
 /**
  * Unit tests for MeetingsController.
@@ -115,6 +116,64 @@ class MeetingsControllerTest extends ControllerTestCase
                 "MeetingsController::{$method}() should be public",
             );
         }
+    }
+
+    // =========================================================================
+    // SERVICE STRUCTURE TESTS (pre-split — validates extraction targets)
+    // =========================================================================
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingLifecycleServiceIsFinal(): void
+    {
+        $ref = new \ReflectionClass(MeetingLifecycleService::class);
+        $this->assertTrue($ref->isFinal(), 'MeetingLifecycleService should be final');
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingLifecycleServiceHasExpectedMethods(): void
+    {
+        $ref = new \ReflectionClass(MeetingLifecycleService::class);
+
+        $expectedMethods = [
+            'createFromWizard',
+            'updateMeeting',
+            'deleteDraft',
+            'validateMeeting',
+            'getStatus',
+            'getStatusForMeeting',
+            'getSummary',
+            'getStats',
+            'handleVoteSettings',
+        ];
+        foreach ($expectedMethods as $method) {
+            $this->assertTrue(
+                $ref->hasMethod($method),
+                "MeetingLifecycleService should have a '{$method}' method",
+            );
+        }
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingLifecycleServiceUsesNullableDI(): void
+    {
+        $ref = new \ReflectionClass(MeetingLifecycleService::class);
+        $constructor = $ref->getConstructor();
+        $this->assertNotNull($constructor, 'MeetingLifecycleService should have a constructor');
+
+        $params = $constructor->getParameters();
+        $this->assertCount(1, $params, 'Constructor should have exactly 1 parameter');
+        $this->assertTrue($params[0]->allowsNull(), 'Constructor parameter should be nullable');
+        $this->assertSame(
+            'AgVote\\Core\\Providers\\RepositoryFactory',
+            $params[0]->getType()->getName(),
+            'Constructor parameter should be RepositoryFactory',
+        );
     }
 
     // =========================================================================

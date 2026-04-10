@@ -12,6 +12,7 @@ use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
 use AgVote\Repository\UserRepository;
+use AgVote\Service\MeetingTransitionService;
 
 /**
  * Unit tests for MeetingWorkflowController.
@@ -87,6 +88,54 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
                 "MeetingWorkflowController::{$method}() should be public",
             );
         }
+    }
+
+    // =========================================================================
+    // SERVICE STRUCTURE TESTS (pre-split — validates extraction targets)
+    // =========================================================================
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingTransitionServiceIsFinal(): void
+    {
+        $ref = new \ReflectionClass(MeetingTransitionService::class);
+        $this->assertTrue($ref->isFinal(), 'MeetingTransitionService should be final');
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingTransitionServiceHasExpectedMethods(): void
+    {
+        $ref = new \ReflectionClass(MeetingTransitionService::class);
+
+        $expectedMethods = ['transition', 'launch', 'readyCheck', 'resetDemo'];
+        foreach ($expectedMethods as $method) {
+            $this->assertTrue(
+                $ref->hasMethod($method),
+                "MeetingTransitionService should have a '{$method}' method",
+            );
+        }
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingTransitionServiceUsesNullableDI(): void
+    {
+        $ref = new \ReflectionClass(MeetingTransitionService::class);
+        $constructor = $ref->getConstructor();
+        $this->assertNotNull($constructor, 'MeetingTransitionService should have a constructor');
+
+        $params = $constructor->getParameters();
+        $this->assertCount(1, $params, 'Constructor should have exactly 1 parameter');
+        $this->assertTrue($params[0]->allowsNull(), 'Constructor parameter should be nullable');
+        $this->assertSame(
+            'AgVote\\Core\\Providers\\RepositoryFactory',
+            $params[0]->getType()->getName(),
+            'Constructor parameter should be RepositoryFactory',
+        );
     }
 
     // =========================================================================
@@ -2054,6 +2103,26 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         sort($expectedMethods);
 
         $this->assertEquals($expectedMethods, $methodNames, 'Controller should have exactly the 6 expected public methods');
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testMeetingTransitionServiceHasExpectedPublicMethods(): void
+    {
+        $ref = new \ReflectionClass(MeetingTransitionService::class);
+        $expectedMethods = ['transition', 'launch', 'readyCheck', 'resetDemo'];
+
+        $publicMethods = array_filter(
+            $ref->getMethods(\ReflectionMethod::IS_PUBLIC),
+            fn(\ReflectionMethod $m) => $m->getDeclaringClass()->getName() === MeetingTransitionService::class,
+        );
+
+        $methodNames = array_map(fn(\ReflectionMethod $m) => $m->getName(), $publicMethods);
+        sort($methodNames);
+        sort($expectedMethods);
+
+        $this->assertEquals($expectedMethods, $methodNames, 'MeetingTransitionService should have exactly the 4 expected public methods');
     }
 
     // =========================================================================
