@@ -25,8 +25,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Refactoring ImportService
 
-- [ ] **REFAC-03**: ImportService <300 LOC apres extraction des importers CSV/XLSX
-- [ ] **REFAC-04**: CsvImporter et XlsxImporter sont des final class avec DI nullable, chacun <300 LOC
+- [x] **REFAC-03**: ImportService <300 LOC apres extraction des importers CSV/XLSX
+- [x] **REFAC-04**: CsvImporter et XlsxImporter sont des final class avec DI nullable, chacun <300 LOC
 
 ### Refactoring ExportService
 
@@ -86,8 +86,8 @@ Deferred to next milestone.
 | CLEAN-05 | Phase 1 | Complete |
 | REFAC-01 | Phase 2 | Complete |
 | REFAC-02 | Phase 2 | Complete |
-| REFAC-03 | Phase 3 | Pending |
-| REFAC-04 | Phase 3 | Pending |
+| REFAC-03 | Phase 3 | Complete |
+| REFAC-04 | Phase 3 | Complete |
 | REFAC-05 | Phase 4 | Pending |
 | REFAC-06 | Phase 4 | Pending |
 | REFAC-07 | Phase 5 | Pending |

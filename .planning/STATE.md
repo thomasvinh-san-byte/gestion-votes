@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-04-10T11:35:50.377Z"
-last_activity: 2026-04-10
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-04-10T11:43:32.540Z"
+last_activity: 2026-04-10 -- Phase 03 execution started
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 02 — refactoring-authmiddleware
+**Current focus:** Phase 03 — refactoring-importservice
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Executing Phase 02
-Last activity: 2026-04-10
+Phase: 03 (refactoring-importservice) — COMPLETE
+Plan: 1 of 1 (all complete)
+Status: Phase 03 complete
+Last activity: 2026-04-10 -- Phase 03 execution complete
 
 **Progress:** [██████████] 100%
 
@@ -64,6 +64,7 @@ Last activity: 2026-04-10
 | Phase 01 P02 | 4min | 2 tasks | 7 files |
 | Phase 02 P01 | 8min | 2 tasks | 3 files |
 | Phase 02 P02 | 4min | 2 tasks | 2 files |
+| Phase 03 P01 | 7min | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Keep all 10 static properties on AuthMiddleware as mirrors for Reflection-based test compatibility
 - [Phase 02]: RbacEngine methods receive user as parameter for isolated testability
 - [Phase 02]: No DB mocking needed for SessionManager/RbacEngine — test helpers provide full isolation
+- [Phase 03]: Process methods split by LOC balance: CsvImporter gets member+attendance, XlsxImporter gets proxy+motion
+- [Phase 03]: Value parsers stay on ImportService as shared static utilities called by both importers
+- [Phase 03]: buildMemberLookups duplicated in both importers (12 LOC) to avoid cross-class coupling
 
 ### Pending Todos
 
@@ -93,7 +97,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-10T11:33:45.645Z
-Stopped at: Completed 02-02-PLAN.md
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
-**Next action:** `/gsd:execute-phase 2` to start Refactoring AuthMiddleware
+**Next action:** `/gsd:execute-phase 4` to start Refactoring ExportService
