@@ -71,7 +71,7 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 - [x] **Phase 2: Overlay Hittest Sweep** — Règle base `:where([hidden])!important` + audit codebase-wide du pattern `[hidden]`+`display:flex` (completed 2026-04-10)
 - [x] **Phase 3: Trust Fixtures Deploy** — `loginAsAuditor`/`loginAsAssessor` + endpoint seed test-gated pour trust.htmx.html (completed 2026-04-10)
 - [x] **Phase 4: HTMX 2.0 Upgrade** — Migration 1.x→2.0.6, kebab-case `hx-on:*`, extensions unbundled, `htmx-1-compat` safety net (completed 2026-04-10)
-- [ ] **Phase 5: CSP Nonce Enforcement** — `SecurityProvider::nonce()` + `strict-dynamic`, report-only puis enforcement
+- [x] **Phase 5: CSP Nonce Enforcement** — `SecurityProvider::nonce()` + `strict-dynamic`, report-only puis enforcement (completed 2026-04-10)
 - [ ] **Phase 6: Controller Refactoring** — 4 controllers >500 LOC splittés via ImportService pattern (<300 LOC chacun)
 
 ## Phase Details
@@ -186,7 +186,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | HTMX-03 | 4 | HTMX |
 | HTMX-04 | 4 | HTMX |
 | HTMX-05 | 4 | HTMX |
-| CSP-01 | 5 | 1/2 | In Progress|  | 5 | CSP |
+| CSP-01 | 5 | 2/2 | Complete   | 2026-04-10 | 5 | CSP |
 | CSP-03 | 5 | CSP |
 | CSP-04 | 5 | CSP |
 | CTRL-01 | 6 | Controller |

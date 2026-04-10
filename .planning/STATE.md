@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-04-10T09:06:25.391Z"
-last_activity: 2026-04-10 -- Phase 05 execution started
+status: completed
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-04-10T09:13:11.500Z"
+last_activity: 2026-04-10 -- Completed 05-02-PLAN.md
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 11
-  completed_plans: 10
-  percent: 91
+  completed_plans: 11
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 05 (csp-nonce-enforcement) — EXECUTING
-Plan: 2 of 2
-Status: Plan 01 complete, ready for Plan 02
-Last activity: 2026-04-10 -- Completed 05-01-PLAN.md
+Phase: 05 (csp-nonce-enforcement) — COMPLETE
+Plan: 2 of 2 (all complete)
+Status: Phase 05 complete, ready for Phase 06
+Last activity: 2026-04-10 -- Completed 05-02-PLAN.md
 
-**Progress:** [█████████░] 91%
+**Progress:** [██████████] 100%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,10 @@ Last activity: 2026-04-10 -- Completed 05-01-PLAN.md
 
 ### v1.4 Decisions
 
+- [05-02]: Report-only CSP emitted alongside existing enforcing CSP (dual-header strategy for safe rollout)
+- [05-02]: buildReportOnlyCsp() extracted as testable static method for CSP string construction
+- [05-02]: Nginx server-level CSP removed; CSP per-location for non-PHP responses only
+- [05-02]: script-src in report-only: nonce + strict-dynamic only (no self -- strict-dynamic ignores it)
 - [05-01]: PageController uses serveFromUri() extracting page from REQUEST_URI -- Router map() does not support extra params
 - [05-01]: /vote route split: POST for VotePublicController (form submission), GET for PageController (page shell)
 - [05-01]: %%CSP_NONCE%% placeholder in .htmx.html preserved over PHP tags to keep .htmx.html extension intact
@@ -160,8 +164,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T09:05:19Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-04-10T09:13:11.497Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
 
 **Next action:** Execute Phase 05 (CSP Nonce Enforcement)
