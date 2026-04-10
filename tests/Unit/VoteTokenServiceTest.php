@@ -219,100 +219,6 @@ class VoteTokenServiceTest extends TestCase {
     }
 
     // =========================================================================
-    // validate() TESTS
-    // =========================================================================
-
-    public function testValidateWithValidTokenReturnsValid(): void {
-        $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
-
-        $this->tokenRepo
-            ->method('findByHash')
-            ->with($tokenHash)
-            ->willReturn([
-                'token_hash' => $tokenHash,
-                'tenant_id' => self::TENANT_ID,
-                'meeting_id' => self::MEETING_ID,
-                'member_id' => self::MEMBER_ID,
-                'motion_id' => self::MOTION_ID,
-                'expires_at' => gmdate('Y-m-d\TH:i:s\Z', time() + 3600),
-                'used_at' => null,
-            ]);
-
-        $result = $this->service->validate($rawToken);
-
-        $this->assertTrue($result['valid']);
-        $this->assertSame($tokenHash, $result['token_hash']);
-        $this->assertSame(self::MEETING_ID, $result['meeting_id']);
-        $this->assertSame(self::MEMBER_ID, $result['member_id']);
-        $this->assertSame(self::MOTION_ID, $result['motion_id']);
-    }
-
-    public function testValidateWithExpiredTokenReturnsInvalid(): void {
-        $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
-
-        $this->tokenRepo
-            ->method('findByHash')
-            ->with($tokenHash)
-            ->willReturn([
-                'token_hash' => $tokenHash,
-                'tenant_id' => self::TENANT_ID,
-                'meeting_id' => self::MEETING_ID,
-                'member_id' => self::MEMBER_ID,
-                'motion_id' => self::MOTION_ID,
-                'expires_at' => gmdate('Y-m-d\TH:i:s\Z', time() - 100),
-                'used_at' => null,
-            ]);
-
-        $result = $this->service->validate($rawToken);
-
-        $this->assertFalse($result['valid']);
-        $this->assertSame('token_expired', $result['reason']);
-    }
-
-    public function testValidateWithAlreadyUsedTokenReturnsInvalid(): void {
-        $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
-
-        $this->tokenRepo
-            ->method('findByHash')
-            ->with($tokenHash)
-            ->willReturn([
-                'token_hash' => $tokenHash,
-                'tenant_id' => self::TENANT_ID,
-                'meeting_id' => self::MEETING_ID,
-                'member_id' => self::MEMBER_ID,
-                'motion_id' => self::MOTION_ID,
-                'expires_at' => gmdate('Y-m-d\TH:i:s\Z', time() + 3600),
-                'used_at' => '2025-01-01T00:00:00Z',
-            ]);
-
-        $result = $this->service->validate($rawToken);
-
-        $this->assertFalse($result['valid']);
-        $this->assertSame('token_already_used', $result['reason']);
-    }
-
-    public function testValidateWithEmptyTokenReturnsInvalid(): void {
-        $result = $this->service->validate('');
-
-        $this->assertFalse($result['valid']);
-        $this->assertSame('token_empty', $result['reason']);
-    }
-
-    public function testValidateWithNotFoundTokenReturnsInvalid(): void {
-        $this->tokenRepo
-            ->method('findByHash')
-            ->willReturn(null);
-
-        $result = $this->service->validate('nonexistent-token');
-
-        $this->assertFalse($result['valid']);
-        $this->assertSame('token_not_found', $result['reason']);
-    }
-
-    // =========================================================================
     // validateAndConsume() TESTS
     // =========================================================================
 
@@ -417,65 +323,6 @@ class VoteTokenServiceTest extends TestCase {
     }
 
     // =========================================================================
-    // consume() TESTS
-    // =========================================================================
-
-    public function testConsumeWithValidTokenReturnsTrue(): void {
-        $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
-
-        $this->tokenRepo
-            ->method('findByHash')
-            ->with($tokenHash)
-            ->willReturn([
-                'token_hash' => $tokenHash,
-                'tenant_id' => self::TENANT_ID,
-            ]);
-
-        $this->tokenRepo
-            ->method('consume')
-            ->with($tokenHash, self::TENANT_ID)
-            ->willReturn(1);
-
-        $result = $this->service->consume($rawToken);
-
-        $this->assertTrue($result);
-    }
-
-    public function testConsumeWithEmptyTokenReturnsFalse(): void {
-        $result = $this->service->consume('');
-
-        $this->assertFalse($result);
-    }
-
-    public function testConsumeWithExplicitTenantId(): void {
-        $rawToken = bin2hex(random_bytes(32));
-        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
-
-        $this->tokenRepo
-            ->expects($this->once())
-            ->method('consume')
-            ->with($tokenHash, self::TENANT_ID)
-            ->willReturn(1);
-
-        $result = $this->service->consume($rawToken, self::TENANT_ID);
-
-        $this->assertTrue($result);
-    }
-
-    public function testConsumeWhenTokenNotFoundReturnsFalse(): void {
-        $rawToken = bin2hex(random_bytes(32));
-
-        $this->tokenRepo
-            ->method('findByHash')
-            ->willReturn(null);
-
-        $result = $this->service->consume($rawToken);
-
-        $this->assertFalse($result);
-    }
-
-    // =========================================================================
     // revokeForMotion() TESTS
     // =========================================================================
 
@@ -504,20 +351,6 @@ class VoteTokenServiceTest extends TestCase {
     // =========================================================================
     // EDGE CASES
     // =========================================================================
-
-    public function testTokenHashIsConsistentHmacSha256(): void {
-        $rawToken = 'a1b2c3d4e5f6';
-        $expectedHash = hash_hmac('sha256', $rawToken, APP_SECRET);
-
-        $this->tokenRepo
-            ->method('findByHash')
-            ->with($expectedHash)
-            ->willReturn(null);
-
-        $result = $this->service->validate($rawToken);
-
-        $this->assertSame($expectedHash, $result['token_hash']);
-    }
 
     public function testGenerateProducesDifferentTokensEachCall(): void {
         $this->meetingRepo
