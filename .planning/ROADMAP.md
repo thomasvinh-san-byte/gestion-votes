@@ -196,7 +196,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
+| 1. Infrastructure Redis | 1/2 | In Progress|  | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |

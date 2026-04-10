@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
-status: active
-stopped_at: null
-last_updated: "2026-04-10T21:00:00.000Z"
-last_activity: 2026-04-10
+status: executing
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-04-10T11:04:18.552Z"
+last_activity: 2026-04-10 -- Completed 01-01-PLAN.md (JS/CSS cleanup + dead code removal)
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 10
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.5 Phase 1 — Nettoyage Codebase
+**Current focus:** Phase 01 — nettoyage-codebase
 
 ## Current Position
 
-Phase: 1 of 7 (Nettoyage Codebase)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-04-10 — Roadmap created for v1.5
+Phase: 01 (nettoyage-codebase) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 01
+Last activity: 2026-04-10 -- Completed 01-01-PLAN.md (JS/CSS cleanup + dead code removal)
 
-**Progress:** [░░░░░░░░░░] 0%
+**Progress:** [█████░░░░░] 50%
 
 ## v1.5 Phase Summary
 
@@ -47,6 +47,7 @@ Last activity: 2026-04-10 — Roadmap created for v1.5
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: —
 - Total execution time: 0 hours
@@ -58,6 +59,7 @@ Last activity: 2026-04-10 — Roadmap created for v1.5
 | - | - | - | - |
 
 ## Accumulated Context
+| Phase 01 P01 | 4min | 2 tasks | 22 files |
 
 ### Decisions
 
@@ -69,6 +71,7 @@ Recent decisions affecting current work:
 - [v1.5 roadmap]: AuthMiddleware refactoring (Phase 2) before other services — highest complexity and risk
 - [v1.5 roadmap]: Phases 3-6 parallelizable (no inter-service dependencies), but sequenced for focus
 - [v1.5 roadmap]: 300 LOC ceiling from v1.4 carries forward — all extracted classes must be <300 LOC
+- [Phase 01]: Vendor JS files excluded from console.log cleanup scope
 
 ### Pending Todos
 
@@ -80,8 +83,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10
-Stopped at: Roadmap created for v1.5 milestone
+Last session: 2026-04-10T11:04:18.550Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None
 
 **Next action:** `/gsd:plan-phase 1` to plan Nettoyage Codebase

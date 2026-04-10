@@ -9,9 +9,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Nettoyage JS
 
-- [ ] **CLEAN-01**: Zero console.log/warn/error dans le JS de production (hors error handlers critiques)
-- [ ] **CLEAN-02**: Zero code deprecie dans le codebase (PermissionChecker supprime, VoteTokenService deprecated methods supprimes)
-- [ ] **CLEAN-03**: Zero TODO/FIXME dans les fichiers CSS et JS de production
+- [x] **CLEAN-01**: Zero console.log/warn/error dans le JS de production (hors error handlers critiques)
+- [x] **CLEAN-02**: Zero code deprecie dans le codebase (PermissionChecker supprime, VoteTokenService deprecated methods supprimes)
+- [x] **CLEAN-03**: Zero TODO/FIXME dans les fichiers CSS et JS de production
 - [ ] **CLEAN-04**: Test unitaire PageController couvrant nonce injection et 404
 
 ### Nettoyage PHP
@@ -79,9 +79,9 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEAN-01 | Phase 1 | Pending |
-| CLEAN-02 | Phase 1 | Pending |
-| CLEAN-03 | Phase 1 | Pending |
+| CLEAN-01 | Phase 1 | Complete |
+| CLEAN-02 | Phase 1 | Complete |
+| CLEAN-03 | Phase 1 | Complete |
 | CLEAN-04 | Phase 1 | Pending |
 | CLEAN-05 | Phase 1 | Pending |
 | REFAC-01 | Phase 2 | Pending |
