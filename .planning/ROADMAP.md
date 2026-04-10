@@ -116,8 +116,6 @@ Plans:
 Plans:
 - [ ] 03-01-PLAN.md — Seed-user endpoint + route-level production gate + auditor/assessor auth fixtures
 - [ ] 03-02-PLAN.md — Migrate trust specs from loginAsAdmin/loginAsOperator to loginAsAuditor
-
-
 ### Phase 4: HTMX 2.0 Upgrade
 **Goal**: htmx.org migre de 1.x vers 2.0.6 sans régression sur la suite Playwright cross-browser
 **Depends on**: Phase 1 (contrast ships before HTMX touches same `.htmx.html` files to minimize merge conflicts)
@@ -131,8 +129,6 @@ Plans:
 Plans:
 - [ ] 04-01-PLAN.md — htmx 2.0.6 vendor swap + compat safety net + DELETE param migration (JS+PHP)
 - [ ] 04-02-PLAN.md — Cross-browser Playwright regression validation (chromium+firefox+webkit+mobile-chrome)
-
-
 ### Phase 5: CSP Nonce Enforcement
 **Goal**: Les scripts inline theme init portent des nonces CSP ; `'unsafe-inline'` est retiré de `script-src` après une période report-only
 **Depends on**: Phase 4 (HTMX `hx-on:*` must be migrated before strict CSP can enforce without silently breaking inline event handlers)
@@ -156,10 +152,11 @@ Plans:
   3. Un audit pré-split documenté existe pour chaque controller cible : grep `ReflectionClass|hasMethod|getMethod` dans les tests associés, résultats listés, tests réécrits vers l'API publique des services AVANT le split (vérifiable dans git log — commits de tests précèdent les commits de split)
   4. Aucune URL publique ne change : `app/routes.php` ne modifie que la classe handler ; suite PHPUnit ciblée sur les tests des 4 controllers passe au vert ; spec Playwright critical-path reste green
   5. Chaque service a au moins un test unitaire avec mock `RepositoryFactory` démontrant le pattern DI nullable (minimum 1 test par service)
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
-- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
-- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
+- [ ] 06-01-PLAN.md — Pre-split reflection audit + service structural tests in all 4 controller test files
+- [ ] 06-02-PLAN.md — Extract MeetingsController + MeetingWorkflowController into MeetingLifecycleService + MeetingTransitionService
+- [ ] 06-03-PLAN.md — Extract OperatorController + AdminController into OperatorWorkflowService + AdminService
 
 ## Build Order Rationale (v1.4)
 
@@ -223,4 +220,4 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | 3. Trust Fixtures Deploy | v1.4 | 0/2 | Planned | - |
 | 4. HTMX 2.0 Upgrade | v1.4 | 0/2 | Planned | - |
 | 5. CSP Nonce Enforcement | v1.4 | 0/2 | Planned | - |
-| 6. Controller Refactoring | v1.4 | 0/0 | Not started | - |
+| 6. Controller Refactoring | v1.4 | 0/3 | Planned | - |
