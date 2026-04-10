@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/assets/css/vote.css">
   <script type="module" src="/assets/js/components/ag-searchable-select.js"></script>
 </head>
-<body>
+<body hx-ext="htmx-1-compat">
   <!-- Skip link -->
   <a href="#vote-buttons" class="skip-link">Aller aux boutons de vote</a>
 
@@ -361,6 +361,7 @@
 
   <!-- Scripts -->
   <script src="/assets/vendor/htmx.min.js"></script>
+  <script src="/assets/vendor/htmx-1-compat.js"></script>
   <script src="/assets/js/core/utils.js"></script>
   <script src="/assets/js/core/shared.js"></script>
   <script src="/assets/js/pages/auth-ui.js"></script>
