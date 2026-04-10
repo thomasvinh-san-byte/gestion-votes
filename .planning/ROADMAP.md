@@ -186,7 +186,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | CSP-01 | 5 | 2/2 | Complete   | 2026-04-10 | 5 | CSP |
 | CSP-03 | 5 | CSP |
 | CSP-04 | 5 | CSP |
-| CTRL-01 | 6 | 1/3 | In Progress|  | 6 | Controller |
+| CTRL-01 | 6 | 2/3 | In Progress|  | 6 | Controller |
 | CTRL-03 | 6 | Controller |
 | CTRL-04 | 6 | Controller |
 | CTRL-05 | 6 | Controller |

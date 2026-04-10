@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-10T09:32:30.585Z"
-last_activity: 2026-04-10 -- Phase 06 execution started
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-04-10T09:59:22.462Z"
+last_activity: 2026-04-10 -- Completed 06-02-PLAN.md (MeetingsController + MeetingWorkflowController extraction)
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 14
-  completed_plans: 12
-  percent: 86
+  completed_plans: 13
+  percent: 93
 ---
 
 # AG-VOTE — Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 06 (controller-refactoring) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Executing Phase 06
-Last activity: 2026-04-10 -- Completed 06-01-PLAN.md (pre-split reflection audit)
+Last activity: 2026-04-10 -- Completed 06-02-PLAN.md (MeetingsController + MeetingWorkflowController extraction)
 
-**Progress:** [█████████░] 86%
+**Progress:** [█████████░] 93%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,10 @@ Last activity: 2026-04-10 -- Completed 06-01-PLAN.md (pre-split reflection audit
 
 ### v1.4 Decisions
 
+- [06-02]: Created MeetingTransitionService as NEW service instead of expanding MeetingWorkflowService (would exceed 300 LOC)
+- [06-02]: Service exceptions mapped to original controller error codes for API backward compatibility
+- [06-02]: Source-reading tests concatenate controller+service source for combined string pattern coverage
+- [06-02]: buildTransitionFields as public method on MeetingTransitionService for DRY transition/launch field logic
 - [06-01]: Service tests use @group pending-service for exclusion until services exist in Plans 02/03
 - [06-01]: Existing controller structural tests preserved intact alongside new service tests
 - [05-02]: Report-only CSP emitted alongside existing enforcing CSP (dual-header strategy for safe rollout)
@@ -166,8 +170,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T09:13:11.497Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-04-10T09:59:22.459Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
 **Next action:** Execute Phase 05 (CSP Nonce Enforcement)

@@ -41,8 +41,8 @@
 
 ### Controller Refactoring (CTRL)
 
-- [ ] **CTRL-01** : MeetingsController.php est réduit à <300 lignes (depuis 687) via extraction vers `MeetingLifecycleService` avec DI nullable
-- [ ] **CTRL-02** : MeetingWorkflowController.php est réduit à <300 lignes (depuis 559) via extraction vers `MeetingWorkflowService`
+- [x] **CTRL-01** : MeetingsController.php est réduit à <300 lignes (depuis 687) via extraction vers `MeetingLifecycleService` avec DI nullable
+- [x] **CTRL-02** : MeetingWorkflowController.php est réduit à <300 lignes (depuis 559) via extraction vers `MeetingWorkflowService`
 - [ ] **CTRL-03** : OperatorController.php est réduit à <300 lignes (depuis 516) via extraction vers `OperatorWorkflowService`
 - [ ] **CTRL-04** : AdminController.php est réduit à <300 lignes (depuis 510) via extraction vers `AdminService`
 - [x] **CTRL-05** : Un audit pré-split des tests pour usage `ReflectionClass` / `hasMethod` précède chaque split ; les tests sont réécrits vers les services publics avant le split
@@ -91,8 +91,8 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | CSP-02 | Phase 5 — CSP Nonce Enforcement | Complete |
 | CSP-03 | Phase 5 — CSP Nonce Enforcement | Complete |
 | CSP-04 | Phase 5 — CSP Nonce Enforcement | Complete |
-| CTRL-01 | Phase 6 — Controller Refactoring | Pending |
-| CTRL-02 | Phase 6 — Controller Refactoring | Pending |
+| CTRL-01 | Phase 6 — Controller Refactoring | Complete |
+| CTRL-02 | Phase 6 — Controller Refactoring | Complete |
 | CTRL-03 | Phase 6 — Controller Refactoring | Pending |
 | CTRL-04 | Phase 6 — Controller Refactoring | Pending |
 | CTRL-05 | Phase 6 — Controller Refactoring | Complete |
