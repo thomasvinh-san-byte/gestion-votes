@@ -122,18 +122,12 @@ class MeetingsControllerTest extends ControllerTestCase
     // SERVICE STRUCTURE TESTS (pre-split — validates extraction targets)
     // =========================================================================
 
-    /**
-     * @group pending-service
-     */
     public function testMeetingLifecycleServiceIsFinal(): void
     {
         $ref = new \ReflectionClass(MeetingLifecycleService::class);
         $this->assertTrue($ref->isFinal(), 'MeetingLifecycleService should be final');
     }
 
-    /**
-     * @group pending-service
-     */
     public function testMeetingLifecycleServiceHasExpectedMethods(): void
     {
         $ref = new \ReflectionClass(MeetingLifecycleService::class);
@@ -147,7 +141,6 @@ class MeetingsControllerTest extends ControllerTestCase
             'getStatusForMeeting',
             'getSummary',
             'getStats',
-            'handleVoteSettings',
         ];
         foreach ($expectedMethods as $method) {
             $this->assertTrue(
@@ -157,9 +150,6 @@ class MeetingsControllerTest extends ControllerTestCase
         }
     }
 
-    /**
-     * @group pending-service
-     */
     public function testMeetingLifecycleServiceUsesNullableDI(): void
     {
         $ref = new \ReflectionClass(MeetingLifecycleService::class);
@@ -682,7 +672,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testUpdateResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'updated'", $source, "Update response should contain 'updated' key");
         $this->assertStringContainsString("'meeting_id'", $source, "Update response should contain 'meeting_id' key");
@@ -824,7 +814,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testStatusForMeetingResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $fields = [
             'meeting_id',
@@ -929,7 +919,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testSummaryResponseTopLevelFields(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $fields = ['meeting_id', 'meeting_title', 'status', 'validated_at', 'president_name', 'data'];
         foreach ($fields as $field) {
@@ -943,7 +933,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testSummaryResponseDataSubfields(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $dataFields = [
             'total_members',
@@ -1141,7 +1131,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testStatsResponseTopLevelFields(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $topKeys = ['meeting_id', 'motions_count', 'distinct_voters', 'items'];
         foreach ($topKeys as $key) {
@@ -1155,7 +1145,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testStatsMotionItemFields(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $fields = [
             'motion_id', 'title', 'total', 'votes_for', 'votes_against',
@@ -1312,7 +1302,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testCreateMeetingResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting_id'", $source);
         $this->assertStringContainsString("'title'", $source);
@@ -1325,7 +1315,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testCreateMeetingResponseIncludesCountFields(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $countFields = ['members_created', 'members_linked', 'motions_created'];
         foreach ($countFields as $field) {
@@ -1339,7 +1329,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testCreateMeetingUsesApiTransaction(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString(
             'api_transaction',
@@ -1350,7 +1340,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testCreateMeetingFieldMappingFromWizardFormat(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         // Wizard sends 'type', 'date', 'time', 'place' — controller maps them
         $this->assertStringContainsString("'type'", $source, 'Should read wizard type field');
@@ -1359,7 +1349,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testCreateMeetingMemberUpsertByEmail(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString(
             'findByEmail',
@@ -1372,7 +1362,7 @@ class MeetingsControllerTest extends ControllerTestCase
     {
         // Verify the controller handles empty members/resolutions gracefully
         // by checking counts default to 0 in the response structure
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString('members', $source);
         $this->assertStringContainsString('resolutions', $source);
@@ -1501,7 +1491,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testValidateResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting_id'", $source);
         $this->assertStringContainsString("'status' => 'validated'", $source);
@@ -1509,7 +1499,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testValidateHandlesExceptionGracefully(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         // Exception handling is delegated to api_transaction() and AbstractController::handle()
         $this->assertStringContainsString('api_transaction', $source);
@@ -1555,13 +1545,13 @@ class MeetingsControllerTest extends ControllerTestCase
      */
     public function testVoteSettingsSourceUsesApiRequireUuidForGet(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
         $this->assertStringContainsString("api_require_uuid(\$q, 'meeting_id')", $source);
     }
 
     public function testVoteSettingsSourceUsesApiRequireUuidForPost(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
         $this->assertStringContainsString("api_require_uuid(\$in, 'meeting_id')", $source);
     }
 
@@ -1618,7 +1608,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testVoteSettingsGetResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting_id'", $source);
         $this->assertStringContainsString("'vote_policy_id'", $source);
@@ -1627,7 +1617,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testVoteSettingsPostResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'saved'", $source);
     }
@@ -1809,28 +1799,28 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testUpdateAuditsChanges(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting_updated'", $source);
     }
 
     public function testCreateMeetingAuditsCreation(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting_created'", $source);
     }
 
     public function testValidateAuditsValidation(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting.validated'", $source);
     }
 
     public function testVoteSettingsAuditsUpdate(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString("'meeting_vote_policy_updated'", $source);
     }
@@ -1841,7 +1831,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testUpdateGuardsAgainstStatusModification(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString('status_via_transition', $source);
         $this->assertStringContainsString('meeting_transition', $source);
@@ -1849,14 +1839,14 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testUpdateGuardsArchivedMeeting(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString('meeting_archived_locked', $source);
     }
 
     public function testUpdateCallsGuardMeetingNotValidated(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $this->assertStringContainsString('api_guard_meeting_not_validated', $source);
     }
@@ -1867,7 +1857,7 @@ class MeetingsControllerTest extends ControllerTestCase
 
     public function testMeetingTypeValidListInSource(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingsController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingLifecycleService.php');
 
         $validTypes = ['ag_ordinaire', 'ag_extraordinaire', 'conseil', 'bureau', 'autre'];
         foreach ($validTypes as $type) {

@@ -51,14 +51,11 @@ final class MeetingTransitionService {
             throw new RuntimeException('Séance archivée : aucune transition autorisée.');
         }
 
-        $workflowCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenantId, $toStatus);
-
         return [
             'meeting_id' => $meetingId,
             'from_status' => $fromStatus,
             'to_status' => $toStatus,
             'meeting' => $meeting,
-            'workflow_check' => $workflowCheck,
         ];
     }
 
@@ -134,108 +131,34 @@ final class MeetingTransitionService {
 
         $checks = [];
         $bad = [];
-
-        // Check 1: Président renseigné
         $pres = trim((string) ($meeting['president_name'] ?? ''));
-        $checks[] = [
-            'passed' => $pres !== '',
-            'label' => 'Président renseigné',
-            'detail' => $pres !== '' ? $pres : "Aucun président (president_name) n'est renseigné.",
-        ];
-
-        // Check 2: Motions ouvertes
+        $checks[] = ['passed' => $pres !== '', 'label' => 'Président renseigné', 'detail' => $pres !== '' ? $pres : "Aucun président (president_name) n'est renseigné."];
         $openCount = $statsRepo->countOpenMotions($meetingId, $tenantId);
-        $checks[] = [
-            'passed' => $openCount === 0,
-            'label' => 'Motions fermées',
-            'detail' => $openCount > 0 ? "Il reste {$openCount} motion(s) ouverte(s). Fermez-les avant validation." : '',
-        ];
-
-        // Check 3: Éligibles
+        $checks[] = ['passed' => $openCount === 0, 'label' => 'Motions fermées', 'detail' => $openCount > 0 ? "Il reste {$openCount} motion(s) ouverte(s). Fermez-les avant validation." : ''];
         $eligibleCount = $attendanceRepo->countEligible($meetingId, $tenantId);
         $fallbackEligibleUsed = false;
-        if ($eligibleCount <= 0) {
-            $fallbackEligibleUsed = true;
-            $eligibleCount = $memberRepo->countActive($tenantId);
-        }
-        $checks[] = [
-            'passed' => !$fallbackEligibleUsed,
-            'label' => 'Présences saisies',
-            'detail' => $fallbackEligibleUsed ? 'Règle de fallback utilisée (tous membres actifs).' : '',
-        ];
-
-        // Motions fermées
+        if ($eligibleCount <= 0) { $fallbackEligibleUsed = true; $eligibleCount = $memberRepo->countActive($tenantId); }
+        $checks[] = ['passed' => !$fallbackEligibleUsed, 'label' => 'Présences saisies', 'detail' => $fallbackEligibleUsed ? 'Règle de fallback utilisée (tous membres actifs).' : ''];
         $motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId, $tenantId);
-
         foreach ($motions as $m) {
-            $motionId = (string) $m['id'];
-            $title = (string) ($m['title'] ?? 'Motion');
-
-            $manualTotal = (int) ($m['manual_total'] ?? 0);
-            $manualFor = (int) ($m['manual_for'] ?? 0);
-            $manualAg = (int) ($m['manual_against'] ?? 0);
-            $manualAb = (int) ($m['manual_abstain'] ?? 0);
-
-            $manualOk = false;
-            if ($manualTotal > 0) {
-                $manualOk = (($manualFor + $manualAg + $manualAb) === $manualTotal);
-            }
-
-            $eligibleDirect = $ballotRepo->countEligibleDirect($meetingId, $motionId, $tenantId);
-            $eligibleProxy = $ballotRepo->countEligibleProxy($meetingId, $motionId, $tenantId);
-            $eligibleBallots = $eligibleDirect + $eligibleProxy;
-
-            $ballotsTotal = $ballotRepo->countByMotionId($motionId, $tenantId);
-            $missing = max(0, $eligibleCount - $ballotsTotal);
-            if ($missing > 0) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => "Votes manquants : {$missing} (attendus: {$eligibleCount}, reçus: {$ballotsTotal}).",
-                ];
-            }
-
-            $invalidDirect = $ballotRepo->countInvalidDirect($meetingId, $motionId, $tenantId);
-            $invalidProxy = $ballotRepo->countInvalidProxy($meetingId, $motionId, $tenantId);
-
-            if ($invalidDirect > 0 || $invalidProxy > 0) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => "Bulletins non éligibles détectés (direct: {$invalidDirect}, procuration: {$invalidProxy}).",
-                ];
-            }
-
-            if (!$manualOk && $eligibleBallots <= 0) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => 'Aucun résultat exploitable: pas de comptage manuel cohérent et aucun bulletin e-vote éligible.',
-                ];
-            } elseif ($manualTotal > 0 && !$manualOk) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => 'Comptage manuel incohérent (pour+contre+abst != total).',
-                ];
-            }
+            $mid = (string) $m['id']; $title = (string) ($m['title'] ?? 'Motion');
+            $mt = (int) ($m['manual_total'] ?? 0); $mf = (int) ($m['manual_for'] ?? 0);
+            $ma = (int) ($m['manual_against'] ?? 0); $mab = (int) ($m['manual_abstain'] ?? 0);
+            $manualOk = $mt > 0 && ($mf + $ma + $mab) === $mt;
+            $eBallots = $ballotRepo->countEligibleDirect($meetingId, $mid, $tenantId) + $ballotRepo->countEligibleProxy($meetingId, $mid, $tenantId);
+            $bt = $ballotRepo->countByMotionId($mid, $tenantId);
+            $missing = max(0, $eligibleCount - $bt);
+            if ($missing > 0) { $bad[] = ['motion_id' => $mid, 'title' => $title, 'detail' => "Votes manquants : {$missing} (attendus: {$eligibleCount}, reçus: {$bt})."]; }
+            $iD = $ballotRepo->countInvalidDirect($meetingId, $mid, $tenantId);
+            $iP = $ballotRepo->countInvalidProxy($meetingId, $mid, $tenantId);
+            if ($iD > 0 || $iP > 0) { $bad[] = ['motion_id' => $mid, 'title' => $title, 'detail' => "Bulletins non éligibles détectés (direct: {$iD}, procuration: {$iP})."]; }
+            if (!$manualOk && $eBallots <= 0) { $bad[] = ['motion_id' => $mid, 'title' => $title, 'detail' => 'Aucun résultat exploitable: pas de comptage manuel cohérent et aucun bulletin e-vote éligible.']; }
+            elseif ($mt > 0 && !$manualOk) { $bad[] = ['motion_id' => $mid, 'title' => $title, 'detail' => 'Comptage manuel incohérent (pour+contre+abst != total).']; }
         }
-
-        foreach ($bad as $b) {
-            $checks[] = ['passed' => false, 'label' => $b['title'], 'detail' => $b['detail']];
-        }
-
-        if (count($bad) === 0 && count($motions) > 0) {
-            $checks[] = ['passed' => true, 'label' => 'Résultats exploitables', 'detail' => count($motions) . ' motion(s) avec résultat valide.'];
-        }
-
+        foreach ($bad as $b) { $checks[] = ['passed' => false, 'label' => $b['title'], 'detail' => $b['detail']]; }
+        if (count($bad) === 0 && count($motions) > 0) { $checks[] = ['passed' => true, 'label' => 'Résultats exploitables', 'detail' => count($motions) . ' motion(s) avec résultat valide.']; }
         $ready = true;
-        foreach ($checks as $c) {
-            if (!$c['passed']) {
-                $ready = false;
-                break;
-            }
-        }
+        foreach ($checks as $c) { if (!$c['passed']) { $ready = false; break; } }
 
         return [
             'ready' => $ready,
@@ -248,6 +171,40 @@ final class MeetingTransitionService {
                 'fallback_eligible_used' => $fallbackEligibleUsed,
             ],
         ];
+    }
+
+    /**
+     * Build the fields array for a status transition.
+     * @return array<string, mixed> Fields to update
+     */
+    public function buildTransitionFields(string $toStatus, string $fromStatus, array $meeting, string $userId, ?string $validatedByName = null): array {
+        $fields = ['status' => $toStatus];
+        $now = date('Y-m-d H:i:s');
+        switch ($toStatus) {
+            case 'frozen': $fields['frozen_at'] = $now; $fields['frozen_by'] = $userId; break;
+            case 'live':
+                if (empty($meeting['started_at'])) { $fields['started_at'] = $now; }
+                if (!empty($meeting['scheduled_at']) && $meeting['scheduled_at'] > $now) { $fields['scheduled_at'] = $now; }
+                $fields['opened_by'] = $userId;
+                if ($fromStatus === 'paused') { $fields['paused_at'] = null; $fields['paused_by'] = null; }
+                break;
+            case 'paused': $fields['paused_at'] = $now; $fields['paused_by'] = $userId; break;
+            case 'closed':
+                if (empty($meeting['ended_at'])) { $fields['ended_at'] = $now; }
+                $fields['closed_by'] = $userId; break;
+            case 'archived': $fields['archived_at'] = $now; break;
+            case 'scheduled':
+                if ($fromStatus === 'frozen') { $fields['frozen_at'] = null; $fields['frozen_by'] = null; }
+                break;
+            case 'validated':
+                if (empty($meeting['validated_at'])) {
+                    $fields['validated_at'] = $now;
+                    $fields['validated_by'] = $validatedByName ?? 'unknown';
+                    $fields['validated_by_user_id'] = $userId;
+                }
+                break;
+        }
+        return $fields;
     }
 
     /**

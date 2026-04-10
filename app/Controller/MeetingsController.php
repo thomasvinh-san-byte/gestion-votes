@@ -1,19 +1,18 @@
 <?php
-
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
-use AgVote\Core\BallotSource;
 use AgVote\Core\Security\IdempotencyGuard;
-use AgVote\Service\MeetingReportService;
-use AgVote\Service\MeetingValidator;
-use AgVote\Service\NotificationsService;
+use AgVote\Service\MeetingLifecycleService;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
- * Consolidates 8 meeting CRUD + status endpoints.
+ * Consolidates meeting CRUD + status endpoints.
  *
- * Shared pattern: MeetingRepository, tenant validation, meeting_id.
+ * Business logic delegated to MeetingLifecycleService.
+ * This controller is a thin HTTP adapter.
  */
 final class MeetingsController extends AbstractController {
     public function index(): void {
@@ -46,188 +45,68 @@ final class MeetingsController extends AbstractController {
 
         api_guard_meeting_not_validated($meetingId);
 
-        $title = array_key_exists('title', $input) ? trim((string) $input['title']) : null;
-        $presidentName = array_key_exists('president_name', $input) ? trim((string) $input['president_name']) : null;
-        $scheduledAt = array_key_exists('scheduled_at', $input) ? trim((string) $input['scheduled_at']) : null;
-        $meetingType = array_key_exists('meeting_type', $input) ? trim((string) $input['meeting_type']) : null;
-
-        if (array_key_exists('status', $input)) {
-            api_fail('status_via_transition', 400, [
-                'detail' => 'Les transitions de statut doivent passer par /api/v1/meeting_transition.php.',
-            ]);
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->updateMeeting($meetingId, api_current_tenant_id(), $input);
+        } catch (InvalidArgumentException $e) {
+            $msg = $e->getMessage();
+            $code = 'validation_error';
+            if (str_contains($msg, 'transitions de statut')) { $code = 'status_via_transition'; }
+            elseif (str_contains($msg, 'titre') && str_contains($msg, 'obligatoire')) { $code = 'missing_title'; }
+            elseif (str_contains($msg, '120')) { $code = 'title_too_long'; }
+            elseif (str_contains($msg, 'président')) { $code = 'president_name_too_long'; }
+            elseif (str_contains($msg, 'séance invalide')) { $code = 'invalid_meeting_type'; }
+            api_fail($code, 400, ['detail' => $msg]);
+        } catch (RuntimeException $e) {
+            $msg = $e->getMessage();
+            if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            if (str_contains($msg, 'archivée')) { api_fail('meeting_archived_locked', 409, ['detail' => $msg]); }
+            api_fail('business_error', 409, ['detail' => $msg]);
         }
 
-        if ($title !== null) {
-            $len = mb_strlen($title);
-            if ($len === 0) {
-                api_fail('missing_title', 400, ['detail' => 'Le titre de la séance est obligatoire.']);
-            }
-            if ($len > 120) {
-                api_fail('title_too_long', 400, ['detail' => 'Titre trop long (120 max).']);
-            }
+        if (isset($result['fields'])) {
+            audit_log('meeting_updated', 'meeting', $meetingId, ['fields' => $result['fields']]);
+            unset($result['fields']);
         }
 
-        if ($presidentName !== null && mb_strlen($presidentName) > 200) {
-            api_fail('president_name_too_long', 400, ['detail' => 'Nom du président trop long (200 max).']);
-        }
-
-        $validMeetingTypes = ['ag_ordinaire', 'ag_extraordinaire', 'conseil', 'bureau', 'autre'];
-        if ($meetingType !== null && !in_array($meetingType, $validMeetingTypes, true)) {
-            api_fail('invalid_meeting_type', 400, ['detail' => 'Type de séance invalide.', 'valid_types' => $validMeetingTypes]);
-        }
-
-        $repo = $this->repo()->meeting();
-        $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
-        if (!$current) {
-            api_fail('meeting_not_found', 404);
-        }
-
-        if ((string) $current['status'] === 'archived') {
-            api_fail('meeting_archived_locked', 409, ['detail' => 'Séance archivée : modification interdite.']);
-        }
-
-        $fields = [];
-        if ($title !== null) {
-            $fields['title'] = $title;
-        }
-        if ($presidentName !== null) {
-            $fields['president_name'] = $presidentName;
-        }
-        if ($scheduledAt !== null) {
-            $fields['scheduled_at'] = $scheduledAt ?: null;
-        }
-        if ($meetingType !== null) {
-            $fields['meeting_type'] = $meetingType;
-        }
-
-        if (!$fields) {
-            api_ok(['updated' => false, 'meeting_id' => $meetingId]);
-        }
-
-        $updated = $repo->updateFields($meetingId, api_current_tenant_id(), $fields);
-
-        audit_log('meeting_updated', 'meeting', $meetingId, [
-            'fields' => array_keys($fields),
-        ]);
-
-        api_ok(['updated' => $updated > 0, 'meeting_id' => $meetingId]);
+        api_ok($result);
     }
 
     public function archive(): void {
         api_request('GET');
-
-        $from = api_query('from');
-        $to = api_query('to');
-
-        $repo = $this->repo()->meeting();
-        $rows = $repo->listArchived(api_current_tenant_id(), $from, $to);
+        $rows = $this->repo()->meeting()->listArchived(api_current_tenant_id(), api_query('from'), api_query('to'));
         api_ok(['items' => $rows]);
     }
 
     public function archivesList(): void {
         api_request('GET');
-
-        $repo = $this->repo()->meeting();
-        $rows = $repo->listArchivedWithReports(api_current_tenant_id());
-        api_ok(['items' => $rows]);
+        api_ok(['items' => $this->repo()->meeting()->listArchivedWithReports(api_current_tenant_id())]);
     }
 
     public function status(): void {
         api_request('GET');
-
-        $repo = $this->repo()->meeting();
-        $meeting = $repo->findCurrentForTenant(api_current_tenant_id());
-
-        if (!$meeting) {
-            api_fail('no_live_meeting', 404);
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->getStatus(api_current_tenant_id(), api_current_role());
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'no_live_meeting') { api_fail('no_live_meeting', 404); }
+            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         }
-
-        $statsRepo = $this->repo()->meetingStats();
-        $counts = $statsRepo->countMotionStats((string) $meeting['meeting_id'], api_current_tenant_id());
-
-        $totalMotions = (int) ($counts['total_motions'] ?? 0);
-        $openMotions = (int) ($counts['open_motions'] ?? 0);
-        $closedWithoutTally = (int) ($counts['closed_without_tally'] ?? 0);
-
-        $validation = (new MeetingValidator())->canBeValidated((string) $meeting['meeting_id'], api_current_tenant_id());
-        $readyToSign = (bool) ($validation['can'] ?? false);
-
-        (new NotificationsService())->emitReadinessTransitions((string) $meeting['meeting_id'], $validation, api_current_tenant_id());
-
-        $signStatus = 'not_ready';
-        $signMessage = 'Séance en cours de traitement.';
-
-        if ($meeting['meeting_status'] === 'archived') {
-            $signStatus = 'archived';
-            $signMessage = 'Séance archivée le ' . ($meeting['archived_at'] ?? '—');
-        } elseif ($readyToSign) {
-            $signStatus = 'ready';
-            $signMessage = 'Tout est prêt à être signé.';
-        } elseif ($openMotions > 0) {
-            $signStatus = 'open_motions';
-            $signMessage = "{$openMotions} résolution(s) encore ouverte(s).";
-        } elseif ($closedWithoutTally > 0) {
-            $signStatus = 'missing_tally';
-            $signMessage = "{$closedWithoutTally} résolution(s) clôturée(s) sans comptage complet.";
-        }
-
-        $response = array_merge($meeting, [
-            'total_motions' => $totalMotions,
-            'open_motions' => $openMotions,
-            'closed_without_tally' => $closedWithoutTally,
-            'ready_to_sign' => $readyToSign,
-            'sign_status' => $signStatus,
-            'sign_message' => $signMessage,
-            'can_current_user_validate' => in_array(api_current_role(), ['president', 'admin'], true),
-        ]);
-
-        api_ok($response);
+        api_ok($result);
     }
 
     public function statusForMeeting(): void {
         api_request('GET');
-
         $meetingId = api_query('meeting_id');
-        if ($meetingId === '' || !api_is_uuid($meetingId)) {
-            api_fail('missing_meeting_id', 422);
+        if ($meetingId === '' || !api_is_uuid($meetingId)) { api_fail('missing_meeting_id', 422); }
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->getStatusForMeeting($meetingId, api_current_tenant_id());
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         }
-
-        $repo = $this->repo()->meeting();
-        $meeting = $repo->findStatusFields($meetingId, api_current_tenant_id());
-        if (!$meeting) {
-            api_fail('meeting_not_found', 404);
-        }
-
-        $validation = (new MeetingValidator())->canBeValidated((string) $meetingId, api_current_tenant_id());
-        $readyToSign = (bool) ($validation['can'] ?? false);
-
-        (new NotificationsService())->emitReadinessTransitions((string) $meetingId, $validation, api_current_tenant_id());
-
-        $signStatus = 'not_ready';
-        $signMessage = '';
-        if (!empty($meeting['validated_at'])) {
-            $signStatus = 'validated';
-            $signMessage = 'Séance validée.';
-        } elseif ($readyToSign) {
-            $signStatus = 'ready';
-            $signMessage = 'Tout est prêt à être signé.';
-        } else {
-            $signMessage = 'Préparation incomplète.';
-        }
-
-        api_ok([
-            'meeting_id' => $meeting['meeting_id'],
-            'meeting_title' => $meeting['meeting_title'],
-            'meeting_status' => $meeting['meeting_status'],
-            'started_at' => $meeting['started_at'],
-            'ended_at' => $meeting['ended_at'],
-            'archived_at' => $meeting['archived_at'],
-            'validated_at' => $meeting['validated_at'],
-            'president_name' => $meeting['president_name'],
-            'ready_to_sign' => $readyToSign,
-            'sign_status' => $signStatus,
-            'sign_message' => $signMessage,
-        ]);
+        api_ok($result);
     }
 
     public function summary(): void {
@@ -235,132 +114,28 @@ final class MeetingsController extends AbstractController {
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
         }
-
-        $tenantId = api_current_tenant_id();
-        $repo = $this->repo()->meeting();
-        $statsRepo = $this->repo()->meetingStats();
-
-        $meeting = $repo->findSummaryFields($meetingId, $tenantId);
-        if (!$meeting) {
-            api_fail('meeting_not_found', 404);
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->getSummary($meetingId, api_current_tenant_id());
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         }
-
-        $totalMembers = $statsRepo->countActiveMembers($tenantId);
-        $presentCount = $statsRepo->countPresent($meetingId, $tenantId);
-        $proxyCount = $statsRepo->countProxy($meetingId, $tenantId);
-        $absentCount = max(0, $totalMembers - $presentCount - $proxyCount);
-
-        $motionsCount = $statsRepo->countMotions($meetingId, $tenantId);
-        $closedMotionsCount = $statsRepo->countClosedMotions($meetingId, $tenantId);
-        $openMotionsCount = $statsRepo->countOpenMotions($meetingId, $tenantId);
-
-        $adoptedCount = $statsRepo->countAdoptedMotions($meetingId, $tenantId);
-        $rejectedCount = $statsRepo->countRejectedMotions($meetingId, $tenantId);
-
-        $ballotsCount = $statsRepo->countBallots($meetingId, $tenantId);
-        $totalVotedWeight = $statsRepo->sumBallotWeight($meetingId, $tenantId);
-        $proxiesCount = $statsRepo->countProxies($meetingId, $tenantId);
-        $incidentsCount = $statsRepo->countIncidents($meetingId, $tenantId);
-        $manualVotesCount = $statsRepo->countManualVotes($meetingId, $tenantId);
-
-        api_ok([
-            'meeting_id' => $meetingId,
-            'meeting_title' => $meeting['title'],
-            'status' => $meeting['status'],
-            'validated_at' => $meeting['validated_at'],
-            'president_name' => $meeting['president_name'],
-            'data' => [
-                'total_members' => $totalMembers,
-                'present_count' => $presentCount,
-                'proxy_count' => $proxyCount,
-                'absent_count' => $absentCount,
-                'motions_count' => $motionsCount,
-                'closed_motions_count' => $closedMotionsCount,
-                'open_motions_count' => $openMotionsCount,
-                'adopted_count' => $adoptedCount,
-                'rejected_count' => $rejectedCount,
-                'ballots_count' => $ballotsCount,
-                'total_voted_weight' => round($totalVotedWeight, 2),
-                'proxies_count' => $proxiesCount,
-                'incidents_count' => $incidentsCount,
-                'manual_votes_count' => $manualVotesCount,
-            ],
-        ]);
+        api_ok($result);
     }
 
     public function stats(): void {
         api_request('GET');
-
         $meetingId = api_query('meeting_id');
-        if ($meetingId === '') {
-            api_fail('missing_meeting_id', 422);
+        if ($meetingId === '') { api_fail('missing_meeting_id', 422); }
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->getStats($meetingId, api_current_tenant_id());
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         }
-
-        $meetingRepo = $this->repo()->meeting();
-        $statsRepo = $this->repo()->meetingStats();
-        $motionRepo = $this->repo()->motion();
-
-        $tenantId = api_current_tenant_id();
-        if (!$meetingRepo->existsForTenant($meetingId, $tenantId)) {
-            api_fail('meeting_not_found', 404);
-        }
-
-        $motionsCount = $statsRepo->countMotions($meetingId, $tenantId);
-        $rows = $motionRepo->listStatsForMeeting($meetingId, $tenantId);
-
-        $motions = [];
-        $totalBallotsAllMotions = 0;
-
-        foreach ($rows as $r) {
-            $ballotsTotal = (int) ($r['ballots_total'] ?? 0);
-
-            if ($ballotsTotal > 0) {
-                $source = 'ballots';
-                $total = $ballotsTotal;
-                $votes_for = (int) ($r['ballots_for'] ?? 0);
-                $votes_against = (int) ($r['ballots_against'] ?? 0);
-                $votes_abstain = (int) ($r['ballots_abstain'] ?? 0);
-                $votes_nsp = (int) ($r['ballots_nsp'] ?? 0);
-                $totalBallotsAllMotions += $ballotsTotal;
-            } else {
-                $source = BallotSource::MANUAL;
-                $total = (int) ($r['manual_total'] ?? 0);
-                $votes_for = (int) ($r['manual_for'] ?? 0);
-                $votes_against = (int) ($r['manual_against'] ?? 0);
-                $votes_abstain = (int) ($r['manual_abstain'] ?? 0);
-                $votes_nsp = max(0, $total - $votes_for - $votes_against - $votes_abstain);
-            }
-
-            $motions[] = [
-                'motion_id' => $r['motion_id'],
-                'title' => $r['title'],
-                'total' => $total,
-                'votes_for' => $votes_for,
-                'votes_against' => $votes_against,
-                'votes_abstain' => $votes_abstain,
-                'votes_nsp' => $votes_nsp,
-                'tally_source' => $source,
-                'manual_total' => (int) ($r['manual_total'] ?? 0),
-                'manual_for' => (int) ($r['manual_for'] ?? 0),
-                'manual_against' => (int) ($r['manual_against'] ?? 0),
-                'manual_abstain' => (int) ($r['manual_abstain'] ?? 0),
-                'ballots_total' => $ballotsTotal,
-            ];
-        }
-
-        $distinctVoters = 0;
-        if ($totalBallotsAllMotions > 0) {
-            $distinctVoters = $motionRepo->countDistinctVoters($meetingId, $tenantId);
-        } else {
-            $distinctVoters = $motionRepo->maxManualTotal($meetingId, $tenantId);
-        }
-
-        api_ok([
-            'meeting_id' => $meetingId,
-            'motions_count' => (int) $motionsCount,
-            'distinct_voters' => (int) $distinctVoters,
-            'items' => $motions,
-        ]);
+        api_ok($result);
     }
 
     public function createMeeting(): void {
@@ -370,175 +145,27 @@ final class MeetingsController extends AbstractController {
         }
 
         $data = api_request('POST');
-
-        // Field mapping: wizard sends different field names than the internal schema.
-        // Map wizard fields BEFORE any validation — do NOT run ValidationSchemas::meeting()
-        // on the raw wizard payload because field names differ (type vs meeting_type, etc.).
-        $title = trim((string) ($data['title'] ?? ''));
-        if (mb_strlen($title) < 3) {
-            api_fail('missing_title', 422, ['detail' => 'Le titre est obligatoire (3 caractères minimum).']);
-        }
-
-        $meetingType = trim((string) ($data['type'] ?? 'ag_ordinaire')) ?: 'ag_ordinaire';
-        $validMeetingTypes = ['ag_ordinaire', 'ag_extraordinaire', 'conseil', 'bureau', 'autre'];
-        if (!in_array($meetingType, $validMeetingTypes, true)) {
-            $meetingType = 'ag_ordinaire';
-        }
-
-        $description = trim((string) ($data['description'] ?? '')) ?: null;
-        $location = trim((string) ($data['place'] ?? '')) ?: null;
-
-        $dateStr = trim((string) ($data['date'] ?? ''));
-        $timeStr = trim((string) ($data['time'] ?? ''));
-        $scheduledAt = null;
-        if ($dateStr !== '') {
-            $scheduledAt = $dateStr . ' ' . ($timeStr !== '' ? $timeStr : '00:00') . ':00';
-        }
-
-        $quorumPolicyId = trim((string) ($data['quorum'] ?? '')) ?: null;
-        $votePolicyId = trim((string) ($data['defaultMaj'] ?? '')) ?: null;
-
-        /** @var array<int, array<string, mixed>> $members */
-        $members = is_array($data['members'] ?? null) ? $data['members'] : [];
-        /** @var array<int, array<string, mixed>> $resolutions */
-        $resolutions = is_array($data['resolutions'] ?? null) ? $data['resolutions'] : [];
-
         $tenantId = api_current_tenant_id();
-        $repo = $this->repo()->meeting();
-        $memberRepo = $this->repo()->member();
-        $attendanceRepo = $this->repo()->attendance();
-        $motionRepo = $this->repo()->motion();
-        $policyRepo = $this->repo()->policy();
 
-        $result = api_transaction(function () use (
-            $repo, $memberRepo, $attendanceRepo, $motionRepo, $policyRepo,
-            $title, $description, $scheduledAt, $location, $meetingType,
-            $quorumPolicyId, $votePolicyId, $members, $resolutions, $tenantId,
-        ): array {
-            // Generate meeting UUID inside transaction
-            $meetingId = $repo->generateUuid();
-
-            // Create the meeting record
-            $repo->create(
-                $meetingId,
-                $tenantId,
-                $title,
-                $description,
-                $scheduledAt,
-                $location,
-                $meetingType,
-            );
-
-            // Apply policy defaults: use wizard-provided UUIDs if valid, else fall back to first policy
-            $defaults = [];
-            if ($votePolicyId !== null && api_is_uuid($votePolicyId)) {
-                $defaults['vote_policy_id'] = $votePolicyId;
-            } else {
-                $votePolicies = $policyRepo->listVotePolicies($tenantId);
-                if (!empty($votePolicies)) {
-                    $defaults['vote_policy_id'] = $votePolicies[0]['id'];
-                }
-            }
-            if ($quorumPolicyId !== null && api_is_uuid($quorumPolicyId)) {
-                $defaults['quorum_policy_id'] = $quorumPolicyId;
-            } else {
-                $quorumPolicies = $policyRepo->listQuorumPolicies($tenantId);
-                if (!empty($quorumPolicies)) {
-                    $defaults['quorum_policy_id'] = $quorumPolicies[0]['id'];
-                }
-            }
-            if ($defaults) {
-                $repo->updateFields($meetingId, $tenantId, $defaults);
-            }
-
-            // Process members: validate, upsert by email, link via attendance
-            $membersCreated = 0;
-            $membersLinked = 0;
-
-            foreach ($members as $index => $member) {
-                $nom = trim((string) ($member['nom'] ?? ''));
-                $email = trim((string) ($member['email'] ?? ''));
-                $voteWeight = (float) ($member['voix'] ?? 1);
-
-                // Validate nom
-                if ($nom === '') {
-                    api_fail('invalid_member', 422, [
-                        'error' => true,
-                        'details' => [['index' => $index, 'field' => 'nom', 'message' => 'Le nom est obligatoire.']],
-                    ]);
-                }
-
-                // Validate email
-                if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-                    api_fail('invalid_member', 422, [
-                        'error' => true,
-                        'details' => [['index' => $index, 'field' => 'email', 'message' => 'Email invalide.']],
-                    ]);
-                }
-
-                // Upsert by email: reuse existing member or create new one
-                $existing = $memberRepo->findByEmail($tenantId, $email);
-                if ($existing !== null) {
-                    $memberId = (string) $existing['id'];
-                    $membersLinked++;
-                } else {
-                    $memberId = $memberRepo->generateUuid();
-                    $memberRepo->create($memberId, $tenantId, $nom, $email, $voteWeight, true);
-                    $membersCreated++;
-                }
-
-                // Link member to meeting via attendance
-                $attendanceRepo->upsertMode($meetingId, $memberId, 'present', $tenantId);
-            }
-
-            // Process resolutions: validate and create motions
-            $motionsCreated = 0;
-
-            foreach ($resolutions as $index => $resolution) {
-                $resTitle = trim((string) ($resolution['title'] ?? ''));
-
-                // Validate resolution title
-                if ($resTitle === '') {
-                    api_fail('invalid_resolution', 422, [
-                        'error' => true,
-                        'details' => [['index' => $index, 'field' => 'title', 'message' => 'Le titre de la résolution est obligatoire.']],
-                    ]);
-                }
-
-                $motionId = $motionRepo->generateUuid();
-                $resDescription = trim((string) ($resolution['description'] ?? ''));
-                $motionRepo->create(
-                    $motionId,
-                    $tenantId,
-                    $meetingId,
-                    null,   // agendaId
-                    $resTitle,
-                    $resDescription,
-                    false,  // secret
-                    null,   // votePolicyId
-                    null,   // quorumPolicyId
-                );
-                $motionsCreated++;
-            }
-
-            return [
-                'meeting_id' => $meetingId,
-                'title' => $title,
-                'members_created' => $membersCreated,
-                'members_linked' => $membersLinked,
-                'motions_created' => $motionsCreated,
-            ];
-        });
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->createFromWizard($data, $tenantId);
+        } catch (InvalidArgumentException $e) {
+            $msg = $e->getMessage();
+            $code = 'validation_error';
+            if (str_contains($msg, 'titre') && str_contains($msg, '3 car')) { $code = 'missing_title'; }
+            elseif (str_contains($msg, 'nom') && str_contains($msg, 'obligatoire')) { $code = 'invalid_member'; }
+            elseif (str_contains($msg, 'Email invalide')) { $code = 'invalid_member'; }
+            elseif (str_contains($msg, 'résolution')) { $code = 'invalid_resolution'; }
+            api_fail($code, 422, ['detail' => $msg]);
+        }
 
         audit_log('meeting_created', 'meeting', (string) $result['meeting_id'], [
-            'title' => $title,
-            'scheduled_at' => $scheduledAt,
-            'location' => $location,
+            'title' => $result['title'],
         ]);
 
         IdempotencyGuard::store($result);
 
-        // Auto-assign president meeting role if current user has system role 'president'
         if (api_current_role() === 'president') {
             $currentUserId = api_current_user_id();
             $this->repo()->user()->assignMeetingRole(
@@ -563,39 +190,31 @@ final class MeetingsController extends AbstractController {
 
         $this->requireConfirmation($input, api_current_tenant_id());
 
-        $repo = $this->repo()->meeting();
-        $current = $repo->findByIdForTenant($meetingId, api_current_tenant_id());
-        if (!$current) {
-            api_fail('meeting_not_found', 404);
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = $service->deleteDraft($meetingId, api_current_tenant_id());
+        } catch (RuntimeException $e) {
+            $msg = $e->getMessage();
+            if ($msg === 'meeting_not_found') {
+                api_fail('meeting_not_found', 404);
+            }
+            if ($msg === 'meeting_live_cannot_delete') {
+                api_fail('meeting_live_cannot_delete', 409, [
+                    'detail' => "Fermez d'abord la séance avant de la supprimer.",
+                ]);
+            }
+            if ($msg === 'meeting_not_draft') {
+                api_fail('meeting_not_draft', 409, [
+                    'detail' => 'Seules les séances en brouillon peuvent être supprimées.',
+                ]);
+            }
+            api_fail('business_error', 400, ['detail' => $msg]);
         }
 
-        if ((string) $current['status'] === 'live') {
-            api_fail('meeting_live_cannot_delete', 409, [
-                'detail' => "Fermez d'abord la s\u00e9ance avant de la supprimer.",
-                'status' => $current['status'],
-            ]);
-        }
-        if ((string) $current['status'] !== 'draft') {
-            api_fail('meeting_not_draft', 409, [
-                'detail' => 'Seules les s\u00e9ances en brouillon peuvent \u00eatre supprim\u00e9es.',
-                'status' => $current['status'],
-            ]);
-        }
+        audit_log('meeting_deleted', 'meeting', $meetingId, ['title' => $result['title']]);
+        unset($result['title']);
 
-        $statsRepo = $this->repo()->meetingStats();
-        $deleteWarning = [
-            'motions'     => $statsRepo->countMotions($meetingId, api_current_tenant_id()),
-            'ballots'     => $statsRepo->countBallots($meetingId, api_current_tenant_id()),
-            'attendances' => $this->repo()->wizard()->countAttendances($meetingId, api_current_tenant_id()),
-        ];
-
-        $deleted = $repo->deleteDraft($meetingId, api_current_tenant_id());
-
-        audit_log('meeting_deleted', 'meeting', $meetingId, [
-            'title' => $current['title'],
-        ]);
-
-        api_ok(['deleted' => $deleted > 0, 'meeting_id' => $meetingId, 'delete_warning' => $deleteWarning]);
+        api_ok($result);
     }
 
     public function voteSettings(): void {
@@ -623,25 +242,14 @@ final class MeetingsController extends AbstractController {
             api_guard_meeting_not_validated($meetingId);
 
             $policyId = trim((string) ($in['vote_policy_id'] ?? ''));
-            if ($policyId !== '' && !api_is_uuid($policyId)) {
-                api_fail('invalid_vote_policy_id', 400, ['expected' => 'uuid or empty']);
+            if ($policyId !== '' && !api_is_uuid($policyId)) { api_fail('invalid_vote_policy_id', 400, ['expected' => 'uuid or empty']); }
+            if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) { api_fail('meeting_not_found', 404); }
+            if ($policyId !== '' && !$this->repo()->policy()->votePolicyExists($policyId, api_current_tenant_id())) {
+                api_fail('vote_policy_not_found', 404);
             }
-
-            if (!$repo->existsForTenant($meetingId, api_current_tenant_id())) {
-                api_fail('meeting_not_found', 404);
-            }
-
-            if ($policyId !== '') {
-                if (!$this->repo()->policy()->votePolicyExists($policyId, api_current_tenant_id())) {
-                    api_fail('vote_policy_not_found', 404);
-                }
-            }
-
-            $repo->updateVotePolicy($meetingId, api_current_tenant_id(), $policyId === '' ? null : $policyId);
-
-            audit_log('meeting_vote_policy_updated', 'meeting', $meetingId, [
-                'vote_policy_id' => ($policyId === '' ? null : $policyId),
-            ]);
+            $effectiveId = $policyId === '' ? null : $policyId;
+            $repo->updateVotePolicy($meetingId, api_current_tenant_id(), $effectiveId);
+            audit_log('meeting_vote_policy_updated', 'meeting', $meetingId, ['vote_policy_id' => $effectiveId]);
 
             api_ok(['saved' => true]);
         } else {
@@ -665,23 +273,23 @@ final class MeetingsController extends AbstractController {
         }
 
         $tenant = api_current_tenant_id();
-        $repo = $this->repo()->meeting();
 
-        $meeting = $repo->findByIdForTenant($meetingId, $tenant);
-        if (!$meeting) {
-            api_fail('meeting_not_found', 404);
+        try {
+            $service = new MeetingLifecycleService($this->repo());
+            $result = api_transaction(function () use ($service, $meetingId, $tenant, $presidentName) {
+                return $service->validateMeeting($meetingId, $tenant, $presidentName);
+            });
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'meeting_not_found') {
+                api_fail('meeting_not_found', 404);
+            }
+            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         }
-
-        api_transaction(function () use ($repo, $meetingId, $tenant) {
-            $pvHtml = (new MeetingReportService())->renderHtml($meetingId, true);
-            $repo->markValidated($meetingId, $tenant);
-            $this->repo()->meetingReport()->storeHtml($meetingId, $pvHtml, $tenant);
-        });
 
         audit_log('meeting.validated', 'meeting', $meetingId, [
             'president_name' => $presidentName,
         ], $meetingId);
 
-        api_ok(['meeting_id' => $meetingId, 'status' => 'validated']);
+        api_ok($result);
     }
 }

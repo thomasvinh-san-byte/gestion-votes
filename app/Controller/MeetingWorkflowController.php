@@ -1,559 +1,184 @@
 <?php
-
 declare(strict_types=1);
 
 namespace AgVote\Controller;
 
 use AgVote\Core\Security\AuthMiddleware;
 use AgVote\Service\EmailQueueService;
+use AgVote\Service\MeetingTransitionService;
 use AgVote\Service\MeetingWorkflowService;
 use AgVote\Service\OfficialResultsService;
 use AgVote\SSE\EventBroadcaster;
+use RuntimeException;
 use Throwable;
 
 /**
- * Consolidates 6 meeting workflow endpoints.
- *
- * Shared pattern: state machine transitions, workflow validation, MeetingWorkflowService.
+ * Consolidates meeting workflow endpoints.
+ * Transition/launch/readyCheck/resetDemo delegated to MeetingTransitionService.
  */
 final class MeetingWorkflowController extends AbstractController {
     public function transition(): void {
         $input = api_request('POST');
-
         $meetingId = api_require_uuid($input, 'meeting_id');
         $toStatus = trim((string) ($input['to_status'] ?? ''));
-
-        if ($toStatus === '') {
-            api_fail('missing_to_status', 400, ['detail' => 'Le champ to_status est requis.']);
-        }
-
-        $validStatuses = ['draft', 'scheduled', 'frozen', 'live', 'paused', 'closed', 'validated', 'archived'];
-        if (!in_array($toStatus, $validStatuses, true)) {
-            api_fail('invalid_status', 400, [
-                'detail' => "Statut '{$toStatus}' invalide.",
-                'valid' => $validStatuses,
-            ]);
-        }
-
-        $repo = $this->repo()->meeting();
         $tenantId = api_current_tenant_id();
-
-        // Pre-flight: read without lock for fast-fail on obviously bad requests
-        $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
-
-        if (!$meeting) {
-            api_fail('meeting_not_found', 404);
+        $userId = api_current_user_id();
+        $service = new MeetingTransitionService($this->repo());
+        try {
+            $preCheck = $service->transition($meetingId, $tenantId, $toStatus, $userId);
+        } catch (\InvalidArgumentException $e) {
+            $msg = $e->getMessage();
+            $code = str_contains($msg, 'requis') ? 'missing_to_status' : 'invalid_status';
+            $extra = ['detail' => $msg];
+            if ($code === 'invalid_status') { $extra['valid'] = ['draft','scheduled','frozen','live','paused','closed','validated','archived']; }
+            api_fail($code, 400, $extra);
+        } catch (RuntimeException $e) {
+            $msg = $e->getMessage();
+            if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            if (str_contains($msg, 'déjà au statut')) { api_fail('already_in_status', 422, ['detail' => $msg]); }
+            if (str_contains($msg, 'archivée')) { api_fail('archived_immutable', 403, ['detail' => $msg]); }
+            api_fail('business_error', 400, ['detail' => $msg]);
         }
-
-        $fromStatus = $meeting['status'];
-
-        if ($fromStatus === $toStatus) {
-            api_fail('already_in_status', 422, [
-                'detail' => "La séance est déjà au statut '{$toStatus}'.",
-            ]);
-        }
-
-        if ($fromStatus === 'archived') {
-            api_fail('archived_immutable', 403, [
-                'detail' => 'Séance archivée : aucune transition autorisée.',
-            ]);
-        }
-
+        $fromStatus = $preCheck['from_status'];
         AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
-
-        $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $workflowCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenantId, $toStatus);
-
+        $forceTransition = filter_var($input['force'] ?? false, FILTER_VALIDATE_BOOLEAN);
         if ($forceTransition && api_current_role() !== 'admin') {
-            api_fail('force_requires_admin', 403, [
-                'detail' => 'Seul un administrateur peut forcer une transition.',
-            ]);
+            api_fail('force_requires_admin', 403, ['detail' => 'Seul un administrateur peut forcer une transition.']);
         }
-
         if (!$workflowCheck['can_proceed'] && !$forceTransition) {
             api_fail('workflow_issues', 422, [
-                'detail' => 'Transition bloquée par des pré-requis',
-                'issues' => $workflowCheck['issues'],
-                'warnings' => $workflowCheck['warnings'],
-                'hint' => 'Corrigez les issues ou passez force=true pour ignorer (admin uniquement)',
+                'detail' => 'Transition bloquée par des pré-requis', 'issues' => $workflowCheck['issues'],
+                'warnings' => $workflowCheck['warnings'], 'hint' => 'Corrigez les issues ou passez force=true pour ignorer (admin uniquement)',
             ]);
         }
-
-        $userId = api_current_user_id();
-
-        // Critical section: lock the meeting row to prevent concurrent transitions
-        // from racing (e.g. two operators both transitioning live→paused and live→closed).
-        $txResult = api_transaction(function () use ($repo, $meetingId, $tenantId, $toStatus, $userId, $forceTransition) {
-            $meeting = $repo->lockForUpdate($meetingId, $tenantId);
-            if (!$meeting) {
-                api_fail('meeting_not_found', 404);
-            }
-
-            $fromStatus = $meeting['status'];
-
-            // Re-validate after lock: status may have changed since pre-flight check
-            if ($fromStatus === $toStatus) {
-                api_fail('already_in_status', 422, [
-                    'detail' => "La séance est déjà au statut '{$toStatus}'.",
-                ]);
-            }
-            if ($fromStatus === 'archived') {
-                api_fail('archived_immutable', 403, [
-                    'detail' => 'Séance archivée : aucune transition autorisée.',
-                ]);
-            }
-
-            $fields = ['status' => $toStatus];
-
-            switch ($toStatus) {
-                case 'frozen':
-                    $fields['frozen_at'] = date('Y-m-d H:i:s');
-                    $fields['frozen_by'] = $userId;
-                    break;
-
-                case 'live':
-                    $now = date('Y-m-d H:i:s');
-                    if (empty($meeting['started_at'])) {
-                        $fields['started_at'] = $now;
-                    }
-                    if (!empty($meeting['scheduled_at']) && $meeting['scheduled_at'] > $now) {
-                        $fields['scheduled_at'] = $now;
-                    }
-                    $fields['opened_by'] = $userId;
-                    if ($fromStatus === 'paused') {
-                        $fields['paused_at'] = null;
-                        $fields['paused_by'] = null;
-                    }
-                    break;
-
-                case 'paused':
-                    $fields['paused_at'] = date('Y-m-d H:i:s');
-                    $fields['paused_by'] = $userId;
-                    break;
-
-                case 'closed':
-                    if (empty($meeting['ended_at'])) {
-                        $fields['ended_at'] = date('Y-m-d H:i:s');
-                    }
-                    $fields['closed_by'] = $userId;
-                    break;
-
-                case 'archived':
-                    $fields['archived_at'] = date('Y-m-d H:i:s');
-                    break;
-
-                case 'scheduled':
-                    if ($fromStatus === 'frozen') {
-                        $fields['frozen_at'] = null;
-                        $fields['frozen_by'] = null;
-                    }
-                    break;
-
-                case 'validated':
-                    if (empty($meeting['validated_at'])) {
-                        $fields['validated_at'] = date('Y-m-d H:i:s');
-                        $fields['validated_by'] = api_current_user()['name'] ?? 'unknown';
-                        $fields['validated_by_user_id'] = $userId;
-                    }
-                    break;
-            }
-
+        $txResult = api_transaction(function () use ($service, $meetingId, $tenantId, $toStatus, $userId, $forceTransition) {
+            $repo = $this->repo()->meeting();
+            $locked = $repo->lockForUpdate($meetingId, $tenantId);
+            if (!$locked) { api_fail('meeting_not_found', 404); }
+            $lockedFrom = $locked['status'];
+            if ($lockedFrom === $toStatus) { api_fail('already_in_status', 422, ['detail' => "La séance est déjà au statut '{$toStatus}'."]); }
+            if ($lockedFrom === 'archived') { api_fail('archived_immutable', 403, ['detail' => 'Séance archivée : aucune transition autorisée.']); }
+            $fields = $service->buildTransitionFields($toStatus, $lockedFrom, $locked, $userId, api_current_user()['name'] ?? null);
             $repo->updateFields($meetingId, $tenantId, $fields);
-
-            $auditData = [
-                'from_status' => $fromStatus,
-                'to_status' => $toStatus,
-                'title' => $meeting['title'],
-            ];
-            if ($forceTransition) {
-                $auditData['forced'] = true;
-            }
+            $auditData = ['from_status' => $lockedFrom, 'to_status' => $toStatus, 'title' => $locked['title']];
+            if ($forceTransition) { $auditData['forced'] = true; }
             audit_log('meeting.transition', 'meeting', $meetingId, $auditData, $meetingId);
-
-            return $fromStatus;
+            return $lockedFrom;
         });
-
         $fromStatus = $txResult;
-
-        try {
-            EventBroadcaster::meetingStatusChanged($meetingId, api_current_tenant_id(), $toStatus, $fromStatus);
-        } catch (Throwable $e) {
-            error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage());
-        }
-
+        try { EventBroadcaster::meetingStatusChanged($meetingId, $tenantId, $toStatus, $fromStatus); }
+        catch (Throwable $e) { error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage()); }
         $resultsEmailCount = 0;
         if ($toStatus === 'closed') {
             try {
                 global $config;
                 $mergedConfig = \AgVote\Service\MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
-                $emailQueue = new EmailQueueService($mergedConfig);
-                $result = $emailQueue->scheduleResults($tenantId, $meetingId);
-                $resultsEmailCount = $result['scheduled'] ?? 0;
-            } catch (Throwable $e) {
-                error_log('[Email] Results email scheduling failed: ' . $e->getMessage());
-                // Non-blocking: do NOT fail the transition response
-            }
+                $resultsEmailCount = (new EmailQueueService($mergedConfig))->scheduleResults($tenantId, $meetingId)['scheduled'] ?? 0;
+            } catch (Throwable $e) { error_log('[Email] Results email scheduling failed: ' . $e->getMessage()); }
         }
-
-        api_ok([
-            'meeting_id' => $meetingId,
-            'from_status' => $fromStatus,
-            'to_status' => $toStatus,
-            'transitioned_at' => date('c'),
-            'warnings' => $workflowCheck['warnings'] ?? [],
-            'results_emails' => $resultsEmailCount,
-        ]);
+        api_ok(['meeting_id' => $meetingId, 'from_status' => $fromStatus, 'to_status' => $toStatus,
+            'transitioned_at' => date('c'), 'warnings' => $workflowCheck['warnings'] ?? [], 'results_emails' => $resultsEmailCount]);
     }
 
     public function launch(): void {
         $input = api_request('POST');
-
         $meetingId = api_require_uuid($input, 'meeting_id');
-
-        $repo = $this->repo()->meeting();
         $tenant = api_current_tenant_id();
         $userId = api_current_user_id();
-
-        $txResult = api_transaction(function () use ($repo, $meetingId, $tenant, $userId) {
-            $meeting = $repo->lockForUpdate($meetingId, $tenant);
-
-            if (!$meeting) {
-                api_fail('meeting_not_found', 404);
-            }
-
-            $fromStatus = $meeting['status'];
-
-            $path = [];
-            switch ($fromStatus) {
-                case 'draft':
-                    $path = ['scheduled', 'frozen', 'live'];
-                    break;
-                case 'scheduled':
-                    $path = ['frozen', 'live'];
-                    break;
-                case 'frozen':
-                    $path = ['live'];
-                    break;
-                case 'live':
-                    api_fail('already_in_status', 422, ['detail' => 'La séance est déjà en cours.']);
-                    break;
-                default:
-                    api_fail('invalid_launch_status', 422, [
-                        'detail' => "Impossible de lancer depuis le statut '{$fromStatus}'.",
-                    ]);
-            }
-
-            // Check prerequisites for EACH step in the launch path, not just the final target.
-            // Without this, launching from 'draft' would skip motions/attendance checks
-            // that are specific to intermediate transitions (draft->scheduled, scheduled->frozen).
-            $allIssues = [];
-            $allWarnings = [];
-            $simulatedFrom = $fromStatus;
-            foreach ($path as $step) {
-                $stepCheck = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenant, $step, $simulatedFrom);
-                $allIssues = array_merge($allIssues, $stepCheck['issues']);
-                $allWarnings = array_merge($allWarnings, $stepCheck['warnings']);
-                $simulatedFrom = $step;
-            }
-
-            if (count($allIssues) > 0) {
-                api_fail('workflow_issues', 422, [
-                    'detail' => 'Lancement bloqué par des pré-requis',
-                    'issues' => $allIssues,
-                    'warnings' => $allWarnings,
-                ]);
-            }
-
-            $now = date('Y-m-d H:i:s');
-            $currentStatus = $fromStatus;
-
+        $service = new MeetingTransitionService($this->repo());
+        try {
+            $preCheck = $service->launch($meetingId, $tenant, $userId);
+        } catch (RuntimeException $e) {
+            $msg = $e->getMessage();
+            if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            if (str_contains($msg, 'déjà en cours')) { api_fail('already_in_status', 422, ['detail' => $msg]); }
+            $decoded = json_decode($msg, true);
+            if (is_array($decoded) && ($decoded['code'] ?? '') === 'workflow_issues') { api_fail('workflow_issues', 422, $decoded); }
+            api_fail('invalid_launch_status', 422, ['detail' => $msg]);
+        }
+        $path = $preCheck['path'];
+        $fromStatus = $preCheck['from_status'];
+        api_transaction(function () use ($service, $meetingId, $tenant, $userId, $path, $fromStatus) {
+            $repo = $this->repo()->meeting();
+            $locked = $repo->lockForUpdate($meetingId, $tenant);
+            if (!$locked) { api_fail('meeting_not_found', 404); }
+            $currentStatus = $locked['status'];
             foreach ($path as $toStatus) {
                 AuthMiddleware::requireTransition($currentStatus, $toStatus, $meetingId);
-
-                $fields = ['status' => $toStatus];
-
-                switch ($toStatus) {
-                    case 'frozen':
-                        $fields['frozen_at'] = $now;
-                        $fields['frozen_by'] = $userId;
-                        break;
-                    case 'live':
-                        if (empty($meeting['started_at'])) {
-                            $fields['started_at'] = $now;
-                        }
-                        if (!empty($meeting['scheduled_at']) && $meeting['scheduled_at'] > $now) {
-                            $fields['scheduled_at'] = $now;
-                        }
-                        $fields['opened_by'] = $userId;
-                        break;
-                }
-
+                $fields = $service->buildTransitionFields($toStatus, $currentStatus, $locked, $userId);
                 $repo->updateFields($meetingId, $tenant, $fields);
                 $currentStatus = $toStatus;
             }
-
             audit_log('meeting.launch', 'meeting', $meetingId, [
-                'from_status' => $fromStatus,
-                'to_status' => 'live',
-                'path' => $path,
-                'title' => $meeting['title'],
+                'from_status' => $fromStatus, 'to_status' => 'live', 'path' => $path, 'title' => $locked['title'],
             ], $meetingId);
-
-            return ['fromStatus' => $fromStatus, 'path' => $path, 'warnings' => $allWarnings];
         });
-
-        try {
-            EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $txResult['fromStatus']);
-        } catch (Throwable $e) {
-            error_log('[SSE] Broadcast failed after meeting launch: ' . $e->getMessage());
-        }
-
-        api_ok([
-            'meeting_id' => $meetingId,
-            'from_status' => $txResult['fromStatus'],
-            'to_status' => 'live',
-            'path' => $txResult['path'],
-            'transitioned_at' => date('c'),
-            'warnings' => $txResult['warnings'],
-        ]);
+        try { EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $fromStatus); }
+        catch (Throwable $e) { error_log('[SSE] Broadcast failed after meeting launch: ' . $e->getMessage()); }
+        api_ok(['meeting_id' => $meetingId, 'from_status' => $fromStatus, 'to_status' => 'live',
+            'path' => $path, 'transitioned_at' => date('c'), 'warnings' => $preCheck['warnings']]);
     }
 
     public function workflowCheck(): void {
         $q = api_request('GET');
         $meetingId = api_require_uuid($q, 'meeting_id');
         $toStatus = api_query('to_status');
-
         $tenantId = api_current_tenant_id();
-
         if ($toStatus === '') {
-            $result = (new MeetingWorkflowService())->getTransitionReadiness($meetingId, $tenantId);
-            api_ok($result);
+            api_ok((new MeetingWorkflowService())->getTransitionReadiness($meetingId, $tenantId));
         } else {
             $result = (new MeetingWorkflowService())->issuesBeforeTransition($meetingId, $tenantId, $toStatus);
-            api_ok([
-                'to_status' => $toStatus,
-                'can_proceed' => $result['can_proceed'],
-                'issues' => $result['issues'],
-                'warnings' => $result['warnings'],
-            ]);
+            api_ok(['to_status' => $toStatus, 'can_proceed' => $result['can_proceed'], 'issues' => $result['issues'], 'warnings' => $result['warnings']]);
         }
     }
 
     public function readyCheck(): void {
         $meetingId = api_query('meeting_id');
-        if ($meetingId === '' || !api_is_uuid($meetingId)) {
-            api_fail('missing_meeting_id', 400);
+        if ($meetingId === '' || !api_is_uuid($meetingId)) { api_fail('missing_meeting_id', 400); }
+        try {
+            $result = (new MeetingTransitionService($this->repo()))->readyCheck($meetingId, api_current_tenant_id());
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         }
-
-        $tenant = api_current_tenant_id();
-
-        $meetingRepo = $this->repo()->meeting();
-        $statsRepo = $this->repo()->meetingStats();
-        $motionRepo = $this->repo()->motion();
-        $attendanceRepo = $this->repo()->attendance();
-        $memberRepo = $this->repo()->member();
-        $ballotRepo = $this->repo()->ballot();
-
-        $meeting = $meetingRepo->findByIdForTenant($meetingId, $tenant);
-        if (!$meeting) {
-            api_fail('meeting_not_found', 404);
-        }
-
-        $checks = [];
-        $bad = [];
-
-        // Check 1: Président renseigné
-        $pres = trim((string) ($meeting['president_name'] ?? ''));
-        $checks[] = [
-            'passed' => $pres !== '',
-            'label' => 'Président renseigné',
-            'detail' => $pres !== '' ? $pres : "Aucun président (president_name) n'est renseigné.",
-        ];
-
-        // Check 2: Motions ouvertes
-        $openCount = $statsRepo->countOpenMotions($meetingId, $tenant);
-        $checks[] = [
-            'passed' => $openCount === 0,
-            'label' => 'Motions fermées',
-            'detail' => $openCount > 0 ? "Il reste {$openCount} motion(s) ouverte(s). Fermez-les avant validation." : '',
-        ];
-
-        // Check 3: Éligibles
-        $eligibleCount = $attendanceRepo->countEligible($meetingId, $tenant);
-        $fallbackEligibleUsed = false;
-        if ($eligibleCount <= 0) {
-            $fallbackEligibleUsed = true;
-            $eligibleCount = $memberRepo->countActive($tenant);
-        }
-        $checks[] = [
-            'passed' => !$fallbackEligibleUsed,
-            'label' => 'Présences saisies',
-            'detail' => $fallbackEligibleUsed ? 'Règle de fallback utilisée (tous membres actifs).' : '',
-        ];
-
-        // Motions fermées
-        $tenantId = api_current_tenant_id();
-        $motions = $motionRepo->listClosedForMeetingWithManualTally($meetingId, $tenantId);
-
-        foreach ($motions as $m) {
-            $motionId = (string) $m['id'];
-            $title = (string) ($m['title'] ?? 'Motion');
-
-            $manualTotal = (int) ($m['manual_total'] ?? 0);
-            $manualFor = (int) ($m['manual_for'] ?? 0);
-            $manualAg = (int) ($m['manual_against'] ?? 0);
-            $manualAb = (int) ($m['manual_abstain'] ?? 0);
-
-            $manualOk = false;
-            if ($manualTotal > 0) {
-                $manualOk = (($manualFor + $manualAg + $manualAb) === $manualTotal);
-            }
-
-            $eligibleDirect = $ballotRepo->countEligibleDirect($meetingId, $motionId, $tenant);
-            $eligibleProxy = $ballotRepo->countEligibleProxy($meetingId, $motionId, $tenant);
-            $eligibleBallots = $eligibleDirect + $eligibleProxy;
-
-            $ballotsTotal = $ballotRepo->countByMotionId($motionId, $tenant);
-            $missing = max(0, $eligibleCount - $ballotsTotal);
-            if ($missing > 0) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => "Votes manquants : {$missing} (attendus: {$eligibleCount}, reçus: {$ballotsTotal}).",
-                ];
-            }
-
-            $invalidDirect = $ballotRepo->countInvalidDirect($meetingId, $motionId, $tenant);
-            $invalidProxy = $ballotRepo->countInvalidProxy($meetingId, $motionId, $tenant);
-
-            if ($invalidDirect > 0 || $invalidProxy > 0) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => "Bulletins non éligibles détectés (direct: {$invalidDirect}, procuration: {$invalidProxy}).",
-                ];
-            }
-
-            if (!$manualOk && $eligibleBallots <= 0) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => 'Aucun résultat exploitable: pas de comptage manuel cohérent et aucun bulletin e-vote éligible.',
-                ];
-            } elseif ($manualTotal > 0 && !$manualOk) {
-                $bad[] = [
-                    'motion_id' => $motionId,
-                    'title' => $title,
-                    'detail' => 'Comptage manuel incohérent (pour+contre+abst != total).',
-                ];
-            }
-        }
-
-        foreach ($bad as $b) {
-            $checks[] = ['passed' => false, 'label' => $b['title'], 'detail' => $b['detail']];
-        }
-
-        if (count($bad) === 0 && count($motions) > 0) {
-            $checks[] = ['passed' => true, 'label' => 'Résultats exploitables', 'detail' => count($motions) . ' motion(s) avec résultat valide.'];
-        }
-
-        $ready = true;
-        foreach ($checks as $c) {
-            if (!$c['passed']) {
-                $ready = false;
-                break;
-            }
-        }
-
-        api_ok([
-            'ready' => $ready,
-            'checks' => $checks,
-            'can' => $ready,
-            'bad_motions' => $bad,
-            'meta' => [
-                'meeting_id' => $meetingId,
-                'eligible_count' => $eligibleCount,
-                'fallback_eligible_used' => $fallbackEligibleUsed,
-            ],
-        ]);
+        api_ok($result);
     }
 
     public function consolidate(): void {
         $body = api_request('POST');
-
         $meetingId = api_require_uuid($body, 'meeting_id');
         $tenantId = api_current_tenant_id();
-
         $repo = $this->repo()->meeting();
         $meeting = $repo->findByIdForTenant($meetingId, $tenantId);
-        if (!$meeting) {
-            api_fail('meeting_not_found', 404);
-        }
-
-        // Only closed or validated meetings can be consolidated
+        if (!$meeting) { api_fail('meeting_not_found', 404); }
         if (!in_array($meeting['status'], ['closed', 'validated'], true)) {
-            api_fail('invalid_status_for_consolidation', 422, [
-                'detail' => 'Seule une séance clôturée ou validée peut être consolidée.',
-                'current_status' => $meeting['status'],
-            ]);
+            api_fail('invalid_status_for_consolidation', 422, ['detail' => 'Seule une séance clôturée ou validée peut être consolidée.', 'current_status' => $meeting['status']]);
         }
-
         $r = (new OfficialResultsService())->consolidateMeeting($meetingId, $tenantId);
-
-        audit_log('meeting.consolidate', 'meeting', $meetingId, [
-            'updated_motions' => $r['updated'],
-            'title' => $meeting['title'] ?? '',
-        ], $meetingId);
-
+        audit_log('meeting.consolidate', 'meeting', $meetingId, ['updated_motions' => $r['updated'], 'title' => $meeting['title'] ?? ''], $meetingId);
         api_ok(['updated_motions' => $r['updated']]);
     }
 
     public function resetDemo(): void {
         $in = api_request('POST');
-
-        $confirm = (string) ($in['confirm'] ?? '');
-        if ($confirm !== 'RESET') {
+        if ((string) ($in['confirm'] ?? '') !== 'RESET') {
             api_fail('missing_confirm', 400, ['detail' => 'Envoyez {confirm:"RESET"} pour éviter les resets accidentels.']);
         }
-
         $tenantId = api_current_tenant_id();
         $meetingId = trim((string) ($in['meeting_id'] ?? ''));
-
-        if ($meetingId !== '' && api_is_uuid($meetingId)) {
-            // Single-meeting reset
-            $meetings = [];
-            $mt = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
-            if (!$mt) {
-                api_fail('meeting_not_found', 404);
-            }
-            if (!empty($mt['validated_at'])) {
-                api_fail('meeting_validated', 409, ['detail' => 'Séance validée : reset interdit (séance figée).']);
-            }
-            $meetings[] = $mt;
-        } else {
-            // Global reset — all non-validated meetings for this tenant
-            $all = $this->repo()->meeting()->listByTenant($tenantId);
-            $meetings = array_filter($all, fn($m) => empty($m['validated_at']));
+        try {
+            $service = new MeetingTransitionService($this->repo());
+            api_transaction(function () use ($service, $meetingId, $tenantId) {
+                $service->resetDemo($meetingId, $tenantId);
+                audit_log('meeting.reset_demo', 'meeting', $meetingId, ['reset_by' => api_current_user_id()], $meetingId);
+            });
+        } catch (RuntimeException $e) {
+            $msg = $e->getMessage();
+            if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
+            if (str_contains($msg, 'validée')) { api_fail('meeting_validated', 409, ['detail' => $msg]); }
+            api_fail('business_error', 400, ['detail' => $msg]);
         }
-
-        $resetCount = 0;
-        api_transaction(function () use ($meetings, $tenantId, &$resetCount) {
-            foreach ($meetings as $mt) {
-                $mid = $mt['id'];
-                $this->repo()->ballot()->deleteByMeeting($mid, $tenantId);
-                $this->repo()->voteToken()->deleteByMeetingMotions($mid, $tenantId);
-                $this->repo()->manualAction()->deleteByMeeting($mid, $tenantId);
-                $this->repo()->motion()->resetStatesForMeeting($mid, $tenantId);
-                $this->repo()->meeting()->resetForDemo($mid, $tenantId);
-
-                audit_log('meeting.reset_demo', 'meeting', $mid, [
-                    'title' => $mt['title'] ?? '',
-                    'reset_by' => api_current_user_id(),
-                ], $mid);
-                $resetCount++;
-            }
-        });
-
-        api_ok(['ok' => true, 'reset_count' => $resetCount]);
+        api_ok(['ok' => true, 'reset_count' => 1]);
     }
 }

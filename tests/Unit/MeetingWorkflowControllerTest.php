@@ -95,7 +95,6 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     // =========================================================================
 
     /**
-     * @group pending-service
      */
     public function testMeetingTransitionServiceIsFinal(): void
     {
@@ -104,7 +103,6 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     }
 
     /**
-     * @group pending-service
      */
     public function testMeetingTransitionServiceHasExpectedMethods(): void
     {
@@ -120,7 +118,6 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     }
 
     /**
-     * @group pending-service
      */
     public function testMeetingTransitionServiceUsesNullableDI(): void
     {
@@ -303,7 +300,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testTransitionValidStatusesAreComplete(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $expectedStatuses = ['draft', 'scheduled', 'frozen', 'live', 'paused', 'closed', 'validated', 'archived'];
         foreach ($expectedStatuses as $status) {
@@ -1230,7 +1227,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testReadyCheckResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $expectedKeys = ['ready', 'checks', 'can', 'bad_motions', 'meta'];
         foreach ($expectedKeys as $key) {
@@ -1240,7 +1237,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testReadyCheckMetaFields(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $metaFields = ['meeting_id', 'eligible_count', 'fallback_eligible_used'];
         foreach ($metaFields as $field) {
@@ -1530,7 +1527,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testTransitionResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         // Check the api_ok call in transition()
         $this->assertStringContainsString("'from_status'", $source);
@@ -1545,7 +1542,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testLaunchResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         // Check the api_ok call in launch() includes path
         $this->assertStringContainsString("'path'", $source);
@@ -1559,7 +1556,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testWorkflowCheckResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString("'can_proceed'", $source);
         $this->assertStringContainsString("'issues'", $source);
@@ -1572,7 +1569,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testConsolidateResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString("'updated_motions'", $source);
     }
@@ -1583,7 +1580,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testResetDemoResponseStructure(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         // resetDemo returns ok with meeting_id
         $this->assertStringContainsString("'ok' => true", $source);
@@ -1812,7 +1809,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testConsolidateAuditLogData(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString("'meeting.consolidate'", $source);
         $this->assertStringContainsString("'updated_motions'", $source);
@@ -1824,7 +1821,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testResetDemoAuditLogData(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString("'meeting.reset_demo'", $source);
         $this->assertStringContainsString("'reset_by'", $source);
@@ -1836,7 +1833,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testTransitionBroadcastsEvent(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString('EventBroadcaster::meetingStatusChanged', $source);
     }
@@ -1847,7 +1844,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testLaunchBroadcastsEvent(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         // launch() also calls EventBroadcaster
         $this->assertStringContainsString('meetingStatusChanged', $source);
@@ -2040,21 +2037,21 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testControllerUsesMeetingWorkflowService(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString('MeetingWorkflowService', $source);
     }
 
     public function testControllerUsesOfficialResultsService(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString('OfficialResultsService', $source);
     }
 
     public function testControllerUsesEventBroadcaster(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString('EventBroadcaster', $source);
     }
@@ -2065,21 +2062,14 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testControllerUsesExpectedRepositories(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
-        $repos = [
-            'repo()->meeting()',
-            'repo()->meetingStats()',
-            'repo()->motion()',
-            'repo()->attendance()',
-            'repo()->member()',
-            'repo()->ballot()',
-            'repo()->voteToken()',
-            'repo()->manualAction()',
-        ];
+        // Check that repos are accessed either via controller pattern (repo()->X()) or service pattern (repos->X())
+        $repos = ['meeting()', 'meetingStats()', 'motion()', 'attendance()', 'member()', 'ballot()', 'voteToken()', 'manualAction()'];
 
         foreach ($repos as $repo) {
-            $this->assertStringContainsString($repo, $source, "Controller should use {$repo}");
+            $found = str_contains($source, "repo()->{$repo}") || str_contains($source, "repos->{$repo}");
+            $this->assertTrue($found, "Controller+service should use {$repo}");
         }
     }
 
@@ -2106,12 +2096,11 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     }
 
     /**
-     * @group pending-service
      */
     public function testMeetingTransitionServiceHasExpectedPublicMethods(): void
     {
         $ref = new \ReflectionClass(MeetingTransitionService::class);
-        $expectedMethods = ['transition', 'launch', 'readyCheck', 'resetDemo'];
+        $expectedMethods = ['__construct', 'buildTransitionFields', 'launch', 'readyCheck', 'resetDemo', 'transition'];
 
         $publicMethods = array_filter(
             $ref->getMethods(\ReflectionMethod::IS_PUBLIC),
@@ -2122,7 +2111,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         sort($methodNames);
         sort($expectedMethods);
 
-        $this->assertEquals($expectedMethods, $methodNames, 'MeetingTransitionService should have exactly the 4 expected public methods');
+        $this->assertEquals($expectedMethods, $methodNames, 'MeetingTransitionService should have the expected public methods');
     }
 
     // =========================================================================
@@ -2131,7 +2120,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testLaunchAuditLogData(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString("'meeting.launch'", $source);
         $this->assertStringContainsString("'from_status'", $source);
@@ -2145,7 +2134,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testTransitionAuditLogData(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString("'meeting.transition'", $source);
     }
@@ -2404,7 +2393,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     {
         // Source-verify that MeetingWorkflowController calls scheduleResults inside
         // an if ($toStatus === 'closed') block, wrapped in a try/catch.
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         $this->assertStringContainsString('scheduleResults', $source, 'scheduleResults() call must exist in MeetingWorkflowController');
         $this->assertStringContainsString("'closed'", $source, 'results email hook must check for closed status');
@@ -2414,7 +2403,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     public function testTransitionResultsEmailHookIsNonBlocking(): void
     {
         // Verify the results email hook is inside a try/catch so failures don't affect the transition
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         // The hook must be inside a try block and have a catch that logs but does not re-throw
         $this->assertStringContainsString('scheduleResults', $source);
@@ -2434,7 +2423,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
     public function testTransitionResultsEmailHookGuardedByClosedStatus(): void
     {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php');
+        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/MeetingWorkflowController.php') . file_get_contents(PROJECT_ROOT . '/app/Services/MeetingTransitionService.php');
 
         // Verify the scheduleResults call is inside a toStatus === 'closed' check
         $closedGuardPos = strpos($source, "\$toStatus === 'closed'");
