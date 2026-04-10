@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { loginAsOperator } = require('../helpers');
+const { loginAsAuditor } = require('../helpers');
 
 /**
  * E2E-TRUST: Trust / Contrôle & Audit page critical path
@@ -16,7 +16,7 @@ const { loginAsOperator } = require('../helpers');
  *   8. Refresh button — page stays on trust.htmx.html
  *   9. Width verification — no horizontal overflow
  *
- * Hybrid auth strategy: cookie injection via loginAsOperator (no rate limit hit).
+ * Hybrid auth strategy: cookie injection via loginAsAuditor (no rate limit hit).
  * Re-runnable: read-only assertions — no DB writes.
  * Tagged @critical-path for `--grep="@critical-path"` filtering.
  */
@@ -27,7 +27,7 @@ test.describe('E2E-TRUST Trust page critical path', () => {
     test.setTimeout(120000);
 
     // ── Auth ─────────────────────────────────────────────────────────────────
-    await loginAsOperator(page);
+    await loginAsAuditor(page);
 
     // ── Navigate ─────────────────────────────────────────────────────────────
     await page.goto('/trust.htmx.html', { waitUntil: 'domcontentloaded' });
