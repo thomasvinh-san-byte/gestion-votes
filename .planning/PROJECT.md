@@ -64,7 +64,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-v1.4 Phase 4 complete (2026-04-10) — HTMX 2.0.6 upgraded.
+v1.4 Phase 5 complete (2026-04-10) — CSP nonce enforcement in report-only.
 
 **The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance. Contrast remediation now complete: 316 violations → 0, CONFORME declared.
 
@@ -86,7 +86,7 @@ v1.4 Phase 4 complete (2026-04-10) — HTMX 2.0.6 upgraded.
 - ~~**V2-OVERLAY-HITTEST**~~ — ✓ Resolved in v1.4 Phase 2 (global `:where([hidden])` rule, 16 overrides removed, audit doc produced)
 - ~~**V2-TRUST-DEPLOY**~~ — ✓ Resolved in v1.4 Phase 3 (loginAsAuditor/loginAsAssessor fixtures, seedUser endpoint, zero loginAsAdmin in trust specs)
 - ~~**HTMX 2.0 upgrade**~~ — ✓ Resolved in v1.4 Phase 4 (2.0.6 + compat, DELETE param migration, zero regressions)
-- **V2-CSP-INLINE-THEME** — inline theme init scripts conflict with strict CSP; needs nonce or externalization
+- ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
 
@@ -152,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — v1.4 Phase 4 complete (HTMX 2.0 Upgrade)*
+*Last updated: 2026-04-10 — v1.4 Phase 5 complete (CSP Nonce Enforcement)*
