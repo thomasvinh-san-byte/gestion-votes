@@ -16,7 +16,7 @@
 
 - [x] **OVERLAY-01** : Une règle CSS globale `:where([hidden]) { display: none !important }` bloque le conflit `[hidden]` + `display: flex`
 - [x] **OVERLAY-02** : Un audit codebase-wide recense tous les sites `display: flex` sur éléments pouvant recevoir `[hidden]` et documente leur statut
-- [ ] **OVERLAY-03** : Un test Playwright smoke vérifie que `[hidden]` → computed `display: none` sur ≥3 pages représentatives
+- [x] **OVERLAY-03** : Un test Playwright smoke vérifie que `[hidden]` → computed `display: none` sur ≥3 pages représentatives
 
 ### Trust Fixtures (TRUST)
 
@@ -78,7 +78,7 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | CONTRAST-04 | Phase 1 — Contrast AA Remediation | Complete |
 | OVERLAY-01 | Phase 2 — Overlay Hittest Sweep | Complete |
 | OVERLAY-02 | Phase 2 — Overlay Hittest Sweep | Complete |
-| OVERLAY-03 | Phase 2 — Overlay Hittest Sweep | Pending |
+| OVERLAY-03 | Phase 2 — Overlay Hittest Sweep | Complete |
 | TRUST-01 | Phase 3 — Trust Fixtures Deploy | Pending |
 | TRUST-02 | Phase 3 — Trust Fixtures Deploy | Pending |
 | TRUST-03 | Phase 3 — Trust Fixtures Deploy | Pending |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: executing
-stopped_at: Completed 02-01-PLAN.md
+stopped_at: Completed 02-02-PLAN.md
 last_updated: "2026-04-10T06:08:40.293Z"
-last_activity: 2026-04-10 -- Completed 02-01-PLAN.md
+last_activity: 2026-04-10 -- Completed 02-02-PLAN.md
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_plans: 5
+  percent: 90
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 02 (overlay-hittest-sweep) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 02 (Plan 1 complete)
-Last activity: 2026-04-10 -- Completed 02-01-PLAN.md
+Phase: 02 (overlay-hittest-sweep) — COMPLETE
+Plan: 2 of 2 (DONE)
+Status: Phase 02 complete — all plans executed
+Last activity: 2026-04-10 -- Completed 02-02-PLAN.md
 
-**Progress:** [████████░░] 80%
+**Progress:** [█████████░] 90%
 
 ## v1.4 Phase Summary
 
@@ -49,6 +49,8 @@ Last activity: 2026-04-10 -- Completed 02-01-PLAN.md
 
 - [02-01]: Single :where([hidden]) rule with !important in @layer base replaces all 16 per-selector overrides
 - [02-01]: :not([hidden]) selectors in design-system.css (transition reveal animations) intentionally preserved -- positive selectors, not overrides
+- [02-02]: Programmatic setAttribute('hidden','') in page.evaluate tests CSS rule directly without meeting state dependency
+- [02-02]: Dynamic element test proves global :where([hidden]) rule works independent of page-specific CSS
 - [01-01]: Audit hex values (#988d7a, #bdb7a9, #9d9381, #4d72d8) are COMPUTED RGB, not source literals — zero grep matches across public/. Source tokens identified via CSS cascade analysis.
 - [01-01]: One --color-text-muted shift (L* 0.648 → 0.47 light, cool 0.45 → warm 0.78 dark) covers 3 of 4 audit families (muted text + wizard step opacity blend + kpi tooltip variant)
 - [01-01]: --color-primary left untouched (brand identity); new --color-primary-on-subtle companion token added for chip-on-primary-subtle. Wiring deferred to plan 01-02.
@@ -145,7 +147,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-10T06:08:40.290Z
-Stopped at: Completed 02-01-PLAN.md
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
 
 **Next action:** Approve visual checkpoint (Task 4 of 01-03) then `/gsd:transition` to Phase 2
