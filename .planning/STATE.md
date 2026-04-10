@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: executing
-stopped_at: Completed 01-02-PLAN.md (Shadow DOM hex fallbacks stripped)
-last_updated: "2026-04-10T05:04:00.706Z"
-last_activity: 2026-04-10 -- Plan 01-02 complete (commits 6e019be7, 9075fb21)
+status: verifying
+stopped_at: Completed 01-03-PLAN.md (0 violations, CONFORME declared, checkpoint pending)
+last_updated: "2026-04-10T05:51:28.495Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 01 (contrast-aa-remediation) — EXECUTING
-Plan: 3 of 3 (01-01, 01-02 complete)
-Status: Executing Phase 01
-Last activity: 2026-04-10 -- Plan 01-02 complete (commits 6e019be7, 9075fb21)
+Phase: 2
+Plan: Not started
+Status: Phase 01 complete — awaiting human-verify checkpoint
+Last activity: 2026-04-10
 
-**Progress:** [███████░░░] 67%
+**Progress:** [██████████] 100%
 
 ## v1.4 Phase Summary
 
@@ -56,6 +56,12 @@ Last activity: 2026-04-10 -- Plan 01-02 complete (commits 6e019be7, 9075fb21)
 - [01-02]: Shadow DOM Web Components must never carry hex fallbacks on --color-* tokens; enforced by CI grep gate `grep -rnE 'var\(--color-[^,)]*,\s*#' public/assets/js/components/` → 0.
 - [01-02]: --color-primary-on-subtle chip wiring (settings.css) still deferred — moved from 01-02 scope to 01-03 (axe re-run + chip wiring combined).
 - [01-02]: --shadow-*, --toast-*, --size-*, --radius-* fallbacks explicitly out of scope; only --color-* tokens were touched.
+- [01-03]: --color-text-muted iteratively darkened L* 0.470 -> 0.340 over 5 axe runs to pass AA on all warm surfaces including mid-animation states
+- [01-03]: --color-primary darkened L* 0.520 -> 0.480 for reliable white-on-primary button text AA compliance
+- [01-03]: Companion on-subtle token pattern adopted for success/accent/purple (mirrors primary-on-subtle from 01-01) — prevents brand token darkening
+- [01-03]: opacity CSS rules removed from wizard steps and onboarding labels — opacity multiplicatively degrades contrast, tokens are now dark enough standalone
+- [01-03]: Playwright contrast-audit.spec.js must disable browser cache via CDP and wait 500ms for CSS animations to settle before axe analysis
+- [01-03]: v1.3-A11Y-REPORT.md updated: "partiellement conforme" -> "CONFORME" for WCAG 2.1 AA
 - [v1.4 roadmap]: 6 phases derived from 24 requirements, 1 phase per category — clean boundaries, minimal cross-phase coupling
 - [v1.4 roadmap]: Phase numbering reset to 1 (v1.3 phases archived to `.planning/milestones/v1.3-phases/`); `--reset-phase-numbers` mode active
 - [v1.4 roadmap]: Build order Contrast → Overlay → Trust → HTMX → CSP → Controllers reconciles STACK/PITFALLS/ARCHITECTURE conflicts. Disjoint file regions minimize merge conflicts.
@@ -136,11 +142,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T05:04:00.701Z
-Stopped at: Completed 01-02-PLAN.md (Shadow DOM hex fallbacks stripped)
+Last session: 2026-04-10T05:35:00.000Z
+Stopped at: Completed 01-03-PLAN.md (0 violations, CONFORME declared, checkpoint pending)
 Resume file: None
 
-**Next action:** `/gsd:plan-phase 1` — plan Phase 1 (Contrast AA Remediation)
+**Next action:** Approve visual checkpoint (Task 4 of 01-03) then `/gsd:transition` to Phase 2
 
 **Files written this session:**
 
