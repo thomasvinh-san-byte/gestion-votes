@@ -4,12 +4,12 @@ milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
 status: active
 stopped_at: null
-last_updated: "2026-04-10T20:30:00.000Z"
+last_updated: "2026-04-10T21:00:00.000Z"
 last_activity: 2026-04-10
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
-  total_plans: 0
+  total_plans: 10
   completed_plans: 0
   percent: 0
 ---
@@ -21,149 +21,54 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Defining requirements for v1.5
+**Current focus:** v1.5 Phase 1 — Nettoyage Codebase
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-10 — Milestone v1.5 started
-Last activity: 2026-04-10
+Phase: 1 of 7 (Nettoyage Codebase)
+Plan: 0 of 2 in current phase
+Status: Ready to plan
+Last activity: 2026-04-10 — Roadmap created for v1.5
 
-**Progress:** [██████████] 100%
+**Progress:** [░░░░░░░░░░] 0%
 
-## v1.4 Phase Summary
+## v1.5 Phase Summary
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 1 — Contrast AA Remediation | WCAG 2.1 AA conforme sur 316 nœuds via 4 shifts de tokens oklch dual-theme | CONTRAST-01..04 |
-| 2 — Overlay Hittest Sweep | Règle base `:where([hidden])!important` + audit codebase-wide | OVERLAY-01..03 |
-| 3 — Trust Fixtures Deploy | `loginAsAuditor`/`loginAsAssessor` + endpoint seed test-gated | TRUST-01..03 |
-| 4 — HTMX 2.0 Upgrade | Migration 1.x→2.0.6 + `htmx-1-compat` safety net | HTMX-01..05 |
-| 5 — CSP Nonce Enforcement | `SecurityProvider::nonce()` + `strict-dynamic`, report-only first | CSP-01..04 |
-| 6 — Controller Refactoring | 4 controllers >500 LOC → <300 LOC via ImportService pattern | CTRL-01..05 |
+| 1 — Nettoyage Codebase | Supprimer console.log, code deprecie, TODOs, migrer superglobals, tester PageController | CLEAN-01..05 |
+| 2 — Refactoring AuthMiddleware | Extraire SessionManager + RbacEngine, AuthMiddleware <300 LOC | REFAC-01, REFAC-02 |
+| 3 — Refactoring ImportService | Extraire CsvImporter + XlsxImporter, ImportService <300 LOC | REFAC-03, REFAC-04 |
+| 4 — Refactoring ExportService | Extraire ValueTranslator, ExportService <300 LOC | REFAC-05, REFAC-06 |
+| 5 — Refactoring MeetingReportsService | Extraire ReportGenerator, MeetingReportsService <300 LOC | REFAC-07, REFAC-08 |
+| 6 — Refactoring EmailQueueService | Extraire RetryPolicy, EmailQueueService <300 LOC | REFAC-09, REFAC-10 |
+| 7 — Validation Gate | Zero regression routes + PHPUnit + Playwright | GUARD-01..03 |
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: 0 hours
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
 
 ## Accumulated Context
 
-### v1.4 Decisions
+### Decisions
 
-- [06-03]: openVote extracted into OperatorWorkflowService with api_transaction wrapper remaining in controller
-- [06-03]: AdminService uses match expression for 8-branch user action dispatch
-- [06-03]: RepositoryFactory singleton set in test setUp for MeetingValidator/NotificationsService compatibility
-- [06-03]: Audit log labels preserved with accented French matching original controller output
-- [06-02]: Created MeetingTransitionService as NEW service instead of expanding MeetingWorkflowService (would exceed 300 LOC)
-- [06-02]: Service exceptions mapped to original controller error codes for API backward compatibility
-- [06-02]: Source-reading tests concatenate controller+service source for combined string pattern coverage
-- [06-02]: buildTransitionFields as public method on MeetingTransitionService for DRY transition/launch field logic
-- [06-01]: Service tests use @group pending-service for exclusion until services exist in Plans 02/03
-- [06-01]: Existing controller structural tests preserved intact alongside new service tests
-- [05-02]: Report-only CSP emitted alongside existing enforcing CSP (dual-header strategy for safe rollout)
-- [05-02]: buildReportOnlyCsp() extracted as testable static method for CSP string construction
-- [05-02]: Nginx server-level CSP removed; CSP per-location for non-PHP responses only
-- [05-02]: script-src in report-only: nonce + strict-dynamic only (no self -- strict-dynamic ignores it)
-- [05-01]: PageController uses serveFromUri() extracting page from REQUEST_URI -- Router map() does not support extra params
-- [05-01]: /vote route split: POST for VotePublicController (form submission), GET for PageController (page shell)
-- [05-01]: %%CSP_NONCE%% placeholder in .htmx.html preserved over PHP tags to keep .htmx.html extension intact
-- [05-01]: All script src tags carry nonce for strict-dynamic CSP compatibility (browsers ignore 'self')
-- [03-01]: Route-level env gate wraps all dev seed routes for defense-in-depth (not just seed-user)
-- [03-01]: seedUser endpoint uses no auth middleware; route-level env gate is the security boundary for bootstrapping
-- [03-01]: Assessor user added to SQL seed (04_e2e.sql) for database-level reliability rather than API-only creation
-- [03-01]: findByEmail uses tenantId parameter (not findByEmailGlobal) since seed endpoint runs with auth context
-- [03-02]: No behavioral changes needed -- auditor role has access to all trust API endpoints (trust_anomalies, trust_checks require auditor|admin|operator)
-- [04-01]: htmx-1-compat activated via hx-ext on body tag (not just script load) per extension spec
-- [04-01]: PHP DELETE handlers keep api_request('DELETE') for method validation, read params via api_query()
-- [04-01]: MembersController preserves member_id + id fallback in api_query chain for backwards compatibility
-- [04-02]: Full suite (212 specs) run instead of critical-path subset (25) for thorough htmx regression verification
-- [04-02]: All cross-browser failures categorized as pre-existing (login timing, operator CSS, webkit resource pressure, mobile viewport) -- zero htmx-related
-- [02-01]: Single :where([hidden]) rule with !important in @layer base replaces all 16 per-selector overrides
-- [02-01]: :not([hidden]) selectors in design-system.css (transition reveal animations) intentionally preserved -- positive selectors, not overrides
-- [02-02]: Programmatic setAttribute('hidden','') in page.evaluate tests CSS rule directly without meeting state dependency
-- [02-02]: Dynamic element test proves global :where([hidden]) rule works independent of page-specific CSS
-- [01-01]: Audit hex values (#988d7a, #bdb7a9, #9d9381, #4d72d8) are COMPUTED RGB, not source literals — zero grep matches across public/. Source tokens identified via CSS cascade analysis.
-- [01-01]: One --color-text-muted shift (L* 0.648 → 0.47 light, cool 0.45 → warm 0.78 dark) covers 3 of 4 audit families (muted text + wizard step opacity blend + kpi tooltip variant)
-- [01-01]: --color-primary left untouched (brand identity); new --color-primary-on-subtle companion token added for chip-on-primary-subtle. Wiring deferred to plan 01-02.
-- [01-01]: Plan 01-01 same-commit propagation to 21 critical-tokens inline blocks is a structural no-op — those blocks only declare --color-bg/surface/text. Pitfall #2 trivially neutralised.
-- [01-01]: Dark-mode --color-text-muted was itself broken (oklch 0.450 cool too dark on dark bg) — fixed to 0.780 warm hue 82 aligning Phase 82-01 convention.
-- [01-02]: Stripped 110 `var(--color-*, #hex)` fallbacks from 16 Web Components via single sed pass — 7/23 components were already clean, zero oklch fallbacks to preserve. Pitfall #1 (stale hex after oklch shift) eliminated.
-- [01-02]: Shadow DOM Web Components must never carry hex fallbacks on --color-* tokens; enforced by CI grep gate `grep -rnE 'var\(--color-[^,)]*,\s*#' public/assets/js/components/` → 0.
-- [01-02]: --color-primary-on-subtle chip wiring (settings.css) still deferred — moved from 01-02 scope to 01-03 (axe re-run + chip wiring combined).
-- [01-02]: --shadow-*, --toast-*, --size-*, --radius-* fallbacks explicitly out of scope; only --color-* tokens were touched.
-- [01-03]: --color-text-muted iteratively darkened L* 0.470 -> 0.340 over 5 axe runs to pass AA on all warm surfaces including mid-animation states
-- [01-03]: --color-primary darkened L* 0.520 -> 0.480 for reliable white-on-primary button text AA compliance
-- [01-03]: Companion on-subtle token pattern adopted for success/accent/purple (mirrors primary-on-subtle from 01-01) — prevents brand token darkening
-- [01-03]: opacity CSS rules removed from wizard steps and onboarding labels — opacity multiplicatively degrades contrast, tokens are now dark enough standalone
-- [01-03]: Playwright contrast-audit.spec.js must disable browser cache via CDP and wait 500ms for CSS animations to settle before axe analysis
-- [01-03]: v1.3-A11Y-REPORT.md updated: "partiellement conforme" -> "CONFORME" for WCAG 2.1 AA
-- [v1.4 roadmap]: 6 phases derived from 24 requirements, 1 phase per category — clean boundaries, minimal cross-phase coupling
-- [v1.4 roadmap]: Phase numbering reset to 1 (v1.3 phases archived to `.planning/milestones/v1.3-phases/`); `--reset-phase-numbers` mode active
-- [v1.4 roadmap]: Build order Contrast → Overlay → Trust → HTMX → CSP → Controllers reconciles STACK/PITFALLS/ARCHITECTURE conflicts. Disjoint file regions minimize merge conflicts.
-- [v1.4 roadmap]: Phase 1 first — contrast `<style>` blocks disjoint from HTMX `hx-on` attributes in same `.htmx.html` files; reverse order forces rebase
-- [v1.4 roadmap]: Phase 4 MUST precede Phase 5 — `hx-on:*` is inline script, would break under strict CSP `strict-dynamic` if un-migrated
-- [v1.4 roadmap]: Phase 5 report-only gate — CSP runs in `Content-Security-Policy-Report-Only` for ≥1 full phase before enforcement flip
-- [v1.4 roadmap]: Phase 6 entry gate — pre-split reflection audit (`ReflectionClass`/`hasMethod` grep) on tests is MANDATORY before each controller split (pitfall #6)
-- [v1.4 roadmap]: 300 LOC ceiling per extracted service to prevent god-service anti-pattern (pitfall #7)
-- [v1.4 roadmap]: CSP nonce lives on `SecurityProvider`, NOT middleware — middleware runs post-routing and is API-only; CSP header must ship from `index.php` before dispatch
-- [v1.4 roadmap]: Controller splits mirror ImportService pattern — `final class`, nullable constructor DI, `RepositoryFactory::getInstance()` fallback, no DI container
-- [v1.4 roadmap]: Token dual-name safety — never rename tokens in `design-system.css`; only add aliases. Shadow DOM `@property` `initial-value` silently swallows renames (pitfall #3).
-- [v1.4 roadmap]: Critical-tokens same-commit rule — `<style id="critical-tokens">` in 22 `.htmx.html` must update atomically with `:root`/`[data-theme="dark"]` (pitfall #2)
-- [v1.4 roadmap]: 4 token value edits (`#988d7a`, `#bdb7a9`, `#9d9381`, `#4d72d8` to oklch L* 45-48) fix ~71% of 316 nodes per research
+Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
 
-### Decisions (carry-over from v1.3)
-
-- [v10.0 roadmap]: 3 phases derived from 14 requirements — token layer → component geometry → hardening
-- [v10.0 roadmap]: Phase 82 changes design-system.css @layer base only; no per-page CSS files touched in this phase
-- [v10.0 roadmap]: Dark mode [data-theme="dark"] block and critical-tokens inline styles must update in the same commit as any :root color primitive change (Pitfall 2 from research)
-- [v10.0 roadmap]: Token names must never be renamed — add new alongside old to avoid Shadow DOM fallback staleness (Pitfall 3 from research)
-- [v10.0 roadmap]: Phase 83 deferred skeleton shimmer scope requires pre-phase audit of which pages use spinners vs. HTMX-managed states
-- [v9.0 roadmap]: AgConfirm.ask() is the universal confirmation pattern across all 7 page modules
-- [Phase 81-fix-ux]: Shared.openModal() preserved for form-containing modals only
-- [Phase 82-01]: color-mix(in oklch) used for all hover/active derivations — perceptually uniform darkening vs srgb
-- [Phase 82-01]: --color-accent aliased to var(--purple-600) confirming COLOR-03 accent sparsity at token level
-- [Phase 82-token-foundation-palette-shift]: Dark mode surface hue set to 78 (warm-neutral) replacing cool hue ~260 — warm identity now consistent across both modes
-- [Phase 82-token-foundation-palette-shift]: Dark mode hover direction uses color-mix(in oklch, base 88%, white) — lightening in dark context is correct interactive cue
-- [Phase 83-01]: All component corners unified to --radius-base (8px) — no per-component radius overrides remain
-- [Phase 83-01]: Shadow scale reduced 9→3 levels: sm=0.06 opacity, md unchanged, lg=old xl 0.14 opacity
-- [Phase 83-01]: --color-border-alpha uses oklch alpha for adaptive depth (black/white based for light/dark modes)
-- [Phase 83]: Skeleton KPI height 88px matches kpi-card approx height; .kpi-card-wrapper wrapper enables CSS-only show/hide toggle
-- [Phase 84]: @property registered for 8 core color tokens — derived tokens excluded (no var() in initial-value per CSS spec)
-- [Phase 84]: HARD-03: all 21 htmx.html critical-tokens blocks updated from hex to oklch — research incorrectly claimed files were already in sync
-- [Phase 84]: Token name --color-primary-text is canonical for text on primary backgrounds (not --color-text-on-primary or --color-primary-contrast)
-- [Phase 84]: oklch() literals used for rgba(white/black, N) where no semantic token exists
-- [Phase 12-page-by-page-mvp-sweep]: Docker CSP blocks inline scripts (script-src without unsafe-inline) — DISP-01 dark theme assertion must be CSP-aware: accept null or dark
-- [Phase 14-visual-polish]: Used login page for POLISH-04 hover assertion — no auth required, idempotent
-- [Phase 14-visual-polish]: assessor removed from /trust data-requires-role — assessor is a meeting role, /trust is a system-wide audit dashboard (admin+auditor only per POLISH-03 matrix)
-- [Phase 14-visual-polish]: POLISH-01: members.js converted to AgToast.show() (27 call sites); adoption now at 9 pages
-- [Phase 14-visual-polish]: 14-02: Remove hex fallbacks from var(--token, #hex) in Shadow DOM — tokens guaranteed-present via shell.js load order
-- [Phase 16-accessibility-deep-audit]: Phase 16-01: Parametrized axeAudit matrix to 22 pages via PAGES array; extraDisabledRules plumbing ready for per-page waivers (D-10)
-- [Phase 16-accessibility-deep-audit]: Phase 16-01: trust.htmx.html uses loginAsAdmin fallback (auditor/assessor not in fixtures) — to validate at baseline run in 16-02
-- [Phase 16]: 16-02: baseline captured via Docker (bin/test-e2e.sh), 5 unique rule-ids fixed across admin/public/vote/operator — final 26/26 GREEN, no waivers needed
-- [Phase 16]: Phase 16-03: Focus-trap spec injects deterministic ag-modal via page.evaluate() to decouple from fixture-specific modal triggers; shadow DOM check uses two-branch pattern (slotted closest + host.shadowRoot.activeElement) matching ag-modal Light+Shadow hybrid
-- [Phase 16]: 16-04: contrast audit runner gated by CONTRAST_AUDIT env; requires Docker playwright image (host libs missing)
-- [Phase 16]: 16-05: v1.3-A11Y-REPORT.md declares partial WCAG 2.1 AA conformance — structural+keyboard conformant, contrast deferred to token remediation phase
-- [Phase 16]: 16-02: bind-mount public/ into app container via dev-only docker-compose.override.yml — production image bakes public/ read-only, dev edits were invisible
-- [Phase 16]: 16-02: ag-searchable-select forwards host aria-label to inner [role=combobox] for accessible name on all consumers
-- [Phase 17]: 17-02: document-level eIDAS chip click delegation (panel-visibility independent)
-- [Phase 17-loose-ends-phase-12]: LOOSE-01 root cause: loadSettings used POST {action:list} which raced CSRF/middleware; fix swaps to GET ?action=list and adds window.__settingsLoaded handshake
-- [Phase 17-loose-ends-phase-12]: Phase 12 SUMMARY audit: 6 findings, 2 already resolved by 17-01/17-02, 3 deferred to v2 (V2-OVERLAY-HITTEST, V2-TRUST-DEPLOY, V2-CSP-INLINE-THEME), 0 fix-now
-
-### Existing Infrastructure
-
-- design-system.css: 5,258 lines, three @layer stack (base/components/v4), oklch values already present as trailing comments on every primitive
-- 23 Web Components with Shadow DOM — inherit tokens but fallback hex literals require manual update after palette changes
-- 25 per-page CSS files — ~15 hardcoded hex/rgba values identified: analytics.css, meetings.css, hub.css, vote.css, public.css, users.css
-- critical-tokens inline styles in 22 HTML files — 6 hex values that prevent flash-of-wrong-color on load
-- color-mix(in srgb, ...) calls in design-system.css — need upgrade to color-mix(in oklch, ...)
-- v1.3-CONTRAST-AUDIT.json baseline: 316 contrast violations across 22 pages, 42 unique (fg, bg) pairs, dominant `#988d7a` muted-foreground
-- 4 fat controllers pending split: MeetingsController 687, MeetingWorkflowController 559, OperatorController 516, AdminController 510
-- ImportService pattern validated in v1.0 Phase 3 — reusable blueprint for Phase 6 splits
-- SecurityProvider::headers() called before router dispatch — correct injection point for CSP nonce
-
-### Known Tech Debt Carried Forward
-
-- Controller coverage at 64.6% structural ceiling (3 exit()-based controllers)
-- CI e2e job runs chromium only; mobile-chrome/tablet are local-only
-- Migration idempotency check is local-only, not CI-gated
+- [v1.5 roadmap]: 7 phases — nettoyage first (quick wins), then each service refactoring isolated, validation gate last
+- [v1.5 roadmap]: GUARD requirements cross-cutting — assigned to Phase 7 as final validation gate
+- [v1.5 roadmap]: AuthMiddleware refactoring (Phase 2) before other services — highest complexity and risk
+- [v1.5 roadmap]: Phases 3-6 parallelizable (no inter-service dependencies), but sequenced for focus
+- [v1.5 roadmap]: 300 LOC ceiling from v1.4 carries forward — all extracted classes must be <300 LOC
 
 ### Pending Todos
 
@@ -175,14 +80,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T10:10:17.000Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-04-10
+Stopped at: Roadmap created for v1.5 milestone
 Resume file: None
 
-**Next action:** v1.4 milestone complete — all 6 phases done
-
-**Files written this session:**
-
-- `.planning/ROADMAP.md` (v1.4 section appended)
-- `.planning/STATE.md` (updated with v1.4 context)
-- `.planning/REQUIREMENTS.md` (traceability section populated)
+**Next action:** `/gsd:plan-phase 1` to plan Nettoyage Codebase

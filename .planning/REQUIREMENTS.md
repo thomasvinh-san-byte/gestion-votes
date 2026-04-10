@@ -79,30 +79,30 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEAN-01 | TBD | Pending |
-| CLEAN-02 | TBD | Pending |
-| CLEAN-03 | TBD | Pending |
-| CLEAN-04 | TBD | Pending |
-| CLEAN-05 | TBD | Pending |
-| REFAC-01 | TBD | Pending |
-| REFAC-02 | TBD | Pending |
-| REFAC-03 | TBD | Pending |
-| REFAC-04 | TBD | Pending |
-| REFAC-05 | TBD | Pending |
-| REFAC-06 | TBD | Pending |
-| REFAC-07 | TBD | Pending |
-| REFAC-08 | TBD | Pending |
-| REFAC-09 | TBD | Pending |
-| REFAC-10 | TBD | Pending |
-| GUARD-01 | TBD | Pending |
-| GUARD-02 | TBD | Pending |
-| GUARD-03 | TBD | Pending |
+| CLEAN-01 | Phase 1 | Pending |
+| CLEAN-02 | Phase 1 | Pending |
+| CLEAN-03 | Phase 1 | Pending |
+| CLEAN-04 | Phase 1 | Pending |
+| CLEAN-05 | Phase 1 | Pending |
+| REFAC-01 | Phase 2 | Pending |
+| REFAC-02 | Phase 2 | Pending |
+| REFAC-03 | Phase 3 | Pending |
+| REFAC-04 | Phase 3 | Pending |
+| REFAC-05 | Phase 4 | Pending |
+| REFAC-06 | Phase 4 | Pending |
+| REFAC-07 | Phase 5 | Pending |
+| REFAC-08 | Phase 5 | Pending |
+| REFAC-09 | Phase 6 | Pending |
+| REFAC-10 | Phase 6 | Pending |
+| GUARD-01 | Phase 7 | Pending |
+| GUARD-02 | Phase 7 | Pending |
+| GUARD-03 | Phase 7 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 18 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 18
+- Mapped to phases: 18/18
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 after initial definition*
+*Last updated: 2026-04-10 after roadmap creation*
