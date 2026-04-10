@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Nouveau mot de passe AG-VOTE">
   <title>AG-VOTE — Nouveau mot de passe</title>
-  <script src="/assets/js/theme-init.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
@@ -95,9 +95,9 @@
     </div>
   </main>
 
-  <script src="/assets/js/core/utils.js"></script>
-  <script src="/assets/js/pages/login-theme-toggle.js"></script>
-  <script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/core/utils.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/pages/login-theme-toggle.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
     // Password eye toggles
     function initEyeToggle(inputId, btnId) {
       const input = document.getElementById(inputId);

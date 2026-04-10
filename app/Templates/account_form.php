@@ -8,13 +8,13 @@
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Mon Compte AG-VOTE">
   <title>AG-VOTE — Mon Compte</title>
-  <script src="/assets/js/theme-init.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/login.css">
-  <style>
+  <style nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
     .account-profile { margin-bottom: 1.5rem; }
     .account-profile-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--color-border, #e2e8f0); }
     .account-profile-label { font-weight: 600; color: var(--color-text-secondary, #64748b); }
@@ -144,7 +144,7 @@
     </div>
   </main>
 
-  <script src="/assets/js/core/utils.js"></script>
-  <script src="/assets/js/pages/login-theme-toggle.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/core/utils.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/pages/login-theme-toggle.js"></script>
 </body>
 </html>

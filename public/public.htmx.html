@@ -4,17 +4,13 @@
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="UTF-8">
-  <style id="critical-tokens">
+  <style id="critical-tokens" nonce="%%CSP_NONCE%%">
     :root { --color-bg: oklch(0.922 0.013 95); --color-surface: oklch(0.969 0.006 95); --color-text: oklch(0.180 0.012 75); }
     [data-theme="dark"] { --color-bg: oklch(0.090 0.008 78); --color-surface: oklch(0.115 0.009 78); --color-text: oklch(0.908 0.015 265); }
     html, body { background: var(--color-bg); }
   </style>
-  <script src="/assets/js/theme-init.js"></script>
-  <script>
-    // Force dark theme for projection/room display (DISP-01 requirement)
-    document.documentElement.setAttribute('data-theme', 'dark');
-    try { localStorage.setItem('ag-vote-theme', 'dark'); } catch(e) {}
-  </script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/theme-init.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/public-theme-force.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
@@ -215,8 +211,8 @@
   <a href="/settings#accessibilite" class="text-muted footer-link">Accessibilite</a>
 </footer>
 
-<script src="/assets/js/core/event-stream.js"></script>
-<script src="/assets/js/pages/public.js"></script>
+<script nonce="%%CSP_NONCE%%" src="/assets/js/core/event-stream.js"></script>
+<script nonce="%%CSP_NONCE%%" src="/assets/js/pages/public.js"></script>
 
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
-  <style id="critical-tokens">
+  <style id="critical-tokens" nonce="%%CSP_NONCE%%">
     :root { --color-bg: oklch(0.922 0.013 95); --color-surface: oklch(0.969 0.006 95); --color-text: oklch(0.180 0.012 75); }
     [data-theme="dark"] { --color-bg: oklch(0.090 0.008 78); --color-surface: oklch(0.115 0.009 78); --color-text: oklch(0.908 0.015 265); }
     html, body { background: var(--color-bg); }
@@ -13,13 +13,13 @@
   <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
   <meta name="description" content="Documentation - AG-VOTE">
   <title>Documentation — AG-VOTE</title>
-  <script src="/assets/js/theme-init.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/theme-init.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/doc.css">
-  <script src="/assets/js/vendor/marked.min.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/vendor/marked.min.js"></script>
 </head>
 <body>
   <!-- Skip links -->
@@ -88,11 +88,11 @@
     <div id="drawerBody" class="drawer-body"></div>
   </aside>
 
-  <script type="module" src="/assets/js/components/index.js"></script>
-  <script src="/assets/js/core/utils.js"></script>
-  <script src="/assets/js/core/shared.js"></script>
-  <script src="/assets/js/core/shell.js"></script>
-  <script src="/assets/js/services/meeting-context.js"></script>
-  <script src="/assets/js/pages/docs-viewer.js"></script>
+  <script type="module" nonce="%%CSP_NONCE%%" src="/assets/js/components/index.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/core/utils.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/core/shared.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/core/shell.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/services/meeting-context.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/docs-viewer.js"></script>
 </body>
 </html>

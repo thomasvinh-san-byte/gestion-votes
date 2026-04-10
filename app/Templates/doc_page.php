@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<?= htmlspecialchars($title) ?> — Documentation AG-VOTE">
   <title><?= htmlspecialchars($title) ?> — Documentation AG-VOTE</title>
-  <script src="/assets/js/theme-init.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/theme-init.js"></script>
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/doc.css">
 </head>
@@ -67,13 +67,13 @@
     </main>
   </div>
 
-  <script type="module" src="/assets/js/components/index.js"></script>
-  <script src="/assets/js/core/utils.js"></script>
-  <script src="/assets/js/core/shared.js"></script>
-  <script src="/assets/js/core/shell.js"></script>
-  <script src="/assets/js/pages/auth-ui.js"></script>
+  <script type="module" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/components/index.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/core/utils.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/core/shared.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/core/shell.js"></script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>" src="/assets/js/pages/auth-ui.js"></script>
 
-  <script>
+  <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
   (function() {
     'use strict';
 
