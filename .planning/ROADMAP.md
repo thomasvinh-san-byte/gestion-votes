@@ -114,8 +114,9 @@ Plans:
   4. La fixture construit le graphe complet (user → tenant → meeting → meeting-role) — assertée par un smoke test qui navigue et vérifie au moins un élément role-gated visible
 **Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
-- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
+- [ ] 03-01-PLAN.md — Seed-user endpoint + route-level production gate + auditor/assessor auth fixtures
+- [ ] 03-02-PLAN.md — Migrate trust specs from loginAsAdmin/loginAsOperator to loginAsAuditor
+
 
 ### Phase 4: HTMX 2.0 Upgrade
 **Goal**: htmx.org migre de 1.x vers 2.0.6 sans régression sur la suite Playwright cross-browser
@@ -223,7 +224,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | 17. Loose Ends Phase 12 | v1.3 | 3/3 | Complete | 2026-04-09 |
 | 1. Contrast AA Remediation | v1.4 | 0/3 | Planned | - |
 | 2. Overlay Hittest Sweep | v1.4 | 0/0 | Not started | - |
-| 3. Trust Fixtures Deploy | v1.4 | 0/0 | Not started | - |
+| 3. Trust Fixtures Deploy | v1.4 | 0/2 | Planned | - |
 | 4. HTMX 2.0 Upgrade | v1.4 | 0/0 | Not started | - |
 | 5. CSP Nonce Enforcement | v1.4 | 0/0 | Not started | - |
 | 6. Controller Refactoring | v1.4 | 0/0 | Not started | - |
