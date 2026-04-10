@@ -147,10 +147,10 @@ Plans:
   1. `wc -l app/Services/ExportService.php` affiche <300 lignes
   2. `wc -l app/Services/ValueTranslator.php` affiche <300 lignes
   3. ValueTranslator est une `final class` avec <300 LOC (grep confirme)
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — Extract ValueTranslator + refactor ExportService to thin I/O facade
 
 ### Phase 5: Refactoring MeetingReportsService
 **Goal**: MeetingReportsService est un orchestrateur leger (<300 LOC) qui delegue la generation de rapports a ReportGenerator
