@@ -21,6 +21,7 @@ final class HtmlView {
     public static function render(string $template, array $data = [], int $statusCode = 200): void {
         http_response_code($statusCode);
         header('Content-Type: text/html; charset=utf-8');
+        $data['cspNonce'] = \AgVote\Core\Providers\SecurityProvider::nonce();
         extract($data, EXTR_SKIP);
         require dirname(__DIR__) . '/Templates/' . $template . '.php';
     }

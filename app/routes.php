@@ -65,6 +65,7 @@ use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\SetupController;
 use AgVote\Controller\TrustController;
+use AgVote\Controller\PageController;
 use AgVote\Controller\VotePublicController;
 use AgVote\Controller\VoteTokenController;
 use AgVote\Core\Router;
@@ -379,9 +380,23 @@ return function (Router $router): void {
     // -- Account (session-authenticated) --
     $router->mapAny('/account', AccountController::class, 'account');
 
-    // Vote form (token-authenticated, no role middleware)
-    $router->mapAny('/vote', VotePublicController::class, 'vote');
+    // Vote form — POST for submission (token-authenticated, no role middleware)
+    $router->map('POST', '/vote', VotePublicController::class, 'vote');
 
     // Documentation viewer (public, no auth)
     $router->map('GET', '/doc', DocController::class, 'view');
+
+    // ═════════════════════════════════════════════════════════════════════
+    // PAGE SHELL ROUTES (.htmx.html served through PHP for CSP nonce)
+    // ═════════════════════════════════════════════════════════════════════
+
+    $pageRoutes = [
+        'dashboard', 'wizard', 'hub', 'operator', 'postsession',
+        'vote', 'validate', 'archives', 'meetings', 'audit', 'members',
+        'users', 'analytics', 'settings', 'admin', 'help',
+        'email-templates', 'public', 'report', 'trust', 'docs',
+    ];
+    foreach ($pageRoutes as $page) {
+        $router->map('GET', "/{$page}", PageController::class, 'serveFromUri');
+    }
 };

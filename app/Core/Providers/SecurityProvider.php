@@ -12,6 +12,23 @@ use AgVote\Core\Security\AuthMiddleware;
  * Sends security headers, handles CORS, and initializes auth/rate-limit.
  */
 final class SecurityProvider {
+    /** @var ?string Per-request CSP nonce (32-char hex from 16 random bytes). */
+    private static ?string $nonce = null;
+
+    /**
+     * Get or generate the per-request CSP nonce (32 hex chars from 16 random bytes).
+     */
+    public static function nonce(): string {
+        return self::$nonce ??= bin2hex(random_bytes(16));
+    }
+
+    /**
+     * Reset nonce between requests (for test isolation only).
+     */
+    public static function resetNonce(): void {
+        self::$nonce = null;
+    }
+
     /**
      * Send standard security headers (CSP, HSTS, etc.).
      */
