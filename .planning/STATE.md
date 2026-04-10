@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: completed
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-04-10T06:43:36.464Z"
-last_activity: 2026-04-10
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-04-10T07:01:52.313Z"
+last_activity: 2026-04-10 -- Phase 04 execution started
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_plans: 9
+  completed_plans: 8
+  percent: 89
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 03 — trust-fixtures-deploy
+**Current focus:** Phase 04 — htmx-2-0-upgrade
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Phase 03 complete
-Last activity: 2026-04-10
+Phase: 04 (htmx-2-0-upgrade) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 04 -- Plan 01 complete
+Last activity: 2026-04-10 -- 04-01 htmx upgrade + DELETE migration complete
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 89%
 
 ## v1.4 Phase Summary
 
@@ -52,6 +52,9 @@ Last activity: 2026-04-10
 - [03-01]: Assessor user added to SQL seed (04_e2e.sql) for database-level reliability rather than API-only creation
 - [03-01]: findByEmail uses tenantId parameter (not findByEmailGlobal) since seed endpoint runs with auth context
 - [03-02]: No behavioral changes needed -- auditor role has access to all trust API endpoints (trust_anomalies, trust_checks require auditor|admin|operator)
+- [04-01]: htmx-1-compat activated via hx-ext on body tag (not just script load) per extension spec
+- [04-01]: PHP DELETE handlers keep api_request('DELETE') for method validation, read params via api_query()
+- [04-01]: MembersController preserves member_id + id fallback in api_query chain for backwards compatibility
 - [02-01]: Single :where([hidden]) rule with !important in @layer base replaces all 16 per-selector overrides
 - [02-01]: :not([hidden]) selectors in design-system.css (transition reveal animations) intentionally preserved -- positive selectors, not overrides
 - [02-02]: Programmatic setAttribute('hidden','') in page.evaluate tests CSS rule directly without meeting state dependency
@@ -151,11 +154,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T06:40:15.204Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-04-10T07:01:07Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
-**Next action:** Approve visual checkpoint (Task 4 of 01-03) then `/gsd:transition` to Phase 2
+**Next action:** Execute 04-02-PLAN.md (Playwright cross-browser verification)
 
 **Files written this session:**
 

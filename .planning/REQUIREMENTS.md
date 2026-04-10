@@ -26,10 +26,10 @@
 
 ### HTMX 2.0 Upgrade (HTMX)
 
-- [ ] **HTMX-01** : htmx.org est mis à jour de 1.x vers 2.0.6 ; `htmx-1-compat` est chargé comme safety net pendant la migration
-- [ ] **HTMX-02** : Tous les attributs `hx-on="event: ..."` sont réécrits en `hx-on:event-name="..."` (kebab-case) — grep retourne zéro occurrence de l'ancienne syntaxe
-- [ ] **HTMX-03** : Tous les handlers `hx-delete` lisent les paramètres depuis query params (pas `$_POST` / `php://input`)
-- [ ] **HTMX-04** : Les extensions HTMX (SSE, preload, ...) sont chargées individuellement (non bundled)
+- [x] **HTMX-01** : htmx.org est mis à jour de 1.x vers 2.0.6 ; `htmx-1-compat` est chargé comme safety net pendant la migration
+- [x] **HTMX-02** : Tous les attributs `hx-on="event: ..."` sont réécrits en `hx-on:event-name="..."` (kebab-case) — grep retourne zéro occurrence de l'ancienne syntaxe
+- [x] **HTMX-03** : Tous les handlers `hx-delete` lisent les paramètres depuis query params (pas `$_POST` / `php://input`)
+- [x] **HTMX-04** : Les extensions HTMX (SSE, preload, ...) sont chargées individuellement (non bundled)
 - [ ] **HTMX-05** : La suite Playwright complète passe chromium + firefox + webkit + mobile-chrome contre la baseline v1.3
 
 ### CSP Nonce (CSP)
@@ -82,10 +82,10 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | TRUST-01 | Phase 3 — Trust Fixtures Deploy | Complete |
 | TRUST-02 | Phase 3 — Trust Fixtures Deploy | Complete |
 | TRUST-03 | Phase 3 — Trust Fixtures Deploy | Complete |
-| HTMX-01 | Phase 4 — HTMX 2.0 Upgrade | Pending |
-| HTMX-02 | Phase 4 — HTMX 2.0 Upgrade | Pending |
-| HTMX-03 | Phase 4 — HTMX 2.0 Upgrade | Pending |
-| HTMX-04 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| HTMX-01 | Phase 4 — HTMX 2.0 Upgrade | Complete |
+| HTMX-02 | Phase 4 — HTMX 2.0 Upgrade | Complete |
+| HTMX-03 | Phase 4 — HTMX 2.0 Upgrade | Complete |
+| HTMX-04 | Phase 4 — HTMX 2.0 Upgrade | Complete |
 | HTMX-05 | Phase 4 — HTMX 2.0 Upgrade | Pending |
 | CSP-01 | Phase 5 — CSP Nonce Enforcement | Pending |
 | CSP-02 | Phase 5 — CSP Nonce Enforcement | Pending |
