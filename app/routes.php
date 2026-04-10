@@ -151,9 +151,13 @@ return function (Router $router): void {
     $router->mapAny("{$prefix}/device_unblock", DevicesController::class, 'unblock', $opAdm);
     $router->mapAny("{$prefix}/devices_list", DevicesController::class, 'listDevices', ['role' => ['operator', 'admin', 'trust']]);
 
-    // ── Dev seed (dev only) ──
-    $router->mapAny("{$prefix}/dev_seed_members", DevSeedController::class, 'seedMembers', $op);
-    $router->mapAny("{$prefix}/dev_seed_attendances", DevSeedController::class, 'seedAttendances', $op); /* [dev] */
+    // ── Dev seed / test helpers (dev/test only — NOT registered in production) ──
+    $appEnv = config('env', 'dev');
+    if (!in_array($appEnv, ['production', 'prod'], true)) {
+        $router->mapAny("{$prefix}/dev_seed_members", DevSeedController::class, 'seedMembers', $op);
+        $router->mapAny("{$prefix}/dev_seed_attendances", DevSeedController::class, 'seedAttendances', $op);
+        $router->map('POST', "{$prefix}/test/seed-user", DevSeedController::class, 'seedUser');
+    }
 
     // ── Documentation ──
     $router->mapAny("{$prefix}/doc_index", DocController::class, 'index', ['rate_limit' => ['doc_index', 30, 60]]);

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Repository\UserRepository;
 use InvalidArgumentException;
+use PDOException;
 use Throwable;
 
 /**
@@ -96,5 +98,53 @@ final class DevSeedController extends AbstractController {
         }
 
         api_ok(['created' => $created, 'total_members' => count($members)]);
+    }
+
+    /**
+     * Cree un utilisateur de test avec role systeme et role de seance optionnel.
+     * Usage: POST /api/v1/test/seed-user
+     * Double garde : route-level (env gate) + controller-level (guardProduction).
+     */
+    public function seedUser(): void {
+        $this->guardProduction();
+
+        $in = api_request('POST');
+        $email = trim((string) ($in['email'] ?? ''));
+        $password = trim((string) ($in['password'] ?? ''));
+        $name = trim((string) ($in['name'] ?? 'Test User'));
+        $systemRole = trim((string) ($in['system_role'] ?? 'viewer'));
+        $meetingId = trim((string) ($in['meeting_id'] ?? ''));
+        $meetingRole = trim((string) ($in['meeting_role'] ?? ''));
+
+        if ($email === '' || $password === '') {
+            throw new InvalidArgumentException('email and password required');
+        }
+
+        $tenantId = api_current_tenant_id();
+        $userId = api_uuid4();
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+
+        /** @var UserRepository $userRepo */
+        $userRepo = $this->repo()->user();
+
+        try {
+            $userRepo->createUser($userId, $tenantId, $email, $name, $systemRole, $hash);
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23505') {
+                // Utilisateur existant — recuperer l'ID
+                $existing = $userRepo->findByEmail($tenantId, $email);
+                if ($existing) {
+                    $userId = $existing['id'];
+                }
+            } else {
+                throw $e;
+            }
+        }
+
+        if ($meetingId !== '' && $meetingRole !== '') {
+            $userRepo->assignMeetingRole($tenantId, $meetingId, $userId, $meetingRole, $userId);
+        }
+
+        api_ok(['user_id' => $userId, 'email' => $email]);
     }
 }

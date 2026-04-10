@@ -8,6 +8,7 @@ use AgVote\Controller\AbstractController;
 use AgVote\Controller\DevSeedController;
 use AgVote\Repository\AttendanceRepository;
 use AgVote\Repository\MemberRepository;
+use AgVote\Repository\UserRepository;
 
 /**
  * Unit tests for DevSeedController.
@@ -44,7 +45,7 @@ class DevSeedControllerTest extends ControllerTestCase
     {
         $ref = new \ReflectionClass(DevSeedController::class);
 
-        foreach (['seedMembers', 'seedAttendances'] as $method) {
+        foreach (['seedMembers', 'seedAttendances', 'seedUser'] as $method) {
             $this->assertTrue($ref->hasMethod($method), "Missing method: {$method}");
         }
     }
@@ -53,7 +54,7 @@ class DevSeedControllerTest extends ControllerTestCase
     {
         $ref = new \ReflectionClass(DevSeedController::class);
 
-        foreach (['seedMembers', 'seedAttendances'] as $method) {
+        foreach (['seedMembers', 'seedAttendances', 'seedUser'] as $method) {
             $this->assertTrue($ref->getMethod($method)->isPublic(), "{$method} should be public");
         }
     }
@@ -251,5 +252,106 @@ class DevSeedControllerTest extends ControllerTestCase
         $this->assertEquals(200, $result['status']);
         $this->assertTrue($result['body']['ok']);
         $this->assertEquals(2, $result['body']['data']['total_members']);
+    }
+
+    // =========================================================================
+    // seedUser: METHOD ENFORCEMENT
+    // =========================================================================
+
+    public function testSeedUserRejectsGetMethod(): void
+    {
+        $result = $this->callController(DevSeedController::class, 'seedUser');
+
+        $this->assertEquals(405, $result['status']);
+    }
+
+    // =========================================================================
+    // seedUser: VALIDATION
+    // =========================================================================
+
+    public function testSeedUserRequiresEmailAndPassword(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([]);
+
+        $result = $this->callController(DevSeedController::class, 'seedUser');
+
+        $this->assertGreaterThanOrEqual(400, $result['status']);
+    }
+
+    // =========================================================================
+    // seedUser: SUCCESS PATH
+    // =========================================================================
+
+    public function testSeedUserCreatesUser(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'email' => 'test@example.com',
+            'password' => 'Test2026!',
+            'name' => 'Test User',
+            'system_role' => 'viewer',
+        ]);
+
+        $mockUser = $this->createMock(UserRepository::class);
+        $mockUser->expects($this->once())->method('createUser');
+
+        $this->injectRepos([UserRepository::class => $mockUser]);
+
+        $result = $this->callController(DevSeedController::class, 'seedUser');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['ok']);
+        $this->assertArrayHasKey('user_id', $result['body']['data']);
+        $this->assertEquals('test@example.com', $result['body']['data']['email']);
+    }
+
+    // =========================================================================
+    // seedUser: WITH MEETING ROLE
+    // =========================================================================
+
+    public function testSeedUserWithMeetingRole(): void
+    {
+        $this->setHttpMethod('POST');
+        $this->setAuth('user-1', 'admin', self::TENANT);
+        $this->injectJsonBody([
+            'email' => 'assessor@example.com',
+            'password' => 'Test2026!',
+            'name' => 'Assessor User',
+            'system_role' => 'viewer',
+            'meeting_id' => self::MEETING,
+            'meeting_role' => 'assessor',
+        ]);
+
+        $mockUser = $this->createMock(UserRepository::class);
+        $mockUser->expects($this->once())->method('createUser');
+        $mockUser->expects($this->once())->method('assignMeetingRole');
+
+        $this->injectRepos([UserRepository::class => $mockUser]);
+
+        $result = $this->callController(DevSeedController::class, 'seedUser');
+
+        $this->assertEquals(200, $result['status']);
+        $this->assertTrue($result['body']['ok']);
+        $this->assertArrayHasKey('user_id', $result['body']['data']);
+    }
+
+    // =========================================================================
+    // seedUser: ROUTE-LEVEL PRODUCTION GATE
+    // =========================================================================
+
+    public function testRouteLevelProductionGateExists(): void
+    {
+        $routeSource = file_get_contents(__DIR__ . '/../../app/routes.php');
+        // The seed-user route must be inside a production env check
+        $this->assertStringContainsString('test/seed-user', $routeSource);
+        // Verify that the production env gate wraps the seed-user route
+        $this->assertMatchesRegularExpression(
+            '/if\s*\(\s*!in_array\s*\(\s*\$appEnv.*?production.*?\{.*?seed-user/s',
+            $routeSource,
+            'seed-user route must be inside production env gate in routes.php',
+        );
     }
 }
