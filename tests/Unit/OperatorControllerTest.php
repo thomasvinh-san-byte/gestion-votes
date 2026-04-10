@@ -15,6 +15,7 @@ use AgVote\Repository\NotificationRepository;
 use AgVote\Repository\PolicyRepository;
 use AgVote\Repository\ProxyRepository;
 use AgVote\Repository\VoteTokenRepository;
+use AgVote\Service\OperatorWorkflowService;
 use ReflectionClass;
 
 /**
@@ -60,6 +61,54 @@ class OperatorControllerTest extends ControllerTestCase
         $this->assertContains('workflowState', $methods);
         $this->assertContains('openVote', $methods);
         $this->assertContains('anomalies', $methods);
+    }
+
+    // =========================================================================
+    // SERVICE STRUCTURE TESTS (pre-split — validates extraction targets)
+    // =========================================================================
+
+    /**
+     * @group pending-service
+     */
+    public function testOperatorWorkflowServiceIsFinal(): void
+    {
+        $ref = new ReflectionClass(OperatorWorkflowService::class);
+        $this->assertTrue($ref->isFinal(), 'OperatorWorkflowService should be final');
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testOperatorWorkflowServiceHasExpectedMethods(): void
+    {
+        $ref = new ReflectionClass(OperatorWorkflowService::class);
+
+        $expectedMethods = ['getWorkflowState', 'openVote', 'getAnomalies'];
+        foreach ($expectedMethods as $method) {
+            $this->assertTrue(
+                $ref->hasMethod($method),
+                "OperatorWorkflowService should have a '{$method}' method",
+            );
+        }
+    }
+
+    /**
+     * @group pending-service
+     */
+    public function testOperatorWorkflowServiceUsesNullableDI(): void
+    {
+        $ref = new ReflectionClass(OperatorWorkflowService::class);
+        $constructor = $ref->getConstructor();
+        $this->assertNotNull($constructor, 'OperatorWorkflowService should have a constructor');
+
+        $params = $constructor->getParameters();
+        $this->assertCount(1, $params, 'Constructor should have exactly 1 parameter');
+        $this->assertTrue($params[0]->allowsNull(), 'Constructor parameter should be nullable');
+        $this->assertSame(
+            'AgVote\\Core\\Providers\\RepositoryFactory',
+            $params[0]->getType()->getName(),
+            'Constructor parameter should be RepositoryFactory',
+        );
     }
 
     // =========================================================================
