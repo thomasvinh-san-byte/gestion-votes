@@ -15,7 +15,7 @@ window.APP_API_KEY = window.APP_API_KEY
   || (function(){ try { return sessionStorage.getItem('api_key'); } catch(e){ return null; } })()
   || '';
 // Persist to sessionStorage (not localStorage) so it survives page reloads but not new sessions
-if (window.APP_API_KEY) { try { sessionStorage.setItem('api_key', window.APP_API_KEY); } catch(e){ console.warn('sessionStorage unavailable:', e.message); } }
+if (window.APP_API_KEY) { try { sessionStorage.setItem('api_key', window.APP_API_KEY); } catch(e){ /* sessionStorage unavailable — silent */ } }
 
 var MEETING_ID = new URLSearchParams(location.search).get('meeting_id') || null;
 var currentMotionId = null;
@@ -230,7 +230,7 @@ async function loadResults(motionId, reveal) {
     }
 
   } catch (e) {
-    console.error('loadResults error:', e);
+    // loadResults failed — silent
   }
 }
 
@@ -447,7 +447,7 @@ async function refresh() {
     if (connLost) connLost.hidden = true;
 
   } catch (e) {
-    console.error('refresh error:', e);
+    // refresh failed
     err.textContent = 'Erreur : ' + e.message;
     err.classList.add('visible');
     _refreshFails++;
@@ -482,7 +482,7 @@ async function heartbeat() {
   } catch(e) {
     _heartbeatFails++;
     if (_heartbeatFails >= 3) {
-      console.warn('[projection] heartbeat: ' + _heartbeatFails + ' échecs consécutifs');
+      // heartbeat: consecutive failures detected
       var err = document.getElementById('error_box');
       if (err) {
         err.textContent = 'Connexion instable — le projecteur peut ne plus être détecté.';

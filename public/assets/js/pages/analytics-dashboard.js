@@ -675,7 +675,7 @@
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       } catch (err) {
-        console.error('CSV export failed:', err);
+        // CSV export failed — UI shows error state
       } finally {
         _btnExportCsv.disabled = false;
       }

@@ -559,7 +559,7 @@
           if (attempt < 2) {
             setTimeout(function() { tryLoad(attempt + 1); }, 2000);
           } else {
-            console.warn('[audit.js] API unavailable:', e.message || e);
+            // API unavailable after retries
             showAuditError();
           }
         });

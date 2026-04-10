@@ -179,7 +179,7 @@ window.OpS = { fn: {} };
       document.removeEventListener('keydown', handleEscape);
       if (document.body.contains(modal)) modal.remove();
       if (isDismiss && onDismiss) {
-        try { onDismiss(); } catch (e) { console.error('onDismiss error:', e); }
+        try { onDismiss(); } catch (e) { /* onDismiss error — silent */ }
       }
     }
     modal._destroy = () => destroyModal(false);
@@ -514,7 +514,7 @@ window.OpS = { fn: {} };
     // Log any failures but continue
     results.forEach((result, idx) => {
       if (result.status === 'rejected') {
-        console.warn(`loadAllData: Task ${idx} failed:`, result.reason);
+        // loadAllData: task failed — continue silently
       }
     });
 
@@ -1408,7 +1408,7 @@ window.OpS = { fn: {} };
 
       card.hidden = false;
     } catch (e) {
-      console.warn('loadQuorumStatus error:', e);
+      // loadQuorumStatus failed — hide card
       card.hidden = true;
     }
   }

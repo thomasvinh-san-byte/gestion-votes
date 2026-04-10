@@ -645,7 +645,7 @@
 
   function init() {
     checkToast();
-    loadData().catch(function(e) { console.warn('Hub loadData error:', e); });
+    loadData().catch(function() { /* silent */ });
   }
 
   if (document.readyState === 'loading') {

@@ -28,7 +28,7 @@ async function loadTemplates() {
     renderTemplates();
     renderVariables();
   } catch (err) {
-    console.error('Load templates error:', err);
+    // Load templates failed — UI shows error state
     window.showToast?.('Erreur chargement templates', 'error');
   }
 }
@@ -256,7 +256,7 @@ async function updatePreview() {
       previewFrame.srcdoc = data.data.preview_html;
     }
   } catch (err) {
-    console.error('Preview error:', err);
+    // Preview failed — silent
   }
 }
 

@@ -348,7 +348,6 @@
       apiGet(`/api/v1/meeting_quorum_settings.php?meeting_id=${encodeURIComponent(meetingId)}`).catch(()=>{ _policyErrors.push('meeting_quorum_settings'); return {}; })
     ]);
     if (_policyErrors.length) {
-      console.warn('[vote] Policy fetch partial failure:', _policyErrors.join(', '));
       notify('error', 'Certaines règles de vote n\u2019ont pas pu être chargées. Les badges de politique peuvent être absents.');
     }
     (vp?.data?.items || vp?.items || []).forEach(p => { _votePoliciesById[p.id] = p; });
@@ -557,7 +556,7 @@
         filled++;
       }
     } catch(e) {
-      console.warn('[vote] Attendance fetch failed, falling back to members list:', e?.message || e);
+      // Attendance fetch failed, falling back to members list
     }
 
     // Fallback: if no attendance recorded, still display all members
@@ -1249,7 +1248,7 @@
       MeetingContext.init();
     }
     if (Utils.bindApiKeyInput) {
-      Utils.bindApiKeyInput('public', $('#publicApiKey'), () => loadMeetings().catch(console.error));
+      Utils.bindApiKeyInput('public', $('#publicApiKey'), () => loadMeetings().catch(() => { /* silent */ }));
     }
     $('#meetingSelect')?.addEventListener('change', async ()=>{
       const newId = ($('#meetingSelect')?.value || '').trim();
@@ -1324,7 +1323,7 @@
           // On any vote/motion event, trigger immediate refresh
           if (type === 'vote.cast' || type === 'vote.updated' ||
               type === 'motion.opened' || type === 'motion.closed' || type === 'motion.updated') {
-            refresh().catch(function(e) { console.error('SSE refresh error:', e); });
+            refresh().catch(function() { /* silent */ });
           }
 
           // Handle document events without full refresh
@@ -1365,7 +1364,7 @@
     window._voteMotionPollTimer = setInterval(()=>{
       if (document.hidden || _refreshInFlight) return;
       _refreshInFlight = true;
-      refresh().catch(e => console.error('vote refresh error:', e)).finally(() => { _refreshInFlight = false; });
+      refresh().catch(() => { /* silent */ }).finally(() => { _refreshInFlight = false; });
     }, _sseActive ? 10000 : 3000);
 
     // Heartbeat every 15s
@@ -1373,7 +1372,7 @@
     window._voteHeartbeatTimer = setInterval(()=>{
       if (document.hidden || _heartbeatInFlight) return;
       _heartbeatInFlight = true;
-      sendHeartbeat().catch(e => console.error('heartbeat error:', e)).finally(() => { _heartbeatInFlight = false; });
+      sendHeartbeat().catch(() => { /* silent */ }).finally(() => { _heartbeatInFlight = false; });
     }, 15000);
 
     // Cleanup on page unload

@@ -908,7 +908,6 @@
     authScript.src = '/assets/js/pages/auth-ui.js';
     document.head.appendChild(authScript);
   } catch (e) {
-    // Log but do not block — auth-ui.js is non-critical for page rendering
-    console.warn('[shell] auth-ui.js injection failed:', e);
+    // auth-ui.js injection failed — non-critical for page rendering
   }
 })();

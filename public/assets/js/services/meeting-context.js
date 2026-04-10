@@ -203,7 +203,7 @@ const MeetingContext = (function() {
       try {
         cb(oldId, newId);
       } catch (e) {
-        console.error('MeetingContext listener error:', e);
+        // MeetingContext listener error — silent
       }
     });
   }

@@ -40,7 +40,7 @@
   function connect(meetingId, opts) {
     if (!meetingId) return { close: noop, isConnected: () => false };
     if (!window.EventSource) {
-      console.warn('[EventStream] EventSource not supported, using polling fallback');
+      // EventSource not supported, using polling fallback
       return { close: noop, isConnected: () => false };
     }
 
@@ -141,7 +141,7 @@
       if (handlers.onDisconnect) handlers.onDisconnect();
 
       if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        console.warn('[EventStream] Max reconnect attempts reached, closing.');
+        // Max reconnect attempts reached, closing
         close();
         if (handlers.onFallback) handlers.onFallback();
       }

@@ -555,7 +555,7 @@
       if (window.AgToast && typeof AgToast.show === 'function') {
         AgToast.show(type || 'info', message);
       } else {
-        console.warn('ag-toast not loaded, toast skipped:', type, message);
+        // ag-toast not loaded, toast skipped
       }
     }
   };

@@ -226,7 +226,7 @@
         }
       })
       .catch(function(e) {
-        console.warn('Settings load failed (graceful degradation):', e);
+        // Settings load failed — graceful degradation
       });
   }
 
@@ -468,7 +468,7 @@
           _currentTemplateId = tpl.id || null;
         }
       })
-      .catch(function() { console.warn('Template load failed'); });
+      .catch(function() { /* template load failed — silent */ });
   }
 
   function initEmailTemplates() {

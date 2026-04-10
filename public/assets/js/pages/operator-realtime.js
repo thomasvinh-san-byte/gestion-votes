@@ -285,7 +285,7 @@
       var interval = sseConnected ? baseInterval * 3 : baseInterval;
       schedulePoll(interval);
     } catch (err) {
-      console.warn('autoPoll error:', err);
+      // autoPoll error — falling back to slow poll
       schedulePoll(POLL_SLOW);
     } finally {
       pollRunning = false;
