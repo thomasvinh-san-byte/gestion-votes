@@ -45,10 +45,13 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Tests d'interaction par page (page-interactions.spec.js) — v1.1 Phase 7
 - ✓ Playwright 1.59.1 + @axe-core/playwright — v1.1 Phase 7
 - ✓ Workflow operateur E2E (operator-e2e.spec.js) — v1.1 Phase 7
+- ✓ Contrast WCAG 2.1 AA 4.5:1 sur toutes les paires fg/bg — v1.4 Phase 1
+- ✓ Shadow DOM hex fallback strip (0 var(--color-*, #hex)) — v1.4 Phase 1
+- ✓ v1.3-A11Y-REPORT.md declare CONFORME (plus partial) — v1.4 Phase 1
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.2)
+(Defined in REQUIREMENTS.md for v1.4)
 
 ### Out of Scope
 
@@ -61,9 +64,9 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-Shipped v1.3 — Polish Post-MVP milestone complete (2026-04-09).
+v1.4 Phase 1 complete (2026-04-10) — WCAG 2.1 AA contrast conformance achieved.
 
-**The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance.
+**The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance. Contrast remediation now complete: 316 violations → 0, CONFORME declared.
 
 - **Visual polish shipped:** toast notification system unifié, dark mode parity audit (21 pages), role-specific sidebar nav filter, micro-interactions (focus rings, hover states, loading transitions)
 - **Multi-browser matrix:** chromium 25/25, firefox 25/25, webkit 23/25, mobile-chrome 21/25 (deferred webkit/mobile critical-path gaps documented in 15-CROSS-BROWSER-REPORT.md)
@@ -79,7 +82,7 @@ Shipped v1.3 — Polish Post-MVP milestone complete (2026-04-09).
 
 ## Tech Debt Carried to v1.4
 
-- **Contrast remediation** — 316 nodes across 22 pages, 42 unique (fg, bg) pairs, dominant `#988d7a` muted-foreground. Worst ratio 1.83 on wizard. User accepted Option A (ship with partial AA, schedule token remediation phase). Design-system-level work.
+- ~~**Contrast remediation**~~ — ✓ Resolved in v1.4 Phase 1 (316 → 0 violations, CONFORME declared)
 - **V2-OVERLAY-HITTEST** — systematic sweep of `[hidden]` + `display:flex` overlay pattern (16-02 fixed 2 reactively; codebase-wide audit pending)
 - **V2-TRUST-DEPLOY** — trust.htmx.html auditor/assessor role fixtures missing (loginAsAdmin fallback in place)
 - **V2-CSP-INLINE-THEME** — inline theme init scripts conflict with strict CSP; needs nonce or externalization
@@ -149,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 — v1.4 milestone started*
+*Last updated: 2026-04-10 — v1.4 Phase 1 complete (Contrast AA Remediation)*
