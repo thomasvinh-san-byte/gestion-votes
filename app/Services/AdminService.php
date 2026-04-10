@@ -144,12 +144,12 @@ final class AdminService {
     // =========================================================================
 
     private const ACTION_LABELS = [
-        'admin.user.created' => 'Utilisateur cree', 'admin.user.updated' => 'Utilisateur modifie', 'admin.user.deleted' => 'Utilisateur supprime',
-        'admin.user.toggled' => 'Utilisateur active/desactive', 'admin.user.password_set' => 'Mot de passe defini',
-        'admin.user.key_rotated' => 'Cle API regeneree', 'admin.user.key_revoked' => 'Cle API revoquee',
-        'admin.meeting_role.assigned' => 'Role de seance assigne', 'admin.meeting_role.revoked' => 'Role de seance revoque',
-        'admin_quorum_policy_saved' => 'Politique quorum enregistree', 'admin_quorum_policy_deleted' => 'Politique quorum supprimee',
-        'admin_vote_policy_saved' => 'Politique de vote enregistree', 'admin_vote_policy_deleted' => 'Politique de vote supprimee',
+        'admin.user.created' => 'Utilisateur créé', 'admin.user.updated' => 'Utilisateur modifié', 'admin.user.deleted' => 'Utilisateur supprimé',
+        'admin.user.toggled' => 'Utilisateur activé/désactivé', 'admin.user.password_set' => 'Mot de passe défini',
+        'admin.user.key_rotated' => 'Clé API régénérée', 'admin.user.key_revoked' => 'Clé API révoquée',
+        'admin.meeting_role.assigned' => 'Rôle de séance assigné', 'admin.meeting_role.revoked' => 'Rôle de séance révoqué',
+        'admin_quorum_policy_saved' => 'Politique quorum enregistrée', 'admin_quorum_policy_deleted' => 'Politique quorum supprimée',
+        'admin_vote_policy_saved' => 'Politique de vote enregistrée', 'admin_vote_policy_deleted' => 'Politique de vote supprimée',
     ];
 
     private function formatAuditEvent(array $e): array {
@@ -157,7 +157,7 @@ final class AdminService {
         $label = self::ACTION_LABELS[$e['action']] ?? ucfirst(str_replace(['admin.', '_'], ['', ' '], $e['action']));
         $detail = '';
         foreach (['email', 'role', 'user_name'] as $k) { if (isset($payload[$k])) { $detail .= ($detail ? ' — ' : '') . $payload[$k]; } }
-        if (isset($payload['is_active'])) { $detail .= ($detail ? ' — ' : '') . ($payload['is_active'] ? 'active' : 'desactive'); }
+        if (isset($payload['is_active'])) { $detail .= ($detail ? ' — ' : '') . ($payload['is_active'] ? 'activé' : 'désactivé'); }
         if (isset($payload['name'])) { $detail .= ($detail ? ' — ' : '') . $payload['name']; }
         return ['id' => $e['id'], 'timestamp' => $e['created_at'], 'action' => $e['action'], 'action_label' => $label, 'resource_type' => $e['resource_type'], 'resource_id' => $e['resource_id'], 'actor_role' => $e['actor_role'], 'actor_user_id' => $e['actor_user_id'], 'ip_address' => $e['ip_address'], 'detail' => $detail, 'payload' => $payload];
     }

@@ -67,18 +67,12 @@ class OperatorControllerTest extends ControllerTestCase
     // SERVICE STRUCTURE TESTS (pre-split — validates extraction targets)
     // =========================================================================
 
-    /**
-     * @group pending-service
-     */
     public function testOperatorWorkflowServiceIsFinal(): void
     {
         $ref = new ReflectionClass(OperatorWorkflowService::class);
         $this->assertTrue($ref->isFinal(), 'OperatorWorkflowService should be final');
     }
 
-    /**
-     * @group pending-service
-     */
     public function testOperatorWorkflowServiceHasExpectedMethods(): void
     {
         $ref = new ReflectionClass(OperatorWorkflowService::class);
@@ -92,9 +86,6 @@ class OperatorControllerTest extends ControllerTestCase
         }
     }
 
-    /**
-     * @group pending-service
-     */
     public function testOperatorWorkflowServiceUsesNullableDI(): void
     {
         $ref = new ReflectionClass(OperatorWorkflowService::class);

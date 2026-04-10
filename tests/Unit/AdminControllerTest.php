@@ -68,18 +68,12 @@ class AdminControllerTest extends ControllerTestCase
     // SERVICE STRUCTURE TESTS (pre-split — validates extraction targets)
     // =========================================================================
 
-    /**
-     * @group pending-service
-     */
     public function testAdminServiceIsFinal(): void
     {
         $ref = new ReflectionClass(AdminService::class);
         $this->assertTrue($ref->isFinal(), 'AdminService should be final');
     }
 
-    /**
-     * @group pending-service
-     */
     public function testAdminServiceHasExpectedMethods(): void
     {
         $ref = new ReflectionClass(AdminService::class);
@@ -93,9 +87,6 @@ class AdminControllerTest extends ControllerTestCase
         }
     }
 
-    /**
-     * @group pending-service
-     */
     public function testAdminServiceUsesNullableDI(): void
     {
         $ref = new ReflectionClass(AdminService::class);
