@@ -128,10 +128,10 @@ Plans:
   3. Tous les handlers DELETE lisent leurs paramètres depuis query string : audit documenté sur l'ensemble des endpoints `hx-delete`, aucun n'utilise `$_POST` / `php://input`
   4. Les extensions HTMX (SSE, preload) sont chargées comme scripts individuels dans le shell HTML — plus de bundle monolithique
   5. Playwright full suite passe chromium + firefox + webkit + mobile-chrome contre baseline v1.3 (ou explicit rationale documenté pour toute régression pré-existante)
-**Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
-- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
+- [ ] 04-01-PLAN.md — htmx 2.0.6 vendor swap + compat safety net + DELETE param migration (JS+PHP)
+- [ ] 04-02-PLAN.md — Cross-browser Playwright regression validation (chromium+firefox+webkit+mobile-chrome)
+
 
 ### Phase 5: CSP Nonce Enforcement
 **Goal**: Les scripts inline theme init portent des nonces CSP ; `'unsafe-inline'` est retiré de `script-src` après une période report-only
@@ -224,6 +224,6 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | 1. Contrast AA Remediation | v1.4 | 0/3 | Planned | - |
 | 2. Overlay Hittest Sweep | v1.4 | 0/0 | Not started | - |
 | 3. Trust Fixtures Deploy | v1.4 | 0/2 | Planned | - |
-| 4. HTMX 2.0 Upgrade | v1.4 | 0/0 | Not started | - |
+| 4. HTMX 2.0 Upgrade | v1.4 | 0/2 | Planned | - |
 | 5. CSP Nonce Enforcement | v1.4 | 0/0 | Not started | - |
 | 6. Controller Refactoring | v1.4 | 0/0 | Not started | - |
