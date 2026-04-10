@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: roadmap_created
-stopped_at: Roadmap created — awaiting /gsd:plan-phase 1
-last_updated: "2026-04-09T12:00:00.000Z"
-last_activity: 2026-04-09
+status: executing
+stopped_at: "v1.4 roadmap created — 6 phases, 24/24 requirements mapped, ready for `/gsd:plan-phase 1`"
+last_updated: "2026-04-10T04:58:22.321Z"
+last_activity: 2026-04-10 -- Plan 01-01 complete (commit de5f1ecd)
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Milestone v1.4 — 6 phases derived from 24 requirements, ready for Phase 1 planning
+**Current focus:** Phase 01 — contrast-aa-remediation
 
 ## Current Position
 
-Phase: 1 — Contrast AA Remediation (not started)
-Plan: —
-Status: Roadmap created, awaiting `/gsd:plan-phase 1`
-Last activity: 2026-04-09 — v1.4 roadmap written, 24/24 requirements mapped
+Phase: 01 (contrast-aa-remediation) — EXECUTING
+Plan: 2 of 3 (01-01 complete)
+Status: Executing Phase 01
+Last activity: 2026-04-10 -- Plan 01-01 complete (commit de5f1ecd)
 
-**Progress:** `[------]` 0/6 phases complete (v1.4)
+**Progress:** [███░░░░░░░] 33%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,11 @@ Last activity: 2026-04-09 — v1.4 roadmap written, 24/24 requirements mapped
 
 ### v1.4 Decisions
 
+- [01-01]: Audit hex values (#988d7a, #bdb7a9, #9d9381, #4d72d8) are COMPUTED RGB, not source literals — zero grep matches across public/. Source tokens identified via CSS cascade analysis.
+- [01-01]: One --color-text-muted shift (L* 0.648 → 0.47 light, cool 0.45 → warm 0.78 dark) covers 3 of 4 audit families (muted text + wizard step opacity blend + kpi tooltip variant)
+- [01-01]: --color-primary left untouched (brand identity); new --color-primary-on-subtle companion token added for chip-on-primary-subtle. Wiring deferred to plan 01-02.
+- [01-01]: Plan 01-01 same-commit propagation to 21 critical-tokens inline blocks is a structural no-op — those blocks only declare --color-bg/surface/text. Pitfall #2 trivially neutralised.
+- [01-01]: Dark-mode --color-text-muted was itself broken (oklch 0.450 cool too dark on dark bg) — fixed to 0.780 warm hue 82 aligning Phase 82-01 convention.
 - [v1.4 roadmap]: 6 phases derived from 24 requirements, 1 phase per category — clean boundaries, minimal cross-phase coupling
 - [v1.4 roadmap]: Phase numbering reset to 1 (v1.3 phases archived to `.planning/milestones/v1.3-phases/`); `--reset-phase-numbers` mode active
 - [v1.4 roadmap]: Build order Contrast → Overlay → Trust → HTMX → CSP → Controllers reconciles STACK/PITFALLS/ARCHITECTURE conflicts. Disjoint file regions minimize merge conflicts.
@@ -134,6 +139,7 @@ Resume file: None
 **Next action:** `/gsd:plan-phase 1` — plan Phase 1 (Contrast AA Remediation)
 
 **Files written this session:**
+
 - `.planning/ROADMAP.md` (v1.4 section appended)
 - `.planning/STATE.md` (updated with v1.4 context)
 - `.planning/REQUIREMENTS.md` (traceability section populated)

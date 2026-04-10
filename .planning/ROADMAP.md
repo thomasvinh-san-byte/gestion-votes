@@ -85,7 +85,10 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   2. Grep `grep -rE 'var\(--color-[^,)]*,\s*#' public/assets/js/components/` retourne 0 occurrences (fallbacks hex Shadow DOM retirés pour les 23 Web Components)
   3. Un même commit contient la modification de `:root` / `[data-theme="dark"]` dans `design-system.css` ET les 22 blocs `<style id="critical-tokens">` dans `public/*.htmx.html` (enforcement par pre-commit verification)
   4. `v1.3-A11Y-REPORT.md` déclare "WCAG 2.1 AA CONFORME" (plus "partial"), timestamp mis à jour
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 01-01-PLAN.md — Baseline audit + 4 token oklch shift (design-system.css + 22 critical-tokens inline blocks, single atomic commit)
+  - [ ] 01-02-PLAN.md — Strip hex fallbacks from 23 Web Components Shadow DOM (var(--color-*, #hex) → var(--color-*))
+  - [ ] 01-03-PLAN.md — Contrast audit re-run, residual cleanup, A11Y-REPORT → CONFORME
 
 ### Phase 2: Overlay Hittest Sweep
 **Goal**: Le pattern `[hidden]` + `display:flex` est neutralisé globalement et audité à l'échelle du codebase
@@ -205,7 +208,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | 15. Multi-Browser Tests | v1.3 | — | Complete | 2026-04-09 |
 | 16. Accessibility Deep Audit | v1.3 | 5/5 | Complete | 2026-04-09 |
 | 17. Loose Ends Phase 12 | v1.3 | 3/3 | Complete | 2026-04-09 |
-| 1. Contrast AA Remediation | v1.4 | 0/0 | Not started | - |
+| 1. Contrast AA Remediation | v1.4 | 0/3 | Planned | - |
 | 2. Overlay Hittest Sweep | v1.4 | 0/0 | Not started | - |
 | 3. Trust Fixtures Deploy | v1.4 | 0/0 | Not started | - |
 | 4. HTMX 2.0 Upgrade | v1.4 | 0/0 | Not started | - |
