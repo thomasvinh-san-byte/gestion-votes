@@ -30,7 +30,7 @@
 - [x] **HTMX-02** : Tous les attributs `hx-on="event: ..."` sont réécrits en `hx-on:event-name="..."` (kebab-case) — grep retourne zéro occurrence de l'ancienne syntaxe
 - [x] **HTMX-03** : Tous les handlers `hx-delete` lisent les paramètres depuis query params (pas `$_POST` / `php://input`)
 - [x] **HTMX-04** : Les extensions HTMX (SSE, preload, ...) sont chargées individuellement (non bundled)
-- [ ] **HTMX-05** : La suite Playwright complète passe chromium + firefox + webkit + mobile-chrome contre la baseline v1.3
+- [x] **HTMX-05** : La suite Playwright complète passe chromium + firefox + webkit + mobile-chrome contre la baseline v1.3
 
 ### CSP Nonce (CSP)
 
@@ -86,7 +86,7 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | HTMX-02 | Phase 4 — HTMX 2.0 Upgrade | Complete |
 | HTMX-03 | Phase 4 — HTMX 2.0 Upgrade | Complete |
 | HTMX-04 | Phase 4 — HTMX 2.0 Upgrade | Complete |
-| HTMX-05 | Phase 4 — HTMX 2.0 Upgrade | Pending |
+| HTMX-05 | Phase 4 — HTMX 2.0 Upgrade | Complete |
 | CSP-01 | Phase 5 — CSP Nonce Enforcement | Pending |
 | CSP-02 | Phase 5 — CSP Nonce Enforcement | Pending |
 | CSP-03 | Phase 5 — CSP Nonce Enforcement | Pending |

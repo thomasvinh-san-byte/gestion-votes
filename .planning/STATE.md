@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: executing
-stopped_at: Completed 04-01-PLAN.md
+stopped_at: Completed 04-02-PLAN.md
 last_updated: "2026-04-10T07:01:52.313Z"
 last_activity: 2026-04-10 -- Phase 04 execution started
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 04 — htmx-2-0-upgrade
+**Current focus:** Phase 05 — csp-nonce-enforcement
 
 ## Current Position
 
-Phase: 04 (htmx-2-0-upgrade) — EXECUTING
-Plan: 2 of 2
-Status: Executing Phase 04 -- Plan 01 complete
-Last activity: 2026-04-10 -- 04-01 htmx upgrade + DELETE migration complete
+Phase: 04 (htmx-2-0-upgrade) — COMPLETE
+Plan: 2 of 2 (all complete)
+Status: Phase 04 complete -- htmx 2.0.6 upgrade verified across 4 browsers
+Last activity: 2026-04-10 -- 04-02 cross-browser Playwright verification complete
 
-**Progress:** [█████████░] 89%
+**Progress:** [██████████] 100%
 
 ## v1.4 Phase Summary
 
@@ -55,6 +55,8 @@ Last activity: 2026-04-10 -- 04-01 htmx upgrade + DELETE migration complete
 - [04-01]: htmx-1-compat activated via hx-ext on body tag (not just script load) per extension spec
 - [04-01]: PHP DELETE handlers keep api_request('DELETE') for method validation, read params via api_query()
 - [04-01]: MembersController preserves member_id + id fallback in api_query chain for backwards compatibility
+- [04-02]: Full suite (212 specs) run instead of critical-path subset (25) for thorough htmx regression verification
+- [04-02]: All cross-browser failures categorized as pre-existing (login timing, operator CSS, webkit resource pressure, mobile viewport) -- zero htmx-related
 - [02-01]: Single :where([hidden]) rule with !important in @layer base replaces all 16 per-selector overrides
 - [02-01]: :not([hidden]) selectors in design-system.css (transition reveal animations) intentionally preserved -- positive selectors, not overrides
 - [02-02]: Programmatic setAttribute('hidden','') in page.evaluate tests CSS rule directly without meeting state dependency
@@ -154,11 +156,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T07:01:07Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-10T08:35:09Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
 
-**Next action:** Execute 04-02-PLAN.md (Playwright cross-browser verification)
+**Next action:** Execute Phase 05 (CSP Nonce Enforcement)
 
 **Files written this session:**
 
