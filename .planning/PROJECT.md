@@ -64,7 +64,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-v1.4 Phase 2 complete (2026-04-10) — Overlay hittest sweep done.
+v1.4 Phase 3 complete (2026-04-10) — Trust fixtures deployed.
 
 **The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance. Contrast remediation now complete: 316 violations → 0, CONFORME declared.
 
@@ -84,6 +84,7 @@ v1.4 Phase 2 complete (2026-04-10) — Overlay hittest sweep done.
 
 - ~~**Contrast remediation**~~ — ✓ Resolved in v1.4 Phase 1 (316 → 0 violations, CONFORME declared)
 - ~~**V2-OVERLAY-HITTEST**~~ — ✓ Resolved in v1.4 Phase 2 (global `:where([hidden])` rule, 16 overrides removed, audit doc produced)
+- ~~**V2-TRUST-DEPLOY**~~ — ✓ Resolved in v1.4 Phase 3 (loginAsAuditor/loginAsAssessor fixtures, seedUser endpoint, zero loginAsAdmin in trust specs)
 - **V2-OVERLAY-HITTEST** — systematic sweep of `[hidden]` + `display:flex` overlay pattern (16-02 fixed 2 reactively; codebase-wide audit pending)
 - **V2-TRUST-DEPLOY** — trust.htmx.html auditor/assessor role fixtures missing (loginAsAdmin fallback in place)
 - **V2-CSP-INLINE-THEME** — inline theme init scripts conflict with strict CSP; needs nonce or externalization
@@ -153,4 +154,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — v1.4 Phase 2 complete (Overlay Hittest Sweep)*
+*Last updated: 2026-04-10 — v1.4 Phase 3 complete (Trust Fixtures Deploy)*
