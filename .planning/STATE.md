@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-04-10T09:59:22.462Z"
-last_activity: 2026-04-10 -- Completed 06-02-PLAN.md (MeetingsController + MeetingWorkflowController extraction)
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-04-10T10:10:17.000Z"
+last_activity: 2026-04-10 -- Completed 06-03-PLAN.md (OperatorController + AdminController extraction)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 14
-  completed_plans: 13
-  percent: 93
+  completed_plans: 14
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 06 (controller-refactoring) — EXECUTING
-Plan: 3 of 3
-Status: Executing Phase 06
-Last activity: 2026-04-10 -- Completed 06-02-PLAN.md (MeetingsController + MeetingWorkflowController extraction)
+Phase: 06 (controller-refactoring) — COMPLETE
+Plan: 3 of 3 (all complete)
+Status: Phase 06 complete — all 4 controllers under 300 LOC
+Last activity: 2026-04-10 -- Completed 06-03-PLAN.md (OperatorController + AdminController extraction)
 
-**Progress:** [█████████░] 93%
+**Progress:** [██████████] 100%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,10 @@ Last activity: 2026-04-10 -- Completed 06-02-PLAN.md (MeetingsController + Meeti
 
 ### v1.4 Decisions
 
+- [06-03]: openVote extracted into OperatorWorkflowService with api_transaction wrapper remaining in controller
+- [06-03]: AdminService uses match expression for 8-branch user action dispatch
+- [06-03]: RepositoryFactory singleton set in test setUp for MeetingValidator/NotificationsService compatibility
+- [06-03]: Audit log labels preserved with accented French matching original controller output
 - [06-02]: Created MeetingTransitionService as NEW service instead of expanding MeetingWorkflowService (would exceed 300 LOC)
 - [06-02]: Service exceptions mapped to original controller error codes for API backward compatibility
 - [06-02]: Source-reading tests concatenate controller+service source for combined string pattern coverage
@@ -170,11 +174,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T09:59:22.459Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-04-10T10:10:17.000Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
 
-**Next action:** Execute Phase 05 (CSP Nonce Enforcement)
+**Next action:** v1.4 milestone complete — all 6 phases done
 
 **Files written this session:**
 
