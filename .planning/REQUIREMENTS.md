@@ -20,8 +20,8 @@
 
 ### Trust Fixtures (TRUST)
 
-- [ ] **TRUST-01** : Les helpers Playwright `loginAsAuditor` et `loginAsAssessor` existent et sont fonctionnels dans `tests/e2e/helpers/`
-- [ ] **TRUST-02** : Un endpoint de seed test-gated `POST /api/v1/test/seed-user` existe, retourne 404 en production (gate appliqué à route-registration)
+- [x] **TRUST-01** : Les helpers Playwright `loginAsAuditor` et `loginAsAssessor` existent et sont fonctionnels dans `tests/e2e/helpers/`
+- [x] **TRUST-02** : Un endpoint de seed test-gated `POST /api/v1/test/seed-user` existe, retourne 404 en production (gate appliqué à route-registration)
 - [ ] **TRUST-03** : trust.htmx.html est testé avec fixtures auditor + assessor (plus de fallback `loginAsAdmin`)
 
 ### HTMX 2.0 Upgrade (HTMX)
@@ -79,8 +79,8 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 | OVERLAY-01 | Phase 2 — Overlay Hittest Sweep | Complete |
 | OVERLAY-02 | Phase 2 — Overlay Hittest Sweep | Complete |
 | OVERLAY-03 | Phase 2 — Overlay Hittest Sweep | Complete |
-| TRUST-01 | Phase 3 — Trust Fixtures Deploy | Pending |
-| TRUST-02 | Phase 3 — Trust Fixtures Deploy | Pending |
+| TRUST-01 | Phase 3 — Trust Fixtures Deploy | Complete |
+| TRUST-02 | Phase 3 — Trust Fixtures Deploy | Complete |
 | TRUST-03 | Phase 3 — Trust Fixtures Deploy | Pending |
 | HTMX-01 | Phase 4 — HTMX 2.0 Upgrade | Pending |
 | HTMX-02 | Phase 4 — HTMX 2.0 Upgrade | Pending |

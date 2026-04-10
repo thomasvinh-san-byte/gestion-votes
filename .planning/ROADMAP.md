@@ -181,8 +181,7 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | CONTRAST-04 | 1 | Contrast |
 | OVERLAY-01 | 2 | 2/2 | Complete   | 2026-04-10 | 2 | Overlay |
 | OVERLAY-03 | 2 | Overlay |
-| TRUST-01 | 3 | Trust |
-| TRUST-02 | 3 | Trust |
+| TRUST-01 | 3 | 1/2 | In Progress|  | 3 | Trust |
 | TRUST-03 | 3 | Trust |
 | HTMX-01 | 4 | HTMX |
 | HTMX-02 | 4 | HTMX |

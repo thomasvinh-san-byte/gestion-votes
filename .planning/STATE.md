@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
-status: completed
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-04-10T06:16:22.418Z"
-last_activity: 2026-04-10
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-04-10T06:36:18.910Z"
+last_activity: 2026-04-10 -- Completed 03-01-PLAN.md
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 90
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 02 — overlay-hittest-sweep
+**Current focus:** Phase 03 — trust-fixtures-deploy
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Phase 02 complete — all plans executed
-Last activity: 2026-04-10
+Phase: 03 (trust-fixtures-deploy) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 03
+Last activity: 2026-04-10 -- Completed 03-01-PLAN.md
 
-**Progress:** [█████████░] 90%
+**Progress:** [█████████░] 86%
 
 ## v1.4 Phase Summary
 
@@ -47,6 +47,10 @@ Last activity: 2026-04-10
 
 ### v1.4 Decisions
 
+- [03-01]: Route-level env gate wraps all dev seed routes for defense-in-depth (not just seed-user)
+- [03-01]: seedUser endpoint uses no auth middleware; route-level env gate is the security boundary for bootstrapping
+- [03-01]: Assessor user added to SQL seed (04_e2e.sql) for database-level reliability rather than API-only creation
+- [03-01]: findByEmail uses tenantId parameter (not findByEmailGlobal) since seed endpoint runs with auth context
 - [02-01]: Single :where([hidden]) rule with !important in @layer base replaces all 16 per-selector overrides
 - [02-01]: :not([hidden]) selectors in design-system.css (transition reveal animations) intentionally preserved -- positive selectors, not overrides
 - [02-02]: Programmatic setAttribute('hidden','') in page.evaluate tests CSS rule directly without meeting state dependency
@@ -146,8 +150,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T06:08:40.290Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-04-10T06:36:18.908Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
 **Next action:** Approve visual checkpoint (Task 4 of 01-03) then `/gsd:transition` to Phase 2
