@@ -104,11 +104,11 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
   3. `grep -rn 'TODO\|FIXME' public/assets/js/ public/assets/css/` retourne zero resultats
   4. `grep -rn '\$_GET\|\$_POST\|\$_REQUEST' app/` retourne zero resultats (hors bootstrap/index.php)
   5. PHPUnit PageControllerTest passe au vert couvrant nonce injection et 404
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — JS/CSS cleanup (console.log, TODO) + dead code removal (PermissionChecker, deprecated methods)
+- [ ] 01-02-PLAN.md — Superglobal migration (6 controllers) + PageController unit test
 
 ### Phase 2: Refactoring AuthMiddleware
 **Goal**: AuthMiddleware est un orchestrateur leger (<300 LOC) qui delegue la gestion de session a SessionManager et l'evaluation RBAC a RbacEngine
@@ -119,7 +119,7 @@ Plans:
   2. `wc -l app/Services/SessionManager.php` et `wc -l app/Services/RbacEngine.php` affichent chacun <300 lignes
   3. SessionManager et RbacEngine sont des `final class` avec constructeur DI nullable (grep confirme)
   4. Les tests AuthMiddleware existants passent au vert sans modification
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 02-01: TBD
@@ -134,7 +134,7 @@ Plans:
   2. `wc -l app/Services/CsvImporter.php` et `wc -l app/Services/XlsxImporter.php` affichent chacun <300 lignes
   3. CsvImporter et XlsxImporter sont des `final class` avec constructeur DI nullable (grep confirme)
   4. Les 49+ tests ImportServiceTest existants passent au vert sans modification
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 03-01: TBD
@@ -148,7 +148,7 @@ Plans:
   1. `wc -l app/Services/ExportService.php` affiche <300 lignes
   2. `wc -l app/Services/ValueTranslator.php` affiche <300 lignes
   3. ValueTranslator est une `final class` avec <300 LOC (grep confirme)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 04-01: TBD
@@ -161,7 +161,7 @@ Plans:
   1. `wc -l app/Services/MeetingReportsService.php` affiche <300 lignes
   2. `wc -l app/Services/ReportGenerator.php` affiche <300 lignes
   3. ReportGenerator est une `final class` avec constructeur DI nullable (grep confirme)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 05-01: TBD
@@ -174,7 +174,7 @@ Plans:
   1. `wc -l app/Services/EmailQueueService.php` affiche <300 lignes
   2. `wc -l app/Services/RetryPolicy.php` affiche <300 lignes
   3. RetryPolicy est une `final class` avec <300 LOC (grep confirme)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 06-01: TBD
@@ -187,7 +187,7 @@ Plans:
   1. `diff` de routes.php entre HEAD et le commit pre-v1.5 montre zero changement (aucune URL publique modifiee)
   2. `php vendor/bin/phpunit --no-coverage` passe au vert (zero failures, zero errors)
   3. `npx playwright test --project=chromium` passe au vert (zero regression)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 07-01: TBD
