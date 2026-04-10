@@ -64,7 +64,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-v1.4 Phase 3 complete (2026-04-10) — Trust fixtures deployed.
+v1.4 Phase 4 complete (2026-04-10) — HTMX 2.0.6 upgraded.
 
 **The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance. Contrast remediation now complete: 316 violations → 0, CONFORME declared.
 
@@ -85,11 +85,9 @@ v1.4 Phase 3 complete (2026-04-10) — Trust fixtures deployed.
 - ~~**Contrast remediation**~~ — ✓ Resolved in v1.4 Phase 1 (316 → 0 violations, CONFORME declared)
 - ~~**V2-OVERLAY-HITTEST**~~ — ✓ Resolved in v1.4 Phase 2 (global `:where([hidden])` rule, 16 overrides removed, audit doc produced)
 - ~~**V2-TRUST-DEPLOY**~~ — ✓ Resolved in v1.4 Phase 3 (loginAsAuditor/loginAsAssessor fixtures, seedUser endpoint, zero loginAsAdmin in trust specs)
-- **V2-OVERLAY-HITTEST** — systematic sweep of `[hidden]` + `display:flex` overlay pattern (16-02 fixed 2 reactively; codebase-wide audit pending)
-- **V2-TRUST-DEPLOY** — trust.htmx.html auditor/assessor role fixtures missing (loginAsAdmin fallback in place)
+- ~~**HTMX 2.0 upgrade**~~ — ✓ Resolved in v1.4 Phase 4 (2.0.6 + compat, DELETE param migration, zero regressions)
 - **V2-CSP-INLINE-THEME** — inline theme init scripts conflict with strict CSP; needs nonce or externalization
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
-- **HTMX 2.0 upgrade** — breaking changes (hx-on case sensitivity), separate milestone
 - **Visual regression testing** — snapshot comparison, separate milestone
 
 ## Current Milestone: v1.4 Régler Deferred et Dette Technique
@@ -154,4 +152,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — v1.4 Phase 3 complete (Trust Fixtures Deploy)*
+*Last updated: 2026-04-10 — v1.4 Phase 4 complete (HTMX 2.0 Upgrade)*
