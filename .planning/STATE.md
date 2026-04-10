@@ -4,7 +4,7 @@ milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: completed
 stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-04-10T10:14:09.639Z"
+last_updated: "2026-04-10T10:20:23.825Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 6

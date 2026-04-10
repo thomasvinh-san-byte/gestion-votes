@@ -48,10 +48,15 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Contrast WCAG 2.1 AA 4.5:1 sur toutes les paires fg/bg — v1.4 Phase 1
 - ✓ Shadow DOM hex fallback strip (0 var(--color-*, #hex)) — v1.4 Phase 1
 - ✓ v1.3-A11Y-REPORT.md declare CONFORME (plus partial) — v1.4 Phase 1
+- ✓ Global :where([hidden]) rule neutralise pattern [hidden]+display:flex — v1.4 Phase 2
+- ✓ Fixtures Playwright auditor/assessor avec seed endpoint — v1.4 Phase 3
+- ✓ htmx 2.0.6 upgrade + DELETE param migration + cross-browser validation — v1.4 Phase 4
+- ✓ CSP nonce enforcement report-only + PageController routing — v1.4 Phase 5
+- ✓ 4 controllers >500 LOC reduits a <300 LOC via extraction services — v1.4 Phase 6
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.4)
+(No active requirements — milestone v1.4 complete. Run `/gsd:new-milestone` to define next.)
 
 ### Out of Scope
 
@@ -64,9 +69,9 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-v1.4 Phase 6 complete (2026-04-10) — All 6 phases done. Milestone complete.
+Shipped v1.4 (2026-04-10) — Tech debt milestone complete. All deferred items from v1.0-v1.3 resolved.
 
-**The project is shippable AND polished.** Every page passes 3 gates from v1.2 plus 2 new ones: visual polish coherence, and axe-core structural a11y conformance. Contrast remediation now complete: 316 violations → 0, CONFORME declared.
+**The project is production-hardened.** WCAG AA contrast fully conformant, CSP nonces in report-only mode, htmx 2.0.6 with zero regressions, controller architecture cleaned up (<300 LOC each), all test fixtures real (no admin fallbacks).
 
 - **Visual polish shipped:** toast notification system unifié, dark mode parity audit (21 pages), role-specific sidebar nav filter, micro-interactions (focus rings, hover states, loading transitions)
 - **Multi-browser matrix:** chromium 25/25, firefox 25/25, webkit 23/25, mobile-chrome 21/25 (deferred webkit/mobile critical-path gaps documented in 15-CROSS-BROWSER-REPORT.md)
@@ -90,17 +95,11 @@ v1.4 Phase 6 complete (2026-04-10) — All 6 phases done. Milestone complete.
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
 
-## Current Milestone: v1.4 Régler Deferred et Dette Technique
+## Completed Milestone: v1.4 Régler Deferred et Dette Technique
 
-**Goal:** Éliminer la dette technique reportée de v1.0-v1.3 : design-system contrast, patterns CSS fragiles, debt test/CSP, upgrade HTMX 2.0, et refactoring des controllers volumineux restants.
+**Shipped:** 2026-04-10 — 6 phases, 14 plans, 24 requirements, all satisfied.
 
-**Target features:**
-- Contrast remediation au niveau des design tokens (316 nœuds, 42 paires, WCAG AA 4.5:1)
-- V2-OVERLAY-HITTEST — audit codebase-wide du pattern `[hidden]` + `display:flex`
-- V2-TRUST-DEPLOY — fixtures auditor/assessor pour trust.htmx.html
-- V2-CSP-INLINE-THEME — externaliser ou nonce-ifier les scripts inline theme init
-- HTMX 2.0 upgrade — migration breaking changes (hx-on case sensitivity)
-- Refactoring des controllers >500 lignes (Meetings 687, MeetingWorkflow 559, Operator 516, Admin 510)
+See `.planning/milestones/v1.4-ROADMAP.md` for full archive.
 
 ## Context
 
@@ -152,4 +151,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — v1.4 Phase 6 complete (Controller Refactoring)*
+*Last updated: 2026-04-10 after v1.4 milestone*

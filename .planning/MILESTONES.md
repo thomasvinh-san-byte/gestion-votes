@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.4 Régler Deferred et Dette Technique (Shipped: 2026-04-10)
+
+**Phases completed:** 6 phases, 14 plans, 33 tasks
+
+**Key accomplishments:**
+
+- 1. [Rule 1 — Bug] Plan premise relied on hex literals that don't exist in source
+- Created:
+- 316 contrast violations iteratively reduced to 0 across 22 pages via 5 axe-core runs, 26 micro-adjustments to 10 CSS files + 9 new on-subtle companion tokens, A11Y-REPORT declared CONFORME
+- Global :where([hidden]) { display: none !important } rule added to @layer base; 16 redundant per-selector overrides removed across 10 CSS files; codebase-wide audit documenting 25 conflict sites
+- Playwright spec with 4 tests proving [hidden] -> display:none on operator/settings/vote pages plus dynamic element guard, all green on chromium
+- seedUser endpoint with route-level production gate plus Playwright loginAsAuditor/loginAsAssessor helpers and dedicated assessor E2E user
+- All trust E2E specs migrated from loginAsAdmin/loginAsOperator to loginAsAuditor -- zero admin fallback patterns remain
+- htmx 1.9.12 replaced with 2.0.6, htmx-1-compat safety net activated, 3 DELETE endpoints migrated from body to query params
+- Full Playwright suite (212 specs x 4 browsers) confirms zero htmx 2.0.6 regressions -- all failures pre-existing and documented
+- SecurityProvider::nonce() accessor + PageController PHP serving for 21 .htmx.html files + nonce placeholders on all 168 script/style tags across 33 files
+- Report-only CSP with nonce + strict-dynamic alongside existing enforcing header, nginx CSP deduplication, and Playwright zero-violation spec across 21 pages
+- Pre-split structural test contracts for 4 service classes using @group pending-service annotation across all 4 controller test files
+- MeetingsController (687->295 LOC) and MeetingWorkflowController (559->184 LOC) extracted into MeetingLifecycleService and MeetingTransitionService with nullable RepositoryFactory DI
+- OperatorController (516->130 LOC) and AdminController (510->203 LOC) slimmed to thin HTTP adapters with OperatorWorkflowService (297 LOC) and AdminService (295 LOC) handling all business logic
+
+---
+
 ## v1.3 Polish Post-MVP (Shipped: 2026-04-09)
 
 **Phases completed:** 4 phases, 12 plans, 14 tasks
