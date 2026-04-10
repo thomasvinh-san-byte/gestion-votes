@@ -65,22 +65,22 @@ class AgPagination extends HTMLElement {
         .pagination {
           display: flex; align-items: center; justify-content: center;
           gap: 3px; padding: 8px;
-          border-top: 1px solid var(--color-border-subtle, #e8e7e2);
+          border-top: 1px solid var(--color-border-subtle);
         }
         .pg-btn {
           width: 26px; height: 26px; border-radius: var(--radius-base, 8px);
           display: flex; align-items: center; justify-content: center;
           font-family: var(--font-mono, monospace); font-size: 11px; font-weight: 600;
-          border: 1px solid var(--color-border, #d5dbd2);
-          background: var(--color-surface, #fff);
-          color: var(--color-text-muted, #95a3a4);
+          border: 1px solid var(--color-border);
+          background: var(--color-surface);
+          color: var(--color-text-muted);
           cursor: pointer;
           transition: color .15s ease, background .15s ease, border-color .15s ease;
         }
         .pg-btn:hover:not(.pg-active):not(.pg-dots) {
           border-color: var(--color-primary);
           color: var(--color-primary);
-          background: var(--color-primary-subtle, #e8edfa);
+          background: var(--color-primary-subtle);
         }
         .pg-active {
           background: var(--color-primary);

@@ -62,12 +62,12 @@ class AgTzPicker extends HTMLElement {
         select {
           width: 100%;
           padding: 8px 32px 8px 10px;
-          border: 1.5px solid var(--color-border, #d5dbd2);
+          border: 1.5px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
-          background: var(--color-surface, #fff);
+          background: var(--color-surface);
           font-family: var(--font-sans, sans-serif);
           font-size: 13px;
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
           appearance: none;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2395a3a4' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
           background-repeat: no-repeat;

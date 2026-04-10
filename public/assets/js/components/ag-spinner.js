@@ -55,7 +55,7 @@ class AgSpinner extends HTMLElement {
         .spinner {
           width: 24px;
           height: 24px;
-          border: 3px solid var(--color-border, #d5dbd2);
+          border: 3px solid var(--color-border);
           border-top-color: var(--color-primary);
         }
         :host([size="lg"]) .spinner {
@@ -71,7 +71,7 @@ class AgSpinner extends HTMLElement {
 
         /* Variants */
         :host([variant="primary"]) .spinner {
-          border-color: var(--color-primary-subtle, #e8edfa);
+          border-color: var(--color-primary-subtle);
           border-top-color: var(--color-primary);
         }
         :host([variant="white"]) .spinner {

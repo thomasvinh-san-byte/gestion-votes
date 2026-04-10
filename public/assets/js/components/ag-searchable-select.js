@@ -257,22 +257,22 @@ class AgSearchableSelect extends HTMLElement {
           width: 100%;
           min-height: 2.5rem;
           padding: 0.5rem 2.5rem 0.5rem 0.75rem;
-          background: var(--color-surface, #ffffff);
-          border: 2px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface);
+          border: 2px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           cursor: pointer;
           transition: border-color 0.15s, background-color 0.15s;
           font-size: 0.875rem;
-          color: var(--color-text, #4e5340);
+          color: var(--color-text);
           box-sizing: border-box;
         }
         .select-trigger:hover {
-          border-color: var(--color-border-hover, #a0a897);
+          border-color: var(--color-border-hover);
         }
         .select-trigger:focus-within {
           outline: none;
           border-color: var(--color-primary);
-          background-color: var(--color-surface, #ffffff);
+          background-color: var(--color-surface);
           /* No box-shadow - border change is the focus indicator */
         }
         .select-trigger.open {
@@ -288,7 +288,7 @@ class AgSearchableSelect extends HTMLElement {
           white-space: nowrap;
         }
         .select-value.placeholder {
-          color: var(--color-text-muted, #7a8275);
+          color: var(--color-text-muted);
         }
 
         .select-arrow {
@@ -311,7 +311,7 @@ class AgSearchableSelect extends HTMLElement {
           top: 100%;
           left: 0;
           right: 0;
-          background: var(--color-surface, #ffffff);
+          background: var(--color-surface);
           border: 1px solid var(--color-primary);
           border-top: none;
           border-radius: 0 0 var(--radius-base, 8px) var(--radius-base, 8px);
@@ -327,31 +327,31 @@ class AgSearchableSelect extends HTMLElement {
 
         .search-box {
           padding: 0.5rem;
-          border-bottom: 1px solid var(--color-border, #d5dbd2);
+          border-bottom: 1px solid var(--color-border);
           position: sticky;
           top: 0;
-          background: var(--color-surface, #ffffff);
+          background: var(--color-surface);
         }
 
         .search-input {
           width: 100%;
           max-width: 100%;
           padding: 0.5rem 0.75rem 0.5rem 2rem;
-          border: 1px solid var(--color-border, #d5dbd2);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           font-size: 0.875rem;
-          background: var(--color-bg-subtle, #f5f7f4);
+          background: var(--color-bg-subtle);
           transition: border-color 0.15s;
           box-sizing: border-box;
         }
         .search-input:focus {
           outline: none;
           border-color: var(--color-primary);
-          background: var(--color-surface, #ffffff);
+          background: var(--color-surface);
           box-shadow: none; /* No additional ring to prevent overflow */
         }
         .search-input::placeholder {
-          color: var(--color-text-muted, #7a8275);
+          color: var(--color-text-muted);
         }
 
         .search-icon {
@@ -361,7 +361,7 @@ class AgSearchableSelect extends HTMLElement {
           transform: translateY(-50%);
           width: 1rem;
           height: 1rem;
-          color: var(--color-text-muted, #7a8275);
+          color: var(--color-text-muted);
           pointer-events: none;
         }
 
@@ -381,10 +381,10 @@ class AgSearchableSelect extends HTMLElement {
         }
         .option:hover,
         .option.highlighted {
-          background: var(--color-bg-subtle, #f5f7f4);
+          background: var(--color-bg-subtle);
         }
         .option.selected {
-          background: var(--color-primary-subtle, #e8f0e8);
+          background: var(--color-primary-subtle);
         }
         .option.disabled {
           opacity: 0.5;
@@ -393,12 +393,12 @@ class AgSearchableSelect extends HTMLElement {
 
         .option-label {
           font-size: 0.875rem;
-          color: var(--color-text, #4e5340);
+          color: var(--color-text);
           line-height: 1.3;
         }
         .option-sublabel {
           font-size: 0.75rem;
-          color: var(--color-text-muted, #7a8275);
+          color: var(--color-text-muted);
         }
 
         .group-header {
@@ -407,8 +407,8 @@ class AgSearchableSelect extends HTMLElement {
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.05em;
-          color: var(--color-text-muted, #7a8275);
-          background: var(--color-bg-subtle, #f5f7f4);
+          color: var(--color-text-muted);
+          background: var(--color-bg-subtle);
           position: sticky;
           top: 0;
         }
@@ -416,7 +416,7 @@ class AgSearchableSelect extends HTMLElement {
         .empty-state {
           padding: 1.5rem;
           text-align: center;
-          color: var(--color-text-muted, #7a8275);
+          color: var(--color-text-muted);
           font-size: 0.875rem;
         }
 
@@ -431,7 +431,7 @@ class AgSearchableSelect extends HTMLElement {
           border: none;
           background: transparent;
           cursor: pointer;
-          color: var(--color-text-muted, #7a8275);
+          color: var(--color-text-muted);
           opacity: 0.6;
           transition: opacity 0.15s;
           display: none;
@@ -446,7 +446,7 @@ class AgSearchableSelect extends HTMLElement {
         }
 
         mark {
-          background: var(--color-warning-subtle, #fff3cd);
+          background: var(--color-warning-subtle);
           color: inherit;
           padding: 0;
           border-radius: var(--radius-base, 8px);

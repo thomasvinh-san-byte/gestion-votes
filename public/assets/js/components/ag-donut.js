@@ -61,7 +61,7 @@ class AgDonut extends HTMLElement {
           font-family: var(--font-mono, monospace);
           font-size: ${Math.round(size * 0.18)}px;
           font-weight: 800;
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
         }
       </style>
       <div class="donut-wrap" style="width:${size}px;height:${size}px">

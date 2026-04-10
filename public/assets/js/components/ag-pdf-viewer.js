@@ -123,7 +123,7 @@ class AgPdfViewer extends HTMLElement {
           height: var(--pdf-viewer-height, 600px);
           border-radius: var(--radius-base, 8px);
           overflow: hidden;
-          border: 1px solid var(--color-border, #e5e7eb);
+          border: 1px solid var(--color-border);
         }
 
         :host([mode="inline"]) .backdrop { display: none !important; }
@@ -140,7 +140,7 @@ class AgPdfViewer extends HTMLElement {
           position: fixed;
           inset: auto 0 0 0;
           height: 80dvh;
-          background: var(--color-surface, #fafaf7);
+          background: var(--color-surface);
           border-radius: var(--radius-base, 8px) var(--radius-base, 8px) 0 0;
           z-index: var(--z-modal, 100);
           transform: translateY(100%);
@@ -164,7 +164,7 @@ class AgPdfViewer extends HTMLElement {
           position: fixed;
           inset: 0 0 0 auto;
           width: min(480px, 90vw);
-          background: var(--color-surface, #fafaf7);
+          background: var(--color-surface);
           z-index: var(--z-modal, 100);
           transform: translateX(100%);
           transition: transform var(--duration-slow, 0.3s) var(--ease-out, ease-out);
@@ -198,9 +198,9 @@ class AgPdfViewer extends HTMLElement {
           align-items: center;
           justify-content: space-between;
           padding: 12px 16px;
-          border-bottom: 1px solid var(--color-border, #e5e7eb);
+          border-bottom: 1px solid var(--color-border);
           flex-shrink: 0;
-          background: var(--color-surface, #fafaf7);
+          background: var(--color-surface);
         }
 
         .filename {
@@ -210,7 +210,7 @@ class AgPdfViewer extends HTMLElement {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
           flex: 1;
           min-width: 0;
           margin-right: 8px;
@@ -234,7 +234,7 @@ class AgPdfViewer extends HTMLElement {
           background: none;
           border-radius: var(--radius-base, 8px);
           cursor: pointer;
-          color: var(--color-text-muted, #6b7280);
+          color: var(--color-text-muted);
           font-size: 18px;
           line-height: 1;
           transition: background var(--duration-fast, 150ms) ease, color var(--duration-fast, 150ms) ease;
@@ -243,8 +243,8 @@ class AgPdfViewer extends HTMLElement {
 
         .btn-close:hover,
         .btn-download:hover {
-          background: var(--color-bg-subtle, #e8e7e2);
-          color: var(--color-text-dark, #1a1a1a);
+          background: var(--color-bg-subtle);
+          color: var(--color-text-dark);
         }
 
         .btn-close svg,

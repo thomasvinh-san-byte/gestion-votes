@@ -118,8 +118,8 @@ class AgTimeInput extends HTMLElement {
         :host { display: inline-flex; }
         .ti-wrap {
           display: flex; align-items: center; gap: 2px;
-          background: var(--color-surface, #fff);
-          border: 1.5px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface);
+          border: 1.5px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           padding: 4px 8px;
           font-family: var(--font-mono, monospace);
@@ -131,11 +131,11 @@ class AgTimeInput extends HTMLElement {
         :host([disabled]) .ti-wrap { opacity: .5; pointer-events: none; }
         .ti-field {
           width: 24px; border: none; background: none;
-          text-align: center; font: inherit; color: var(--color-text-dark, #1a1a1a);
+          text-align: center; font: inherit; color: var(--color-text-dark);
           outline: none; padding: 2px 0;
         }
-        .ti-field::placeholder { color: var(--color-text-light, #b5b5b0); }
-        .ti-sep { color: var(--color-text-muted, #95a3a4); font-weight: 700; }
+        .ti-field::placeholder { color: var(--color-text-light); }
+        .ti-sep { color: var(--color-text-muted); font-weight: 700; }
       </style>
       <div class="ti-wrap">
         <input class="ti-field ti-h" type="text" inputmode="numeric" maxlength="2" placeholder="HH" value="${this._hours}" ${disabled ? 'disabled' : ''} aria-label="Heures" />

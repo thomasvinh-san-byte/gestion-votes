@@ -36,7 +36,7 @@ class AgMiniBar extends HTMLElement {
           height: ${height}px;
           border-radius: ${Math.ceil(height / 2)}px;
           overflow: hidden;
-          background: var(--color-bg-subtle, #e8e7e2);
+          background: var(--color-bg-subtle);
           gap: 1px;
         }
         .seg {

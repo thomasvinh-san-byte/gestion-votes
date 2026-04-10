@@ -24,21 +24,21 @@ class AgBreadcrumb extends HTMLElement {
         :host { display: block; }
         .breadcrumb {
           display: flex; align-items: center; gap: 6px;
-          font-size: 12px; color: var(--color-text-muted, #95a3a4);
+          font-size: 12px; color: var(--color-text-muted);
         }
         .bc-item {
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text-muted);
           text-decoration: none;
           font-weight: 500;
           transition: color .15s ease;
         }
         a.bc-item:hover { color: var(--color-primary); }
         .bc-current {
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
           font-weight: 600;
         }
         .bc-sep {
-          color: var(--color-text-light, #b5b5b0);
+          color: var(--color-text-light);
           font-size: 10px;
         }
       </style>

@@ -26,7 +26,7 @@ class AgPageHeader extends HTMLElement {
           font-family: var(--font-display, 'Fraunces', serif);
           font-size: 22px;
           font-weight: 700;
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
           display: flex;
           align-items: center;
           gap: 10px;
@@ -41,7 +41,7 @@ class AgPageHeader extends HTMLElement {
         }
         .page-sub {
           font-size: 14px;
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text-muted);
           margin-top: 4px;
           margin-left: 14px;
         }

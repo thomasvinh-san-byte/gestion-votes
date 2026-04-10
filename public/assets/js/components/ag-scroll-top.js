@@ -56,7 +56,7 @@ class AgScrollTop extends HTMLElement {
           opacity: 1; visibility: visible; transform: translateY(0);
         }
         .scroll-top:hover {
-          background: var(--color-primary-hover, #1241b8);
+          background: var(--color-primary-hover);
           box-shadow: 0 6px 20px var(--color-primary-glow);
         }
         .scroll-top svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; }

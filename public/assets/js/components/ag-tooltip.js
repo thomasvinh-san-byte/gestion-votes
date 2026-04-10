@@ -29,8 +29,8 @@ class AgTooltip extends HTMLElement {
           ${position === 'bottom' ? 'top: calc(100% + 6px);' : 'bottom: calc(100% + 6px);'}
           left: 50%;
           transform: translateX(-50%) translateY(${position === 'bottom' ? '-4px' : '4px'});
-          background: var(--color-text-dark, #1a1a1a);
-          color: var(--color-surface-raised, #fff);
+          background: var(--color-text-dark);
+          color: var(--color-surface-raised);
           font-size: 12px;
           font-weight: 600;
           white-space: nowrap;
@@ -50,7 +50,7 @@ class AgTooltip extends HTMLElement {
           left: 50%;
           transform: translateX(-50%);
           border: 4px solid transparent;
-          ${position === 'bottom' ? 'border-bottom-color: var(--color-text-dark, #1a1a1a);' : 'border-top-color: var(--color-text-dark, #1a1a1a);'}
+          ${position === 'bottom' ? 'border-bottom-color: var(--color-text-dark);' : 'border-top-color: var(--color-text-dark);'}
         }
         :host(:hover) .tip-body,
         :host(:focus-within) .tip-body {

@@ -218,13 +218,13 @@ class AgPopover extends HTMLElement {
           z-index: 1000;
           max-width: ${width}px;
           padding: 0.75rem 1rem;
-          background: var(--color-surface-raised, #fff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface-raised);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-lg, 0.625rem);
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,.1));
           font-size: 0.875rem;
           line-height: 1.5;
-          color: var(--color-text, #1a1a1a);
+          color: var(--color-text);
           opacity: 0;
           visibility: hidden;
           transform: scale(0.95);
@@ -294,8 +294,8 @@ class AgPopover extends HTMLElement {
           position: absolute;
           width: 8px;
           height: 8px;
-          background: var(--color-surface-raised, #fff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface-raised);
+          border: 1px solid var(--color-border);
           transform: rotate(45deg);
         }
 
@@ -335,11 +335,11 @@ class AgPopover extends HTMLElement {
         .popover-title {
           font-weight: 600;
           margin-bottom: 0.375rem;
-          color: var(--color-text, #1a1a1a);
+          color: var(--color-text);
         }
 
         .popover-text {
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text-muted);
         }
 
         ::slotted([slot="content"]) {
@@ -355,7 +355,7 @@ class AgPopover extends HTMLElement {
 
         ::slotted([slot="content"] p) {
           margin: 0;
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text-muted);
         }
 
         /* Default trigger button style */
@@ -366,9 +366,9 @@ class AgPopover extends HTMLElement {
           width: 18px;
           height: 18px;
           border-radius: 50%;
-          border: 1px solid var(--color-border, #d5dbd2);
-          background: var(--color-bg-subtle, #e8e7e2);
-          color: var(--color-text-muted, #95a3a4);
+          border: 1px solid var(--color-border);
+          background: var(--color-bg-subtle);
+          color: var(--color-text-muted);
           font-size: 0.75rem;
           font-weight: 600;
           cursor: help;
@@ -377,7 +377,7 @@ class AgPopover extends HTMLElement {
 
         .default-trigger:hover,
         .default-trigger:focus {
-          background: var(--color-primary-subtle, #e8edfa);
+          background: var(--color-primary-subtle);
           border-color: var(--color-primary);
           color: var(--color-primary);
           outline: none;

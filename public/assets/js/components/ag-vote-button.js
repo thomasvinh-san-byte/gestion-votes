@@ -85,16 +85,16 @@ class AgVoteButton extends HTMLElement {
           padding: 14px 10px;
           font-size: 17px;
           font-weight: 800;
-          border: 1.5px solid var(--color-border, #d5dbd2);
+          border: 1.5px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           cursor: pointer;
           transition: background .18s cubic-bezier(.4,0,.2,1), border-color .18s cubic-bezier(.4,0,.2,1), box-shadow .18s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1);
           -webkit-tap-highlight-color: transparent;
           user-select: none;
-          background: var(--color-surface, #ffffff);
+          background: var(--color-surface);
           min-height: 110px;
           position: relative;
-          color: var(--color-text-dark, #1a1a1a);
+          color: var(--color-text-dark);
         }
         button:hover:not(:disabled) {
           transform: translateY(-2px);
@@ -135,29 +135,29 @@ class AgVoteButton extends HTMLElement {
         /* Value variants — flat card style from wireframe */
         :host([value="for"]) button {
           border-color: var(--color-success);
-          background: var(--color-success-subtle, #e4ede4);
+          background: var(--color-success-subtle);
         }
         :host([value="for"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px var(--color-success-glow); }
         :host([value="for"]) .icon-circle { background: oklch(0.500 0.135 155 / 0.12); color: var(--color-success); }
 
         :host([value="against"]) button {
           border-color: var(--color-danger);
-          background: var(--color-danger-subtle, #f2e4e4);
+          background: var(--color-danger-subtle);
         }
         :host([value="against"]) button:hover:not(:disabled) { box-shadow: 0 4px 16px var(--color-danger-glow); }
         :host([value="against"]) .icon-circle { background: oklch(0.510 0.175 25 / 0.12); color: var(--color-danger); }
 
         :host([value="abstain"]) button {
-          border-color: var(--color-border-dash, #c4c3bc);
-          background: var(--color-bg-subtle, #e8e7e2);
+          border-color: var(--color-border-dash);
+          background: var(--color-bg-subtle);
         }
-        :host([value="abstain"]) .icon-circle { background: var(--color-neutral-subtle); color: var(--color-text-muted, #95a3a4); }
+        :host([value="abstain"]) .icon-circle { background: var(--color-neutral-subtle); color: var(--color-text-muted); }
 
         :host([value="nsp"]) button {
-          border-color: var(--color-border, #d5dbd2);
-          background: var(--color-bg-subtle, #e8e7e2);
+          border-color: var(--color-border);
+          background: var(--color-bg-subtle);
         }
-        :host([value="nsp"]) .icon-circle { background: var(--color-neutral-subtle); color: var(--color-text-muted, #95a3a4); }
+        :host([value="nsp"]) .icon-circle { background: var(--color-neutral-subtle); color: var(--color-text-muted); }
 
         /* Selected state */
         :host([value="for"][selected]) button {
@@ -175,14 +175,14 @@ class AgVoteButton extends HTMLElement {
         }
         :host([value="against"][selected]) .icon-circle { background: rgba(255,255,255,.18); }
         :host([value="abstain"][selected]) button {
-          background: var(--color-text-muted, #95a3a4);
-          border-color: var(--color-text-muted, #95a3a4);
+          background: var(--color-text-muted);
+          border-color: var(--color-text-muted);
           color: #fff;
         }
         :host([value="abstain"][selected]) .icon-circle { background: rgba(255,255,255,.18); }
         :host([value="nsp"][selected]) button {
-          background: var(--color-text-muted, #95a3a4);
-          border-color: var(--color-text-muted, #95a3a4);
+          background: var(--color-text-muted);
+          border-color: var(--color-text-muted);
           color: #fff;
         }
       </style>

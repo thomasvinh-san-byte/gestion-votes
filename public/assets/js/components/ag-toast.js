@@ -90,8 +90,8 @@ class AgToast extends HTMLElement {
           align-items: flex-start;
           gap: var(--space-3, 12px);
           padding: var(--space-3, 12px) var(--space-4, 16px);
-          background: var(--color-surface-raised, #ffffff);
-          border: 1px solid var(--color-border, #d5dbd2);
+          background: var(--color-surface-raised);
+          border: 1px solid var(--color-border);
           border-radius: var(--radius-base, 8px);
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1));
           width: var(--toast-width, 356px);
@@ -118,7 +118,7 @@ class AgToast extends HTMLElement {
         }
         .toast-message {
           flex: 1;
-          color: var(--color-text, #1a1a1a);
+          color: var(--color-text);
           font-size: var(--text-xs, 0.75rem);
         }
         .toast-close {
@@ -131,14 +131,14 @@ class AgToast extends HTMLElement {
           justify-content: center;
           border-radius: var(--radius-base, 8px);
           cursor: pointer;
-          color: var(--color-text-muted, #95a3a4);
+          color: var(--color-text-muted);
           background: none;
           border: none;
           transition: background var(--duration-fast, 150ms) var(--ease-default, ease);
         }
         .toast-close:hover {
-          background: var(--color-bg-subtle, #e8e7e2);
-          color: var(--color-text-dark, #1a1a1a);
+          background: var(--color-bg-subtle);
+          color: var(--color-text-dark);
         }
         .toast-close:focus-visible {
           outline: none;
@@ -154,21 +154,21 @@ class AgToast extends HTMLElement {
 
         /* Type variants — inset box-shadow accent stripe + icon bg */
         :host([type="success"]) .toast {
-          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-success, #0b7a40);
+          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-success);
         }
-        :host([type="success"]) .toast-icon { background: var(--color-success-subtle, #e4ede4); color: var(--color-success, #0b7a40); }
+        :host([type="success"]) .toast-icon { background: var(--color-success-subtle); color: var(--color-success); }
         :host([type="error"]) .toast {
-          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-danger, #c42828);
+          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-danger);
         }
-        :host([type="error"]) .toast-icon { background: var(--color-danger-subtle, #f2e4e4); color: var(--color-danger, #c42828); }
+        :host([type="error"]) .toast-icon { background: var(--color-danger-subtle); color: var(--color-danger); }
         :host([type="warning"]) .toast {
-          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-warning, #b8860b);
+          box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-warning);
         }
-        :host([type="warning"]) .toast-icon { background: var(--color-warning-subtle, #f5eddf); color: var(--color-warning, #b8860b); }
+        :host([type="warning"]) .toast-icon { background: var(--color-warning-subtle); color: var(--color-warning); }
         :host([type="info"]) .toast {
           box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0,0,0,0.1)), inset var(--toast-accent-width, 3px) 0 0 var(--color-info);
         }
-        :host([type="info"]) .toast-icon { background: var(--color-info-subtle, #EBF0FF); color: var(--color-info); }
+        :host([type="info"]) .toast-icon { background: var(--color-info-subtle); color: var(--color-info); }
 
         @keyframes toastIn {
           from { opacity: 0; transform: translateX(20px) scale(.96); }
