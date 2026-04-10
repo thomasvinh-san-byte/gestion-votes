@@ -145,6 +145,44 @@ ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE SET
   assigned_at = EXCLUDED.assigned_at;
 
 -- ============================================================================
+-- ASSESSOR E2E USER (dedicated assessor with viewer system role)
+-- Email: assessor-e2e@ag-vote.local / Mot de passe: Assessor2026!
+-- ============================================================================
+INSERT INTO users (id, tenant_id, email, name, role, password_hash, is_active, created_at, updated_at)
+VALUES (
+  'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00099',
+  'aaaaaaaa-1111-2222-3333-444444444444',
+  'assessor-e2e@ag-vote.local',
+  'Assessor E2E',
+  'viewer',
+  '$2y$10$/uBKyYBNpA3/zf0LQfcXYupKsmdrn.FDcTtmKBsTMXpIRzOsx.wxa',
+  true,
+  now(),
+  now()
+)
+ON CONFLICT (id) DO UPDATE SET
+  email = EXCLUDED.email,
+  name = EXCLUDED.name,
+  role = EXCLUDED.role,
+  password_hash = EXCLUDED.password_hash,
+  updated_at = now();
+
+-- Assessor E2E -> assessor role on E2E meeting
+INSERT INTO meeting_roles (id, tenant_id, meeting_id, user_id, role, assigned_by, assigned_at)
+VALUES (
+  'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00013',
+  'aaaaaaaa-1111-2222-3333-444444444444',
+  'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001',
+  'eeeeeeee-e2e0-e2e0-e2e0-eeeeeee00099',
+  'assessor',
+  '11111111-1111-1111-1111-111111111111',
+  now()
+)
+ON CONFLICT (tenant_id, meeting_id, user_id, role) DO UPDATE SET
+  assigned_by = EXCLUDED.assigned_by,
+  assigned_at = EXCLUDED.assigned_at;
+
+-- ============================================================================
 -- MEMBRES (12 elus municipaux avec poids de vote egal)
 -- ============================================================================
 INSERT INTO members (id, tenant_id, external_ref, full_name, email, voting_power, role, is_active, created_at, updated_at)

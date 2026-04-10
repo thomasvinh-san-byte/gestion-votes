@@ -19,9 +19,9 @@ const { execSync } = require('child_process');
  * fresh browser logins and staying well under the rate limit (10 / 300 s).
  *
  * Total logins consumed by the suite:
- *   4  (global setup — one per role)
+ *   6  (global setup — one per role)
  * + ~4 (tests that explicitly test the login UX flow)
- * = 8  <  10 (limit)  → safe margin of 2.
+ * = 10 = 10 (limit)  → clearRateLimit() ensures clean slate.
  */
 
 const BASE_URL = process.env.BASE_URL
@@ -44,6 +44,8 @@ const ACCOUNTS = [
   { role: 'admin',     email: 'admin@ag-vote.local',      password: 'Admin2026!'     },
   { role: 'voter',     email: 'votant@ag-vote.local',     password: 'Votant2026!'    },
   { role: 'president', email: 'president@ag-vote.local',  password: 'President2026!' },
+  { role: 'auditor',   email: 'auditor@ag-vote.local',      password: 'Auditor2026!'   },
+  { role: 'assessor',  email: 'assessor-e2e@ag-vote.local',  password: 'Assessor2026!'  },
 ];
 
 const AUTH_DIR = path.join(__dirname, '..', '.auth');

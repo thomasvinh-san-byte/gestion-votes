@@ -29,6 +29,8 @@ const CREDENTIALS = {
   admin:     { email: 'admin@ag-vote.local',      password: 'Admin2026!'     },
   voter:     { email: 'votant@ag-vote.local',     password: 'Votant2026!'    },
   president: { email: 'president@ag-vote.local',  password: 'President2026!' },
+  auditor:   { email: 'auditor@ag-vote.local',       password: 'Auditor2026!'   },
+  assessor:  { email: 'assessor-e2e@ag-vote.local',  password: 'Assessor2026!'  },
 };
 
 const E2E_MEETING_ID = 'eeeeeeee-e2e0-e2e0-e2e0-eeeeeeee0001';
@@ -112,6 +114,14 @@ async function loginAsPresident(page) {
   await injectAuth(page, 'president', CREDENTIALS.president.email, CREDENTIALS.president.password);
 }
 
+async function loginAsAuditor(page) {
+  await injectAuth(page, 'auditor', CREDENTIALS.auditor.email, CREDENTIALS.auditor.password);
+}
+
+async function loginAsAssessor(page) {
+  await injectAuth(page, 'assessor', CREDENTIALS.assessor.email, CREDENTIALS.assessor.password);
+}
+
 module.exports = {
   OPERATOR_KEY,
   ADMIN_KEY,
@@ -127,4 +137,6 @@ module.exports = {
   loginAsAdmin,
   loginAsVoter,
   loginAsPresident,
+  loginAsAuditor,
+  loginAsAssessor,
 };
