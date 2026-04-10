@@ -134,11 +134,10 @@ Plans:
   2. `wc -l app/Services/CsvImporter.php` et `wc -l app/Services/XlsxImporter.php` affichent chacun <300 lignes
   3. CsvImporter et XlsxImporter sont des `final class` avec constructeur DI nullable (grep confirme)
   4. Les 49+ tests ImportServiceTest existants passent au vert sans modification
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Extract CsvImporter + XlsxImporter, refactor ImportService to thin facade with delegation stubs
 
 ### Phase 4: Refactoring ExportService
 **Goal**: ExportService est un orchestrateur leger (<300 LOC) qui delegue la traduction de valeurs a ValueTranslator
@@ -221,7 +220,7 @@ Plans:
 | 6. Controller Refactoring | v1.4 | 3/3 | Complete | 2026-04-10 |
 | 1. Nettoyage Codebase | v1.5 | 0/2 | Not started | - |
 | 2. Refactoring AuthMiddleware | v1.5 | 0/2 | Not started | - |
-| 3. Refactoring ImportService | v1.5 | 0/2 | Not started | - |
+| 3. Refactoring ImportService | v1.5 | 0/1 | Not started | - |
 | 4. Refactoring ExportService | v1.5 | 0/1 | Not started | - |
 | 5. Refactoring MeetingReportsService | v1.5 | 0/1 | Not started | - |
 | 6. Refactoring EmailQueueService | v1.5 | 0/1 | Not started | - |
