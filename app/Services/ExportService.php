@@ -4,210 +4,54 @@ declare(strict_types=1);
 
 namespace AgVote\Service;
 
-use AgVote\Core\BallotSource;
-use DateTime;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer;
-use Throwable;
 
 /**
- * ExportService - Centralized service for exports
+ * ExportService - Thin I/O facade for CSV and XLSX exports.
  *
- * Handles data formatting for non-technical users:
- * - French labels
- * - French date format
- * - Value translation (modes, decisions, etc.)
- * - No technical identifiers (UUIDs)
+ * Value translation, formatting, row formatting, and header definitions
+ * are delegated to ValueTranslator. This class handles only I/O output
+ * (CSV streaming, XLSX streaming, PhpSpreadsheet workbooks) and filename generation.
  */
 final class ExportService {
-    // ========================================================================
-    // VALUE TRANSLATIONS
-    // ========================================================================
+    private ?ValueTranslator $translator = null;
 
-    /** Attendance modes */
-    public const ATTENDANCE_MODES = [
-        'present' => 'Présent',
-        'remote' => 'À distance',
-        'proxy' => 'Représenté',
-        'excused' => 'Excusé',
-        'absent' => 'Absent',
-        '' => 'Non renseigné',
-    ];
-
-    /** Vote decisions */
-    public const DECISIONS = [
-        'adopted' => 'Adoptée',
-        'rejected' => 'Rejetée',
-        'pending' => 'En attente',
-        'cancelled' => 'Annulée',
-        '' => 'Non décidée',
-    ];
-
-    /** Vote choices */
-    public const VOTE_CHOICES = [
-        'for' => 'Pour',
-        'against' => 'Contre',
-        'abstain' => 'Abstention',
-        'nsp' => 'Ne se prononce pas',
-        'blank' => 'Blanc',
-        '' => 'Non exprimé',
-    ];
-
-    /** Meeting statuses */
-    public const MEETING_STATUSES = [
-        'draft' => 'Brouillon',
-        'scheduled' => 'Programmée',
-        'frozen' => 'Figée',
-        'live' => 'En cours',
-        'closed' => 'Clôturée',
-        'validated' => 'Validée',
-        'archived' => 'Archivée',
-    ];
-
-    /** Vote sources — delegates to BallotSource::LABELS for consistency. */
-    public const VOTE_SOURCES = BallotSource::LABELS;
-
-    /** Booleans */
-    public const BOOLEANS = [
-        '1' => 'Oui',
-        '0' => 'Non',
-        't' => 'Oui',
-        'f' => 'Non',
-    ];
+    private function translator(): ValueTranslator {
+        return $this->translator ??= new ValueTranslator();
+    }
 
     // ========================================================================
-    // VALUE FORMATTING
+    // DELEGATION STUBS — preserve public API for callers
     // ========================================================================
 
-    /**
-     * Translates an attendance mode
-     */
-    public function translateAttendanceMode(?string $mode): string {
-        $mode = strtolower(trim((string) $mode));
-        return self::ATTENDANCE_MODES[$mode] ?? $mode;
-    }
-
-    /**
-     * Translates a decision
-     */
-    public function translateDecision(?string $decision): string {
-        $decision = strtolower(trim((string) $decision));
-        return self::DECISIONS[$decision] ?? $decision;
-    }
-
-    /**
-     * Translates a vote choice
-     */
-    public function translateVoteChoice(?string $choice): string {
-        $choice = strtolower(trim((string) $choice));
-        return self::VOTE_CHOICES[$choice] ?? $choice;
-    }
-
-    /**
-     * Translates a meeting status
-     */
-    public function translateMeetingStatus(?string $status): string {
-        $status = strtolower(trim((string) $status));
-        return self::MEETING_STATUSES[$status] ?? $status;
-    }
-
-    /**
-     * Translates a vote source
-     */
-    public function translateVoteSource(?string $source): string {
-        $source = strtolower(trim((string) $source));
-        return self::VOTE_SOURCES[$source] ?? $source;
-    }
-
-    /**
-     * Translates a boolean
-     */
-    public function translateBoolean($value): string {
-        if (is_bool($value)) {
-            return $value ? 'Oui' : 'Non';
-        }
-        $strVal = strtolower(trim((string) $value));
-        return self::BOOLEANS[$strVal] ?? $strVal;
-    }
-
-    /**
-     * Formats a date in French format
-     *
-     * @param string|null $datetime ISO 8601 date or timestamp
-     * @param bool $includeTime Include time
-     *
-     * @return string Formatted date (e.g., "15/01/2024" or "15/01/2024 14:30")
-     */
-    public function formatDate(?string $datetime, bool $includeTime = true): string {
-        if ($datetime === null || $datetime === '') {
-            return '';
-        }
-
-        try {
-            $dt = new DateTime($datetime);
-            if ($includeTime) {
-                return $dt->format('d/m/Y H:i');
-            }
-            return $dt->format('d/m/Y');
-        } catch (Throwable $e) {
-            return (string) $datetime;
-        }
-    }
-
-    /**
-     * Formats time only
-     */
-    public function formatTime(?string $datetime): string {
-        if ($datetime === null || $datetime === '') {
-            return '';
-        }
-
-        try {
-            $dt = new DateTime($datetime);
-            return $dt->format('H:i');
-        } catch (Throwable $e) {
-            return '';
-        }
-    }
-
-    /**
-     * Formats a number (voting power, weight, etc.)
-     * Displays integers without decimals, decimals with up to 4 digits
-     */
-    public function formatNumber($value, int $decimals = 2): string {
-        if ($value === null || $value === '') {
-            return '0';
-        }
-
-        $num = (float) $value;
-
-        // If integer, no decimals
-        if (abs($num - round($num)) < 0.000001) {
-            return number_format((int) round($num), 0, ',', ' ');
-        }
-
-        // Otherwise, display with decimals and remove trailing zeros
-        $formatted = number_format($num, $decimals, ',', ' ');
-        return rtrim(rtrim($formatted, '0'), ',');
-    }
-
-    /**
-     * Formats a percentage
-     */
-    public function formatPercent($value): string {
-        if ($value === null || $value === '') {
-            return '';
-        }
-        return $this->formatNumber((float) $value * 100, 1) . ' %';
-    }
+    public function translateAttendanceMode(?string $mode): string { return $this->translator()->translateAttendanceMode($mode); }
+    public function translateDecision(?string $decision): string { return $this->translator()->translateDecision($decision); }
+    public function translateVoteChoice(?string $choice): string { return $this->translator()->translateVoteChoice($choice); }
+    public function translateMeetingStatus(?string $status): string { return $this->translator()->translateMeetingStatus($status); }
+    public function translateVoteSource(?string $source): string { return $this->translator()->translateVoteSource($source); }
+    public function translateBoolean($value): string { return $this->translator()->translateBoolean($value); }
+    public function formatDate(?string $datetime, bool $includeTime = true): string { return $this->translator()->formatDate($datetime, $includeTime); }
+    public function formatTime(?string $datetime): string { return $this->translator()->formatTime($datetime); }
+    public function formatNumber($value, int $decimals = 2): string { return $this->translator()->formatNumber($value, $decimals); }
+    public function formatPercent($value): string { return $this->translator()->formatPercent($value); }
+    public function formatAttendanceRow(array $row): array { return $this->translator()->formatAttendanceRow($row); }
+    public function formatVoteRow(array $row): array { return $this->translator()->formatVoteRow($row); }
+    public function formatMemberRow(array $row): array { return $this->translator()->formatMemberRow($row); }
+    public function formatMotionResultRow(array $row): array { return $this->translator()->formatMotionResultRow($row); }
+    public function formatProxyRow(array $row): array { return $this->translator()->formatProxyRow($row); }
+    public function formatAuditRow(array $r): array { return $this->translator()->formatAuditRow($r); }
+    public function getAttendanceHeaders(): array { return $this->translator()->getAttendanceHeaders(); }
+    public function getVotesHeaders(): array { return $this->translator()->getVotesHeaders(); }
+    public function getMembersHeaders(): array { return $this->translator()->getMembersHeaders(); }
+    public function getMotionResultsHeaders(): array { return $this->translator()->getMotionResultsHeaders(); }
+    public function getProxiesHeaders(): array { return $this->translator()->getProxiesHeaders(); }
+    public function getAuditHeaders(): array { return $this->translator()->getAuditHeaders(); }
 
     // ========================================================================
     // EXPORT CSV
     // ========================================================================
 
-    /**
-     * Sanitizes a filename for Content-Disposition header
-     */
     private function safeFilename(string $filename): string {
         return str_replace(['"', "\r", "\n", "\0", '\\'], '', $filename);
     }
@@ -219,23 +63,13 @@ final class ExportService {
         header('Cache-Control: no-cache, no-store, must-revalidate');
     }
 
-    /**
-     * Creates a CSV output handle with UTF-8 BOM
-     *
-     * @return resource
-     */
+    /** @return resource */
     public function openCsvOutput() {
         $out = fopen('php://output', 'w');
-        fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM pour Excel
+        fputs($out, "\xEF\xBB\xBF");
         return $out;
     }
 
-    /**
-     * Sanitizes a CSV cell value to prevent formula injection.
-     *
-     * Prefixes cells starting with =, +, -, or @ with a tab character
-     * so spreadsheet applications do not interpret them as formulas.
-     */
     private function sanitizeCsvCell(mixed $value): string {
         $str = (string) $value;
         if ($str !== '' && in_array($str[0], ['=', '+', '-', '@'], true)) {
@@ -244,20 +78,11 @@ final class ExportService {
         return $str;
     }
 
-    /**
-     * Writes a CSV row
-     *
-     * @param resource $handle
-     * @param array $row
-     * @param string $separator
-     */
+    /** @param resource $handle */
     public function writeCsvRow($handle, array $row, string $separator = ';'): void {
         fputcsv($handle, array_map([$this, 'sanitizeCsvCell'], $row), $separator);
     }
 
-    /**
-     * Generates a filename for export
-     */
     public function generateFilename(string $type, string $meetingTitle = '', string $extension = 'csv'): string {
         $prefix = match($type) {
             'attendance', 'presences' => 'Emargement',
@@ -270,247 +95,23 @@ final class ExportService {
             'full', 'complet' => 'Export_complet',
             default => $type,
         };
-
-        // Clean title for filename
         if ($meetingTitle !== '') {
-            $cleanTitle = $this->sanitizeFilename($meetingTitle);
-            $prefix .= '_' . $cleanTitle;
+            $prefix .= '_' . $this->sanitizeFilename($meetingTitle);
         }
-
-        $date = date('Y-m-d');
-        return "{$prefix}_{$date}.{$extension}";
+        return "{$prefix}_" . date('Y-m-d') . ".{$extension}";
     }
 
-    /**
-     * Sanitizes a string for use in a filename
-     */
     public function sanitizeFilename(string $str): string {
-        // Replace accents
         $str = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $str);
-        // Keep only letters, numbers, hyphens
         $str = preg_replace('/[^a-z0-9\-_]/i', '_', $str);
-        // Avoid multiple underscores
         $str = preg_replace('/_+/', '_', $str);
-        // Limit length
         return substr(trim($str, '_'), 0, 50);
-    }
-
-    // ========================================================================
-    // HELPERS FOR SPECIFIC EXPORTS
-    // ========================================================================
-
-    /**
-     * Prepares an export row for attendance
-     */
-    public function formatAttendanceRow(array $row): array {
-        return [
-            (string) ($row['full_name'] ?? ''),
-            $this->formatNumber($row['voting_power'] ?? 1),
-            $this->translateAttendanceMode($row['attendance_mode'] ?? $row['mode'] ?? ''),
-            $this->formatDate($row['checked_in_at'] ?? null),
-            $this->formatDate($row['checked_out_at'] ?? null),
-            (string) ($row['proxy_to_name'] ?? ''),
-            $this->formatNumber($row['proxies_received'] ?? 0, 0),
-        ];
-    }
-
-    /**
-     * Prepares an export row for votes
-     */
-    public function formatVoteRow(array $row): array {
-        return [
-            (string) ($row['motion_title'] ?? ''),
-            (int) ($row['motion_position'] ?? $row['position'] ?? 0),
-            (string) ($row['voter_name'] ?? ''),
-            $this->translateVoteChoice($row['value'] ?? ''),
-            $this->formatNumber($row['weight'] ?? 1),
-            $this->translateBoolean($row['is_proxy_vote'] ?? false),
-            (string) ($row['proxy_source_name'] ?? ''),
-            $this->formatDate($row['cast_at'] ?? null),
-            $this->translateVoteSource($row['source'] ?? ''),
-        ];
-    }
-
-    /**
-     * Prepares an export row for members
-     */
-    public function formatMemberRow(array $row): array {
-        return [
-            (string) ($row['full_name'] ?? ''),
-            (string) ($row['email'] ?? ''),
-            $this->formatNumber($row['voting_power'] ?? 1),
-            $this->translateBoolean($row['is_active'] ?? true),
-            $this->translateAttendanceMode($row['attendance_mode'] ?? ''),
-            $this->formatDate($row['checked_in_at'] ?? null),
-            $this->formatDate($row['checked_out_at'] ?? null),
-            (string) ($row['proxy_to_name'] ?? ''),
-        ];
-    }
-
-    /**
-     * Prepares an export row for motions/resolutions
-     */
-    public function formatMotionResultRow(array $row): array {
-        return [
-            (int) ($row['position'] ?? 0),
-            (string) ($row['title'] ?? ''),
-            $this->formatDate($row['opened_at'] ?? null),
-            $this->formatDate($row['closed_at'] ?? null),
-            $this->formatNumber($row['w_for'] ?? $row['official_for'] ?? 0),
-            $this->formatNumber($row['w_against'] ?? $row['official_against'] ?? 0),
-            $this->formatNumber($row['w_abstain'] ?? $row['official_abstain'] ?? 0),
-            $this->formatNumber($row['w_nsp'] ?? 0),
-            $this->formatNumber($row['w_total'] ?? $row['official_total'] ?? 0),
-            (int) ($row['ballots_count'] ?? 0),
-            $this->translateDecision($row['decision'] ?? ''),
-            (string) ($row['decision_reason'] ?? ''),
-        ];
-    }
-
-    /**
-     * Prepares an export row for proxies
-     */
-    public function formatProxyRow(array $row): array {
-        return [
-            (string) ($row['grantor_name'] ?? ''),
-            (string) ($row['grantee_name'] ?? ''),
-            $this->formatNumber($row['grantor_voting_power'] ?? 1),
-            $this->formatDate($row['created_at'] ?? null),
-            $this->translateBoolean($row['is_active'] ?? true),
-        ];
-    }
-
-    // ========================================================================
-    // CSV HEADERS FOR EACH EXPORT TYPE
-    // ========================================================================
-
-    public function getAttendanceHeaders(): array {
-        return [
-            'Nom',
-            'Pouvoir de vote',
-            'Mode de présence',
-            'Arrivée',
-            'Départ',
-            'Représenté par',
-            'Procurations détenues',
-        ];
-    }
-
-    public function getVotesHeaders(): array {
-        return [
-            'Résolution',
-            'N°',
-            'Votant',
-            'Vote',
-            'Poids',
-            'Par procuration',
-            'Au nom de',
-            'Date/Heure',
-            'Mode',
-        ];
-    }
-
-    public function getMembersHeaders(): array {
-        return [
-            'Nom',
-            'Email',
-            'Pouvoir de vote',
-            'Actif',
-            'Mode de présence',
-            'Arrivée',
-            'Départ',
-            'Représenté par',
-        ];
-    }
-
-    public function getMotionResultsHeaders(): array {
-        return [
-            'N°',
-            'Résolution',
-            'Ouverture',
-            'Clôture',
-            'Pour',
-            'Contre',
-            'Abstention',
-            'NSPP',
-            'Total exprimés',
-            'Nb votants',
-            'Décision',
-            'Motif',
-        ];
-    }
-
-    public function getProxiesHeaders(): array {
-        return [
-            'Mandant',
-            'Mandataire',
-            'Pouvoir de vote',
-            'Date',
-            'Active',
-        ];
-    }
-
-    public function getAuditHeaders(): array {
-        return [
-            'Ballot ID',
-            'Motion ID',
-            'Résolution',
-            'Member ID',
-            'Votant',
-            'Mode présence',
-            'Choix',
-            'Poids',
-            'Proxy vote',
-            'Proxy source member_id',
-            'Horodatage vote',
-            'Source vote',
-            'Token ID',
-            'Token hash (prefix)',
-            'Token expires_at',
-            'Token used_at',
-            'Justification (manual)',
-        ];
-    }
-
-    /**
-     * Prepares an export row for ballot audit
-     */
-    public function formatAuditRow(array $r): array {
-        return [
-            (string) ($r['ballot_id'] ?? ''),
-            (string) ($r['motion_id'] ?? ''),
-            (string) ($r['motion_title'] ?? ''),
-            (string) ($r['member_id'] ?? ''),
-            (string) ($r['voter_name'] ?? ''),
-            $this->translateAttendanceMode($r['attendance_mode'] ?? ''),
-            $this->translateVoteChoice($r['value'] ?? ''),
-            (string) ($r['weight'] ?? ''),
-            $this->translateBoolean($r['is_proxy_vote'] ?? false),
-            (string) ($r['proxy_source_member_id'] ?? ''),
-            $this->formatDate($r['cast_at'] ?? null),
-            $this->translateVoteSource($r['source'] ?? ''),
-            (string) ($r['token_id'] ?? ''),
-            (string) ($r['token_hash_prefix'] ?? ''),
-            $this->formatDate($r['token_expires_at'] ?? null),
-            $this->formatDate($r['token_used_at'] ?? null),
-            (string) ($r['manual_justification'] ?? ''),
-        ];
     }
 
     // ========================================================================
     // EXPORT XLSX STREAMING (OpenSpout)
     // ========================================================================
 
-    /**
-     * Streams a single-sheet XLSX file to php://output using OpenSpout.
-     * Memory stays constant regardless of row count.
-     *
-     * @param string $filename Download filename
-     * @param array $headers Column header strings
-     * @param iterable $rows Raw data rows (generator or array) — each row is formatted by $formatter
-     * @param callable $formatter Function to format a raw row into output array
-     * @param string $sheetTitle Sheet name (max 31 chars)
-     */
     public function streamXlsx(string $filename, array $headers, iterable $rows, callable $formatter, string $sheetTitle = 'Donnees'): void {
         while (ob_get_level() > 0) { ob_end_clean(); }
         $this->initXlsxOutput($filename);
@@ -521,17 +122,11 @@ final class ExportService {
         $writer->addRow(Row::fromValues($headers));
 
         foreach ($rows as $row) {
-            $formatted = $formatter($row);
-            $writer->addRow(Row::fromValues(array_values($formatted)));
+            $writer->addRow(Row::fromValues(array_values($formatter($row))));
         }
-
         $writer->close();
     }
 
-    /**
-     * Streams a multi-sheet XLSX export for a complete meeting.
-     * All iterables are consumed row-by-row — never materialized.
-     */
     public function streamFullXlsx(
         string $filename,
         array $meeting,
@@ -546,7 +141,6 @@ final class ExportService {
         $writer = new Writer();
         $writer->openToFile('php://output');
 
-        // Sheet 1: Summary
         $writer->getCurrentSheet()->setName('Resume');
         $writer->addRow(Row::fromValues(['Information', 'Valeur']));
         $summaryData = [
@@ -559,7 +153,6 @@ final class ExportService {
             $writer->addRow(Row::fromValues($row));
         }
 
-        // Sheet 2: Attendance
         $sheet2 = $writer->addNewSheetAndMakeItCurrent();
         $sheet2->setName('Emargement');
         $writer->addRow(Row::fromValues($this->getAttendanceHeaders()));
@@ -567,7 +160,6 @@ final class ExportService {
             $writer->addRow(Row::fromValues(array_values($this->formatAttendanceRow($row))));
         }
 
-        // Sheet 3: Motion results
         $sheet3 = $writer->addNewSheetAndMakeItCurrent();
         $sheet3->setName('Resultats');
         $writer->addRow(Row::fromValues($this->getMotionResultsHeaders()));
@@ -575,8 +167,6 @@ final class ExportService {
             $writer->addRow(Row::fromValues(array_values($this->formatMotionResultRow($row))));
         }
 
-        // Sheet 4: Individual votes — always create the sheet if includeVotes is true.
-        // Do NOT use iterator_to_array to check emptiness — that defeats streaming.
         if ($includeVotes) {
             $sheet4 = $writer->addNewSheetAndMakeItCurrent();
             $sheet4->setName('Votes');
@@ -595,33 +185,19 @@ final class ExportService {
     // EXPORT XLSX (PhpSpreadsheet)
     // ========================================================================
 
-    /**
-     * Creates an Excel workbook with a data sheet
-     *
-     * @param array $headers Column headers
-     * @param array $rows Data (array of arrays)
-     * @param string $sheetTitle Sheet title
-     *
-     * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
-     */
+    /** @return \PhpOffice\PhpSpreadsheet\Spreadsheet */
     public function createSpreadsheet(array $headers, array $rows, string $sheetTitle = 'Données'): \PhpOffice\PhpSpreadsheet\Spreadsheet {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(mb_substr($sheetTitle, 0, 31)); // Excel limits to 31 characters
-
-        // Headers
+        $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
         $colIndex = 1;
         foreach ($headers as $header) {
             $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
             $cell->setValue($header);
             $cell->getStyle()->getFont()->setBold(true);
-            $cell->getStyle()->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setRGB('E0E0E0');
+            $cell->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
             $colIndex++;
         }
-
-        // Data
         $rowIndex = 2;
         foreach ($rows as $row) {
             $colIndex = 1;
@@ -631,43 +207,24 @@ final class ExportService {
             }
             $rowIndex++;
         }
-
-        // Auto-dimensionner les colonnes
         foreach (range('A', $sheet->getHighestColumn()) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-
-        // Freeze first row
         $sheet->freezePane('A2');
-
         return $spreadsheet;
     }
 
-    /**
-     * Adds a sheet to an existing workbook
-     */
-    public function addSheet(
-        \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet,
-        array $headers,
-        array $rows,
-        string $sheetTitle,
-    ): void {
+    public function addSheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet, array $headers, array $rows, string $sheetTitle): void {
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
-
-        // Headers
         $colIndex = 1;
         foreach ($headers as $header) {
             $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
             $cell->setValue($header);
             $cell->getStyle()->getFont()->setBold(true);
-            $cell->getStyle()->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setRGB('E0E0E0');
+            $cell->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
             $colIndex++;
         }
-
-        // Data
         $rowIndex = 2;
         foreach ($rows as $row) {
             $colIndex = 1;
@@ -677,19 +234,12 @@ final class ExportService {
             }
             $rowIndex++;
         }
-
-        // Auto-size columns
         foreach (range('A', $sheet->getHighestColumn()) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-
-        // Freeze first row
         $sheet->freezePane('A2');
     }
 
-    /**
-     * Initializes HTTP headers for XLSX export
-     */
     public function initXlsxOutput(string $filename): void {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $this->safeFilename($filename) . '"');
@@ -697,31 +247,13 @@ final class ExportService {
         header('X-Content-Type-Options: nosniff');
     }
 
-    /**
-     * Sends an Excel workbook to the browser
-     */
     public function outputSpreadsheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet): void {
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
     }
 
-    /**
-     * Creates a complete multi-sheet export for a meeting
-     *
-     * @param array $meeting Meeting data
-     * @param array $attendanceRows Attendance data
-     * @param array $motionRows Motion results
-     * @param array $voteRows Individual votes (optional)
-     *
-     * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
-     */
-    public function createFullExportSpreadsheet(
-        array $meeting,
-        array $attendanceRows,
-        array $motionRows,
-        array $voteRows = [],
-    ): \PhpOffice\PhpSpreadsheet\Spreadsheet {
-        // Summary sheet
+    /** @return \PhpOffice\PhpSpreadsheet\Spreadsheet */
+    public function createFullExportSpreadsheet(array $meeting, array $attendanceRows, array $motionRows, array $voteRows = []): \PhpOffice\PhpSpreadsheet\Spreadsheet {
         $summaryHeaders = ['Information', 'Valeur'];
         $summaryData = [
             ['Séance', $meeting['title'] ?? ''],
@@ -738,18 +270,9 @@ final class ExportService {
             ['Résolutions adoptées', count(array_filter($motionRows, fn ($r) => ($r['decision'] ?? '') === 'adopted'))],
             ['Résolutions rejetées', count(array_filter($motionRows, fn ($r) => ($r['decision'] ?? '') === 'rejected'))],
         ];
-
         $spreadsheet = $this->createSpreadsheet($summaryHeaders, $summaryData, 'Résumé');
-
-        // Attendance sheet
-        $attendanceFormatted = array_map([$this, 'formatAttendanceRow'], $attendanceRows);
-        $this->addSheet($spreadsheet, $this->getAttendanceHeaders(), $attendanceFormatted, 'Émargement');
-
-        // Motions sheet
-        $motionsFormatted = array_map([$this, 'formatMotionResultRow'], $motionRows);
-        $this->addSheet($spreadsheet, $this->getMotionResultsHeaders(), $motionsFormatted, 'Résolutions');
-
-        // Votes sheet (if provided)
+        $this->addSheet($spreadsheet, $this->getAttendanceHeaders(), array_map([$this, 'formatAttendanceRow'], $attendanceRows), 'Émargement');
+        $this->addSheet($spreadsheet, $this->getMotionResultsHeaders(), array_map([$this, 'formatMotionResultRow'], $motionRows), 'Résolutions');
         if (!empty($voteRows)) {
             $votesFormatted = [];
             foreach ($voteRows as $r) {
@@ -761,10 +284,7 @@ final class ExportService {
                 $this->addSheet($spreadsheet, $this->getVotesHeaders(), $votesFormatted, 'Votes');
             }
         }
-
-        // Return to first sheet
         $spreadsheet->setActiveSheetIndex(0);
-
         return $spreadsheet;
     }
 }
