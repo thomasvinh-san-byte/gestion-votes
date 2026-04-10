@@ -144,9 +144,8 @@ Plans:
   4. La CSP a tourné en `Content-Security-Policy-Report-Only` pendant ≥1 phase complète avant le flip en enforcement ; un spec Playwright écoute `page.on('pageerror')` + `page.on('console')` et assert zéro violation CSP sur les 22 pages
 **Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — Global :where([hidden]) rule + remove 16 redundant overrides + audit document
-- [ ] 02-02-PLAN.md — Playwright hidden-attr smoke spec + regression verification
-
+- [ ] 05-01-PLAN.md — SecurityProvider nonce + PageController + HtmlView nonce injection + nginx routing + nonce placeholders on all inline content
+- [ ] 05-02-PLAN.md — CSP header upgrade (nonce + strict-dynamic report-only) + nginx CSP dedup + Playwright CSP violation spec
 ### Phase 6: Controller Refactoring
 **Goal**: Les 4 controllers >500 LOC sont réduits à <300 LOC via extraction vers des services finaux avec DI nullable, sans casser les URLs publiques ni les tests existants
 **Depends on**: Nothing structural (parallelizable Plane B). Pre-split reflection audit is mandatory entry gate.
@@ -224,5 +223,5 @@ Reconciled from `research/SUMMARY.md` and `research/ARCHITECTURE.md`:
 | 2. Overlay Hittest Sweep | v1.4 | 0/0 | Not started | - |
 | 3. Trust Fixtures Deploy | v1.4 | 0/2 | Planned | - |
 | 4. HTMX 2.0 Upgrade | v1.4 | 0/2 | Planned | - |
-| 5. CSP Nonce Enforcement | v1.4 | 0/0 | Not started | - |
+| 5. CSP Nonce Enforcement | v1.4 | 0/2 | Planned | - |
 | 6. Controller Refactoring | v1.4 | 0/0 | Not started | - |
