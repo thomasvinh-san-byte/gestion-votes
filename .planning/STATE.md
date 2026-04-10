@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: executing
-stopped_at: "v1.4 roadmap created — 6 phases, 24/24 requirements mapped, ready for `/gsd:plan-phase 1`"
-last_updated: "2026-04-10T04:58:22.321Z"
-last_activity: 2026-04-10 -- Plan 01-01 complete (commit de5f1ecd)
+stopped_at: Completed 01-02-PLAN.md (Shadow DOM hex fallbacks stripped)
+last_updated: "2026-04-10T05:04:00.706Z"
+last_activity: 2026-04-10 -- Plan 01-02 complete (commits 6e019be7, 9075fb21)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # AG-VOTE — Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 ## Current Position
 
 Phase: 01 (contrast-aa-remediation) — EXECUTING
-Plan: 2 of 3 (01-01 complete)
+Plan: 3 of 3 (01-01, 01-02 complete)
 Status: Executing Phase 01
-Last activity: 2026-04-10 -- Plan 01-01 complete (commit de5f1ecd)
+Last activity: 2026-04-10 -- Plan 01-02 complete (commits 6e019be7, 9075fb21)
 
-**Progress:** [███░░░░░░░] 33%
+**Progress:** [███████░░░] 67%
 
 ## v1.4 Phase Summary
 
@@ -52,6 +52,10 @@ Last activity: 2026-04-10 -- Plan 01-01 complete (commit de5f1ecd)
 - [01-01]: --color-primary left untouched (brand identity); new --color-primary-on-subtle companion token added for chip-on-primary-subtle. Wiring deferred to plan 01-02.
 - [01-01]: Plan 01-01 same-commit propagation to 21 critical-tokens inline blocks is a structural no-op — those blocks only declare --color-bg/surface/text. Pitfall #2 trivially neutralised.
 - [01-01]: Dark-mode --color-text-muted was itself broken (oklch 0.450 cool too dark on dark bg) — fixed to 0.780 warm hue 82 aligning Phase 82-01 convention.
+- [01-02]: Stripped 110 `var(--color-*, #hex)` fallbacks from 16 Web Components via single sed pass — 7/23 components were already clean, zero oklch fallbacks to preserve. Pitfall #1 (stale hex after oklch shift) eliminated.
+- [01-02]: Shadow DOM Web Components must never carry hex fallbacks on --color-* tokens; enforced by CI grep gate `grep -rnE 'var\(--color-[^,)]*,\s*#' public/assets/js/components/` → 0.
+- [01-02]: --color-primary-on-subtle chip wiring (settings.css) still deferred — moved from 01-02 scope to 01-03 (axe re-run + chip wiring combined).
+- [01-02]: --shadow-*, --toast-*, --size-*, --radius-* fallbacks explicitly out of scope; only --color-* tokens were touched.
 - [v1.4 roadmap]: 6 phases derived from 24 requirements, 1 phase per category — clean boundaries, minimal cross-phase coupling
 - [v1.4 roadmap]: Phase numbering reset to 1 (v1.3 phases archived to `.planning/milestones/v1.3-phases/`); `--reset-phase-numbers` mode active
 - [v1.4 roadmap]: Build order Contrast → Overlay → Trust → HTMX → CSP → Controllers reconciles STACK/PITFALLS/ARCHITECTURE conflicts. Disjoint file regions minimize merge conflicts.
@@ -132,8 +136,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-09
-Stopped at: v1.4 roadmap created — 6 phases, 24/24 requirements mapped, ready for `/gsd:plan-phase 1`
+Last session: 2026-04-10T05:04:00.701Z
+Stopped at: Completed 01-02-PLAN.md (Shadow DOM hex fallbacks stripped)
 Resume file: None
 
 **Next action:** `/gsd:plan-phase 1` — plan Phase 1 (Contrast AA Remediation)

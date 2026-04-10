@@ -9,7 +9,7 @@
 
 - [x] **CONTRAST-01** : L'application atteint WCAG 2.1 AA contrast 4.5:1 sur toutes les paires fg/bg identifiées dans v1.3-CONTRAST-AUDIT.json (316 nœuds → 0 violation)
 - [x] **CONTRAST-02** : Les tokens modifiés sont propagés dans les critical-tokens inline blocks des 22 .htmx.html dans le même commit que `:root` / `[data-theme="dark"]`
-- [ ] **CONTRAST-03** : Les fallbacks hex des Shadow DOM (`var(--token, #hex)`) sont retirés pour les 23 Web Components
+- [x] **CONTRAST-03** : Les fallbacks hex des Shadow DOM (`var(--token, #hex)`) sont retirés pour les 23 Web Components
 - [ ] **CONTRAST-04** : v1.3-A11Y-REPORT.md est mis à jour — conformance WCAG 2.1 AA déclarée (plus "partial")
 
 ### Overlay Hittest (OVERLAY)
@@ -74,7 +74,7 @@ Every v1.4 requirement maps to exactly one phase. Coverage: 24/24 ✓
 |-------------|-------|--------|
 | CONTRAST-01 | Phase 1 — Contrast AA Remediation | Complete |
 | CONTRAST-02 | Phase 1 — Contrast AA Remediation | Complete |
-| CONTRAST-03 | Phase 1 — Contrast AA Remediation | Pending |
+| CONTRAST-03 | Phase 1 — Contrast AA Remediation | Complete |
 | CONTRAST-04 | Phase 1 — Contrast AA Remediation | Pending |
 | OVERLAY-01 | Phase 2 — Overlay Hittest Sweep | Pending |
 | OVERLAY-02 | Phase 2 — Overlay Hittest Sweep | Pending |
