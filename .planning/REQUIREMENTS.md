@@ -20,8 +20,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Refactoring AuthMiddleware
 
-- [ ] **REFAC-01**: AuthMiddleware <300 LOC apres extraction de SessionManager et RbacEngine
-- [ ] **REFAC-02**: SessionManager et RbacEngine sont des final class avec DI nullable, chacun <300 LOC
+- [x] **REFAC-01**: AuthMiddleware <300 LOC apres extraction de SessionManager et RbacEngine
+- [x] **REFAC-02**: SessionManager et RbacEngine sont des final class avec DI nullable, chacun <300 LOC
 
 ### Refactoring ImportService
 
@@ -84,8 +84,8 @@ Deferred to next milestone.
 | CLEAN-03 | Phase 1 | Complete |
 | CLEAN-04 | Phase 1 | Complete |
 | CLEAN-05 | Phase 1 | Complete |
-| REFAC-01 | Phase 2 | Pending |
-| REFAC-02 | Phase 2 | Pending |
+| REFAC-01 | Phase 2 | Complete |
+| REFAC-02 | Phase 2 | Complete |
 | REFAC-03 | Phase 3 | Pending |
 | REFAC-04 | Phase 3 | Pending |
 | REFAC-05 | Phase 4 | Pending |

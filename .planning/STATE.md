@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
-status: completed
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-04-10T11:12:51.500Z"
-last_activity: 2026-04-10
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-04-10T11:29:35.437Z"
+last_activity: 2026-04-10 -- Phase 02 execution started
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_plans: 4
+  completed_plans: 3
+  percent: 75
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 01 — nettoyage-codebase
+**Current focus:** Phase 02 — refactoring-authmiddleware
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase 01 complete, ready for Phase 02
-Last activity: 2026-04-10
+Phase: 02 (refactoring-authmiddleware) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 02
+Last activity: 2026-04-10 -- Completed 02-01-PLAN.md
 
-**Progress:** [██████████] 100%
+**Progress:** [████████░░] 75%
 
 ## v1.5 Phase Summary
 
@@ -62,6 +62,7 @@ Last activity: 2026-04-10
 
 | Phase 01 P01 | 4min | 2 tasks | 22 files |
 | Phase 01 P02 | 4min | 2 tasks | 7 files |
+| Phase 02 P01 | 8min | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Vendor JS files excluded from console.log cleanup scope
 - [Phase 01 P02]: Standalone HTML controllers use new Request() locally, not constructor injection
 - [Phase 01 P02]: PageController tests use @runInSeparateProcess for header() isolation
+- [Phase 02]: Keep all 10 static properties on AuthMiddleware as mirrors for Reflection-based test compatibility
+- [Phase 02]: RbacEngine methods receive user as parameter for isolated testability
 
 ### Pending Todos
 
@@ -87,8 +90,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T11:09:11Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-04-10T11:29:35.434Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
 
 **Next action:** `/gsd:execute-phase 2` to start Refactoring AuthMiddleware
