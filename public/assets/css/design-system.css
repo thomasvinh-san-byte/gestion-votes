@@ -70,6 +70,12 @@
   padding: 0;
 }
 
+/* HTML [hidden] attribute must always hide — prevent display:flex/grid override.
+   :where() keeps specificity at (0,0,0); !important ensures it wins over author display. */
+:where([hidden]) {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;

@@ -107,8 +107,6 @@
   animation: members-onb-slide var(--duration-base) ease-out;
 }
 
-.members-onboarding[hidden] { display: none; }
-
 @keyframes members-onb-slide {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }

@@ -32,8 +32,6 @@
   position: relative;
 }
 
-.onboarding-banner[hidden] { display: none; }
-
 .onboarding-banner-icon {
   flex-shrink: 0;
   color: var(--color-primary);

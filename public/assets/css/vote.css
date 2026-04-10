@@ -148,10 +148,6 @@
   flex-shrink: 0;
 }
 
-.offline-banner[hidden] {
-  display: none;
-}
-
 /* =============================================================================
    MAIN CONTENT
    ============================================================================= */
@@ -182,10 +178,6 @@
   border: 2px solid var(--color-success);
   border-radius: 12px;
   animation: speakerFadeIn 0.3s ease-out;
-}
-
-.current-speaker-banner[hidden] {
-  display: none;
 }
 
 @keyframes speakerFadeIn {
@@ -873,8 +865,6 @@
   margin-top: 0.5rem;
 }
 
-.vote-hint[hidden] { display: none; }
-
 /* =============================================================================
    VOTE PARTICIPATION INDICATOR (NON-IDENTIFYING)
    ============================================================================= */
@@ -958,7 +948,6 @@
    APP FOOTER (hidden support) + FOOTER UTILITY CLASSES
    ============================================================================= */
 
-.app-footer[hidden] { display: none; }
 .footer-logo { font-size: 12px; gap: 6px; }
 .footer-logo-mark { width: 18px; height: 18px; border-radius: 3px; font-size: 8px; }
 .flex-spacer { flex: 1; }
@@ -1966,10 +1955,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.blocked-overlay[hidden] {
-  display: none;
 }
 
 .blocked-overlay-inner {

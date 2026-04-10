@@ -76,10 +76,6 @@
   padding: var(--space-4);
 }
 
-.validate-modal-backdrop[hidden] {
-  display: none;
-}
-
 .validate-modal {
   background: var(--color-surface-raised); /* QA-02: elevated confirmation modal above backdrop */
   border-radius: var(--radius-base);

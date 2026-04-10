@@ -1108,11 +1108,6 @@
   animation: fadeIn 0.25s ease-out;
 }
 
-/* Ensure [hidden] attribute is respected despite display:flex override */
-.op-transition-card[hidden] {
-  display: none;
-}
-
 .op-transition-text {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
@@ -1136,11 +1131,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Ensure [hidden] attribute is respected despite display:flex override */
-.op-quorum-overlay[hidden] {
-  display: none;
 }
 
 .op-quorum-modal {
