@@ -160,10 +160,10 @@ Plans:
   1. `wc -l app/Services/MeetingReportsService.php` affiche <300 lignes
   2. `wc -l app/Services/ReportGenerator.php` affiche <300 lignes
   3. ReportGenerator est une `final class` avec constructeur DI nullable (grep confirme)
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Extract ReportGenerator + refactor MeetingReportsService to thin orchestrator
 
 ### Phase 6: Refactoring EmailQueueService
 **Goal**: EmailQueueService est un orchestrateur leger (<300 LOC) qui delegue la politique de retry a RetryPolicy
