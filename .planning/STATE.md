@@ -4,8 +4,8 @@ milestone: v1.4
 milestone_name: Régler Deferred et Dette Technique
 status: completed
 stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-10T09:13:11.500Z"
-last_activity: 2026-04-10 -- Completed 05-02-PLAN.md
+last_updated: "2026-04-10T09:16:04.458Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 6
   completed_phases: 5
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: 05 (csp-nonce-enforcement) — COMPLETE
-Plan: 2 of 2 (all complete)
+Phase: 6
+Plan: Not started
 Status: Phase 05 complete, ready for Phase 06
-Last activity: 2026-04-10 -- Completed 05-02-PLAN.md
+Last activity: 2026-04-10
 
 **Progress:** [██████████] 100%
 
