@@ -30,8 +30,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Refactoring ExportService
 
-- [ ] **REFAC-05**: ExportService <300 LOC apres extraction de ValueTranslator
-- [ ] **REFAC-06**: ValueTranslator est une final class <300 LOC
+- [x] **REFAC-05**: ExportService <300 LOC apres extraction de ValueTranslator
+- [x] **REFAC-06**: ValueTranslator est une final class <300 LOC
 
 ### Refactoring MeetingReportsService
 
@@ -88,8 +88,8 @@ Deferred to next milestone.
 | REFAC-02 | Phase 2 | Complete |
 | REFAC-03 | Phase 3 | Complete |
 | REFAC-04 | Phase 3 | Complete |
-| REFAC-05 | Phase 4 | Pending |
-| REFAC-06 | Phase 4 | Pending |
+| REFAC-05 | Phase 4 | Complete |
+| REFAC-06 | Phase 4 | Complete |
 | REFAC-07 | Phase 5 | Pending |
 | REFAC-08 | Phase 5 | Pending |
 | REFAC-09 | Phase 6 | Pending |
