@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\Request;
 use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Core\Security\SessionHelper;
 use AgVote\Repository\UserRepository;
@@ -60,9 +61,10 @@ final class AccountController {
      * Handle POST — validate and apply password change.
      */
     private function handlePasswordChange(array $sessionUser): void {
-        $currentPassword    = (string) ($_POST['current_password'] ?? '');
-        $newPassword        = (string) ($_POST['new_password'] ?? '');
-        $newPasswordConfirm = (string) ($_POST['new_password_confirm'] ?? '');
+        $request = new Request();
+        $currentPassword    = (string) $request->body('current_password', '');
+        $newPassword        = (string) $request->body('new_password', '');
+        $newPasswordConfirm = (string) $request->body('new_password_confirm', '');
 
         $errors = [];
 

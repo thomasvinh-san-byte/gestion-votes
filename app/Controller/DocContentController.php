@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\Request;
+
 /**
  * Serves raw markdown content for the documentation viewer.
  * No authentication required — documentation is public.
@@ -13,7 +15,8 @@ final class DocContentController {
     public function show(): void {
         header('Content-Type: text/plain; charset=utf-8');
 
-        $page = trim((string) ($_GET['page'] ?? ''));
+        $request = new Request();
+        $page = trim((string) $request->query('page', ''));
 
         if ($page === '') {
             http_response_code(400);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\Request;
 use AgVote\Repository\SetupRepository;
 use AgVote\View\HtmlView;
 use Throwable;
@@ -59,11 +60,12 @@ final class SetupController {
      * Re-renders the form with errors on validation failure.
      */
     private function handlePost(): void {
-        $orgName  = trim((string) ($_POST['organisation_name'] ?? ''));
-        $name     = trim((string) ($_POST['admin_name'] ?? ''));
-        $email    = trim((string) ($_POST['admin_email'] ?? ''));
-        $password = (string) ($_POST['admin_password'] ?? '');
-        $confirm  = (string) ($_POST['admin_password_confirm'] ?? '');
+        $request = new Request();
+        $orgName  = trim((string) $request->body('organisation_name', ''));
+        $name     = trim((string) $request->body('admin_name', ''));
+        $email    = trim((string) $request->body('admin_email', ''));
+        $password = (string) $request->body('admin_password', '');
+        $confirm  = (string) $request->body('admin_password_confirm', '');
 
         $errors = [];
 

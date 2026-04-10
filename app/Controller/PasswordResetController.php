@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\Request;
 use AgVote\Core\Security\RateLimiter;
 use AgVote\Service\PasswordResetService;
 use AgVote\View\HtmlView;
@@ -31,10 +32,11 @@ final class PasswordResetController {
      * Main entry point dispatched by the router.
      */
     public function resetPassword(): void {
-        $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $request = new Request();
+        $method = strtoupper($request->server('REQUEST_METHOD') ?? 'GET');
 
         // Token may come from query string (GET) or POST body (form submit)
-        $token = trim((string) ($_GET['token'] ?? $_POST['token'] ?? ''));
+        $token = trim((string) ($request->query('token', '') ?: $request->body('token', '')));
 
         if ($token !== '') {
             // Token present — either show new-password form or process it
@@ -77,8 +79,9 @@ final class PasswordResetController {
      * POST /reset-password?token=... — Validate fields and reset password.
      */
     private function handleNewPasswordPost(string $rawToken): void {
-        $password = (string) ($_POST['password'] ?? '');
-        $confirm  = (string) ($_POST['password_confirm'] ?? '');
+        $request = new Request();
+        $password = (string) $request->body('password', '');
+        $confirm  = (string) $request->body('password_confirm', '');
 
         $errors = [];
 
@@ -135,7 +138,8 @@ final class PasswordResetController {
         }
         RateLimiter::check('password_reset', $ip, 5, 300, false);
 
-        $email = trim((string) ($_POST['email'] ?? ''));
+        $request = new Request();
+        $email = trim((string) $request->body('email', ''));
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             // Show success anyway — no enumeration on invalid email either

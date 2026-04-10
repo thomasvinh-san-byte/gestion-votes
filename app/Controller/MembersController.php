@@ -21,7 +21,7 @@ final class MembersController extends AbstractController {
         $perPage = max(1, min(api_query_int('per_page', 50), 50));
         $offset  = ($page - 1) * $perPage;
 
-        $search = trim($_GET['search'] ?? '');
+        $search = trim((string) $this->request->query('search', ''));
 
         if ($search !== '') {
             $rows  = $repo->listPaginatedFiltered($tenantId, $perPage, $offset, $search);

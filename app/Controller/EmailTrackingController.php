@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\Request;
 use AgVote\Core\Providers\RepositoryFactory;
 use Throwable;
 
@@ -13,8 +14,9 @@ use Throwable;
  */
 final class EmailTrackingController {
     public function pixel(): void {
+        $request = new Request();
         $trackingEnabled = (bool) config('email_tracking_enabled', true);
-        $invitationId = trim((string) ($_GET['id'] ?? ''));
+        $invitationId = trim((string) $request->query('id', ''));
 
         if ($invitationId === '' || !$trackingEnabled) {
             $this->outputPixel();
@@ -51,9 +53,10 @@ final class EmailTrackingController {
     }
 
     public function redirect(): void {
+        $request = new Request();
         $trackingEnabled = (bool) config('email_tracking_enabled', true);
-        $invitationId = trim((string) ($_GET['id'] ?? ''));
-        $targetUrl = trim((string) ($_GET['url'] ?? ''));
+        $invitationId = trim((string) $request->query('id', ''));
+        $targetUrl = trim((string) $request->query('url', ''));
 
         $fallbackUrl = config('app_url', 'http://localhost:8080');
 
