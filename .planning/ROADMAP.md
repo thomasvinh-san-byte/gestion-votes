@@ -122,8 +122,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Extract SessionManager + RbacEngine, refactor AuthMiddleware to thin orchestrator
+- [ ] 02-02-PLAN.md — Unit tests for SessionManager and RbacEngine (isolation proof)
 
 ### Phase 3: Refactoring ImportService
 **Goal**: ImportService est un orchestrateur leger (<300 LOC) qui delegue le parsing CSV a CsvImporter et XLSX a XlsxImporter
