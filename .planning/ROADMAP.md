@@ -173,10 +173,10 @@ Plans:
   1. `wc -l app/Services/EmailQueueService.php` affiche <300 lignes
   2. `wc -l app/Services/RetryPolicy.php` affiche <300 lignes
   3. RetryPolicy est une `final class` avec <300 LOC (grep confirme)
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — Extract RetryPolicy + refactor EmailQueueService to thin orchestrator
 
 ### Phase 7: Validation Gate
 **Goal**: Le milestone est valide -- zero regression sur les routes, les tests unitaires, et les tests E2E
