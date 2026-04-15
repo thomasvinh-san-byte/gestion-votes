@@ -88,7 +88,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 - [ ] **Phase 2: Refactoring AuthMiddleware** - Extraire SessionManager et RbacEngine, ramener AuthMiddleware <300 LOC
 - [ ] **Phase 3: Refactoring ImportService** - Extraire CsvImporter et XlsxImporter, ramener ImportService <300 LOC
 - [ ] **Phase 4: Refactoring ExportService** - Extraire ValueTranslator, ramener ExportService <300 LOC
-- [ ] **Phase 5: Refactoring MeetingReportsService** - Extraire ReportGenerator, ramener MeetingReportsService <300 LOC
+- [x] **Phase 5: Refactoring MeetingReportsService** - Extraire ReportGenerator, ramener MeetingReportsService <300 LOC (completed 2026-04-15)
 - [ ] **Phase 6: Refactoring EmailQueueService** - Extraire RetryPolicy, ramener EmailQueueService <300 LOC
 - [ ] **Phase 7: Validation Gate** - Confirmer zero regression routes, PHPUnit vert, Playwright vert
 
@@ -199,7 +199,7 @@ Plans:
 | 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
-| 5. JS Audit et Wiring Repair | v1.1 | 3/3 | Complete | 2026-04-08 |
+| 5. JS Audit et Wiring Repair | 1/1 | Complete   | 2026-04-15 | 2026-04-08 |
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 8. Test Infrastructure Docker | v1.2 | 3/3 | Complete | 2026-04-08 |

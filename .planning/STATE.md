@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-10T12:06:47.774Z"
-last_activity: 2026-04-10
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-15T02:14:24.415Z"
+last_activity: 2026-04-10 -- Phase 05 execution started
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 5
+  total_plans: 7
+  completed_plans: 7
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 04 — refactoring-exportservice
+**Current focus:** Phase 05 — refactoring-meetingreportsservice
 
 ## Current Position
 
-Phase: 05
-Plan: Not started
-Status: Executing Phase 04
-Last activity: 2026-04-10
+Phase: 05 (refactoring-meetingreportsservice) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 05
+Last activity: 2026-04-10 -- Phase 05 execution started
 
 **Progress:** [██████████] 100%
 
@@ -66,6 +66,7 @@ Last activity: 2026-04-10
 | Phase 02 P02 | 4min | 2 tasks | 2 files |
 | Phase 03 P01 | 7min | 2 tasks | 3 files |
 | Phase 04 P01 | 2min | 2 tasks | 2 files |
+| Phase 05 P01 | 5min | 2 tasks | 2 files |
 
 ### Decisions
 
@@ -87,6 +88,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Value parsers stay on ImportService as shared static utilities called by both importers
 - [Phase 03]: buildMemberLookups duplicated in both importers (12 LOC) to avoid cross-class coupling
 - [Phase 04]: Row formatters and headers moved to ValueTranslator to meet 300 LOC ceiling; 22 delegation stubs preserve public API
+- [Phase 05]: buildPdfHtml stays on MeetingReportsService (self-contained, PDF-specific); pre-fetch policies/officials/ballots for truly stateless ReportGenerator
 
 ### Pending Todos
 
@@ -98,8 +100,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-10T12:04:59.251Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-15T02:14:24.410Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 **Next action:** `/gsd:execute-phase 4` to start Refactoring ExportService

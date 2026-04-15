@@ -35,8 +35,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Refactoring MeetingReportsService
 
-- [ ] **REFAC-07**: MeetingReportsService <300 LOC apres extraction de ReportGenerator
-- [ ] **REFAC-08**: ReportGenerator est une final class avec DI nullable <300 LOC
+- [x] **REFAC-07**: MeetingReportsService <300 LOC apres extraction de ReportGenerator
+- [x] **REFAC-08**: ReportGenerator est une final class avec DI nullable <300 LOC
 
 ### Refactoring EmailQueueService
 
@@ -90,8 +90,8 @@ Deferred to next milestone.
 | REFAC-04 | Phase 3 | Complete |
 | REFAC-05 | Phase 4 | Complete |
 | REFAC-06 | Phase 4 | Complete |
-| REFAC-07 | Phase 5 | Pending |
-| REFAC-08 | Phase 5 | Pending |
+| REFAC-07 | Phase 5 | Complete |
+| REFAC-08 | Phase 5 | Complete |
 | REFAC-09 | Phase 6 | Pending |
 | REFAC-10 | Phase 6 | Pending |
 | GUARD-01 | Phase 7 | Pending |
