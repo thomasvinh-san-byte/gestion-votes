@@ -116,14 +116,14 @@
                 Identit&eacute; de la s&eacute;ance
               </div>
               <div class="field">
-                <label class="field-label" for="wizTitle">Titre de la s&eacute;ance <span class="req">*</span></label>
-                <input class="field-input" id="wizTitle" aria-required="true" placeholder="Ex : AG Ordinaire du 15 mars 2026" maxlength="200" autocomplete="off">
+                <label class="form-label" for="wizTitle">Titre de la s&eacute;ance <span class="req">*</span></label>
+                <input class="form-input" id="wizTitle" aria-required="true" placeholder="Ex : AG Ordinaire du 15 mars 2026" maxlength="200" autocomplete="off">
                 <div class="field-error-msg" id="errWizTitle">Le titre est obligatoire.</div>
               </div>
               <div class="form-grid-2">
                 <div class="field">
-                  <label class="field-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
-                  <select class="field-input" id="wizType" aria-required="true">
+                  <label class="form-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
+                  <select class="form-select" id="wizType" aria-required="true">
                     <option>AG Ordinaire</option>
                     <option>AG Extraordinaire</option>
                     <option>Conseil d'administration</option>
@@ -131,13 +131,13 @@
                 </div>
                 <div class="wiz-date-time-row">
                   <div class="field">
-                    <label class="field-label" for="wizDate">Date <span class="req">*</span></label>
-                    <input class="field-input" id="wizDate" aria-required="true" type="date">
+                    <label class="form-label" for="wizDate">Date <span class="req">*</span></label>
+                    <input class="form-input" id="wizDate" aria-required="true" type="date">
                     <div class="field-error-msg" id="errWizDate">La date est obligatoire.</div>
                   </div>
                   <div class="field">
-                    <label class="field-label" for="wizTime">Heure <span class="req">*</span></label>
-                    <input class="field-input" id="wizTime" type="time" value="18:00" aria-required="true">
+                    <label class="form-label" for="wizTime">Heure <span class="req">*</span></label>
+                    <input class="form-input" id="wizTime" type="time" value="18:00" aria-required="true">
                     <div class="field-error-msg" id="errWizTime">L'heure est obligatoire.</div>
                   </div>
                 </div>
@@ -152,12 +152,12 @@
               </div>
               <div class="form-grid-2">
                 <div class="field">
-                  <label class="field-label" for="wizPlace">Nom du lieu</label>
-                  <input class="field-input" id="wizPlace" placeholder="Ex : Salle polyvalente" maxlength="100" autocomplete="off">
+                  <label class="form-label" for="wizPlace">Nom du lieu</label>
+                  <input class="form-input" id="wizPlace" placeholder="Ex : Salle polyvalente" maxlength="100" autocomplete="off">
                 </div>
                 <div class="field">
-                  <label class="field-label" for="wizAddr">Adresse</label>
-                  <input class="field-input" id="wizAddr" placeholder="Ex : 10 avenue de la R&eacute;publique" maxlength="200" autocomplete="off">
+                  <label class="form-label" for="wizAddr">Adresse</label>
+                  <input class="form-input" id="wizAddr" placeholder="Ex : 10 avenue de la R&eacute;publique" maxlength="200" autocomplete="off">
                 </div>
               </div>
             </div>
@@ -173,7 +173,7 @@
               <div class="wiz-advanced-body">
                 <div class="form-grid-2">
                   <div class="field">
-                    <label class="field-label" for="wizQuorum">
+                    <label class="form-label" for="wizQuorum">
                       Politique de quorum
                       <ag-popover trigger="click" position="top" width="300">
                         <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur le quorum">
@@ -185,7 +185,7 @@
                         </div>
                       </ag-popover>
                     </label>
-                    <select class="field-input" id="wizQuorum">
+                    <select class="form-select" id="wizQuorum">
                       <option>50% des pr&eacute;sents + 1 (d&eacute;faut)</option>
                       <option>50% des voix</option>
                       <option>33% des pr&eacute;sents (2e convocation)</option>
@@ -195,7 +195,7 @@
                     <div class="field-hint">R&egrave;gle l&eacute;gale d&eacute;terminant la validit&eacute; de l'assembl&eacute;e.</div>
                   </div>
                   <div class="field">
-                    <label class="field-label" for="wizDefaultMaj">
+                    <label class="form-label" for="wizDefaultMaj">
                       Majorit&eacute; par d&eacute;faut
                       <ag-popover trigger="click" position="top" width="300">
                         <button slot="trigger" class="field-info-btn" type="button" aria-label="En savoir plus sur la majorit&eacute;">
@@ -207,7 +207,7 @@
                         </div>
                       </ag-popover>
                     </label>
-                    <select class="field-input" id="wizDefaultMaj">
+                    <select class="form-select" id="wizDefaultMaj">
                       <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
                       <option value="art25">Majorit&eacute; absolue (art. 25)</option>
                       <option value="art26">Double majorit&eacute; (art. 26)</option>
@@ -272,12 +272,12 @@
             <!-- Member add form — single horizontal row -->
             <div class="wiz-member-add-row" id="wizMemberAddForm">
               <div class="field field--flex">
-                <label class="field-label" for="wizMemberName">Nom <span class="req">*</span></label>
-                <input class="field-input" id="wizMemberName" placeholder="Nom du participant" maxlength="100" autocomplete="off">
+                <label class="form-label" for="wizMemberName">Nom <span class="req">*</span></label>
+                <input class="form-input" id="wizMemberName" placeholder="Nom du participant" maxlength="100" autocomplete="off">
               </div>
               <div class="field field--flex">
-                <label class="field-label" for="wizMemberEmail">Courriel</label>
-                <input class="field-input" id="wizMemberEmail" type="email" placeholder="adresse@exemple.fr" maxlength="200" autocomplete="off">
+                <label class="form-label" for="wizMemberEmail">Courriel</label>
+                <input class="form-input" id="wizMemberEmail" type="email" placeholder="adresse@exemple.fr" maxlength="200" autocomplete="off">
               </div>
               <button class="btn btn-primary btn-sm wiz-member-add-btn" type="button" id="btnAddMemberInline">
                 + Ajouter
@@ -373,12 +373,12 @@
               </div>
               <div class="form-grid-2">
                 <div class="field">
-                  <label class="field-label" for="resoTitle">Titre <span class="req">*</span></label>
-                  <input class="field-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off">
+                  <label class="form-label" for="resoTitle">Titre <span class="req">*</span></label>
+                  <input class="form-input" id="resoTitle" aria-required="true" placeholder="Ex : Approbation des comptes 2025" maxlength="200" autocomplete="off">
                 </div>
                 <div class="field">
-                  <label class="field-label" for="resoMaj">Majorit&eacute; <span class="req">*</span></label>
-                  <select class="field-input" id="resoMaj" aria-required="true">
+                  <label class="form-label" for="resoMaj">Majorit&eacute; <span class="req">*</span></label>
+                  <select class="form-select" id="resoMaj" aria-required="true">
                     <option value="art24">Majorit&eacute; simple (art. 24) &mdash; D&Eacute;FAUT</option>
                     <option value="art25">Majorit&eacute; absolue (art. 25)</option>
                     <option value="art26">Double majorit&eacute; (art. 26)</option>
@@ -387,11 +387,11 @@
                 </div>
               </div>
               <div class="field">
-                <label class="field-label" for="resoDesc">Description</label>
+                <label class="form-label" for="resoDesc">Description</label>
                 <textarea class="form-textarea" id="resoDesc" placeholder="Texte de la r&eacute;solution soumise au vote" maxlength="2000" rows="2"></textarea>
               </div>
               <div class="field">
-                <label class="field-label">Vote secret <ag-popover title="Scrutin secret" content="Les bulletins de vote sont anonymes. Le r&eacute;sultat individuel n'est pas consultable." position="top" trigger="click"></ag-popover></label>
+                <label class="form-label">Vote secret <ag-popover title="Scrutin secret" content="Les bulletins de vote sont anonymes. Le r&eacute;sultat individuel n'est pas consultable." position="top" trigger="click"></ag-popover></label>
                 <div class="chips-row">
                   <span class="chip active" id="chipNonSecret">Non (d&eacute;faut)</span>
                   <span class="chip" id="chipSecret">Oui</span>
