@@ -90,7 +90,7 @@
             <h2 class="text-lg font-semibold mb-2">Parcours post-s&eacute;ance</h2>
             <p class="text-muted text-sm mb-4">S&eacute;lectionnez la s&eacute;ance termin&eacute;e &agrave; traiter :</p>
             <label class="sr-only" for="meetingPickerSelect">S&eacute;lectionner une s&eacute;ance</label>
-            <select class="form-input ps-picker-select" id="meetingPickerSelect" aria-label="S&eacute;lectionner la s&eacute;ance &agrave; traiter">
+            <select class="form-select ps-picker-select" id="meetingPickerSelect" aria-label="S&eacute;lectionner la s&eacute;ance &agrave; traiter">
               <option value="">Chargement des s&eacute;ances&hellip;</option>
             </select>
           </div>
@@ -249,7 +249,7 @@
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Signataires</h3></div>
             <div class="card-body">
-              <div class="ps-signataire-row">
+              <div class="form-grid-2">
                 <div class="form-group">
                   <label class="form-label" for="sigPresident">Pr&eacute;sident(e)</label>
                   <input class="form-input" id="sigPresident" readonly value="&mdash;">
@@ -258,8 +258,6 @@
                   <label class="form-label" for="sigSecretary">Secr&eacute;taire</label>
                   <input class="form-input" id="sigSecretary" readonly value="&mdash;">
                 </div>
-              </div>
-              <div class="ps-signataire-row">
                 <div class="form-group">
                   <label class="form-label" for="sigScrutateur1">Scrutateur 1</label>
                   <input class="form-input" id="sigScrutateur1" readonly value="&mdash;">
@@ -276,17 +274,19 @@
           <div class="card mb-4">
             <div class="card-header"><h3 class="card-title">Observations &amp; R&eacute;serves</h3></div>
             <div class="card-body">
+              <div class="form-grid-2">
               <div class="form-group mb-4">
                 <label class="form-label" for="pvObservations">Observations du pr&eacute;sident</label>
                 <textarea class="form-textarea" id="pvObservations" rows="3" placeholder="Saisir les observations du pr&eacute;sident&hellip;"></textarea>
               </div>
-              <div class="alert alert-warn mb-3">
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
-                D&eacute;lai de contestation : le PV doit &ecirc;tre notifi&eacute; dans le d&eacute;lai pr&eacute;vu par vos statuts.
-              </div>
               <div class="form-group ps-reserves-field">
                 <label class="form-label" for="pvReserves">R&eacute;serves et contestations</label>
                 <textarea class="form-textarea" id="pvReserves" rows="3" placeholder="Saisir les r&eacute;serves ou contestations des membres&hellip;"></textarea>
+              </div>
+              </div>
+              <div class="alert alert-warn mb-3">
+                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                D&eacute;lai de contestation : le PV doit &ecirc;tre notifi&eacute; dans le d&eacute;lai pr&eacute;vu par vos statuts.
               </div>
             </div>
           </div>
@@ -429,9 +429,10 @@
               <div class="card">
                 <div class="card-header"><h3 class="card-title">Envoyer le proc&egrave;s-verbal</h3></div>
                 <div class="card-body">
+                  <div class="form-grid-2">
                   <div class="form-group mb-4">
                     <label class="form-label" for="sendTo">Destinataires</label>
-                    <select class="form-input" id="sendTo">
+                    <select class="form-select" id="sendTo">
                       <option value="all">Tous les membres pr&eacute;sents</option>
                       <option value="all_members">Tous les membres (pr&eacute;sents + absents)</option>
                       <option value="custom">Adresse personnalis&eacute;e</option>
@@ -440,6 +441,7 @@
                   <div class="form-group mb-4" id="customEmailGroup" hidden>
                     <label class="form-label" for="customEmail">Adresse email</label>
                     <input class="form-input" type="email" id="customEmail" placeholder="destinataire@exemple.fr">
+                  </div>
                   </div>
                   <div class="flex items-center gap-3">
                     <button class="btn btn-primary" id="btnSendReport">
