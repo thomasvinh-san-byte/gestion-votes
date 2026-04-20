@@ -17,7 +17,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **UI-04**: Wizard migre de field-input vers form-input/form-select sur tous les champs
 - [x] **UI-05**: Inline styles elimines — 42 occurrences remplacees par des classes CSS
-- [ ] **UI-06**: Shell.js drawer inline styles remplaces par des classes design-system
+- [x] **UI-06**: Shell.js drawer inline styles remplaces par des classes design-system
 
 ### Coherence Cross-Pages
 
@@ -71,7 +71,7 @@ Deferred to next milestone.
 | UI-03 | Phase 1 | Complete |
 | UI-04 | Phase 2 | Complete |
 | UI-05 | Phase 2 | Complete |
-| UI-06 | Phase 2 | Pending |
+| UI-06 | Phase 2 | Complete |
 | UI-07 | Phase 3 | Pending |
 | UI-08 | Phase 3 | Pending |
 | UI-09 | Phase 3 | Pending |
