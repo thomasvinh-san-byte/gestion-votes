@@ -25,6 +25,12 @@ $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 // ─── Root URL: redirect to login page ────────────────────────────────────
 
 if ($uri === '/' && $method === 'GET') {
+    // Serve index.html directly (2-panel login + landing page)
+    $indexPath = __DIR__ . '/index.html';
+    if (file_exists($indexPath)) {
+        readfile($indexPath);
+        exit;
+    }
     header('Location: /login.html', true, 302);
     exit;
 }

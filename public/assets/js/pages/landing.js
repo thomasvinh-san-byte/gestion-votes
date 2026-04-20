@@ -50,6 +50,13 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.ok) {
+          // Check for redirect/return_to param first
+            var urlParams = new URLSearchParams(window.location.search);
+            var returnTo = urlParams.get('return_to') || urlParams.get('redirect');
+            if (returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+              window.location.href = returnTo;
+              return;
+            }
           // Role-aware redirect after login
             var user = data.user || (data.data && data.data.user) || {};
             var role = user.role || 'viewer';
