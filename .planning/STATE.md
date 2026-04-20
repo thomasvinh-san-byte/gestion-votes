@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Reparation UI et Polish Fonctionnel
-status: defining
-stopped_at: Defining requirements
+status: ready_to_plan
+stopped_at: Roadmap created, ready to plan Phase 1
 last_updated: "2026-04-20T00:00:00.000Z"
-last_activity: 2026-04-20 -- Milestone v1.6 started
+last_activity: 2026-04-20 -- Roadmap created for v1.6
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,31 +18,28 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-10)
+See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.6 — Reparation UI et Polish Fonctionnel
+**Current focus:** v1.6 Phase 1 — JS Interaction Audit & Repair
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 1 of 4 (JS Interaction Audit & Repair)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-20 -- Phase 07 completed
+Status: Ready to plan
+Last activity: 2026-04-20 — Roadmap created for v1.6
 
-**Progress:** [██████████] 100%
+**Progress:** [░░░░░░░░░░] 0%
 
-## v1.5 Phase Summary
+## v1.6 Phase Summary
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 1 — Nettoyage Codebase | Supprimer console.log, code deprecie, TODOs, migrer superglobals, tester PageController | CLEAN-01..05 |
-| 2 — Refactoring AuthMiddleware | Extraire SessionManager + RbacEngine, AuthMiddleware <300 LOC | REFAC-01, REFAC-02 |
-| 3 — Refactoring ImportService | Extraire CsvImporter + XlsxImporter, ImportService <300 LOC | REFAC-03, REFAC-04 |
-| 4 — Refactoring ExportService | Extraire ValueTranslator, ExportService <300 LOC | REFAC-05, REFAC-06 |
-| 5 — Refactoring MeetingReportsService | Extraire ReportGenerator, MeetingReportsService <300 LOC | REFAC-07, REFAC-08 |
-| 6 — Refactoring EmailQueueService | Extraire RetryPolicy, EmailQueueService <300 LOC | REFAC-09, REFAC-10 |
-| 7 — Validation Gate | Zero regression routes + PHPUnit + Playwright | GUARD-01..03 |
+| 1 — JS Interaction Audit & Repair | Zero erreur console, zero bouton mort, zero formulaire cassé sur 21 pages | JSFIX-01..04 |
+| 2 — Form Layout Modernization | Formulaires multi-colonnes, champs compacts, largeur horizontale exploitee | FORM-01..03 |
+| 3 — Wizard Single-Page | Assistant creation seance sur un viewport sans scroll | WIZ-01 |
+| 4 — Validation Gate | Verification bout-en-bout, zero regression | VALID-01 |
 
 ## Performance Metrics
 
@@ -60,37 +57,15 @@ Last activity: 2026-04-20 -- Phase 07 completed
 
 ## Accumulated Context
 
-| Phase 01 P01 | 4min | 2 tasks | 22 files |
-| Phase 01 P02 | 4min | 2 tasks | 7 files |
-| Phase 02 P01 | 8min | 2 tasks | 3 files |
-| Phase 02 P02 | 4min | 2 tasks | 2 files |
-| Phase 03 P01 | 7min | 2 tasks | 3 files |
-| Phase 04 P01 | 2min | 2 tasks | 2 files |
-| Phase 05 P01 | 5min | 2 tasks | 2 files |
-| Phase 06 P01 | 5min | 2 tasks | 2 files |
-| Phase 07 P01 | 3min | 3 tasks | 0 files |
-
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.5 roadmap]: 7 phases — nettoyage first (quick wins), then each service refactoring isolated, validation gate last
-- [v1.5 roadmap]: GUARD requirements cross-cutting — assigned to Phase 7 as final validation gate
-- [v1.5 roadmap]: AuthMiddleware refactoring (Phase 2) before other services — highest complexity and risk
-- [v1.5 roadmap]: Phases 3-6 parallelizable (no inter-service dependencies), but sequenced for focus
-- [v1.5 roadmap]: 300 LOC ceiling from v1.4 carries forward — all extracted classes must be <300 LOC
-- [Phase 01]: Vendor JS files excluded from console.log cleanup scope
-- [Phase 01 P02]: Standalone HTML controllers use new Request() locally, not constructor injection
-- [Phase 01 P02]: PageController tests use @runInSeparateProcess for header() isolation
-- [Phase 02]: Keep all 10 static properties on AuthMiddleware as mirrors for Reflection-based test compatibility
-- [Phase 02]: RbacEngine methods receive user as parameter for isolated testability
-- [Phase 02]: No DB mocking needed for SessionManager/RbacEngine — test helpers provide full isolation
-- [Phase 03]: Process methods split by LOC balance: CsvImporter gets member+attendance, XlsxImporter gets proxy+motion
-- [Phase 03]: Value parsers stay on ImportService as shared static utilities called by both importers
-- [Phase 03]: buildMemberLookups duplicated in both importers (12 LOC) to avoid cross-class coupling
-- [Phase 04]: Row formatters and headers moved to ValueTranslator to meet 300 LOC ceiling; 22 delegation stubs preserve public API
-- [Phase 05]: buildPdfHtml stays on MeetingReportsService (self-contained, PDF-specific); pre-fetch policies/officials/ballots for truly stateless ReportGenerator
+- [v1.6 roadmap]: 4 phases — JS audit first (fix broken before modernizing), then forms, wizard, validation gate last
+- [v1.6 roadmap]: Phase 1 covers all 4 JSFIX requirements together (21 pages, audit + repair in same phase)
+- [v1.6 roadmap]: Wizard gets its own phase (specific page, distinct from general form modernization)
+- [v1.6 roadmap]: Validation gate pattern carried from v1.5 Phase 7
 
 ### Pending Todos
 
@@ -102,8 +77,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-15T02:14:24.410Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-04-20
+Stopped at: Roadmap created for v1.6
 Resume file: None
 
-**Next action:** `/gsd:complete-milestone` to archive v1.5
+**Next action:** `/gsd:plan-phase 1`

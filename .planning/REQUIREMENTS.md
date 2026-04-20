@@ -58,20 +58,20 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| JSFIX-01 | TBD | Pending |
-| JSFIX-02 | TBD | Pending |
-| JSFIX-03 | TBD | Pending |
-| JSFIX-04 | TBD | Pending |
-| FORM-01 | TBD | Pending |
-| FORM-02 | TBD | Pending |
-| FORM-03 | TBD | Pending |
-| WIZ-01 | TBD | Pending |
-| VALID-01 | TBD | Pending |
+| JSFIX-01 | Phase 1 | Pending |
+| JSFIX-02 | Phase 1 | Pending |
+| JSFIX-03 | Phase 1 | Pending |
+| JSFIX-04 | Phase 1 | Pending |
+| FORM-01 | Phase 2 | Pending |
+| FORM-02 | Phase 2 | Pending |
+| FORM-03 | Phase 2 | Pending |
+| WIZ-01 | Phase 3 | Pending |
+| VALID-01 | Phase 4 | Pending |
 
 **Coverage:**
 - v1.6 requirements: 9 total
-- Mapped to phases: 0/9 (awaiting roadmap)
-- Unmapped: 9
+- Mapped to phases: 9/9
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-20*
