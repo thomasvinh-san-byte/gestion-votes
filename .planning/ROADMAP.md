@@ -103,7 +103,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 - [x] **Phase 1: JS Interaction Audit & Repair** - Audit systematique des 21 pages HTMX, reparer boutons, formulaires, et SSE casses (completed 2026-04-20)
 - [x] **Phase 2: Form Layout Modernization** - Layouts multi-colonnes, champs compacts, utilisation agressive de la largeur (completed 2026-04-20)
 - [x] **Phase 3: Wizard Single-Page** - L'assistant de creation de seance tient sur un seul viewport (completed 2026-04-20)
-- [ ] **Phase 4: Validation Gate** - Verification bout-en-bout de chaque page, zero regression
+- [x] **Phase 4: Validation Gate** - Verification bout-en-bout de chaque page, zero regression (completed 2026-04-20)
 
 ## Phase Details
 
@@ -197,4 +197,4 @@ Plans:
 | 1. JS Interaction Audit & Repair | v1.6 | 3/3 | Complete | 2026-04-20 |
 | 2. Form Layout Modernization | v1.6 | 3/3 | Complete | 2026-04-20 |
 | 3. Wizard Single-Page | v1.6 | 1/1 | Complete | 2026-04-20 |
-| 4. Validation Gate | v1.6 | 0/? | Not started | - |
+| 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
