@@ -560,12 +560,12 @@
       if (sizeMap[storedSize]) {
         document.documentElement.style.fontSize = sizeMap[storedSize];
       }
-      var radio = document.querySelector('input[name="settTextSize"][value="' + storedSize + '"]');
+      var radio = document.querySelector('input[name="textSize"][value="' + storedSize + '"]');
       if (radio) radio.checked = true;
     }
 
     // Text size A/A+/A++
-    document.querySelectorAll('input[name="settTextSize"]').forEach(function(radio) {
+    document.querySelectorAll('input[name="textSize"]').forEach(function(radio) {
       radio.addEventListener('change', function() {
         var sizeMap = { normal: '16px', large: '18px', xlarge: '20px' };
         var fontSize = sizeMap[radio.value] || '16px';
