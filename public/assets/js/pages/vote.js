@@ -1082,7 +1082,7 @@
    * @param {boolean} on - Whether to enable buttons
    */
   function setVoteButtonsEnabled(on){
-    ['#btnFor','#btnAgainst','#btnAbstain','#btnBlanc','#btnNone'].forEach(id=>{
+    ['#btnFor','#btnAgainst','#btnAbstain','#btnBlanc'].forEach(id=>{
       const el=$(id);
       if (el) el.disabled = !on;
     });
