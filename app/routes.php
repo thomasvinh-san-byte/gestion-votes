@@ -398,5 +398,6 @@ return function (Router $router): void {
     ];
     foreach ($pageRoutes as $page) {
         $router->map('GET', "/{$page}", PageController::class, 'serveFromUri');
+        $router->map('GET', "/{$page}/" . '{id}', PageController::class, 'serveFromUri');
     }
 };
