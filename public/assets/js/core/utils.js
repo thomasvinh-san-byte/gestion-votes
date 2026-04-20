@@ -322,6 +322,12 @@ window.Utils = window.Utils || {};
     if (token) {
       e.detail.headers['X-CSRF-Token'] = token;
     }
+
+    // Auto idempotency key for mutating HTMX requests
+    const method = (e.detail.verb || '').toUpperCase();
+    if ((method === 'POST' || method === 'PATCH') && !e.detail.headers['X-Idempotency-Key']) {
+      e.detail.headers['X-Idempotency-Key'] = crypto.randomUUID();
+    }
   });
 
   // Re-init CSRF after HTMX swap
