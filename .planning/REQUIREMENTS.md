@@ -9,8 +9,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Audit
 
-- [ ] **IDEM-01**: Inventaire complet des routes POST/PATCH/DELETE avec leur niveau de protection actuel (IdempotencyGuard, UNIQUE constraint, CSRF seul)
-- [ ] **IDEM-02**: Chaque route classee par risque (critique/moyen/bas) selon l'impact d'un doublon
+- [x] **IDEM-01**: Inventaire complet des routes POST/PATCH/DELETE avec leur niveau de protection actuel (IdempotencyGuard, UNIQUE constraint, CSRF seul)
+- [x] **IDEM-02**: Chaque route classee par risque (critique/moyen/bas) selon l'impact d'un doublon
 
 ### Protection des routes critiques
 
@@ -54,8 +54,8 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IDEM-01 | Phase 1 | Pending |
-| IDEM-02 | Phase 1 | Pending |
+| IDEM-01 | Phase 1 | Complete |
+| IDEM-02 | Phase 1 | Complete |
 | IDEM-03 | Phase 2 | Pending |
 | IDEM-04 | Phase 2 | Pending |
 | IDEM-05 | Phase 2 | Pending |
