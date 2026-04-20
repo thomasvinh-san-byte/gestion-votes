@@ -196,7 +196,10 @@ Plans:
   1. La landing page montre du contenu utile sans scroll sur un ecran 1080p (hero ne prend plus 100vh)
   2. Le type de seance utilise un select au lieu de radio buttons sur les pages operator, meetings et wizard
   3. Le dead code KPI dans design-system.css est supprime (plus de regles overridees par pages.css)
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — Hero compact, radio->select, KPI dead code cleanup
 
 ### Phase 5: Validation Gate
 **Goal**: Confirmation automatisee que toutes les corrections UI sont en place et sans regression
@@ -207,7 +210,10 @@ Plans:
   2. Zero occurrence de la classe field-input dans le codebase (remplacee par form-input)
   3. Une seule version affichee (source unique, grep confirme)
   4. Les tests E2E existants passent sans regression
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — Hero compact, radio->select, KPI dead code cleanup
 
 ## Progress
 
