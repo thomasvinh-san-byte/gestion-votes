@@ -181,7 +181,12 @@ Plans:
   1. Une seule version est affichee sur toutes les pages (plus de v3.19, v4.3, v4.4 ou v5.0 simultanees)
   2. Le footer affiche "Accessibilite" avec accent sur les 13 pages concernees
   3. Les modales utilisent un seul pattern (modal-backdrop + modal role=dialog) au lieu de 6 patterns differents
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Version unification (PHP constant, placeholder injection, 22 HTML files)
+- [ ] 03-02-PLAN.md — Footer accent fix (Accessibilite -> Accessibilite in 13 pages)
+- [ ] 03-03-PLAN.md — Modal unification (validate, trust, email-templates, meetings)
 
 ### Phase 4: Layout Fixes
 **Goal**: Les pages cles ont un layout optimal -- hero compact, controles de formulaire adaptes, zero dead code CSS
@@ -247,6 +252,6 @@ Plans:
 | 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 1. Palette et Tokens | v1.8 | 1/1 | Complete | 2026-04-20 |
 | 2. Classes CSS et Inline Cleanup | v1.8 | 3/3 | Complete | 2026-04-20 |
-| 3. Coherence Cross-Pages | v1.8 | 0/? | Not started | - |
+| 3. Coherence Cross-Pages | v1.8 | 0/3 | Not started | - |
 | 4. Layout Fixes | v1.8 | 0/? | Not started | - |
 | 5. Validation Gate | v1.8 | 0/? | Not started | - |
