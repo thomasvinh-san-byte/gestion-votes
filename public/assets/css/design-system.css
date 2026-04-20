@@ -622,29 +622,29 @@ table {
   --stepper-connector-height: 2px;
 }
 
-/* ─── Dark Theme « Acte Officiel » ─── */
+/* ─── Dark Theme — Slate ─── */
 [data-theme="dark"] {
-  --color-bg:             oklch(0.090 0.008 78);   /* was #0B0F1A (cool ~260) */
-  --color-bg-subtle:      oklch(0.130 0.010 78);   /* was #1B2030 */
-  --color-surface:        oklch(0.115 0.009 78);   /* was #141820 */
-  --color-surface-alt:    oklch(0.130 0.010 78);   /* Wireframe --surface-alt: elevation step above bg */
-  --color-surface-raised: oklch(0.145 0.011 78);   /* was #1E2438 */
-  --color-surface-overlay: oklch(0.115 0.009 78 / 0.96);  /* was rgba(20,24,32,0.96) */
-  --color-glass:           oklch(0.115 0.009 78 / 0.96);
+  --color-bg:             oklch(0.090 0.008 220);   /* deep slate bg */
+  --color-bg-subtle:      oklch(0.130 0.010 220);
+  --color-surface:        oklch(0.115 0.009 220);
+  --color-surface-alt:    oklch(0.130 0.010 220);
+  --color-surface-raised: oklch(0.145 0.011 220);
+  --color-surface-overlay: oklch(0.115 0.009 220 / 0.96);
+  --color-glass:           oklch(0.115 0.009 220 / 0.96);
 
   --color-text:          oklch(0.640 0.018 265);  /* was #7A8499 — cool for contrast */
   --color-text-dark:     oklch(0.908 0.015 265);  /* was #ECF0FA */
   --color-text-secondary: oklch(0.908 0.015 265);
-  --color-text-muted:    oklch(0.780 0.020 82);  /* was oklch(0.450 0.015 265) — WCAG AA on dark surface, warm hue 82 per Phase 82-01 (01-01) */
+  --color-text-muted:    oklch(0.780 0.020 220);  /* WCAG AA on dark surface, cool slate hue */
   --color-text-light:    oklch(0.350 0.012 265);  /* was #38404E */
-  --color-text-inverse:  oklch(0.090 0.008 78);   /* matches dark bg */
+  --color-text-inverse:  oklch(0.090 0.008 220);   /* matches dark bg */
   --color-text-disabled: oklch(0.330 0.012 260);  /* was #384050 */
 
-  --color-border:        oklch(0.210 0.010 78);   /* was #252C3C */
+  --color-border:        oklch(0.210 0.010 220);
   --color-border-alpha:  oklch(1 0 0 / 0.08);   /* alpha-based border — white-based for dark backgrounds */
-  --color-border-subtle: oklch(0.175 0.009 78);   /* was #1E2434 */
-  --color-border-strong: oklch(0.260 0.012 78);   /* was #2E3850 */
-  --color-border-dash:   oklch(0.260 0.012 78);
+  --color-border-subtle: oklch(0.175 0.009 220);
+  --color-border-strong: oklch(0.260 0.012 220);
+  --color-border-dash:   oklch(0.260 0.012 220);
   --color-border-focus:  oklch(0.680 0.130 265 / 0.50);  /* was rgba(61,126,248,0.50) */
 
   --color-primary:        var(--blue-400);          /* oklch(0.680 0.130 265) — was #3D7EF8 */
@@ -653,7 +653,7 @@ table {
   --color-primary-subtle: oklch(0.680 0.130 265 / 0.12);  /* was rgba(61,126,248,0.12) */
   --color-primary-muted:  oklch(0.680 0.130 265 / 0.12);
   --color-primary-glow:   oklch(0.680 0.130 265 / 0.16);  /* was rgba(61,126,248,0.16) */
-  --color-primary-text:   oklch(0.090 0.008 78);   /* dark text on light primary button */
+  --color-primary-text:   oklch(0.090 0.008 220);   /* dark text on light primary button */
   --color-primary-on-subtle: oklch(0.820 0.100 265);  /* lighter blue for text/chip on primary-subtle dark bg (01-01) */
 
   --color-success:        var(--green-500);         /* oklch(0.580 0.155 155) — was #2DC87A */
