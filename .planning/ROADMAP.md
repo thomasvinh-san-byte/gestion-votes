@@ -118,7 +118,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
 **Milestone Goal:** Verifier et renforcer l'idempotence des routes POST/PATCH/DELETE critiques -- aucun doublon sur vote, creation seance, creation membre, envoi email.
 
-- [ ] **Phase 1: Audit et Classification** - Inventaire complet des routes mutantes, classification par risque, documentation des lacunes
+- [x] **Phase 1: Audit et Classification** - Inventaire complet des routes mutantes, classification par risque, documentation des lacunes (completed 2026-04-20)
 - [ ] **Phase 2: Gardes Backend** - Ajout IdempotencyGuard sur routes critiques non protegees + idempotence workflow
 - [ ] **Phase 3: Frontend et Validation** - Header HTMX X-Idempotency-Key + tests unitaires
 
@@ -201,6 +201,6 @@ Plans:
 | 2. Form Layout Modernization | v1.6 | 3/3 | Complete | 2026-04-20 |
 | 3. Wizard Single-Page | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
-| 1. Audit et Classification | v1.7 | 0/? | Not started | - |
+| 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 2. Gardes Backend | v1.7 | 0/? | Not started | - |
 | 3. Frontend et Validation | v1.7 | 0/? | Not started | - |
