@@ -5238,6 +5238,56 @@ ag-pdf-viewer[mode="panel"] {
   }
 }
 
+/* --- Inline style replacements (Phase 02) --- */
+
+/* Settings: email template preview container */
+.template-preview {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  min-height: 120px;
+  background: var(--color-surface);
+  font: 14px/1.6 var(--font-sans);
+}
+
+.template-preview-placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Settings: hint text below fields */
+.field-hint-sm {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* Settings: font-size radio card labels */
+.settings-radio-card__label--sm { font-size: 1.2em; }
+.settings-radio-card__label--lg { font-size: 1.5em; }
+
+/* Settings: flex wrap for template variables */
+.template-vars-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+/* Analytics: donut legend dot colors */
+.donut-legend-dot--success { background: var(--color-success); }
+.donut-legend-dot--danger { background: var(--color-danger); }
+.donut-legend-dot--muted { background: var(--color-text-muted); }
+
+/* Hub: popover help text */
+.popover-help-text {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* Utility: cursor pointer */
+.cursor-pointer { cursor: pointer; }
+
 } /* end @layer components */
 
 @layer v4 {
