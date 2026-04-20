@@ -119,7 +119,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 **Milestone Goal:** Verifier et renforcer l'idempotence des routes POST/PATCH/DELETE critiques -- aucun doublon sur vote, creation seance, creation membre, envoi email.
 
 - [x] **Phase 1: Audit et Classification** - Inventaire complet des routes mutantes, classification par risque, documentation des lacunes (completed 2026-04-20)
-- [ ] **Phase 2: Gardes Backend** - Ajout IdempotencyGuard sur routes critiques non protegees + idempotence workflow
+- [x] **Phase 2: Gardes Backend** - Ajout IdempotencyGuard sur routes critiques non protegees + idempotence workflow (completed 2026-04-20)
 - [ ] **Phase 3: Frontend et Validation** - Header HTMX X-Idempotency-Key + tests unitaires
 
 ## Phase Details
@@ -169,7 +169,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
-| 2. Optimisations Memoire et Requetes | 1/3 | In Progress|  | 2026-04-07 |
+| 2. Optimisations Memoire et Requetes | 2/2 | Complete   | 2026-04-20 | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 5. JS Audit et Wiring Repair | v1.1 | 1/1 | Complete | 2026-04-08 |

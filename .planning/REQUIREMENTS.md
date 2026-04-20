@@ -16,7 +16,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **IDEM-03**: Les routes de creation sans contrainte UNIQUE utilisent IdempotencyGuard (email_templates, export_templates, member_groups, reminders, attachments, resolution_documents)
 - [x] **IDEM-04**: Les routes d'import bulk (members_bulk) resistent au double-submit
-- [ ] **IDEM-05**: Les transitions de workflow (demarrer/cloturer seance) sont idempotentes
+- [x] **IDEM-05**: Les transitions de workflow (demarrer/cloturer seance) sont idempotentes
 
 ### Frontend
 
@@ -58,7 +58,7 @@ Deferred to next milestone.
 | IDEM-02 | Phase 1 | Complete |
 | IDEM-03 | Phase 2 | Complete |
 | IDEM-04 | Phase 2 | Complete |
-| IDEM-05 | Phase 2 | Pending |
+| IDEM-05 | Phase 2 | Complete |
 | IDEM-06 | Phase 3 | Pending |
 | IDEM-07 | Phase 3 | Pending |
 

@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.7 Phase 1 -- Audit et Classification
+**Current focus:** v1.7 Phase 2 -- Gardes Backend
 
 ## Current Position
 
-Phase: 1 of 3 (Audit et Classification)
-Plan: --
-Status: Ready to plan
-Last activity: 2026-04-20 -- Roadmap v1.7 created (3 phases, 7 requirements mapped)
+Phase: 2 of 3 (Gardes Backend)
+Plan: 2 of 2
+Status: Complete
+Last activity: 2026-04-20 -- Completed 02-02-PLAN.md (IdempotencyGuard motions/members + workflow idempotence)
 
-**Progress:** [███████░░░] 67%
+**Progress:** [██████████] 100%
 
 ## v1.7 Phase Summary
 
@@ -57,6 +57,7 @@ Last activity: 2026-04-20 -- Roadmap v1.7 created (3 phases, 7 requirements mapp
 ## Accumulated Context
 | Phase 01 P01 | 5min | 1 tasks | 1 files |
 | Phase 02 P01 | 4min | 3 tasks | 3 files |
+| Phase 02 P02 | 5min | 3 tasks | 5 files |
 
 ### Decisions
 
@@ -70,10 +71,12 @@ Recent decisions affecting current work:
 - [Phase 01]: 13 Critique-risk routes identified as Phase 2 IdempotencyGuard targets
 - [Phase 01]: Email send routes (schedule, sendBulk, sendReminder, sendReport) highest priority Phase 2 targets
 - [Phase 02]: IdempotencyGuard store() placed in ImportController private run* helpers for cleaner coverage of 6 public routes
+- [Phase 02]: Workflow idempotence returns already_in_target flag in success response rather than 422 error
+- [Phase 02]: Race condition inside lockForUpdate transaction also returns idempotent success
 
 ### Pending Todos
 
-None -- awaiting Phase 1 plan generation.
+None -- Phase 2 complete, ready for Phase 3 planning.
 
 ### Blockers/Concerns
 
@@ -81,8 +84,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T07:20:38.609Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-20T07:20:39Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
 
-**Next action:** `/gsd:plan-phase 1`
+**Next action:** `/gsd:plan-phase 3`
