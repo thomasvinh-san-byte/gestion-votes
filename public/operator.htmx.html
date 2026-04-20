@@ -457,7 +457,7 @@
                       Politique de quorum
                       <ag-popover title="Politique de quorum" content="Définit le nombre minimum de participants requis pour que la séance soit valide." position="right"></ag-popover>
                     </label>
-                    <select class="form-input" id="settingQuorumPolicy">
+                    <select class="form-select" id="settingQuorumPolicy">
                       <option value="">— Aucune —</option>
                     </select>
                   </div>
@@ -466,7 +466,7 @@
                       Politique de vote
                       <ag-popover title="Politique de vote" content="Détermine comment les votes sont comptabilisés pour chaque résolution." position="right"></ag-popover>
                     </label>
-                    <select class="form-input" id="settingVotePolicy">
+                    <select class="form-select" id="settingVotePolicy">
                       <option value="">— Aucune —</option>
                     </select>
                   </div>
@@ -475,7 +475,7 @@
                       Convocation
                       <ag-popover title="Numéro de convocation" content="En 1ère convocation, le quorum statutaire s'applique." position="right"></ag-popover>
                     </label>
-                    <select class="form-input" id="settingConvocation">
+                    <select class="form-select" id="settingConvocation">
                       <option value="1">1ère convocation</option>
                       <option value="2">2ème convocation</option>
                     </select>
@@ -684,13 +684,15 @@
 
               <div id="addResolutionForm" class="settings-section add-resolution-form" hidden>
                 <h3>Nouvelle résolution</h3>
+                <div class="form-grid-2">
                 <div class="form-group mb-3">
                   <label class="form-label" for="newResolutionTitle">Titre</label>
                   <input type="text" class="form-input" id="newResolutionTitle" placeholder="Ex: Approbation des comptes 2023" maxlength="500">
                 </div>
-                <div class="form-group mb-3">
+                <div class="form-group form-group-full mb-3">
                   <label class="form-label" for="newResolutionDesc">Description / Texte complet</label>
                   <textarea class="form-textarea" id="newResolutionDesc" rows="6" placeholder="Considérant que..." maxlength="10000"></textarea>
+                </div>
                 </div>
                 <div class="flex gap-2">
                   <button class="btn btn-primary" id="btnConfirmResolution">Créer la résolution</button>
@@ -817,9 +819,10 @@
                     </button>
                   </div>
                   <div id="invitationsOptions" class="invitations-options" hidden>
+                    <div class="form-grid-2">
                     <div class="form-group mb-3">
                       <label class="form-label" for="invTemplateSelect">Template</label>
-                      <select class="form-input" id="invTemplateSelect">
+                      <select class="form-select" id="invTemplateSelect">
                         <option value="">Template par défaut</option>
                       </select>
                     </div>
@@ -839,6 +842,7 @@
                     <div class="form-group mb-3" id="scheduleGroup" hidden>
                       <label class="form-label" for="invScheduleAt">Date/heure d'envoi</label>
                       <input type="datetime-local" class="form-input" id="invScheduleAt">
+                    </div>
                     </div>
                     <div class="flex gap-2">
                       <button class="btn btn-sm btn-success" id="btnConfirmSend">
@@ -1465,7 +1469,7 @@
                       </button>
                     </ag-tooltip>
                   </div>
-                  <div class="form-group">
+                  <div class="form-group form-group-full">
                     <label class="form-label">Notes secrétaire</label>
                     <textarea class="form-textarea" id="opSecretaryNotes" rows="3" placeholder="Notes internes du secrétaire de séance..."></textarea>
                   </div>

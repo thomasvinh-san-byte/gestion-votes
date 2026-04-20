@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Reparation UI et Polish Fonctionnel
-status: executing
-stopped_at: Phase 1 complete
-last_updated: "2026-04-20T06:00:00.000Z"
-last_activity: 2026-04-20 — Phase 1 complete, starting Phase 2
+status: completed
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-04-20T05:48:21.229Z"
+last_activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across 21 pages)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 25
+  total_plans: 6
+  completed_plans: 4
+  percent: 67
 ---
 
 # AG-VOTE — Project State
@@ -30,7 +30,7 @@ Plan: —
 Status: Phase 1 complete, starting Phase 2
 Last activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across 21 pages)
 
-**Progress:** [██░░░░░░░░] 25%
+**Progress:** [███████░░░] 67%
 
 ## v1.6 Phase Summary
 
@@ -58,6 +58,7 @@ Last activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across
 ## Accumulated Context
 | Phase 01 P02 | 3min | 2 tasks | 1 files |
 | Phase 01 P03 | 4 | 2 tasks | 1 files |
+| Phase 02 P03 | 1min | 2 tasks | 4 files |
 
 ### Decisions
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - [Phase 01]: Dynamic modal elements created by Shared.openModal() are not broken selectors
 - [Phase 01]: Trust page: added kpiChecks + btnExportAuditJson DOM elements to match JS selectors
 - [Phase 01]: Dynamic modal elements (40+ IDs) correctly absent from static HTML -- only fixed selectors causing runtime failures
+- [Phase 02]: All select elements across 7 light-form pages normalized to form-select; vote/report/help already compliant
 
 ### Pending Todos
 
@@ -82,8 +84,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T05:33:37.709Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-04-20T05:48:21.227Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
 
 **Next action:** `/gsd:discuss-phase 2 --auto` for Form Layout Modernization

@@ -100,10 +100,11 @@
                 </div>
               </div>
               <div class="card-body">
+                <div class="form-grid-2">
 
                 <div class="field-group-h">
                   <label for="settVoteMode">Mode de vote par d&eacute;faut</label>
-                  <select id="settVoteMode" class="form-input">
+                  <select id="settVoteMode" class="form-select">
                     <option value="secret">Secret</option>
                     <option value="public">Public</option>
                   </select>
@@ -114,15 +115,16 @@
                   <input id="settQuorumThreshold" class="form-input" type="number" min="0" max="100" placeholder="50">
                 </div>
 
-                <div class="field-group-h">
+                <div class="field-group-h form-group-full">
                   <label for="settMajority">R&egrave;gle de majorit&eacute;</label>
-                  <select id="settMajority" class="form-input">
+                  <select id="settMajority" class="form-select">
                     <option value="simple">Majorit&eacute; simple</option>
                     <option value="absolute">Majorit&eacute; absolue</option>
                     <option value="qualified">Majorit&eacute; qualifi&eacute;e</option>
                   </select>
                 </div>
 
+                </div>
               </div>
             </div>
 
@@ -155,6 +157,7 @@
                 </div>
               </div>
               <div class="card-body">
+                <div class="form-grid-2">
 
                 <div class="field-group-h">
                   <label for="settSmtpHost">H&ocirc;te SMTP</label>
@@ -168,7 +171,7 @@
 
                 <div class="field-group-h">
                   <label for="settSmtpTls">Chiffrement</label>
-                  <select id="settSmtpTls" class="form-input">
+                  <select id="settSmtpTls" class="form-select">
                     <option value="starttls">STARTTLS (port 587)</option>
                     <option value="ssl">SSL/TLS (port 465)</option>
                     <option value="none">Aucun</option>
@@ -190,11 +193,12 @@
                   <input id="settSenderName" class="form-input" type="text" placeholder="AG-VOTE">
                 </div>
 
-                <div class="field-group-h">
+                <div class="field-group-h form-group-full">
                   <label for="settSenderEmail">Email exp&eacute;diteur</label>
                   <input id="settSenderEmail" class="form-input" type="email" placeholder="no-reply@example.com">
                 </div>
 
+                </div>
               </div>
             </div>
 
@@ -209,9 +213,10 @@
               </div>
               <div class="card-body">
 
+                <div class="form-grid-2">
                 <div class="field-group-h">
                   <label for="templateSelect">Mod&egrave;le</label>
-                  <select id="templateSelect" class="form-input">
+                  <select id="templateSelect" class="form-select">
                     <option value="convocation">Convocation</option>
                     <option value="rappel">Rappel</option>
                     <option value="resultat">R&eacute;sultats</option>
@@ -223,10 +228,11 @@
                   <label for="templateSubject">Objet</label>
                   <input id="templateSubject" class="form-input" type="text" placeholder="Objet de l'email">
                 </div>
+                </div>
 
-                <div class="field-group-h field-group-h--top">
+                <div class="field-group-h field-group-h--top form-group-full">
                   <label for="templateBody">Corps</label>
-                  <textarea id="templateBody" class="form-input" rows="8" placeholder="Corps du message..."></textarea>
+                  <textarea id="templateBody" class="form-textarea" rows="8" placeholder="Corps du message..."></textarea>
                 </div>
 
                 <div class="field-group-h field-group-h--top" style="margin-top:0.5rem;">

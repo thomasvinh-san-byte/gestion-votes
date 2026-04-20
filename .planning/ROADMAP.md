@@ -131,7 +131,7 @@ Plans:
   1. Sur un ecran >1024px, les formulaires affichent 2-3 colonnes de champs cote a cote au lieu d'une pile verticale
   2. Les inputs, selects, et textareas ont un style uniforme compact (meme hauteur, meme espacement, meme typographie)
   3. Aucun formulaire mono-colonne ne depasse 60% de la largeur disponible du viewport
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 02-01-PLAN.md — Grid layouts for operator, settings, postsession, email-templates (heavy forms)
@@ -162,7 +162,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
-| 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
+| 2. Optimisations Memoire et Requetes | 1/3 | In Progress|  | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 5. JS Audit et Wiring Repair | v1.1 | 1/1 | Complete | 2026-04-08 |
