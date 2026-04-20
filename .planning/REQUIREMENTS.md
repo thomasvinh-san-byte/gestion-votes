@@ -27,9 +27,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Layout
 
-- [ ] **UI-10**: Landing page hero compact — contenu visible sans scroll sur 1080p
-- [ ] **UI-11**: Radio buttons type de seance remplaces par select (operator + meetings + wizard)
-- [ ] **UI-12**: KPI dead code supprime (definition design-system.css non fonctionnelle)
+- [x] **UI-10**: Landing page hero compact — contenu visible sans scroll sur 1080p
+- [x] **UI-11**: Radio buttons type de seance remplaces par select (operator + meetings + wizard)
+- [x] **UI-12**: KPI dead code supprime (definition design-system.css non fonctionnelle)
 
 ### Validation
 
@@ -75,9 +75,9 @@ Deferred to next milestone.
 | UI-07 | Phase 3 | Complete |
 | UI-08 | Phase 3 | Complete |
 | UI-09 | Phase 3 | Complete |
-| UI-10 | Phase 4 | Pending |
-| UI-11 | Phase 4 | Pending |
-| UI-12 | Phase 4 | Pending |
+| UI-10 | Phase 4 | Complete |
+| UI-11 | Phase 4 | Complete |
+| UI-12 | Phase 4 | Complete |
 | UI-13 | Phase 5 | Pending |
 
 **Coverage:**

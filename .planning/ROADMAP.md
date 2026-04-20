@@ -138,7 +138,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 - [x] **Phase 1: Palette et Tokens** - Migrer la palette beige/parchment vers gris neutre, tokens stone vers slate, hex vers oklch (completed 2026-04-20)
 - [x] **Phase 2: Classes CSS et Inline Cleanup** - Wizard field-input vers form-input, 42 inline styles vers classes, shell.js drawer (completed 2026-04-20)
 - [x] **Phase 3: Coherence Cross-Pages** - Version unique, footer accent, modales consolidees (completed 2026-04-20)
-- [ ] **Phase 4: Layout Fixes** - Landing hero compact, radio vers select, KPI dead code
+- [x] **Phase 4: Layout Fixes** - Landing hero compact, radio vers select, KPI dead code (completed 2026-04-20)
 - [ ] **Phase 5: Validation Gate** - Zero inline style, zero field-input, version unique confirmee
 
 ## Phase Details
@@ -196,7 +196,7 @@ Plans:
   1. La landing page montre du contenu utile sans scroll sur un ecran 1080p (hero ne prend plus 100vh)
   2. Le type de seance utilise un select au lieu de radio buttons sur les pages operator, meetings et wizard
   3. Le dead code KPI dans design-system.css est supprime (plus de regles overridees par pages.css)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 04-01-PLAN.md — Hero compact, radio->select, KPI dead code cleanup
@@ -222,7 +222,7 @@ Plans:
 | 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | 3/3 | Complete   | 2026-04-20 | 2026-04-07 |
-| 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
+| 4. Tests et Decoupage Controllers | 1/1 | Complete   | 2026-04-20 | 2026-04-07 |
 | 5. JS Audit et Wiring Repair | v1.1 | 1/1 | Complete | 2026-04-08 |
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
 | 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
