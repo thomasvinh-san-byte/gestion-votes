@@ -100,7 +100,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 **Milestone Goal:** Reparer les interactions JS cassees sur les 21 pages HTMX, moderniser les formulaires pour exploiter les ecrans horizontaux, et verifier chaque page bout-en-bout.
 
-- [ ] **Phase 1: JS Interaction Audit & Repair** - Audit systematique des 21 pages HTMX, reparer boutons, formulaires, et SSE casses
+- [x] **Phase 1: JS Interaction Audit & Repair** - Audit systematique des 21 pages HTMX, reparer boutons, formulaires, et SSE casses (completed 2026-04-20)
 - [ ] **Phase 2: Form Layout Modernization** - Layouts multi-colonnes, champs compacts, utilisation agressive de la largeur
 - [ ] **Phase 3: Wizard Single-Page** - L'assistant de creation de seance tient sur un seul viewport
 - [ ] **Phase 4: Validation Gate** - Verification bout-en-bout de chaque page, zero regression
@@ -186,7 +186,7 @@ Plans:
 | 5. Refactoring MeetingReportsService | v1.5 | 1/1 | Complete | 2026-04-15 |
 | 6. Refactoring EmailQueueService | v1.5 | 1/1 | Complete | 2026-04-20 |
 | 7. Validation Gate | v1.5 | 1/1 | Complete | 2026-04-20 |
-| 1. JS Interaction Audit & Repair | v1.6 | 0/3 | Not started | - |
+| 1. JS Interaction Audit & Repair | v1.6 | 3/3 | Complete | 2026-04-20 |
 | 2. Form Layout Modernization | v1.6 | 0/? | Not started | - |
 | 3. Wizard Single-Page | v1.6 | 0/? | Not started | - |
 | 4. Validation Gate | v1.6 | 0/? | Not started | - |

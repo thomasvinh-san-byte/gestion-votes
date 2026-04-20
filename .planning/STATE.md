@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Reparation UI et Polish Fonctionnel
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-04-20T05:33:37.712Z"
-last_activity: 2026-04-20 — Completed 01-01-PLAN.md
+stopped_at: Phase 1 complete
+last_updated: "2026-04-20T06:00:00.000Z"
+last_activity: 2026-04-20 — Phase 1 complete, starting Phase 2
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 3
   completed_plans: 3
-  percent: 33
+  percent: 25
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.6 Phase 1 — JS Interaction Audit & Repair
+**Current focus:** v1.6 Phase 2 — Form Layout Modernization
 
 ## Current Position
 
-Phase: 1 of 4 (JS Interaction Audit & Repair)
-Plan: 1 of 3 (completed)
-Status: Executing
-Last activity: 2026-04-20 — Completed 01-01-PLAN.md
+Phase: 2 of 4 (Form Layout Modernization)
+Plan: —
+Status: Phase 1 complete, starting Phase 2
+Last activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across 21 pages)
 
-**Progress:** [███░░░░░░░] 33%
+**Progress:** [██░░░░░░░░] 25%
 
 ## v1.6 Phase Summary
 
@@ -86,4 +86,4 @@ Last session: 2026-04-20T05:33:37.709Z
 Stopped at: Completed 01-01-PLAN.md
 Resume file: None
 
-**Next action:** Execute 01-03-PLAN.md
+**Next action:** `/gsd:discuss-phase 2 --auto` for Form Layout Modernization
