@@ -116,7 +116,12 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
   2. Chaque bouton d'action (creer, modifier, supprimer, ouvrir modale) repond au clic et produit l'effet attendu
   3. Tous les formulaires soumettent via HTMX sans rechargement de page complet
   4. Les mises a jour SSE temps reel apparaissent sur les pages operator et vote sans intervention manuelle
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Audit operator page (6 JS files + SSE) and vote page
+- [ ] 01-02-PLAN.md — Audit wizard, postsession, validate, meetings, members, settings
+- [ ] 01-03-PLAN.md — Audit dashboard, admin, users, trust, hub, archives, audit, analytics, docs, email-templates, help, public, report
 
 ### Phase 2: Form Layout Modernization
 **Goal**: Les formulaires exploitent l'espace horizontal avec des layouts multi-colonnes et des champs compacts et modernes
@@ -181,7 +186,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 | 5. Refactoring MeetingReportsService | v1.5 | 1/1 | Complete | 2026-04-15 |
 | 6. Refactoring EmailQueueService | v1.5 | 1/1 | Complete | 2026-04-20 |
 | 7. Validation Gate | v1.5 | 1/1 | Complete | 2026-04-20 |
-| 1. JS Interaction Audit & Repair | v1.6 | 0/? | Not started | - |
+| 1. JS Interaction Audit & Repair | v1.6 | 0/3 | Not started | - |
 | 2. Form Layout Modernization | v1.6 | 0/? | Not started | - |
 | 3. Wizard Single-Page | v1.6 | 0/? | Not started | - |
 | 4. Validation Gate | v1.6 | 0/? | Not started | - |
