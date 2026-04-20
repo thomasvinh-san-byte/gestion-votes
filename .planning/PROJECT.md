@@ -64,10 +64,14 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Form layout modernization: multi-column grids on 16 pages, field classes normalized — v1.6 Phase 2
 - ✓ Wizard CSS compacted for 1080p viewport fit — v1.6 Phase 3
 - ✓ Validation gate: zero regressions after UI fixes — v1.6 Phase 4
+- ✓ 73 routes mutantes auditees et classees par risque — v1.7 Phase 1
+- ✓ 13 routes critiques protegees par IdempotencyGuard — v1.7 Phase 2
+- ✓ Transitions workflow idempotentes (launch/close) — v1.7 Phase 2
+- ✓ HTMX X-Idempotency-Key sur tous les POST/PATCH + 6 tests unitaires — v1.7 Phase 3
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.7)
+(No active milestone — run `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -80,7 +84,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-Shipped v1.6 (2026-04-20) — UI regression fixes and functional polish complete. All broken JS interactions fixed, forms modernized with multi-column layouts, wizard compacted for 1080p.
+Shipped v1.7 (2026-04-20) — Idempotency audit complete. 13 critical routes protected by IdempotencyGuard, workflow transitions idempotent, HTMX sends X-Idempotency-Key on all POST/PATCH.
 
 **The project is production-hardened.** WCAG AA contrast fully conformant, CSP nonces in report-only mode, htmx 2.0.6 with zero regressions, controller architecture cleaned up (<300 LOC each), all test fixtures real (no admin fallbacks).
 
@@ -106,15 +110,11 @@ Shipped v1.6 (2026-04-20) — UI regression fixes and functional polish complete
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
 
-## Current Milestone: v1.7 Audit Idempotence
+## Completed Milestone: v1.7 Audit Idempotence
 
-**Goal:** Verifier et renforcer l'idempotence des routes POST/PATCH critiques — aucun doublon sur vote, creation seance, creation membre, envoi email.
+**Shipped:** 2026-04-20 — 3 phases, 4 plans, 7 requirements, all satisfied.
 
-**Target features:**
-- Auditer la couverture actuelle de l'IdempotencyGuard
-- Identifier les routes POST/PATCH non protegees
-- Ajouter des gardes d'idempotence sur les routes critiques manquantes
-- Verifier que les operations atomiques resistent au double-submit
+See `.planning/milestones/v1.7-ROADMAP.md` for full archive.
 
 ## Completed Milestone: v1.6 Reparation UI et Polish Fonctionnel
 
