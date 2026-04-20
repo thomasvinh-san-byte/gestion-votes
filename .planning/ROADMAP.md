@@ -135,7 +135,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
+- [x] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
 
 ### Phase 2: Gardes Backend
 **Goal**: Les routes critiques non protegees resistent au double-submit -- aucune creation en doublon possible sur les endpoints identifies en Phase 1
@@ -145,10 +145,11 @@ Plans:
   1. Les routes de creation sans contrainte UNIQUE (email_templates, export_templates, member_groups, reminders, attachments, resolution_documents) rejettent un second appel avec le meme idempotency key
   2. L'import bulk de membres avec le meme fichier ne cree pas de doublons quand soumis deux fois
   3. Demarrer ou cloturer une seance deja dans l'etat cible retourne un succes sans effet de bord (operation idempotente)
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
+- [ ] 02-01-PLAN.md -- IdempotencyGuard sur EmailController, ImportController, MeetingReportsController (10 routes)
+- [ ] 02-02-PLAN.md -- IdempotencyGuard sur MotionsController, MembersController::bulk + workflow idempotence (IDEM-05)
 
 ### Phase 3: Frontend et Validation
 **Goal**: Le frontend envoie automatiquement un identifiant unique par action et des tests prouvent que le systeme rejette les doublons
@@ -161,7 +162,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
+- [ ] 03-01-PLAN.md -- Header HTMX X-Idempotency-Key + tests unitaires IdempotencyGuard
 
 ## Progress
 
@@ -202,5 +203,5 @@ Plans:
 | 3. Wizard Single-Page | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
-| 2. Gardes Backend | v1.7 | 0/? | Not started | - |
+| 2. Gardes Backend | v1.7 | 0/2 | Not started | - |
 | 3. Frontend et Validation | v1.7 | 0/? | Not started | - |
