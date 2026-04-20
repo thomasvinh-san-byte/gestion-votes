@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Reparation UI et Polish Fonctionnel
-status: completed
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-04-20T05:48:53.614Z"
-last_activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across 21 pages)
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-04-20T05:53:23Z"
+last_activity: 2026-04-20 — Phase 2 complete (3/3 plans, form-grid layouts on all form pages)
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # AG-VOTE — Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.6 Phase 2 — Form Layout Modernization
+**Current focus:** v1.6 Phase 2 complete, ready for Phase 3
 
 ## Current Position
 
-Phase: 2 of 4 (Form Layout Modernization)
-Plan: —
-Status: Phase 1 complete, starting Phase 2
-Last activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across 21 pages)
+Phase: 2 of 4 (Form Layout Modernization) -- COMPLETE
+Plan: 3 of 3
+Status: Phase 2 complete
+Last activity: 2026-04-20 — Phase 2 complete (3/3 plans, form-grid layouts on all form pages)
 
-**Progress:** [████████░░] 83%
+**Progress:** [██████████] 100%
 
 ## v1.6 Phase Summary
 
@@ -60,6 +60,7 @@ Last activity: 2026-04-20 — Phase 1 complete (3/3 plans, 8 issues fixed across
 | Phase 01 P03 | 4 | 2 tasks | 1 files |
 | Phase 02 P03 | 1min | 2 tasks | 4 files |
 | Phase 02 P02 | 2min | 2 tasks | 4 files |
+| Phase 02 P01 | 8min | 2 tasks | 4 files |
 
 ### Decisions
 
@@ -75,6 +76,7 @@ Recent decisions affecting current work:
 - [Phase 01]: Dynamic modal elements (40+ IDs) correctly absent from static HTML -- only fixed selectors causing runtime failures
 - [Phase 02]: All select elements across 7 light-form pages normalized to form-select; vote/report/help already compliant
 - [Phase 02]: Members/admin create-forms keep existing custom grids; form-grid-2 only for modal forms
+- [Phase 02]: Replaced ps-signataire-row with form-grid-2 on postsession; used form-grid-3 for email-templates short fields
 
 ### Pending Todos
 
@@ -86,8 +88,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T05:48:53.612Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-04-20T05:53:23Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
 
-**Next action:** `/gsd:discuss-phase 2 --auto` for Form Layout Modernization
+**Next action:** `/gsd:execute-phase 3` for Wizard Single-Page
