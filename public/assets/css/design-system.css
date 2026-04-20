@@ -28,22 +28,22 @@
 @property --color-surface {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.969 0.006 95);
+  initial-value: oklch(0.984 0.003 247);
 }
 @property --color-bg {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.922 0.013 95);
+  initial-value: oklch(0.929 0.013 255);
 }
 @property --color-text {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.530 0.025 80);
+  initial-value: oklch(0.372 0.044 257);
 }
 @property --color-border {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.833 0.022 88);
+  initial-value: oklch(0.704 0.04 256);
 }
 @property --color-danger {
   syntax: '<color>';
@@ -139,17 +139,17 @@ table {
      Raw values. NEVER reference these in component CSS.
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* Stone/Parchment palette */
-  --stone-50:  #FAFAF7;  --stone-50:  oklch(0.969 0.006 95);
-  --stone-100: #F2F0EB;  --stone-100: oklch(0.950 0.009 95);
-  --stone-200: #EDECE6;  --stone-200: oklch(0.922 0.013 95);
-  --stone-300: #E5E3D8;  --stone-300: oklch(0.893 0.017 90);
-  --stone-400: #CDC9BB;  --stone-400: oklch(0.833 0.022 88);
-  --stone-500: #BCB7A5;  --stone-500: oklch(0.760 0.028 85);
-  --stone-600: #857F72;  --stone-600: oklch(0.648 0.030 82);
-  --stone-700: #52504A;  --stone-700: oklch(0.530 0.025 80);
-  --stone-800: #2A2720;  --stone-800: oklch(0.350 0.018 78);
-  --stone-900: #151510;  --stone-900: oklch(0.180 0.012 75);
+  /* Slate palette (Tailwind slate) */
+  --slate-50:  #f8fafc;  --slate-50:  oklch(0.984 0.003 247);
+  --slate-100: #f1f5f9;  --slate-100: oklch(0.968 0.007 247);
+  --slate-200: #e2e8f0;  --slate-200: oklch(0.929 0.013 255);
+  --slate-300: #cbd5e1;  --slate-300: oklch(0.869 0.022 252);
+  --slate-400: #94a3b8;  --slate-400: oklch(0.704 0.04 256);
+  --slate-500: #64748b;  --slate-500: oklch(0.554 0.046 257);
+  --slate-600: #475569;  --slate-600: oklch(0.446 0.043 257);
+  --slate-700: #334155;  --slate-700: oklch(0.372 0.044 257);
+  --slate-800: #1e293b;  --slate-800: oklch(0.279 0.041 260);
+  --slate-900: #0f172a;  --slate-900: oklch(0.208 0.042 265);
 
   /* Blue/Indigo palette */
   --blue-50:  #EBF0FF;  --blue-50:  oklch(0.960 0.018 265);
@@ -318,31 +318,31 @@ table {
   --radius: var(--radius-base);
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SEMANTIC — Colors (Light Theme « Acte Officiel »)
+     SEMANTIC — Colors (Light Theme — Slate)
      Hex primary, oklch not used here for max browser compat.
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --color-bg:             var(--stone-200);  /* oklch(0.922 0.013 95) */
-  --color-bg-subtle:      var(--stone-300);  /* oklch(0.893 0.017 90) */
-  --color-surface-alt:    var(--stone-300);  /* oklch(0.893 0.017 90) — Wireframe --surface-alt: one step below surface */
-  --color-surface:        var(--stone-50);   /* oklch(0.969 0.006 95) */
+  --color-bg:             var(--slate-200);  /* oklch(0.929 0.013 255) */
+  --color-bg-subtle:      var(--slate-300);  /* oklch(0.869 0.022 252) */
+  --color-surface-alt:    var(--slate-300);  /* oklch(0.869 0.022 252) — Wireframe --surface-alt: one step below surface */
+  --color-surface:        var(--slate-50);   /* oklch(0.984 0.003 247) */
   --color-surface-raised: oklch(1 0 0);      /* white — no primitive */
-  --color-surface-overlay: oklch(0.969 0.006 95 / 0.95);  /* was rgba(250,250,247,0.95) */
-  --color-glass:           oklch(0.969 0.006 95 / 0.95);  /* was rgba(250,250,247,0.95) */
+  --color-surface-overlay: oklch(0.984 0.003 247 / 0.95);  /* slate-50 with alpha */
+  --color-glass:           oklch(0.984 0.003 247 / 0.95);  /* slate-50 with alpha */
 
-  --color-text:           var(--stone-700);  /* oklch(0.530 0.025 80) */
-  --color-text-dark:      var(--stone-900);  /* oklch(0.180 0.012 75) */
-  --color-text-secondary: var(--stone-900);  /* oklch(0.180 0.012 75) */
-  --color-text-muted:     oklch(0.340 0.030 82);  /* was oklch(0.470) — iteratively darkened for AA on all warm surfaces incl. mid-animation states (01-03) */
-  --color-text-light:     var(--stone-500);  /* oklch(0.760 0.028 85) */
+  --color-text:           var(--slate-700);  /* oklch(0.372 0.044 257) */
+  --color-text-dark:      var(--slate-900);  /* oklch(0.208 0.042 265) */
+  --color-text-secondary: var(--slate-900);  /* oklch(0.208 0.042 265) */
+  --color-text-muted:     oklch(0.340 0.030 257);  /* was hue 82 — shifted to cool slate hue for AA compliance */
+  --color-text-light:     var(--slate-500);  /* oklch(0.554 0.046 257) */
   --color-text-inverse:   oklch(1 0 0);      /* white */
-  --color-text-disabled:  var(--stone-400);  /* oklch(0.833 0.022 88) */
+  --color-text-disabled:  var(--slate-400);  /* oklch(0.704 0.04 256) */
 
-  --color-border:        var(--stone-400);  /* oklch(0.833 0.022 88) */
+  --color-border:        var(--slate-400);  /* oklch(0.704 0.04 256) */
   --color-border-alpha:  oklch(0 0 0 / 0.08);  /* alpha-based border for adaptive depth on cards/panels */
-  --color-border-subtle: oklch(0.912 0.015 92);  /* between stone-200 and stone-300, no exact primitive */
-  --color-border-strong: var(--stone-500);  /* oklch(0.760 0.028 85) */
-  --color-border-dash:   var(--stone-500);  /* oklch(0.760 0.028 85) */
+  --color-border-subtle: oklch(0.929 0.013 253);  /* between slate-200 and slate-300, no exact primitive */
+  --color-border-strong: var(--slate-500);  /* oklch(0.554 0.046 257) */
+  --color-border-dash:   var(--slate-500);  /* oklch(0.554 0.046 257) */
   --color-border-focus:  oklch(0.480 0.195 265 / 0.50);  /* aligned with --color-primary L* (01-03) */
 
   --color-primary:        oklch(0.480 0.195 265);  /* was var(--blue-600) oklch(0.520) — bumped darker for white-on-primary AA (01-03) */
@@ -392,10 +392,10 @@ table {
   --color-accent-on-subtle: oklch(0.400 0.170 298);  /* dark purple for text on accent-subtle backgrounds (01-03) */
   --color-purple-on-subtle: oklch(0.400 0.170 298);  /* dark purple for text on purple-subtle backgrounds (01-03) */
 
-  --color-neutral:        var(--stone-600);  /* oklch(0.648 0.030 82) */
+  --color-neutral:        var(--slate-600);  /* oklch(0.446 0.043 257) */
   --color-neutral-hover:  color-mix(in oklch, var(--color-neutral) 88%, black);
-  --color-neutral-subtle: var(--stone-300);  /* oklch(0.893 0.017 90) */
-  --color-neutral-text:   var(--stone-700);  /* oklch(0.530 0.025 80) */
+  --color-neutral-subtle: var(--slate-300);  /* oklch(0.869 0.022 252) */
+  --color-neutral-text:   var(--slate-700);  /* oklch(0.372 0.044 257) */
 
   --color-backdrop:       oklch(0 0 0 / 0.50);      /* was rgba(0,0,0,0.5) */
   --color-backdrop-heavy: oklch(0 0 0 / 0.55);
@@ -410,8 +410,8 @@ table {
   --sidebar-text-hover: oklch(1 0 0);              /* white */
 
   /* ─── Tags ─── */
-  --tag-bg:   var(--stone-300);  /* oklch(0.893 0.017 90) */
-  --tag-text: oklch(0.530 0.025 80);  /* same as stone-700 */
+  --tag-bg:   var(--slate-300);  /* oklch(0.869 0.022 252) */
+  --tag-text: oklch(0.372 0.044 257);  /* same as slate-700 */
 
   /* VIS-04: color-mix derived tokens */
   --color-primary-tint-10: color-mix(in oklch, var(--color-primary) 10%, white);
@@ -430,40 +430,40 @@ table {
      page header stripe, and role card border on the landing page.
      Naming: --persona-{key} / --persona-{key}-subtle / --persona-{key}-text
   */
-  --persona-preparateur: #6366f1;        /* Indigo — setup & configuration */
-  --persona-preparateur-subtle: #eef2ff;
-  --persona-preparateur-text: #4338ca;
+  --persona-preparateur: #6366f1;        --persona-preparateur: oklch(0.550 0.240 265);  /* Indigo — setup & configuration */
+  --persona-preparateur-subtle: #eef2ff; --persona-preparateur-subtle: oklch(0.955 0.020 270);
+  --persona-preparateur-text: #4338ca;   --persona-preparateur-text: oklch(0.420 0.230 270);
 
-  --persona-president: #d97706;          /* Amber — authority & governance */
-  --persona-president-subtle: #fffbeb;
-  --persona-president-text: #92400e;
+  --persona-president: #d97706;          --persona-president: oklch(0.610 0.160 70);  /* Amber — authority & governance */
+  --persona-president-subtle: #fffbeb;   --persona-president-subtle: oklch(0.990 0.015 90);
+  --persona-president-text: #92400e;     --persona-president-text: oklch(0.440 0.120 55);
 
-  --persona-operateur: #0891b2;          /* Cyan — live piloting */
-  --persona-operateur-subtle: #ecfeff;
-  --persona-operateur-text: #155e75;
+  --persona-operateur: #0891b2;          --persona-operateur: oklch(0.570 0.120 210);  /* Cyan — live piloting */
+  --persona-operateur-subtle: #ecfeff;   --persona-operateur-subtle: oklch(0.985 0.012 210);
+  --persona-operateur-text: #155e75;     --persona-operateur-text: oklch(0.420 0.090 220);
 
-  --persona-votant: #16a34a;             /* Green — action & validation */
-  --persona-votant-subtle: #f0fdf4;
-  --persona-votant-text: #166534;
+  --persona-votant: #16a34a;             --persona-votant: oklch(0.560 0.150 155);  /* Green — action & validation */
+  --persona-votant-subtle: #f0fdf4;      --persona-votant-subtle: oklch(0.982 0.018 155);
+  --persona-votant-text: #166534;        --persona-votant-text: oklch(0.400 0.120 155);
 
-  --persona-postsession: #7c3aed;        /* Violet — closing & reports */
-  --persona-postsession-subtle: #f5f3ff;
-  --persona-postsession-text: #5b21b6;
+  --persona-postsession: #7c3aed;        --persona-postsession: oklch(0.500 0.260 295);  /* Violet — closing & reports */
+  --persona-postsession-subtle: #f5f3ff; --persona-postsession-subtle: oklch(0.965 0.018 295);
+  --persona-postsession-text: #5b21b6;   --persona-postsession-text: oklch(0.380 0.230 295);
 
-  --persona-auditeur: #dc2626;           /* Red — vigilance & compliance */
-  --persona-auditeur-subtle: #fef2f2;
-  --persona-auditeur-text: #991b1b;
+  --persona-auditeur: #dc2626;           --persona-auditeur: oklch(0.530 0.210 25);  /* Red — vigilance & compliance */
+  --persona-auditeur-subtle: #fef2f2;    --persona-auditeur-subtle: oklch(0.975 0.012 25);
+  --persona-auditeur-text: #991b1b;      --persona-auditeur-text: oklch(0.410 0.170 25);
 
-  --persona-admin: #334155;              /* Slate — infrastructure */
-  --persona-admin-subtle: #f1f5f9;
-  --persona-admin-text: #0f172a;
+  --persona-admin: #334155;              --persona-admin: oklch(0.372 0.044 257);  /* Slate — infrastructure */
+  --persona-admin-subtle: #f1f5f9;       --persona-admin-subtle: oklch(0.968 0.007 247);
+  --persona-admin-text: #0f172a;         --persona-admin-text: oklch(0.208 0.042 265);
 
   /* ═══════════════════════════════════════════════════════════════════════════
      SEMANTIC — Shadows
      Uses --shadow-color for theme-aware warm/dark shadow tinting.
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --shadow-color: 21 21 16;  /* warm black — rgb channels */
+  --shadow-color: 15 23 42;  /* cool slate black — rgb channels (slate-900) */
 
   --shadow-sm:  0 1px 2px rgb(var(--shadow-color) / 0.06),
                 0 1px 1px rgb(var(--shadow-color) / 0.04);
