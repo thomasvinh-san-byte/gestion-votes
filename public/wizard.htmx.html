@@ -123,10 +123,12 @@
               <div class="form-grid-2">
                 <div class="field">
                   <label class="form-label" for="wizType">Type de s&eacute;ance <span class="req">*</span></label>
-                  <select class="form-select" id="wizType" aria-required="true">
-                    <option>AG Ordinaire</option>
-                    <option>AG Extraordinaire</option>
-                    <option>Conseil d'administration</option>
+                  <select class="form-select" id="wizType" name="meetingType" aria-required="true">
+                    <option value="ag_ordinaire">AG ordinaire</option>
+                    <option value="ag_extraordinaire">AG extraordinaire</option>
+                    <option value="conseil">Conseil</option>
+                    <option value="bureau">Bureau</option>
+                    <option value="autre">Autre</option>
                   </select>
                 </div>
                 <div class="wiz-date-time-row">
