@@ -22,7 +22,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Wizard
 
-- [ ] **WIZ-01**: L'assistant de creation de seance tient sur un seul viewport sans scroll vertical
+- [x] **WIZ-01**: L'assistant de creation de seance tient sur un seul viewport sans scroll vertical
 
 ### Validation
 
@@ -65,7 +65,7 @@ Deferred to next milestone.
 | FORM-01 | Phase 2 | Complete |
 | FORM-02 | Phase 2 | Complete |
 | FORM-03 | Phase 2 | Complete |
-| WIZ-01 | Phase 3 | Pending |
+| WIZ-01 | Phase 3 | Complete |
 | VALID-01 | Phase 4 | Pending |
 
 **Coverage:**
