@@ -9,9 +9,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### JS Interaction Audit
 
-- [ ] **JSFIX-01**: Audit systematique des 21 pages HTMX — chaque page doit charger sans erreur console JS
-- [ ] **JSFIX-02**: Tous les boutons d'action (CRUD, navigation, modales) repondent au clic
-- [ ] **JSFIX-03**: Tous les formulaires soumettent correctement via HTMX (pas de rechargement page)
+- [x] **JSFIX-01**: Audit systematique des 21 pages HTMX — chaque page doit charger sans erreur console JS
+- [x] **JSFIX-02**: Tous les boutons d'action (CRUD, navigation, modales) repondent au clic
+- [x] **JSFIX-03**: Tous les formulaires soumettent correctement via HTMX (pas de rechargement page)
 - [ ] **JSFIX-04**: Les evenements SSE (temps reel) fonctionnent sur les pages operator/vote
 
 ### Form Modernization
@@ -58,9 +58,9 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| JSFIX-01 | Phase 1 | Pending |
-| JSFIX-02 | Phase 1 | Pending |
-| JSFIX-03 | Phase 1 | Pending |
+| JSFIX-01 | Phase 1 | Complete |
+| JSFIX-02 | Phase 1 | Complete |
+| JSFIX-03 | Phase 1 | Complete |
 | JSFIX-04 | Phase 1 | Pending |
 | FORM-01 | Phase 2 | Pending |
 | FORM-02 | Phase 2 | Pending |
