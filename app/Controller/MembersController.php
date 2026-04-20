@@ -155,6 +155,8 @@ final class MembersController extends AbstractController {
 
     public function bulk(): void {
         $input = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
 
         $operation = trim($input['operation'] ?? '');
         if ($operation === '') {
@@ -208,6 +210,8 @@ final class MembersController extends AbstractController {
             ]);
         }
 
-        api_ok(['operation' => $operation, 'affected' => $affected]);
+        $response = ['operation' => $operation, 'affected' => $affected];
+        IdempotencyGuard::store($response);
+        api_ok($response);
     }
 }

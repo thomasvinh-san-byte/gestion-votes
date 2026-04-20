@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Core\Validation\InputValidator;
 use AgVote\Service\MotionsService;
 use AgVote\SSE\EventBroadcaster;
@@ -23,6 +24,8 @@ final class MotionsController extends AbstractController {
 
     public function createOrUpdate(): void {
         $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
         $v = InputValidator::schema()
             ->uuid('agenda_id')->required()
             ->uuid('motion_id')->optional()
@@ -53,7 +56,9 @@ final class MotionsController extends AbstractController {
                 default => 400,
             });
         }
-        api_ok(['motion_id' => $result['motion_id'], 'created' => $result['created']]);
+        $response = ['motion_id' => $result['motion_id'], 'created' => $result['created']];
+        IdempotencyGuard::store($response);
+        api_ok($response);
     }
 
     public function listForMeeting(): void {
@@ -68,6 +73,8 @@ final class MotionsController extends AbstractController {
 
     public function createSimple(): void {
         $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
         $meetingId = trim((string) ($in['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id est obligatoire (uuid).']);
@@ -89,7 +96,9 @@ final class MotionsController extends AbstractController {
         }
         api_guard_meeting_not_validated($meetingId);
         $result = $this->motionsService()->createSimple(['meeting_id' => $meetingId, 'title' => $title, 'description' => $description, 'secret' => (bool) ($in['secret'] ?? false)], $tenantId);
-        api_ok(['motion_id' => $result['motion_id'], 'agenda_id' => $result['agenda_id'], 'created' => true]);
+        $response = ['motion_id' => $result['motion_id'], 'agenda_id' => $result['agenda_id'], 'created' => true];
+        IdempotencyGuard::store($response);
+        api_ok($response);
     }
 
     public function deleteMotion(): void {
