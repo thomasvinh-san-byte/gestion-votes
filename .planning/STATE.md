@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Reparation UI et Polish Fonctionnel
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-04-20T05:30:54.712Z"
-last_activity: 2026-04-20 — Completed 01-02-PLAN.md
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-04-20T05:33:37.712Z"
+last_activity: 2026-04-20 — Completed 01-01-PLAN.md
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 33
 ---
 
 # AG-VOTE — Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 1 of 4 (JS Interaction Audit & Repair)
-Plan: 2 of 3
+Plan: 1 of 3 (completed)
 Status: Executing
-Last activity: 2026-04-20 — Completed 01-02-PLAN.md
+Last activity: 2026-04-20 — Completed 01-01-PLAN.md
 
-**Progress:** [███████░░░] 67%
+**Progress:** [███░░░░░░░] 33%
 
 ## v1.6 Phase Summary
 
@@ -70,6 +70,7 @@ Recent decisions affecting current work:
 - [v1.6 roadmap]: Validation gate pattern carried from v1.5 Phase 7
 - [Phase 01]: Dynamic modal elements created by Shared.openModal() are not broken selectors
 - [Phase 01]: Trust page: added kpiChecks + btnExportAuditJson DOM elements to match JS selectors
+- [Phase 01]: Dynamic modal elements (40+ IDs) correctly absent from static HTML -- only fixed selectors causing runtime failures
 
 ### Pending Todos
 
@@ -81,8 +82,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T05:30:54.710Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-04-20T05:33:37.709Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None
 
 **Next action:** Execute 01-03-PLAN.md
