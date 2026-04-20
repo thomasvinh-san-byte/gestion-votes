@@ -22,7 +22,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Coherence Cross-Pages
 
 - [ ] **UI-07**: Version unique sur toutes les pages (supprimer v3.19/v4.3/v4.4/v5.0, source unique)
-- [ ] **UI-08**: Footer "Accessibilite" corrige en "Accessibilité" sur 13 pages
+- [x] **UI-08**: Footer "Accessibilite" corrige en "Accessibilité" sur 13 pages
 - [ ] **UI-09**: Modales consolidees en un seul pattern (modal-backdrop + modal role=dialog)
 
 ### Layout
@@ -73,7 +73,7 @@ Deferred to next milestone.
 | UI-05 | Phase 2 | Complete |
 | UI-06 | Phase 2 | Complete |
 | UI-07 | Phase 3 | Pending |
-| UI-08 | Phase 3 | Pending |
+| UI-08 | Phase 3 | Complete |
 | UI-09 | Phase 3 | Pending |
 | UI-10 | Phase 4 | Pending |
 | UI-11 | Phase 4 | Pending |

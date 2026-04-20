@@ -181,7 +181,7 @@ Plans:
   1. Une seule version est affichee sur toutes les pages (plus de v3.19, v4.3, v4.4 ou v5.0 simultanees)
   2. Le footer affiche "Accessibilite" avec accent sur les 13 pages concernees
   3. Les modales utilisent un seul pattern (modal-backdrop + modal role=dialog) au lieu de 6 patterns differents
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 03-01-PLAN.md — Version unification (PHP constant, placeholder injection, 22 HTML files)
@@ -215,7 +215,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
-| 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
+| 3. Refactoring Controllers et Tests Auth | 1/3 | In Progress|  | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 5. JS Audit et Wiring Repair | v1.1 | 1/1 | Complete | 2026-04-08 |
 | 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
