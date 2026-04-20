@@ -16,7 +16,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Form Modernization
 
-- [ ] **FORM-01**: Formulaires utilisent des layouts multi-colonnes (2-3 colonnes sur ecrans >1024px)
+- [x] **FORM-01**: Formulaires utilisent des layouts multi-colonnes (2-3 colonnes sur ecrans >1024px)
 - [x] **FORM-02**: Champs de formulaire compacts et modernes (inputs, selects, textareas uniformises)
 - [x] **FORM-03**: Aucun formulaire ne depasse 60% de la largeur disponible en layout mono-colonne
 
@@ -62,7 +62,7 @@ Deferred to next milestone.
 | JSFIX-02 | Phase 1 | Complete |
 | JSFIX-03 | Phase 1 | Complete |
 | JSFIX-04 | Phase 1 | Complete |
-| FORM-01 | Phase 2 | Pending |
+| FORM-01 | Phase 2 | Complete |
 | FORM-02 | Phase 2 | Complete |
 | FORM-03 | Phase 2 | Complete |
 | WIZ-01 | Phase 3 | Pending |
