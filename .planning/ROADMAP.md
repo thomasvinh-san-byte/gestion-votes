@@ -252,6 +252,6 @@ Plans:
 | 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 1. Palette et Tokens | v1.8 | 1/1 | Complete | 2026-04-20 |
 | 2. Classes CSS et Inline Cleanup | v1.8 | 3/3 | Complete | 2026-04-20 |
-| 3. Coherence Cross-Pages | v1.8 | 0/3 | Not started | - |
+| 3. Coherence Cross-Pages | v1.8 | 3/3 | Complete | 2026-04-20 |
 | 4. Layout Fixes | v1.8 | 0/? | Not started | - |
 | 5. Validation Gate | v1.8 | 0/? | Not started | - |
