@@ -65,7 +65,7 @@
    VALIDATION CONFIRMATION MODAL
    ============================================================================= */
 
-.validate-modal-backdrop {
+.modal-backdrop#validateModal {
   position: fixed;
   inset: 0;
   background: var(--color-backdrop);
@@ -76,7 +76,7 @@
   padding: var(--space-4);
 }
 
-.validate-modal {
+#validateModal .modal {
   background: var(--color-surface-raised); /* QA-02: elevated confirmation modal above backdrop */
   border-radius: var(--radius-base);
   max-width: 520px;
@@ -85,20 +85,20 @@
   overflow: hidden;
 }
 
-.validate-modal-header {
+#validateModal .modal-header {
   padding: var(--space-4) var(--space-6);
   background: var(--color-danger-subtle);
   border-bottom: 2px solid var(--color-danger);
 }
 
-.validate-modal-header h3 {
+#validateModal .modal-header h3 {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-danger-text);
 }
 
-.validate-modal-body {
+#validateModal .modal-body {
   padding: var(--space-6);
 }
 
@@ -150,7 +150,7 @@
   accent-color: var(--color-danger);
 }
 
-.validate-modal-actions {
+#validateModal .modal-actions {
   display: flex;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
@@ -158,7 +158,7 @@
   justify-content: flex-end;
 }
 
-.validate-modal-actions .btn {
+#validateModal .modal-actions .btn {
   min-height: 44px;
 }
 
@@ -232,30 +232,30 @@
   }
 
   /* Modal adapts to full width */
-  .validate-modal {
+  #validateModal .modal {
     max-width: 100%;
     border-radius: var(--radius-lg);
   }
 
-  .validate-modal-backdrop {
+  .modal-backdrop#validateModal {
     padding: var(--space-2);
     align-items: flex-end;
   }
 
-  .validate-modal-header {
+  #validateModal .modal-header {
     padding: var(--space-3) var(--space-4);
   }
 
-  .validate-modal-body {
+  #validateModal .modal-body {
     padding: var(--space-4);
   }
 
-  .validate-modal-actions {
+  #validateModal .modal-actions {
     flex-direction: column;
     padding: var(--space-3) var(--space-4);
   }
 
-  .validate-modal-actions .btn {
+  #validateModal .modal-actions .btn {
     width: 100%;
     justify-content: center;
   }
@@ -268,8 +268,8 @@
   /* Form elements full-width on mobile */
   .validation-zone .form-input,
   .validation-zone .form-select,
-  .validate-modal .form-input,
-  .validate-modal .form-select {
+  #validateModal .modal .form-input,
+  #validateModal .modal .form-select {
     width: 100%;
     box-sizing: border-box;
   }
@@ -295,7 +295,7 @@
     padding: var(--space-2);
   }
 
-  .validate-modal-header h3 {
+  #validateModal .modal-header h3 {
     font-size: var(--text-base);
   }
 

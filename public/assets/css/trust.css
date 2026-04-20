@@ -501,7 +501,7 @@
    EVENT DETAIL MODAL
    ============================================================================= */
 
-.audit-modal-overlay {
+.modal-backdrop#auditEventModal {
   position: fixed;
   inset: 0;
   background: var(--color-backdrop);
@@ -512,7 +512,7 @@
   animation: fadeIn var(--duration-fast) ease-out;
 }
 
-.audit-modal {
+#auditEventModal .modal {
   background: var(--color-surface-raised); /* QA-02: elevated modal panel above page surface and backdrop */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -523,7 +523,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-.audit-modal-header {
+#auditEventModal .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -531,12 +531,12 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.audit-modal-title {
+#auditEventModal .modal-title {
   font-weight: 700;
   font-size: var(--text-base);
 }
 
-.audit-modal-body {
+#auditEventModal .modal-body {
   padding: 1.25rem;
 }
 
@@ -619,7 +619,7 @@
     padding-bottom: 0.25rem;
   }
 
-  .audit-modal {
+  #auditEventModal .modal {
     width: 95%;
     max-height: 90vh;
   }
