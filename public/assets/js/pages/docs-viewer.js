@@ -105,7 +105,7 @@
     var tocList = document.getElementById('tocList');
 
     if (headings.length < 3) {
-      tocRail.style.display = 'none';
+      tocRail.hidden = true;
       return;
     }
 
@@ -117,7 +117,7 @@
       html += '<li' + cls + '><a href="#' + id + '">' + esc(heading.textContent) + '</a></li>';
     });
     tocList.innerHTML = html;
-    tocRail.style.display = '';
+    tocRail.hidden = false;
 
     // Scroll spy
     var tocLinks = tocList.querySelectorAll('a');
@@ -241,8 +241,8 @@
     var dirParts = page.split('/');
     if (dirParts.length > 1) {
       document.getElementById('breadcrumbDir').textContent = dirParts.slice(0, -1).join('/');
-      document.getElementById('breadcrumbDir').style.display = '';
-      document.getElementById('breadcrumbDirSep').style.display = '';
+      document.getElementById('breadcrumbDir').hidden = false;
+      document.getElementById('breadcrumbDirSep').hidden = false;
     }
 
     loadDocIndex(page);
@@ -278,7 +278,7 @@
             '<p>' + esc(err.message) + '</p>' +
             '<a href="/help" class="btn btn-primary">Retour \u00e0 l\'aide</a>' +
             '</div>';
-        document.getElementById('docTocRail').style.display = 'none';
+        document.getElementById('docTocRail').hidden = true;
       });
   }
 

@@ -57,13 +57,13 @@
         <div id="notif_box" class="hidden mb-4"></div>
 
         <!-- Meeting context -->
-        <div class="alert alert-info mb-6" id="meetingContext" style="display: none;">
+        <div class="alert alert-info mb-6" id="meetingContext" hidden>
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
           <span>Séance: <strong id="meetingName">—</strong></span>
         </div>
 
         <!-- Warning if not validated -->
-        <div class="alert alert-warning mb-6" id="notValidatedWarning" style="display: none;">
+        <div class="alert alert-warning mb-6" id="notValidatedWarning" hidden>
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
           <span>Cette séance n'est pas encore validée. Le PV définitif sera disponible après validation.</span>
         </div>
@@ -84,7 +84,7 @@
                 <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-send"></use></svg> Envoyer
               </button>
             </div>
-            <div id="emailMsg" class="mt-3" style="display: none;"></div>
+            <div id="emailMsg" class="mt-3" hidden></div>
           </div>
         </div>
 
@@ -110,7 +110,7 @@
                 <div class="skeleton skeleton-text skeleton-w-60"></div>
                 <div class="skeleton skeleton-text skeleton-w-40"></div>
               </div>
-              <iframe id="pvFrame" src="about:blank" style="display:none;"></iframe>
+              <iframe id="pvFrame" src="about:blank" hidden></iframe>
             </div>
           </div>
         </div>

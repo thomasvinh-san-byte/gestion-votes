@@ -21,7 +21,7 @@
     if (pvLoading) pvLoading.hidden = false;
     if (pvEmpty) pvEmpty.style.display = 'none';
     pvFrame.src = reportUrl;
-    pvFrame.style.display = '';
+    pvFrame.hidden = false;
     pvFrame.onload = function () { if (pvLoading) pvLoading.hidden = true; };
 
     // Set links

@@ -37,11 +37,11 @@ async function loadTemplates() {
 function renderTemplates() {
   if (templates.length === 0) {
     templatesGrid.innerHTML = '';
-    emptyState.style.display = 'block';
+    emptyState.hidden = false;
     return;
   }
 
-  emptyState.style.display = 'none';
+  emptyState.hidden = true;
 
   templatesGrid.innerHTML = templates.map(t => `
         <div class="template-card ${t.is_default ? 'is-default' : ''}" data-id="${escapeHtml(t.id)}">

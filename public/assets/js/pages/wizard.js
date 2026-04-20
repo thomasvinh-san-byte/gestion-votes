@@ -807,7 +807,7 @@
     var triggerBtn = document.getElementById('btnShowResoPanel');
     if (triggerBtn && addPanel && triggerDiv) {
       triggerBtn.addEventListener('click', function() {
-        addPanel.style.display = '';
+        addPanel.hidden = false;
         triggerDiv.style.display = 'none';
         var titleEl = document.getElementById('resoTitle');
         if (titleEl) titleEl.focus();
@@ -848,7 +848,7 @@
       renderResoList();
 
       // Collapse add panel after successful add
-      if (addPanel) addPanel.style.display = 'none';
+      if (addPanel) addPanel.hidden = true;
       if (triggerDiv) triggerDiv.style.display = '';
 
       // Clear resolution count error if it was showing

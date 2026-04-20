@@ -202,7 +202,7 @@
                 </div>
 
                 <!-- Group filters -->
-                <div class="field" id="groupFiltersField" style="display: none;">
+                <div class="field" id="groupFiltersField" hidden>
                   <label>Groupes</label>
                   <div class="filter-chips filter-chips-col" id="groupFilters" role="group" aria-label="Filtrer par groupe">
                     <!-- Populated by JavaScript -->
@@ -257,7 +257,7 @@
         </div><!-- #membersPanel -->
 
         <!-- GROUPS TAB PANEL -->
-        <div class="mgmt-tab-panel" id="groupsPanel" data-mgmt-panel="groups" data-scroll-target="groups-panel" role="tabpanel" style="display: none;">
+        <div class="mgmt-tab-panel" id="groupsPanel" data-mgmt-panel="groups" data-scroll-target="groups-panel" role="tabpanel" hidden>
           <p class="text-sm text-muted mb-4">
             Organisez vos membres par catégories, collèges électoraux, départements, etc.
             <ag-popover title="Groupes de membres" content="Catégorisez vos membres par collèges électoraux, départements, ou tout autre critère. Les groupes facilitent le filtrage et permettent d'obtenir des statistiques par catégorie." position="right" trigger="click"></ag-popover>
@@ -279,7 +279,7 @@
         </div><!-- #groupsPanel -->
 
         <!-- IMPORT TAB PANEL -->
-        <div class="mgmt-tab-panel" id="importPanel" data-mgmt-panel="import" role="tabpanel" style="display: none;">
+        <div class="mgmt-tab-panel" id="importPanel" data-mgmt-panel="import" role="tabpanel" hidden>
           <div class="import-card-desc">
             Colonnes : <code>nom</code>, <code>email</code>, <code>actif</code>, <code>groupes</code> (séparés par <code>|</code>). Séparateur <code>;</code> ou <code>,</code> auto-détecté.
             <ag-popover title="Format du fichier CSV" content="Exemple : Jean Dupont;jean@exemple.com;oui;Collège A|Cadres. Les groupes non existants seront créés automatiquement." position="right" trigger="click"></ag-popover>
@@ -295,7 +295,7 @@
             </a>
           </div>
           <div class="upload-zone" id="uploadZone">
-            <input type="file" id="csvFile" accept=".csv,text/csv" style="display: none;" aria-label="Importer un fichier CSV">
+            <input type="file" id="csvFile" accept=".csv,text/csv" hidden aria-label="Importer un fichier CSV">
             <div class="upload-zone-icon">
               <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg>
             </div>
@@ -309,7 +309,7 @@
             <button class="btn btn-secondary" id="btnSeed">Générer fictifs</button>
             <span class="text-sm text-muted file-name-text" id="fileName">Aucun fichier sélectionné</span>
           </div>
-          <div id="importOut" class="import-result" style="display: none;"></div>
+          <div id="importOut" class="import-result" hidden></div>
         </div><!-- #importPanel -->
 
       </div><!-- .members-mgmt-container -->

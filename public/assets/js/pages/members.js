@@ -50,11 +50,11 @@
   document.querySelectorAll('.mgmt-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.mgmt-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-      document.querySelectorAll('.mgmt-tab-panel').forEach(p => { p.style.display = 'none'; });
+      document.querySelectorAll('.mgmt-tab-panel').forEach(p => { p.hidden = true; });
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
       const panelId = tab.getAttribute('aria-controls');
-      if (panelId) document.getElementById(panelId).style.display = '';
+      if (panelId) document.getElementById(panelId).hidden = false;
     });
   });
 
@@ -259,11 +259,11 @@
   function renderGroupFilters() {
     if (!allGroups.length) {
       groupFilters.innerHTML = '';
-      groupFiltersField.style.display = 'none';
+      groupFiltersField.hidden = true;
       return;
     }
 
-    groupFiltersField.style.display = '';
+    groupFiltersField.hidden = false;
     const allBtn = `<button class="filter-chip ${!currentGroupFilter ? 'active' : ''}" data-action="filter-group" data-group-id="">Tous les groupes</button>`;
     const groupBtns = allGroups.map(g => `
       <button class="filter-chip ${currentGroupFilter === g.id ? 'active' : ''}" data-action="filter-group" data-group-id="${escapeHtml(g.id)}">
@@ -932,7 +932,7 @@
     try {
       const { status, body } = await apiUpload('/api/v1/members_import_csv.php', formData);
 
-      importOut.style.display = 'block';
+      importOut.hidden = false;
       if (status === 0) {
         throw new Error(body?.message || 'Le téléversement a échoué (réseau ou délai)');
       }
@@ -964,7 +964,7 @@
         importOut.className = 'import-result';
       }
     } catch (err) {
-      importOut.style.display = 'block';
+      importOut.hidden = false;
       importOut.innerHTML = `<div class="import-summary import-summary-err">${escapeHtml(err.message)}</div>`;
       importOut.className = 'import-result';
     } finally {
