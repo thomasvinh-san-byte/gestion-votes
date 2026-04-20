@@ -106,6 +106,7 @@ function openNewEditor() {
   document.getElementById('editorTitle').textContent = 'Nouveau template';
   document.getElementById('editorStatus').textContent = '';
 
+  templateEditor.hidden = false;
   templateEditor.classList.add('active');
   updatePreview();
 }
@@ -128,6 +129,7 @@ async function editTemplate(id) {
     document.getElementById('editorTitle').textContent = 'Modifier: ' + t.name;
     document.getElementById('editorStatus').textContent = '';
 
+    templateEditor.hidden = false;
     templateEditor.classList.add('active');
     updatePreview();
   } catch (err) {
@@ -167,6 +169,7 @@ async function saveTemplate() {
 
     window.showToast?.('Template enregistr\u00e9', 'success');
     templateEditor.classList.remove('active');
+    templateEditor.hidden = true;
     loadTemplates();
   } catch (err) {
     document.getElementById('editorStatus').textContent = 'Erreur: ' + err.message;
@@ -285,8 +288,8 @@ document.addEventListener('click', function(e) {
 // Event listeners
 document.getElementById('btnNewTemplate').addEventListener('click', openNewEditor);
 document.getElementById('btnEmptyCreate').addEventListener('click', openNewEditor);
-document.getElementById('btnCloseEditor').addEventListener('click', () => templateEditor.classList.remove('active'));
-document.getElementById('btnCancelEdit').addEventListener('click', () => templateEditor.classList.remove('active'));
+document.getElementById('btnCloseEditor').addEventListener('click', () => { templateEditor.classList.remove('active'); templateEditor.hidden = true; });
+document.getElementById('btnCancelEdit').addEventListener('click', () => { templateEditor.classList.remove('active'); templateEditor.hidden = true; });
 document.getElementById('btnSaveTemplate').addEventListener('click', saveTemplate);
 document.getElementById('btnCreateDefaults').addEventListener('click', createDefaults);
 document.getElementById('btnRefreshPreview').addEventListener('click', updatePreview);
@@ -303,6 +306,7 @@ document.getElementById('templateBody').addEventListener('input', () => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && templateEditor.classList.contains('active')) {
     templateEditor.classList.remove('active');
+    templateEditor.hidden = true;
   }
 });
 
@@ -310,6 +314,7 @@ document.addEventListener('keydown', (e) => {
 templateEditor.addEventListener('click', (e) => {
   if (e.target === templateEditor) {
     templateEditor.classList.remove('active');
+    templateEditor.hidden = true;
   }
 });
 
