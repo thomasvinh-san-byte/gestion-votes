@@ -165,35 +165,37 @@
     <div slot="body">
       <input type="hidden" id="modalUserId">
 
-      <div class="form-group mb-4">
-        <label class="form-label" for="modalUserName">Nom complet <span aria-hidden="true">*</span></label>
-        <input class="form-input" type="text" id="modalUserName" placeholder="Jean Dupont" required maxlength="255" autocomplete="name">
-      </div>
-
-      <div class="form-group mb-4">
-        <label class="form-label" for="modalUserEmail">Adresse e-mail <span aria-hidden="true">*</span></label>
-        <input class="form-input" type="email" id="modalUserEmail" placeholder="jean@example.com" required maxlength="320" autocomplete="email">
-      </div>
-
-      <div class="form-group mb-4" id="modalPasswordGroup">
-        <label class="form-label" for="modalUserPassword">Mot de passe <span aria-hidden="true">*</span></label>
-        <input class="form-input" type="password" id="modalUserPassword" placeholder="Min. 8 caract&egrave;res" autocomplete="new-password" minlength="8">
-        <div class="password-strength" id="passwordStrength" hidden>
-          <div class="password-strength-bar">
-            <div class="password-strength-fill" id="passwordStrengthFill"></div>
-          </div>
-          <span class="password-strength-text" id="passwordStrengthText">&mdash;</span>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="modalUserName">Nom complet <span aria-hidden="true">*</span></label>
+          <input class="form-input" type="text" id="modalUserName" placeholder="Jean Dupont" required maxlength="255" autocomplete="name">
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label" for="modalUserRole">R&ocirc;le syst&egrave;me</label>
-        <select class="form-input" id="modalUserRole">
+        <div class="form-group">
+          <label class="form-label" for="modalUserEmail">Adresse e-mail <span aria-hidden="true">*</span></label>
+          <input class="form-input" type="email" id="modalUserEmail" placeholder="jean@example.com" required maxlength="320" autocomplete="email">
+        </div>
+
+        <div class="form-group" id="modalPasswordGroup">
+          <label class="form-label" for="modalUserPassword">Mot de passe <span aria-hidden="true">*</span></label>
+          <input class="form-input" type="password" id="modalUserPassword" placeholder="Min. 8 caract&egrave;res" autocomplete="new-password" minlength="8">
+          <div class="password-strength" id="passwordStrength" hidden>
+            <div class="password-strength-bar">
+              <div class="password-strength-fill" id="passwordStrengthFill"></div>
+            </div>
+            <span class="password-strength-text" id="passwordStrengthText">&mdash;</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modalUserRole">R&ocirc;le syst&egrave;me</label>
+          <select class="form-select" id="modalUserRole">
           <option value="viewer">Observateur &mdash; lecture seule</option>
           <option value="operator">Op&eacute;rateur &mdash; gestion des s&eacute;ances</option>
           <option value="auditor">Auditeur &mdash; contr&ocirc;le et audit</option>
           <option value="admin">Administrateur &mdash; acc&egrave;s complet</option>
         </select>
+      </div>
       </div>
     </div>
     <div slot="footer">

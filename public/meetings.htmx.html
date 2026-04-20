@@ -113,7 +113,7 @@
             <input class="form-input" type="search" id="meetingsSearch" placeholder="Rechercher par titre..." aria-label="Rechercher une s&eacute;ance">
           </div>
           <div class="form-group">
-            <select class="form-input form-input-sm" id="meetingsSort" aria-label="Trier par">
+            <select class="form-select form-input-sm" id="meetingsSort" aria-label="Trier par">
               <option value="date_desc">Date (r&eacute;cent)</option>
               <option value="date_asc">Date (ancien)</option>
               <option value="title_asc">Titre A-Z</option>
@@ -191,13 +191,15 @@
       </header>
       <div class="modal-body">
         <input type="hidden" id="editMeetingId">
-        <div class="form-group">
-          <label class="form-label" for="editMeetingTitle">Titre <span class="text-danger">*</span></label>
-          <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off" placeholder="Titre de la s&eacute;ance">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="editMeetingDate">Date</label>
-          <input class="form-input date-picker-input" type="date" id="editMeetingDate">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="editMeetingTitle">Titre <span class="text-danger">*</span></label>
+            <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off" placeholder="Titre de la s&eacute;ance">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editMeetingDate">Date</label>
+            <input class="form-input date-picker-input" type="date" id="editMeetingDate">
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Type de s&eacute;ance</label>
