@@ -145,7 +145,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Les 4 etapes du wizard sont visibles simultanement ou navigables sans scroll vertical sur un ecran 1080p
   2. L'utilisateur peut creer une seance complete (remplir les 4 etapes et valider) sans scroller la page
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 03-01-PLAN.md — Compact wizard CSS spacing and verify viewport fit on 1080p
 
 ### Phase 4: Validation Gate
 **Goal**: Chaque page HTMX verifiee bout-en-bout — zero regression visuelle ni fonctionnelle apres les modifications des phases 1-3
@@ -193,5 +196,5 @@ Plans:
 | 7. Validation Gate | v1.5 | 1/1 | Complete | 2026-04-20 |
 | 1. JS Interaction Audit & Repair | v1.6 | 3/3 | Complete | 2026-04-20 |
 | 2. Form Layout Modernization | v1.6 | 3/3 | Complete | 2026-04-20 |
-| 3. Wizard Single-Page | v1.6 | 0/? | Not started | - |
+| 3. Wizard Single-Page | v1.6 | 0/1 | Not started | - |
 | 4. Validation Gate | v1.6 | 0/? | Not started | - |
