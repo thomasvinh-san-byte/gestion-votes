@@ -256,8 +256,8 @@
   }
 
   async function renderContext(meetingId) {
-    if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance pour voir le tableau de bord.</div>'; return; }
-    dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
+    if (!meetingId) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Sélectionnez une séance pour voir le tableau de bord.</div>'; return; }
+    dbody.innerHTML = '<div class="drawer-placeholder text-muted">Chargement…</div>';
     var sections = [];
     var failedSections = [];
     try {
@@ -267,10 +267,10 @@
         var m = b.data;
         var statusClass = m.status === 'live' ? 'badge-success' : (m.status === 'draft' ? 'badge-neutral' : 'badge-warning');
         sections.push(
-          '<div style="margin-bottom:16px;">' +
-            '<div style="font-size:11px;text-transform:uppercase;color:var(--color-text-muted,#888);letter-spacing:.3px;margin-bottom:6px;font-weight:600;">Informations</div>' +
-            '<div style="font-weight:600;margin-bottom:4px;">' + esc(m.title) + '</div>' +
-            '<div style="display:flex;gap:10px;align-items:center;margin-bottom:4px;">' +
+          '<div class="drawer-section">' +
+            '<div class="drawer-label">Informations</div>' +
+            '<div class="drawer-value">' + esc(m.title) + '</div>' +
+            '<div class="drawer-row">' +
               '<span class="badge ' + statusClass + '">' + esc(m.status) + '</span>' +
               (m.location ? '<span class="text-sm text-muted">' + esc(m.location) + '</span>' : '') +
             '</div>' +
@@ -287,11 +287,11 @@
         var checks = d.checks || [];
         if (checks.length > 0) {
           sections.push(
-            '<div style="margin-bottom:16px;">' +
-              '<div style="font-size:11px;text-transform:uppercase;color:var(--color-text-muted,#888);letter-spacing:.3px;margin-bottom:6px;font-weight:600;">Check-list</div>' +
-              '<div class="badge ' + (d.ready ? 'badge-success' : 'badge-warning') + '" style="margin-bottom:8px;">' + (d.ready ? 'Prêt' : 'Non prêt') + '</div>' +
+            '<div class="drawer-section">' +
+              '<div class="drawer-label">Check-list</div>' +
+              '<div class="badge ' + (d.ready ? 'badge-success' : 'badge-warning') + ' drawer-badge-mb">' + (d.ready ? 'Prêt' : 'Non prêt') + '</div>' +
               checks.map(function(c) {
-                return '<div style="display:flex;align-items:center;gap:8px;padding:3px 0;"><span>' + (c.passed ? '✓' : '✗') + '</span><span class="text-sm">' + esc(c.label || '') + '</span></div>';
+                return '<div class="drawer-checklist-item"><span>' + (c.passed ? '✓' : '✗') + '</span><span class="text-sm">' + esc(c.label || '') + '</span></div>';
               }).join('') +
             '</div>'
           );
@@ -305,10 +305,10 @@
         var items = b3.data.anomalies || b3.data.items || [];
         if (items.length > 0) {
           sections.push(
-            '<div style="margin-bottom:16px;">' +
-              '<div style="font-size:11px;text-transform:uppercase;color:var(--color-text-muted,#888);letter-spacing:.3px;margin-bottom:6px;font-weight:600;">Anomalies</div>' +
+            '<div class="drawer-section">' +
+              '<div class="drawer-label">Anomalies</div>' +
               items.map(function(a) {
-                return '<div style="padding:8px 10px;border-radius:6px;background:var(--color-bg-warning,#fff3cd);border-left:3px solid var(--color-warning,#e6a800);margin-bottom:6px;"><div style="font-weight:600;font-size:12px;color:var(--color-danger,#a05252);">' + esc(a.code || a.severity || 'Anomalie') + '</div><div class="text-sm">' + esc(a.message || a.detail || '') + '</div></div>';
+                return '<div class="drawer-alert"><div class="drawer-alert__code">' + esc(a.code || a.severity || 'Anomalie') + '</div><div class="text-sm">' + esc(a.message || a.detail || '') + '</div></div>';
               }).join('') +
             '</div>'
           );
@@ -316,58 +316,58 @@
       }
     } catch(e) { failedSections.push('anomalies'); }
     if (failedSections.length) {
-      sections.push('<div style="padding:8px 12px;font-size:11px;color:var(--color-text-muted,#999);border-top:1px solid var(--color-border,#eee);margin-top:8px;">Chargement partiel — sections indisponibles : ' + esc(failedSections.join(', ')) + '</div>');
+      sections.push('<div class="drawer-footer-note">Chargement partiel — sections indisponibles : ' + esc(failedSections.join(', ')) + '</div>');
     }
     if (sections.length === 0) {
-      dbody.innerHTML = '<div style="padding:16px;text-align:center;" class="text-muted">Aucune information disponible.</div>';
+      dbody.innerHTML = '<div class="drawer-placeholder text-muted">Aucune information disponible.</div>';
     } else {
-      dbody.innerHTML = '<div style="padding:4px 0;">' + sections.join('') + '</div>';
+      dbody.innerHTML = '<div class="drawer-sections">' + sections.join('') + '</div>';
     }
   }
 
   async function renderReadiness(meetingId) {
-    if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
-    dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
+    if (!meetingId) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Sélectionnez une séance.</div>'; return; }
+    dbody.innerHTML = '<div class="drawer-placeholder text-muted">Chargement…</div>';
     try {
       const res = await window.api('/api/v1/meeting_ready_check.php?meeting_id=' + encodeURIComponent(meetingId));
       const b = res.body;
       if (b && b.ok && b.data) {
         const d = b.data;
         const checks = d.checks || [];
-        dbody.innerHTML = '<div style="padding:4px 0;display:flex;flex-direction:column;gap:10px;"><div class="badge ' + (d.ready ? 'badge-success' : 'badge-warning') + '" style="font-size:14px;padding:6px 12px;">' + (d.ready ? 'Prêt' : 'Non prêt') + '</div>' + checks.map(function(c) { return '<div style="display:flex;align-items:center;gap:8px;"><span>' + (c.passed ? '✓' : '✗') + '</span><span>' + esc(c.label || '') + '</span></div>'; }).join('') + '</div>';
-      } else { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Statut indisponible.</div>'; }
-    } catch(e) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>'; }
+        dbody.innerHTML = '<div class="drawer-readiness-layout"><div class="badge ' + (d.ready ? 'badge-success' : 'badge-warning') + ' drawer-readiness-badge">' + (d.ready ? 'Prêt' : 'Non prêt') + '</div>' + checks.map(function(c) { return '<div class="drawer-checklist-item"><span>' + (c.passed ? '✓' : '✗') + '</span><span>' + esc(c.label || '') + '</span></div>'; }).join('') + '</div>';
+      } else { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Statut indisponible.</div>'; }
+    } catch(e) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Erreur de chargement.</div>'; }
   }
 
   async function renderInfos(meetingId) {
-    if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
-    dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
+    if (!meetingId) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Sélectionnez une séance.</div>'; return; }
+    dbody.innerHTML = '<div class="drawer-placeholder text-muted">Chargement…</div>';
     try {
       const res = await window.api('/api/v1/meetings.php?id=' + encodeURIComponent(meetingId));
       const b = res.body;
       if (b && b.ok && b.data) {
         const m = b.data;
         const statusBadge = m.status === 'live' ? 'badge-success' : (m.status === 'draft' ? 'badge-neutral' : 'badge-warning');
-        dbody.innerHTML = '<div style="display:flex;flex-direction:column;gap:12px;padding:4px 0;"><div><strong>' + esc(m.title) + '</strong></div><div class="text-sm"><span class="text-muted">Statut :</span> <span class="badge ' + statusBadge + '">' + esc(m.status) + '</span></div><div class="text-sm"><span class="text-muted">Lieu :</span> ' + esc(m.location || '—') + '</div><div class="text-sm"><span class="text-muted">Président :</span> ' + esc(m.president_name || '—') + '</div></div>';
-      } else { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Séance introuvable.</div>'; }
-    } catch(e) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>'; }
+        dbody.innerHTML = '<div class="drawer-info-layout"><div><strong>' + esc(m.title) + '</strong></div><div class="text-sm"><span class="text-muted">Statut :</span> <span class="badge ' + statusBadge + '">' + esc(m.status) + '</span></div><div class="text-sm"><span class="text-muted">Lieu :</span> ' + esc(m.location || '—') + '</div><div class="text-sm"><span class="text-muted">Président :</span> ' + esc(m.president_name || '—') + '</div></div>';
+      } else { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Séance introuvable.</div>'; }
+    } catch(e) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Erreur de chargement.</div>'; }
   }
 
   async function renderAnomalies(meetingId) {
-    if (!meetingId) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Sélectionnez une séance.</div>'; return; }
-    dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Chargement…</div>';
+    if (!meetingId) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Sélectionnez une séance.</div>'; return; }
+    dbody.innerHTML = '<div class="drawer-placeholder text-muted">Chargement…</div>';
     try {
       const res = await window.api('/api/v1/operator_anomalies.php?meeting_id=' + encodeURIComponent(meetingId));
       const b = res.body;
       if (b && b.ok && b.data) {
         const items = b.data.anomalies || b.data.items || [];
         if (items.length === 0) {
-          dbody.innerHTML = '<div style="padding:16px;text-align:center;" class="text-muted">Aucune anomalie détectée.</div>';
+          dbody.innerHTML = '<div class="drawer-placeholder text-muted">Aucune anomalie détectée.</div>';
         } else {
-          dbody.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">' + items.map(function(a) { return '<div style="padding:8px 12px;border-radius:8px;background:var(--color-bg,#f5f5f5);"><div style="font-weight:600;color:var(--color-danger,#a05252);">' + esc(a.code || a.severity || 'Anomalie') + '</div><div class="text-sm">' + esc(a.message || a.detail || '') + '</div></div>'; }).join('') + '</div>';
+          dbody.innerHTML = '<div class="drawer-anomalies-layout">' + items.map(function(a) { return '<div class="drawer-anomaly-card"><div class="drawer-anomaly-card__code">' + esc(a.code || a.severity || 'Anomalie') + '</div><div class="text-sm">' + esc(a.message || a.detail || '') + '</div></div>'; }).join('') + '</div>';
         }
-      } else { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Aucune anomalie.</div>'; }
-    } catch(e) { dbody.innerHTML = '<div style="padding:16px;" class="text-muted">Erreur de chargement.</div>'; }
+      } else { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Aucune anomalie.</div>'; }
+    } catch(e) { dbody.innerHTML = '<div class="drawer-placeholder text-muted">Erreur de chargement.</div>'; }
   }
 
   function closeDrawer(){
@@ -623,7 +623,7 @@
     const bell = document.createElement('button');
     bell.className = 'notif-bell';
     bell.setAttribute('aria-label', 'Notifications');
-    bell.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-count" style="display:none">0</span>';
+    bell.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-count" hidden>0</span>';
 
     // Insert before last child or at end
     const ctx = header.querySelector('.header-ctx');
@@ -636,22 +636,22 @@
     // Create panel
     notifPanel = document.createElement('div');
     notifPanel.className = 'notif-panel';
-    notifPanel.style.display = 'none';
-    notifPanel.innerHTML = '<div style="padding:12px 16px;font-size:13px;font-weight:700;border-bottom:1px solid var(--color-border-subtle,#e8e7e2);">Notifications</div>' +
+    notifPanel.hidden = true;
+    notifPanel.innerHTML = '<div class="notif-panel-header">Notifications</div>' +
       '<div class="notif-list"></div>' +
-      '<a href="/admin.htmx.html" class="notif-footer" style="display:block;padding:10px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--color-primary);border-top:1px solid var(--color-border-subtle,#e8e7e2);text-decoration:none;">Voir tout</a>';
+      '<a href="/admin.htmx.html" class="notif-footer notif-panel-footer">Voir tout</a>';
     bell.style.position = 'relative';
     bell.appendChild(notifPanel);
 
     bell.addEventListener('click', function(e) {
       e.stopPropagation();
-      const isOpen = notifPanel.style.display !== 'none';
-      notifPanel.style.display = isOpen ? 'none' : 'block';
+      const isOpen = !notifPanel.hidden;
+      notifPanel.hidden = isOpen;
       if (!isOpen) markNotificationsRead();
     });
 
     document.addEventListener('click', function() {
-      if (notifPanel) notifPanel.style.display = 'none';
+      if (notifPanel) notifPanel.hidden = true;
     });
 
     // Initial fetch + periodic poll (store ref for cleanup)
@@ -679,14 +679,14 @@
     const countEl = document.querySelector('.notif-count');
     if (countEl) {
       countEl.textContent = unread > 9 ? '9+' : String(unread);
-      countEl.style.display = unread > 0 ? 'flex' : 'none';
+      countEl.hidden = unread === 0;
     }
 
     const list = notifPanel && notifPanel.querySelector('.notif-list');
     if (!list) return;
 
     if (items.length === 0) {
-      list.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--color-text-muted,#95a3a4);">Aucune notification</div>';
+      list.innerHTML = '<div class="notif-empty">Aucune notification</div>';
       return;
     }
 
@@ -758,7 +758,7 @@
         '<div class="search-input-row">' +
           '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
           '<input type="text" placeholder="Rechercher une page…" autofocus />' +
-          '<kbd style="font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid var(--color-border,#d5dbd2);color:var(--color-text-muted,#95a3a4);">Esc</kbd>' +
+          '<kbd class="cmd-kbd">Esc</kbd>' +
         '</div>' +
         '<div class="search-results"></div>' +
       '</div>';
@@ -803,7 +803,7 @@
     if (!container) return;
 
     if (searchFiltered.length === 0) {
-      container.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--color-text-muted,#95a3a4);">Aucun résultat</div>';
+      container.innerHTML = '<div class="notif-empty">Aucun résultat</div>';
       return;
     }
 
@@ -848,7 +848,7 @@
     if (!h || h.querySelector('.search-trigger')) return;
     var trigger = document.createElement('button');
     trigger.className = 'search-trigger';
-    trigger.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Rechercher… <kbd style="font-size:10px;padding:1px 5px;border-radius:3px;border:1px solid var(--color-border,#d5dbd2);margin-left:8px;color:var(--color-text-muted,#95a3a4);">⌘K</kbd>';
+    trigger.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Rechercher… <kbd class="cmd-kbd-sm">⌘K</kbd>';
     trigger.addEventListener('click', openSearch);
     // Insert after logo
     var logo = h.querySelector('.logo');
