@@ -166,7 +166,12 @@ Plans:
   2. Les 42 inline styles identifies sont remplaces par des classes CSS dans les 15 fichiers HTML concernes
   3. Le drawer shell.js utilise des classes design-system au lieu de styles inline hardcodes
   4. Aucun champ de formulaire visible n'est non-style (zero champ sans padding/border/radius)
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Wizard class migration (field-input to form-input/form-select)
+- [ ] 02-02-PLAN.md — Inline style cleanup (display:none to hidden, complex styles to CSS classes)
+- [ ] 02-03-PLAN.md — Shell.js drawer refactoring (inline styles to drawer-* CSS classes)
 
 ### Phase 3: Coherence Cross-Pages
 **Goal**: L'interface presente une identite coherente sur toutes les pages -- version unique, texte correct, modales uniformes
@@ -241,7 +246,7 @@ Plans:
 | 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
 | 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 1. Palette et Tokens | v1.8 | 1/1 | Complete | 2026-04-20 |
-| 2. Classes CSS et Inline Cleanup | v1.8 | 0/? | Not started | - |
+| 2. Classes CSS et Inline Cleanup | v1.8 | 0/3 | Not started | - |
 | 3. Coherence Cross-Pages | v1.8 | 0/? | Not started | - |
 | 4. Layout Fixes | v1.8 | 0/? | Not started | - |
 | 5. Validation Gate | v1.8 | 0/? | Not started | - |
