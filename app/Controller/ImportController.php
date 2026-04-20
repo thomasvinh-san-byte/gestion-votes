@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Service\ImportService;
 
 final class ImportController extends AbstractController {
@@ -11,24 +12,36 @@ final class ImportController extends AbstractController {
     private function importService(): ImportService { return $this->importService ??= new ImportService($this->repo()); }
 
     public function membersCsv(): void {
-        $in = api_request('POST'); $file = api_file('file', 'csv_file'); $csv = $in['csv_content'] ?? null;
+        $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+        $file = api_file('file', 'csv_file'); $csv = $in['csv_content'] ?? null;
         if (!$file && !$csv) { $j = json_decode(file_get_contents('php://input'), true); $csv = $j['csv_content'] ?? null; }
         [$h, $rw] = $this->readCsvOrContent($file, $csv);
         $this->runMembersImport($h, $rw, $file['name'] ?? 'csv_content', 'members_import');
     }
 
     public function membersXlsx(): void {
-        api_request('POST'); [$h, $rw] = $this->readImportFile('xlsx');
+        api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+        [$h, $rw] = $this->readImportFile('xlsx');
         $this->runMembersImport($h, $rw, api_file('file', 'xlsx_file')['name'] ?? 'upload.xlsx', 'members_import_xlsx');
     }
 
     public function attendancesCsv(): void {
-        $in = api_request('POST'); [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('csv');
+        $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+        [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('csv');
         $this->runAttendancesImport($h, $rw, $mid, filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN), api_file('file', 'csv_file')['name'] ?? '', 'attendances_import');
     }
 
     public function attendancesXlsx(): void {
-        $in = api_request('POST'); [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('xlsx');
+        $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+        [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('xlsx');
         $this->runAttendancesImport($h, $rw, $mid, filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN), api_file('file', 'xlsx_file')['name'] ?? '', 'attendances_import_xlsx');
     }
 
@@ -45,12 +58,18 @@ final class ImportController extends AbstractController {
     }
 
     public function motionsCsv(): void {
-        $in = api_request('POST'); [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('csv');
+        $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+        [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('csv');
         $this->runMotionsImport($h, $rw, $mid, filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN), api_file('file', 'csv_file')['name'] ?? '', 'motions_import');
     }
 
     public function motionsXlsx(): void {
-        $in = api_request('POST'); [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('xlsx');
+        $in = api_request('POST');
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+        [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('xlsx');
         $this->runMotionsImport($h, $rw, $mid, filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN), api_file('file', 'xlsx_file')['name'] ?? '', 'motions_import_xlsx');
     }
 
@@ -64,7 +83,9 @@ final class ImportController extends AbstractController {
             api_transaction(function () use ($rw, $ci, $hn, $hfl, $tid, &$res) { $this->mergeResult($res, $this->importService()->processMemberImport($rw, $ci, $hn, $hfl, $tid)); });
         }, 'import_failed');
         audit_log($ev, 'member', null, ['imported' => $res['imported'], 'skipped' => $res['skipped'], 'filename' => $fn]);
-        api_ok(['imported' => $res['imported'], 'skipped' => $res['skipped'], 'errors' => array_slice($res['errors'], 0, 20)]);
+        $out = ['imported' => $res['imported'], 'skipped' => $res['skipped'], 'errors' => array_slice($res['errors'], 0, 20)];
+        IdempotencyGuard::store($out);
+        api_ok($out);
     }
 
     private function runAttendancesImport(array $h, array $rw, string $mid, bool $dry, string $fn, string $ev): void {
@@ -77,7 +98,9 @@ final class ImportController extends AbstractController {
         }, 'import_failed');
         if (!$dry && $res['imported'] > 0) { audit_log($ev, 'attendance', $mid, ['imported' => $res['imported'], 'skipped' => $res['skipped'], 'filename' => $fn], $mid); }
         $out = ['imported' => $res['imported'], 'skipped' => $res['skipped'], 'errors' => array_slice($res['errors'], 0, 20), 'dry_run' => $dry];
-        if ($dry) { $out['preview'] = array_slice($res['preview'], 0, 50); } api_ok($out);
+        if ($dry) { $out['preview'] = array_slice($res['preview'], 0, 50); }
+        IdempotencyGuard::store($out);
+        api_ok($out);
     }
 
     private function runProxiesImport(array $h, array $rw, string $mid, bool $dry, int $maxPPR, string $fn, string $ev): void {
@@ -106,7 +129,9 @@ final class ImportController extends AbstractController {
         }, 'import_failed');
         if (!$dry && $res['imported'] > 0) { audit_log($ev, 'motion', $mid, ['imported' => $res['imported'], 'skipped' => $res['skipped'], 'filename' => $fn], $mid); }
         $out = ['imported' => $res['imported'], 'skipped' => $res['skipped'], 'errors' => array_slice($res['errors'], 0, 20), 'dry_run' => $dry];
-        if ($dry) { $out['preview'] = array_slice($res['preview'], 0, 50); } api_ok($out);
+        if ($dry) { $out['preview'] = array_slice($res['preview'], 0, 50); }
+        IdempotencyGuard::store($out);
+        api_ok($out);
     }
 
     private function mergeResult(array &$res, array $x): void {
