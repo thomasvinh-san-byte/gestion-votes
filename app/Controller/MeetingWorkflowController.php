@@ -35,9 +35,19 @@ final class MeetingWorkflowController extends AbstractController {
         } catch (RuntimeException $e) {
             $msg = $e->getMessage();
             if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
-            if (str_contains($msg, 'déjà au statut')) { api_fail('already_in_status', 422, ['detail' => $msg]); }
             if (str_contains($msg, 'archivée')) { api_fail('archived_immutable', 403, ['detail' => $msg]); }
             api_fail('business_error', 400, ['detail' => $msg]);
+        }
+        if (!empty($preCheck['already_in_target'])) {
+            api_ok([
+                'meeting_id' => $meetingId,
+                'from_status' => $preCheck['from_status'],
+                'to_status' => $toStatus,
+                'transitioned_at' => date('c'),
+                'already_in_target' => true,
+                'warnings' => [],
+                'results_emails' => 0,
+            ]);
         }
         $fromStatus = $preCheck['from_status'];
         AuthMiddleware::requireTransition($fromStatus, $toStatus, $meetingId);
@@ -57,7 +67,7 @@ final class MeetingWorkflowController extends AbstractController {
             $locked = $repo->lockForUpdate($meetingId, $tenantId);
             if (!$locked) { api_fail('meeting_not_found', 404); }
             $lockedFrom = $locked['status'];
-            if ($lockedFrom === $toStatus) { api_fail('already_in_status', 422, ['detail' => "La séance est déjà au statut '{$toStatus}'."]); }
+            if ($lockedFrom === $toStatus) { return ['already_in_target' => true, 'from_status' => $lockedFrom]; }
             if ($lockedFrom === 'archived') { api_fail('archived_immutable', 403, ['detail' => 'Séance archivée : aucune transition autorisée.']); }
             $fields = $service->buildTransitionFields($toStatus, $lockedFrom, $locked, $userId, api_current_user()['name'] ?? null);
             $repo->updateFields($meetingId, $tenantId, $fields);
@@ -66,6 +76,17 @@ final class MeetingWorkflowController extends AbstractController {
             audit_log('meeting.transition', 'meeting', $meetingId, $auditData, $meetingId);
             return $lockedFrom;
         });
+        if (is_array($txResult) && !empty($txResult['already_in_target'])) {
+            api_ok([
+                'meeting_id' => $meetingId,
+                'from_status' => $txResult['from_status'],
+                'to_status' => $toStatus,
+                'transitioned_at' => date('c'),
+                'already_in_target' => true,
+                'warnings' => [],
+                'results_emails' => 0,
+            ]);
+        }
         $fromStatus = $txResult;
         try { EventBroadcaster::meetingStatusChanged($meetingId, $tenantId, $toStatus, $fromStatus); }
         catch (Throwable $e) { error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage()); }
@@ -92,10 +113,17 @@ final class MeetingWorkflowController extends AbstractController {
         } catch (RuntimeException $e) {
             $msg = $e->getMessage();
             if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
-            if (str_contains($msg, 'déjà en cours')) { api_fail('already_in_status', 422, ['detail' => $msg]); }
             $decoded = json_decode($msg, true);
             if (is_array($decoded) && ($decoded['code'] ?? '') === 'workflow_issues') { api_fail('workflow_issues', 422, $decoded); }
             api_fail('invalid_launch_status', 422, ['detail' => $msg]);
+        }
+        if (!empty($preCheck['already_in_target'])) {
+            api_ok([
+                'meeting_id' => $meetingId,
+                'from_status' => 'live',
+                'to_status' => 'live',
+                'already_in_target' => true,
+            ]);
         }
         $path = $preCheck['path'];
         $fromStatus = $preCheck['from_status'];

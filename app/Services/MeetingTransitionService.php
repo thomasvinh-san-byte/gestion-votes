@@ -45,7 +45,12 @@ final class MeetingTransitionService {
         $fromStatus = $meeting['status'];
 
         if ($fromStatus === $toStatus) {
-            throw new RuntimeException("La séance est déjà au statut '{$toStatus}'.");
+            return [
+                'meeting_id' => $meetingId,
+                'from_status' => $fromStatus,
+                'to_status' => $toStatus,
+                'already_in_target' => true,
+            ];
         }
         if ($fromStatus === 'archived') {
             throw new RuntimeException('Séance archivée : aucune transition autorisée.');
@@ -73,11 +78,20 @@ final class MeetingTransitionService {
 
         $fromStatus = $meeting['status'];
 
+        if ($fromStatus === 'live') {
+            return [
+                'meeting_id' => $meetingId,
+                'from_status' => 'live',
+                'to_status' => 'live',
+                'path' => [],
+                'already_in_target' => true,
+            ];
+        }
+
         $path = match ($fromStatus) {
             'draft' => ['scheduled', 'frozen', 'live'],
             'scheduled' => ['frozen', 'live'],
             'frozen' => ['live'],
-            'live' => throw new RuntimeException('La séance est déjà en cours.'),
             default => throw new RuntimeException("Impossible de lancer depuis le statut '{$fromStatus}'."),
         };
 
