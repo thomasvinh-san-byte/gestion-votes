@@ -515,6 +515,15 @@
   function loadData() {
     var params = new URLSearchParams(window.location.search);
     var meetingId = params.get('meeting_id');
+    // Support clean URL: /audit/{uuid}
+    if (!meetingId) {
+      var pathMatch = window.location.pathname.match(/^\/audit\/([0-9a-f-]{36})$/i);
+      if (pathMatch) meetingId = pathMatch[1];
+    }
+    // Fallback to MeetingContext if available
+    if (!meetingId && window.MeetingContext) {
+      meetingId = window.MeetingContext.get();
+    }
 
     if (!meetingId) {
       _allEvents = [];

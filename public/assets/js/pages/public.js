@@ -17,7 +17,9 @@ window.APP_API_KEY = window.APP_API_KEY
 // Persist to sessionStorage (not localStorage) so it survives page reloads but not new sessions
 if (window.APP_API_KEY) { try { sessionStorage.setItem('api_key', window.APP_API_KEY); } catch(e){ /* sessionStorage unavailable — silent */ } }
 
-var MEETING_ID = new URLSearchParams(location.search).get('meeting_id') || null;
+var MEETING_ID = new URLSearchParams(location.search).get('meeting_id')
+  || (function() { var m = location.pathname.match(/^\/public\/([0-9a-f-]{36})$/i); return m ? m[1] : null; })()
+  || null;
 var currentMotionId = null;
 
 function updateUrl() {

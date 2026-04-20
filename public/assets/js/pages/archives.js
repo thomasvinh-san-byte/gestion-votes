@@ -140,7 +140,7 @@
       var pvUrl = '/api/v1/meeting_report.php?meeting_id=' + encodeURIComponent(id);
       var auditUrl = '/api/v1/audit_export.php?meeting_id=' + encodeURIComponent(id);
 
-      return '<div class="archive-card-enhanced" data-status="' + status + '">' +
+      return '<div class="archive-card-enhanced" data-meeting-id="' + id + '" data-status="' + status + '">' +
           '<div class="archive-card-header">' +
             '<div>' +
               '<div class="font-semibold text-lg">' + title + '</div>' +
@@ -348,6 +348,22 @@
 
           // Apply filters and render
           applyFilters();
+
+          // Deep link: /archives/{uuid} — highlight and scroll to matching card
+          var deepMatch = window.location.pathname.match(/^\/archives\/([0-9a-f-]{36})$/i);
+          if (deepMatch) {
+            var targetId = deepMatch[1];
+            // Select in export dropdown
+            if (exportSelect) exportSelect.value = targetId;
+            // Scroll to card after render
+            setTimeout(function() {
+              var card = document.querySelector('[data-meeting-id="' + targetId + '"]');
+              if (card) {
+                card.classList.add('ring');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 100);
+          }
         } else {
           allArchives = [];
           resetKPIs();
