@@ -203,5 +203,5 @@ Plans:
 | 3. Wizard Single-Page | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
-| 2. Gardes Backend | v1.7 | 0/2 | Not started | - |
+| 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
 | 3. Frontend et Validation | v1.7 | 0/? | Not started | - |
