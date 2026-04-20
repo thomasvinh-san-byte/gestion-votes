@@ -2744,37 +2744,6 @@ body:has(.drawer-backdrop.open) {
   gap: var(--space-4);
 }
 
-.kpi-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  text-align: center;
-  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
-}
-
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.kpi-value {
-  font-size: var(--text-4xl);
-  font-weight: var(--font-extrabold);
-  line-height: 1;
-  margin-bottom: var(--space-2);
-}
-
-.kpi-value.primary { color: var(--color-primary); }
-.kpi-value.success { color: var(--color-success); }
-.kpi-value.warning { color: var(--color-warning); }
-.kpi-value.danger { color: var(--color-danger); }
-
-.kpi-label {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-medium);
-}
 
 /* ─── Quorum Indicator ─── */
 .quorum-indicator {
