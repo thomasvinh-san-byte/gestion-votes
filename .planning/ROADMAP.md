@@ -90,7 +90,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 - [ ] **Phase 4: Refactoring ExportService** - Extraire ValueTranslator, ramener ExportService <300 LOC
 - [x] **Phase 5: Refactoring MeetingReportsService** - Extraire ReportGenerator, ramener MeetingReportsService <300 LOC (completed 2026-04-15)
 - [x] **Phase 6: Refactoring EmailQueueService** - Extraire RetryPolicy, ramener EmailQueueService <300 LOC (completed 2026-04-20)
-- [ ] **Phase 7: Validation Gate** - Confirmer zero regression routes, PHPUnit vert, Playwright vert
+- [x] **Phase 7: Validation Gate** - Confirmer zero regression routes, PHPUnit vert, Playwright vert (completed 2026-04-20)
 
 ## Phase Details
 

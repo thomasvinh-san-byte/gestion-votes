@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Nettoyage et Refactoring Services
-status: executing
-stopped_at: Completed 06-01-PLAN.md
+status: complete
+stopped_at: Milestone v1.5 complete
 last_updated: "2026-04-20T00:00:00.000Z"
-last_activity: 2026-04-20 -- Phase 06 completed, Phase 07 starting
+last_activity: 2026-04-20 -- Phase 07 completed, milestone v1.5 done
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 7
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 07 — validation-gate
+**Current focus:** Milestone v1.5 COMPLETE
 
 ## Current Position
 
-Phase: 07 (validation-gate) — STARTING
-Plan: 0 of 1
-Status: Starting Phase 07
-Last activity: 2026-04-20 -- Phase 06 completed
+Phase: 07 (validation-gate) — COMPLETE
+Plan: 1 of 1
+Status: Milestone v1.5 complete — all 7 phases done
+Last activity: 2026-04-20 -- Phase 07 completed
 
 **Progress:** [██████████] 100%
 
@@ -68,6 +68,7 @@ Last activity: 2026-04-20 -- Phase 06 completed
 | Phase 04 P01 | 2min | 2 tasks | 2 files |
 | Phase 05 P01 | 5min | 2 tasks | 2 files |
 | Phase 06 P01 | 5min | 2 tasks | 2 files |
+| Phase 07 P01 | 3min | 3 tasks | 0 files |
 
 ### Decisions
 
@@ -105,4 +106,4 @@ Last session: 2026-04-15T02:14:24.410Z
 Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
-**Next action:** Phase 07 — Validation Gate (discuss → plan → execute)
+**Next action:** `/gsd:complete-milestone` to archive v1.5
