@@ -53,10 +53,17 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ htmx 2.0.6 upgrade + DELETE param migration + cross-browser validation — v1.4 Phase 4
 - ✓ CSP nonce enforcement report-only + PageController routing — v1.4 Phase 5
 - ✓ 4 controllers >500 LOC reduits a <300 LOC via extraction services — v1.4 Phase 6
+- ✓ Codebase cleanup: console.log, dead code, superglobals, TODOs — v1.5 Phase 1
+- ✓ AuthMiddleware 277 LOC + SessionManager 227 LOC + RbacEngine 259 LOC — v1.5 Phase 2
+- ✓ ImportService 250 LOC + CsvImporter 292 LOC + XlsxImporter 300 LOC — v1.5 Phase 3
+- ✓ ExportService 290 LOC + ValueTranslator 282 LOC — v1.5 Phase 4
+- ✓ MeetingReportsService 293 LOC + ReportGenerator 296 LOC — v1.5 Phase 5
+- ✓ EmailQueueService 212 LOC + RetryPolicy 259 LOC — v1.5 Phase 6
+- ✓ Validation gate: zero route changes, unit tests green, E2E specs intact — v1.5 Phase 7
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.5)
+(No active milestone — run `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -69,7 +76,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-Shipped v1.4 (2026-04-10) — Tech debt milestone complete. All deferred items from v1.0-v1.3 resolved.
+Shipped v1.5 (2026-04-20) — Service refactoring milestone complete. All 5 oversized services refactored to <300 LOC with extracted classes.
 
 **The project is production-hardened.** WCAG AA contrast fully conformant, CSP nonces in report-only mode, htmx 2.0.6 with zero regressions, controller architecture cleaned up (<300 LOC each), all test fixtures real (no admin fallbacks).
 
@@ -95,21 +102,11 @@ Shipped v1.4 (2026-04-10) — Tech debt milestone complete. All deferred items f
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
 
-## Current Milestone: v1.5 Nettoyage et Refactoring Services
+## Completed Milestone: v1.5 Nettoyage et Refactoring Services
 
-**Goal:** Nettoyer le codebase (console.log, code deprecie, superglobals, TODOs) et refactorer les 5 services >600 LOC en respectant le plafond 300 LOC.
+**Shipped:** 2026-04-20 — 7 phases, 9 plans, 18 requirements, all satisfied.
 
-**Target features:**
-- Supprimer 50+ console.log/warn/error du JS de production
-- Supprimer le code deprecie (PermissionChecker, VoteTokenService deprecated methods)
-- Migrer 9 fichiers de $_GET/$_POST vers Request
-- Ajouter test pour PageController
-- Nettoyer les TODOs restants
-- Refactorer AuthMiddleware (871 LOC → <300 + SessionManager + RbacEngine)
-- Refactorer ImportService (791 LOC → <300 + CsvImporter/XlsxImporter)
-- Refactorer ExportService (770 LOC → <300 + ValueTranslator)
-- Refactorer MeetingReportsService (731 LOC → <300 + ReportGenerator)
-- Refactorer EmailQueueService (625 LOC → <300 + RetryPolicy)
+See `.planning/milestones/v1.5-ROADMAP.md` for full archive.
 
 ## Completed Milestone: v1.4 Régler Deferred et Dette Technique
 

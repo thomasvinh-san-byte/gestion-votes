@@ -7,7 +7,7 @@
 - ✅ **v1.2 Bouclage et Validation Bout-en-Bout** - Phases 8-13 (shipped 2026-04-09) — see `.planning/milestones/v1.2-ROADMAP.md`
 - ✅ **v1.3 Polish Post-MVP** - Phases 14-17 (shipped 2026-04-09) — see `.planning/milestones/v1.3-ROADMAP.md`
 - ✅ **v1.4 Regler Deferred et Dette Technique** - Phases 1-6 (shipped 2026-04-10) — see `.planning/milestones/v1.4-ROADMAP.md`
-- 🚧 **v1.5 Nettoyage et Refactoring Services** - Phases 1-7 (in progress)
+- ✅ **v1.5 Nettoyage et Refactoring Services** - Phases 1-7 (shipped 2026-04-20) — see `.planning/milestones/v1.5-ROADMAP.md`
 
 ## Phases
 
@@ -80,116 +80,21 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v1.5 Nettoyage et Refactoring Services (In Progress)
+<details>
+<summary>✅ v1.5 Nettoyage et Refactoring Services (Phases 1-7) - SHIPPED 2026-04-20</summary>
 
-**Milestone Goal:** Nettoyer le codebase (console.log, code deprecie, superglobals, TODOs) et refactorer les 5 services >600 LOC en respectant le plafond 300 LOC.
+See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
-- [x] **Phase 1: Nettoyage Codebase** - Supprimer console.log, code deprecie, TODOs, migrer superglobals, tester PageController (completed 2026-04-10)
-- [ ] **Phase 2: Refactoring AuthMiddleware** - Extraire SessionManager et RbacEngine, ramener AuthMiddleware <300 LOC
-- [ ] **Phase 3: Refactoring ImportService** - Extraire CsvImporter et XlsxImporter, ramener ImportService <300 LOC
-- [ ] **Phase 4: Refactoring ExportService** - Extraire ValueTranslator, ramener ExportService <300 LOC
-- [x] **Phase 5: Refactoring MeetingReportsService** - Extraire ReportGenerator, ramener MeetingReportsService <300 LOC (completed 2026-04-15)
-- [x] **Phase 6: Refactoring EmailQueueService** - Extraire RetryPolicy, ramener EmailQueueService <300 LOC (completed 2026-04-20)
-- [x] **Phase 7: Validation Gate** - Confirmer zero regression routes, PHPUnit vert, Playwright vert (completed 2026-04-20)
+**Phases:** 7 (1 cleanup + 5 refactoring + 1 validation gate)
+**Plans:** 9
+**Requirements:** 18/18 satisfied
+**Shipped:**
+- Codebase cleanup: 50+ console.log removed, dead code purged, superglobals migrated
+- 5 services refactored from >600 LOC to <300 LOC each
+- 7 new extracted classes (SessionManager, RbacEngine, CsvImporter, XlsxImporter, ValueTranslator, ReportGenerator, RetryPolicy)
+- Zero regressions confirmed (routes unchanged, unit tests green, E2E specs intact)
 
-## Phase Details
-
-### Phase 1: Nettoyage Codebase
-**Goal**: Le codebase de production ne contient plus de bruit (console.log, code mort, superglobals directs, TODOs non resolus) et PageController a une couverture de test
-**Depends on**: Nothing (first phase)
-**Requirements**: CLEAN-01, CLEAN-02, CLEAN-03, CLEAN-04, CLEAN-05
-**Success Criteria** (what must be TRUE):
-  1. `grep -rn 'console\.\(log\|warn\|error\)' public/assets/js/` retourne zero resultats (hors error handlers critiques documentes)
-  2. `grep -rn 'PermissionChecker' app/` retourne zero resultats et les methodes deprecated de VoteTokenService sont supprimees
-  3. `grep -rn 'TODO\|FIXME' public/assets/js/ public/assets/css/` retourne zero resultats
-  4. `grep -rn '\$_GET\|\$_POST\|\$_REQUEST' app/` retourne zero resultats (hors bootstrap/index.php)
-  5. PHPUnit PageControllerTest passe au vert couvrant nonce injection et 404
-**Plans**: 2 plans
-
-Plans:
-- [ ] 01-01-PLAN.md — JS/CSS cleanup (console.log, TODO) + dead code removal (PermissionChecker, deprecated methods)
-- [ ] 01-02-PLAN.md — Superglobal migration (6 controllers) + PageController unit test
-
-### Phase 2: Refactoring AuthMiddleware
-**Goal**: AuthMiddleware est un orchestrateur leger (<300 LOC) qui delegue la gestion de session a SessionManager et l'evaluation RBAC a RbacEngine
-**Depends on**: Phase 1
-**Requirements**: REFAC-01, REFAC-02
-**Success Criteria** (what must be TRUE):
-  1. `wc -l app/Core/Middleware/AuthMiddleware.php` affiche <300 lignes
-  2. `wc -l app/Services/SessionManager.php` et `wc -l app/Services/RbacEngine.php` affichent chacun <300 lignes
-  3. SessionManager et RbacEngine sont des `final class` avec constructeur DI nullable (grep confirme)
-  4. Les tests AuthMiddleware existants passent au vert sans modification
-**Plans**: 2 plans
-
-Plans:
-- [ ] 02-01-PLAN.md — Extract SessionManager + RbacEngine, refactor AuthMiddleware to thin orchestrator
-- [ ] 02-02-PLAN.md — Unit tests for SessionManager and RbacEngine (isolation proof)
-
-### Phase 3: Refactoring ImportService
-**Goal**: ImportService est un orchestrateur leger (<300 LOC) qui delegue le parsing CSV a CsvImporter et XLSX a XlsxImporter
-**Depends on**: Phase 1
-**Requirements**: REFAC-03, REFAC-04
-**Success Criteria** (what must be TRUE):
-  1. `wc -l app/Services/ImportService.php` affiche <300 lignes
-  2. `wc -l app/Services/CsvImporter.php` et `wc -l app/Services/XlsxImporter.php` affichent chacun <300 lignes
-  3. CsvImporter et XlsxImporter sont des `final class` avec constructeur DI nullable (grep confirme)
-  4. Les 49+ tests ImportServiceTest existants passent au vert sans modification
-**Plans**: 1 plan
-
-Plans:
-- [ ] 03-01-PLAN.md — Extract CsvImporter + XlsxImporter, refactor ImportService to thin facade with delegation stubs
-
-### Phase 4: Refactoring ExportService
-**Goal**: ExportService est un orchestrateur leger (<300 LOC) qui delegue la traduction de valeurs a ValueTranslator
-**Depends on**: Phase 1
-**Requirements**: REFAC-05, REFAC-06
-**Success Criteria** (what must be TRUE):
-  1. `wc -l app/Services/ExportService.php` affiche <300 lignes
-  2. `wc -l app/Services/ValueTranslator.php` affiche <300 lignes
-  3. ValueTranslator est une `final class` avec <300 LOC (grep confirme)
-**Plans**: 1 plan
-
-Plans:
-- [ ] 04-01-PLAN.md — Extract ValueTranslator + refactor ExportService to thin I/O facade
-
-### Phase 5: Refactoring MeetingReportsService
-**Goal**: MeetingReportsService est un orchestrateur leger (<300 LOC) qui delegue la generation de rapports a ReportGenerator
-**Depends on**: Phase 1
-**Requirements**: REFAC-07, REFAC-08
-**Success Criteria** (what must be TRUE):
-  1. `wc -l app/Services/MeetingReportsService.php` affiche <300 lignes
-  2. `wc -l app/Services/ReportGenerator.php` affiche <300 lignes
-  3. ReportGenerator est une `final class` avec constructeur DI nullable (grep confirme)
-**Plans**: 1 plan
-
-Plans:
-- [ ] 05-01-PLAN.md — Extract ReportGenerator + refactor MeetingReportsService to thin orchestrator
-
-### Phase 6: Refactoring EmailQueueService
-**Goal**: EmailQueueService est un orchestrateur leger (<300 LOC) qui delegue la politique de retry a RetryPolicy
-**Depends on**: Phase 1
-**Requirements**: REFAC-09, REFAC-10
-**Success Criteria** (what must be TRUE):
-  1. `wc -l app/Services/EmailQueueService.php` affiche <300 lignes
-  2. `wc -l app/Services/RetryPolicy.php` affiche <300 lignes
-  3. RetryPolicy est une `final class` avec <300 LOC (grep confirme)
-**Plans**: 1 plan
-
-Plans:
-- [ ] 06-01-PLAN.md — Extract RetryPolicy + refactor EmailQueueService to thin orchestrator
-
-### Phase 7: Validation Gate
-**Goal**: Le milestone est valide -- zero regression sur les routes, les tests unitaires, et les tests E2E
-**Depends on**: Phase 2, Phase 3, Phase 4, Phase 5, Phase 6
-**Requirements**: GUARD-01, GUARD-02, GUARD-03
-**Success Criteria** (what must be TRUE):
-  1. `diff` de routes.php entre HEAD et le commit pre-v1.5 montre zero changement (aucune URL publique modifiee)
-  2. `php vendor/bin/phpunit --no-coverage` passe au vert (zero failures, zero errors)
-  3. `npx playwright test --project=chromium` passe au vert (zero regression)
-**Plans**: 2 plans
-
-Plans:
-- [ ] 07-01: TBD
+</details>
 
 ## Progress
 
@@ -218,10 +123,10 @@ Plans:
 | 4. HTMX 2.0 Upgrade | v1.4 | 2/2 | Complete | 2026-04-10 |
 | 5. CSP Nonce Enforcement | v1.4 | 2/2 | Complete | 2026-04-10 |
 | 6. Controller Refactoring | v1.4 | 3/3 | Complete | 2026-04-10 |
-| 1. Nettoyage Codebase | v1.5 | 0/2 | Not started | - |
-| 2. Refactoring AuthMiddleware | v1.5 | 0/2 | Not started | - |
-| 3. Refactoring ImportService | v1.5 | 0/1 | Not started | - |
-| 4. Refactoring ExportService | v1.5 | 0/1 | Not started | - |
-| 5. Refactoring MeetingReportsService | v1.5 | 0/1 | Not started | - |
-| 6. Refactoring EmailQueueService | v1.5 | 0/1 | Not started | - |
-| 7. Validation Gate | v1.5 | 0/1 | Not started | - |
+| 1. Nettoyage Codebase | v1.5 | 2/2 | Complete | 2026-04-10 |
+| 2. Refactoring AuthMiddleware | v1.5 | 2/2 | Complete | 2026-04-11 |
+| 3. Refactoring ImportService | v1.5 | 1/1 | Complete | 2026-04-12 |
+| 4. Refactoring ExportService | v1.5 | 1/1 | Complete | 2026-04-13 |
+| 5. Refactoring MeetingReportsService | v1.5 | 1/1 | Complete | 2026-04-15 |
+| 6. Refactoring EmailQueueService | v1.5 | 1/1 | Complete | 2026-04-20 |
+| 7. Validation Gate | v1.5 | 1/1 | Complete | 2026-04-20 |
