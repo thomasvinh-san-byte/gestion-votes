@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: Nettoyage et Refactoring Services
-status: complete
-stopped_at: Milestone v1.5 complete
+milestone: v1.6
+milestone_name: Reparation UI et Polish Fonctionnel
+status: defining
+stopped_at: Defining requirements
 last_updated: "2026-04-20T00:00:00.000Z"
-last_activity: 2026-04-20 -- Phase 07 completed, milestone v1.5 done
+last_activity: 2026-04-20 -- Milestone v1.6 started
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Milestone v1.5 COMPLETE
+**Current focus:** v1.6 — Reparation UI et Polish Fonctionnel
 
 ## Current Position
 
-Phase: 07 (validation-gate) — COMPLETE
-Plan: 1 of 1
-Status: Milestone v1.5 complete — all 7 phases done
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
 Last activity: 2026-04-20 -- Phase 07 completed
 
 **Progress:** [██████████] 100%

@@ -63,7 +63,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(No active milestone — run `/gsd:new-milestone` to start next)
+(Defined in REQUIREMENTS.md for v1.6)
 
 ### Out of Scope
 
@@ -101,6 +101,17 @@ Shipped v1.5 (2026-04-20) — Service refactoring milestone complete. All 5 over
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Current Milestone: v1.6 Reparation UI et Polish Fonctionnel
+
+**Goal:** Reparer les regressions UI/JS introduites par v4.2 et moderniser les formulaires pour une utilisation efficace des ecrans horizontaux.
+
+**Target features:**
+- Reparer les interactions JS cassees (event handlers, selecteurs DOM, cibles HTMX)
+- Reparer les layouts visuels casses (elements mal alignes, sections tronquees)
+- Moderniser les formulaires (champs compacts, layouts multi-colonnes, wizard sur une seule page)
+- Utiliser l'espace horizontal agressivement (layouts 2-3 colonnes)
+- Verifier chaque page bout-en-bout dans un navigateur
 
 ## Completed Milestone: v1.5 Nettoyage et Refactoring Services
 
