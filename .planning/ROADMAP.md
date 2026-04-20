@@ -132,7 +132,10 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
   1. Un document liste chaque route POST/PATCH/DELETE avec sa protection actuelle (IdempotencyGuard, UNIQUE constraint, CSRF seul)
   2. Chaque route porte une classification de risque (critique/moyen/bas) basee sur l'impact d'un doublon en production
   3. Les routes non protegees critiques sont identifiees comme cibles pour Phase 2
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
 
 ### Phase 2: Gardes Backend
 **Goal**: Les routes critiques non protegees resistent au double-submit -- aucune creation en doublon possible sur les endpoints identifies en Phase 1
@@ -142,7 +145,10 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
   1. Les routes de creation sans contrainte UNIQUE (email_templates, export_templates, member_groups, reminders, attachments, resolution_documents) rejettent un second appel avec le meme idempotency key
   2. L'import bulk de membres avec le meme fichier ne cree pas de doublons quand soumis deux fois
   3. Demarrer ou cloturer une seance deja dans l'etat cible retourne un succes sans effet de bord (operation idempotente)
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
 
 ### Phase 3: Frontend et Validation
 **Goal**: Le frontend envoie automatiquement un identifiant unique par action et des tests prouvent que le systeme rejette les doublons
@@ -152,7 +158,10 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
   1. Chaque formulaire HTMX avec methode POST/PATCH envoie un header X-Idempotency-Key unique genere cote client
   2. Un second clic sur un bouton de soumission ne produit pas de requete avec le meme idempotency key
   3. Les tests unitaires demontrent qu'IdempotencyGuard retourne une erreur 409 sur requete dupliquee et accepte une requete avec un nouveau key
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md -- Audit complet des routes mutantes avec classification par risque
 
 ## Progress
 
