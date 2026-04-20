@@ -131,7 +131,12 @@ Plans:
   1. Sur un ecran >1024px, les formulaires affichent 2-3 colonnes de champs cote a cote au lieu d'une pile verticale
   2. Les inputs, selects, et textareas ont un style uniforme compact (meme hauteur, meme espacement, meme typographie)
   3. Aucun formulaire mono-colonne ne depasse 60% de la largeur disponible du viewport
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Grid layouts for operator, settings, postsession, email-templates (heavy forms)
+- [ ] 02-02-PLAN.md — Grid layouts for members, users, meetings, admin, validate (medium forms)
+- [ ] 02-03-PLAN.md — Field class normalization for vote, report, archives, trust, audit, analytics, help (light forms)
 
 ### Phase 3: Wizard Single-Page
 **Goal**: L'assistant de creation de seance (4 etapes) tient entierement dans un seul viewport sans scroll vertical
@@ -187,6 +192,6 @@ Plans:
 | 6. Refactoring EmailQueueService | v1.5 | 1/1 | Complete | 2026-04-20 |
 | 7. Validation Gate | v1.5 | 1/1 | Complete | 2026-04-20 |
 | 1. JS Interaction Audit & Repair | v1.6 | 3/3 | Complete | 2026-04-20 |
-| 2. Form Layout Modernization | v1.6 | 0/? | Not started | - |
+| 2. Form Layout Modernization | v1.6 | 0/3 | Not started | - |
 | 3. Wizard Single-Page | v1.6 | 0/? | Not started | - |
 | 4. Validation Gate | v1.6 | 0/? | Not started | - |
