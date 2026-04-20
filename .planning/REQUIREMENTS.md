@@ -1,7 +1,7 @@
 # Requirements: AgVote v1.7
 
 **Defined:** 2026-04-20
-**Core Value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
+**Core Value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
 
 ## v1.7 Requirements
 
@@ -54,18 +54,19 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IDEM-01 | TBD | Pending |
-| IDEM-02 | TBD | Pending |
-| IDEM-03 | TBD | Pending |
-| IDEM-04 | TBD | Pending |
-| IDEM-05 | TBD | Pending |
-| IDEM-06 | TBD | Pending |
-| IDEM-07 | TBD | Pending |
+| IDEM-01 | Phase 1 | Pending |
+| IDEM-02 | Phase 1 | Pending |
+| IDEM-03 | Phase 2 | Pending |
+| IDEM-04 | Phase 2 | Pending |
+| IDEM-05 | Phase 2 | Pending |
+| IDEM-06 | Phase 3 | Pending |
+| IDEM-07 | Phase 3 | Pending |
 
 **Coverage:**
 - v1.7 requirements: 7 total
-- Mapped to phases: 0/7 (awaiting roadmap)
-- Unmapped: 7
+- Mapped to phases: 7/7
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-20*
+*Traceability updated: 2026-04-20*

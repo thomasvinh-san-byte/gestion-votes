@@ -2,51 +2,50 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Audit Idempotence
-status: defining
-stopped_at: Defining requirements
-last_updated: "2026-04-20T07:00:00.000Z"
-last_activity: 2026-04-20 -- Milestone v1.7 started
+status: ready_to_plan
+stopped_at: Roadmap created, Phase 1 ready to plan
+last_updated: "2026-04-20T08:00:00.000Z"
+last_activity: 2026-04-20 -- Roadmap v1.7 created with 3 phases
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
 ---
 
-# AG-VOTE — Project State
+# AG-VOTE -- Project State
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-04-20)
 
-**Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.7 — Audit Idempotence
+**Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
+**Current focus:** v1.7 Phase 1 -- Audit et Classification
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-20 — Phase 3 complete (1/1 plan, wizard compact layout for 1080p viewport)
+Phase: 1 of 3 (Audit et Classification)
+Plan: --
+Status: Ready to plan
+Last activity: 2026-04-20 -- Roadmap v1.7 created (3 phases, 7 requirements mapped)
 
-**Progress:** [██████████] 100%
+**Progress:** [░░░░░░░░░░] 0%
 
-## v1.6 Phase Summary
+## v1.7 Phase Summary
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 1 — JS Interaction Audit & Repair | Zero erreur console, zero bouton mort, zero formulaire cassé sur 21 pages | JSFIX-01..04 |
-| 2 — Form Layout Modernization | Formulaires multi-colonnes, champs compacts, largeur horizontale exploitee | FORM-01..03 |
-| 3 — Wizard Single-Page | Assistant creation seance sur un viewport sans scroll | WIZ-01 |
-| 4 — Validation Gate | Verification bout-en-bout, zero regression | VALID-01 |
+| 1 -- Audit et Classification | Inventaire complet des routes mutantes, classification par risque | IDEM-01, IDEM-02 |
+| 2 -- Gardes Backend | IdempotencyGuard sur routes critiques + idempotence workflow | IDEM-03, IDEM-04, IDEM-05 |
+| 3 -- Frontend et Validation | Header HTMX X-Idempotency-Key + tests unitaires | IDEM-06, IDEM-07 |
 
 ## Performance Metrics
 
 **Velocity:**
 
 - Total plans completed: 0
-- Average duration: —
+- Average duration: --
 - Total execution time: 0 hours
 
 **By Phase:**
@@ -56,33 +55,20 @@ Last activity: 2026-04-20 — Phase 3 complete (1/1 plan, wizard compact layout 
 | - | - | - | - |
 
 ## Accumulated Context
-| Phase 01 P02 | 3min | 2 tasks | 1 files |
-| Phase 01 P03 | 4 | 2 tasks | 1 files |
-| Phase 02 P03 | 1min | 2 tasks | 4 files |
-| Phase 02 P02 | 2min | 2 tasks | 4 files |
-| Phase 02 P01 | 8min | 2 tasks | 4 files |
-| Phase 03 P01 | 3min | 2 tasks | 1 files |
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.6 roadmap]: 4 phases — JS audit first (fix broken before modernizing), then forms, wizard, validation gate last
-- [v1.6 roadmap]: Phase 1 covers all 4 JSFIX requirements together (21 pages, audit + repair in same phase)
-- [v1.6 roadmap]: Wizard gets its own phase (specific page, distinct from general form modernization)
-- [v1.6 roadmap]: Validation gate pattern carried from v1.5 Phase 7
-- [Phase 01]: Dynamic modal elements created by Shared.openModal() are not broken selectors
-- [Phase 01]: Trust page: added kpiChecks + btnExportAuditJson DOM elements to match JS selectors
-- [Phase 01]: Dynamic modal elements (40+ IDs) correctly absent from static HTML -- only fixed selectors causing runtime failures
-- [Phase 02]: All select elements across 7 light-form pages normalized to form-select; vote/report/help already compliant
-- [Phase 02]: Members/admin create-forms keep existing custom grids; form-grid-2 only for modal forms
-- [Phase 02]: Replaced ps-signataire-row with form-grid-2 on postsession; used form-grid-3 for email-templates short fields
-- [Phase 03]: No HTML changes needed -- all form-grid-2 layouts already applied in Phase 2
+- [v1.7 roadmap]: 3 phases -- audit first (understand gaps), then backend guards, frontend + tests last
+- [v1.7 roadmap]: IdempotencyGuard already covers MeetingsController, AgendaController, MembersController -- Phase 1 audits the rest
+- [v1.7 roadmap]: ~28 mutating routes total, ~25 unprotected by IdempotencyGuard
+- [v1.7 roadmap]: DB UNIQUE constraints already protect ballots, attendances, invitations, proxies -- Phase 2 targets routes without either guard
 
 ### Pending Todos
 
-None — awaiting Phase 1 plan generation.
+None -- awaiting Phase 1 plan generation.
 
 ### Blockers/Concerns
 
@@ -90,8 +76,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T06:08:37.760Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-04-20
+Stopped at: Roadmap v1.7 created
 Resume file: None
 
-**Next action:** `/gsd:execute-phase 3` for Wizard Single-Page
+**Next action:** `/gsd:plan-phase 1`

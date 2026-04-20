@@ -9,6 +9,7 @@
 - ✅ **v1.4 Regler Deferred et Dette Technique** - Phases 1-6 (shipped 2026-04-10) — see `.planning/milestones/v1.4-ROADMAP.md`
 - ✅ **v1.5 Nettoyage et Refactoring Services** - Phases 1-7 (shipped 2026-04-20) — see `.planning/milestones/v1.5-ROADMAP.md`
 - ✅ **v1.6 Reparation UI et Polish Fonctionnel** - Phases 1-4 (shipped 2026-04-20) — see `.planning/milestones/v1.6-ROADMAP.md`
+- 🚧 **v1.7 Audit Idempotence** - Phases 1-3 (in progress)
 
 ## Phases
 
@@ -98,7 +99,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 </details>
 
 <details>
-<summary>v1.6 Reparation UI et Polish Fonctionnel (Phases 1-4) - SHIPPED 2026-04-20</summary>
+<summary>✅ v1.6 Reparation UI et Polish Fonctionnel (Phases 1-4) - SHIPPED 2026-04-20</summary>
 
 See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
@@ -112,6 +113,46 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 - Zero regressions confirmed
 
 </details>
+
+### v1.7 Audit Idempotence (In Progress)
+
+**Milestone Goal:** Verifier et renforcer l'idempotence des routes POST/PATCH/DELETE critiques -- aucun doublon sur vote, creation seance, creation membre, envoi email.
+
+- [ ] **Phase 1: Audit et Classification** - Inventaire complet des routes mutantes, classification par risque, documentation des lacunes
+- [ ] **Phase 2: Gardes Backend** - Ajout IdempotencyGuard sur routes critiques non protegees + idempotence workflow
+- [ ] **Phase 3: Frontend et Validation** - Header HTMX X-Idempotency-Key + tests unitaires
+
+## Phase Details
+
+### Phase 1: Audit et Classification
+**Goal**: Toutes les routes mutantes sont inventoriees et classees par risque -- la couverture actuelle et les lacunes sont documentees
+**Depends on**: Nothing (first phase)
+**Requirements**: IDEM-01, IDEM-02
+**Success Criteria** (what must be TRUE):
+  1. Un document liste chaque route POST/PATCH/DELETE avec sa protection actuelle (IdempotencyGuard, UNIQUE constraint, CSRF seul)
+  2. Chaque route porte une classification de risque (critique/moyen/bas) basee sur l'impact d'un doublon en production
+  3. Les routes non protegees critiques sont identifiees comme cibles pour Phase 2
+**Plans**: TBD
+
+### Phase 2: Gardes Backend
+**Goal**: Les routes critiques non protegees resistent au double-submit -- aucune creation en doublon possible sur les endpoints identifies en Phase 1
+**Depends on**: Phase 1
+**Requirements**: IDEM-03, IDEM-04, IDEM-05
+**Success Criteria** (what must be TRUE):
+  1. Les routes de creation sans contrainte UNIQUE (email_templates, export_templates, member_groups, reminders, attachments, resolution_documents) rejettent un second appel avec le meme idempotency key
+  2. L'import bulk de membres avec le meme fichier ne cree pas de doublons quand soumis deux fois
+  3. Demarrer ou cloturer une seance deja dans l'etat cible retourne un succes sans effet de bord (operation idempotente)
+**Plans**: TBD
+
+### Phase 3: Frontend et Validation
+**Goal**: Le frontend envoie automatiquement un identifiant unique par action et des tests prouvent que le systeme rejette les doublons
+**Depends on**: Phase 2
+**Requirements**: IDEM-06, IDEM-07
+**Success Criteria** (what must be TRUE):
+  1. Chaque formulaire HTMX avec methode POST/PATCH envoie un header X-Idempotency-Key unique genere cote client
+  2. Un second clic sur un bouton de soumission ne produit pas de requete avec le meme idempotency key
+  3. Les tests unitaires demontrent qu'IdempotencyGuard retourne une erreur 409 sur requete dupliquee et accepte une requete avec un nouveau key
+**Plans**: TBD
 
 ## Progress
 
@@ -151,3 +192,6 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 | 2. Form Layout Modernization | v1.6 | 3/3 | Complete | 2026-04-20 |
 | 3. Wizard Single-Page | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
+| 1. Audit et Classification | v1.7 | 0/? | Not started | - |
+| 2. Gardes Backend | v1.7 | 0/? | Not started | - |
+| 3. Frontend et Validation | v1.7 | 0/? | Not started | - |
