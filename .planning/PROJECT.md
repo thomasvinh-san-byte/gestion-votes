@@ -67,7 +67,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(No active milestone — run `/gsd:new-milestone` to start next)
+(Defined in REQUIREMENTS.md for v1.7)
 
 ### Out of Scope
 
@@ -105,6 +105,16 @@ Shipped v1.6 (2026-04-20) — UI regression fixes and functional polish complete
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Current Milestone: v1.7 Audit Idempotence
+
+**Goal:** Verifier et renforcer l'idempotence des routes POST/PATCH critiques — aucun doublon sur vote, creation seance, creation membre, envoi email.
+
+**Target features:**
+- Auditer la couverture actuelle de l'IdempotencyGuard
+- Identifier les routes POST/PATCH non protegees
+- Ajouter des gardes d'idempotence sur les routes critiques manquantes
+- Verifier que les operations atomiques resistent au double-submit
 
 ## Completed Milestone: v1.6 Reparation UI et Polish Fonctionnel
 

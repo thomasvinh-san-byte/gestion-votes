@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Reparation UI et Polish Fonctionnel
-status: completed
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-04-20T06:08:37.763Z"
-last_activity: 2026-04-20 — Phase 3 complete (1/1 plan, wizard compact layout for 1080p viewport)
+milestone: v1.7
+milestone_name: Audit Idempotence
+status: defining
+stopped_at: Defining requirements
+last_updated: "2026-04-20T07:00:00.000Z"
+last_activity: 2026-04-20 -- Milestone v1.7 started
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE — Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** L'application doit etre fiable en production — aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.6 Phase 3 complete, ready for Phase 4
+**Current focus:** v1.7 — Audit Idempotence
 
 ## Current Position
 
-Phase: 3 of 4 (Wizard Single-Page) -- COMPLETE
-Plan: 1 of 1
-Status: Phase 3 complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
 Last activity: 2026-04-20 — Phase 3 complete (1/1 plan, wizard compact layout for 1080p viewport)
 
 **Progress:** [██████████] 100%
