@@ -136,7 +136,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 **Milestone Goal:** Corriger les 67 problemes UI identifies par l'audit -- palette moderne, classes CSS coherentes, versions unifiees, patterns consolides.
 
 - [x] **Phase 1: Palette et Tokens** - Migrer la palette beige/parchment vers gris neutre, tokens stone vers slate, hex vers oklch (completed 2026-04-20)
-- [ ] **Phase 2: Classes CSS et Inline Cleanup** - Wizard field-input vers form-input, 42 inline styles vers classes, shell.js drawer
+- [x] **Phase 2: Classes CSS et Inline Cleanup** - Wizard field-input vers form-input, 42 inline styles vers classes, shell.js drawer (completed 2026-04-20)
 - [ ] **Phase 3: Coherence Cross-Pages** - Version unique, footer accent, modales consolidees
 - [ ] **Phase 4: Layout Fixes** - Landing hero compact, radio vers select, KPI dead code
 - [ ] **Phase 5: Validation Gate** - Zero inline style, zero field-input, version unique confirmee
@@ -246,7 +246,7 @@ Plans:
 | 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
 | 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 1. Palette et Tokens | v1.8 | 1/1 | Complete | 2026-04-20 |
-| 2. Classes CSS et Inline Cleanup | v1.8 | 0/3 | Not started | - |
+| 2. Classes CSS et Inline Cleanup | v1.8 | 3/3 | Complete | 2026-04-20 |
 | 3. Coherence Cross-Pages | v1.8 | 0/? | Not started | - |
 | 4. Layout Fixes | v1.8 | 0/? | Not started | - |
 | 5. Validation Gate | v1.8 | 0/? | Not started | - |
