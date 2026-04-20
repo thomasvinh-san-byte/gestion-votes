@@ -9,9 +9,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Palette et Tokens
 
-- [ ] **UI-01**: Palette de fond passe de beige/parchment (#EDECE6) a gris neutre (#f8f9fa ou similaire)
-- [ ] **UI-02**: Tokens couleur text/border migrent de stone/warm a slate/cool
-- [ ] **UI-03**: Persona colors migrent de hex brut Tailwind vers le systeme oklch
+- [x] **UI-01**: Palette de fond passe de beige/parchment (#EDECE6) a gris neutre (#f8f9fa ou similaire)
+- [x] **UI-02**: Tokens couleur text/border migrent de stone/warm a slate/cool
+- [x] **UI-03**: Persona colors migrent de hex brut Tailwind vers le systeme oklch
 
 ### Classes CSS
 
@@ -66,9 +66,9 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 | Phase 1 | Pending |
-| UI-02 | Phase 1 | Pending |
-| UI-03 | Phase 1 | Pending |
+| UI-01 | Phase 1 | Complete |
+| UI-02 | Phase 1 | Complete |
+| UI-03 | Phase 1 | Complete |
 | UI-04 | Phase 2 | Pending |
 | UI-05 | Phase 2 | Pending |
 | UI-06 | Phase 2 | Pending |
