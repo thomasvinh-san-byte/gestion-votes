@@ -13,6 +13,9 @@ use AgVote\Core\Providers\SecurityProvider;
  * per-request nonce, and outputs the result as HTML.
  */
 final class PageController {
+    /** Application version displayed across all pages. */
+    public const APP_VERSION = 'v2.0';
+
     /** Pages that can be served via this controller. */
     private const PAGES = [
         'dashboard', 'wizard', 'hub', 'operator', 'postsession',
@@ -56,6 +59,7 @@ final class PageController {
 
         $html = file_get_contents($file);
         $html = str_replace('%%CSP_NONCE%%', $cspNonce, $html);
+        $html = str_replace('%%APP_VERSION%%', self::APP_VERSION, $html);
         echo $html;
     }
 }
