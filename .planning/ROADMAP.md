@@ -120,7 +120,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
 - [x] **Phase 1: Audit et Classification** - Inventaire complet des routes mutantes, classification par risque, documentation des lacunes (completed 2026-04-20)
 - [x] **Phase 2: Gardes Backend** - Ajout IdempotencyGuard sur routes critiques non protegees + idempotence workflow (completed 2026-04-20)
-- [ ] **Phase 3: Frontend et Validation** - Header HTMX X-Idempotency-Key + tests unitaires
+- [x] **Phase 3: Frontend et Validation** - Header HTMX X-Idempotency-Key + tests unitaires (completed 2026-04-20)
 
 ## Phase Details
 
@@ -204,4 +204,4 @@ Plans:
 | 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
 | 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
-| 3. Frontend et Validation | v1.7 | 0/? | Not started | - |
+| 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
