@@ -10,6 +10,7 @@
 - ✅ **v1.5 Nettoyage et Refactoring Services** - Phases 1-7 (shipped 2026-04-20) — see `.planning/milestones/v1.5-ROADMAP.md`
 - ✅ **v1.6 Reparation UI et Polish Fonctionnel** - Phases 1-4 (shipped 2026-04-20) — see `.planning/milestones/v1.6-ROADMAP.md`
 - ✅ **v1.7 Audit Idempotence** - Phases 1-3 (shipped 2026-04-20) — see `.planning/milestones/v1.7-ROADMAP.md`
+- ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
 
 ## Phases
 
@@ -131,89 +132,21 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 
 </details>
 
-### v1.8 Refonte UI et Coherence Visuelle
+<details>
+<summary>✅ v1.8 Refonte UI et Coherence Visuelle (Phases 1-5) - SHIPPED 2026-04-20</summary>
 
-**Milestone Goal:** Corriger les 67 problemes UI identifies par l'audit -- palette moderne, classes CSS coherentes, versions unifiees, patterns consolides.
+See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 
-- [x] **Phase 1: Palette et Tokens** - Migrer la palette beige/parchment vers gris neutre, tokens stone vers slate, hex vers oklch (completed 2026-04-20)
-- [x] **Phase 2: Classes CSS et Inline Cleanup** - Wizard field-input vers form-input, 42 inline styles vers classes, shell.js drawer (completed 2026-04-20)
-- [x] **Phase 3: Coherence Cross-Pages** - Version unique, footer accent, modales consolidees (completed 2026-04-20)
-- [x] **Phase 4: Layout Fixes** - Landing hero compact, radio vers select, KPI dead code (completed 2026-04-20)
-- [x] **Phase 5: Validation Gate** - Zero inline style, zero field-input, version unique confirmee (completed 2026-04-20)
+**Phases:** 5
+**Plans:** 9
+**Requirements:** 13/13 satisfied
+**Shipped:**
+- Palette stone→slate (beige→gris neutre moderne)
+- Wizard field-input→form-input, 33 inline styles elimines, drawer CSS classes
+- Version v2.0 unifiee, footer accent fixe, modales standardisees
+- Hero compact, radio→select, KPI dead code supprime
 
-## Phase Details
-
-### Phase 1: Palette et Tokens
-**Goal**: L'application utilise une palette de couleurs moderne gris neutre au lieu de beige/parchment, avec des tokens coherents
-**Depends on**: Nothing (first phase)
-**Requirements**: UI-01, UI-02, UI-03
-**Success Criteria** (what must be TRUE):
-  1. Les fonds de page utilisent un gris neutre (#f8f9fa ou similaire) au lieu de beige (#EDECE6) sur toutes les pages
-  2. Les tokens text/border utilisent la gamme slate (cool) au lieu de stone (warm) dans design-system.css
-  3. Les couleurs persona (admin, operator, etc.) sont definies en oklch au lieu de hex brut Tailwind
-  4. Le mode sombre transpose correctement les nouveaux tokens (pas de regression dark mode)
-**Plans:** 1 plan
-
-Plans:
-- [ ] 01-01-PLAN.md — Migrate stone palette to slate, update light+dark semantic tokens, persona oklch
-
-### Phase 2: Classes CSS et Inline Cleanup
-**Goal**: Tous les champs de formulaire utilisent les classes design-system standard et aucun style inline ne subsiste dans le HTML/JS
-**Depends on**: Phase 1
-**Requirements**: UI-04, UI-05, UI-06
-**Success Criteria** (what must be TRUE):
-  1. Le wizard utilise form-input/form-select sur tous les champs (zero occurrence de field-input dans le wizard)
-  2. Les 42 inline styles identifies sont remplaces par des classes CSS dans les 15 fichiers HTML concernes
-  3. Le drawer shell.js utilise des classes design-system au lieu de styles inline hardcodes
-  4. Aucun champ de formulaire visible n'est non-style (zero champ sans padding/border/radius)
-**Plans:** 3 plans
-
-Plans:
-- [ ] 02-01-PLAN.md — Wizard class migration (field-input to form-input/form-select)
-- [ ] 02-02-PLAN.md — Inline style cleanup (display:none to hidden, complex styles to CSS classes)
-- [ ] 02-03-PLAN.md — Shell.js drawer refactoring (inline styles to drawer-* CSS classes)
-
-### Phase 3: Coherence Cross-Pages
-**Goal**: L'interface presente une identite coherente sur toutes les pages -- version unique, texte correct, modales uniformes
-**Depends on**: Phase 2
-**Requirements**: UI-07, UI-08, UI-09
-**Success Criteria** (what must be TRUE):
-  1. Une seule version est affichee sur toutes les pages (plus de v3.19, v4.3, v4.4 ou v5.0 simultanees)
-  2. Le footer affiche "Accessibilite" avec accent sur les 13 pages concernees
-  3. Les modales utilisent un seul pattern (modal-backdrop + modal role=dialog) au lieu de 6 patterns differents
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] 03-01-PLAN.md — Version unification (PHP constant, placeholder injection, 22 HTML files)
-- [ ] 03-02-PLAN.md — Footer accent fix (Accessibilite -> Accessibilite in 13 pages)
-- [ ] 03-03-PLAN.md — Modal unification (validate, trust, email-templates, meetings)
-
-### Phase 4: Layout Fixes
-**Goal**: Les pages cles ont un layout optimal -- hero compact, controles de formulaire adaptes, zero dead code CSS
-**Depends on**: Phase 3
-**Requirements**: UI-10, UI-11, UI-12
-**Success Criteria** (what must be TRUE):
-  1. La landing page montre du contenu utile sans scroll sur un ecran 1080p (hero ne prend plus 100vh)
-  2. Le type de seance utilise un select au lieu de radio buttons sur les pages operator, meetings et wizard
-  3. Le dead code KPI dans design-system.css est supprime (plus de regles overridees par pages.css)
-**Plans:** 1/1 plans complete
-
-Plans:
-- [ ] 04-01-PLAN.md — Hero compact, radio->select, KPI dead code cleanup
-
-### Phase 5: Validation Gate
-**Goal**: Confirmation automatisee que toutes les corrections UI sont en place et sans regression
-**Depends on**: Phase 4
-**Requirements**: UI-13
-**Success Criteria** (what must be TRUE):
-  1. Zero inline style residuel dans les fichiers HTML (grep confirme)
-  2. Zero occurrence de la classe field-input dans le codebase (remplacee par form-input)
-  3. Une seule version affichee (source unique, grep confirme)
-  4. Les tests E2E existants passent sans regression
-**Plans:** 1 plan
-
-Plans:
-- [ ] 04-01-PLAN.md — Hero compact, radio->select, KPI dead code cleanup
+</details>
 
 ## Progress
 

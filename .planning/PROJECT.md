@@ -71,7 +71,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.8)
+(No active milestone — run `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -84,7 +84,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-Shipped v1.7 (2026-04-20) — Idempotency audit complete. 13 critical routes protected by IdempotencyGuard, workflow transitions idempotent, HTMX sends X-Idempotency-Key on all POST/PATCH.
+Shipped v1.8 (2026-04-20) — UI refonte complete. Palette moderne slate, classes CSS normalisees, version unifiee v2.0, 67 problemes UI corriges.
 
 **The project is production-hardened.** WCAG AA contrast fully conformant, CSP nonces in report-only mode, htmx 2.0.6 with zero regressions, controller architecture cleaned up (<300 LOC each), all test fixtures real (no admin fallbacks).
 
@@ -110,19 +110,11 @@ Shipped v1.7 (2026-04-20) — Idempotency audit complete. 13 critical routes pro
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
 
-## Current Milestone: v1.8 Refonte UI et Coherence Visuelle
+## Completed Milestone: v1.8 Refonte UI et Coherence Visuelle
 
-**Goal:** Corriger les 67 problemes UI identifies par l'audit — palette moderne, classes CSS coherentes, versions unifiees, patterns consolides.
+**Shipped:** 2026-04-20 — 5 phases, 9 plans, 13 requirements, all satisfied.
 
-**Target features:**
-- Palette couleurs beige → blanc/gris neutre
-- Wizard field-input → form-input
-- Versions unifiees (source unique)
-- Shell.js drawer inline styles → classes CSS
-- Footer accent Accessibilite sur 13 pages
-- Landing page hero compact
-- Modales consolidees (6 patterns → 1)
-- Inline styles → classes CSS (42 occurrences)
+See `.planning/milestones/v1.8-ROADMAP.md` for full archive.
 
 ## Completed Milestone: v1.7 Audit Idempotence
 
