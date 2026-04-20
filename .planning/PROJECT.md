@@ -71,7 +71,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(No active milestone — run `/gsd:new-milestone` to start next)
+(Defined in REQUIREMENTS.md for v1.8)
 
 ### Out of Scope
 
@@ -109,6 +109,20 @@ Shipped v1.7 (2026-04-20) — Idempotency audit complete. 13 critical routes pro
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Current Milestone: v1.8 Refonte UI et Coherence Visuelle
+
+**Goal:** Corriger les 67 problemes UI identifies par l'audit — palette moderne, classes CSS coherentes, versions unifiees, patterns consolides.
+
+**Target features:**
+- Palette couleurs beige → blanc/gris neutre
+- Wizard field-input → form-input
+- Versions unifiees (source unique)
+- Shell.js drawer inline styles → classes CSS
+- Footer accent Accessibilite sur 13 pages
+- Landing page hero compact
+- Modales consolidees (6 patterns → 1)
+- Inline styles → classes CSS (42 occurrences)
 
 ## Completed Milestone: v1.7 Audit Idempotence
 

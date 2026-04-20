@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: Audit Idempotence
-status: completed
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-04-20T07:32:56.767Z"
-last_activity: 2026-04-20 -- Completed 03-01-PLAN.md (HTMX idempotency key injection + IdempotencyGuard tests)
+milestone: v1.8
+milestone_name: Refonte UI et Coherence Visuelle
+status: defining
+stopped_at: Defining requirements
+last_updated: "2026-04-20T08:00:00.000Z"
+last_activity: 2026-04-20 -- Milestone v1.8 started
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE -- Project State
