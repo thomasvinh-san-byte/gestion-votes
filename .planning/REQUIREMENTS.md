@@ -20,11 +20,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Frontend
 
-- [ ] **IDEM-06**: Les boutons de soumission HTMX envoient un header X-Idempotency-Key unique par action
+- [x] **IDEM-06**: Les boutons de soumission HTMX envoient un header X-Idempotency-Key unique par action
 
 ### Validation
 
-- [ ] **IDEM-07**: Tests unitaires verifiant que IdempotencyGuard rejette les requetes dupliquees
+- [x] **IDEM-07**: Tests unitaires verifiant que IdempotencyGuard rejette les requetes dupliquees
 
 ## Future Requirements
 
@@ -59,8 +59,8 @@ Deferred to next milestone.
 | IDEM-03 | Phase 2 | Complete |
 | IDEM-04 | Phase 2 | Complete |
 | IDEM-05 | Phase 2 | Complete |
-| IDEM-06 | Phase 3 | Pending |
-| IDEM-07 | Phase 3 | Pending |
+| IDEM-06 | Phase 3 | Complete |
+| IDEM-07 | Phase 3 | Complete |
 
 **Coverage:**
 - v1.7 requirements: 7 total
