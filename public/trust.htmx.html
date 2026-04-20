@@ -283,13 +283,13 @@
         </div>
 
         <!-- Event detail modal (hidden) -->
-        <div class="audit-modal-overlay" id="auditEventModal" hidden>
-          <div class="audit-modal" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle">
-            <div class="audit-modal-header">
-              <h3 class="audit-modal-title" id="auditModalTitle">D&eacute;tail de l'&eacute;v&eacute;nement</h3>
+        <div class="modal-backdrop" id="auditEventModal" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle" hidden>
+          <div class="modal">
+            <div class="modal-header">
+              <h3 class="modal-title" id="auditModalTitle">D&eacute;tail de l'&eacute;v&eacute;nement</h3>
               <button class="btn btn-ghost btn-icon btn-sm" id="auditModalClose" aria-label="Fermer">&times;</button>
             </div>
-            <div class="audit-modal-body" id="auditModalBody">
+            <div class="modal-body" id="auditModalBody">
               <div class="audit-modal-row">
                 <span class="audit-modal-label">#</span>
                 <span class="audit-modal-value" id="modalEventId">&mdash;</span>
@@ -330,7 +330,7 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">%%APP_VERSION%%</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help" class="text-muted mobile-footer-link">Aide</a>
       <a href="/settings#accessibilite" class="text-muted mobile-footer-link">Accessibilité</a>

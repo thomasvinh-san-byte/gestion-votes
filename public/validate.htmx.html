@@ -195,7 +195,7 @@
         </span>
         AG-VOTE
       </a>
-      <span class="text-muted">v3.19</span>
+      <span class="text-muted">%%APP_VERSION%%</span>
       <span class="mobile-footer-spacer"></span>
       <a href="/help" class="text-muted mobile-footer-link">Aide</a>
       <a href="/settings#accessibilite" class="text-muted mobile-footer-link">Accessibilité</a>
@@ -203,15 +203,15 @@
   </div>
 
   <!-- Validation confirmation modal -->
-  <div class="validate-modal-backdrop" id="validateModal" role="dialog" aria-modal="true" aria-labelledby="validateModalTitle" hidden>
-    <div class="validate-modal">
-      <div class="validate-modal-header">
+  <div class="modal-backdrop" id="validateModal" role="dialog" aria-modal="true" aria-labelledby="validateModalTitle" hidden>
+    <div class="modal">
+      <div class="modal-header">
         <h3 id="validateModalTitle">
           <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
           Confirmation de validation
         </h3>
       </div>
-      <div class="validate-modal-body">
+      <div class="modal-body">
         <div class="validate-modal-warning">
           <strong>ATTENTION : Cette action est IRRÉVERSIBLE.</strong>
           <p>La séance sera définitivement archivée et aucune modification ultérieure ne sera possible.</p>
@@ -225,7 +225,7 @@
           <input class="form-input" type="text" id="confirmText" placeholder="VALIDER" autocomplete="off" spellcheck="false">
         </div>
       </div>
-      <div class="validate-modal-actions">
+      <div class="modal-actions">
         <button class="btn btn-secondary" id="btnModalCancel" type="button">Annuler</button>
         <button class="btn btn-danger btn-lg" id="btnModalConfirm" type="button" disabled>
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
