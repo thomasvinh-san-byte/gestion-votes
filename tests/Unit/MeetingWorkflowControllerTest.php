@@ -2161,7 +2161,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         $this->assertEquals('meeting_not_found', $result['body']['error']);
     }
 
-    public function testTransitionAlreadyInStatusReturns422(): void
+    public function testTransitionAlreadyInStatusReturnsIdempotentSuccess(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->injectJsonBody([
@@ -2178,8 +2178,11 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
         $result = $this->callControllerMethod('transition');
 
-        $this->assertEquals(422, $result['status']);
-        $this->assertEquals('already_in_status', $result['body']['error']);
+        $this->assertEquals(200, $result['status']);
+        $data = $result['body']['data'];
+        $this->assertTrue($data['already_in_target']);
+        $this->assertEquals('live', $data['from_status']);
+        $this->assertEquals('live', $data['to_status']);
     }
 
     public function testTransitionArchivedMeetingReturns403(): void
