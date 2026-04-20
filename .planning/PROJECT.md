@@ -60,15 +60,19 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ MeetingReportsService 293 LOC + ReportGenerator 296 LOC — v1.5 Phase 5
 - ✓ EmailQueueService 212 LOC + RetryPolicy 259 LOC — v1.5 Phase 6
 - ✓ Validation gate: zero route changes, unit tests green, E2E specs intact — v1.5 Phase 7
+- ✓ JS interaction audit: 8 broken selectors fixed across 21 HTMX pages — v1.6 Phase 1
+- ✓ Form layout modernization: multi-column grids on 16 pages, field classes normalized — v1.6 Phase 2
+- ✓ Wizard CSS compacted for 1080p viewport fit — v1.6 Phase 3
+- ✓ Validation gate: zero regressions after UI fixes — v1.6 Phase 4
 
 ### Active
 
-(Defined in REQUIREMENTS.md for v1.6)
+(No active milestone — run `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
-- Regressions visuelles v4.2 — traite dans un milestone separe
-- Interactions JS/HTMX cassees — traite dans un milestone separe
+- ~~Regressions visuelles v4.2~~ — resolved in v1.6
+- ~~Interactions JS/HTMX cassees~~ — resolved in v1.6
 - Nouvelles fonctionnalites metier — stabiliser d'abord
 - Migration vers un framework (Symfony, Laravel) — refactoring incremental uniquement
 - PDFs de convocation/emargement — hors perimetre de l'app
@@ -76,7 +80,7 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ## Current State
 
-Shipped v1.5 (2026-04-20) — Service refactoring milestone complete. All 5 oversized services refactored to <300 LOC with extracted classes.
+Shipped v1.6 (2026-04-20) — UI regression fixes and functional polish complete. All broken JS interactions fixed, forms modernized with multi-column layouts, wizard compacted for 1080p.
 
 **The project is production-hardened.** WCAG AA contrast fully conformant, CSP nonces in report-only mode, htmx 2.0.6 with zero regressions, controller architecture cleaned up (<300 LOC each), all test fixtures real (no admin fallbacks).
 
@@ -102,16 +106,11 @@ Shipped v1.5 (2026-04-20) — Service refactoring milestone complete. All 5 over
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
 
-## Current Milestone: v1.6 Reparation UI et Polish Fonctionnel
+## Completed Milestone: v1.6 Reparation UI et Polish Fonctionnel
 
-**Goal:** Reparer les regressions UI/JS introduites par v4.2 et moderniser les formulaires pour une utilisation efficace des ecrans horizontaux.
+**Shipped:** 2026-04-20 — 4 phases, 8 plans, 9 requirements, all satisfied.
 
-**Target features:**
-- Reparer les interactions JS cassees (event handlers, selecteurs DOM, cibles HTMX)
-- Reparer les layouts visuels casses (elements mal alignes, sections tronquees)
-- Moderniser les formulaires (champs compacts, layouts multi-colonnes, wizard sur une seule page)
-- Utiliser l'espace horizontal agressivement (layouts 2-3 colonnes)
-- Verifier chaque page bout-en-bout dans un navigateur
+See `.planning/milestones/v1.6-ROADMAP.md` for full archive.
 
 ## Completed Milestone: v1.5 Nettoyage et Refactoring Services
 

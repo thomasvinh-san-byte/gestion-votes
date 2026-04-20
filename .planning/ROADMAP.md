@@ -8,6 +8,7 @@
 - ✅ **v1.3 Polish Post-MVP** - Phases 14-17 (shipped 2026-04-09) — see `.planning/milestones/v1.3-ROADMAP.md`
 - ✅ **v1.4 Regler Deferred et Dette Technique** - Phases 1-6 (shipped 2026-04-10) — see `.planning/milestones/v1.4-ROADMAP.md`
 - ✅ **v1.5 Nettoyage et Refactoring Services** - Phases 1-7 (shipped 2026-04-20) — see `.planning/milestones/v1.5-ROADMAP.md`
+- ✅ **v1.6 Reparation UI et Polish Fonctionnel** - Phases 1-4 (shipped 2026-04-20) — see `.planning/milestones/v1.6-ROADMAP.md`
 
 ## Phases
 
@@ -96,69 +97,21 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 </details>
 
-### v1.6 Reparation UI et Polish Fonctionnel (In Progress)
+<details>
+<summary>v1.6 Reparation UI et Polish Fonctionnel (Phases 1-4) - SHIPPED 2026-04-20</summary>
 
-**Milestone Goal:** Reparer les interactions JS cassees sur les 21 pages HTMX, moderniser les formulaires pour exploiter les ecrans horizontaux, et verifier chaque page bout-en-bout.
+See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
-- [x] **Phase 1: JS Interaction Audit & Repair** - Audit systematique des 21 pages HTMX, reparer boutons, formulaires, et SSE casses (completed 2026-04-20)
-- [x] **Phase 2: Form Layout Modernization** - Layouts multi-colonnes, champs compacts, utilisation agressive de la largeur (completed 2026-04-20)
-- [x] **Phase 3: Wizard Single-Page** - L'assistant de creation de seance tient sur un seul viewport (completed 2026-04-20)
-- [x] **Phase 4: Validation Gate** - Verification bout-en-bout de chaque page, zero regression (completed 2026-04-20)
+**Phases:** 4 (1 JS audit + 1 form modernization + 1 wizard + 1 validation gate)
+**Plans:** 8
+**Requirements:** 9/9 satisfied
+**Shipped:**
+- JS interaction audit: 8 broken selectors fixed across 21 pages
+- Form layout modernization: multi-column grids on 16 pages, field classes normalized
+- Wizard compaction: CSS spacing reduced for 1080p viewport fit
+- Zero regressions confirmed
 
-## Phase Details
-
-### Phase 1: JS Interaction Audit & Repair
-**Goal**: Toutes les interactions JS/HTMX fonctionnent sur les 21 pages — zero erreur console, zero bouton mort, zero formulaire qui recharge la page
-**Depends on**: Nothing (first phase)
-**Requirements**: JSFIX-01, JSFIX-02, JSFIX-03, JSFIX-04
-**Success Criteria** (what must be TRUE):
-  1. Les 21 pages HTMX chargent sans erreur dans la console JS du navigateur
-  2. Chaque bouton d'action (creer, modifier, supprimer, ouvrir modale) repond au clic et produit l'effet attendu
-  3. Tous les formulaires soumettent via HTMX sans rechargement de page complet
-  4. Les mises a jour SSE temps reel apparaissent sur les pages operator et vote sans intervention manuelle
-**Plans:** 3 plans
-
-Plans:
-- [ ] 01-01-PLAN.md — Audit operator page (6 JS files + SSE) and vote page
-- [ ] 01-02-PLAN.md — Audit wizard, postsession, validate, meetings, members, settings
-- [ ] 01-03-PLAN.md — Audit dashboard, admin, users, trust, hub, archives, audit, analytics, docs, email-templates, help, public, report
-
-### Phase 2: Form Layout Modernization
-**Goal**: Les formulaires exploitent l'espace horizontal avec des layouts multi-colonnes et des champs compacts et modernes
-**Depends on**: Phase 1
-**Requirements**: FORM-01, FORM-02, FORM-03
-**Success Criteria** (what must be TRUE):
-  1. Sur un ecran >1024px, les formulaires affichent 2-3 colonnes de champs cote a cote au lieu d'une pile verticale
-  2. Les inputs, selects, et textareas ont un style uniforme compact (meme hauteur, meme espacement, meme typographie)
-  3. Aucun formulaire mono-colonne ne depasse 60% de la largeur disponible du viewport
-**Plans:** 1/3 plans executed
-
-Plans:
-- [ ] 02-01-PLAN.md — Grid layouts for operator, settings, postsession, email-templates (heavy forms)
-- [ ] 02-02-PLAN.md — Grid layouts for members, users, meetings, admin, validate (medium forms)
-- [ ] 02-03-PLAN.md — Field class normalization for vote, report, archives, trust, audit, analytics, help (light forms)
-
-### Phase 3: Wizard Single-Page
-**Goal**: L'assistant de creation de seance (4 etapes) tient entierement dans un seul viewport sans scroll vertical
-**Depends on**: Phase 2
-**Requirements**: WIZ-01
-**Success Criteria** (what must be TRUE):
-  1. Les 4 etapes du wizard sont visibles simultanement ou navigables sans scroll vertical sur un ecran 1080p
-  2. L'utilisateur peut creer une seance complete (remplir les 4 etapes et valider) sans scroller la page
-**Plans:** 1 plan
-
-Plans:
-- [ ] 03-01-PLAN.md — Compact wizard CSS spacing and verify viewport fit on 1080p
-
-### Phase 4: Validation Gate
-**Goal**: Chaque page HTMX verifiee bout-en-bout — zero regression visuelle ni fonctionnelle apres les modifications des phases 1-3
-**Depends on**: Phase 3
-**Requirements**: VALID-01
-**Success Criteria** (what must be TRUE):
-  1. Les 21 pages HTMX passent une verification manuelle bout-en-bout dans le navigateur sans regression
-  2. Les tests Playwright existants restent green (zero regression E2E)
-  3. Les tests PHPUnit existants restent green (zero regression backend)
-**Plans**: TBD
+</details>
 
 ## Progress
 
