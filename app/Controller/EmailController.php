@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Service\EmailQueueService;
 use AgVote\Service\EmailTemplateService;
 use AgVote\Service\MailerService;
@@ -64,6 +65,9 @@ final class EmailController extends AbstractController {
     public function schedule(): void {
         $input = api_request('POST');
 
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+
         $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         $templateId = isset($input['template_id']) ? trim((string) $input['template_id']) : null;
         $scheduledAt = isset($input['scheduled_at']) ? trim((string) $input['scheduled_at']) : null;
@@ -105,17 +109,22 @@ final class EmailController extends AbstractController {
             'skipped' => $result['skipped'],
         ], $meetingId);
 
-        api_ok([
+        $response = [
             'meeting_id' => $meetingId,
             'scheduled' => $result['scheduled'],
             'skipped' => $result['skipped'],
             'scheduled_at' => $scheduledAt ?? 'immediate',
             'errors' => $result['errors'],
-        ]);
+        ];
+        IdempotencyGuard::store($response);
+        api_ok($response);
     }
 
     public function sendBulk(): void {
         $input = api_request('POST');
+
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
 
         $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
@@ -223,7 +232,7 @@ final class EmailController extends AbstractController {
             ], $meetingId);
         }
 
-        api_ok([
+        $response = [
             'meeting_id' => $meetingId,
             'meeting_title' => $meetingTitle,
             'dry_run' => $dryRun,
@@ -232,11 +241,17 @@ final class EmailController extends AbstractController {
             'skipped_no_email' => $skippedNoEmail,
             'skipped_already_sent' => $skippedAlreadySent,
             'errors' => $errors,
-        ]);
+        ];
+        IdempotencyGuard::store($response);
+        api_ok($response);
     }
 
     public function sendReminder(): void {
         $input = api_request('POST');
+
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+
         $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         if ($meetingId === '' || !api_is_uuid($meetingId)) {
             api_fail('missing_meeting_id', 400);
@@ -255,7 +270,9 @@ final class EmailController extends AbstractController {
             'scheduled' => $result['scheduled'],
         ], $meetingId);
 
-        api_ok(['scheduled' => $result['scheduled'], 'errors' => $result['errors']]);
+        $response = ['scheduled' => $result['scheduled'], 'errors' => $result['errors']];
+        IdempotencyGuard::store($response);
+        api_ok($response);
     }
 
     private function testSmtp(): void {

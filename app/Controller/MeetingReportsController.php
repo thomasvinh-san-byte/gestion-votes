@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Service\MailerService;
 use AgVote\Service\MeetingReportService;
 use AgVote\Service\MeetingReportsService;
@@ -136,6 +137,9 @@ final class MeetingReportsController extends AbstractController {
     public function sendReport(): void {
         $input = api_request('POST');
 
+        $cached = IdempotencyGuard::check();
+        if ($cached !== null) { api_ok($cached); }
+
         $meetingId = trim((string) ($input['meeting_id'] ?? ''));
         $toEmail = trim((string) ($input['email'] ?? ''));
 
@@ -177,6 +181,7 @@ final class MeetingReportsController extends AbstractController {
             'email' => $toEmail,
         ], $meetingId);
 
+        IdempotencyGuard::store(['ok' => true]);
         api_ok(['ok' => true]);
     }
 
