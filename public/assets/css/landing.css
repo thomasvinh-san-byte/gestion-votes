@@ -57,12 +57,12 @@
    ============================================================================= */
 
 .hero {
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: calc(var(--header-height) + var(--space-8)) var(--space-6) var(--space-12);
+  padding: calc(var(--header-height) + var(--space-6)) var(--space-6) var(--space-8);
   background:
     radial-gradient(ellipse 100% 60% at 60% -10%, color-mix(in oklch, var(--color-primary) 15%, transparent) 0%, transparent 55%),
     radial-gradient(ellipse 60% 40% at 20% 80%, color-mix(in oklch, var(--color-primary) 6%, transparent) 0%, transparent 50%),
