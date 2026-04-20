@@ -764,10 +764,10 @@ window.OpS = { fn: {} };
     const proxyCount = proxiesCache.filter(p => !p.revoked_at).length;
     const absent = attendanceCache.filter(a => !a.mode || a.mode === 'absent').length;
 
-    setText('quickPresent', present);
-    setText('quickRemote', remote);
-    setText('quickProxy', proxyCount);
-    setText('quickAbsent', absent);
+    setText('presStatPresent', present);
+    setText('presStatRemote', remote);
+    setText('proxyStatActive', proxyCount);
+    setText('presStatAbsent', absent);
   }
 
   function checkLaunchReady() {
@@ -2196,7 +2196,7 @@ window.OpS = { fn: {} };
       else if (primaryAction === 'resume') doTransition('live');
       else if (primaryAction === 'close-session') closeSession();
       else if (primaryAction === 'scroll-vote') {
-        const el = document.getElementById('execVoteCard');
+        const el = document.getElementById('execActiveVote');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }
     });

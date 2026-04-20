@@ -38,7 +38,7 @@
 
     O.setText('presStatPresent', present);
     O.setText('presStatRemote', remote);
-    O.setText('presStatProxy', proxyCount);
+    O.setText('proxyStatActive', proxyCount);
     O.setText('presStatAbsent', absent);
     O.setText('tabCountPresences', present + remote + proxyCount);
 
