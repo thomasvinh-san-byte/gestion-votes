@@ -39,8 +39,9 @@ final class IdempotencyGuard
             }
             $redis = RedisProvider::connection();
             $cached = $redis->get(self::PREFIX . $key);
-            if (is_array($cached)) {
-                return $cached;
+            if ($cached !== false && $cached !== null) {
+                // JSON serializer may return stdClass or array depending on phpredis version
+                return is_array($cached) ? $cached : (array) $cached;
             }
         } catch (Throwable) {
             // Redis unavailable — proceed without idempotency
