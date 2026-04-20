@@ -131,12 +131,77 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 
 </details>
 
+### v1.8 Refonte UI et Coherence Visuelle
+
+**Milestone Goal:** Corriger les 67 problemes UI identifies par l'audit -- palette moderne, classes CSS coherentes, versions unifiees, patterns consolides.
+
+- [ ] **Phase 1: Palette et Tokens** - Migrer la palette beige/parchment vers gris neutre, tokens stone vers slate, hex vers oklch
+- [ ] **Phase 2: Classes CSS et Inline Cleanup** - Wizard field-input vers form-input, 42 inline styles vers classes, shell.js drawer
+- [ ] **Phase 3: Coherence Cross-Pages** - Version unique, footer accent, modales consolidees
+- [ ] **Phase 4: Layout Fixes** - Landing hero compact, radio vers select, KPI dead code
+- [ ] **Phase 5: Validation Gate** - Zero inline style, zero field-input, version unique confirmee
+
+## Phase Details
+
+### Phase 1: Palette et Tokens
+**Goal**: L'application utilise une palette de couleurs moderne gris neutre au lieu de beige/parchment, avec des tokens coherents
+**Depends on**: Nothing (first phase)
+**Requirements**: UI-01, UI-02, UI-03
+**Success Criteria** (what must be TRUE):
+  1. Les fonds de page utilisent un gris neutre (#f8f9fa ou similaire) au lieu de beige (#EDECE6) sur toutes les pages
+  2. Les tokens text/border utilisent la gamme slate (cool) au lieu de stone (warm) dans design-system.css
+  3. Les couleurs persona (admin, operator, etc.) sont definies en oklch au lieu de hex brut Tailwind
+  4. Le mode sombre transpose correctement les nouveaux tokens (pas de regression dark mode)
+**Plans**: TBD
+
+### Phase 2: Classes CSS et Inline Cleanup
+**Goal**: Tous les champs de formulaire utilisent les classes design-system standard et aucun style inline ne subsiste dans le HTML/JS
+**Depends on**: Phase 1
+**Requirements**: UI-04, UI-05, UI-06
+**Success Criteria** (what must be TRUE):
+  1. Le wizard utilise form-input/form-select sur tous les champs (zero occurrence de field-input dans le wizard)
+  2. Les 42 inline styles identifies sont remplaces par des classes CSS dans les 15 fichiers HTML concernes
+  3. Le drawer shell.js utilise des classes design-system au lieu de styles inline hardcodes
+  4. Aucun champ de formulaire visible n'est non-style (zero champ sans padding/border/radius)
+**Plans**: TBD
+
+### Phase 3: Coherence Cross-Pages
+**Goal**: L'interface presente une identite coherente sur toutes les pages -- version unique, texte correct, modales uniformes
+**Depends on**: Phase 2
+**Requirements**: UI-07, UI-08, UI-09
+**Success Criteria** (what must be TRUE):
+  1. Une seule version est affichee sur toutes les pages (plus de v3.19, v4.3, v4.4 ou v5.0 simultanees)
+  2. Le footer affiche "Accessibilite" avec accent sur les 13 pages concernees
+  3. Les modales utilisent un seul pattern (modal-backdrop + modal role=dialog) au lieu de 6 patterns differents
+**Plans**: TBD
+
+### Phase 4: Layout Fixes
+**Goal**: Les pages cles ont un layout optimal -- hero compact, controles de formulaire adaptes, zero dead code CSS
+**Depends on**: Phase 3
+**Requirements**: UI-10, UI-11, UI-12
+**Success Criteria** (what must be TRUE):
+  1. La landing page montre du contenu utile sans scroll sur un ecran 1080p (hero ne prend plus 100vh)
+  2. Le type de seance utilise un select au lieu de radio buttons sur les pages operator, meetings et wizard
+  3. Le dead code KPI dans design-system.css est supprime (plus de regles overridees par pages.css)
+**Plans**: TBD
+
+### Phase 5: Validation Gate
+**Goal**: Confirmation automatisee que toutes les corrections UI sont en place et sans regression
+**Depends on**: Phase 4
+**Requirements**: UI-13
+**Success Criteria** (what must be TRUE):
+  1. Zero inline style residuel dans les fichiers HTML (grep confirme)
+  2. Zero occurrence de la classe field-input dans le codebase (remplacee par form-input)
+  3. Une seule version affichee (source unique, grep confirme)
+  4. Les tests E2E existants passent sans regression
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
-| 2. Optimisations Memoire et Requetes | 2/2 | Complete   | 2026-04-20 | 2026-04-07 |
+| 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
 | 3. Refactoring Controllers et Tests Auth | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 4. Tests et Decoupage Controllers | v1.0 | 3/3 | Complete | 2026-04-07 |
 | 5. JS Audit et Wiring Repair | v1.1 | 1/1 | Complete | 2026-04-08 |
@@ -172,3 +237,8 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 | 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
 | 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
+| 1. Palette et Tokens | v1.8 | 0/? | Not started | - |
+| 2. Classes CSS et Inline Cleanup | v1.8 | 0/? | Not started | - |
+| 3. Coherence Cross-Pages | v1.8 | 0/? | Not started | - |
+| 4. Layout Fixes | v1.8 | 0/? | Not started | - |
+| 5. Validation Gate | v1.8 | 0/? | Not started | - |
