@@ -139,7 +139,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 - [x] **Phase 2: Classes CSS et Inline Cleanup** - Wizard field-input vers form-input, 42 inline styles vers classes, shell.js drawer (completed 2026-04-20)
 - [x] **Phase 3: Coherence Cross-Pages** - Version unique, footer accent, modales consolidees (completed 2026-04-20)
 - [x] **Phase 4: Layout Fixes** - Landing hero compact, radio vers select, KPI dead code (completed 2026-04-20)
-- [ ] **Phase 5: Validation Gate** - Zero inline style, zero field-input, version unique confirmee
+- [x] **Phase 5: Validation Gate** - Zero inline style, zero field-input, version unique confirmee (completed 2026-04-20)
 
 ## Phase Details
 
@@ -259,5 +259,5 @@ Plans:
 | 1. Palette et Tokens | v1.8 | 1/1 | Complete | 2026-04-20 |
 | 2. Classes CSS et Inline Cleanup | v1.8 | 3/3 | Complete | 2026-04-20 |
 | 3. Coherence Cross-Pages | v1.8 | 3/3 | Complete | 2026-04-20 |
-| 4. Layout Fixes | v1.8 | 0/? | Not started | - |
-| 5. Validation Gate | v1.8 | 0/? | Not started | - |
+| 4. Layout Fixes | v1.8 | 1/1 | Complete | 2026-04-20 |
+| 5. Validation Gate | v1.8 | 1/1 | Complete | 2026-04-20 |
