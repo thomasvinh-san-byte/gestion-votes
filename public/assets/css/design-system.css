@@ -2265,6 +2265,171 @@ body:has(.drawer-backdrop.open) {
   overflow-y: auto;
 }
 
+/* --- Drawer content classes (Phase 02 - UI-06) --- */
+
+/* Placeholder/loading/error/empty states */
+.drawer-placeholder {
+  padding: 16px;
+  text-align: center;
+}
+
+/* Section wrapper with bottom spacing */
+.drawer-section {
+  margin-bottom: 16px;
+}
+
+/* Section heading: small uppercase muted label */
+.drawer-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #888);
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* Primary value (meeting title, etc.) */
+.drawer-value {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Inline row for key-value pairs */
+.drawer-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* Checklist item row */
+.drawer-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+/* Anomaly/alert card */
+.drawer-alert {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--color-bg-warning, #fff3cd);
+  border-left: 3px solid var(--color-warning, #e6a800);
+  margin-bottom: 6px;
+}
+
+.drawer-alert__code {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--color-danger, #a05252);
+}
+
+/* Anomaly card (neutral, for renderAnomalies standalone) */
+.drawer-anomaly-card {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-bg, #f5f5f5);
+}
+
+.drawer-anomaly-card__code {
+  font-weight: 600;
+  color: var(--color-danger, #a05252);
+}
+
+/* Readiness badge override for larger size */
+.drawer-readiness-badge {
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+/* Info layout - vertical flex with gap */
+.drawer-info-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+/* Readiness layout - vertical flex */
+.drawer-readiness-layout {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Anomalies layout */
+.drawer-anomalies-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+/* Sections wrapper */
+.drawer-sections {
+  padding: 4px 0;
+}
+
+/* Footer note for partial loading */
+.drawer-footer-note {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--color-text-muted, #999);
+  border-top: 1px solid var(--color-border, #eee);
+  margin-top: 8px;
+}
+
+/* Badge with bottom margin in drawer context */
+.drawer-badge-mb {
+  margin-bottom: 8px;
+}
+
+/* Notification panel content classes */
+.notif-panel-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-border-subtle, #e8e7e2);
+}
+
+.notif-panel-footer {
+  display: block;
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  border-top: 1px solid var(--color-border-subtle, #e8e7e2);
+  text-decoration: none;
+}
+
+.notif-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted, #95a3a4);
+}
+
+/* Command palette classes */
+.cmd-kbd {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #d5dbd2);
+  color: var(--color-text-muted, #95a3a4);
+}
+
+.cmd-kbd-sm {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border, #d5dbd2);
+  margin-left: 8px;
+  color: var(--color-text-muted, #95a3a4);
+}
+
 /* ─── Toast / Notifications ─── */
 .toast-container {
   position: fixed;
