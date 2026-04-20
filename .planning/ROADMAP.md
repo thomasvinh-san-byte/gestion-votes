@@ -152,7 +152,10 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
   2. Les tokens text/border utilisent la gamme slate (cool) au lieu de stone (warm) dans design-system.css
   3. Les couleurs persona (admin, operator, etc.) sont definies en oklch au lieu de hex brut Tailwind
   4. Le mode sombre transpose correctement les nouveaux tokens (pas de regression dark mode)
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Migrate stone palette to slate, update light+dark semantic tokens, persona oklch
 
 ### Phase 2: Classes CSS et Inline Cleanup
 **Goal**: Tous les champs de formulaire utilisent les classes design-system standard et aucun style inline ne subsiste dans le HTML/JS
@@ -237,7 +240,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 | 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
 | 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
 | 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
-| 1. Palette et Tokens | v1.8 | 0/? | Not started | - |
+| 1. Palette et Tokens | v1.8 | 0/1 | Not started | - |
 | 2. Classes CSS et Inline Cleanup | v1.8 | 0/? | Not started | - |
 | 3. Coherence Cross-Pages | v1.8 | 0/? | Not started | - |
 | 4. Layout Fixes | v1.8 | 0/? | Not started | - |
