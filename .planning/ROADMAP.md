@@ -167,7 +167,7 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v2.0 Operateur Live UX (In Progress)
+### v2.0 Operateur Live UX (In Progress)
 
 **Milestone Goal:** Ameliorer l'experience operateur en mode seance live — checklist de controle temps reel, interface epuree en mode execution, et feedback visuel anime sur les votes.
 
@@ -185,7 +185,10 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
   3. L'indicateur reseau/SSE passe en rouge et affiche un badge "Deconnecte" quand la connexion SSE est interrompue
   4. Le nombre de votants connectes est visible dans la checklist et se met a jour en temps reel
   5. Quand un indicateur passe au rouge (quorum non atteint ou SSE coupe), une alerte visuelle apparait automatiquement sans action de l'operateur
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — HTML structure + CSS styles du panneau checklist
+- [ ] 01-02-PLAN.md — JS wiring: SSE events, mode switching, data feeding
 
 ### Phase 2: Mode Focus
 **Goal**: L'operateur peut basculer vers une vue epuree a 5 zones qui masque les informations secondaires et conserve uniquement les controles essentiels pour conduire le scrutin.
@@ -221,7 +224,7 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Checklist Operateur | v2.0 | 0/? | Not started | - |
+| 1. Checklist Operateur | v2.0 | 0/2 | Planning complete | - |
 | 2. Mode Focus | v2.0 | 0/? | Not started | - |
 | 3. Animations Vote | v2.0 | 0/? | Not started | - |
 | 4. Validation Gate | v2.0 | 0/? | Not started | - |
