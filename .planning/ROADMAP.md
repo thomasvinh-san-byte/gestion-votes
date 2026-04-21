@@ -170,7 +170,10 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
   2. Les labels de formulaire s'affichent en casse normale avec couleur lisible (plus d'UPPERCASE muted)
   3. Le header fait 64px avec breadcrumb + titre uniquement (plus de sous-titre ni barre decorative)
   4. L'espacement entre champs de formulaire et sections est de 20-24px (plus de 14px comprime)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
+- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
 
 ### Phase 2: Sidebar Navigation
 **Goal**: La navigation laterale est toujours visible et utilisable sans effort — chaque utilisateur voit uniquement les liens pertinents pour son role
@@ -181,7 +184,10 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
   2. Un votant connecte ne voit que les liens pertinents (Voter, Mon compte) — pas 16 liens admin
   3. Tous les boutons et liens de la sidebar font minimum 44x44px de zone cliquable (WCAG 2.5.8)
   4. La sidebar fonctionne correctement sur ecran 1366px minimum sans chevaucher le contenu
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
+- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
 
 ### Phase 3: Feedback et Etats Vides
 **Goal**: L'utilisateur n'est jamais face a un ecran vide ou silencieux — chaque etat (vide, chargement, zero-resultat, apres-vote) a un message explicite en francais
@@ -192,7 +198,10 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
   2. Apres un vote, une confirmation persistante avec horodatage reste visible (pas un flash 3 secondes)
   3. Les filtres et recherches sans resultats affichent "Aucun resultat" avec un lien pour reinitialiser les filtres
   4. Les chargements affichent un indicateur en francais ("Chargement...") au lieu de skeletons silencieux
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
+- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
 
 ### Phase 4: Clarte et Jargon
 **Goal**: L'interface parle la langue de l'utilisateur — zero terme technique cote votant, tooltips explicatifs cote admin, confirmations simples
@@ -203,7 +212,10 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
   2. Les termes techniques cote admin/operateur ont des tooltips explicatifs en francais au survol
   3. Le pattern "tapez VALIDER" est remplace par un modal avec checkbox de confirmation + bouton Confirmer
   4. Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier genere
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
+- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
 
 ### Phase 5: Validation Gate
 **Goal**: Confirmer que NAV-04 (page d'accueil) est conforme et que toutes les modifications cross-pages n'ont introduit aucune regression
@@ -213,7 +225,10 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
   1. La page d'accueil affiche une carte centree avec logo AG-VOTE + formulaire de connexion (NAV-04 — verification de l'existant)
   2. L'ensemble des tests E2E existants passent sans regression sur les modifications des phases 1-4
   3. Les pages cles (login, dashboard, meetings, vote) sont visuellement coherentes apres les changements typographiques et de sidebar
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
+- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
 
 ## Progress
 
@@ -222,7 +237,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Typographie et Espacement | v1.9 | 0/0 | Not started | - |
+| 1. Typographie et Espacement | v1.9 | 0/2 | Planning done | - |
 | 2. Sidebar Navigation | v1.9 | 0/0 | Not started | - |
 | 3. Feedback et Etats Vides | v1.9 | 0/0 | Not started | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
