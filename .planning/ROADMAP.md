@@ -156,7 +156,7 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 - [x] **Phase 1: Typographie et Espacement** - Tokens fondation: base 16px, labels normaux, header 64px, spacing 20-24px (completed 2026-04-21)
 - [x] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px (completed 2026-04-21)
 - [x] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats (completed 2026-04-21)
-- [ ] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports
+- [x] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports (completed 2026-04-21)
 - [ ] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions
 
 ## Phase Details
@@ -214,8 +214,8 @@ Plans:
   4. Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier genere
 **Plans**: 2 plans
 Plans:
-- [ ] 04-01-PLAN.md — Jargon votant elimine (public + help + validate confirm simplifiee)
-- [ ] 04-02-PLAN.md — Tooltips admin + descriptions export sur toutes les pages
+- [x] 04-01-PLAN.md — Jargon votant elimine (public + help + validate confirm simplifiee)
+- [x] 04-02-PLAN.md — Tooltips admin + descriptions export sur toutes les pages
 
 ### Phase 5: Validation Gate
 **Goal**: Confirmer que NAV-04 (page d'accueil) est conforme et que toutes les modifications cross-pages n'ont introduit aucune regression
@@ -237,5 +237,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
 | 3. Feedback et Etats Vides | 2/2 | Complete   | 2026-04-21 | - |
-| 4. Clarte et Jargon | 1/2 | In Progress|  | - |
+| 4. Clarte et Jargon | 2/2 | Complete   | 2026-04-21 | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |

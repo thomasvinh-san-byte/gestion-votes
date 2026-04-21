@@ -31,9 +31,9 @@ Requirements pour le milestone UX Standards & Retention. Chaque requirement est 
 ### Clarte & Jargon
 
 - [x] **CLAR-01**: L'interface votant n'affiche aucun terme technique (eIDAS, SHA-256, quorum, CNIL)
-- [ ] **CLAR-02**: Les termes techniques cote admin/operateur ont des tooltips explicatifs en francais
+- [x] **CLAR-02**: Les termes techniques cote admin/operateur ont des tooltips explicatifs en francais
 - [x] **CLAR-03**: Le pattern "tapez VALIDER" est remplace par un modal avec checkbox + bouton Confirmer
-- [ ] **CLAR-04**: Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier
+- [x] **CLAR-04**: Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier
 
 ## v2 Requirements
 
@@ -80,9 +80,9 @@ Deferred to future release.
 | FEED-03 | Phase 3 | Complete |
 | FEED-04 | Phase 3 | Complete |
 | CLAR-01 | Phase 4 | Complete |
-| CLAR-02 | Phase 4 | Pending |
+| CLAR-02 | Phase 4 | Complete |
 | CLAR-03 | Phase 4 | Complete |
-| CLAR-04 | Phase 4 | Pending |
+| CLAR-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v1.9 requirements: 16 total

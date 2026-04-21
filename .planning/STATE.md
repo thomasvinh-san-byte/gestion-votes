@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
 status: executing
-stopped_at: Completed 04-clarte-et-jargon/04-01-PLAN.md
-last_updated: "2026-04-21T10:19:00Z"
-last_activity: 2026-04-21 -- Jargon voter elimine + modal confirmation checkbox-only
+stopped_at: Completed 04-clarte-et-jargon/04-02-PLAN.md
+last_updated: "2026-04-21T10:50:00Z"
+last_activity: 2026-04-21 -- Tooltips techniques + descriptions export ajoutees
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.9 Phase 3 complete -- Feedback et Etats Vides
+**Current focus:** v1.9 Phase 4 complete -- Clarte et Jargon
 
 ## Current Position
 
-Phase: 4 of 5 (Clarte et Jargon) -- IN PROGRESS
-Plan: 1 of 2 in current phase (plan 01 complete)
-Status: Phase 4 plan 01 complete — 7 plans done across phases 1-4
-Last activity: 2026-04-21 -- Jargon voter elimine + modal confirmation checkbox-only
+Phase: 4 of 5 (Clarte et Jargon) -- COMPLETE
+Plan: 2 of 2 in current phase (plan 02 complete)
+Status: Phase 4 complete — 8 plans done across phases 1-4
+Last activity: 2026-04-21 -- Tooltips techniques + descriptions export ajoutees
 
 Progress: [██████████] 100%
 
@@ -63,6 +63,10 @@ Recent decisions affecting current work:
 - [04-01]: SHA256 in admin-guarded security FAQ kept intact — only voter-visible unguarded sections simplified
 - [04-01]: empreinte numerique introduced in voter-visible general FAQ to satisfy CLAR-01 artifact requirement
 - [04-01]: confirmText JS fully removed (not kept as dead code) — eliminates TypeError risk on modal open
+- [04-02]: ag-tooltip placed INSIDE parent element (label, h3, div) — never between label and input
+- [04-02]: export-btn-wrap--full replaces exports-zip-btn grid-column span — wrapper owns grid placement
+- [04-02]: Procurations tooltip on section h3 heading — button at line 1449 already had ag-tooltip
+- [04-02]: trust.htmx.html SHA-256 ag-popover unchanged — only export descriptions added
 
 ### Pending Todos
 
@@ -74,8 +78,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T10:19:00Z
-Stopped at: Completed 04-clarte-et-jargon/04-01-PLAN.md
+Last session: 2026-04-21T10:50:00Z
+Stopped at: Completed 04-clarte-et-jargon/04-02-PLAN.md
 Resume file: None
 
-**Next action:** Phase 4 plan 01 complete — continue to Phase 4 plan 02
+**Next action:** Phase 4 complete — continue to Phase 5 Validation Gate
