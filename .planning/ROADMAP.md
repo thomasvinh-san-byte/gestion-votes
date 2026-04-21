@@ -200,8 +200,8 @@ Plans:
   4. Les chargements affichent un indicateur en francais ("Chargement...") au lieu de skeletons silencieux
 **Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
-- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
+- [ ] 03-01-PLAN.md — Vote confirmation persistante + horodatage + indicateurs chargement "Chargement..."
+- [ ] 03-02-PLAN.md — Etats vides ag-empty-state standardises + bouton reinitialiser filtres
 
 ### Phase 4: Clarte et Jargon
 **Goal**: L'interface parle la langue de l'utilisateur — zero terme technique cote votant, tooltips explicatifs cote admin, confirmations simples
@@ -212,10 +212,7 @@ Plans:
   2. Les termes techniques cote admin/operateur ont des tooltips explicatifs en francais au survol
   3. Le pattern "tapez VALIDER" est remplace par un modal avec checkbox de confirmation + bouton Confirmer
   4. Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier genere
-**Plans**: 2 plans
-Plans:
-- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
-- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
+**Plans**: TBD
 
 ### Phase 5: Validation Gate
 **Goal**: Confirmer que NAV-04 (page d'accueil) est conforme et que toutes les modifications cross-pages n'ont introduit aucune regression
@@ -236,6 +233,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|-----------|----------------|--------|-----------|
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
-| 3. Feedback et Etats Vides | v1.9 | 0/0 | Not started | - |
+| 3. Feedback et Etats Vides | v1.9 | 0/2 | Planned | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |
