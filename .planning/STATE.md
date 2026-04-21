@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: UX Standards & Retention
-status: complete
-stopped_at: Completed 05-validation-gate/05-01-PLAN.md — milestone v1.9 done
-last_updated: "2026-04-21T10:39:06Z"
-last_activity: 2026-04-21 -- v1.9 complete, all 16 requirements verified, human visual approval received
+milestone: v2.0
+milestone_name: Operateur Live UX
+status: ready_to_plan
+stopped_at: null
+last_updated: "2026-04-21T12:00:00Z"
+last_activity: 2026-04-21 -- Milestone v2.0 started, defining requirements
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE -- Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.9 Phase 4 complete -- Clarte et Jargon
+**Current focus:** v2.0 Operateur Live UX -- defining requirements
 
 ## Current Position
 
-Phase: 5 of 5 (Validation Gate) -- COMPLETE
-Plan: 1 of 1 in current phase (plan 01 complete)
-Status: Milestone v1.9 complete — 9 plans done across phases 1-5, all 16 requirements satisfied
-Last activity: 2026-04-21 -- NAV-04 verified, visual coherence approved, milestone v1.9 done
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-21 -- Milestone v2.0 started
 
-Progress: [██████████] 100%
+Progress: [..........] 0%
 
 ## Accumulated Context
 

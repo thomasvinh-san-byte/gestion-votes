@@ -71,15 +71,14 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-## Current Milestone: v1.9 UX Standards & Retention
+## Current Milestone: v2.0 Operateur Live UX
 
-**Goal:** Mettre l'interface aux normes UX pour ne pas perdre les utilisateurs non-techniques — sidebar classique, typographie lisible, feedback clair, jargon elimine cote votant.
+**Goal:** Ameliorer l'experience operateur en mode seance live — checklist de controle, interface epuree, et feedback visuel en temps reel sur les votes.
 
 **Target features:**
-- Sidebar toujours ouverte (~200px), labels visibles, items filtres par role, touch targets 44px
-- Base typographique 16px, labels normaux (plus d'UPPERCASE), header 64px, spacing 20-24px
-- Etats vides explicites, recu de vote persistant, indicateurs de chargement, etat 0-resultats
-- Jargon elimine cote votant (zero terme technique visible), tooltips explicatifs cote admin/operateur, remplacement du pattern "tapez VALIDER", legendes couleurs, descriptions exports
+- Checklist operateur en mode live (quorum OK, reseau OK, votes recus)
+- Reduction des zones d'info de 9 a 4-5 en mode execution
+- Animation sur les compteurs de vote en temps reel
 
 ### Out of Scope
 
