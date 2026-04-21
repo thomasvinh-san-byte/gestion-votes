@@ -486,9 +486,9 @@ table {
      ═══════════════════════════════════════════════════════════════════════════ */
 
   --header-height: 64px;
-  --sidebar-width: 58px;
-  --sidebar-rail: 58px;
-  --sidebar-expanded: 252px;
+  --sidebar-width: 200px;
+  --sidebar-rail: 58px; /* legacy — unused */
+  --sidebar-expanded: 252px; /* legacy — unused */
   --drawer-width: 400px;
   --content-max: 1440px;
   --content-narrow: 720px;
@@ -983,43 +983,14 @@ h4, .h4 {
   top: var(--sidebar-top, 56px);
   left: 0;
   bottom: 0;
-  width: var(--sidebar-rail);
+  width: 200px;
   background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width .25s cubic-bezier(.4, 0, .2, 1);
   z-index: var(--z-sidebar);
   border-right: 1px solid var(--sidebar-border);
 }
-
-/* Hover = widen overlay, pinned = same overlay but persistent */
-.app-sidebar:hover,
-.app-sidebar.pinned {
-  width: var(--sidebar-expanded);
-  box-shadow: 8px 0 24px rgba(0, 0, 0, .18);
-}
-.app-sidebar.pinned {
-  box-shadow: 4px 0 16px rgba(0, 0, 0, .12);
-}
-/* When sidebar is pinned, push main content to avoid overlap (CSS fallback for JS) */
-.app-sidebar.pinned ~ .app-main {
-  padding-left: calc(var(--sidebar-expanded) + 22px);
-}
-
-/* Labels appear on hover/pin — fade only, no width change */
-.app-sidebar:hover .nav-label,
-.app-sidebar.pinned .nav-label { opacity: 1; max-width: 180px; }
-.app-sidebar:hover .nav-group-label,
-.app-sidebar.pinned .nav-group-label { opacity: 1; max-width: 180px; }
-.app-sidebar:hover .nav-group-chevron,
-.app-sidebar.pinned .nav-group-chevron { opacity: 1; }
-.app-sidebar:hover .sidebar-version,
-.app-sidebar.pinned .sidebar-version { opacity: 1; }
-.app-sidebar:hover .sidebar-pin,
-.app-sidebar.pinned .sidebar-pin { opacity: 1; }
-.app-sidebar:hover .device-tag,
-.app-sidebar.pinned .device-tag { opacity: 1; max-width: 100px; }
 
 /* Scroll container */
 .sidebar-scroll {
@@ -1065,14 +1036,14 @@ h4, .h4 {
 .sidebar-fade.has-scroll-bottom::after { opacity: 1; }
 .sidebar-overlay { display: none; }
 
-/* Nav items — icon centered in 58px rail */
+/* Nav items */
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--gap-sm);
   justify-content: flex-start;
   padding: 0 8px 0 16px;
-  height: 42px;
+  height: 44px;
   cursor: pointer;
   color: var(--sidebar-text);
   background: transparent;
@@ -1083,7 +1054,7 @@ h4, .h4 {
   white-space: nowrap;
   overflow: hidden;
   position: relative;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 500;
   text-decoration: none;
 }
@@ -1110,21 +1081,21 @@ h4, .h4 {
   border-radius: 0 2px 2px 0;
 }
 
-/* Labels — fade in with max-width, no reflow */
+/* Labels — always visible */
 .nav-label {
-  opacity: 0;
-  max-width: 0;
+  opacity: 1;
+  max-width: 180px;
   overflow: hidden;
-  transition: opacity .2s .05s, max-width .25s cubic-bezier(.4, 0, .2, 1);
-  font-size: 14px;
-  font-weight: 500;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--text-base);
+  font-weight: 500;
 }
 
 /* Nav groups — ALWAYS take up vertical space (no height:0 collapse) */
 .nav-group {
-  height: 20px;
-  padding: 6px 10px 2px;
+  min-height: 44px;
+  padding: 0 10px;
   margin: 0;
   overflow: hidden;
   display: flex;
@@ -1141,37 +1112,23 @@ h4, .h4 {
   text-align: left;
   width: 100%;
 }
-/* Thin divider line in rail mode */
-.nav-group::after {
-  content: '';
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 50%;
-  height: 1px;
-  background: rgba(255, 255, 255, .1);
-  transition: opacity .2s;
-}
-/* Hide divider when expanded — label replaces it */
-.app-sidebar:hover .nav-group::after,
-.app-sidebar.pinned .nav-group::after { opacity: 0; }
 .nav-group:first-child { padding-top: 2px; }
-.nav-group:first-child::after { display: none; }
 .nav-group-label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, .5);
   padding-left: 4px;
-  opacity: 0;
-  max-width: 0;
+  opacity: 1;
+  max-width: 160px;
   overflow: hidden;
-  transition: opacity .2s .05s, max-width .25s cubic-bezier(.4, 0, .2, 1);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .nav-group-chevron {
-  opacity: 0;
-  transition: opacity .2s .05s, transform .2s;
+  opacity: 1;
+  transition: transform .2s;
   margin-left: auto;
   margin-right: 5px;
   flex-shrink: 0;
@@ -1204,48 +1161,6 @@ h4, .h4 {
   align-items: center;
   justify-content: center;
 }
-/* In collapsed rail, show badge as a small dot positioned on the icon */
-.app-sidebar:not(:hover):not(.pinned) .nav-badge[data-count]:not([data-count="0"]) {
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  min-width: 8px;
-  height: 8px;
-  padding: 0;
-  font-size: 0;
-  border-radius: 50%;
-}
-
-/* Pin button */
-.sidebar-pin {
-  position: absolute;
-  top: 9px;
-  right: 7px;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, .5);
-  border: 1px solid transparent;
-  opacity: 0;
-  transition: opacity .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-  cursor: pointer;
-  z-index: var(--z-sidebar-pin);
-  background: none;
-}
-.sidebar-pin:hover {
-  background: rgba(255, 255, 255, .12);
-  color: rgba(255, 255, 255, .9);
-  border-color: rgba(255, 255, 255, .18);
-}
-.app-sidebar.pinned .sidebar-pin {
-  color: var(--color-primary);
-  opacity: 1;
-  background: oklch(0.520 0.195 265 / 0.15);
-  border-color: oklch(0.520 0.195 265 / 0.30);
-}
 
 /* Device section + footer */
 .sidebar-device-section { border-top: 1px solid var(--sidebar-border); padding: 4px 0; }
@@ -1257,8 +1172,7 @@ h4, .h4 {
   font-size: 10px;
   color: rgba(255, 255, 255, .4);
   padding: 4px 14px;
-  opacity: 0;
-  transition: opacity .15s ease;
+  opacity: 1;
   white-space: nowrap;
   overflow: hidden;
   font-family: var(--font-mono);
@@ -1270,11 +1184,10 @@ h4, .h4 {
   letter-spacing: .4px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, .5);
-  opacity: 0;
-  max-width: 0;
+  opacity: 1;
+  max-width: 100px;
   overflow: hidden;
   white-space: nowrap;
-  transition: opacity .2s .05s, max-width .25s cubic-bezier(.4, 0, .2, 1);
   margin-left: auto;
 }
 
@@ -1282,7 +1195,7 @@ h4, .h4 {
 .app-main {
   flex: 1;
   padding: 16px 22px;
-  padding-left: calc(var(--sidebar-rail) + 22px);
+  padding-left: calc(200px + 20px);
   overflow-y: auto;
   overflow-x: hidden;
   min-width: 0;
@@ -3368,9 +3281,7 @@ textarea:focus-visible,
   .app-sidebar.open .nav-group-label,
   .app-sidebar.open .nav-group-chevron,
   .app-sidebar.open .sidebar-version,
-  .app-sidebar.open .sidebar-pin,
   .app-sidebar.open .device-tag { opacity: 1; max-width: 200px; }
-  .app-sidebar.open .nav-group::after { opacity: 0; }
   .sidebar-overlay {
     position: fixed;
     inset: 0;
