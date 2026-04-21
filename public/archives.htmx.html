@@ -211,34 +211,55 @@
 
       <!-- Export buttons grid -->
       <div class="export-grid">
-        <button class="btn btn-secondary" id="btnExportPV">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
-          PV (HTML)
-        </button>
-        <button class="btn btn-secondary" id="btnExportAttendance">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
-          Pr&eacute;sences (CSV)
-        </button>
-        <button class="btn btn-secondary" id="btnExportVotes">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
-          Votes (CSV)
-        </button>
-        <button class="btn btn-secondary" id="btnExportMotions">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
-          R&eacute;solutions (CSV)
-        </button>
-        <button class="btn btn-secondary" id="btnExportMembers">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>
-          Membres (CSV)
-        </button>
-        <button class="btn btn-secondary" id="btnExportAudit">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg>
-          Audit (CSV)
-        </button>
-        <button class="btn btn-primary exports-zip-btn" id="btnExportZip" title="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)" aria-label="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-          Archive ZIP
-        </button>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary" id="btnExportPV">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-clipboard-list"></use></svg>
+            PV (HTML)
+          </button>
+          <small class="export-desc">Proc&egrave;s-verbal complet de la s&eacute;ance (format web imprimable)</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary" id="btnExportAttendance">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
+            Pr&eacute;sences (CSV)
+          </button>
+          <small class="export-desc">Liste des membres pr&eacute;sents et leurs procurations</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary" id="btnExportVotes">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-vote"></use></svg>
+            Votes (CSV)
+          </button>
+          <small class="export-desc">D&eacute;tail de chaque bulletin : votant, r&eacute;solution, choix</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary" id="btnExportMotions">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pin"></use></svg>
+            R&eacute;solutions (CSV)
+          </button>
+          <small class="export-desc">R&eacute;sultats par r&eacute;solution : d&eacute;cision, majorit&eacute;, quorum</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary" id="btnExportMembers">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user"></use></svg>
+            Membres (CSV)
+          </button>
+          <small class="export-desc">Liste des membres et leur poids de vote</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary" id="btnExportAudit">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-scroll"></use></svg>
+            Audit (CSV)
+          </button>
+          <small class="export-desc">Journal complet des &eacute;v&eacute;nements pour v&eacute;rification l&eacute;gale</small>
+        </div>
+        <div class="export-btn-wrap export-btn-wrap--full">
+          <button class="btn btn-primary" id="btnExportZip" title="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)" aria-label="T&eacute;l&eacute;charger l'archive compl&egrave;te (ZIP)">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+            Archive ZIP
+          </button>
+          <small class="export-desc">Tous les fichiers pr&eacute;c&eacute;dents r&eacute;unis en une seule archive</small>
+        </div>
       </div>
     </div>
     <div class="modal-footer">

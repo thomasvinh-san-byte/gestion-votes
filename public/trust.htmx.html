@@ -39,12 +39,18 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-sm btn-secondary" id="btnExportAuditJson">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Export JSON
-        </button>
-        <button class="btn btn-sm btn-secondary" id="btnExportTrust">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exporter le rapport
-        </button>
+        <div class="export-btn-wrap">
+          <button class="btn btn-sm btn-secondary" id="btnExportAuditJson">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Export JSON
+          </button>
+          <small class="export-desc">Donn&eacute;es d'audit brutes pour v&eacute;rification technique</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-sm btn-secondary" id="btnExportTrust">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Exporter le rapport
+          </button>
+          <small class="export-desc">Rapport de contr&ocirc;le d'int&eacute;grit&eacute; complet</small>
+        </div>
         <button class="btn btn-secondary" id="btnRefresh">
           <svg class="icon icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
         </button>

@@ -56,14 +56,20 @@
         </div>
       </div>
       <div class="flex items-center gap-2 audit-header-actions">
-        <button class="btn btn-secondary btn-sm" id="btnExportSelection" hidden>
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-          Exporter la s&eacute;lection
-        </button>
-        <button class="btn btn-secondary btn-sm" id="btnExportAll">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
-          Tout exporter
-        </button>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary btn-sm" id="btnExportSelection" hidden>
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+            Exporter la s&eacute;lection
+          </button>
+          <small class="export-desc">Ev&eacute;nements filtr&eacute;s selon la s&eacute;lection courante (CSV)</small>
+        </div>
+        <div class="export-btn-wrap">
+          <button class="btn btn-secondary btn-sm" id="btnExportAll">
+            <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
+            Tout exporter
+          </button>
+          <small class="export-desc">Journal d'audit complet toutes s&eacute;ances confondues (CSV)</small>
+        </div>
         <ag-popover trigger="click" position="bottom" width="320">
           <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
             <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
