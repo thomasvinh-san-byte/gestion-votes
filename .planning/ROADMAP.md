@@ -235,7 +235,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
-| 2. Sidebar Navigation | v1.9 | 0/2 | In progress | - |
+| 2. Sidebar Navigation | 1/2 | In Progress|  | - |
 | 3. Feedback et Etats Vides | v1.9 | 0/0 | Not started | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |
