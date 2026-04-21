@@ -34,7 +34,7 @@ Declared values (must be multiples of 4):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px (`--gap-xs`) | Icon gaps, badge padding |
-| sm | 8px (`--gap-sm`) | Nav item horizontal padding (right side) |
+| sm | 8px (`--gap-sm`) | Nav item horizontal padding (right side), icon-to-label gap |
 | md | 16px (`--gap-md`, `--pad-md`) | Nav item horizontal padding (left side) |
 | lg | 24px (`--gap-lg`) | Sidebar internal section padding |
 | xl | 32px (`--gap-xl`) | Layout gaps |
@@ -42,7 +42,7 @@ Declared values (must be multiples of 4):
 | 3xl | 64px (`--space-16`) | Page-level (header height) |
 
 Exceptions:
-- Nav item gap between icon and label: 10px (`gap: 10px` on `.nav-item`) — kept as-is, established pattern
+- Nav item gap between icon and label: 8px (`--gap-sm`) — replaces previous 10px value (non-multiple of 4)
 - Nav group header height: 20px content + 6px/2px padding = 28px total — will be raised to 44px (see Touch Targets)
 - Sidebar width: 200px (replaces 58px rail and 252px expanded — source: CONTEXT.md decision)
 - App-main padding-left: `calc(200px + 20px)` = 220px static (source: CONTEXT.md decision)
@@ -55,14 +55,15 @@ Exceptions:
 |------|------|--------|-------------|
 | Body | 16px (`--text-base: 1rem`) | 400 (regular) | 1.5 |
 | Label (nav items, group labels) | 16px (`--text-base`) | 500 (medium) | 1.2 |
-| Group header label | 12px (`--text-xs`) | 700 (bold) | 1.2 |
+| Group header label | 12px (`--text-xs`) | 500 (medium) | 1.2 |
 | Version / metadata | 12px (`--text-xs`) | 400 (regular) | 1.2 |
 
-> Source: Phase 1 token decision (`--text-base: 1rem`). Current `.nav-label` and `.nav-item` declare `font-size: 14px` — these must be updated to `var(--text-base)` (16px) as part of this phase. Nav group labels stay at 12px (section header role, not reading text).
+> Source: Phase 1 token decision (`--text-base: 1rem`). Current `.nav-label` and `.nav-item` declare `font-size: 14px` — these must be updated to `var(--text-base)` (16px) as part of this phase. Nav group labels stay at 12px (section header role, not reading text). Group headers use `text-transform: uppercase` and `letter-spacing: 1.4px` for visual distinction — 700 bold is therefore redundant and removed. Two weights only: 400 (regular) + 500 (medium).
 
 Overrides required in this phase:
 - `.nav-item`: change `font-size: 14px` → `font-size: var(--text-base)`
 - `.nav-label`: change `font-size: 14px` → `font-size: var(--text-base)`
+- `.nav-group-label`: change `font-weight: 700` → `font-weight: 500`
 
 ---
 
@@ -139,7 +140,7 @@ Required change:
   opacity: 1;              /* always visible */
   max-width: 160px;
   font-size: 12px;         /* keep — section header role */
-  font-weight: 700;
+  font-weight: 500;        /* was 700 — uppercase + letter-spacing provides sufficient distinction */
   letter-spacing: 1.4px;
   text-transform: uppercase;
   /* remove transition */
@@ -159,6 +160,7 @@ Required change:
 .nav-item {
   height: 44px;            /* was 42px — WCAG 2.5.8 minimum touch target */
   min-height: 44px;
+  gap: var(--gap-sm);      /* 8px — was 10px (non-multiple of 4) */
   font-size: var(--text-base);   /* 16px — was 14px */
   /* all other properties unchanged */
 }
@@ -301,7 +303,7 @@ This phase uses only existing project CSS and JS — no external component regis
 
 | File | Change Type | Description |
 |------|-------------|-------------|
-| `public/assets/css/design-system.css` | Modify | `--sidebar-width: 200px`, `.nav-item` height 44px, `.nav-label` opacity 1, `.nav-group` height 44px, remove hover/pin expansion rules |
+| `public/assets/css/design-system.css` | Modify | `--sidebar-width: 200px`, `.nav-item` height 44px + gap 8px, `.nav-label` opacity 1, `.nav-group` height 44px, `.nav-group-label` font-weight 500, remove hover/pin expansion rules |
 | `public/partials/sidebar.html` | Modify | Remove `.sidebar-pin` button element |
 | `public/assets/js/core/shell.js` | Modify | Remove pin/unpin logic and localStorage; keep scroll fade and sidebar-top calculation |
 | `public/assets/js/pages/auth-ui.js` | Verify | Confirm voter role sees exactly 2 items — no logic change expected |
