@@ -1281,8 +1281,9 @@
               </div>
             </div>
 
-            <!-- Exec main layout: resolution card + action bar -->
-            <div class="op-exec-main">
+            <!-- Exec body: resolution main + checklist side panel -->
+            <div class="op-exec-body">
+              <div class="op-exec-main">
               <!-- Resolution card with live dot, title, tags, sub-tabs -->
               <div class="op-resolution-card" id="opResolutionCard">
                 <div class="op-resolution-header">
@@ -1512,6 +1513,65 @@
               </div>
 
             </div><!-- /op-exec-main -->
+
+              <!-- Checklist panel: real-time session monitoring (visible in exec mode only) -->
+              <aside class="op-checklist-panel" id="opChecklistPanel" role="complementary" aria-label="Controle seance">
+                <!-- SSE disconnect banner (hidden by default) -->
+                <div class="op-checklist-sse-banner" id="opChecklistSseBanner" hidden role="alert" aria-live="assertive">
+                  <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+                  Connexion perdue — les données peuvent être obsolètes
+                </div>
+
+                <!-- Panel header with collapse toggle -->
+                <div class="op-checklist-header">
+                  <h3 class="op-checklist-title">CONTRÔLE SÉANCE</h3>
+                  <button class="op-checklist-toggle" id="opChecklistToggle" type="button"
+                          aria-expanded="true" aria-controls="opChecklistPanel"
+                          title="Réduire le panneau">
+                    <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
+                  </button>
+                </div>
+
+                <!-- Checklist rows -->
+                <div class="op-checklist-rows" id="opChecklistRows">
+                  <!-- Row 1: SSE / Reseau -->
+                  <div class="op-checklist-row" data-row="sse" id="opChecklistRowSse">
+                    <span class="op-checklist-icon" aria-hidden="true">
+                      <svg class="icon icon-xs"><use href="/assets/icons.svg#icon-activity"></use></svg>
+                    </span>
+                    <span class="op-checklist-label">Réseau</span>
+                    <span class="op-checklist-value" id="opChecklistSseValue" aria-live="polite">—</span>
+                  </div>
+
+                  <!-- Row 2: Quorum -->
+                  <div class="op-checklist-row" data-row="quorum" id="opChecklistRowQuorum">
+                    <span class="op-checklist-icon" aria-hidden="true">
+                      <svg class="icon icon-xs"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+                    </span>
+                    <span class="op-checklist-label">Quorum</span>
+                    <span class="op-checklist-value" id="opChecklistQuorumValue">—</span>
+                  </div>
+
+                  <!-- Row 3: Votes recus -->
+                  <div class="op-checklist-row" data-row="votes" id="opChecklistRowVotes">
+                    <span class="op-checklist-icon" aria-hidden="true">
+                      <svg class="icon icon-xs"><use href="/assets/icons.svg#icon-check-square"></use></svg>
+                    </span>
+                    <span class="op-checklist-label">Votes reçus</span>
+                    <span class="op-checklist-value" id="opChecklistVotesValue" aria-live="polite">—</span>
+                  </div>
+
+                  <!-- Row 4: Votants connectes -->
+                  <div class="op-checklist-row" data-row="online" id="opChecklistRowOnline">
+                    <span class="op-checklist-icon" aria-hidden="true">
+                      <svg class="icon icon-xs"><use href="/assets/icons.svg#icon-users"></use></svg>
+                    </span>
+                    <span class="op-checklist-label">En ligne</span>
+                    <span class="op-checklist-value" id="opChecklistOnlineValue" aria-live="polite">—</span>
+                  </div>
+                </div>
+              </aside>
+            </div><!-- /.op-exec-body -->
 
           </div><!-- /viewExecContent -->
 
