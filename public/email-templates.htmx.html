@@ -78,15 +78,12 @@
       </div>
 
       <!-- Empty state -->
-      <div id="emptyState" class="empty-state email-templates-empty" hidden>
-        <svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-mail"></use></svg>
-        <h2>Aucun template</h2>
-        <p class="text-muted">Cr&eacute;ez des templates email pour personnaliser vos invitations.</p>
-        <button class="btn btn-primary mt-4" id="btnEmptyCreate">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg>
-          Cr&eacute;er un template
-        </button>
-      </div>
+      <ag-empty-state id="emptyState" icon="generic"
+        title="Aucun mod&egrave;le d'e-mail"
+        description="Cr&eacute;ez un mod&egrave;le pour personnaliser vos communications."
+        hidden>
+        <button slot="action" class="btn btn-primary btn-sm" id="btnEmptyCreate">Nouveau mod&egrave;le</button>
+      </ag-empty-state>
 
     </main>
 

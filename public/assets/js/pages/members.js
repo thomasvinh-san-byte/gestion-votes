@@ -543,19 +543,14 @@
       var isFiltered = currentFilter !== 'all' || searchInput.value.trim() || currentGroupFilter;
       var totalFromServer = _serverPagination ? _serverPagination.total : allMembers.length;
       if (totalFromServer === 0 && !isFiltered) {
-        membersList.innerHTML = '<div class="empty-state-guided">' +
-          '<svg class="icon icon-xl" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>' +
-          '<h3>Aucun membre enregistré</h3>' +
-          '<p>Commencez par ajouter vos participants. Deux options :</p>' +
-          '<div class="empty-state-actions">' +
-            '<button class="btn btn-primary" onclick="document.getElementById(\'mName\').focus();">' +
-              '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-user-plus"></use></svg> Ajouter manuellement' +
-            '</button>' +
-            '<button class="btn btn-secondary" onclick="document.querySelector(\'[data-mgmt-tab=import]\').click();">' +
-              '<svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-upload"></use></svg> Importer un CSV' +
-            '</button>' +
+        membersList.innerHTML = '<ag-empty-state icon="members" ' +
+          'title="Aucun membre" ' +
+          'description="Importez ou ajoutez des membres pour commencer.">' +
+          '<div slot="action" class="empty-state-actions">' +
+            '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'mName\').focus();">Ajouter un membre</button>' +
+            '<button class="btn btn-secondary btn-sm" onclick="document.querySelector(\'[data-mgmt-tab=import]\').click();">Importer un CSV</button>' +
           '</div>' +
-        '</div>';
+          '</ag-empty-state>';
       } else if (isFiltered) {
         membersList.innerHTML = '<ag-empty-state icon="members" title="Aucun r\u00e9sultat" description="Essayez un autre terme de recherche."></ag-empty-state>';
       } else {

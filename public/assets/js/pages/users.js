@@ -113,7 +113,7 @@
     container.setAttribute('aria-busy', 'false');
 
     if (!users.length) {
-      container.innerHTML = '<ag-empty-state icon="members" title="Aucun utilisateur" description="Les utilisateurs autoris\u00e9s appara\u00eetront ici."></ag-empty-state>';
+      container.innerHTML = '<ag-empty-state icon="members" title="Aucun utilisateur" description="Ajoutez des utilisateurs pour g\u00e9rer l\'application." action-label="Nouvel utilisateur" action-href="/admin"></ag-empty-state>';
       return;
     }
 
