@@ -116,13 +116,14 @@
         <p class="vote-waiting-sub">La s&eacute;ance est en cours</p>
       </div>
 
-      <!-- Confirmed state (shown for 3s after vote registered) -->
-      <div class="vote-confirmed-state" id="voteConfirmedState">
+      <!-- Confirmed state (shown persistently after vote registered) -->
+      <div class="vote-confirmed-state" id="voteConfirmedState" role="status">
         <div class="vote-confirmed-icon" aria-hidden="true">
           <svg class="icon icon-xl"><use href="/assets/icons.svg#icon-check"></use></svg>
         </div>
         <p class="vote-confirmed-choice" id="confirmedChoice"></p>
         <p class="vote-confirmed-text">Vote enregistr&#233;</p>
+        <p class="vote-confirmed-timestamp" id="voteConfirmedTimestamp"></p>
         <p class="vote-confirmed-irreversible">Ce vote est d&eacute;finitif et irr&eacute;versible.</p>
       </div>
 

@@ -1401,11 +1401,21 @@
   }
 
   /**
-   * Show confirmed state for 3 seconds then return to waiting.
+   * Show confirmed state persistently with French timestamp.
+   * State returns to 'waiting' naturally when SSE opens a new vote (setVoteAppState('voting') is called
+   * by the SSE handler in initSseUpdates, so confirmed state is hidden automatically on next motion).
    */
   function showConfirmationState() {
     setVoteAppState('confirmed');
-    setTimeout(function() { setVoteAppState('waiting'); }, 3000);
+    var now = new Date();
+    var day = String(now.getDate()).padStart(2, '0');
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var year = now.getFullYear();
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    var timestamp = 'Vote enregistr\u00e9 le ' + day + '/' + month + '/' + year + ' \u00e0 ' + hours + ':' + minutes;
+    var tsEl = document.getElementById('voteConfirmedTimestamp');
+    if (tsEl) tsEl.textContent = timestamp;
   }
 
   /**

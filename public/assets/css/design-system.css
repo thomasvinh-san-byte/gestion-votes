@@ -3235,6 +3235,20 @@ textarea:focus-visible,
   display: inline-flex;
 }
 
+.loading-label {
+  display: block;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.vote-confirmed-timestamp {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
 /* =============================================================================
    10. RESPONSIVE
    ============================================================================= */
