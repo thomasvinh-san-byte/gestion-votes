@@ -86,8 +86,8 @@ html {
 body {
   min-height: 100%;
   font-family: var(--font-sans);
-  font-size: var(--text-base);     /* 14px */
-  line-height: var(--leading-base); /* 1.571 — 14px * 1.571 = 22px */
+  font-size: var(--text-base);     /* 16px */
+  line-height: var(--leading-md);  /* 1.5 — 16px * 1.5 = 24px */
   color: var(--color-text);
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
@@ -196,7 +196,7 @@ table {
   --text-2xs:  0.6875rem;  /* 11px */
   --text-xs:   0.75rem;    /* 12px */
   --text-sm:   0.8125rem;  /* 13px */
-  --text-base: 0.875rem;   /* 14px — primary UI chrome size */
+  --text-base: 1rem;       /* 16px — primary UI chrome size */
   --text-md:   1rem;       /* 16px — body reading text */
   --text-lg:   1.125rem;   /* 18px */
   --text-xl:   1.25rem;    /* 20px */
@@ -597,7 +597,7 @@ table {
   --type-body-md-weight: var(--weight-regular);
   --type-body-md-lead:   var(--leading-md);
 
-  --type-label-size:   var(--text-sm);
+  --type-label-size:   var(--text-base);
   --type-label-weight: var(--weight-medium);
   --type-label-lead:   var(--leading-sm);
 
@@ -3427,7 +3427,7 @@ textarea:focus-visible,
 /* ─── Small phones (< 480px) ─── */
 @media (max-width: 480px) {
   :root {
-    --text-base: 0.9375rem; /* 15px for better readability on small screens */
+    --text-base: 1rem;      /* 16px — consistent with desktop */
   }
 
   /* Improve form inputs for mobile */
