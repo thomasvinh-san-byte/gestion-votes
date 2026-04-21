@@ -292,7 +292,9 @@ table {
   /* Semantic layout spacing aliases */
   --space-section: var(--space-12);  /* 48px — between major page sections */
   --space-card:    var(--space-6);   /* 24px — card internal padding */
-  --space-field:   var(--space-4);   /* 16px — between form fields */
+  --form-gap:    var(--space-5);     /* 20px — between form fields */
+  --section-gap: var(--space-6);     /* 24px — between page sections */
+  --space-field:   var(--form-gap);  /* 20px — between form fields */
 
   /* Legacy aliases (backward compat) */
   --space-md: var(--space-5);  /* 20px */
@@ -1811,11 +1813,9 @@ h4, .h4 {
 }
 
 .form-label {
-  font-size: var(--text-sm);
+  font-size: var(--type-label-size);
   font-weight: var(--font-semibold);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: var(--color-text-muted);
+  color: var(--color-text-dark);
 }
 
 .form-label-required::after {
