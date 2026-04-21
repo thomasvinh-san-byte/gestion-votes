@@ -24,9 +24,9 @@ Requirements pour le milestone UX Standards & Retention. Chaque requirement est 
 ### Feedback & Etats
 
 - [ ] **FEED-01**: Chaque liste/grille affiche un message clair quand vide ("Creez votre premiere seance") au lieu de skeletons suspendus
-- [ ] **FEED-02**: Apres un vote, confirmation persistante visible (pas un flash 3s) avec horodatage
+- [x] **FEED-02**: Apres un vote, confirmation persistante visible (pas un flash 3s) avec horodatage
 - [ ] **FEED-03**: Filtres et recherches affichent "Aucun resultat" avec suggestion de reinitialiser les filtres
-- [ ] **FEED-04**: Indicateur de chargement explicite en francais ("Chargement...") au lieu de skeletons silencieux
+- [x] **FEED-04**: Indicateur de chargement explicite en francais ("Chargement...") au lieu de skeletons silencieux
 
 ### Clarte & Jargon
 
@@ -76,9 +76,9 @@ Deferred to future release.
 | TYPO-03 | Phase 1 | Complete |
 | TYPO-04 | Phase 1 | Complete |
 | FEED-01 | Phase 3 | Pending |
-| FEED-02 | Phase 3 | Pending |
+| FEED-02 | Phase 3 | Complete |
 | FEED-03 | Phase 3 | Pending |
-| FEED-04 | Phase 3 | Pending |
+| FEED-04 | Phase 3 | Complete |
 | CLAR-01 | Phase 4 | Pending |
 | CLAR-02 | Phase 4 | Pending |
 | CLAR-03 | Phase 4 | Pending |

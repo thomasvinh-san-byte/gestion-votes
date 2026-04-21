@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
-status: verifying
-stopped_at: Completed 02-sidebar-navigation/02-02-PLAN.md
-last_updated: "2026-04-21T09:05:57.016Z"
-last_activity: 2026-04-21 -- Phase 2 Plan 2 Task 1 complete, E2E test updated with voter sidebar assertions
+status: in-progress
+stopped_at: Completed 03-feedback-et-etats-vides/03-01-PLAN.md
+last_updated: "2026-04-21T09:25:00.000Z"
+last_activity: 2026-04-21 -- Phase 3 Plan 1 complete, vote confirmation persistante + loading labels
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 40
+  total_plans: 6
+  completed_plans: 5
+  percent: 50
 ---
 
 # AG-VOTE -- Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 3 of 5 (Feedback et Etats Vides)
-Plan: 0 of 2 in current phase (not started)
-Status: Ready — Phase 2 complete, awaiting Phase 3 start
-Last activity: 2026-04-21 -- Phase 2 complete, E2E sidebar test updated, visual checkpoint deferred by user
+Plan: 1 of 2 in current phase (plan 1 complete)
+Status: In progress — Plan 03-01 complete, Plan 03-02 pending
+Last activity: 2026-04-21 -- Vote confirmation persistante + loading labels sur 5 pages
 
-Progress: [████......] 40%
+Progress: [█████.....] 50%
 
 ## Accumulated Context
 
@@ -56,6 +56,9 @@ Recent decisions affecting current work:
 - [02-01]: sidebar-device-section removed, Voter moved into main nav with role filter
 - [Phase 02-sidebar-navigation]: Use a[href='/settings'][data-requires-role='admin'] in mustBeHidden to avoid hiding Mon compte which shares same href
 - [Phase 02-sidebar-navigation]: Task 2 visual checkpoint deferred — user chose Continue without validation; visual check can be done during Phase 5 Validation Gate
+- [03-01]: Vote confirmation stays visible indefinitely — state resets naturally via SSE when next motion opens, no artificial timer needed
+- [03-01]: loading-label is a block span stacked above skeleton rows — works both inside and outside htmx-indicator
+- [03-01]: audit.htmx.html spinner aria-label moved to visible span, spinner gets aria-hidden to avoid double announcement
 
 ### Pending Todos
 
@@ -67,8 +70,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T09:05:50.254Z
-Stopped at: Completed 02-sidebar-navigation/02-02-PLAN.md
+Last session: 2026-04-21T09:25:00.000Z
+Stopped at: Completed 03-feedback-et-etats-vides/03-01-PLAN.md
 Resume file: None
 
-**Next action:** Start Phase 3 — Feedback et Etats Vides (FEED-01 through FEED-04)
+**Next action:** Continue Phase 3 — Plan 03-02 (next plan in Feedback et Etats Vides)

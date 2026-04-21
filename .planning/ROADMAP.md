@@ -200,7 +200,7 @@ Plans:
   4. Les chargements affichent un indicateur en francais ("Chargement...") au lieu de skeletons silencieux
 **Plans**: 2 plans
 Plans:
-- [ ] 03-01-PLAN.md — Vote confirmation persistante + horodatage + indicateurs chargement "Chargement..."
+- [x] 03-01-PLAN.md — Vote confirmation persistante + horodatage + indicateurs chargement "Chargement..."
 - [ ] 03-02-PLAN.md — Etats vides ag-empty-state standardises + bouton reinitialiser filtres
 
 ### Phase 4: Clarte et Jargon
@@ -233,6 +233,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|-----------|----------------|--------|-----------|
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
-| 3. Feedback et Etats Vides | v1.9 | 0/2 | Planned | - |
+| 3. Feedback et Etats Vides | v1.9 | 1/2 | In progress | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |
