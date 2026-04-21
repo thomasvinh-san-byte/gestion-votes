@@ -41,7 +41,7 @@ Deferred to next milestone.
 
 | Feature | Reason |
 |---------|--------|
-| Refonte affichage public | Trop large — milestone dedie PUB-01..03 |
+| Refonte affichage public | Trop large -- milestone dedie PUB-01..03 |
 | Nouvelles fonctionnalites metier | Focus sur UX operateur |
 | Migration framework | Refactoring incremental uniquement |
 | PDFs de convocation/emargement | Hors perimetre de l'app |
@@ -51,22 +51,22 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHECK-01 | TBD | Pending |
-| CHECK-02 | TBD | Pending |
-| CHECK-03 | TBD | Pending |
-| CHECK-04 | TBD | Pending |
-| CHECK-05 | TBD | Pending |
-| FOCUS-01 | TBD | Pending |
-| FOCUS-02 | TBD | Pending |
-| FOCUS-03 | TBD | Pending |
-| ANIM-01 | TBD | Pending |
-| ANIM-02 | TBD | Pending |
-| ANIM-03 | TBD | Pending |
+| CHECK-01 | Phase 1 | Pending |
+| CHECK-02 | Phase 1 | Pending |
+| CHECK-03 | Phase 1 | Pending |
+| CHECK-04 | Phase 1 | Pending |
+| CHECK-05 | Phase 1 | Pending |
+| FOCUS-01 | Phase 2 | Pending |
+| FOCUS-02 | Phase 2 | Pending |
+| FOCUS-03 | Phase 2 | Pending |
+| ANIM-01 | Phase 3 | Pending |
+| ANIM-02 | Phase 3 | Pending |
+| ANIM-03 | Phase 3 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 11 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 11
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-04-21*
+*Requirements defined: 2026-04-21 — Traceability updated: 2026-04-21*
