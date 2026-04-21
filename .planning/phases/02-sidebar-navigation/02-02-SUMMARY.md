@@ -46,8 +46,8 @@ completed: 2026-04-21
 
 - **Duration:** ~15 min
 - **Started:** 2026-04-21T08:00:00Z
-- **Completed:** 2026-04-21T08:15:00Z
-- **Tasks:** 1 of 2 (Task 2 is checkpoint:human-verify — awaiting human verification)
+- **Completed:** 2026-04-21T09:05:00Z
+- **Tasks:** 2 of 2 (Task 2 checkpoint:human-verify — deferred by user)
 - **Files modified:** 1
 
 ## Accomplishments
@@ -60,6 +60,7 @@ completed: 2026-04-21
 ## Task Commits
 
 1. **Task 1: Update E2E voter sidebar test with new nav item assertions and sidebar width check** - `425a6a25` (feat)
+2. **Task 2: Visual verification of sidebar at 200px** - DEFERRED (checkpoint:human-verify — user chose "Continue without validation")
 
 ## Files Created/Modified
 - `tests/e2e/specs/critical-path-votant.spec.js` - Added /vote, /dashboard to mustBeVisible; updated settings selector; added wizard to mustBeHidden; added Mon compte and width assertions
@@ -80,12 +81,19 @@ Playwright chromium headless shell fails to launch in this environment due to mi
 
 None — no external service configuration required.
 
+## Visual Verification Status
+
+**Task 2 (checkpoint:human-verify) — DEFERRED**
+- User chose "Continue without validation" — visual verification was not performed
+- The 200px sidebar transformation is code-complete (Plan 01) and E2E assertions are in place (Plan 02, Task 1)
+- Visual confirmation can be done at any time by opening the app at the dashboard page
+
 ## Next Phase Readiness
 
-- Task 2 (checkpoint:human-verify) awaiting human visual verification of 200px sidebar
-- After human approval, plan 02-02 is complete and phase 02 is done
-- Phase 03 (Typography) can proceed after verification
+- Phase 02 (Sidebar Navigation) is code-complete — all 3 requirements (NAV-01, NAV-02, NAV-03) satisfied
+- Phase 03 (Feedback et Etats Vides) can proceed
+- Visual regression check deferred — can be validated during Phase 05 Validation Gate
 
 ---
 *Phase: 02-sidebar-navigation*
-*Completed: 2026-04-21 (partial — Task 2 checkpoint pending)*
+*Completed: 2026-04-21*

@@ -154,7 +154,7 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 **Milestone Goal:** Mettre l'interface aux normes UX pour ne pas perdre les utilisateurs non-techniques — sidebar classique, typographie lisible, feedback clair, jargon elimine cote votant.
 
 - [x] **Phase 1: Typographie et Espacement** - Tokens fondation: base 16px, labels normaux, header 64px, spacing 20-24px (completed 2026-04-21)
-- [ ] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px
+- [x] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px (completed 2026-04-21)
 - [ ] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats
 - [ ] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports
 - [ ] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions
@@ -184,10 +184,10 @@ Plans:
   2. Un votant connecte ne voit que les liens pertinents (Voter, Mon compte) — pas 16 liens admin
   3. Tous les boutons et liens de la sidebar font minimum 44x44px de zone cliquable (WCAG 2.5.8)
   4. La sidebar fonctionne correctement sur ecran 1366px minimum sans chevaucher le contenu
-**Plans**: 2 plans
+**Plans**: 2 plans (complete)
 Plans:
-- [ ] 02-01-PLAN.md — CSS static 200px sidebar + HTML sidebar restructure + JS pin removal
-- [ ] 02-02-PLAN.md — E2E test update + visual verification checkpoint
+- [x] 02-01-PLAN.md — CSS static 200px sidebar + HTML sidebar restructure + JS pin removal
+- [x] 02-02-PLAN.md — E2E test update + visual verification checkpoint (visual deferred to Phase 5)
 
 ### Phase 3: Feedback et Etats Vides
 **Goal**: L'utilisateur n'est jamais face a un ecran vide ou silencieux — chaque etat (vide, chargement, zero-resultat, apres-vote) a un message explicite en francais
@@ -235,7 +235,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
-| 2. Sidebar Navigation | 1/2 | In Progress|  | - |
+| 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
 | 3. Feedback et Etats Vides | v1.9 | 0/0 | Not started | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |

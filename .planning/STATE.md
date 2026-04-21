@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
-status: in_progress
-stopped_at: "Phase 2 Plan 2 checkpoint:human-verify (Task 2)"
-last_updated: "2026-04-21T08:15:00Z"
-last_activity: 2026-04-21 -- Phase 2 Plan 2 Task 1 complete, awaiting human visual verification
+status: verifying
+stopped_at: Completed 02-sidebar-navigation/02-02-PLAN.md
+last_updated: "2026-04-21T09:05:57.016Z"
+last_activity: 2026-04-21 -- Phase 2 Plan 2 Task 1 complete, E2E test updated with voter sidebar assertions
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 25
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 40
 ---
 
 # AG-VOTE -- Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.9 Phase 2 -- Sidebar Navigation
+**Current focus:** v1.9 Phase 3 -- Feedback et Etats Vides
 
 ## Current Position
 
-Phase: 2 of 5 (Sidebar Navigation)
-Plan: 2 of 2 in current phase
-Status: Checkpoint — awaiting human visual verification (Task 2)
-Last activity: 2026-04-21 -- Phase 2 Plan 2 Task 1 complete, E2E test updated with voter sidebar assertions
+Phase: 3 of 5 (Feedback et Etats Vides)
+Plan: 0 of 2 in current phase (not started)
+Status: Ready — Phase 2 complete, awaiting Phase 3 start
+Last activity: 2026-04-21 -- Phase 2 complete, E2E sidebar test updated, visual checkpoint deferred by user
 
-Progress: [███.......] 25%
+Progress: [████......] 40%
 
 ## Accumulated Context
 
@@ -54,6 +54,8 @@ Recent decisions affecting current work:
 - [02-01]: min-height:44px (not height) for nav-group to avoid content clipping
 - [02-01]: Mon compte has no data-requires-role — all roles including voter see it, both Parametres and Mon compte point to /settings intentionally
 - [02-01]: sidebar-device-section removed, Voter moved into main nav with role filter
+- [Phase 02-sidebar-navigation]: Use a[href='/settings'][data-requires-role='admin'] in mustBeHidden to avoid hiding Mon compte which shares same href
+- [Phase 02-sidebar-navigation]: Task 2 visual checkpoint deferred — user chose Continue without validation; visual check can be done during Phase 5 Validation Gate
 
 ### Pending Todos
 
@@ -65,8 +67,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21
-Stopped at: 02-sidebar-navigation/02-02-PLAN.md Task 2 checkpoint:human-verify
+Last session: 2026-04-21T09:05:50.254Z
+Stopped at: Completed 02-sidebar-navigation/02-02-PLAN.md
 Resume file: None
 
-**Next action:** Resume after human visual verification of 200px sidebar
+**Next action:** Start Phase 3 — Feedback et Etats Vides (FEED-01 through FEED-04)
