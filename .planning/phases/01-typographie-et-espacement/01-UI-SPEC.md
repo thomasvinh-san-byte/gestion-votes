@@ -79,13 +79,13 @@ Exceptions: none.
 | Body | 16px | `--text-base` (updated) | 400 regular | 1.5 | Bricolage Grotesque |
 | Label | 16px | `--type-label-size` → `--text-base` | 600 semibold | 1.55 | Bricolage Grotesque |
 | Section heading | 24px | `--text-2xl` | 600 semibold | 1.3 | Bricolage Grotesque |
-| Page title | 30px | `--text-3xl` | 700 bold | 1.2 | Fraunces (display) |
+| Page title | 30px | `--text-3xl` | 600 semibold | 1.2 | Fraunces (display) |
 
-**Weights used (2 max):** 400 regular + 600 semibold. 700 bold is reserved for page-title only.
+**Weights used (2 max):** 400 regular + 600 semibold. No exceptions.
 
 **Header composition (TYPO-03):**
 - Height: 64px (token `--header-height: 64px`)
-- Content: breadcrumb (--text-sm = 13px, weight 400, color `--color-text-muted`) + page title (--text-3xl, Fraunces, weight 700)
+- Content: breadcrumb (--text-sm = 13px, weight 400, color `--color-text-muted`) + page title (--text-3xl, Fraunces, weight 600 semibold)
 - Removed: subtitle text, decorative bottom bar
 - Action buttons: moved to toolbar below header, not inside header
 
