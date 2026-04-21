@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
 status: executing
-stopped_at: Completed 04-clarte-et-jargon/04-02-PLAN.md
-last_updated: "2026-04-21T10:50:00Z"
-last_activity: 2026-04-21 -- Tooltips techniques + descriptions export ajoutees
+stopped_at: Checkpoint 05-01 Task 2 — awaiting human visual verification
+last_updated: "2026-04-21T11:00:00Z"
+last_activity: 2026-04-21 -- NAV-04 verified, PHP syntax clean, pre-existing test failures confirmed
 progress:
   total_phases: 5
   completed_phases: 4
