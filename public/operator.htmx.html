@@ -599,7 +599,7 @@
               <div class="tab-section-separator"></div>
               <div class="tab-toolbar">
                 <div class="flex gap-2 items-center">
-                  <h3 class="h3-compact"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-share-2"></use></svg> Procurations</h3>
+                  <h3 class="h3-compact"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-share-2"></use></svg> <ag-tooltip text="Délégation de vote : un membre absent autorise un autre à voter en son nom" position="top">Procurations</ag-tooltip></h3>
                   <button class="btn btn-sm btn-primary" id="btnAddProxy"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg> Nouvelle procuration</button>
                   <button class="btn btn-sm btn-secondary" id="btnImportProxiesCSV"><svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg> Importer CSV</button>
                 </div>
@@ -1034,7 +1034,7 @@
                   <div class="flex items-center gap-3">
                     <svg class="icon icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg>
                     <div>
-                      <div class="text-sm font-semibold" id="quorumStatusLabel">Quorum</div>
+                      <div class="text-sm font-semibold" id="quorumStatusLabel"><ag-tooltip text="Nombre minimum de participants requis pour valider le scrutin" position="top">Quorum</ag-tooltip></div>
                       <div class="text-xs text-muted" id="quorumStatusDetail"></div>
                     </div>
                     <span class="badge ml-auto" id="quorumStatusBadge">—</span>
