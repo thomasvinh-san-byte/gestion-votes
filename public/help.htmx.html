@@ -247,7 +247,7 @@
               <svg class="icon faq-chevron" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
             </div>
             <div class="faq-answer">
-              Oui. Les donn&eacute;es sensibles sont chiffr&eacute;es (AES-256) et stock&eacute;es dans une base PostgreSQL h&eacute;berg&eacute;e localement &mdash; aucune donn&eacute;e ne transite vers un service cloud. Le journal d'audit &agrave; cha&icirc;nage SHA256 est infalsifiable.
+              Oui. Les donn&eacute;es sensibles sont chiffr&eacute;es et stock&eacute;es dans une base de donn&eacute;es h&eacute;berg&eacute;e localement &mdash; aucune donn&eacute;e ne transite vers un service cloud. Le journal d'audit est s&eacute;curis&eacute; et infalsifiable&nbsp;: chaque &eacute;v&eacute;nement est li&eacute; &agrave; une empreinte num&eacute;rique de l'&eacute;v&eacute;nement pr&eacute;c&eacute;dent, rendant toute falsification d&eacute;tectable.
             </div>
           </div>
         </div>
@@ -336,10 +336,10 @@
             </div>
             <div class="faq-answer">
               <ol>
-                <li>L'op&eacute;rateur g&eacute;n&egrave;re des tokens de vote (un par votant)</li>
+                <li>L'op&eacute;rateur g&eacute;n&egrave;re des codes de vote &agrave; usage unique (un par votant)</li>
                 <li>Chaque votant re&ccedil;oit un lien unique (QR code ou URL)</li>
                 <li>Le votant acc&egrave;de &agrave; la page de vote, choisit son vote et confirme</li>
-                <li>Le token est consomm&eacute; (anti-rejeu) &mdash; impossible de voter deux fois</li>
+                <li>Le code est utilis&eacute; une seule fois &mdash; impossible de voter deux fois</li>
                 <li>Le bulletin est enregistr&eacute; avec le poids du votant</li>
               </ol>
             </div>
@@ -393,7 +393,7 @@
               <svg class="icon faq-chevron" aria-hidden="true"><use href="/assets/icons.svg#icon-chevron-right"></use></svg>
             </div>
             <div class="faq-answer">
-              Non. Une fois le vote confirm&eacute;, le token est consomm&eacute; et le bulletin est d&eacute;finitif. Cela garantit l'anti-rejeu et l'int&eacute;grit&eacute;. En cas d'erreur, l'op&eacute;rateur peut enregistrer une correction manuelle avec justification.
+              Non. Une fois le vote confirm&eacute;, le code est utilis&eacute; et le bulletin est d&eacute;finitif. Cela garantit qu'il est impossible de voter deux fois et pr&eacute;serve l'int&eacute;grit&eacute; du scrutin. En cas d'erreur, l'op&eacute;rateur peut enregistrer une correction manuelle avec justification.
             </div>
           </div>
         </div>
