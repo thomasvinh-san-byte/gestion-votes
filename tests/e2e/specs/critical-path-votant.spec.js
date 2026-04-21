@@ -80,13 +80,16 @@ test.describe('E2E-04 Votant critical path', () => {
     // Step 4: Items that MUST be hidden for a voter (display:none via auth-ui.js _hide)
     // These items have data-requires-role values that do not include 'voter' or any
     // meeting role the voter holds, so filterSidebar() sets display:none on them.
+    // Note: use [data-requires-role="admin"] for the "Parametres" /settings entry so we
+    // do not accidentally hide the "Mon compte" /settings entry (no role restriction).
     const mustBeHidden = [
       'a[href="/users"]',
       'a[href="/admin"]',
-      'a[href="/settings"]',
+      'a[href="/settings"][data-requires-role="admin"]',  // admin "Parametres", NOT "Mon compte"
       'a[href="/members"]',
       'a[href="/operator"]',
       'a[href="/hub"]',
+      'a[href="/wizard"]',
     ];
     for (const selector of mustBeHidden) {
       const el = sidebar.locator(selector);
@@ -97,13 +100,27 @@ test.describe('E2E-04 Votant critical path', () => {
     // Step 5: Items that MUST be visible for a voter
     // /help has no data-requires-role (all roles see it — filterSidebar skips ungated items)
     // Brand link (href="/") also has no data-requires-role
+    // /vote has data-requires-role="admin,operator,president,voter" — voter is included
+    // /dashboard has no data-requires-role — visible to all
     const mustBeVisible = [
-      'a[href="/"]',       // brand link — all roles
-      'a[href="/help"]',   // Guide & FAQ — all roles
+      'a[href="/"]',          // brand link — all roles
+      'a[href="/help"]',      // Guide & FAQ — all roles
+      'a[href="/vote"]',      // Voter — voter role included in data-requires-role
+      'a[href="/dashboard"]', // Tableau de bord — no role restriction
     ];
     for (const selector of mustBeVisible) {
       await expect(sidebar.locator(selector).first()).toBeVisible({ timeout: 2000 });
     }
+
+    // "Mon compte" entry (no role restriction) must be visible for voter
+    // Uses text selector to distinguish from admin "Parametres" (same href="/settings")
+    const monCompte = sidebar.locator('a[href="/settings"]', { hasText: 'Mon compte' });
+    await expect(monCompte).toBeVisible({ timeout: 2000 });
+
+    // NAV-01: Sidebar must be 200px wide (static, no hover needed)
+    const sidebarBox = await sidebar.boundingBox();
+    expect(sidebarBox).not.toBeNull();
+    expect(sidebarBox.width).toBe(200);
   });
 
 });
