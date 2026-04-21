@@ -16,10 +16,10 @@ Requirements pour le milestone UX Standards & Retention. Chaque requirement est 
 
 ### Typographie & Spacing
 
-- [ ] **TYPO-01**: Taille de police de base passe de 14px a 16px sur desktop et mobile
-- [ ] **TYPO-02**: Labels de formulaire en casse normale (plus d'UPPERCASE), couleur lisible (plus de muted)
+- [x] **TYPO-01**: Taille de police de base passe de 14px a 16px sur desktop et mobile
+- [x] **TYPO-02**: Labels de formulaire en casse normale (plus d'UPPERCASE), couleur lisible (plus de muted)
 - [ ] **TYPO-03**: Header passe de 56px a 64px, contenu aere (breadcrumb + titre sans sous-titre ni barre deco)
-- [ ] **TYPO-04**: Espacement entre elements de formulaire et sections passe de 14px a 20-24px
+- [x] **TYPO-04**: Espacement entre elements de formulaire et sections passe de 14px a 20-24px
 
 ### Feedback & Etats
 
@@ -71,10 +71,10 @@ Deferred to future release.
 | NAV-02 | Phase 2 | Pending |
 | NAV-03 | Phase 2 | Pending |
 | NAV-04 | Phase 5 | Pending |
-| TYPO-01 | Phase 1 | Pending |
-| TYPO-02 | Phase 1 | Pending |
+| TYPO-01 | Phase 1 | Complete |
+| TYPO-02 | Phase 1 | Complete |
 | TYPO-03 | Phase 1 | Pending |
-| TYPO-04 | Phase 1 | Pending |
+| TYPO-04 | Phase 1 | Complete |
 | FEED-01 | Phase 3 | Pending |
 | FEED-02 | Phase 3 | Pending |
 | FEED-03 | Phase 3 | Pending |

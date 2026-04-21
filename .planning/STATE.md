@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-21T11:00:00.000Z"
-last_activity: 2026-04-21 -- Roadmap created, 5 phases, 16 requirements mapped
+status: in_progress
+stopped_at: "Completed 01-01-PLAN.md"
+last_updated: "2026-04-21T06:57:19Z"
+last_activity: 2026-04-21 -- Completed plan 01-01 typography tokens
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 16
+  completed_plans: 1
+  percent: 6
 ---
 
 # AG-VOTE -- Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 1 of 5 (Typographie et Espacement)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-21 -- Roadmap created
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-04-21 -- Completed plan 01-01 typography tokens
 
-Progress: [..........] 0%
+Progress: [.........] 6%
 
 ## Accumulated Context
 
@@ -45,6 +45,9 @@ Recent decisions affecting current work:
 - [v1.9 scope]: Pattern "tapez VALIDER" remplace par confirmation simple
 - [v1.9 roadmap]: Typography tokens in Phase 1 before page-level changes (dependency)
 - [v1.9 roadmap]: NAV-04 (accueil) already done -- Phase 5 verification only
+- [01-01]: --text-base set to 1rem (not via --text-md alias) — keeps semantic distinction, fusion deferred
+- [01-01]: Mobile override also 1rem — removes 15px intermediate step for 55+ users
+- [01-01]: --space-field delegates via --form-gap (indirection allows per-context overrides)
 
 ### Pending Todos
 
