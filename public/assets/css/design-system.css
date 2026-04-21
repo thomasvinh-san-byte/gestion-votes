@@ -485,7 +485,7 @@ table {
      SEMANTIC — Layout
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --header-height: 56px;
+  --header-height: 64px;
   --sidebar-width: 58px;
   --sidebar-rail: 58px;
   --sidebar-expanded: 252px;
@@ -909,7 +909,7 @@ h4, .h4 {
 
 /* ── Header — glassmorphism ── */
 .app-header {
-  height: 56px;
+  height: var(--header-height);
   background: var(--color-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -3339,7 +3339,7 @@ textarea:focus-visible,
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0;
-    --header-height: 56px;
+    --header-height: 64px;
   }
 
   .app-shell {
