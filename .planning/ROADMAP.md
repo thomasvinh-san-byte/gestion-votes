@@ -155,7 +155,7 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 
 - [x] **Phase 1: Typographie et Espacement** - Tokens fondation: base 16px, labels normaux, header 64px, spacing 20-24px (completed 2026-04-21)
 - [x] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px (completed 2026-04-21)
-- [ ] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats
+- [x] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats (completed 2026-04-21)
 - [ ] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports
 - [ ] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions
 
@@ -233,6 +233,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|-----------|----------------|--------|-----------|
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
-| 3. Feedback et Etats Vides | v1.9 | 1/2 | In progress | - |
+| 3. Feedback et Etats Vides | 2/2 | Complete   | 2026-04-21 | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |
