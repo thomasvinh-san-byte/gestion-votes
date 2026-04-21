@@ -225,7 +225,9 @@ Plans:
   1. La page d'accueil affiche une carte centree avec logo AG-VOTE + formulaire de connexion (NAV-04 — verification de l'existant)
   2. L'ensemble des tests E2E existants passent sans regression sur les modifications des phases 1-4
   3. Les pages cles (login, dashboard, meetings, vote) sont visuellement coherentes apres les changements typographiques et de sidebar
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 05-01-PLAN.md — Verify NAV-04 + PHP syntax/unit tests + visual coherence checkpoint
 
 ## Progress
 
@@ -238,4 +240,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
 | 3. Feedback et Etats Vides | 2/2 | Complete   | 2026-04-21 | - |
 | 4. Clarte et Jargon | 2/2 | Complete   | 2026-04-21 | - |
-| 5. Validation Gate | v1.9 | 0/0 | Not started | - |
+| 5. Validation Gate | v1.9 | 0/1 | Not started | - |
