@@ -1,8 +1,8 @@
 /**
- * shell.js - Application shell with sidebar pin/expand, drawer system, and mobile navigation.
+ * shell.js - Application shell with sidebar, drawer system, and mobile navigation.
  *
  * Provides:
- * - Sidebar rail/expand (58px→252px on hover, pin to persist)
+ * - Sidebar always-open (200px static)
  * - Sidebar scroll fade indicators
  * - Side drawer system with built-in kinds (context, readiness, infos, anomalies)
  * - Custom drawer registration for page-specific content
@@ -17,50 +17,10 @@
   'use strict';
 
   // ==========================================================================
-  // Sidebar Pin & Scroll Fade
+  // Sidebar Scroll Fade
   // ==========================================================================
 
   const sidebar = document.querySelector('.app-sidebar');
-  const PIN_KEY = 'ag-vote-sidebar-pinned';
-
-  /**
-   * Toggle sidebar pinned state.
-   */
-  function togglePin() {
-    if (!sidebar) return;
-    sidebar.classList.toggle('pinned');
-    const pinned = sidebar.classList.contains('pinned');
-    localStorage.setItem(PIN_KEY, pinned ? '1' : '0');
-    // Update main content padding when pinned
-    const main = document.querySelector('.app-main');
-    if (main) {
-      main.style.paddingLeft = pinned
-        ? 'calc(var(--sidebar-expanded) + 22px)'
-        : '';
-    }
-  }
-
-  // Restore pin state from localStorage
-  if (sidebar && localStorage.getItem(PIN_KEY) === '1') {
-    sidebar.classList.add('pinned');
-    const main = document.querySelector('.app-main');
-    if (main) {
-      main.style.paddingLeft = 'calc(var(--sidebar-expanded) + 22px)';
-    }
-  }
-
-  // Bind pin button (may be loaded dynamically via sidebar partial)
-  function bindPinButton() {
-    const btn = document.getElementById('sidebarPin');
-    if (btn && !btn.dataset.pinBound) {
-      btn.dataset.pinBound = 'true';
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        togglePin();
-      });
-    }
-  }
-  bindPinButton();
 
   /**
    * Update scroll fade indicators on sidebar-fade container.
@@ -199,8 +159,6 @@
   updateSidebarTop();
   bindNavGroupToggle();
   restoreNavGroupState();
-
-  window.SidebarPin = { toggle: togglePin };
 
   // ==========================================================================
   // Drawer System
