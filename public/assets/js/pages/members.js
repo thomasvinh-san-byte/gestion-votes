@@ -552,7 +552,10 @@
           '</div>' +
           '</ag-empty-state>';
       } else if (isFiltered) {
-        membersList.innerHTML = '<ag-empty-state icon="members" title="Aucun r\u00e9sultat" description="Essayez un autre terme de recherche."></ag-empty-state>';
+        membersList.innerHTML = '<ag-empty-state icon="members" title="Aucun r\u00e9sultat" ' +
+          'description="Aucun membre ne correspond \u00e0 cette recherche.">' +
+          '<button slot="action" class="btn btn-secondary btn-sm" data-action="reset-filters">' +
+          'R\u00e9initialiser les filtres</button></ag-empty-state>';
       } else {
         membersList.innerHTML = '<ag-empty-state icon="members" title="Aucun membre" description="Importez une liste CSV ou ajoutez des membres un par un." action-label="Importer des membres" action-href="#importMembers"></ag-empty-state>';
       }
@@ -841,6 +844,21 @@
   // ==========================================
   // EVENT LISTENERS
   // ==========================================
+
+  // Reset filters delegation (from empty state reset button)
+  if (membersList) {
+    membersList.addEventListener('click', e => {
+      const resetBtn = e.target.closest('[data-action="reset-filters"]');
+      if (!resetBtn) return;
+      searchInput.value = '';
+      currentFilter = 'all';
+      currentGroupFilter = null;
+      filterChips.forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+      currentPage = 1;
+      fetchMembers(1);
+      updateFiltersHint();
+    });
+  }
 
   // Filter chips (status)
   filterChips.forEach(chip => {

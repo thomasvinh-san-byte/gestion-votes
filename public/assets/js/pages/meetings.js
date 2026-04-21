@@ -313,13 +313,34 @@
       return '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance termin\u00e9e" description="Les s\u00e9ances termin\u00e9es appara\u00eetront ici."></ag-empty-state>';
     }
     // Filtered 'all' with search but no results
-    return '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" description="Essayez un autre terme de recherche."></ag-empty-state>';
+    return '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" ' +
+      'description="Aucune s\u00e9ance ne correspond aux filtres s\u00e9lectionn\u00e9s.">' +
+      '<button slot="action" class="btn btn-secondary btn-sm" data-action="reset-filters">' +
+      'R\u00e9initialiser les filtres</button></ag-empty-state>';
   }
 
   // === POPOVER MENUS ===
 
   function initPopoverMenus() {
     if (!meetingsList) return;
+
+    // Reset filters delegation (from empty state reset button)
+    meetingsList.addEventListener('click', function(e) {
+      var resetBtn = e.target.closest('[data-action="reset-filters"]');
+      if (resetBtn) {
+        var searchInput = document.getElementById('meetingsSearch');
+        if (searchInput) { searchInput.value = ''; searchText = ''; }
+        currentFilter = 'all';
+        var pills = document.querySelectorAll('.filter-pill');
+        pills.forEach(function(p) {
+          p.classList.toggle('active', (p.getAttribute('data-filter') || 'all') === 'all');
+          p.setAttribute('aria-selected', (p.getAttribute('data-filter') || 'all') === 'all' ? 'true' : 'false');
+        });
+        currentPage = 1;
+        renderCurrentView();
+        return;
+      }
+    });
 
     meetingsList.addEventListener('click', function(e) {
       var btn = e.target.closest('.session-menu-btn');

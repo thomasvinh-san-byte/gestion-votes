@@ -149,11 +149,12 @@
     if (!_tableBody) return;
 
     if (!events || events.length === 0) {
-      _tableBody.innerHTML = '<tr><td colspan="6">' + Shared.emptyState({
-        icon: 'search',
-        title: 'Aucun événement',
-        description: 'Aucun événement ne correspond aux filtres sélectionnés.'
-      }) + '</td></tr>';
+      _tableBody.innerHTML = '<tr><td colspan="6">' +
+        '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" ' +
+        'description="Aucun \u00e9v\u00e9nement ne correspond aux filtres s\u00e9lectionn\u00e9s.">' +
+        '<button slot="action" class="btn btn-secondary btn-sm" data-action="reset-filters">' +
+        'R\u00e9initialiser les filtres</button></ag-empty-state>' +
+        '</td></tr>';
       return;
     }
 
@@ -235,11 +236,10 @@
     if (!_timeline) return;
 
     if (!events || events.length === 0) {
-      _timeline.innerHTML = Shared.emptyState({
-        icon: 'activity',
-        title: 'Aucun événement',
-        description: 'Aucun événement ne correspond aux filtres sélectionnés.'
-      });
+      _timeline.innerHTML = '<ag-empty-state icon="generic" title="Aucun r\u00e9sultat" ' +
+        'description="Aucun \u00e9v\u00e9nement ne correspond aux filtres s\u00e9lectionn\u00e9s.">' +
+        '<button slot="action" class="btn btn-secondary btn-sm" data-action="reset-filters">' +
+        'R\u00e9initialiser les filtres</button></ag-empty-state>';
       return;
     }
 
@@ -702,6 +702,27 @@
         closeDetailModal();
       }
     });
+
+    // Reset filters delegation (from empty state reset button in table and timeline views)
+    var auditContainer = document.getElementById('auditTableBody') && document.getElementById('auditTableBody').closest('table') ||
+                         document.getElementById('auditTimeline');
+    var auditSection = document.querySelector('.audit-content') || document.getElementById('main-content');
+    if (auditSection) {
+      auditSection.addEventListener('click', function(e) {
+        var resetBtn = e.target.closest('[data-action="reset-filters"]');
+        if (!resetBtn) return;
+        // Reset filter tabs
+        _activeFilter = '';
+        var filterTabs = document.querySelectorAll('#auditTypeFilter .filter-tab');
+        for (var i = 0; i < filterTabs.length; i++) {
+          filterTabs[i].classList.toggle('active', !filterTabs[i].dataset.type);
+        }
+        // Reset search
+        _searchQuery = '';
+        if (_auditSearch) _auditSearch.value = '';
+        applyFilters();
+      });
+    }
   }
 
   /* ── Bootstrap ── */
