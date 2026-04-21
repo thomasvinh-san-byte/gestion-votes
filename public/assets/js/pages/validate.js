@@ -150,32 +150,17 @@
   const btnModalConfirm = document.getElementById('btnModalConfirm');
   const btnModalCancel = document.getElementById('btnModalCancel');
 
-  // P5-1: Enable confirm button only when checkbox is checked AND "VALIDER" typed
-  const confirmText = document.getElementById('confirmText');
-
   function updateModalConfirmState() {
     if (!btnModalConfirm) return;
-    const checkOk = confirmCheckbox && confirmCheckbox.checked;
-    const textOk = confirmText && confirmText.value.trim().toUpperCase() === 'VALIDER';
-    btnModalConfirm.disabled = !(checkOk && textOk);
+    btnModalConfirm.disabled = !(confirmCheckbox && confirmCheckbox.checked);
   }
 
   if (confirmCheckbox) confirmCheckbox.addEventListener('change', updateModalConfirmState);
-  if (confirmText) {
-    confirmText.addEventListener('input', updateModalConfirmState);
-    confirmText.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !btnModalConfirm.disabled) {
-        e.preventDefault();
-        btnModalConfirm.click();
-      }
-    });
-  }
 
   // Close modal helper
   function closeValidateModal() {
     if (validateModal) validateModal.hidden = true;
     if (confirmCheckbox) confirmCheckbox.checked = false;
-    if (confirmText) confirmText.value = '';
     if (btnModalConfirm) btnModalConfirm.disabled = true;
   }
 
