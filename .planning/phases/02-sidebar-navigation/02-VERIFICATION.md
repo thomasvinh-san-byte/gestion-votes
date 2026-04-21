@@ -1,12 +1,10 @@
 ---
 phase: 02-sidebar-navigation
 verified: 2026-04-21T10:00:00Z
-status: gaps_found
-score: 6/7 must-haves verified
-gaps:
-  - truth: "Le mecanisme pin/unpin est completement supprime (CSS, JS, HTML)"
-    status: partial
-    reason: "bindPinButton() est supprime en tant que fonction mais un appel a bindPinButton() persiste ligne 115 de shell.js dans le callback MutationObserver. Ceci genere un ReferenceError a l'execution quand le partial sidebar est charge dynamiquement."
+status: passed
+score: 7/7 must-haves verified
+gaps: []
+# Gap resolved: bindPinButton() call removed from shell.js MutationObserver (commit f69c30d9)
     artifacts:
       - path: "public/assets/js/core/shell.js"
         issue: "Line 115: bindPinButton() appele dans le MutationObserver callback mais la fonction n'existe plus — ReferenceError a l'execution"
