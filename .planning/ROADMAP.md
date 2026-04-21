@@ -186,8 +186,8 @@ Plans:
   4. La sidebar fonctionne correctement sur ecran 1366px minimum sans chevaucher le contenu
 **Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
-- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
+- [ ] 02-01-PLAN.md — CSS static 200px sidebar + HTML sidebar restructure + JS pin removal
+- [ ] 02-02-PLAN.md — E2E test update + visual verification checkpoint
 
 ### Phase 3: Feedback et Etats Vides
 **Goal**: L'utilisateur n'est jamais face a un ecran vide ou silencieux — chaque etat (vide, chargement, zero-resultat, apres-vote) a un message explicite en francais
@@ -235,7 +235,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
-| 2. Sidebar Navigation | v1.9 | 0/0 | Not started | - |
+| 2. Sidebar Navigation | v1.9 | 0/2 | In progress | - |
 | 3. Feedback et Etats Vides | v1.9 | 0/0 | Not started | - |
 | 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |
