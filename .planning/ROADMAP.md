@@ -170,10 +170,10 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
   2. Les labels de formulaire s'affichent en casse normale avec couleur lisible (plus d'UPPERCASE muted)
   3. Le header fait 64px avec breadcrumb + titre uniquement (plus de sous-titre ni barre decorative)
   4. L'espacement entre champs de formulaire et sections est de 20-24px (plus de 14px comprime)
-**Plans**: 2 plans
+**Plans**: 2 plans (complete)
 Plans:
-- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
-- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
+- [x] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
+- [x] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
 
 ### Phase 2: Sidebar Navigation
 **Goal**: La navigation laterale est toujours visible et utilisable sans effort — chaque utilisateur voit uniquement les liens pertinents pour son role
@@ -225,10 +225,7 @@ Plans:
   1. La page d'accueil affiche une carte centree avec logo AG-VOTE + formulaire de connexion (NAV-04 — verification de l'existant)
   2. L'ensemble des tests E2E existants passent sans regression sur les modifications des phases 1-4
   3. Les pages cles (login, dashboard, meetings, vote) sont visuellement coherentes apres les changements typographiques et de sidebar
-**Plans**: 2 plans
-Plans:
-- [ ] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
-- [ ] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
+**Plans**: TBD
 
 ## Progress
 
