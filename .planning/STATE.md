@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
-status: executing
-stopped_at: Checkpoint 05-01 Task 2 — awaiting human visual verification
-last_updated: "2026-04-21T11:00:00Z"
-last_activity: 2026-04-21 -- NAV-04 verified, PHP syntax clean, pre-existing test failures confirmed
+status: complete
+stopped_at: Completed 05-validation-gate/05-01-PLAN.md — milestone v1.9 done
+last_updated: "2026-04-21T10:39:06Z"
+last_activity: 2026-04-21 -- v1.9 complete, all 16 requirements verified, human visual approval received
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: 4 of 5 (Clarte et Jargon) -- COMPLETE
-Plan: 2 of 2 in current phase (plan 02 complete)
-Status: Phase 4 complete — 8 plans done across phases 1-4
-Last activity: 2026-04-21 -- Tooltips techniques + descriptions export ajoutees
+Phase: 5 of 5 (Validation Gate) -- COMPLETE
+Plan: 1 of 1 in current phase (plan 01 complete)
+Status: Milestone v1.9 complete — 9 plans done across phases 1-5, all 16 requirements satisfied
+Last activity: 2026-04-21 -- NAV-04 verified, visual coherence approved, milestone v1.9 done
 
 Progress: [██████████] 100%
 
@@ -67,6 +67,8 @@ Recent decisions affecting current work:
 - [04-02]: export-btn-wrap--full replaces exports-zip-btn grid-column span — wrapper owns grid placement
 - [04-02]: Procurations tooltip on section h3 heading — button at line 1449 already had ag-tooltip
 - [04-02]: trust.htmx.html SHA-256 ag-popover unchanged — only export descriptions added
+- [05-01]: Pre-existing test failures (Errors: 61, Failures: 20) not caused by v1.9 — root cause is missing Redis phpredis extension in test environment
+- [05-01]: Visual coherence approved by human — all key pages confirmed correct after phases 1-4 changes
 
 ### Pending Todos
 
@@ -78,8 +80,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T10:50:00Z
-Stopped at: Completed 04-clarte-et-jargon/04-02-PLAN.md
+Last session: 2026-04-21T10:39:06Z
+Stopped at: Completed 05-validation-gate/05-01-PLAN.md — milestone v1.9 done
 Resume file: None
 
-**Next action:** Phase 4 complete — continue to Phase 5 Validation Gate
+**Next action:** Milestone v1.9 complete — ready for archive and tag

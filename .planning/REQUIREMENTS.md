@@ -12,7 +12,7 @@ Requirements pour le milestone UX Standards & Retention. Chaque requirement est 
 - [x] **NAV-01**: Sidebar toujours ouverte ~200px avec labels visibles, plus de hover-to-expand ni rail d'icones
 - [x] **NAV-02**: Items de navigation filtres par role — un votant ne voit que "Voter", pas 16 liens
 - [x] **NAV-03**: Tous les boutons et liens de navigation font minimum 44x44px (WCAG 2.5.8)
-- [ ] **NAV-04**: Page d'accueil = carte centree avec logo AG-VOTE + formulaire de connexion
+- [x] **NAV-04**: Page d'accueil = carte centree avec logo AG-VOTE + formulaire de connexion
 
 ### Typographie & Spacing
 
@@ -70,7 +70,7 @@ Deferred to future release.
 | NAV-01 | Phase 2 | Complete |
 | NAV-02 | Phase 2 | Complete |
 | NAV-03 | Phase 2 | Complete |
-| NAV-04 | Phase 5 | Pending |
+| NAV-04 | Phase 5 | Complete |
 | TYPO-01 | Phase 1 | Complete |
 | TYPO-02 | Phase 1 | Complete |
 | TYPO-03 | Phase 1 | Complete |

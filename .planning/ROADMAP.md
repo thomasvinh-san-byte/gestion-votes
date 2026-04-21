@@ -11,7 +11,7 @@
 - ✅ **v1.6 Reparation UI et Polish Fonctionnel** - Phases 1-4 (shipped 2026-04-20) — see `.planning/milestones/v1.6-ROADMAP.md`
 - ✅ **v1.7 Audit Idempotence** - Phases 1-3 (shipped 2026-04-20) — see `.planning/milestones/v1.7-ROADMAP.md`
 - ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
-- 🚧 **v1.9 UX Standards & Retention** - Phases 1-5 (in progress)
+- ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21)
 
 ## Phases
 
@@ -157,7 +157,7 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 - [x] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px (completed 2026-04-21)
 - [x] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats (completed 2026-04-21)
 - [x] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports (completed 2026-04-21)
-- [ ] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions
+- [x] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions (completed 2026-04-21)
 
 ## Phase Details
 
@@ -240,4 +240,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
 | 3. Feedback et Etats Vides | 2/2 | Complete   | 2026-04-21 | - |
 | 4. Clarte et Jargon | 2/2 | Complete   | 2026-04-21 | - |
-| 5. Validation Gate | v1.9 | 0/1 | Not started | - |
+| 5. Validation Gate | v1.9 | 1/1 | Complete | 2026-04-21 |
