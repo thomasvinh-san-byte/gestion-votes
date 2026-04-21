@@ -237,5 +237,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
 | 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
 | 3. Feedback et Etats Vides | 2/2 | Complete   | 2026-04-21 | - |
-| 4. Clarte et Jargon | v1.9 | 0/2 | Not started | - |
+| 4. Clarte et Jargon | 1/2 | In Progress|  | - |
 | 5. Validation Gate | v1.9 | 0/0 | Not started | - |

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
 status: executing
-stopped_at: Completed 03-feedback-et-etats-vides/03-02-PLAN.md
-last_updated: "2026-04-21T09:55:48.617Z"
-last_activity: 2026-04-21 -- Vote confirmation persistante + loading labels sur 5 pages
+stopped_at: Completed 04-clarte-et-jargon/04-01-PLAN.md
+last_updated: "2026-04-21T10:19:00Z"
+last_activity: 2026-04-21 -- Jargon voter elimine + modal confirmation checkbox-only
 progress:
   total_phases: 5
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: 3 of 5 (Feedback et Etats Vides) -- COMPLETE
-Plan: 2 of 2 in current phase (both plans complete)
-Status: Phase 3 complete — all 6 plans done across phases 1-3
-Last activity: 2026-04-21 -- ag-empty-state standardise + bouton reinitialiser filtres
+Phase: 4 of 5 (Clarte et Jargon) -- IN PROGRESS
+Plan: 1 of 2 in current phase (plan 01 complete)
+Status: Phase 4 plan 01 complete — 7 plans done across phases 1-4
+Last activity: 2026-04-21 -- Jargon voter elimine + modal confirmation checkbox-only
 
 Progress: [██████████] 100%
 
@@ -60,6 +60,9 @@ Recent decisions affecting current work:
 - [03-01]: loading-label is a block span stacked above skeleton rows — works both inside and outside htmx-indicator
 - [03-01]: audit.htmx.html spinner aria-label moved to visible span, spinner gets aria-hidden to avoid double announcement
 - [Phase 03-feedback-et-etats-vides]: ag-empty-state slotted action for multi-CTA empty states; event delegation via data-action=reset-filters for reset buttons
+- [04-01]: SHA256 in admin-guarded security FAQ kept intact — only voter-visible unguarded sections simplified
+- [04-01]: empreinte numerique introduced in voter-visible general FAQ to satisfy CLAR-01 artifact requirement
+- [04-01]: confirmText JS fully removed (not kept as dead code) — eliminates TypeError risk on modal open
 
 ### Pending Todos
 
@@ -71,8 +74,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T09:55:41.708Z
-Stopped at: Completed 03-feedback-et-etats-vides/03-02-PLAN.md
+Last session: 2026-04-21T10:19:00Z
+Stopped at: Completed 04-clarte-et-jargon/04-01-PLAN.md
 Resume file: None
 
-**Next action:** Phase 3 complete — advance to Phase 4
+**Next action:** Phase 4 plan 01 complete — continue to Phase 4 plan 02
