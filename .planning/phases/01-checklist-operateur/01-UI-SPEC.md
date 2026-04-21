@@ -55,16 +55,18 @@ Exceptions:
 
 All sizes map to existing `--text-*` scale from design-system.css.
 
+Two font weights only: 500 (`--font-medium`) for labels, 600 (`--font-semibold`) for titles, alert text, and values. Values use `--font-mono` typeface which provides sufficient visual differentiation from labels without requiring a third weight.
+
 | Role              | CSS Token      | Size | Weight                      | Line Height |
 |-------------------|----------------|------|-----------------------------|-------------|
 | Panel title       | `--text-xs`    | 12px | 600 (`--font-semibold`)     | 1.2         |
 | Checklist label   | `--text-sm`    | 13px | 500 (`--font-medium`)       | 1.4         |
-| Checklist value   | `--text-sm`    | 13px | 700 (`--font-bold`) mono    | 1.4         |
+| Checklist value   | `--text-sm`    | 13px | 600 (`--font-semibold`) mono | 1.4        |
 | Alert banner text | `--text-sm`    | 13px | 600 (`--font-semibold`)     | 1.4         |
 
 Typography rationale (from CONTEXT.md decisions):
 - Checklist rows are compact: icon + label + value on one line — 13px is the established operator chrome size.
-- Values (e.g. `42/60`) use `--font-mono` + weight 700 for scannability at a glance, consistent with `.op-kpi-value` pattern.
+- Values (e.g. `42/60`) use `--font-mono` + weight 600; the monospace typeface alone differentiates values from labels visually, consistent with `.op-kpi-value` pattern.
 - Panel title follows `.op-sidebar-title` / `.hub-checklist-title` uppercase pattern at 12px 600.
 
 ---
@@ -72,6 +74,8 @@ Typography rationale (from CONTEXT.md decisions):
 ## Color
 
 All colors use existing design-system.css semantic tokens. No new color values.
+
+Primary focal point: `.op-checklist-row--alert` red background and icon pulse when any indicator is in alert state; the panel is otherwise visually recessive (muted surface, no border emphasis).
 
 | Role             | CSS Token                 | Approx Value                | Usage                                                      |
 |------------------|---------------------------|-----------------------------|------------------------------------------------------------|
@@ -114,7 +118,7 @@ New components introduced by this phase:
 - Min-height: 44px (touch target).
 - Structure: `[status-icon 16px] [label text] [value text right-aligned]`
 - Status icon: SVG from sprite, 16×16, colored via `color` property.
-- Value: `--font-mono`, weight 700, 13px, right-aligned via `margin-left: auto`.
+- Value: `--font-mono`, weight 600 (`--font-semibold`), 13px, right-aligned via `margin-left: auto`.
 
 ### 4. `.op-checklist-row--alert` — Row in alert state
 
