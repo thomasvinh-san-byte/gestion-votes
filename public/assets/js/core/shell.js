@@ -112,7 +112,6 @@
   const sidebarEl = document.querySelector('[data-include-sidebar]') || sidebar;
   if (sidebarEl) {
     var _sidebarMO = new MutationObserver(function() {
-      bindPinButton();
       bindScrollFade();
       bindThemeToggle();
       bindNavGroupToggle();
