@@ -11,7 +11,7 @@
 - ✅ **v1.6 Reparation UI et Polish Fonctionnel** - Phases 1-4 (shipped 2026-04-20) — see `.planning/milestones/v1.6-ROADMAP.md`
 - ✅ **v1.7 Audit Idempotence** - Phases 1-3 (shipped 2026-04-20) — see `.planning/milestones/v1.7-ROADMAP.md`
 - ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
-- ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21)
+- ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
 
 ## Phases
 
@@ -149,95 +149,19 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 
 </details>
 
-### v1.9 UX Standards & Retention (In Progress)
+<details>
+<summary>✅ v1.9 UX Standards & Retention (Phases 1-5) - SHIPPED 2026-04-21</summary>
 
-**Milestone Goal:** Mettre l'interface aux normes UX pour ne pas perdre les utilisateurs non-techniques — sidebar classique, typographie lisible, feedback clair, jargon elimine cote votant.
+See `.planning/milestones/v1.9-ROADMAP.md` for full details.
 
-- [x] **Phase 1: Typographie et Espacement** - Tokens fondation: base 16px, labels normaux, header 64px, spacing 20-24px (completed 2026-04-21)
-- [x] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px (completed 2026-04-21)
-- [x] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats (completed 2026-04-21)
-- [x] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports (completed 2026-04-21)
-- [x] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions (completed 2026-04-21)
+**Phases:** 5 (typography + sidebar + feedback + jargon + validation gate)
+**Plans:** 9
+**Requirements:** 16/16 satisfied
+**Shipped:**
+- Typography: base 16px, labels normal case, header 64px, spacing 20-24px
+- Sidebar: always-open 200px, pin removed, voter sees only Voter + Mon compte, 44px touch targets
+- Feedback: persistent vote confirmation with timestamp, "Chargement..." labels, ag-empty-state on all pages, filter reset
+- Clarity: voter jargon eliminated, admin tooltips, checkbox confirmation, export descriptions
+- Validation: NAV-04 verified, PHP syntax clean, visual coherence approved
 
-## Phase Details
-
-### Phase 1: Typographie et Espacement
-**Goal**: Les textes sont lisibles et l'espacement est confortable sur toutes les pages — la fondation visuelle sur laquelle les phases suivantes s'appuient
-**Depends on**: Nothing (first phase, foundation tokens)
-**Requirements**: TYPO-01, TYPO-02, TYPO-03, TYPO-04
-**Success Criteria** (what must be TRUE):
-  1. Le texte courant sur toutes les pages s'affiche a 16px minimum (plus de 14px en base)
-  2. Les labels de formulaire s'affichent en casse normale avec couleur lisible (plus d'UPPERCASE muted)
-  3. Le header fait 64px avec breadcrumb + titre uniquement (plus de sous-titre ni barre decorative)
-  4. L'espacement entre champs de formulaire et sections est de 20-24px (plus de 14px comprime)
-**Plans**: 2 plans (complete)
-Plans:
-- [x] 01-01-PLAN.md — CSS tokens: base 16px, label styling, form spacing aliases
-- [x] 01-02-PLAN.md — Header 64px + HTML template cleanup (remove page-sub and decorative bar)
-
-### Phase 2: Sidebar Navigation
-**Goal**: La navigation laterale est toujours visible et utilisable sans effort — chaque utilisateur voit uniquement les liens pertinents pour son role
-**Depends on**: Phase 1 (typography tokens affect sidebar label rendering)
-**Requirements**: NAV-01, NAV-02, NAV-03
-**Success Criteria** (what must be TRUE):
-  1. La sidebar est toujours ouverte (~200px) avec labels textuels visibles — plus de hover-to-expand ni rail d'icones
-  2. Un votant connecte ne voit que les liens pertinents (Voter, Mon compte) — pas 16 liens admin
-  3. Tous les boutons et liens de la sidebar font minimum 44x44px de zone cliquable (WCAG 2.5.8)
-  4. La sidebar fonctionne correctement sur ecran 1366px minimum sans chevaucher le contenu
-**Plans**: 2 plans (complete)
-Plans:
-- [x] 02-01-PLAN.md — CSS static 200px sidebar + HTML sidebar restructure + JS pin removal
-- [x] 02-02-PLAN.md — E2E test update + visual verification checkpoint (visual deferred to Phase 5)
-
-### Phase 3: Feedback et Etats Vides
-**Goal**: L'utilisateur n'est jamais face a un ecran vide ou silencieux — chaque etat (vide, chargement, zero-resultat, apres-vote) a un message explicite en francais
-**Depends on**: Phase 1 (typography tokens for message rendering)
-**Requirements**: FEED-01, FEED-02, FEED-03, FEED-04
-**Success Criteria** (what must be TRUE):
-  1. Chaque liste/grille vide affiche un message actionnable en francais (ex: "Creez votre premiere seance") au lieu de skeletons suspendus
-  2. Apres un vote, une confirmation persistante avec horodatage reste visible (pas un flash 3 secondes)
-  3. Les filtres et recherches sans resultats affichent "Aucun resultat" avec un lien pour reinitialiser les filtres
-  4. Les chargements affichent un indicateur en francais ("Chargement...") au lieu de skeletons silencieux
-**Plans**: 2 plans
-Plans:
-- [x] 03-01-PLAN.md — Vote confirmation persistante + horodatage + indicateurs chargement "Chargement..."
-- [x] 03-02-PLAN.md — Etats vides ag-empty-state standardises + bouton reinitialiser filtres
-
-### Phase 4: Clarte et Jargon
-**Goal**: L'interface parle la langue de l'utilisateur — zero terme technique cote votant, tooltips explicatifs cote admin, confirmations simples
-**Depends on**: Phase 1 (typography for tooltip rendering)
-**Requirements**: CLAR-01, CLAR-02, CLAR-03, CLAR-04
-**Success Criteria** (what must be TRUE):
-  1. L'interface votant n'affiche aucun terme technique visible (eIDAS, SHA-256, quorum, CNIL) — tous remplaces par des equivalents comprehensibles
-  2. Les termes techniques cote admin/operateur ont des tooltips explicatifs en francais au survol
-  3. Le pattern "tapez VALIDER" est remplace par un modal avec checkbox de confirmation + bouton Confirmer
-  4. Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier genere
-**Plans**: 2 plans
-Plans:
-- [x] 04-01-PLAN.md — Jargon votant elimine (public + help + validate confirm simplifiee)
-- [x] 04-02-PLAN.md — Tooltips admin + descriptions export sur toutes les pages
-
-### Phase 5: Validation Gate
-**Goal**: Confirmer que NAV-04 (page d'accueil) est conforme et que toutes les modifications cross-pages n'ont introduit aucune regression
-**Depends on**: Phase 4
-**Requirements**: NAV-04
-**Success Criteria** (what must be TRUE):
-  1. La page d'accueil affiche une carte centree avec logo AG-VOTE + formulaire de connexion (NAV-04 — verification de l'existant)
-  2. L'ensemble des tests E2E existants passent sans regression sur les modifications des phases 1-4
-  3. Les pages cles (login, dashboard, meetings, vote) sont visuellement coherentes apres les changements typographiques et de sidebar
-**Plans**: 1 plan
-Plans:
-- [ ] 05-01-PLAN.md — Verify NAV-04 + PHP syntax/unit tests + visual coherence checkpoint
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Typographie et Espacement | 2/2 | Complete   | 2026-04-21 | - |
-| 2. Sidebar Navigation | 2/2 | Complete   | 2026-04-21 | - |
-| 3. Feedback et Etats Vides | 2/2 | Complete   | 2026-04-21 | - |
-| 4. Clarte et Jargon | 2/2 | Complete   | 2026-04-21 | - |
-| 5. Validation Gate | v1.9 | 1/1 | Complete | 2026-04-21 |
+</details>
