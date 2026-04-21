@@ -487,8 +487,6 @@ table {
 
   --header-height: 64px;
   --sidebar-width: 200px;
-  --sidebar-rail: 58px; /* legacy — unused */
-  --sidebar-expanded: 252px; /* legacy — unused */
   --drawer-width: 400px;
   --content-max: 1440px;
   --content-narrow: 720px;
@@ -1195,7 +1193,7 @@ h4, .h4 {
 .app-main {
   flex: 1;
   padding: 16px 22px;
-  padding-left: calc(200px + 20px);
+  padding-left: calc(var(--sidebar-width) + 20px);
   overflow-y: auto;
   overflow-x: hidden;
   min-width: 0;
@@ -3286,7 +3284,6 @@ textarea:focus-visible,
     transition: left .22s ease;
     box-shadow: none;
   }
-  .app-sidebar:hover { width: 260px; box-shadow: none; }
   .app-sidebar.open {
     left: 0;
     box-shadow: 12px 0 40px rgba(0, 0, 0, .4);
