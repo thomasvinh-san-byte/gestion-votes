@@ -11,6 +11,7 @@
 - ✅ **v1.6 Reparation UI et Polish Fonctionnel** - Phases 1-4 (shipped 2026-04-20) — see `.planning/milestones/v1.6-ROADMAP.md`
 - ✅ **v1.7 Audit Idempotence** - Phases 1-3 (shipped 2026-04-20) — see `.planning/milestones/v1.7-ROADMAP.md`
 - ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
+- 🚧 **v1.9 UX Standards & Retention** - Phases 1-5 (in progress)
 
 ## Phases
 
@@ -141,56 +142,88 @@ See `.planning/milestones/v1.8-ROADMAP.md` for full details.
 **Plans:** 9
 **Requirements:** 13/13 satisfied
 **Shipped:**
-- Palette stone→slate (beige→gris neutre moderne)
-- Wizard field-input→form-input, 33 inline styles elimines, drawer CSS classes
+- Palette stone->slate (beige->gris neutre moderne)
+- Wizard field-input->form-input, 33 inline styles elimines, drawer CSS classes
 - Version v2.0 unifiee, footer accent fixe, modales standardisees
-- Hero compact, radio→select, KPI dead code supprime
+- Hero compact, radio->select, KPI dead code supprime
 
 </details>
 
+### v1.9 UX Standards & Retention (In Progress)
+
+**Milestone Goal:** Mettre l'interface aux normes UX pour ne pas perdre les utilisateurs non-techniques — sidebar classique, typographie lisible, feedback clair, jargon elimine cote votant.
+
+- [ ] **Phase 1: Typographie et Espacement** - Tokens fondation: base 16px, labels normaux, header 64px, spacing 20-24px
+- [ ] **Phase 2: Sidebar Navigation** - Sidebar toujours ouverte ~200px, items filtres par role, touch targets 44px
+- [ ] **Phase 3: Feedback et Etats Vides** - Messages etats vides, confirmation vote, indicateurs chargement, etat 0-resultats
+- [ ] **Phase 4: Clarte et Jargon** - Jargon elimine cote votant, tooltips admin, confirmation simplifiee, descriptions exports
+- [ ] **Phase 5: Validation Gate** - Verification NAV-04 (accueil) + validation cross-page zero regressions
+
+## Phase Details
+
+### Phase 1: Typographie et Espacement
+**Goal**: Les textes sont lisibles et l'espacement est confortable sur toutes les pages — la fondation visuelle sur laquelle les phases suivantes s'appuient
+**Depends on**: Nothing (first phase, foundation tokens)
+**Requirements**: TYPO-01, TYPO-02, TYPO-03, TYPO-04
+**Success Criteria** (what must be TRUE):
+  1. Le texte courant sur toutes les pages s'affiche a 16px minimum (plus de 14px en base)
+  2. Les labels de formulaire s'affichent en casse normale avec couleur lisible (plus d'UPPERCASE muted)
+  3. Le header fait 64px avec breadcrumb + titre uniquement (plus de sous-titre ni barre decorative)
+  4. L'espacement entre champs de formulaire et sections est de 20-24px (plus de 14px comprime)
+**Plans**: TBD
+
+### Phase 2: Sidebar Navigation
+**Goal**: La navigation laterale est toujours visible et utilisable sans effort — chaque utilisateur voit uniquement les liens pertinents pour son role
+**Depends on**: Phase 1 (typography tokens affect sidebar label rendering)
+**Requirements**: NAV-01, NAV-02, NAV-03
+**Success Criteria** (what must be TRUE):
+  1. La sidebar est toujours ouverte (~200px) avec labels textuels visibles — plus de hover-to-expand ni rail d'icones
+  2. Un votant connecte ne voit que les liens pertinents (Voter, Mon compte) — pas 16 liens admin
+  3. Tous les boutons et liens de la sidebar font minimum 44x44px de zone cliquable (WCAG 2.5.8)
+  4. La sidebar fonctionne correctement sur ecran 1366px minimum sans chevaucher le contenu
+**Plans**: TBD
+
+### Phase 3: Feedback et Etats Vides
+**Goal**: L'utilisateur n'est jamais face a un ecran vide ou silencieux — chaque etat (vide, chargement, zero-resultat, apres-vote) a un message explicite en francais
+**Depends on**: Phase 1 (typography tokens for message rendering)
+**Requirements**: FEED-01, FEED-02, FEED-03, FEED-04
+**Success Criteria** (what must be TRUE):
+  1. Chaque liste/grille vide affiche un message actionnable en francais (ex: "Creez votre premiere seance") au lieu de skeletons suspendus
+  2. Apres un vote, une confirmation persistante avec horodatage reste visible (pas un flash 3 secondes)
+  3. Les filtres et recherches sans resultats affichent "Aucun resultat" avec un lien pour reinitialiser les filtres
+  4. Les chargements affichent un indicateur en francais ("Chargement...") au lieu de skeletons silencieux
+**Plans**: TBD
+
+### Phase 4: Clarte et Jargon
+**Goal**: L'interface parle la langue de l'utilisateur — zero terme technique cote votant, tooltips explicatifs cote admin, confirmations simples
+**Depends on**: Phase 1 (typography for tooltip rendering)
+**Requirements**: CLAR-01, CLAR-02, CLAR-03, CLAR-04
+**Success Criteria** (what must be TRUE):
+  1. L'interface votant n'affiche aucun terme technique visible (eIDAS, SHA-256, quorum, CNIL) — tous remplaces par des equivalents comprehensibles
+  2. Les termes techniques cote admin/operateur ont des tooltips explicatifs en francais au survol
+  3. Le pattern "tapez VALIDER" est remplace par un modal avec checkbox de confirmation + bouton Confirmer
+  4. Chaque bouton d'export a une description d'une ligne expliquant le contenu du fichier genere
+**Plans**: TBD
+
+### Phase 5: Validation Gate
+**Goal**: Confirmer que NAV-04 (page d'accueil) est conforme et que toutes les modifications cross-pages n'ont introduit aucune regression
+**Depends on**: Phase 4
+**Requirements**: NAV-04
+**Success Criteria** (what must be TRUE):
+  1. La page d'accueil affiche une carte centree avec logo AG-VOTE + formulaire de connexion (NAV-04 — verification de l'existant)
+  2. L'ensemble des tests E2E existants passent sans regression sur les modifications des phases 1-4
+  3. Les pages cles (login, dashboard, meetings, vote) sont visuellement coherentes apres les changements typographiques et de sidebar
+**Plans**: TBD
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Infrastructure Redis | v1.0 | 2/2 | Complete | 2026-04-07 |
-| 2. Optimisations Memoire et Requetes | v1.0 | 2/2 | Complete | 2026-04-07 |
-| 3. Refactoring Controllers et Tests Auth | 3/3 | Complete   | 2026-04-20 | 2026-04-07 |
-| 4. Tests et Decoupage Controllers | 1/1 | Complete   | 2026-04-20 | 2026-04-07 |
-| 5. JS Audit et Wiring Repair | v1.1 | 1/1 | Complete | 2026-04-08 |
-| 6. Application Design Tokens | v1.1 | 4/4 | Complete | 2026-04-08 |
-| 7. Playwright Coverage | v1.1 | 4/4 | Complete | 2026-04-08 |
-| 8. Test Infrastructure Docker | v1.2 | 3/3 | Complete | 2026-04-08 |
-| 9. Tests E2E par Role | v1.2 | 5/5 | Complete | 2026-04-08 |
-| 10. Validation Manuelle Bout-en-Bout | v1.2 | — | Complete | 2026-04-08 |
-| 11. Backend Wiring Fixes | v1.2 | 7/7 | Complete | 2026-04-08 |
-| 12. Page-by-Page MVP Sweep | v1.2 | 20/21 | Complete | 2026-04-09 |
-| 13. MVP Validation Finale | v1.2 | — | Complete | 2026-04-09 |
-| 14. Visual Polish | v1.3 | 4/4 | Complete | 2026-04-09 |
-| 15. Multi-Browser Tests | v1.3 | — | Complete | 2026-04-09 |
-| 16. Accessibility Deep Audit | v1.3 | 5/5 | Complete | 2026-04-09 |
-| 17. Loose Ends Phase 12 | v1.3 | 3/3 | Complete | 2026-04-09 |
-| 1. Contrast AA Remediation | v1.4 | 3/3 | Complete | 2026-04-10 |
-| 2. Overlay Hittest Sweep | v1.4 | 2/2 | Complete | 2026-04-10 |
-| 3. Trust Fixtures Deploy | v1.4 | 2/2 | Complete | 2026-04-10 |
-| 4. HTMX 2.0 Upgrade | v1.4 | 2/2 | Complete | 2026-04-10 |
-| 5. CSP Nonce Enforcement | v1.4 | 2/2 | Complete | 2026-04-10 |
-| 6. Controller Refactoring | v1.4 | 3/3 | Complete | 2026-04-10 |
-| 1. Nettoyage Codebase | v1.5 | 2/2 | Complete | 2026-04-10 |
-| 2. Refactoring AuthMiddleware | v1.5 | 2/2 | Complete | 2026-04-11 |
-| 3. Refactoring ImportService | v1.5 | 1/1 | Complete | 2026-04-12 |
-| 4. Refactoring ExportService | v1.5 | 1/1 | Complete | 2026-04-13 |
-| 5. Refactoring MeetingReportsService | v1.5 | 1/1 | Complete | 2026-04-15 |
-| 6. Refactoring EmailQueueService | v1.5 | 1/1 | Complete | 2026-04-20 |
-| 7. Validation Gate | v1.5 | 1/1 | Complete | 2026-04-20 |
-| 1. JS Interaction Audit & Repair | v1.6 | 3/3 | Complete | 2026-04-20 |
-| 2. Form Layout Modernization | v1.6 | 3/3 | Complete | 2026-04-20 |
-| 3. Wizard Single-Page | v1.6 | 1/1 | Complete | 2026-04-20 |
-| 4. Validation Gate | v1.6 | 1/1 | Complete | 2026-04-20 |
-| 1. Audit et Classification | v1.7 | 1/1 | Complete | 2026-04-20 |
-| 2. Gardes Backend | v1.7 | 2/2 | Complete | 2026-04-20 |
-| 3. Frontend et Validation | v1.7 | 1/1 | Complete | 2026-04-20 |
-| 1. Palette et Tokens | v1.8 | 1/1 | Complete | 2026-04-20 |
-| 2. Classes CSS et Inline Cleanup | v1.8 | 3/3 | Complete | 2026-04-20 |
-| 3. Coherence Cross-Pages | v1.8 | 3/3 | Complete | 2026-04-20 |
-| 4. Layout Fixes | v1.8 | 1/1 | Complete | 2026-04-20 |
-| 5. Validation Gate | v1.8 | 1/1 | Complete | 2026-04-20 |
+| 1. Typographie et Espacement | v1.9 | 0/0 | Not started | - |
+| 2. Sidebar Navigation | v1.9 | 0/0 | Not started | - |
+| 3. Feedback et Etats Vides | v1.9 | 0/0 | Not started | - |
+| 4. Clarte et Jargon | v1.9 | 0/0 | Not started | - |
+| 5. Validation Gate | v1.9 | 0/0 | Not started | - |

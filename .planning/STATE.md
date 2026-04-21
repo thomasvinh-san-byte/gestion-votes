@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: UX Standards & Retention
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-04-21T10:00:00.000Z"
-last_activity: 2026-04-21 -- Milestone v1.9 started
+last_updated: "2026-04-21T11:00:00.000Z"
+last_activity: 2026-04-21 -- Roadmap created, 5 phases, 16 requirements mapped
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** v1.9 -- UX Standards & Retention
+**Current focus:** v1.9 Phase 1 -- Typographie et Espacement
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: --
-Status: Defining requirements
-Last activity: 2026-04-21 -- Milestone v1.9 started
+Phase: 1 of 5 (Typographie et Espacement)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-04-21 -- Roadmap created
+
+Progress: [..........] 0%
 
 ## Accumulated Context
 
@@ -41,7 +43,8 @@ Recent decisions affecting current work:
 - [v1.9 scope]: Base typographique passe de 14px a 16px pour utilisateurs 55+
 - [v1.9 scope]: Jargon elimine cote votant, tooltips explicatifs cote admin/operateur uniquement
 - [v1.9 scope]: Pattern "tapez VALIDER" remplace par confirmation simple
-- [v1.9 audit]: 24 pages auditees, problemes identifies sur sidebar, spacing, empty states, jargon
+- [v1.9 roadmap]: Typography tokens in Phase 1 before page-level changes (dependency)
+- [v1.9 roadmap]: NAV-04 (accueil) already done -- Phase 5 verification only
 
 ### Pending Todos
 
@@ -53,8 +56,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T10:00:00.000Z
-Stopped at: null
+Last session: 2026-04-21
+Stopped at: Roadmap created, ready to plan Phase 1
 Resume file: None
 
-**Next action:** Define requirements for v1.9.
+**Next action:** `/gsd:plan-phase 1`
