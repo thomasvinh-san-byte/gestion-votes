@@ -27,6 +27,28 @@
   var _prevVoteTotal = 0;
   var _deltaFadeTimer = null;
 
+  // -------------------------------------------------------------------------
+  // PHASE 3 — VOTE COUNTER ANIMATION STATE (ANIM-01, ANIM-03)
+  // -------------------------------------------------------------------------
+
+  // Cached `prefers-reduced-motion: reduce` MediaQueryList. matchMedia is supported
+  // in all target browsers (chromium, firefox, webkit, mobile-chrome). Re-checked
+  // on each tween call via `.matches` so OS-level changes take effect on next vote.
+  var PREFERS_REDUCED_MOTION = (typeof window !== 'undefined' && window.matchMedia)
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+
+  // First-render guard: tracks whether the active vote card has had its first
+  // refresh for a given motion ID. Maps motionId -> true once initial values
+  // have been written instantly (no tween). Per CONTEXT D-5: prevents the
+  // "0 -> 47" flash when opening exec mode on a motion already in progress.
+  var _activeVoteAnimReady = new Map();
+
+  // Cancellation handles for in-flight RAF tweens, keyed by element. Used to
+  // cancel a stale tween when a new SSE event arrives mid-animation
+  // (CONTEXT D-1 — RAF gives precise cancellation control).
+  var _voteTweenRafs = new WeakMap();
+
   // =========================================================================
   // KPI ANIMATION HELPERS (VIS-05)
   // Uses Anime.js (loaded via CDN with defer) for count-up animation.
@@ -95,6 +117,85 @@
         el.textContent = obj.val + '%';
       }
     });
+  }
+
+  /**
+   * Animate an integer counter from `from` to `to` over ~400ms using
+   * requestAnimationFrame. Vanilla — no Anime.js dependency (CONTEXT D-1).
+   *
+   * Behavior:
+   *  - prefers-reduced-motion: reduce -> writes target directly, no RAF (D-4).
+   *  - delta === 0 -> no-op (idempotent).
+   *  - Cancels any in-flight tween on the same element before starting a new
+   *    one. The new tween starts from the currently-displayed integer
+   *    (read via parseInt(textContent), not from the cached `from` arg) so
+   *    cancellation mid-tween is visually continuous.
+   *  - Integer ticking via Math.round(start + delta * eased) on each frame.
+   *  - Ease-out cubic: t -> 1 - (1 - t)^3. No overshoot (counters must never
+   *    overshoot — overshoot reads as data corruption per UI-SPEC).
+   *
+   * @param {HTMLElement} el           Counter element (.op-vote-count span).
+   * @param {number}      from         Previous displayed integer (for delta).
+   * @param {number}      to           Target integer.
+   * @param {object}     [opts]
+   * @param {boolean}    [opts.silent] When true, write `to` directly with no
+   *                                   tween (used by snapshot/catch-up paths
+   *                                   per CONTEXT D-6).
+   */
+  function animateVoteCounter(el, from, to, opts) {
+    if (!el) return;
+    opts = opts || {};
+
+    var target = parseInt(to, 10) || 0;
+
+    // Silent path (snapshot/catch-up) or reduced-motion: hard-write target.
+    if (opts.silent || PREFERS_REDUCED_MOTION.matches) {
+      // Cancel any in-flight tween before instant-writing.
+      var pendingRaf = _voteTweenRafs.get(el);
+      if (pendingRaf) {
+        cancelAnimationFrame(pendingRaf);
+        _voteTweenRafs.delete(el);
+      }
+      el.textContent = String(target);
+      return;
+    }
+
+    // Read currently-displayed integer (not the `from` arg) so a cancelled
+    // tween restart is continuous from whatever is on screen right now.
+    var displayed = parseInt(el.textContent, 10);
+    if (isNaN(displayed)) displayed = parseInt(from, 10) || 0;
+
+    if (displayed === target) return;
+
+    // Cancel previous in-flight tween on this element.
+    var prevRaf = _voteTweenRafs.get(el);
+    if (prevRaf) cancelAnimationFrame(prevRaf);
+
+    var start = displayed;
+    var delta = target - start;
+    var startTime = (typeof performance !== 'undefined' && performance.now)
+      ? performance.now()
+      : Date.now();
+    var duration = 400; // --duration-elaborate
+
+    function step(now) {
+      var t = Math.min(1, (now - startTime) / duration);
+      // Ease-out cubic.
+      var eased = 1 - Math.pow(1 - t, 3);
+      var current = Math.round(start + delta * eased);
+      el.textContent = String(current);
+      if (t < 1) {
+        var nextId = requestAnimationFrame(step);
+        _voteTweenRafs.set(el, nextId);
+      } else {
+        // Defensive final write — guarantees textContent === target exactly.
+        el.textContent = String(target);
+        _voteTweenRafs.delete(el);
+      }
+    }
+
+    var rafId = requestAnimationFrame(step);
+    _voteTweenRafs.set(el, rafId);
   }
 
   // =========================================================================
