@@ -61,6 +61,24 @@ class SetupControllerTest extends TestCase
     private function runSetup(SetupRepository $repo, string $method = 'GET', array $postData = []): array
     {
         $_SERVER['REQUEST_METHOD'] = strtoupper($method);
+
+        // Seed a valid CSRF token by default so existing POST tests
+        // (that pre-date the CSRF requirement) still exercise the
+        // post-CSRF code path. Tests that want to assert CSRF rejection
+        // must pre-populate $_SESSION / $_POST themselves before calling.
+        if (strtoupper($method) === 'POST'
+            && !array_key_exists('csrf_token', $postData)
+            && !isset($_POST['csrf_token'])
+        ) {
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                @session_start();
+            }
+            $token = bin2hex(random_bytes(32));
+            $_SESSION['csrf_token']      = $token;
+            $_SESSION['csrf_token_time'] = time();
+            $postData['csrf_token']      = $token;
+        }
+
         if ($postData !== []) {
             $_POST = $postData;
         }
@@ -132,17 +150,20 @@ class SetupControllerTest extends TestCase
     }
 
     // =========================================================================
-    // Test 3: GET /setup when admin exists -> redirect 302 to /login
+    // Test 3: GET /setup when admin exists -> opaque 404 (hardened 2026-04-29)
+    //
+    // Behaviour previously redirected to /login (302). It now serves an opaque
+    // 404 so unauthenticated probes cannot distinguish a configured instance
+    // from a non-existent route. See app/Controller/SetupController::notFound().
     // =========================================================================
 
-    public function testShowFormRedirectsWhenAdminExists(): void
+    public function testShowFormReturns404WhenAdminExists(): void
     {
         $repo   = $this->mockRepo(hasAdmin: true);
         $result = $this->runSetup($repo, 'GET');
 
-        $this->assertNotNull($result['redirect'], 'Expected a redirect');
-        $this->assertStringContainsString('/login', $result['redirect']);
-        $this->assertSame(302, $result['status']);
+        $this->assertSame(404, $result['status'], 'Expected opaque 404 response');
+        $this->assertSame('/404', $result['redirect']);
     }
 
     // =========================================================================
@@ -182,10 +203,12 @@ class SetupControllerTest extends TestCase
     }
 
     // =========================================================================
-    // Test 6: POST /setup when admin already exists -> redirect 302 to /login (guard)
+    // Test 6: POST /setup when admin already exists -> opaque 404 (guard)
+    //
+    // Same hardening as test 3: POST is also blocked with a 404 (no leak).
     // =========================================================================
 
-    public function testPostGuardRedirectsWhenAdminExists(): void
+    public function testPostGuardReturns404WhenAdminExists(): void
     {
         $repo   = $this->mockRepo(hasAdmin: true);
         $result = $this->runSetup($repo, 'POST', [
@@ -196,9 +219,8 @@ class SetupControllerTest extends TestCase
             'admin_password_confirm' => 'Secret123!',
         ]);
 
-        $this->assertNotNull($result['redirect']);
-        $this->assertStringContainsString('/login', $result['redirect']);
-        $this->assertSame(302, $result['status']);
+        $this->assertSame(404, $result['status'], 'Expected opaque 404 response');
+        $this->assertSame('/404', $result['redirect']);
     }
 
     // =========================================================================

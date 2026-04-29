@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\Core\Http\Request;
+use AgVote\Core\Security\CsrfMiddleware;
 use AgVote\Repository\SetupRepository;
 use AgVote\View\HtmlView;
 use Throwable;
@@ -15,13 +16,20 @@ use Throwable;
  * This controller does NOT extend AbstractController because it outputs
  * HTML (via HtmlView), not JSON (via api_ok/api_fail).
  *
- * Guard: if any active admin user already exists, redirect to /login.
- * GET:   render the initial setup form.
- * POST:  validate fields, create tenant + admin user, redirect to /login?setup=ok.
+ * Guard: if any active admin user already exists, return an opaque 404.
+ *        We deliberately do NOT redirect to /login on a configured instance —
+ *        a 302 leaks "instance is initialized" to unauthenticated probes,
+ *        whereas 404 is indistinguishable from "this URL never existed".
+ * GET:   render the initial setup form (with CSRF token embedded).
+ * POST:  validate CSRF, validate fields, create tenant + admin user,
+ *        redirect to /login?setup=ok.
  *
- * Security note: no CSRF protection needed — this endpoint is only accessible
- * before any admin account exists, so there is no authenticated session to hijack.
- * The hasAnyAdmin() guard provides sufficient idempotency protection.
+ * Security posture (defense-in-depth, hardened 2026-04-29):
+ *   1. Opaque 404 once any admin exists — no info leak about init state.
+ *   2. CSRF synchronizer token required on POST — even the very first admin
+ *      creation cannot be triggered cross-site by a hosted form during the
+ *      pre-init deployment window.
+ *   3. hasAnyAdmin() guard remains as the idempotency lock.
  */
 final class SetupController {
     private SetupRepository $repo;
@@ -37,10 +45,15 @@ final class SetupController {
      * Main entry point dispatched by the router.
      */
     public function setup(): void {
-        // Guard: if any admin already exists, redirect to Location: /login
+        // Guard: if any admin already exists, serve an opaque 404.
+        // No redirect, no body — do not leak that this instance is configured.
         if ($this->repo->hasAnyAdmin()) {
-            $this->redirect('/login');
+            $this->notFound();
         }
+
+        // Initialise the CSRF token in the session so the form can embed it
+        // and so handlePost() has a token to compare against.
+        CsrfMiddleware::init();
 
         $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
@@ -60,6 +73,16 @@ final class SetupController {
      * Re-renders the form with errors on validation failure.
      */
     private function handlePost(): void {
+        // CSRF check first, before reading any user-controlled input.
+        // Non-strict mode: re-render the form with a French banner instead
+        // of throwing a JSON ApiResponseException (this is an HTML endpoint).
+        if (!CsrfMiddleware::validate(false)) {
+            $this->renderForm([
+                'Jeton de sécurité invalide. Rechargez la page et réessayez.',
+            ]);
+            return;
+        }
+
         $request = new Request();
         $orgName  = trim((string) $request->body('organisation_name', ''));
         $name     = trim((string) $request->body('admin_name', ''));
@@ -160,6 +183,26 @@ final class SetupController {
         }
         http_response_code($code);
         header('Location: ' . $location);
+        exit;
+    }
+
+    /**
+     * Serve an opaque 404 — no body, no redirect.
+     *
+     * Used when any admin already exists, so probes cannot distinguish
+     * a configured instance from a non-existent route.
+     *
+     * In tests: throws SetupRedirectException with status 404 so the test
+     * can assert the response (we reuse the existing exception type rather
+     * than introducing a new one — its name is historical).
+     *
+     * @throws SetupRedirectException in PHPUnit context (status 404)
+     */
+    private function notFound(): never {
+        if (defined('PHPUNIT_RUNNING') && PHPUNIT_RUNNING === true) {
+            throw new SetupRedirectException('/404', 404);
+        }
+        http_response_code(404);
         exit;
     }
 }

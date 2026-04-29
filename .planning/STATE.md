@@ -4,8 +4,8 @@ milestone: v2.0
 milestone_name: Operateur Live UX
 status: ready_to_complete
 stopped_at: "Phase 4 audit PASS -- ready for /gsd:complete-milestone v2.0 (manual + CI verifications pending)"
-last_updated: "2026-04-29T06:02:21Z"
-last_activity: 2026-04-29 -- Phase 4 (Validation Gate) audit PASS
+last_updated: "2026-04-29T06:35:00Z"
+last_activity: 2026-04-29 -- Phase 4 (Validation Gate) audit PASS + quick task 1 (setup hardening 404 + CSRF)
 progress:
   total_phases: 4
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 Phase: 4 of 4 (Validation Gate) -- COMPLETE
 Plan: 1 of 1 in current phase -- COMPLETE
 Status: Ready to complete milestone
-Last activity: 2026-04-29 -- Phase 4 audit PASS, milestone v2.0 ready for closure (manual + CI pending)
+Last activity: 2026-04-29 -- Phase 4 audit PASS + quick task 1 (setup hardening 404 + CSRF)
 
 Progress: [##########] 100%
 
@@ -64,6 +64,12 @@ Recent decisions affecting current work:
 ### Blockers/Concerns
 
 - Playwright E2E suite bloquee localement par `libatk-1.0.so.0` manquant (infra dev) -- verification statique uniquement pour Phases 1, 2, 3.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Sceller le setup: bloquer SetupController si un admin existe et exiger CSRF | 2026-04-29 | 8c0e64a | [1-sceller-le-setup-bloquer-setupcontroller](./quick/1-sceller-le-setup-bloquer-setupcontroller/) |
 
 ## Session Continuity
 
