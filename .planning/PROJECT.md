@@ -68,17 +68,28 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ 13 routes critiques protegees par IdempotencyGuard — v1.7 Phase 2
 - ✓ Transitions workflow idempotentes (launch/close) — v1.7 Phase 2
 - ✓ HTMX X-Idempotency-Key sur tous les POST/PATCH + 6 tests unitaires — v1.7 Phase 3
+- ✓ Checklist operateur live (quorum/votes/SSE/connected) avec alertes visuelles — v2.0 Phase 1
+- ✓ Mode Focus 5-zones avec toggle + persistance sessionStorage — v2.0 Phase 2
+- ✓ Animations vote (RAF + bar transitions) avec respect prefers-reduced-motion — v2.0 Phase 3
+- ✓ Validation gate cross-phase v2.0 — audit PASS, zero regression — v2.0 Phase 4
+- ✓ Hotfix securite F1: /setup 404 opaque + CSRF strict + 4 tests de regression — v2.0 (PR #247)
+- ✓ CI repair: lint-js + migrate-check verts, validate ameliore (83→21 errors), coverage redis-aware — v2.0 (PR #248)
 
 ### Active
 
-## Current Milestone: v2.0 Operateur Live UX
+## Current Milestone: v2.1 Hardening Securite (planning)
 
-**Goal:** Ameliorer l'experience operateur en mode seance live — checklist de controle, interface epuree, et feedback visuel en temps reel sur les votes.
+**Goal:** Eliminer les 21 contremesures de securite restantes (F2 a F22) identifiees par l'audit du 2026-04-29 — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads, headers HTTP.
 
-**Target features:**
-- Checklist operateur en mode live (quorum OK, reseau OK, votes recus)
-- Reduction des zones d'info de 9 a 4-5 en mode execution
-- Animation sur les compteurs de vote en temps reel
+**Target categories:**
+- Sprint 0 finition: ClientIp whitelist, idempotence tally, audit per-member, SSE auth-first
+- Vote integrite & cross-tenant: token atomic, hash invitations, IDOR repos, resetDemo verrou, CSRF scope
+- Perimetre & SSRF: URL whitelist, rate limits, lockout progressif
+- Uploads & contenu: PDF magic bytes, formula injection, dompdf hardening
+- Headers & cookies: CSP nonce strict, cookies Strict, fallbacks dev
+- Tests & monitoring: tests securite CI, logging signal, doc
+
+Voir le brouillon de requirements: `.planning/research/v2.1-securite-requirements-draft.md`.
 
 ### Out of Scope
 
@@ -116,6 +127,21 @@ Shipped v1.8 (2026-04-20) — UI refonte complete. Palette moderne slate, classe
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Completed Milestone: v2.0 Operateur Live UX
+
+**Shipped:** 2026-04-29 — 4 phases, 6 plans, 11 requirements, all satisfied.
+
+Audit cross-phase: PASS (`.planning/milestones/v2.0-MILESTONE-AUDIT.md`).
+Hotfix sécurité F1 (PR #247) + CI repair (PR #248) inclus.
+
+See `.planning/milestones/v2.0-ROADMAP.md` for full archive.
+
+## Completed Milestone: v1.9 UX Standards & Retention
+
+**Shipped:** 2026-04-21 — 5 phases, 9 plans, 16 requirements, all satisfied.
+
+See `.planning/milestones/v1.9-ROADMAP.md` for full archive.
 
 ## Completed Milestone: v1.8 Refonte UI et Coherence Visuelle
 
@@ -197,4 +223,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — v1.5 milestone started*
+*Last updated: 2026-04-29 — after v2.0 milestone shipped, v2.1 Hardening Securite planning*
