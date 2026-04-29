@@ -26,7 +26,7 @@
    * const tabs = new TabManager({
    *   navSelector: '.tabs-nav',
    *   contentSelector: '.tab-content',
-   *   onChange: (tabId) => { /* handle tab change */ }
+   *   onChange: (tabId) => { // handle tab change }
    * });
    */
   class TabManager {

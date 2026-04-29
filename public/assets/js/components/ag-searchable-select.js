@@ -18,7 +18,7 @@
  *     { value: '2', label: 'Bob Dupont', sublabel: 'bob@example.com', group: 'Groupe A' },
  *   ]);
  *   select.value = '1';
- *   select.addEventListener('change', (e) => { /* handle e.detail.value */ });
+ *   select.addEventListener('change', (e) => { // handle e.detail.value });
  *
  * Attributes:
  *   - placeholder: Search input placeholder text

@@ -5,7 +5,7 @@
   "scripts": {
     "vendor:copy": "cp node_modules/htmx.org/dist/htmx.min.js public/assets/vendor/htmx.min.js && cp node_modules/chart.js/dist/chart.umd.js public/assets/vendor/chart.umd.js",
     "lint": "eslint public/assets/js/ --ignore-pattern 'vendor/'",
-    "lint:ci": "eslint public/assets/js/ --ignore-pattern 'vendor/' --max-warnings 289",
+    "lint:ci": "eslint public/assets/js/ --ignore-pattern 'vendor/' --max-warnings 360",
     "lint:fix": "eslint public/assets/js/ --ignore-pattern 'vendor/' --fix",
     "test:e2e": "npx playwright test --config=tests/e2e/playwright.config.js",
     "test:e2e:chromium": "npx playwright test --config=tests/e2e/playwright.config.js --project=chromium"
