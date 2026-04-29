@@ -2117,6 +2117,148 @@
 }
 
 /* =============================================================================
+   FOCUS MODE — vue epuree avec 5 zones essentielles uniquement (Phase 2)
+   Modifier `.op-focus-mode` applied to #viewExec via JS toggle + sessionStorage.
+   ============================================================================= */
+
+/* Rule 1 — Hide secondary zones inside #viewExec (FOCUS-01, CONTEXT D-7) */
+.op-focus-mode .op-exec-status-bar,
+.op-focus-mode .op-kpi-strip,
+.op-focus-mode .op-tags,
+.op-focus-mode .op-resolution-progress,
+.op-focus-mode .op-guidance,
+.op-focus-mode .exec-close-banner,
+.op-focus-mode .op-resolution-header,
+.op-focus-mode .op-tabs,
+.op-focus-mode .op-checklist-panel,
+.op-focus-mode .exec-speaker-panel,
+.op-focus-mode #execManualVoteList,
+.op-focus-mode #execManualSearch,
+.op-focus-mode #opBtnRoomDisplay {
+  display: none !important;
+}
+
+/* Rule 1b — Sidebar agenda lives outside #viewExec; hide via :has on parent */
+.op-body:has(#viewExec.op-focus-mode) .op-sidebar {
+  display: none !important;
+}
+
+/* Rule 2 — Sticky action bar (FOCUS-02, CONTEXT D-6) */
+.op-focus-mode .op-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Rule 3 — Enlarge focal elements for distance readability */
+.op-focus-mode .exec-vote-title,
+.op-focus-mode .op-resolution-title {
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  margin-bottom: var(--space-3);
+}
+
+.op-focus-mode .op-vote-card {
+  padding: var(--space-6) var(--space-4);
+}
+
+.op-focus-mode .op-live-chrono {
+  font-size: var(--text-2xl);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* Rule 4 — Dedicated quorum block (zone 3): hidden by default, large card in focus */
+.op-focus-quorum[hidden] {
+  display: none;
+}
+
+.op-focus-mode .op-focus-quorum {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  margin: 0 var(--space-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.op-focus-mode .op-focus-quorum-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.op-focus-mode .op-focus-quorum-value {
+  font-size: var(--text-3xl);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.op-focus-mode .op-focus-quorum-status {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* State variants — applied by Plan 02 JS via .op-focus-quorum--ok / --alert */
+.op-focus-mode .op-focus-quorum--ok {
+  border-color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+
+.op-focus-mode .op-focus-quorum--ok .op-focus-quorum-value,
+.op-focus-mode .op-focus-quorum--ok .op-focus-quorum-status {
+  color: var(--color-success-text);
+}
+
+.op-focus-mode .op-focus-quorum--alert {
+  border-color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}
+
+.op-focus-mode .op-focus-quorum--alert .op-focus-quorum-value,
+.op-focus-mode .op-focus-quorum--alert .op-focus-quorum-status {
+  color: var(--color-danger-text);
+}
+
+/* Rule 5 — Toggle button styling + aria-pressed icon swap */
+.op-focus-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.op-focus-toggle[aria-pressed="true"] {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+  border-color: var(--color-primary);
+}
+
+.op-focus-toggle[aria-pressed="true"] .op-focus-icon-on {
+  display: none;
+}
+
+.op-focus-toggle[aria-pressed="true"] .op-focus-icon-off {
+  display: inline-block;
+}
+
+.op-focus-toggle[aria-pressed="false"] .op-focus-icon-off {
+  display: none;
+}
+
+/* =============================================================================
    RESPONSIVE — 1024px: collapse sidebar to horizontal strip
    ============================================================================= */
 
