@@ -2100,6 +2100,21 @@ window.OpS = { fn: {} };
       if (OpS.fn.startExecTimer) OpS.fn.startExecTimer();
     }
 
+    // Show/hide checklist panel based on mode (CHECK panel visibility)
+    var checklistPanel = document.getElementById('opChecklistPanel');
+    if (checklistPanel) {
+      if (mode === 'exec') {
+        checklistPanel.hidden = false;
+        // Restore collapsed state from sessionStorage
+        var collapsed = sessionStorage.getItem('opChecklistCollapsed') === 'true';
+        checklistPanel.classList.toggle('op-checklist-panel--collapsed', collapsed);
+        var toggleBtn = document.getElementById('opChecklistToggle');
+        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+      } else {
+        checklistPanel.hidden = true;
+      }
+    }
+
     updatePrimaryButton();
     updateContextHint();
     announce(mode === 'setup' ? 'Mode préparation activé' : 'Mode exécution activé');
@@ -3131,6 +3146,19 @@ window.OpS = { fn: {} };
   // Mode switch buttons
   btnModeSetup?.addEventListener('click', () => setMode('setup'));
   btnModeExec?.addEventListener('click', () => setMode('exec'));
+
+  // Checklist panel collapse toggle (persisted in sessionStorage)
+  var checklistToggleBtn = document.getElementById('opChecklistToggle');
+  if (checklistToggleBtn) {
+    checklistToggleBtn.addEventListener('click', function() {
+      var panel = document.getElementById('opChecklistPanel');
+      if (!panel) return;
+      var isCollapsed = panel.classList.toggle('op-checklist-panel--collapsed');
+      this.setAttribute('aria-expanded', String(!isCollapsed));
+      this.title = isCollapsed ? 'Afficher le panneau de controle' : 'Reduire le panneau';
+      sessionStorage.setItem('opChecklistCollapsed', String(isCollapsed));
+    });
+  }
 
   // Meeting bar refresh
   document.getElementById('btnBarRefresh')?.addEventListener('click', () => {
