@@ -1,119 +1,112 @@
-# Requirements: AgVote v2.2 Refonte Visuelle & Cohérence
+# Requirements: AgVote v2.3 Layout Refonte & UX Polish
 
 **Defined:** 2026-04-29
-**Core Value:** L'application doit dégager le sérieux civique de sa promesse à chaque écran. Le designer du produit doit ressentir la cohérence visuelle (palette harmonisée, dark mode pensé, identité par rôle), et l'utilisateur doit savoir instantanément où il est et ce qu'il peut/doit faire — sans lire de documentation.
+**Core Value:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle, appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique. Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
 
-**Source des requirements :** synthèse des conversations design (palette Bleu République, lentille Norman/Zhuo, audit cohérence couleurs/copy, refonte visuelle proposée, matrice personas) consolidées en PRs orchestrées en pyramide.
-
----
-
-## v2.2 Requirements
-
-### Phase 1 — Design Tokens (la fondation)
-
-- [x] **DESIGN-T01**: `--color-primary` migrée à `oklch(0.45 0.180 265)` = `#2c468f` (Bleu République). Plus profond, ton institutionnel, cousin du DSFR sans le copier.
-- [x] **DESIGN-T02**: Sémantiques harmonisées au brand (chroma 0.13-0.18, lightness 0.45-0.62) — `success` vert sénat (hue 165), `danger` rouge huissier (désat 0.165), `warning` ocre archive (hue 75), `info` bleu instruction (hue 230). Ne pas reprendre Material Default.
-- [x] **DESIGN-T03**: Surfaces light tendant vers blanc sans être blanc pur (modern tech) — `--color-bg = oklch(0.985 0.001 0)` (#fbfbfb), neutre vrai (hue 0, chroma 0). `--color-surface-raised = #ffffff` est le SEUL vrai blanc, réservé aux popovers/modals.
-- [x] **DESIGN-T04**: Dark mode redesigné indépendamment, pas un light inversé. 5 niveaux d'élévation (overlay/sunken/base/raised/floating), hue 260 (légèrement bleutée), saturation des accents réduite ~25%, lightness inversée (primary lift 0.45 → 0.62), aucun noir pur (le plus profond est `oklch(0.13)`).
-- [x] **DESIGN-T05**: 6 tokens `--role-*` définis dans le spectre froid (240°-330°), différenciés par lightness/saturation, jamais par teintes opposées : admin (305° violet profond), president (240° bleu-acier), operator (265° brand), auditor (255° bleu cendré), voter (280° indigo), public (320° mauve doux).
-- [x] **DESIGN-T06**: `@media (prefers-color-scheme: dark)` détecte automatiquement la préférence OS via `:where(:root:not([data-theme="light"]):not([data-theme="dark"]))` — spécificité 0. Toggle JS utilisateur explicite reste prioritaire sur l'OS.
-- [x] **DESIGN-T07**: `DESIGN.md` à la racine sert de source de vérité unique. Templates `email_*.php` utilisent les hex documentés dans la table de correspondance (compat clients email old-school qui ne lisent pas les variables CSS).
-- [x] **DESIGN-T08**: `tests/Visual/tokens.html` rend la palette en grille avec toggle Light/Dark/Auto pour validation à l'œil avant chaque PR de phase suivante.
-
-### Phase 2 — Components (les briques de base)
-
-- [ ] **DESIGN-C01**: Boutons disabled ne sont plus gris monochromes. Variant `.btn-primary--disabled` qui préserve la teinte primary légère + `opacity: 0.45-0.6` + `cursor: not-allowed`. Signifie "ce bouton EST primary, mais pas maintenant" plutôt que "élément désactivé indéterminé".
-- [ ] **DESIGN-C02**: Cards utilisent `--radius-lg = 10px` et `--shadow-md` ; modals utilisent `--radius-lg + --shadow-lg` ; drawers harmonisés sur les mêmes tokens. Suppression des shadows fluffy/glow ; max 3 niveaux (sm/md/lg).
-- [ ] **DESIGN-C03**: Modales et drawers ont une coquille (`shell`) unifiée — header, body, footer cohérents, fermeture systématiquement disponible (X + Escape). Plus de mélange entre `<dialog>` natif et custom-element.
-- [ ] **DESIGN-C04**: Forms (`.field-input`, `.field-label`, `.field-error`, `.helper-text`) consistants, helper text avec convention de ponctuation appliquée (point final pour phrases ≥ 8 mots, sans point pour fragments courts).
-- [ ] **DESIGN-C05**: Toasts utilisent les couleurs sémantiques harmonisées et ont un bouton fermeture explicite + auto-dismiss 5-8s. Alignés avec les KPI cards (vert sénat = succès partout).
-
-### Phase 3 — Personas (Role Markers + Isolation)
-
-- [ ] **DESIGN-P01**: Une bande de 3 px en haut de chaque page authentifiée est colorée par `var(--role-X)` correspondant au rôle de l'utilisateur connecté. Permanente, discrète, immédiatement reconnaissable.
-- [ ] **DESIGN-P02**: La sidebar affiche un badge persona (texte du rôle en français : "Admin", "Opérateur", "Président", "Auditeur", "Votant", "Public") avec la couleur correspondante au-dessus du nom utilisateur.
-- [ ] **DESIGN-P03**: Attribut `data-persona` posé sur `<body>` côté serveur depuis la session, lu par CSS pour appliquer la couleur via `[data-persona="operator"] .role-bar { background: var(--role-operator); }`. Pas de logique JS pour la couleur — purement déclaratif.
-- [ ] **DESIGN-P04**: `tests/Security/PersonaIsolationTest.php` couvre : (a) un voteur connecté qui GET /dashboard reçoit 403, (b) un auditeur qui POST n'importe quel endpoint mutateur reçoit 403, (c) la sidebar HTML rendue ne contient aucun item dont `data-requires-role` ne match pas le rôle courant.
-
-### Phase 4 — Layout & Lexique (le ressenti final)
-
-- [ ] **DESIGN-L01**: Vue exécution opérateur affiche une **barre santé séance** unique de ~56 px en haut avec 4 indicateurs (Quorum / SSE / Votants connectés / Résolution actuelle) — chacun avec sa couleur sémantique persistante (vert/rouge). Si un indicateur passe rouge, la barre entière prend une bordure danger animée.
-- [ ] **DESIGN-L02**: Page `/vote` adopte une typographie minimum 18 px (`--text-lg`), boutons ≥ 96 px de haut, palette désaturée (on ne pousse pas à voter Pour visuellement). Aucun élément admin/opérateur visible dans cette vue.
-- [ ] **DESIGN-L03**: Pages `/audit`, `/trust`, `/archives`, et le rendu PV utilisent la police serif **Newsreader** pour le contenu (largeur de lecture plafonnée à 720 px), Inter pour les contrôles UI, JetBrains Mono pour les hashes/UUID/codes. Traitement éditorial qui dégage le sérieux légal.
-- [ ] **DESIGN-L04**: Dashboard simplifié — une seule "hero card" avec la séance la plus urgente, 3 KPI cards (pas 4), actions rapides reléguées en bas avec `--surface-sunken` pour secondariser.
-- [ ] **DESIGN-L05**: Login/setup réduit le panel marketing à un strict minimum — logo + tagline + UN bénéfice. Le formulaire prend la place. Plus d'orbe animé.
-
-#### Lexique (groupé avec layout pour cohérence d'expérience)
-
-- [ ] **DESIGN-X01**: Convention écrite et appliquée pour les 3 termes humains : "membre" (inscrit à l'organisation) / "participant" (membre présent à la séance) / "votant" (participant éligible au scrutin courant). Distinctions sémantiques claires, pas mélangées.
-- [ ] **DESIGN-X02**: Convention pour les verbes de finalisation : "confirmer" (réversible) / "valider" (engageant mais réversible jusqu'au verrouillage) / "verrouiller-archiver" (irréversible). "Approuver" banni (ambiguë juridiquement).
-- [ ] **DESIGN-X03**: Migration grep+remplace ciblée appliquée à toutes les pages `public/*.htmx.html` + templates `app/Templates/*.php` + dictionnaire `app/Services/ErrorDictionary.php`. Pas de migration de code (les classes/IDs restent en `motion-card` etc.).
-- [ ] **DESIGN-X04**: Test dans `tests/Security/CopyConventionsTest.php` qui scanne le HTML rendu et vérifie qu'aucun terme banni ("copropriété", "syndic", "approuver" pour finalisation) n'apparaît, et qu'aucun mélange membre↔votant n'a regressé.
+**Source des requirements :** items reportés depuis v2.2 (L01, L03, L04, L05, X01) + audit UX/UI initial (3 critiques modales, 8 a11y, 16 responsive/contrastes, 7 polish) + critique Norman/Zhuo (quorum-as-a-feeling, error → next-step) + recherche inline `.planning/research/SUMMARY.md`.
 
 ---
 
-## v2.3+ Requirements (deferred)
+## v1 Requirements
 
-### Évolutions design
+### Cockpit Opérateur live (Phase 1)
 
-- **DESIGN-NEXT-1**: Switch font invitation token SHA-256 → HMAC-SHA256 (lié sécurité, déjà tracé en v2.1 tech debt)
-- **DESIGN-NEXT-2**: Migration progressive des templates `field()` → `fieldFor(method, path)` pour activer F10 (CSRF scopé) sur tous les forms
-- **DESIGN-NEXT-3**: Audit complet des 8 méthodes MotionRepository à `tenantId = ''` optionnel, conversion en paramètre requis
-- **DESIGN-NEXT-4**: Animation système (transitions cross-page, skeleton loading enrichi) — uniquement après que la base layout est stable
+- [ ] **COCKPIT-01**: Une barre santé séance unique s'affiche au top de la vue exécution opérateur, avec 4 indicateurs visuels (Quorum / SSE / Votants connectés / Résolution active), persistante pendant toute la durée de la séance.
+- [ ] **COCKPIT-02**: L'indicateur Quorum affiche en permanence l'état atteint (vert) ou non-atteint (rouge), avec le ratio votants présents / quorum requis. Plus de notification toast éphémère.
+- [ ] **COCKPIT-03**: Quand le quorum bascule en non-atteint pendant une séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) apparaît autour de la zone vote — respecte `prefers-reduced-motion: reduce`.
+- [ ] **COCKPIT-04**: La barre santé devient un stack vertical en responsive (< 768px) plutôt qu'une compression horizontale illisible.
+- [ ] **COCKPIT-05**: Un nouveau custom element `<ag-health-bar>` encapsule la logique : data-attributes pour les 4 valeurs, animations CSS, responsive collapse, tests d'isolation.
+
+### Pages éditoriales (Phase 2)
+
+- [ ] **EDITORIAL-01**: Les pages `/audit`, `/trust`, `/archives`, `/report` adoptent un wrapper `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6 sur le contenu.
+- [ ] **EDITORIAL-02**: Les contrôles UI (boutons, filtres, dropdowns) restent en `var(--font-sans)` (Bricolage) — le serif est réservé au contenu lu.
+- [ ] **EDITORIAL-03**: Les hashes/UUID/codes affichés (audit chain, vote tokens, IDs) utilisent `var(--font-mono)` (JetBrains Mono).
+- [ ] **EDITORIAL-04**: Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace, rappelant l'identité juridique.
+- [ ] **EDITORIAL-05**: Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" actionnable.
+- [ ] **EDITORIAL-06**: Sous 768px, la largeur de lecture passe à 100% avec padding latéral (pas de scroll horizontal sur petit écran).
+
+### Layouts secondaires (Phase 3)
+
+- [ ] **DASHBOARD-01**: Le dashboard affiche au plus 3 KPI cards (au lieu de 4 actuellement). Le KPI déposé est intégré ailleurs (lien vers `/analytics`) — aucune information perdue.
+- [ ] **DASHBOARD-02**: Quand une séance est en cours ou imminente (< 1h), une hero card en pleine largeur la met en avant au-dessus des KPI.
+- [ ] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
+- [ ] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`).
+- [ ] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
+
+### Lexique + UX critique (Phase 4)
+
+- [ ] **LEX-01**: Convention "membre/participant/votant" appliquée par migration cas-par-cas (lecture du contexte) sur le copy utilisateur. Distinction sémantique : membre = inscrit, participant = présent, votant = éligible au scrutin courant.
+- [ ] **LEX-02**: Convention "confirmer/valider/verrouiller-archiver" appliquée. "Approuver" banni du copy de finalisation (ambiguë juridiquement).
+- [ ] **MODAL-01**: Audit des modales legacy `.modal` CSS class. Migration vers `<ag-modal>` web component pour bénéficier du focus trap natif (Tab + Shift+Tab + Escape).
+- [ ] **MODAL-02**: Toutes les modales actives doivent permettre Escape pour fermer (a11y critique). Ajout d'un test E2E qui ouvre une modale et vérifie que Escape la ferme + restore le focus à l'élément précédent.
+- [ ] **ERR-01**: Top 50 codes `ErrorDictionary.php` (les plus utilisés) enrichis avec un "next-step" actionnable. Exemple : `"Vous avez déjà voté sur cette résolution."` → `"Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent."`
+- [ ] **ERR-02**: Test PHPUnit `tests/Security/UxConventionsTest.php` qui scanne ErrorDictionary et exige au moins une virgule + un verbe d'action (impératif ou subjonctif) dans chaque message des 50 codes les plus utilisés. Filet permanent contre la régression.
 
 ---
 
-## Out of Scope (v2.2)
+## v2 Requirements (deferred)
+
+### UX backlog v2 (post-v2.3)
+
+- **UX-V2-01**: Animation système (transitions cross-page, skeleton loading enrichi)
+- **UX-V2-02**: A/B testing visuel (différentes hiérarchies KPI sur dashboard)
+- **UX-V2-03**: Mobile-first redesign de la vue opérateur (responsive ≠ mobile-native)
+- **UX-V2-04**: Empty states enrichis sur toutes les pages (illustrations légères)
+
+### Sécurité tech debt v2.1
+
+- **SEC-V2-01**: 8 méthodes MotionRepository à `tenantId = ''` optionnel (audit des callers)
+- **SEC-V2-02**: Migration progressive `field()` → `fieldFor(method, path)` pour activer F10 sur tous les forms
+- **SEC-V2-03**: Hash invitation token SHA-256 → HMAC-SHA256 (forcer re-issue)
+
+---
+
+## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Refonte du backend / logique métier | v2.2 est purement visuel + cohérence — aucune logique modifiée |
-| Nouveaux écrans / fonctionnalités utilisateur | UX existante stabilisée d'abord, features après |
+| Refonte du backend / logique métier | v2.3 est purement visuel + UX — aucune logique modifiée |
+| Nouveaux écrans / fonctionnalités | UX existante stabilisée d'abord |
 | Migration framework (Vue, React, Symfony) | Refactoring incrémental seulement |
-| Refonte mobile dédiée | Responsive existant suffisant pour ce milestone |
-| A/B testing visuel | Hors scope — ce milestone établit une seule direction |
+| i18n complète (anglais, espagnol) | App ciblée FR uniquement |
+| Mobile native (iOS / Android) | Web-first, responsive suffisant |
 
 ---
 
 ## Traceability
 
-Quel finding mappe à quelle phase, mis à jour pendant l'exécution.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DESIGN-T01 | Phase 1 | ✓ Complete (PR #256) |
-| DESIGN-T02 | Phase 1 | ✓ Complete |
-| DESIGN-T03 | Phase 1 | ✓ Complete |
-| DESIGN-T04 | Phase 1 | ✓ Complete |
-| DESIGN-T05 | Phase 1 | ✓ Complete |
-| DESIGN-T06 | Phase 1 | ✓ Complete |
-| DESIGN-T07 | Phase 1 | ✓ Complete |
-| DESIGN-T08 | Phase 1 | ✓ Complete |
-| DESIGN-C01 | Phase 2 | ✓ Complete |
-| DESIGN-C02 | Phase 2 | ✓ Complete (already conformant) |
-| DESIGN-C03 | Phase 2 | ✓ Complete (already conformant) |
-| DESIGN-C04 | Phase 2 | ✓ Complete |
-| DESIGN-C05 | Phase 2 | ✓ Complete (already conformant) |
-| DESIGN-P01 | Phase 3 | ✓ Complete |
-| DESIGN-P02 | Phase 3 | ✓ Complete |
-| DESIGN-P03 | Phase 3 | ✓ Complete |
-| DESIGN-P04 | Phase 3 | ✓ Complete |
-| DESIGN-L01 | Phase 4 | ⏭ Deferred to v2.3 (cockpit live invasif) |
-| DESIGN-L02 | Phase 4 | ✓ Complete |
-| DESIGN-L03 | Phase 4 | ⏭ Deferred to v2.3 (PV éditorial Newsreader) |
-| DESIGN-L04 | Phase 4 | ⏭ Deferred to v2.3 (dashboard refonte) |
-| DESIGN-L05 | Phase 4 | ⏭ Deferred to v2.3 (login polish) |
-| DESIGN-X01 | Phase 4 | ⏭ Deferred to v2.3 (convention membre/participant/votant migration) |
-| DESIGN-X02 | Phase 4 | ✓ Complete |
-| DESIGN-X03 | Phase 4 | ✓ Complete (conservateur, X02 only) |
-| DESIGN-X04 | Phase 4 | ✓ Complete |
+| COCKPIT-01 | Phase 1 | Pending |
+| COCKPIT-02 | Phase 1 | Pending |
+| COCKPIT-03 | Phase 1 | Pending |
+| COCKPIT-04 | Phase 1 | Pending |
+| COCKPIT-05 | Phase 1 | Pending |
+| EDITORIAL-01 | Phase 2 | Pending |
+| EDITORIAL-02 | Phase 2 | Pending |
+| EDITORIAL-03 | Phase 2 | Pending |
+| EDITORIAL-04 | Phase 2 | Pending |
+| EDITORIAL-05 | Phase 2 | Pending |
+| EDITORIAL-06 | Phase 2 | Pending |
+| DASHBOARD-01 | Phase 3 | Pending |
+| DASHBOARD-02 | Phase 3 | Pending |
+| DASHBOARD-03 | Phase 3 | Pending |
+| LOGIN-01 | Phase 3 | Pending |
+| LOGIN-02 | Phase 3 | Pending |
+| LEX-01 | Phase 4 | Pending |
+| LEX-02 | Phase 4 | Pending |
+| MODAL-01 | Phase 4 | Pending |
+| MODAL-02 | Phase 4 | Pending |
+| ERR-01 | Phase 4 | Pending |
+| ERR-02 | Phase 4 | Pending |
 
 **Coverage:**
-- v2.2 requirements: 26 total
-- Mapped to phases: 26 (8 done in Phase 1, 18 pending)
+- v1 requirements: 22 total
+- Mapped to phases: 22
 - Unmapped: 0 ✓
 
 ---
 
-*Requirements defined: 2026-04-29*
-*Last updated: 2026-04-29 — Phase 1 in PR #256, awaiting review*
+*Requirements defined: 2026-04-29 — informed by .planning/research/SUMMARY.md*
+*Last updated: 2026-04-29 — v2.3 milestone bootstrap*

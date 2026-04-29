@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Refonte Visuelle & Cohérence
-status: in_progress
-stopped_at: "Phases 1-4 (partielles) shippées dans PR #256 — design tokens + components + personas + vote typo + lexique guard. Layout invasive reporté à v2.3."
-last_updated: "2026-04-29T12:00:00Z"
-last_activity: 2026-04-29 -- v2.2 auto-advance : Phase 2 (components) + Phase 3 (personas) + Phase 4 (vote typo + lexique guard) shippés dans la même branche que Phase 1
+milestone: v2.3
+milestone_name: Layout Refonte & UX Polish
+status: planning
+stopped_at: "v2.3 milestone bootstrap — REQUIREMENTS + ROADMAP + research SUMMARY rédigés. Phase 1 (Cockpit Opérateur live) prête à planifier."
+last_updated: "2026-04-29T13:00:00Z"
+last_activity: 2026-04-29 -- v2.3 milestone initialized via /gsd:new-milestone (research inline, 22 requirements, 4 phases)
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
-  percent: 87
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE -- Project State
@@ -20,17 +20,16 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-04-29)
 
-**Core value:** L'application doit dégager le sérieux civique de sa promesse à chaque écran ; cohérence visuelle complète (palette, dark mode, identité par rôle) ; lexique unifié.
-**Current focus:** v2.2 Refonte Visuelle & Cohérence — pyramide en 4 phases (tokens → components → personas → layout)
+**Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
+**Current focus:** v2.3 Layout Refonte & UX Polish — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
 
 ## Current Position
 
-Milestone: v2.2 Refonte Visuelle & Cohérence
-Branch: feat/v2.2-design-tokens (4 phases dans une seule PR #256)
-Phase: 4 of 4 (partial — layout invasif reporté)
-Status: Phases 1-4 implémentées (auto-advance), PR #256 contient l'ensemble
+Milestone: v2.3 Layout Refonte & UX Polish
+Branch: feat/v2.2-design-tokens (v2.3 bootstrap docs ajoutés à la même branche que v2.2 PR #256)
+Phase: 0 of 4 — milestone initialized, ready_to_plan Phase 1
 
-Progress: [████████▋.] 87% (4/4 phases shipped, mais L01/L03/L04/L05/X01 reportés v2.3)
+Progress: [..........] 0% (planning)
 
 ## Accumulated Context
 
@@ -71,4 +70,4 @@ Last session: 2026-04-29
 Stopped at: v2.2 Phase 1 (Design Tokens) shipped via PR #256, milestone GSD bootstrappé sur la même branche
 Resume file: None
 
-**Next action:** Review + merge PR #256 ; puis sur main : `/gsd:plan-phase 2` pour Phase 2 Components
+**Next action:** Une fois PR #256 mergée, créer branche `feat/v2.3-cockpit-operateur` depuis main puis `/gsd:plan-phase 1` pour Cockpit Opérateur live (COCKPIT-01..05).

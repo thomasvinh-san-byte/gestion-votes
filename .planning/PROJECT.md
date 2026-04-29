@@ -79,19 +79,20 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-## Current Milestone: v2.2 Refonte Visuelle & Cohérence (in progress)
+## Current Milestone: v2.3 Layout Refonte & UX Polish (planning)
 
-**Goal:** Faire passer AgVote de "fonctionnellement bon mais émotionnellement neutre" à un produit qui dégage immédiatement le sérieux civique de sa promesse — palette Bleu République harmonisée, dark mode redesigné comme un mode à part entière, identité visuelle par rôle utilisateur (admin/président/opérateur/auditeur/votant/public), refonte des écrans clés (cockpit santé opérateur, vote, PV éditorial), et lexique unifié (membre/participant/votant + valider/verrouiller/archiver).
+**Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant".
 
-**Strategy:** Pyramide stricte en 4 phases — base solide d'abord (tokens), puis composants, puis personas, puis layout. Une PR par étage, mergeable indépendamment.
+**Strategy:** 4 phases — cockpit (plus haute valeur d'abord) → éditorial → secondaires → lexique+UX (filet de sécurité en dernier). 1 PR par phase. Aucune nouvelle dépendance (Fraunces déjà chargée, ag-modal existant, axe-core intégré).
 
 **Target phases:**
-- Phase 1 — Design Tokens : palette OKLCH light + dark + 6 rôles, DESIGN.md, native prefers-color-scheme, sync emails (✓ PR #256)
-- Phase 2 — Components : disabled state teinté primary, cards, modals, drawers, forms, toasts harmonisés
-- Phase 3 — Personas : bande 3px persona + badge sidebar + tests d'isolation backend
-- Phase 4 — Layout & Lexique : cockpit santé opérateur, vote screen typo, PV/audit éditorial Newsreader, lexique unifié
+- Phase 1 — Cockpit Opérateur live : barre santé séance unique (Quorum / SSE / Votants / Résolution), `<ag-health-bar>` custom element, quorum-as-a-feeling
+- Phase 2 — Pages éditoriales : `<ag-editorial>` wrapper sur /audit, /trust, /archives, /report avec Fraunces serif + Bricolage UI + JetBrains Mono codes
+- Phase 3 — Layouts secondaires : dashboard simplifié (3 KPI + hero card), login moins marketing (orbe supprimé)
+- Phase 4 — Lexique + UX critique : convention membre/participant/votant + modales focus trap + ErrorDictionary "next-step" enrichi
 
-Voir `.planning/REQUIREMENTS.md` pour les 26 requirements détaillés (DESIGN-T01..T08, C01..C05, P01..P04, L01..L05, X01..X04).
+Voir `.planning/REQUIREMENTS.md` pour les 22 requirements détaillés (COCKPIT-01..05, EDITORIAL-01..06, DASHBOARD-01..03, LOGIN-01..02, LEX-01..02, MODAL-01..02, ERR-01..02).
+Voir `.planning/research/SUMMARY.md` pour la recherche STACK + FEATURES + ARCHITECTURE + PITFALLS.
 
 ### Out of Scope
 
@@ -238,4 +239,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — after v2.1 Hardening Sécurité shipped, v2.2 Refonte Visuelle & Cohérence in progress (Phase 1 in PR #256)*
+*Last updated: 2026-04-29 — v2.2 in PR #256 (4 phases shipped, 5 items reportés), v2.3 Layout Refonte & UX Polish in planning*

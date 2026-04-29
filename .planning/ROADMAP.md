@@ -14,7 +14,8 @@
 - ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
 - ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
-- 🚧 **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (in progress) — Bleu République + dark redesign + role markers + layout refonte
+- 🚧 **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (in PR #256, partial — 5 items reportés v2.3)
+- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (planning) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
 
 ## Phases
 
@@ -205,78 +206,93 @@ See `.planning/milestones/v2.1-REQUIREMENTS.md` for full archive (phases moved t
 
 </details>
 
-### 🚧 v2.2 Refonte Visuelle & Cohérence (In Progress)
+<details>
+<summary>🚧 v2.2 Refonte Visuelle & Cohérence (Phases 1-4) — IN PR #256, PARTIAL</summary>
 
-**Milestone Goal:** Faire passer AgVote de "fonctionnellement bon mais émotionnellement neutre" à un produit qui dégage immédiatement le sérieux civique de sa promesse — palette Bleu République harmonisée, dark mode redesigné comme un mode à part entière, identité visuelle par rôle utilisateur (admin/président/opérateur/auditeur/votant/public), refonte des écrans clés (cockpit santé opérateur, vote, PV éditorial), et lexique unifié.
+See `.planning/REQUIREMENTS.md` (will be archived to v2.2-REQUIREMENTS.md when v2.2 closes).
 
-**Scope:** Couches visuelles + cohérence terminologique. Aucune logique métier touchée. Pyramide en 4 phases — base solide d'abord (tokens), puis composants, puis personas, puis layout. Une PR par étage.
+**Phases shipped via PR #256:** 4 (Tokens + Components + Personas + partial Layout/Lexique)
+**Plans:** 4 atomic commits + planning docs
+**Requirements:** 21/26 satisfied
+**Reportés à v2.3:** L01 cockpit santé, L03 PV éditorial, L04 dashboard simplifié, L05 login moins marketing, X01 convention membre/participant/votant
 
-**Strategy:** 1 PR par phase. Pas de stack — chaque PR autonome, mergeable indépendamment de la suivante. Garantie : aucune phase ne doit casser visuellement ce qui existe avant elle.
+</details>
+
+### 🚧 v2.3 Layout Refonte & UX Polish (Planning)
+
+**Milestone Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
+
+**Scope:** Couches visuelles + cohérence terminologique + UX critique. Aucune logique métier touchée. Aucune nouvelle dépendance (Fraunces déjà chargée, ag-modal existant, axe-core intégré).
+
+**Strategy:** 4 phases, build order : cockpit (plus haute valeur) → éditorial → secondaires → lexique+UX (filet de sécurité). 1 PR par phase, base = main une fois v2.2 (PR #256) mergée.
 
 ## Phase Details
 
-### Phase 1: Design Tokens (la fondation)
+### Phase 1: Cockpit Opérateur live
 
-**Goal**: Établir une palette OKLCH cohérente et accessible (light + dark) avec tokens explicites pour chaque concept (couleur sémantique, surface élévation, rôle utilisateur, espacement, typo, radius, shadow), de manière à ce que les phases suivantes n'aient plus à inventer de valeur en dur.
+**Goal**: Refonte de la vue exécution opérateur en y intégrant une barre santé séance unique avec 4 indicateurs persistants (Quorum / SSE / Votants connectés / Résolution), encapsulée dans un custom element `<ag-health-bar>` réutilisable et testable.
 
 **Depends on**: Nothing (first phase)
-**Requirements**: DESIGN-T01, T02, T03, T04, T05, T06, T07, T08
+**Requirements**: COCKPIT-01, COCKPIT-02, COCKPIT-03, COCKPIT-04, COCKPIT-05
 **Success Criteria** (what must be TRUE):
-  1. `--color-primary` est passé à `oklch(0.45 0.180 265)` (Bleu République, #2c468f) ; les sémantiques success/danger/warning/info sont harmonisées (chroma 0.13-0.18, lightness 0.45-0.62) sans tomber dans Material Default.
-  2. Les surfaces light tendent vers blanc sans être blanc pur — `--color-bg = oklch(0.985 0.001 0)` (#fbfbfb), `--color-surface-raised = #ffffff` est le SEUL vrai blanc, réservé aux popovers/modals.
-  3. Le dark mode est designé indépendamment : 5 niveaux d'élévation, hue 260 (légèrement bleutée), saturation des accents réduite ~25%, lightness inversée (primary lift 0.45 → 0.62), aucun noir pur (le plus profond est `oklch(0.13)`).
-  4. 6 tokens `--role-*` définis dans le spectre froid (240°-330°), différenciés par lightness/saturation, jamais par teintes opposées.
-  5. `@media (prefers-color-scheme: dark)` détecte automatiquement la préférence OS via `:where(:root:not([data-theme]))` ; un toggle JS utilisateur explicite reste prioritaire.
-  6. `DESIGN.md` à la racine sert de source de vérité unique ; les templates email_*.php utilisent les hex documentés dans la table de correspondance.
-  7. `tests/Visual/tokens.html` rend la palette en grille avec toggle Light/Dark/Auto pour validation à l'œil.
-**Plans:** 1 plan (livré inline via PR #256)
-**Status**: ✓ Implementation in PR #256 (awaiting review/merge)
+  1. La vue exécution opérateur (`/operator` en mode exec) affiche une barre santé persistante au top, avec 4 indicateurs lisibles à 1m d'écran : Quorum atteint vert / non-atteint rouge avec ratio, SSE état (live/reconnecting/offline), nombre de votants connectés en temps réel, numéro + titre tronqué de la résolution active.
+  2. Quand le quorum bascule en non-atteint pendant la séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) entoure la zone vote — animation supprimée si `prefers-reduced-motion: reduce`.
+  3. Sous 768px viewport, la barre santé devient un stack vertical (4 lignes) plutôt qu'une compression horizontale illisible.
+  4. Le custom element `<ag-health-bar>` est consommé via `<ag-health-bar quorum-met="true" quorum-ratio="156/150" sse-state="live" voters-online="142" motion-number="3" motion-title="..."></ag-health-bar>` ; tous les attributs reactifs.
+  5. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright operator-e2e.
 
-### Phase 2: Components
+### Phase 2: Pages éditoriales
 
-**Goal**: Migrer les composants atomiques (boutons, cards, modales, drawers, forms, toasts) sur les nouveaux tokens et corriger les états sémantiquement creux (notamment le `disabled` qui devient gris uniforme aujourd'hui — il devrait rester teinté primary pour signifier "ce bouton EST primary, mais pas maintenant").
+**Goal**: Donner aux pages à valeur de preuve (`/audit`, `/trust`, `/archives`, `/report`) un traitement éditorial qui dégage immédiatement le sérieux légal — police serif Fraunces sur le contenu, largeur de lecture plafonnée, monospace JetBrains Mono pour les hashes/UUID.
 
-**Depends on**: Phase 1
-**Requirements**: DESIGN-C01, C02, C03, C04, C05
+**Depends on**: Phase 1 (custom element pattern établi)
+**Requirements**: EDITORIAL-01, EDITORIAL-02, EDITORIAL-03, EDITORIAL-04, EDITORIAL-05, EDITORIAL-06
 **Success Criteria** (what must be TRUE):
-  1. Boutons disabled ne sont plus gris monochromes — variant teinté primary (`opacity: 0.45` ou similaire) qui préserve l'identité du bouton.
-  2. Cards utilisent `--radius-lg = 10px` et `--shadow-md` ; modals utilisent `--radius-lg` + `--shadow-lg` ; drawers harmonisés sur les mêmes tokens.
-  3. Forms : `.field-input`, `.field-label`, `.field-error` consistants, helper text avec convention de ponctuation appliquée.
-  4. Toasts utilisent les couleurs sémantiques harmonisées (success vert sénat, danger rouge huissier, etc.) — alignées avec les KPI cards.
-  5. `tests/Visual/components.html` rend tous les composants en grille pour validation visuelle.
+  1. Les 4 pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) wrappent leur contenu dans `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6.
+  2. Les contrôles UI (boutons, filtres, dropdowns) restent en sans-serif (Bricolage Grotesque) — la dualité serif/sans est un signal fort de "ceci est un document légal".
+  3. Les hashes audit, UUID de motions, codes de vote affichés utilisent `var(--font-mono)` (JetBrains Mono).
+  4. Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace.
+  5. Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" qui ouvre un modal montrant la chaîne de hash audit_events.
+  6. Sous 768px, la largeur 720px passe à 100% width avec padding latéral — pas de scroll horizontal.
 
-### Phase 3: Personas (Role Markers + Isolation)
+### Phase 3: Layouts secondaires
 
-**Goal**: Introduire la signature visuelle par rôle — bande 3px persona-colored au top de chaque page authentifiée + badge persona dans la sidebar — pour que l'utilisateur sache instantanément "je suis en mode admin/opérateur/auditeur/etc.". Compléter par des tests d'isolation qui empêchent la régression côté backend (un voteur qui GET /dashboard reçoit 403, etc.).
+**Goal**: Simplifier le dashboard pour qu'il livre l'info principale en un coup d'œil, et alléger la page de login de son orbe animé + de son surplus marketing pour faire de la place au formulaire.
 
-**Depends on**: Phase 1 (tokens --role-*)
-**Requirements**: DESIGN-P01, P02, P03, P04
+**Depends on**: Nothing (peut paralléliser avec Phase 1-2)
+**Requirements**: DASHBOARD-01, DASHBOARD-02, DASHBOARD-03, LOGIN-01, LOGIN-02
 **Success Criteria** (what must be TRUE):
-  1. Une bande de 3px en haut de chaque page authentifiée est colorée par `var(--role-X)` correspondant au rôle de l'utilisateur connecté.
-  2. La sidebar affiche un badge persona (texte "Admin"/"Opérateur"/etc.) avec la couleur correspondante au-dessus du nom utilisateur.
-  3. Attribut `data-persona` posé sur `<body>` côté serveur depuis la session, lu par CSS pour appliquer la couleur via `[data-persona="operator"] .role-bar { background: var(--role-operator); }`.
-  4. `tests/Security/PersonaIsolationTest.php` (nouveau) couvre : voteur sur /dashboard → 403, auditeur sur tout endpoint mutateur → 403, sidebar HTML matche le rôle (pas d'item "Admin" pour un opérateur).
+  1. Le dashboard affiche au plus 3 KPI cards (au lieu de 4). Le 4ᵉ KPI est intégré dans la hero card ou redirigé vers `/analytics` — aucune information perdue.
+  2. Quand une séance est `live` ou `scheduled` dans la prochaine heure, une hero card pleine largeur la met en avant au-dessus des KPI (avec bouton "Reprendre" / "Démarrer").
+  3. Les actions rapides (Créer séance, Importer membres, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` background.
+  4. La page `/login.html` ne contient plus l'orbe animé (suppression de `.login-orb` et de la radial-gradient associée).
+  5. Le panel brand login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — ratio 50/50 ou 40/60 form-dominant.
 
-### Phase 4: Layout & Lexique (le ressenti final)
+### Phase 4: Lexique + UX critique
 
-**Goal**: Refondre les écrans à plus haute valeur émotionnelle — cockpit santé opérateur en exécution, vote screen typographie augmentée, PV/Trust/Archives traitement éditorial Newsreader, dashboard simplifié, login moins marketing — et clore le travail de cohérence avec une convention lexicale unique (membre/participant/votant + valider/verrouiller/archiver) appliquée à tout le copy.
+**Goal**: Cristalliser la convention lexicale unifiée (membre/participant/votant + confirmer/valider/verrouiller-archiver) dans le copy utilisateur, migrer les modales legacy vers `<ag-modal>` (focus trap), et enrichir les top 50 codes ErrorDictionary avec un "next-step" actionnable conformément à la critique Norman.
 
-**Depends on**: Phase 2 (composants), Phase 3 (personas en place)
-**Requirements**: DESIGN-L01, L02, L03, L04, L05, X01, X02, X03, X04
+**Depends on**: Phases 1, 2, 3 (la convention s'applique à un copy stabilisé)
+**Requirements**: LEX-01, LEX-02, MODAL-01, MODAL-02, ERR-01, ERR-02
 **Success Criteria** (what must be TRUE):
-  1. La vue exécution opérateur affiche une **barre santé séance** unique de ~56px en haut avec 4 indicateurs (Quorum / SSE / Votants connectés / Résolution actuelle) — chacun avec sa couleur sémantique persistante. Si un indicateur passe rouge, la barre entière prend une bordure danger animée.
-  2. La page `/vote` adopte une typographie minimum 18px (`--text-lg`), boutons ≥ 96px, palette désaturée (on ne pousse pas à voter Pour visuellement). Aucun élément admin/opérateur visible dans cette vue.
-  3. Les pages `/audit`, `/trust`, `/archives`, et le rendu PV utilisent la police serif Newsreader pour le contenu (largeur de lecture plafonnée à 720px), Inter pour les contrôles UI, JetBrains Mono pour les hashes/UUID/codes.
-  4. Convention lexicale écrite et appliquée : "membre" (inscrit) / "participant" (présent) / "votant" (éligible au scrutin courant) — distinctions sémantiques claires. Idem pour "confirmer" / "valider" / "verrouiller-archiver".
-  5. Test Playwright captures les 6 personas sur les 3 pages clés (/dashboard, /operator, /audit) — 18 screenshots qui doivent visuellement révéler les bandes persona et les différences de densité voulues.
+  1. Aucune modale active dans l'app n'utilise plus la classe legacy `.modal` — toutes migrées vers `<ag-modal>` web component qui fournit Tab + Shift+Tab + Escape natifs.
+  2. Test E2E `tests/e2e/specs/modal-focus-trap.spec.js` ouvre une modale, vérifie que Escape la ferme, et que le focus retourne à l'élément qui l'a ouverte.
+  3. Convention "membre/participant/votant" appliquée par migration cas-par-cas sur `public/*.htmx.html`, `app/Templates/*.php`, `app/Services/ErrorDictionary.php`. Distinction sémantique respectée : "membre du conseil" reste, "membre votant" devient "votant".
+  4. Top 50 codes ErrorDictionary les plus utilisés ont chacun un "next-step" actionnable (au moins une virgule + un verbe d'action en impératif ou subjonctif). Exemple validé : `'already_voted' => 'Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent.'`.
+  5. `tests/Security/UxConventionsTest.php` (nouveau) scanne ErrorDictionary et exige le next-step présent dans chaque message des 50 codes les plus fréquents — filet permanent contre la régression.
 
 </details>
+
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Design Tokens | v2.2 | 1/1 | ◆ In review (PR #256) | - |
-| 2. Components | v2.2 | 0/? | ○ Not started | - |
-| 3. Personas (Role Markers + Isolation) | v2.2 | 0/? | ○ Not started | - |
-| 4. Layout & Lexique | v2.2 | 0/? | ○ Not started | - |
+| 1. Design Tokens | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 2. Components | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 3. Personas | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 4. Layout & Lexique (partial) | v2.2 | 1/1 | ⚠ Partial in PR #256 | - |
+| 1. Cockpit Opérateur live | v2.3 | 0/? | ○ Not started | - |
+| 2. Pages éditoriales | v2.3 | 0/? | ○ Not started | - |
+| 3. Layouts secondaires | v2.3 | 0/? | ○ Not started | - |
+| 4. Lexique + UX critique | v2.3 | 0/? | ○ Not started | - |
