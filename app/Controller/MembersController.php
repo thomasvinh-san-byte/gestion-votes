@@ -202,11 +202,38 @@ final class MembersController extends AbstractController {
                 api_fail('invalid_voting_power', 422, ['detail' => 'voting_power doit etre entre 0.01 et 100.']);
             }
 
+            // F04: a `reason` of >= 20 chars is mandatory whenever voting_power
+            // diverges from the canonical default of 1.0. Forces operators to
+            // document why a non-standard weight is being assigned (statutory
+            // exemption, weighted shares class, etc.).
+            $reason = trim((string) ($input['reason'] ?? ''));
+            if (abs($power - 1.0) > 1e-9 && mb_strlen($reason) < 20) {
+                api_fail('reason_required', 422, [
+                    'detail' => 'Une justification (reason) d\'au moins 20 caracteres est obligatoire pour un voting_power different de 1.',
+                ]);
+            }
+
+            // F04: snapshot current voting_power per member BEFORE the bulk UPDATE,
+            // so the audit trail can record before/after for each individual ID.
+            // Without this, a 200-member bulk produced ONE generic audit row
+            // and no way to reconcile who got which weight.
+            $beforeMap = $memberRepo->listVotingPowersByIds($memberIds, $tenantId);
+
             $affected = $memberRepo->bulkUpdateVotingPower($memberIds, $tenantId, $power);
 
+            foreach ($beforeMap as $memberId => $beforePower) {
+                audit_log('member_voting_power_changed', 'member', $memberId, [
+                    'before' => $beforePower,
+                    'after'  => $power,
+                    'reason' => $reason !== '' ? $reason : null,
+                ]);
+            }
+
+            // Aggregate event preserved for forensics / list views.
             audit_log('members_bulk_update_voting_power', 'tenant', $tenantId, [
-                'member_count'  => count($memberIds),
-                'voting_power'  => $power,
+                'member_count' => count($beforeMap),
+                'voting_power' => $power,
+                'reason'       => $reason !== '' ? $reason : null,
             ]);
         }
 

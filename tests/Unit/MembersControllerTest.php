@@ -502,10 +502,14 @@ class MembersControllerTest extends ControllerTestCase
             'operation'    => 'update_voting_power',
             'member_ids'   => [self::MEMBER_ID],
             'voting_power' => 2.5,
+            'reason'       => 'Statuts art. 12 — actionnaire categorie B', // F04: required for power != 1.0
         ]);
 
         $memberRepo = $this->createMock(MemberRepository::class);
         $memberRepo->method('filterExistingIds')->willReturn([self::MEMBER_ID]);
+        $memberRepo->expects($this->once())->method('listVotingPowersByIds')
+            ->with([self::MEMBER_ID], self::TENANT)
+            ->willReturn([self::MEMBER_ID => 1.0]); // F04: before-snapshot
         $memberRepo->expects($this->once())->method('bulkUpdateVotingPower')
             ->with([self::MEMBER_ID], self::TENANT, 2.5)
             ->willReturn(1);
@@ -518,6 +522,87 @@ class MembersControllerTest extends ControllerTestCase
         $data = $res['body']['data'];
         $this->assertSame('update_voting_power', $data['operation']);
         $this->assertSame(1, $data['affected']);
+    }
+
+    /**
+     * F04: voting_power != 1.0 without a reason → 422 reason_required.
+     */
+    public function testBulkUpdateVotingPowerRequiresReasonForNonOneWeight(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'operation'    => 'update_voting_power',
+            'member_ids'   => [self::MEMBER_ID],
+            'voting_power' => 5.0, // non-default
+            // no reason
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        // No DB write must happen.
+        $memberRepo->expects($this->never())->method('bulkUpdateVotingPower');
+        $memberRepo->expects($this->never())->method('listVotingPowersByIds');
+
+        $this->injectRepos([MemberRepository::class => $memberRepo]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('reason_required', $res['body']['error']);
+    }
+
+    /**
+     * F04: voting_power == 1.0 (the canonical default) does NOT require a reason.
+     * Used by operators to "reset" weighted members back to 1 vote.
+     */
+    public function testBulkUpdateVotingPowerOneNoReasonNeeded(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'operation'    => 'update_voting_power',
+            'member_ids'   => [self::MEMBER_ID],
+            'voting_power' => 1.0,
+            // no reason — accepted because power == default
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('filterExistingIds')->willReturn([self::MEMBER_ID]);
+        $memberRepo->expects($this->once())->method('listVotingPowersByIds')
+            ->willReturn([self::MEMBER_ID => 2.5]);
+        $memberRepo->expects($this->once())->method('bulkUpdateVotingPower')
+            ->willReturn(1);
+
+        $this->injectRepos([MemberRepository::class => $memberRepo]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(200, $res['status']);
+    }
+
+    /**
+     * F04: a too-short reason is rejected just like a missing one.
+     */
+    public function testBulkUpdateVotingPowerRefusesShortReason(): void
+    {
+        $this->setAuth(self::USER_ID, 'operator', self::TENANT);
+        $this->setHttpMethod('POST');
+        $this->injectJsonBody([
+            'operation'    => 'update_voting_power',
+            'member_ids'   => [self::MEMBER_ID],
+            'voting_power' => 5.0,
+            'reason'       => 'Trop court', // 10 chars
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->expects($this->never())->method('bulkUpdateVotingPower');
+
+        $this->injectRepos([MemberRepository::class => $memberRepo]);
+
+        $res = $this->callController(MembersController::class, 'bulk');
+
+        $this->assertSame(422, $res['status']);
+        $this->assertSame('reason_required', $res['body']['error']);
     }
 
     public function testBulkMissingOperationFails(): void
