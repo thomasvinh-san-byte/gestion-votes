@@ -62,10 +62,19 @@ services:
       - key: LOAD_SEED_DATA
         value: "0"
 
+      # --- Hardening v2.1 — F18 default Strict ---
+      - key: SESSION_COOKIE_SAMESITE
+        value: Strict
+
       # --- À configurer manuellement dans le dashboard Render ---
-      # APP_SECRET           → OBLIGATOIRE, min 32 caractères
-      # CORS_ALLOWED_ORIGINS → votre domaine prod
-      # DEFAULT_TENANT_ID    → UUID de votre organisation
+      # APP_SECRET                      → OBLIGATOIRE, min 32 caractères
+      # CORS_ALLOWED_ORIGINS            → votre domaine prod
+      # DEFAULT_TENANT_ID               → UUID de votre organisation
+      # TRUSTED_PROXIES                 → IPs du LB Render (F02 — sinon
+      #                                   X-Forwarded-For ignoré)
+      # MONITOR_WEBHOOK_ALLOWED_HOSTS   → si MONITOR_WEBHOOK_URL défini (F11)
+      # EMAIL_REDIRECT_ALLOWED_HOSTS    → si email tracking actif (F11)
+      # CSP_STRICT_MODE                 → 1 après validation Report-Only (F17)
 
 databases:
   - name: ag-vote-db
