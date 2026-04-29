@@ -1518,11 +1518,15 @@ h4, .h4 {
   box-shadow: var(--shadow-focus);
 }
 
+/* v2.2 (DESIGN-C01): disabled state preserves variant identity.
+   Previously: opacity 0.5 + grayscale 30% → tous les boutons désactivés
+   devenaient indistinguables (gris uniforme). Maintenant chaque variant
+   garde sa teinte sémantique mais avec opacity réduite + cursor not-allowed.
+   "Ce bouton EST primary, mais pas maintenant." */
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
-  filter: grayscale(30%);
 }
 
 .btn[aria-busy="true"] {
@@ -1877,6 +1881,21 @@ h4, .h4 {
   color: var(--color-text-muted);
   font-style: italic;
   font-weight: var(--font-normal);
+}
+
+/* v2.2 (DESIGN-C04): disabled inputs visuellement distincts mais identifiables.
+   Pas de filter:grayscale qui aliéne la teinte — juste un fond sunken et
+   curseur not-allowed. Le label associé (form-label) garde sa lisibilité. */
+.form-input:disabled,
+.form-input[readonly],
+.form-textarea:disabled,
+.form-textarea[readonly],
+.field-input:disabled,
+.field-input[readonly] {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 /* Custom select chevron — replaces browser-default arrow */
