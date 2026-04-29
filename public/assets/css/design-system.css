@@ -18,7 +18,7 @@
 @property --color-primary {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.520 0.195 265);
+  initial-value: oklch(0.45 0.180 265);
 }
 @property --color-primary-text {
   syntax: '<color>';
@@ -28,32 +28,32 @@
 @property --color-surface {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.984 0.003 247);
+  initial-value: oklch(0.995 0.001 0);
 }
 @property --color-bg {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.929 0.013 255);
+  initial-value: oklch(0.985 0.001 0);
 }
 @property --color-text {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.372 0.044 257);
+  initial-value: oklch(0.20 0.010 257);
 }
 @property --color-border {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.704 0.04 256);
+  initial-value: oklch(0.85 0.005 257);
 }
 @property --color-danger {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.510 0.175 25);
+  initial-value: oklch(0.50 0.165 25);
 }
 @property --color-success {
   syntax: '<color>';
   inherits: true;
-  initial-value: oklch(0.500 0.135 155);
+  initial-value: oklch(0.50 0.130 165);
 }
 
 @layer base, components, v4;
@@ -324,65 +324,65 @@ table {
      Hex primary, oklch not used here for max browser compat.
      ═══════════════════════════════════════════════════════════════════════════ */
 
-  --color-bg:             var(--slate-200);  /* oklch(0.929 0.013 255) */
-  --color-bg-subtle:      var(--slate-300);  /* oklch(0.869 0.022 252) */
-  --color-surface-alt:    var(--slate-300);  /* oklch(0.869 0.022 252) — Wireframe --surface-alt: one step below surface */
-  --color-surface:        var(--slate-50);   /* oklch(0.984 0.003 247) */
-  --color-surface-raised: oklch(1 0 0);      /* white — no primitive */
-  --color-surface-overlay: oklch(0.984 0.003 247 / 0.95);  /* slate-50 with alpha */
-  --color-glass:           oklch(0.984 0.003 247 / 0.95);  /* slate-50 with alpha */
+  --color-bg:             oklch(0.985 0.001 0);   /* v2.2 — neutre tendant vers blanc, pas blanc pur (#fbfbfb) */
+  --color-bg-subtle:      oklch(0.975 0.001 0);   /* v2.2 — sunken, sidebars (#f8f8f8) */
+  --color-surface-alt:    oklch(0.965 0.002 0);   /* v2.2 — overlay backdrop (#f5f5f5) */
+  --color-surface:        oklch(0.995 0.001 0);   /* v2.2 — raised: cards, dropdowns (#fdfdfd) */
+  --color-surface-raised: oklch(1 0 0);           /* white — modal content, popovers (le seul blanc pur) */
+  --color-surface-overlay: oklch(0.985 0.001 0 / 0.95);
+  --color-glass:           oklch(0.985 0.001 0 / 0.95);
 
-  --color-text:           var(--slate-700);  /* oklch(0.372 0.044 257) */
-  --color-text-dark:      var(--slate-900);  /* oklch(0.208 0.042 265) */
-  --color-text-secondary: var(--slate-900);  /* oklch(0.208 0.042 265) */
-  --color-text-muted:     oklch(0.340 0.030 257);  /* was hue 82 — shifted to cool slate hue for AA compliance */
-  --color-text-light:     var(--slate-500);  /* oklch(0.554 0.046 257) */
-  --color-text-inverse:   oklch(1 0 0);      /* white */
-  --color-text-disabled:  var(--slate-400);  /* oklch(0.704 0.04 256) */
+  --color-text:           oklch(0.20 0.010 257);  /* v2.2 — corps principal */
+  --color-text-dark:      oklch(0.15 0.010 257);  /* v2.2 — titres */
+  --color-text-secondary: oklch(0.30 0.010 257);  /* v2.2 — sous-titres */
+  --color-text-muted:     oklch(0.42 0.010 257);  /* v2.2 — métas (AA sur fond clair) */
+  --color-text-light:     oklch(0.55 0.015 257);  /* v2.2 — helpers, hints */
+  --color-text-inverse:   oklch(1 0 0);           /* white */
+  --color-text-disabled:  oklch(0.70 0.008 257);  /* v2.2 — inactifs */
 
-  --color-border:        var(--slate-400);  /* oklch(0.704 0.04 256) */
-  --color-border-alpha:  oklch(0 0 0 / 0.08);  /* alpha-based border for adaptive depth on cards/panels */
-  --color-border-subtle: oklch(0.929 0.013 253);  /* between slate-200 and slate-300, no exact primitive */
-  --color-border-strong: var(--slate-500);  /* oklch(0.554 0.046 257) */
-  --color-border-dash:   var(--slate-500);  /* oklch(0.554 0.046 257) */
-  --color-border-focus:  oklch(0.480 0.195 265 / 0.50);  /* aligned with --color-primary L* (01-03) */
+  --color-border:        oklch(0.85 0.005 257);  /* v2.2 — bordures standards */
+  --color-border-alpha:  oklch(0 0 0 / 0.08);
+  --color-border-subtle: oklch(0.92 0.003 257);  /* v2.2 — séparateurs faibles */
+  --color-border-strong: oklch(0.70 0.010 257);  /* v2.2 — emphase */
+  --color-border-dash:   oklch(0.70 0.010 257);
+  --color-border-focus:  oklch(0.45 0.180 265 / 0.50);  /* aligned with --color-primary L* */
 
-  --color-primary:        oklch(0.480 0.195 265);  /* was var(--blue-600) oklch(0.520) — bumped darker for white-on-primary AA (01-03) */
+  --color-primary:        oklch(0.45 0.180 265);  /* v2.2 — Bleu République (#2c468f) */
   --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, black);
   --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, black);
-  --color-primary-subtle: var(--blue-50);     /* oklch(0.960 0.018 265) */
-  --color-primary-muted:  oklch(0.480 0.195 265 / 0.12);  /* aligned with --color-primary L* (01-03) */
-  --color-primary-glow:   oklch(0.480 0.195 265 / 0.12);  /* aligned with --color-primary L* (01-03) */
-  --color-primary-text:   oklch(1 0 0);       /* white */
-  --color-primary-on-subtle: oklch(0.440 0.190 265);  /* darker blue for text/chip on primary-subtle bg (01-01) */
+  --color-primary-subtle: oklch(0.93 0.025 265);   /* v2.2 — primary-100 (#dde2f1) */
+  --color-primary-muted:  oklch(0.45 0.180 265 / 0.12);
+  --color-primary-glow:   oklch(0.45 0.180 265 / 0.12);
+  --color-primary-text:   oklch(1 0 0);
+  --color-primary-on-subtle: oklch(0.36 0.165 265);  /* primary-600 sur subtle */
   --color-text-on-primary-muted: oklch(1 0 0 / 0.85);
 
-  --color-success:        var(--green-600);   /* oklch(0.500 0.135 155) */
+  --color-success:        oklch(0.50 0.130 165);   /* v2.2 — vert sénat (légère teinte bleue) */
   --color-success-hover:  color-mix(in oklch, var(--color-success) 88%, black);
-  --color-success-subtle: var(--green-50);    /* oklch(0.968 0.020 155) */
-  --color-success-border: oklch(0.750 0.100 155);  /* #A3E8C1 approx */
-  --color-success-text:   oklch(0.350 0.135 155);  /* was var(--green-600) — dark for AA on success-subtle and warm bgs (01-03) */
-  --color-success-on-subtle: oklch(0.350 0.135 155);  /* dark green for text on success-subtle/warm backgrounds (01-03) */
-  --color-success-glow:   oklch(0.500 0.135 155 / 0.60);
+  --color-success-subtle: oklch(0.97 0.018 165);
+  --color-success-border: oklch(0.75 0.100 165);
+  --color-success-text:   oklch(0.35 0.120 165);
+  --color-success-on-subtle: oklch(0.35 0.120 165);
+  --color-success-glow:   oklch(0.50 0.130 165 / 0.60);
 
-  --color-warning:        var(--amber-600);   /* oklch(0.590 0.115 60) */
+  --color-warning:        oklch(0.62 0.130 75);    /* v2.2 — ocre archive (vers brun, pas orange) */
   --color-warning-hover:  color-mix(in oklch, var(--color-warning) 88%, black);
-  --color-warning-subtle: var(--amber-50);    /* oklch(0.978 0.022 90) */
-  --color-warning-border: oklch(0.860 0.090 80);  /* #F5D490 approx */
-  --color-warning-text:   var(--amber-600);   /* oklch(0.590 0.115 60) */
+  --color-warning-subtle: oklch(0.97 0.022 80);
+  --color-warning-border: oklch(0.86 0.090 80);
+  --color-warning-text:   oklch(0.42 0.110 60);
 
-  --color-danger:        var(--red-600);   /* oklch(0.510 0.175 25) */
+  --color-danger:        oklch(0.50 0.165 25);    /* v2.2 — rouge huissier (moins criard) */
   --color-danger-hover:  color-mix(in oklch, var(--color-danger) 88%, black);
-  --color-danger-subtle: var(--red-50);    /* oklch(0.975 0.015 25) */
-  --color-danger-border: oklch(0.800 0.080 25);  /* #F4BFBF approx */
-  --color-danger-text:   oklch(0.430 0.175 25);  /* was var(--red-600) — darker for AA on warm surfaces (01-03) */
-  --color-danger-glow:   oklch(0.510 0.175 25 / 0.14);
-  --color-danger-focus:  oklch(0.510 0.175 25 / 0.35);
+  --color-danger-subtle: oklch(0.975 0.015 25);
+  --color-danger-border: oklch(0.80 0.080 25);
+  --color-danger-text:   oklch(0.42 0.165 25);
+  --color-danger-glow:   oklch(0.50 0.165 25 / 0.14);
+  --color-danger-focus:  oklch(0.50 0.165 25 / 0.35);
 
-  --color-info:        var(--blue-600);   /* oklch(0.520 0.195 265) */
+  --color-info:        oklch(0.55 0.140 230);   /* v2.2 — bleu instruction (cousin du primary) */
   --color-info-hover:  color-mix(in oklch, var(--color-info) 88%, black);
-  --color-info-subtle: var(--blue-50);    /* oklch(0.960 0.018 265) */
-  --color-info-text:   var(--blue-600);   /* oklch(0.520 0.195 265) */
+  --color-info-subtle: oklch(0.97 0.018 230);
+  --color-info-text:   oklch(0.35 0.130 230);
 
   --color-purple:        var(--purple-600);  /* oklch(0.490 0.170 298) */
   --color-purple-subtle: var(--purple-50);   /* oklch(0.965 0.022 298) */
@@ -620,65 +620,83 @@ table {
   --toast-accent-width: 3px;
   --stepper-dot-size: 28px;
   --stepper-connector-height: 2px;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     v2.2 — ROLE TOKENS (user identity, distinct from --persona-* sections)
+     Used by the 3px persona bar at top + sidebar role badge.
+     All in the cool spectrum (240°-330°) for visual coherence —
+     differentiation by lightness/saturation, not opposed hues.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --role-admin:     oklch(0.42 0.150 305);  /* violet profond — autorité (#5d3d8a) */
+  --role-president: oklch(0.45 0.140 240);  /* bleu-acier — gravité (#3a5283) */
+  --role-operator:  oklch(0.50 0.180 265);  /* bleu primaire — action (default) (#3850a0) */
+  --role-auditor:   oklch(0.52 0.040 255);  /* bleu cendré désaturé — impartialité (#7a818f) */
+  --role-voter:     oklch(0.55 0.150 280);  /* indigo — engagement (#7261b8) */
+  --role-public:    oklch(0.58 0.080 320);  /* mauve doux — distance (#a285a0) */
 }
 
 /* ─── Dark Theme — Slate ─── */
 [data-theme="dark"] {
-  --color-bg:             oklch(0.090 0.008 220);   /* deep slate bg */
-  --color-bg-subtle:      oklch(0.130 0.010 220);
-  --color-surface:        oklch(0.115 0.009 220);
-  --color-surface-alt:    oklch(0.130 0.010 220);
-  --color-surface-raised: oklch(0.145 0.011 220);
-  --color-surface-overlay: oklch(0.115 0.009 220 / 0.96);
-  --color-glass:           oklch(0.115 0.009 220 / 0.96);
+  /* ═══════════════════════════════════════════════════════════════════════════
+     v2.2 — DARK MODE redesign
+     5 surface elevations (overlay → sunken → base → raised → floating).
+     Hue 260 (légèrement bleutée) — un dark "neutre pur" devient verdâtre par contraste.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  --color-bg:             oklch(0.20 0.015 260);   /* v2.2 — fond principal "encre fine" (#1f2531) */
+  --color-bg-subtle:      oklch(0.16 0.014 260);   /* v2.2 — sidebar (#181d27) */
+  --color-surface:        oklch(0.24 0.018 260);   /* v2.2 — cards, dropdowns (#262e3d) */
+  --color-surface-alt:    oklch(0.16 0.014 260);   /* v2.2 — sunken */
+  --color-surface-raised: oklch(0.28 0.020 260);   /* v2.2 — modals, popovers (#2e3749) */
+  --color-surface-overlay: oklch(0.13 0.012 260 / 0.96);  /* backdrop modal le plus profond */
+  --color-glass:           oklch(0.20 0.015 260 / 0.95);
 
-  --color-text:          oklch(0.640 0.018 265);  /* was #7A8499 — cool for contrast */
-  --color-text-dark:     oklch(0.908 0.015 265);  /* was #ECF0FA */
-  --color-text-secondary: oklch(0.908 0.015 265);
-  --color-text-muted:    oklch(0.780 0.020 220);  /* WCAG AA on dark surface, cool slate hue */
-  --color-text-light:    oklch(0.350 0.012 265);  /* was #38404E */
-  --color-text-inverse:  oklch(0.090 0.008 220);   /* matches dark bg */
-  --color-text-disabled: oklch(0.330 0.012 260);  /* was #384050 */
+  --color-text:          oklch(0.95 0.005 257);   /* v2.2 — "ivoire" pas blanc pur (#f0f1f4) */
+  --color-text-dark:     oklch(0.98 0.003 257);   /* titres */
+  --color-text-secondary: oklch(0.75 0.012 257);  /* v2.2 — sous-titres */
+  --color-text-muted:    oklch(0.65 0.015 257);   /* AA sur fond sombre */
+  --color-text-light:    oklch(0.55 0.020 257);   /* v2.2 — helpers */
+  --color-text-inverse:  oklch(0.20 0.010 257);   /* matches text-primary light */
+  --color-text-disabled: oklch(0.40 0.020 257);   /* v2.2 — inactifs */
 
-  --color-border:        oklch(0.210 0.010 220);
-  --color-border-alpha:  oklch(1 0 0 / 0.08);   /* alpha-based border — white-based for dark backgrounds */
-  --color-border-subtle: oklch(0.175 0.009 220);
-  --color-border-strong: oklch(0.260 0.012 220);
-  --color-border-dash:   oklch(0.260 0.012 220);
-  --color-border-focus:  oklch(0.680 0.130 265 / 0.50);  /* was rgba(61,126,248,0.50) */
+  --color-border:        oklch(0.36 0.015 260);   /* v2.2 — bordures standards (#424a5b) */
+  --color-border-alpha:  oklch(1 0 0 / 0.08);
+  --color-border-subtle: oklch(0.30 0.012 260);   /* v2.2 — séparateurs faibles (#353c4a) */
+  --color-border-strong: oklch(0.45 0.020 260);   /* v2.2 — focus rings (#555e72) */
+  --color-border-dash:   oklch(0.45 0.020 260);
+  --color-border-focus:  oklch(0.62 0.140 265 / 0.50);
 
-  --color-primary:        var(--blue-400);          /* oklch(0.680 0.130 265) — was #3D7EF8 */
-  --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, white);  /* mix toward WHITE in dark mode */
+  --color-primary:        oklch(0.62 0.140 265);   /* v2.2 — lift L 0.45→0.62 + désat 0.180→0.140 (#6e8be5) */
+  --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, white);  /* hover mixé vers blanc (inverse du light) */
   --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, white);
-  --color-primary-subtle: oklch(0.680 0.130 265 / 0.12);  /* was rgba(61,126,248,0.12) */
-  --color-primary-muted:  oklch(0.680 0.130 265 / 0.12);
-  --color-primary-glow:   oklch(0.680 0.130 265 / 0.16);  /* was rgba(61,126,248,0.16) */
-  --color-primary-text:   oklch(0.090 0.008 220);   /* dark text on light primary button */
-  --color-primary-on-subtle: oklch(0.820 0.100 265);  /* lighter blue for text/chip on primary-subtle dark bg (01-01) */
+  --color-primary-subtle: oklch(0.62 0.140 265 / 0.15);
+  --color-primary-muted:  oklch(0.62 0.140 265 / 0.12);
+  --color-primary-glow:   oklch(0.62 0.140 265 / 0.18);
+  --color-primary-text:   oklch(0.13 0.012 260);   /* dark text on light primary button */
+  --color-primary-on-subtle: oklch(0.82 0.100 265);
 
-  --color-success:        var(--green-500);         /* oklch(0.580 0.155 155) — was #2DC87A */
+  --color-success:        oklch(0.65 0.110 165);   /* v2.2 — vert sénat lifté (#5fb892) */
   --color-success-hover:  color-mix(in oklch, var(--color-success) 88%, white);
-  --color-success-subtle: oklch(0.580 0.155 155 / 0.08);  /* was rgba(45,200,122,0.08) */
-  --color-success-border: oklch(0.580 0.155 155 / 0.28);
-  --color-success-text:   oklch(0.650 0.155 155);  /* was var(--green-500) — lighter for AA on dark success-subtle bg (01-03) */
-  --color-success-on-subtle: oklch(0.650 0.155 155);  /* lighter green for text on dark success-subtle backgrounds (01-03) */
+  --color-success-subtle: oklch(0.65 0.110 165 / 0.12);
+  --color-success-border: oklch(0.65 0.110 165 / 0.30);
+  --color-success-text:   oklch(0.72 0.110 165);
+  --color-success-on-subtle: oklch(0.72 0.110 165);
 
-  --color-warning:        var(--amber-400);         /* oklch(0.740 0.130 68) — was #EDA030 */
+  --color-warning:        oklch(0.75 0.110 75);    /* v2.2 — ocre archive lifté (#d8b25c) */
   --color-warning-hover:  color-mix(in oklch, var(--color-warning) 88%, white);
-  --color-warning-subtle: oklch(0.740 0.130 68 / 0.08);
-  --color-warning-border: oklch(0.740 0.130 68 / 0.28);
-  --color-warning-text:   var(--amber-400);
+  --color-warning-subtle: oklch(0.75 0.110 75 / 0.12);
+  --color-warning-border: oklch(0.75 0.110 75 / 0.30);
+  --color-warning-text:   oklch(0.80 0.110 75);
 
-  --color-danger:        var(--red-500);            /* oklch(0.600 0.185 25) — was #E85454 */
+  --color-danger:        oklch(0.65 0.140 25);    /* v2.2 — rouge huissier lifté (#d97a64) */
   --color-danger-hover:  color-mix(in oklch, var(--color-danger) 88%, white);
-  --color-danger-subtle: oklch(0.600 0.185 25 / 0.09);
-  --color-danger-border: oklch(0.600 0.185 25 / 0.28);
-  --color-danger-text:   var(--red-500);
+  --color-danger-subtle: oklch(0.65 0.140 25 / 0.12);
+  --color-danger-border: oklch(0.65 0.140 25 / 0.30);
+  --color-danger-text:   oklch(0.72 0.140 25);
 
-  --color-info:        var(--blue-400);
+  --color-info:        oklch(0.68 0.120 230);    /* v2.2 — bleu instruction lifté (#5ea3d4) */
   --color-info-hover:  color-mix(in oklch, var(--color-info) 88%, white);
-  --color-info-subtle: oklch(0.680 0.130 265 / 0.12);
-  --color-info-text:   var(--blue-400);
+  --color-info-subtle: oklch(0.68 0.120 230 / 0.12);
+  --color-info-text:   oklch(0.75 0.120 230);
 
   --color-purple:        var(--purple-500);         /* oklch(0.580 0.175 298) — was #8C72F8 */
   --color-purple-subtle: oklch(0.580 0.175 298 / 0.10);
@@ -758,6 +776,86 @@ table {
   --color-warning-tint-5:  color-mix(in oklch, var(--color-warning) 5%, var(--color-surface));
   --color-primary-shade-10: color-mix(in oklch, var(--color-primary) 90%, var(--color-surface));
   --color-surface-elevated: color-mix(in oklch, var(--color-surface) 95%, var(--color-primary));
+
+  /* v2.2 — ROLE TOKENS dark (lift L by ~0.10-0.18, hue conserved from light) */
+  --role-admin:     oklch(0.60 0.130 305);  /* violet plus clair */
+  --role-president: oklch(0.62 0.120 240);  /* bleu acier plus clair */
+  --role-operator:  oklch(0.65 0.150 265);  /* le brand lifté */
+  --role-auditor:   oklch(0.65 0.040 255);  /* gris bleuté lifté */
+  --role-voter:     oklch(0.68 0.130 280);  /* indigo plus clair */
+  --role-public:    oklch(0.70 0.080 320);  /* mauve plus clair */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v2.2 — NATIVE prefers-color-scheme
+   Auto-detect OS dark mode preference. Activated only when no explicit
+   [data-theme] attribute is set on <html> (which overrides via JS toggle).
+   :where() keeps specificity at (0,0,0) so [data-theme="dark"] always wins.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :where(:root:not([data-theme="light"]):not([data-theme="dark"])) {
+    --color-bg:             oklch(0.20 0.015 260);
+    --color-bg-subtle:      oklch(0.16 0.014 260);
+    --color-surface:        oklch(0.24 0.018 260);
+    --color-surface-alt:    oklch(0.16 0.014 260);
+    --color-surface-raised: oklch(0.28 0.020 260);
+    --color-surface-overlay: oklch(0.13 0.012 260 / 0.96);
+    --color-glass:           oklch(0.20 0.015 260 / 0.95);
+
+    --color-text:          oklch(0.95 0.005 257);
+    --color-text-dark:     oklch(0.98 0.003 257);
+    --color-text-secondary: oklch(0.75 0.012 257);
+    --color-text-muted:    oklch(0.65 0.015 257);
+    --color-text-light:    oklch(0.55 0.020 257);
+    --color-text-inverse:  oklch(0.20 0.010 257);
+    --color-text-disabled: oklch(0.40 0.020 257);
+
+    --color-border:        oklch(0.36 0.015 260);
+    --color-border-alpha:  oklch(1 0 0 / 0.08);
+    --color-border-subtle: oklch(0.30 0.012 260);
+    --color-border-strong: oklch(0.45 0.020 260);
+    --color-border-dash:   oklch(0.45 0.020 260);
+    --color-border-focus:  oklch(0.62 0.140 265 / 0.50);
+
+    --color-primary:        oklch(0.62 0.140 265);
+    --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, white);
+    --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, white);
+    --color-primary-subtle: oklch(0.62 0.140 265 / 0.15);
+    --color-primary-muted:  oklch(0.62 0.140 265 / 0.12);
+    --color-primary-glow:   oklch(0.62 0.140 265 / 0.18);
+    --color-primary-text:   oklch(0.13 0.012 260);
+    --color-primary-on-subtle: oklch(0.82 0.100 265);
+
+    --color-success:        oklch(0.65 0.110 165);
+    --color-success-hover:  color-mix(in oklch, var(--color-success) 88%, white);
+    --color-success-subtle: oklch(0.65 0.110 165 / 0.12);
+    --color-success-border: oklch(0.65 0.110 165 / 0.30);
+    --color-success-text:   oklch(0.72 0.110 165);
+
+    --color-warning:        oklch(0.75 0.110 75);
+    --color-warning-hover:  color-mix(in oklch, var(--color-warning) 88%, white);
+    --color-warning-subtle: oklch(0.75 0.110 75 / 0.12);
+    --color-warning-border: oklch(0.75 0.110 75 / 0.30);
+    --color-warning-text:   oklch(0.80 0.110 75);
+
+    --color-danger:        oklch(0.65 0.140 25);
+    --color-danger-hover:  color-mix(in oklch, var(--color-danger) 88%, white);
+    --color-danger-subtle: oklch(0.65 0.140 25 / 0.12);
+    --color-danger-border: oklch(0.65 0.140 25 / 0.30);
+    --color-danger-text:   oklch(0.72 0.140 25);
+
+    --color-info:        oklch(0.68 0.120 230);
+    --color-info-hover:  color-mix(in oklch, var(--color-info) 88%, white);
+    --color-info-subtle: oklch(0.68 0.120 230 / 0.12);
+    --color-info-text:   oklch(0.75 0.120 230);
+
+    --role-admin:     oklch(0.60 0.130 305);
+    --role-president: oklch(0.62 0.120 240);
+    --role-operator:  oklch(0.65 0.150 265);
+    --role-auditor:   oklch(0.65 0.040 255);
+    --role-voter:     oklch(0.68 0.130 280);
+    --role-public:    oklch(0.70 0.080 320);
+  }
 }
 
 /* ── Global Scrollbar ── */
