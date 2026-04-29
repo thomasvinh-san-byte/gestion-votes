@@ -26,10 +26,12 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
-Branch: feat/v2.2-design-tokens (v2.3 bootstrap docs ajoutés à la même branche que v2.2 PR #256)
-Phase: 0 of 4 — milestone initialized, ready_to_plan Phase 1
+Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
+Phase: 0 of 4 — milestone initialized + UX review applied (29 requirements), ready_to_plan Phase 1
 
 Progress: [..........] 0% (planning)
+
+**Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
 ## Accumulated Context
 
@@ -51,12 +53,12 @@ Recent decisions affecting v2.2:
 
 ### Pending Todos
 
-- Review + merge PR #256 (Phase 1 Design Tokens)
-- Planifier Phase 2 (Components) via /gsd:plan-phase 2
+- Planifier v2.3 Phase 1 (Cockpit Opérateur live) via /gsd:plan-phase 1 — sur base requirements amendée (COCKPIT-01..07)
+- Décider si la branche d'exécution sera `feat/v2.3-cockpit-operateur` (recommandé : 1 PR par phase) ou continuer sur `claude/gsd-ux-review-YG5K0`
 
 ### Blockers/Concerns
 
-None.
+None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 
 ### Quick Tasks Completed
 
@@ -67,7 +69,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-29
-Stopped at: v2.2 Phase 1 (Design Tokens) shipped via PR #256, milestone GSD bootstrappé sur la même branche
+Stopped at: v2.2 entièrement mergée dans main (PR #256 = edd7079). v2.3 bootstrap + UX review (Zhuo/Norman) appliquée — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi, screenshot panel gate ajouté.
 Resume file: None
 
-**Next action:** Une fois PR #256 mergée, créer branche `feat/v2.3-cockpit-operateur` depuis main puis `/gsd:plan-phase 1` pour Cockpit Opérateur live (COCKPIT-01..05).
+**Next action:** `/gsd:plan-phase 1` pour Cockpit Opérateur live (COCKPIT-01..07). Recommandation : créer `feat/v2.3-cockpit-operateur` depuis main avant de planifier — la branche `claude/gsd-ux-review-YG5K0` reste réservée à la revue (1 commit, prête à merger ou cherry-pick).
