@@ -953,6 +953,34 @@
   flex-shrink: 0;
 }
 
+/* =============================================================================
+   PHASE 3 — VOTE COUNTER ANIMATIONS (ANIM-01, ANIM-02, ANIM-03)
+   - Bump keyframe: applied as one-shot class .op-vote-counter--bump on the
+     parent .op-vote-counter cell when its counter increments via SSE.
+   - Counter numeric tween: handled in JS (operator-exec.js animateVoteCounter)
+     via vanilla requestAnimationFrame — no CSS animation on the number itself.
+   - Bar slide (.op-bar-fill, line ~935): existing rule
+     `transition: width 0.4s var(--ease-default)` already glides the bars
+     when JS updates --bar-pct. No change required here for ANIM-02.
+   - Reduced-motion (ANIM-03): the global rule in design-system.css:3059-3068
+     forces animation-duration and transition-duration to 0.01ms for *,
+     *::before, *::after — this neutralizes the bump keyframe and the bar
+     transition automatically. The JS guard PREFERS_REDUCED_MOTION in
+     operator-exec.js handles the counter tween (which is JS-driven, not CSS).
+   ============================================================================= */
+
+@keyframes opVoteCounterBump {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.op-vote-counter--bump {
+  animation: opVoteCounterBump var(--duration-deliberate, 300ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+  /* transform-origin defaults to center — correct for the cell. */
+  /* Class is removed by JS on `animationend` (no setTimeout cleanup). */
+}
+
 /* Exec vote title (subtitle under VOTE EN COURS badge) */
 .exec-vote-title {
   font-size: var(--text-base);

@@ -198,6 +198,40 @@
     _voteTweenRafs.set(el, rafId);
   }
 
+  /**
+   * Add the .op-vote-counter--bump class to the .op-vote-counter ancestor of
+   * the given counter element. The class is removed automatically on
+   * `animationend` — no setTimeout cleanup, no re-flow on every frame.
+   *
+   * Idempotency: if the bump class is already present (rapid SSE burst),
+   * remove it and force-reflow the parent before re-adding so the keyframe
+   * restarts (browsers collapse identical class adds otherwise — UI-SPEC
+   * "Coalescing rule for the bump pulse").
+   *
+   * @param {HTMLElement} counterEl  The .op-vote-count span (child of cell).
+   */
+  function _bumpVoteCounter(counterEl) {
+    if (!counterEl) return;
+    var cell = counterEl.closest ? counterEl.closest('.op-vote-counter') : null;
+    if (!cell) return;
+
+    if (cell.classList.contains('op-vote-counter--bump')) {
+      // Force reflow so the second pulse is visible.
+      cell.classList.remove('op-vote-counter--bump');
+      // Reading offsetWidth flushes pending style/layout — required to
+      // restart the keyframe in the next frame.
+      void cell.offsetWidth;
+    }
+    cell.classList.add('op-vote-counter--bump');
+
+    // One-shot cleanup on animationend (handles both natural completion AND
+    // reduced-motion 0.01ms case). { once: true } removes the listener
+    // automatically — no leaked handlers across many votes.
+    cell.addEventListener('animationend', function onBumpEnd() {
+      cell.classList.remove('op-vote-counter--bump');
+    }, { once: true });
+  }
+
   // =========================================================================
   // QUORUM WARNING MODAL (OPR-09)
   // =========================================================================
@@ -734,7 +768,8 @@
     refreshFocusQuorum();
   }
 
-  function refreshExecVote() {
+  function refreshExecVote(opts) {
+    opts = opts || {};
     var titleEl = document.getElementById('execVoteTitle');
     var forEl = document.getElementById('execVoteFor');
     var againstEl = document.getElementById('execVoteAgainst');
@@ -764,9 +799,34 @@
         else if (v === 'abstain') ab++;
       });
 
-      if (forEl) forEl.textContent = fc;
-      if (againstEl) againstEl.textContent = ac;
-      if (abstainEl) abstainEl.textContent = ab;
+      // Phase 3: animate counters (ANIM-01) with first-render guard (D-5) and
+      // silent suppression for snapshot/catch-up paths (D-6).
+      var motionId = O.currentOpenMotion ? O.currentOpenMotion.id : null;
+      var animReady = motionId ? _activeVoteAnimReady.get(motionId) === true : false;
+      var silent = !!opts.silent || !animReady;
+
+      // Read previous values BEFORE writing — needed for increment detection
+      // (bump pulse only fires on delta > 0 per UI-SPEC).
+      var prevFor = forEl ? (parseInt(forEl.textContent, 10) || 0) : 0;
+      var prevAgainst = againstEl ? (parseInt(againstEl.textContent, 10) || 0) : 0;
+      var prevAbstain = abstainEl ? (parseInt(abstainEl.textContent, 10) || 0) : 0;
+
+      if (forEl) animateVoteCounter(forEl, prevFor, fc, { silent: silent });
+      if (againstEl) animateVoteCounter(againstEl, prevAgainst, ac, { silent: silent });
+      if (abstainEl) animateVoteCounter(abstainEl, prevAbstain, ab, { silent: silent });
+
+      // Bump pulse on incremented cells only (delta > 0). Suppressed when silent
+      // OR when reduced-motion is active (the global CSS rule neutralizes the
+      // keyframe to 0.01ms anyway, but skipping the class add saves a reflow).
+      if (!silent && !PREFERS_REDUCED_MOTION.matches) {
+        if (forEl && fc > prevFor) _bumpVoteCounter(forEl);
+        if (againstEl && ac > prevAgainst) _bumpVoteCounter(againstEl);
+        if (abstainEl && ab > prevAbstain) _bumpVoteCounter(abstainEl);
+      }
+
+      // Mark this motion as having had its first render — subsequent SSE
+      // refreshes will animate from now on (D-5).
+      if (motionId && !animReady) _activeVoteAnimReady.set(motionId, true);
 
       var total = fc + ac + ab;
       var pctFor = total > 0 ? Math.round((fc / total) * 100) : 0;
