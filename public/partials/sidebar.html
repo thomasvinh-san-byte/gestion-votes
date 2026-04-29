@@ -123,6 +123,13 @@
   </div>
 </div>
 
+<!-- v2.2 (DESIGN-P02): persona badge — colored by var(--role-X) via body[data-persona="X"] CSS rule. Visible uniquement quand l'utilisateur est connecté (guest → display:none). -->
+<div class="sidebar-persona" aria-live="polite">
+  <span class="persona-badge" id="personaBadge">
+    <span class="persona-label">%%PERSONA_LABEL%%</span>
+  </span>
+</div>
+
 <!-- Footer: theme toggle + version -->
 <div class="sidebar-footer">
   <button class="nav-item" id="btnToggleTheme" type="button" aria-label="Basculer le th&egrave;me clair/sombre">

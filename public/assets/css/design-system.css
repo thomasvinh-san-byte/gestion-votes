@@ -5537,3 +5537,78 @@ ag-pdf-viewer[mode="panel"] {
     .wiz-step-body { view-transition-name: wiz-step; }
   }
 }
+
+/* =============================================================================
+   v2.2 (Phase 3) — ROLE MARKERS
+   ============================================================================
+   Une fine bande de 3px en haut de chaque page authentifiée + un badge dans
+   la sidebar identifient le rôle utilisateur courant. Permanente, discrète,
+   immédiatement reconnaissable.
+
+   Activation : <body data-persona="X"> où X ∈ {admin, president, operator,
+   auditor, voter, public, guest}. PageController injecte automatiquement
+   depuis la session.
+
+   Pages publiques (vote.htmx.html sans login, login.html, index.html)
+   reçoivent data-persona="guest" — bande masquée volontairement.
+   ========================================================================== */
+
+body[data-persona]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 1000;
+  pointer-events: none;
+  background: var(--role-default, transparent);
+  transition: background 0.2s ease;
+}
+
+body[data-persona="admin"]::before     { background: var(--role-admin); }
+body[data-persona="president"]::before { background: var(--role-president); }
+body[data-persona="operator"]::before  { background: var(--role-operator); }
+body[data-persona="auditor"]::before   { background: var(--role-auditor); }
+body[data-persona="voter"]::before     { background: var(--role-voter); }
+body[data-persona="public"]::before    { background: var(--role-public); }
+body[data-persona="guest"]::before     { display: none; }
+
+/* Sidebar persona badge — placé au-dessus du nom utilisateur. Le HTML est
+   ajouté dans partials/sidebar.html ; ici on style. */
+.persona-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  font-size: var(--text-2xs, 11px);
+  font-weight: var(--font-semibold, 600);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: white;
+  background: var(--role-default, var(--color-text-muted));
+  user-select: none;
+}
+
+.persona-badge::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+body[data-persona="admin"]     .persona-badge { background: var(--role-admin); }
+body[data-persona="president"] .persona-badge { background: var(--role-president); }
+body[data-persona="operator"]  .persona-badge { background: var(--role-operator); }
+body[data-persona="auditor"]   .persona-badge { background: var(--role-auditor); }
+body[data-persona="voter"]     .persona-badge { background: var(--role-voter); }
+body[data-persona="public"]    .persona-badge { background: var(--role-public); }
+body[data-persona="guest"]     .persona-badge { display: none; }
+
+/* Quand prefers-reduced-motion, on supprime la transition de teinte. */
+@media (prefers-reduced-motion: reduce) {
+  body[data-persona]::before { transition: none; }
+}
