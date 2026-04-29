@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Hardening Securite
 status: ready_to_plan
-stopped_at: "v2.1 Phase 2 (Vote intégrité & cross-tenant) F06-F10 implemented + tested. Awaiting PR + Phase 3."
-last_updated: "2026-04-29T09:00:00Z"
-last_activity: 2026-04-29 -- Phase 2 v2.1 implemented inline: F06 vote token regression + F07 invitation token migration + F08 IDOR repos + F09 resetDemo lockdown + F10 CSRF scoped
+stopped_at: "v2.1 Hardening Sécurité — all 6 phases shipped via PRs #249-#254. Ready for milestone closure once all PRs merged."
+last_updated: "2026-04-29T10:00:00Z"
+last_activity: 2026-04-29 -- v2.1 milestone delivered: F02-F22 (21 contre-mesures) shipped across 6 atomic PRs
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
-  percent: 33
+  completed_phases: 6
+  total_plans: 22
+  completed_plans: 22
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
