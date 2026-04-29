@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Hardening Securite
 status: ready_to_plan
-stopped_at: "v2.1 milestone initialized — roadmap with 6 phases, 21 requirements mapped"
-last_updated: "2026-04-29T08:00:00Z"
-last_activity: 2026-04-29 -- v2.1 Hardening Securite roadmap created (6 phases, 21 reqs mapped)
+stopped_at: "v2.1 Phase 1 (Sprint 0 finition) F02-F05 implemented + tested. Awaiting PR + Phase 2."
+last_updated: "2026-04-29T08:30:00Z"
+last_activity: 2026-04-29 -- Phase 1 v2.1 implemented inline: F02 ClientIp + F03 idempotence tally + F04 audit per-member + F05 SSE auth-first
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
+  percent: 16
 ---
 
 # AG-VOTE -- Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 Milestone: v2.1 Hardening Securite
 Branch: feat/v2.1-hardening-securite
-Phase: 1 of 6 (Sprint 0 finition) — not started
-Status: Ready to plan Phase 1 (`/gsd:plan-phase 1` or `/gsd:discuss-phase 1`)
+Phase: 1 of 6 (Sprint 0 finition) — implemented + tested locally
+Status: Ready to push and open Phase 1 PR; Phase 2 next
 
-Progress: [..........] 0% (0/6 phases)
+Progress: [█▋........] 16% (1/6 phases)
 
 ## Accumulated Context
 
@@ -64,4 +64,4 @@ Last session: 2026-04-29
 Stopped at: v2.0 milestone shipped and archived; v2.1 branch created from main; requirements drafted
 Resume file: .planning/research/v2.1-securite-requirements-draft.md
 
-**Next action:** `/gsd:plan-phase 1` -- planifier Sprint 0 finition (F02-F05 : ClientIp + idempotence tally + audit per-member + SSE auth-first)
+**Next action:** push branch + open Phase 1 PR; then `/gsd:plan-phase 2` for Vote intégrité & cross-tenant (F06-F10).

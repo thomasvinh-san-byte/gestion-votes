@@ -11,10 +11,10 @@
 
 ### Sprint 0 finition
 
-- [ ] **HARDEN-F02**: TRUSTED_PROXIES env var + helper `ClientIp::get()` qui n'accepte `X-Forwarded-For` / `X-Forwarded-Proto` qu'à partir d'IPs de proxy whitelistées
-- [ ] **HARDEN-F03**: Idempotence sur `degraded_tally` (HTTP 409 au 2ᵉ appel) + audit before/after + reason obligatoire (>= 20 chars)
-- [ ] **HARDEN-F04**: Audit trail per-member sur `members_bulk` voting_power (1 événement `member_voting_power_changed` par ID modifié, avec before/after/reason)
-- [ ] **HARDEN-F05**: Auth-first dans SSE stream (`public/api/v1/events.php`) + filtrage des événements par `tenant_id` du user authentifié
+- [x] **HARDEN-F02**: TRUSTED_PROXIES env var + helper `ClientIp::get()` qui n'accepte `X-Forwarded-For` / `X-Forwarded-Proto` qu'à partir d'IPs de proxy whitelistées
+- [x] **HARDEN-F03**: Idempotence sur `degraded_tally` (HTTP 409 au 2ᵉ appel) + audit before/after + reason obligatoire (>= 20 chars)
+- [x] **HARDEN-F04**: Audit trail per-member sur `members_bulk` voting_power (1 événement `member_voting_power_changed` par ID modifié, avec before/after/reason)
+- [x] **HARDEN-F05**: Auth-first dans SSE stream (`public/api/v1/events.php`) + filtrage des événements par `tenant_id` du user authentifié
 
 ### Vote intégrité & cross-tenant
 
@@ -75,10 +75,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HARDEN-F02 | Phase 1 | Pending |
-| HARDEN-F03 | Phase 1 | Pending |
-| HARDEN-F04 | Phase 1 | Pending |
-| HARDEN-F05 | Phase 1 | Pending |
+| HARDEN-F02 | Phase 1 | Complete |
+| HARDEN-F03 | Phase 1 | Complete |
+| HARDEN-F04 | Phase 1 | Complete |
+| HARDEN-F05 | Phase 1 | Complete |
 | HARDEN-F06 | Phase 2 | Pending |
 | HARDEN-F07 | Phase 2 | Pending |
 | HARDEN-F08 | Phase 2 | Pending |
