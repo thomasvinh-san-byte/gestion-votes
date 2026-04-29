@@ -24,28 +24,45 @@ require_once __DIR__ . '/../../../app/bootstrap.php';
 
 use AgVote\Core\Providers\RedisProvider;
 use AgVote\SSE\EventBroadcaster;
+use AgVote\SSE\SseAuthGate;
 
-// ── Auth check (reuse session middleware logic) ──────────────────────────
+// ── Auth + tenant gate (F05) ─────────────────────────────────────────────
+// All access-control decisions are made BEFORE any meeting_id parsing,
+// Redis registration, or presence lookup. Logic lives in SseAuthGate so it
+// can be unit-tested without HTTP bootstrap.
+//
 $authEnabled = getenv('APP_AUTH_ENABLED');
-if ($authEnabled !== '0' && strtolower((string) $authEnabled) !== 'false') {
+$authIsEnabled = !($authEnabled === '0' || strtolower((string) $authEnabled) === 'false');
+
+if ($authIsEnabled) {
     \AgVote\Core\Security\SessionHelper::start();
-    if (empty($_SESSION['auth_user'])) {
-        http_response_code(401);
-        header('Content-Type: application/json');
-        echo json_encode(['ok' => false, 'error' => 'authentication_required']);
-        exit;
-    }
-    // Enforce session timeout (same as AuthMiddleware::SESSION_TIMEOUT)
-    $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
-    if ($lastActivity > 0 && (time() - $lastActivity) > 1800) {
-        \AgVote\Core\Security\SessionHelper::destroy();
-        http_response_code(401);
-        header('Content-Type: application/json');
-        echo json_encode(['ok' => false, 'error' => 'session_expired']);
-        exit;
-    }
-    $_SESSION['auth_last_activity'] = time();
 }
+
+$rawMeetingId = $_GET['meeting_id'] ?? null;
+$gate = new SseAuthGate();
+$decision = $gate->evaluate(
+    $_SESSION ?? [],
+    $rawMeetingId === null ? null : (string) $rawMeetingId,
+    time(),
+    $authIsEnabled,
+);
+
+if ($decision['result'] !== SseAuthGate::RESULT_ALLOWED) {
+    if ($decision['result'] === SseAuthGate::RESULT_SESSION_EXPIRED) {
+        \AgVote\Core\Security\SessionHelper::destroy();
+    }
+    http_response_code($decision['status']);
+    header('Content-Type: application/json');
+    echo json_encode(['ok' => false, 'error' => $decision['result']]);
+    exit;
+}
+
+if ($authIsEnabled && $decision['refreshed_last_activity'] !== null) {
+    $_SESSION['auth_last_activity'] = $decision['refreshed_last_activity'];
+}
+
+$sessionTenantId = $decision['tenant_id'];
+$meetingId = (string) $rawMeetingId;
 
 // Check if push/SSE is enabled
 if (!EventBroadcaster::isPushEnabled()) {
@@ -61,13 +78,6 @@ if ($consumerId === '' || $consumerId === false) {
     $consumerId = md5(($_SERVER['REMOTE_ADDR'] ?? '') . ':' . getmypid());
 }
 
-$meetingId = $_GET['meeting_id'] ?? '';
-if ($meetingId === '' || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $meetingId)) {
-    http_response_code(400);
-    header('Content-Type: application/json');
-    echo json_encode(['ok' => false, 'error' => 'invalid_meeting_id']);
-    exit;
-}
 
 // Handle heartbeat request (cheaply renews presence TTL without starting SSE loop)
 if (!empty($_GET['heartbeat'])) {
