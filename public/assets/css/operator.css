@@ -932,6 +932,12 @@
   overflow: hidden;
 }
 
+/* Vote progress bar fill — ANIM-02 (Phase 3, audit confirmed).
+   `transition: width` glides the bar when JS updates --bar-pct via
+   setProperty (operator-exec.js refreshExecVote). Kept on `width` (not
+   `transform: scaleX`) to preserve border-radius (UI-SPEC tradeoff).
+   Reduced-motion (ANIM-03): handled globally by design-system.css:3059-3068
+   which forces transition-duration to 0.01ms — no per-rule override needed. */
 .op-bar-fill {
   height: 100%;
   border-radius: 4px;
