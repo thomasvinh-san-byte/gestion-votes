@@ -13,7 +13,9 @@
 - ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
 - ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
-- 🚧 **v2.1 Hardening Sécurité** - Phases 1-6 (in progress) — 21 contremesures (F02-F22)
+- ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
+- 🚧 **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (in PR #256, partial — 5 items reportés v2.3)
+- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (planning) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
 
 ## Phases
 
@@ -186,80 +188,111 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v2.1 Hardening Sécurité (In Progress)
+<details>
+<summary>✅ v2.1 Hardening Sécurité (Phases 1-6) — SHIPPED 2026-04-29</summary>
 
-**Milestone Goal:** Eliminer les 21 contremesures de sécurité restantes (F02 à F22) identifiées par l'audit du 2026-04-29 — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads et headers HTTP. Aucune fuite cross-tenant tolérée à la sortie du milestone.
+See `.planning/milestones/v2.1-REQUIREMENTS.md` for full archive (phases moved to `.planning/milestones/v2.1-phases/`).
 
-**Scope:** Backend uniquement (controllers, repositories, middlewares, infra de tests CI). UI/UX différé à v2.2+.
+**Phases:** 6 (Sprint 0 finition + Vote intégrité + Périmètre/SSRF + Uploads + Headers/cookies + Tests/monitoring)
+**Plans:** 22
+**Requirements:** 21/21 satisfied (F02-F22)
+**Shipped:**
+- Sprint 0 finition (F02-F05): ClientIp + idempotence tally + audit per-member + SSE auth-first
+- Vote intégrité (F06-F10): atomic consume + hash invitations + IDOR repos + resetDemo lockdown + CSRF scopé
+- Périmètre & SSRF (F11-F13): UrlValidator + rate limits constant-time + AccountLockout exponential
+- Uploads & contenu (F14-F16): magic bytes PDF + formula injection + dompdf hardening
+- Headers/cookies (F17-F19): CSP_STRICT_MODE + SameSite=Strict default + prod-debug refusé
+- Tests/monitoring (F20-F22): testsuite Security 11 tripwires + SecuritySignal + SECURITY.md
 
-**Strategy:** 1 PR par phase, < 600 LOC chacune. Phases 2/3/4 peuvent partiellement paralléliser après Phase 1 ; Phase 5 indépendante ; Phase 6 = gate finale.
+</details>
+
+<details>
+<summary>🚧 v2.2 Refonte Visuelle & Cohérence (Phases 1-4) — IN PR #256, PARTIAL</summary>
+
+See `.planning/REQUIREMENTS.md` (will be archived to v2.2-REQUIREMENTS.md when v2.2 closes).
+
+**Phases shipped via PR #256:** 4 (Tokens + Components + Personas + partial Layout/Lexique)
+**Plans:** 4 atomic commits + planning docs
+**Requirements:** 21/26 satisfied
+**Reportés à v2.3:** L01 cockpit santé, L03 PV éditorial, L04 dashboard simplifié, L05 login moins marketing, X01 convention membre/participant/votant
+
+</details>
+
+### 🚧 v2.3 Layout Refonte & UX Polish (Planning)
+
+**Milestone Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
+
+**Scope:** Couches visuelles + cohérence terminologique + UX critique. Aucune logique métier touchée. Aucune nouvelle dépendance (Fraunces déjà chargée, ag-modal existant, axe-core intégré).
+
+**Strategy:** 4 phases, build order : cockpit (plus haute valeur) → éditorial → secondaires → lexique+UX (filet de sécurité). 1 PR par phase, base = main une fois v2.2 (PR #256) mergée.
 
 ## Phase Details
 
-### Phase 1: Sprint 0 finition
-**Goal**: Boucler les 4 hotfixes Sprint 0 résiduels (F1 déjà shipped en v2.0). Pose l'infrastructure (TRUSTED_PROXIES, audit per-member, idempotence) sur laquelle s'appuient les phases suivantes.
+### Phase 1: Cockpit Opérateur live
+
+**Goal**: Refonte de la vue exécution opérateur en y intégrant une barre santé séance unique avec 4 indicateurs persistants (Quorum / SSE / Votants connectés / Résolution), encapsulée dans un custom element `<ag-health-bar>` réutilisable et testable.
+
 **Depends on**: Nothing (first phase)
-**Requirements**: HARDEN-F02, HARDEN-F03, HARDEN-F04, HARDEN-F05
+**Requirements**: COCKPIT-01, COCKPIT-02, COCKPIT-03, COCKPIT-04, COCKPIT-05
 **Success Criteria** (what must be TRUE):
-  1. Une requête avec header `X-Forwarded-For` depuis une IP non listée dans `TRUSTED_PROXIES` ne contourne pas le rate-limit du login (le compteur s'incrémente sur l'IP réelle, pas l'IP usurpée).
-  2. Un 2ᵉ appel à `degraded_tally` sur la même motion sans annulation préalable retourne HTTP 409 ; l'audit log liste before/after avec le champ `reason` (>= 20 chars).
-  3. Modifier `voting_power` de 5 membres via `members_bulk` produit 5 événements `member_voting_power_changed` distincts dans `audit_events` (un par member_id).
-  4. Une session du tenant A connectée au flux SSE `/api/v1/events.php` ne reçoit aucun événement émis par un meeting du tenant B, même avec un `meeting_id` valide en query.
+  1. La vue exécution opérateur (`/operator` en mode exec) affiche une barre santé persistante au top, avec 4 indicateurs lisibles à 1m d'écran : Quorum atteint vert / non-atteint rouge avec ratio, SSE état (live/reconnecting/offline), nombre de votants connectés en temps réel, numéro + titre tronqué de la résolution active.
+  2. Quand le quorum bascule en non-atteint pendant la séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) entoure la zone vote — animation supprimée si `prefers-reduced-motion: reduce`.
+  3. Sous 768px viewport, la barre santé devient un stack vertical (4 lignes) plutôt qu'une compression horizontale illisible.
+  4. Le custom element `<ag-health-bar>` est consommé via `<ag-health-bar quorum-met="true" quorum-ratio="156/150" sse-state="live" voters-online="142" motion-number="3" motion-title="..."></ag-health-bar>` ; tous les attributs reactifs.
+  5. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright operator-e2e.
 
-### Phase 2: Vote intégrité & cross-tenant
-**Goal**: Garantir l'intégrité du vote face aux attaques TOCTOU, race conditions, fuite de tokens en BD, IDOR cross-tenant et CSRF replay. Le cœur de cible de l'auditeur offensif.
-**Depends on**: Phase 1
-**Requirements**: HARDEN-F06, HARDEN-F07, HARDEN-F08, HARDEN-F09, HARDEN-F10
-**Success Criteria** (what must be TRUE):
-  1. Deux requêtes concurrentes `POST /vote?token=X` avec le même token retournent : la première HTTP 200, la seconde HTTP 401 ; jamais 200 deux fois (vérifié par stress test).
-  2. `SELECT token FROM invitations` en BD ne contient aucun token utilisable directement (uniquement des hashes HMAC-SHA256). Le flux invitation par email continue de fonctionner.
-  3. Une session du tenant A tentant un GET/POST/PATCH sur n'importe quelle ressource (motion, ballot, member, attachment, proxy) du tenant B retourne 404 systématiquement.
-  4. En `APP_ENV=production`, un opérateur (rôle non-admin) tentant `meeting_reset_demo` sur un meeting `live` reçoit HTTP 409 ; en draft + admin + token typé `RESET-<code>`, ça passe.
-  5. Un token CSRF valide pour `POST /meetings` est rejeté lors d'une requête `POST /admin_settings` (token scopé par couple METHOD+PATH).
+### Phase 2: Pages éditoriales
 
-### Phase 3: Périmètre & SSRF
-**Goal**: Fermer les vecteurs d'exfiltration / pivot via webhooks, redirects email, et brute-force d'authentification. Defense périmétrique.
-**Depends on**: Phase 1
-**Requirements**: HARDEN-F11, HARDEN-F12, HARDEN-F13
-**Success Criteria** (what must be TRUE):
-  1. Configurer `MONITOR_WEBHOOK_URL=http://169.254.169.254/...` (cloud metadata) ou `http://10.0.0.1/...` (RFC1918) lève une exception au boot du `MonitoringService` ; seules des URLs HTTPS d'hôtes whitelistés sont acceptées.
-  2. La 11ᵉ requête `password_reset_request` depuis la même IP en 10 minutes retourne HTTP 429 avec header `Retry-After`. La 6ᵉ requête sur le même email (tous IPs confondus) idem.
-  3. 10 échecs login consécutifs sur le même email verrouillent le compte avec un message FR explicite et un header `Retry-After` qui croît exponentiellement (2, 4, 8... minutes, plafond 24h).
+**Goal**: Donner aux pages à valeur de preuve (`/audit`, `/trust`, `/archives`, `/report`) un traitement éditorial qui dégage immédiatement le sérieux légal — police serif Fraunces sur le contenu, largeur de lecture plafonnée, monospace JetBrains Mono pour les hashes/UUID.
 
-### Phase 4: Uploads & contenu
-**Goal**: Sécuriser le pipeline upload PDF, prévenir l'injection de formules dans les exports XLSX/CSV, durcir la génération PDF (dompdf).
-**Depends on**: Phase 1
-**Requirements**: HARDEN-F14, HARDEN-F15, HARDEN-F16
+**Depends on**: Phase 1 (custom element pattern établi)
+**Requirements**: EDITORIAL-01, EDITORIAL-02, EDITORIAL-03, EDITORIAL-04, EDITORIAL-05, EDITORIAL-06
 **Success Criteria** (what must be TRUE):
-  1. Un fichier non-PDF renommé en `.pdf` (magic bytes ≠ `%PDF-`) est rejeté à l'upload avec HTTP 400 ; un PDF valide est servi en download avec `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff`.
-  2. Un membre nommé `=cmd|...` est exporté dans le CSV/XLSX comme `'=cmd|...` (string littéral, jamais évalué comme formule par Excel ou LibreOffice).
-  3. Un PDF de procuration généré pour un nom de membre `<script>alert(1)</script>` rend le texte échappé (`&lt;script&gt;...`) ; aucun fetch HTTP distant ni interprétation PHP par dompdf (`isRemoteEnabled=false`, `isPhpEnabled=false`).
+  1. Les 4 pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) wrappent leur contenu dans `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6.
+  2. Les contrôles UI (boutons, filtres, dropdowns) restent en sans-serif (Bricolage Grotesque) — la dualité serif/sans est un signal fort de "ceci est un document légal".
+  3. Les hashes audit, UUID de motions, codes de vote affichés utilisent `var(--font-mono)` (JetBrains Mono).
+  4. Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace.
+  5. Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" qui ouvre un modal montrant la chaîne de hash audit_events.
+  6. Sous 768px, la largeur 720px passe à 100% width avec padding latéral — pas de scroll horizontal.
 
-### Phase 5: Headers, cookies & defense-in-depth
-**Goal**: Migrer la CSP vers nonce-strict, durcir les flags cookies de session, supprimer les fallbacks dev permissifs en production.
-**Depends on**: Nothing (peut paralléliser avec Phases 2-4 — n'utilise aucune infra de Phase 1)
-**Requirements**: HARDEN-F17, HARDEN-F18, HARDEN-F19
-**Success Criteria** (what must be TRUE):
-  1. La CSP est passée en mode strict avec `script-src 'self' 'nonce-$nonce'` (sans `'unsafe-inline'`). Une page sans nonce voit ses scripts rejetés en console, observable via les rapports CSP collectés.
-  2. Après login, `Set-Cookie` contient `SameSite=Strict; Secure; HttpOnly`. Le cookie ID change entre pré-login et post-login (régénération). Tester aussi sur logout et changement de rôle.
-  3. Lancer l'application avec `APP_SECRET` < 32 chars retourne une exception au boot dans tous les environnements (dev ET prod). Lancer avec `APP_ENV=production` ET `APP_DEBUG=1` est refusé.
+### Phase 3: Layouts secondaires
 
-### Phase 6: Tests & monitoring (validation gate)
-**Goal**: Cristalliser les acquis dans la suite de tests, instrumenter le signal sécurité en prod, mettre à jour la documentation. Empêche les régressions futures.
-**Depends on**: Phases 1, 2, 3, 4, 5 (tous fixes en place avant tests/monitoring)
-**Requirements**: HARDEN-F20, HARDEN-F21, HARDEN-F22
+**Goal**: Simplifier le dashboard pour qu'il livre l'info principale en un coup d'œil, et alléger la page de login de son orbe animé + de son surplus marketing pour faire de la place au formulaire.
+
+**Depends on**: Nothing (peut paralléliser avec Phase 1-2)
+**Requirements**: DASHBOARD-01, DASHBOARD-02, DASHBOARD-03, LOGIN-01, LOGIN-02
 **Success Criteria** (what must be TRUE):
-  1. Le dossier `tests/Security/` contient au moins 1 test par finding F02-F22 (21 tests minimum). Le job CI exécute cette testsuite à chaque PR ; toute régression future déclenche un rouge.
-  2. 10 tentatives 401/403 en 60 secondes sur la même IP déclenchent une alerte webhook via `MonitoringService`. Toute opération sur `motions.manual_tally`, `members.voting_power`, ou tentative de `DELETE FROM audit_events` produit un log critical visible.
-  3. `SECURITY_AUDIT.md` est à jour avec les 22 findings (F01-F22) marqués CORRIGÉ avec lien vers le commit/PR. `SECURITY.md` à la racine décrit le processus de signalement (responsible disclosure).
+  1. Le dashboard affiche au plus 3 KPI cards (au lieu de 4). Le 4ᵉ KPI est intégré dans la hero card ou redirigé vers `/analytics` — aucune information perdue.
+  2. Quand une séance est `live` ou `scheduled` dans la prochaine heure, une hero card pleine largeur la met en avant au-dessus des KPI (avec bouton "Reprendre" / "Démarrer").
+  3. Les actions rapides (Créer séance, Importer membres, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` background.
+  4. La page `/login.html` ne contient plus l'orbe animé (suppression de `.login-orb` et de la radial-gradient associée).
+  5. Le panel brand login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — ratio 50/50 ou 40/60 form-dominant.
+
+### Phase 4: Lexique + UX critique
+
+**Goal**: Cristalliser la convention lexicale unifiée (membre/participant/votant + confirmer/valider/verrouiller-archiver) dans le copy utilisateur, migrer les modales legacy vers `<ag-modal>` (focus trap), et enrichir les top 50 codes ErrorDictionary avec un "next-step" actionnable conformément à la critique Norman.
+
+**Depends on**: Phases 1, 2, 3 (la convention s'applique à un copy stabilisé)
+**Requirements**: LEX-01, LEX-02, MODAL-01, MODAL-02, ERR-01, ERR-02
+**Success Criteria** (what must be TRUE):
+  1. Aucune modale active dans l'app n'utilise plus la classe legacy `.modal` — toutes migrées vers `<ag-modal>` web component qui fournit Tab + Shift+Tab + Escape natifs.
+  2. Test E2E `tests/e2e/specs/modal-focus-trap.spec.js` ouvre une modale, vérifie que Escape la ferme, et que le focus retourne à l'élément qui l'a ouverte.
+  3. Convention "membre/participant/votant" appliquée par migration cas-par-cas sur `public/*.htmx.html`, `app/Templates/*.php`, `app/Services/ErrorDictionary.php`. Distinction sémantique respectée : "membre du conseil" reste, "membre votant" devient "votant".
+  4. Top 50 codes ErrorDictionary les plus utilisés ont chacun un "next-step" actionnable (au moins une virgule + un verbe d'action en impératif ou subjonctif). Exemple validé : `'already_voted' => 'Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent.'`.
+  5. `tests/Security/UxConventionsTest.php` (nouveau) scanne ErrorDictionary et exige le next-step présent dans chaque message des 50 codes les plus fréquents — filet permanent contre la régression.
+
+</details>
+
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Sprint 0 finition | v2.1 | 0/? | Not started | - |
-| 2. Vote intégrité & cross-tenant | v2.1 | 0/? | Not started | - |
-| 3. Périmètre & SSRF | v2.1 | 0/? | Not started | - |
-| 4. Uploads & contenu | v2.1 | 0/? | Not started | - |
-| 5. Headers, cookies & defense-in-depth | v2.1 | 0/? | Not started | - |
-| 6. Tests & monitoring | v2.1 | 0/? | Not started | - |
+| 1. Design Tokens | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 2. Components | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 3. Personas | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 4. Layout & Lexique (partial) | v2.2 | 1/1 | ⚠ Partial in PR #256 | - |
+| 1. Cockpit Opérateur live | v2.3 | 0/? | ○ Not started | - |
+| 2. Pages éditoriales | v2.3 | 0/? | ○ Not started | - |
+| 3. Layouts secondaires | v2.3 | 0/? | ○ Not started | - |
+| 4. Lexique + UX critique | v2.3 | 0/? | ○ Not started | - |

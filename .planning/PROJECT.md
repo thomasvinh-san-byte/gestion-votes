@@ -74,22 +74,25 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Validation gate cross-phase v2.0 — audit PASS, zero regression — v2.0 Phase 4
 - ✓ Hotfix securite F1: /setup 404 opaque + CSRF strict + 4 tests de regression — v2.0 (PR #247)
 - ✓ CI repair: lint-js + migrate-check verts, validate ameliore (83→21 errors), coverage redis-aware — v2.0 (PR #248)
+- ✓ v2.1 Hardening Sécurité : 21 contremesures F02-F22 shipped — defense en profondeur sur auth, vote, isolation tenant, perimetre, uploads, headers, monitoring (voir milestones/v2.1-REQUIREMENTS.md)
+- ✓ Phase 1 v2.2 Design Tokens : Bleu République + dark redesign + role tokens + DESIGN.md (PR #256, en review)
 
 ### Active
 
-## Current Milestone: v2.1 Hardening Securite (planning)
+## Current Milestone: v2.3 Layout Refonte & UX Polish (planning)
 
-**Goal:** Eliminer les 21 contremesures de securite restantes (F2 a F22) identifiees par l'audit du 2026-04-29 — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads, headers HTTP.
+**Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant".
 
-**Target categories:**
-- Sprint 0 finition: ClientIp whitelist, idempotence tally, audit per-member, SSE auth-first
-- Vote integrite & cross-tenant: token atomic, hash invitations, IDOR repos, resetDemo verrou, CSRF scope
-- Perimetre & SSRF: URL whitelist, rate limits, lockout progressif
-- Uploads & contenu: PDF magic bytes, formula injection, dompdf hardening
-- Headers & cookies: CSP nonce strict, cookies Strict, fallbacks dev
-- Tests & monitoring: tests securite CI, logging signal, doc
+**Strategy:** 4 phases — cockpit (plus haute valeur d'abord) → éditorial → secondaires → lexique+UX (filet de sécurité en dernier). 1 PR par phase. Aucune nouvelle dépendance (Fraunces déjà chargée, ag-modal existant, axe-core intégré).
 
-Voir le brouillon de requirements: `.planning/research/v2.1-securite-requirements-draft.md`.
+**Target phases:**
+- Phase 1 — Cockpit Opérateur live : barre santé séance unique (Quorum / SSE / Votants / Résolution), `<ag-health-bar>` custom element, quorum-as-a-feeling
+- Phase 2 — Pages éditoriales : `<ag-editorial>` wrapper sur /audit, /trust, /archives, /report avec Fraunces serif + Bricolage UI + JetBrains Mono codes
+- Phase 3 — Layouts secondaires : dashboard simplifié (3 KPI + hero card), login moins marketing (orbe supprimé)
+- Phase 4 — Lexique + UX critique : convention membre/participant/votant + modales focus trap + ErrorDictionary "next-step" enrichi
+
+Voir `.planning/REQUIREMENTS.md` pour les 22 requirements détaillés (COCKPIT-01..05, EDITORIAL-01..06, DASHBOARD-01..03, LOGIN-01..02, LEX-01..02, MODAL-01..02, ERR-01..02).
+Voir `.planning/research/SUMMARY.md` pour la recherche STACK + FEATURES + ARCHITECTURE + PITFALLS.
 
 ### Out of Scope
 
@@ -127,6 +130,19 @@ Shipped v1.8 (2026-04-20) — UI refonte complete. Palette moderne slate, classe
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Completed Milestone: v2.1 Hardening Sécurité
+
+**Shipped:** 2026-04-29 — 6 phases, 22 plans, 21 requirements (F02-F22), all satisfied.
+
+PRs delivered: #247 (F1 setup), #249/#250/#254 (consolidées), #255.
+
+Tech debt carried to v2.2 :
+- 8 méthodes MotionRepository à `tenantId = ''` optionnel
+- Migration progressive `field()` → `fieldFor(method, path)` pour F10
+- Hash invitation token SHA-256 → HMAC-SHA256 (forcer re-issue)
+
+See `.planning/milestones/v2.1-REQUIREMENTS.md` for full archive.
 
 ## Completed Milestone: v2.0 Operateur Live UX
 
@@ -223,4 +239,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — after v2.0 milestone shipped, v2.1 Hardening Securite planning*
+*Last updated: 2026-04-29 — v2.2 in PR #256 (4 phases shipped, 5 items reportés), v2.3 Layout Refonte & UX Polish in planning*

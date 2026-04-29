@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>AG-Vote — v2.2 Tokens (validation visuelle)</title>
+  <link rel="stylesheet" href="../../public/assets/css/design-system.css">
+  <style>
+    body {
+      font-family: var(--font-sans, system-ui);
+      background: var(--color-bg);
+      color: var(--color-text);
+      margin: 0;
+      padding: 32px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg, 8px);
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+      z-index: 10;
+    }
+    .toolbar h1 { margin: 0; font-size: 18px; flex: 1; }
+    button {
+      padding: 8px 14px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      border-radius: var(--radius-md, 6px);
+      cursor: pointer;
+      font: inherit;
+    }
+    button:hover { border-color: var(--color-primary); }
+    button.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+    h2 { margin-top: 40px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border-subtle); font-size: 16px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .swatch {
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg, 8px);
+      overflow: hidden;
+      background: var(--color-surface);
+    }
+    .swatch-color {
+      height: 80px;
+      display: flex;
+      align-items: flex-end;
+      padding: 8px 12px;
+      color: white;
+      font-size: 11px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      font-family: var(--font-mono, monospace);
+    }
+    .swatch-meta {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+    .swatch-meta strong { display: block; font-size: 13px; margin-bottom: 2px; }
+    .swatch-meta code {
+      font-family: var(--font-mono, monospace);
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    .roles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .role-card {
+      border-radius: var(--radius-lg, 8px);
+      overflow: hidden;
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-surface);
+    }
+    .role-bar {
+      height: 3px;
+    }
+    .role-body {
+      padding: 16px;
+    }
+    .role-body strong { font-size: 15px; display: block; margin-bottom: 4px; }
+
+    /* The 6 role cards use the actual --role-* tokens */
+    .r-admin .role-bar     { background: var(--role-admin); }
+    .r-president .role-bar { background: var(--role-president); }
+    .r-operator .role-bar  { background: var(--role-operator); }
+    .r-auditor .role-bar   { background: var(--role-auditor); }
+    .r-voter .role-bar     { background: var(--role-voter); }
+    .r-public .role-bar    { background: var(--role-public); }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: var(--radius-md, 6px);
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+    }
+    .badge.r-admin     { background: var(--role-admin); }
+    .badge.r-president { background: var(--role-president); }
+    .badge.r-operator  { background: var(--role-operator); }
+    .badge.r-auditor   { background: var(--role-auditor); }
+    .badge.r-voter     { background: var(--role-voter); }
+    .badge.r-public    { background: var(--role-public); }
+
+    .demo-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .demo-card {
+      padding: 16px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg, 8px);
+    }
+    .demo-card h3 { margin: 0 0 8px; font-size: 14px; }
+    .demo-card p { margin: 0; font-size: 13px; color: var(--color-text-muted); }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .demo-btn {
+      padding: 8px 14px;
+      border-radius: var(--radius-md, 6px);
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .demo-btn.primary { background: var(--color-primary); color: var(--color-primary-text); }
+    .demo-btn.primary:hover { background: var(--color-primary-hover); }
+    .demo-btn.success { background: var(--color-success); color: white; }
+    .demo-btn.warning { background: var(--color-warning); color: white; }
+    .demo-btn.danger  { background: var(--color-danger); color: white; }
+    .demo-btn.ghost   { background: transparent; border-color: var(--color-border); color: var(--color-text); }
+    .demo-btn.disabled { background: var(--color-primary); color: var(--color-primary-text); opacity: 0.45; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h1>AG-Vote — v2.2 Design Tokens</h1>
+    <button id="btnLight" class="active">☀ Light</button>
+    <button id="btnDark">🌙 Dark</button>
+    <button id="btnAuto">🖥 OS auto</button>
+  </div>
+
+  <h2>Brand + sémantiques</h2>
+  <div class="grid">
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-primary)">primary</div><div class="swatch-meta"><strong>--color-primary</strong><code>#2c468f / #6e8be5</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-success)">success</div><div class="swatch-meta"><strong>--color-success</strong><code>#2d8866 / #5fb892</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-warning)">warning</div><div class="swatch-meta"><strong>--color-warning</strong><code>#a17a30 / #d8b25c</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-danger)">danger</div><div class="swatch-meta"><strong>--color-danger</strong><code>#b2402d / #d97a64</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-info)">info</div><div class="swatch-meta"><strong>--color-info</strong><code>#2c75a8 / #5ea3d4</code></div></div>
+  </div>
+
+  <h2>Surfaces (élévation)</h2>
+  <div class="grid">
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-bg); color: var(--color-text); text-shadow: none;">bg</div><div class="swatch-meta"><strong>--color-bg</strong><code>fond principal</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-bg-subtle); color: var(--color-text); text-shadow: none;">bg-subtle</div><div class="swatch-meta"><strong>--color-bg-subtle</strong><code>sidebar, sunken</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-surface); color: var(--color-text); text-shadow: none;">surface</div><div class="swatch-meta"><strong>--color-surface</strong><code>cards</code></div></div>
+    <div class="swatch"><div class="swatch-color" style="background: var(--color-surface-raised); color: var(--color-text); text-shadow: none;">surface-raised</div><div class="swatch-meta"><strong>--color-surface-raised</strong><code>modals</code></div></div>
+  </div>
+
+  <h2>Texte (hiérarchie de lecture)</h2>
+  <div class="demo-card" style="margin-top:16px">
+    <p style="color: var(--color-text); font-size: 16px; font-weight: 500;">Texte principal — color-text</p>
+    <p style="color: var(--color-text-secondary)">Sous-titre — color-text-secondary</p>
+    <p style="color: var(--color-text-muted)">Métadonnées — color-text-muted</p>
+    <p style="color: var(--color-text-light)">Helper, hint — color-text-light</p>
+    <p style="color: var(--color-text-disabled)">Inactif — color-text-disabled</p>
+  </div>
+
+  <h2>Rôles utilisateur (--role-*)</h2>
+  <div class="roles">
+    <div class="role-card r-admin"><div class="role-bar"></div><div class="role-body"><strong>Admin</strong><span class="badge r-admin">Admin</span><p style="margin-top:8px;color:var(--color-text-muted);font-size:13px">Violet profond — autorité</p></div></div>
+    <div class="role-card r-president"><div class="role-bar"></div><div class="role-body"><strong>Président</strong><span class="badge r-president">Président</span><p style="margin-top:8px;color:var(--color-text-muted);font-size:13px">Bleu-acier — gravité</p></div></div>
+    <div class="role-card r-operator"><div class="role-bar"></div><div class="role-body"><strong>Opérateur</strong><span class="badge r-operator">Opérateur</span><p style="margin-top:8px;color:var(--color-text-muted);font-size:13px">Bleu primaire — action</p></div></div>
+    <div class="role-card r-auditor"><div class="role-bar"></div><div class="role-body"><strong>Auditeur</strong><span class="badge r-auditor">Auditeur</span><p style="margin-top:8px;color:var(--color-text-muted);font-size:13px">Bleu cendré — impartialité</p></div></div>
+    <div class="role-card r-voter"><div class="role-bar"></div><div class="role-body"><strong>Votant</strong><span class="badge r-voter">Votant</span><p style="margin-top:8px;color:var(--color-text-muted);font-size:13px">Indigo — engagement</p></div></div>
+    <div class="role-card r-public"><div class="role-bar"></div><div class="role-body"><strong>Public</strong><span class="badge r-public">Public</span><p style="margin-top:8px;color:var(--color-text-muted);font-size:13px">Mauve doux — distance</p></div></div>
+  </div>
+
+  <h2>Boutons (états)</h2>
+  <div class="btn-row">
+    <button class="demo-btn primary">Primary</button>
+    <button class="demo-btn success">Success</button>
+    <button class="demo-btn warning">Warning</button>
+    <button class="demo-btn danger">Danger</button>
+    <button class="demo-btn ghost">Ghost</button>
+    <button class="demo-btn disabled" disabled>Disabled</button>
+  </div>
+
+  <h2>Cards démo (élévation visible)</h2>
+  <div class="demo-row">
+    <div class="demo-card"><h3>Quorum atteint</h3><p>156 votants / 150 requis</p></div>
+    <div class="demo-card"><h3>SSE en direct</h3><p>Connexion stable</p></div>
+    <div class="demo-card"><h3>Résolution 3/7</h3><p>En cours</p></div>
+    <div class="demo-card"><h3>Anomalies</h3><p>Aucune</p></div>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const btnLight = document.getElementById('btnLight');
+    const btnDark = document.getElementById('btnDark');
+    const btnAuto = document.getElementById('btnAuto');
+    function setActive(btn) {
+      [btnLight, btnDark, btnAuto].forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    btnLight.addEventListener('click', () => { root.setAttribute('data-theme', 'light'); setActive(btnLight); });
+    btnDark.addEventListener('click', () => { root.setAttribute('data-theme', 'dark'); setActive(btnDark); });
+    btnAuto.addEventListener('click', () => { root.removeAttribute('data-theme'); setActive(btnAuto); });
+  </script>
+</body>
+</html>

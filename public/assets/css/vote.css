@@ -691,10 +691,15 @@
   transition: transform var(--duration-fast), box-shadow var(--duration-fast);
   position: relative;
   overflow: hidden;
-  min-height: 88px;
+  /* v2.2 (DESIGN-L02): page tablette tendue par l'opérateur, lue à 1m
+     parfois sans lunettes. Boutons élargis (88 → 96px) + typographie
+     plus généreuse pour un usage mains-occupées. */
+  min-height: 96px;
   width: 100%;
   box-sizing: border-box;
   text-align: left;
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--font-semibold, 600);
 }
 
 .vote-btn:active:not(:disabled) {
