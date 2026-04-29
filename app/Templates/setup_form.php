@@ -35,6 +35,7 @@
 
       <!-- Form: setup_form — initial organisation and admin account creation -->
       <form class="login-form" id="setupForm" action="/setup" method="POST" autocomplete="on" aria-labelledby="setup-heading">
+        <?= \AgVote\Core\Security\CsrfMiddleware::field() ?>
         <h2 id="setup-heading">Configuration initiale</h2>
         <p class="login-tagline" style="margin-bottom:1.5rem">Creez votre organisation et votre compte administrateur</p>
 
