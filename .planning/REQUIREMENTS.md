@@ -89,24 +89,24 @@ Quel finding mappe à quelle phase, mis à jour pendant l'exécution.
 | DESIGN-T06 | Phase 1 | ✓ Complete |
 | DESIGN-T07 | Phase 1 | ✓ Complete |
 | DESIGN-T08 | Phase 1 | ✓ Complete |
-| DESIGN-C01 | Phase 2 | Pending |
-| DESIGN-C02 | Phase 2 | Pending |
-| DESIGN-C03 | Phase 2 | Pending |
-| DESIGN-C04 | Phase 2 | Pending |
-| DESIGN-C05 | Phase 2 | Pending |
-| DESIGN-P01 | Phase 3 | Pending |
-| DESIGN-P02 | Phase 3 | Pending |
-| DESIGN-P03 | Phase 3 | Pending |
-| DESIGN-P04 | Phase 3 | Pending |
-| DESIGN-L01 | Phase 4 | Pending |
-| DESIGN-L02 | Phase 4 | Pending |
-| DESIGN-L03 | Phase 4 | Pending |
-| DESIGN-L04 | Phase 4 | Pending |
-| DESIGN-L05 | Phase 4 | Pending |
-| DESIGN-X01 | Phase 4 | Pending |
-| DESIGN-X02 | Phase 4 | Pending |
-| DESIGN-X03 | Phase 4 | Pending |
-| DESIGN-X04 | Phase 4 | Pending |
+| DESIGN-C01 | Phase 2 | ✓ Complete |
+| DESIGN-C02 | Phase 2 | ✓ Complete (already conformant) |
+| DESIGN-C03 | Phase 2 | ✓ Complete (already conformant) |
+| DESIGN-C04 | Phase 2 | ✓ Complete |
+| DESIGN-C05 | Phase 2 | ✓ Complete (already conformant) |
+| DESIGN-P01 | Phase 3 | ✓ Complete |
+| DESIGN-P02 | Phase 3 | ✓ Complete |
+| DESIGN-P03 | Phase 3 | ✓ Complete |
+| DESIGN-P04 | Phase 3 | ✓ Complete |
+| DESIGN-L01 | Phase 4 | ⏭ Deferred to v2.3 (cockpit live invasif) |
+| DESIGN-L02 | Phase 4 | ✓ Complete |
+| DESIGN-L03 | Phase 4 | ⏭ Deferred to v2.3 (PV éditorial Newsreader) |
+| DESIGN-L04 | Phase 4 | ⏭ Deferred to v2.3 (dashboard refonte) |
+| DESIGN-L05 | Phase 4 | ⏭ Deferred to v2.3 (login polish) |
+| DESIGN-X01 | Phase 4 | ⏭ Deferred to v2.3 (convention membre/participant/votant migration) |
+| DESIGN-X02 | Phase 4 | ✓ Complete |
+| DESIGN-X03 | Phase 4 | ✓ Complete (conservateur, X02 only) |
+| DESIGN-X04 | Phase 4 | ✓ Complete |
 
 **Coverage:**
 - v2.2 requirements: 26 total

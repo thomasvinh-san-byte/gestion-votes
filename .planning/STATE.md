@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Refonte Visuelle & Cohérence
 status: in_progress
-stopped_at: "Phase 1 (Design Tokens) implementation in PR #256 — awaiting review/merge. Phases 2-4 ready to plan."
-last_updated: "2026-04-29T11:00:00Z"
-last_activity: 2026-04-29 -- v2.2 milestone bootstrapped (REQUIREMENTS + ROADMAP + Phase 1 SUMMARY) ; Phase 1 design tokens shipped via PR #256
+stopped_at: "Phases 1-4 (partielles) shippées dans PR #256 — design tokens + components + personas + vote typo + lexique guard. Layout invasive reporté à v2.3."
+last_updated: "2026-04-29T12:00:00Z"
+last_activity: 2026-04-29 -- v2.2 auto-advance : Phase 2 (components) + Phase 3 (personas) + Phase 4 (vote typo + lexique guard) shippés dans la même branche que Phase 1
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 1
-  completed_plans: 1
-  percent: 25
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
+  percent: 87
 ---
 
 # AG-VOTE -- Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Milestone: v2.2 Refonte Visuelle & Cohérence
-Branch: feat/v2.2-design-tokens (Phase 1 work)
-Phase: 1 of 4 (Design Tokens) — implémentation shipped via PR #256, en review
-Status: Phase 1 ready_to_merge ; Phase 2 (Components) ready_to_plan dès que PR #256 mergée
+Branch: feat/v2.2-design-tokens (4 phases dans une seule PR #256)
+Phase: 4 of 4 (partial — layout invasif reporté)
+Status: Phases 1-4 implémentées (auto-advance), PR #256 contient l'ensemble
 
-Progress: [██▌.......] 25% (1/4 phases done)
+Progress: [████████▋.] 87% (4/4 phases shipped, mais L01/L03/L04/L05/X01 reportés v2.3)
 
 ## Accumulated Context
 
