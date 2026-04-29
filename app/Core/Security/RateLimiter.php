@@ -123,7 +123,7 @@ final class RateLimiter {
         error_log(sprintf(
             'RATE_LIMIT | context=%s | ip=%s | retry_after=%d',
             $context,
-            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            \AgVote\Core\Http\ClientIp::get(),
             $retryAfter,
         ));
 
