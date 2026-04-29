@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Hardening Securite
 status: ready_to_plan
-stopped_at: "v2.1 Phase 1 (Sprint 0 finition) F02-F05 implemented + tested. Awaiting PR + Phase 2."
-last_updated: "2026-04-29T08:30:00Z"
-last_activity: 2026-04-29 -- Phase 1 v2.1 implemented inline: F02 ClientIp + F03 idempotence tally + F04 audit per-member + F05 SSE auth-first
+stopped_at: "v2.1 Phase 2 (Vote intégrité & cross-tenant) F06-F10 implemented + tested. Awaiting PR + Phase 3."
+last_updated: "2026-04-29T09:00:00Z"
+last_activity: 2026-04-29 -- Phase 2 v2.1 implemented inline: F06 vote token regression + F07 invitation token migration + F08 IDOR repos + F09 resetDemo lockdown + F10 CSRF scoped
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 16
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 9
+  percent: 33
 ---
 
 # AG-VOTE -- Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 Milestone: v2.1 Hardening Securite
 Branch: feat/v2.1-hardening-securite
-Phase: 1 of 6 (Sprint 0 finition) — implemented + tested locally
-Status: Ready to push and open Phase 1 PR; Phase 2 next
+Phase: 2 of 6 (Vote intégrité & cross-tenant) — implemented + tested locally
+Status: Phase 1 in PR #249, Phase 2 ready to push
 
-Progress: [█▋........] 16% (1/6 phases)
+Progress: [███▎......] 33% (2/6 phases)
 
 ## Accumulated Context
 
@@ -64,4 +64,4 @@ Last session: 2026-04-29
 Stopped at: v2.0 milestone shipped and archived; v2.1 branch created from main; requirements drafted
 Resume file: .planning/research/v2.1-securite-requirements-draft.md
 
-**Next action:** push branch + open Phase 1 PR; then `/gsd:plan-phase 2` for Vote intégrité & cross-tenant (F06-F10).
+**Next action:** push branch + open Phase 2 PR; then continue with Phase 3 (Périmètre & SSRF, F11-F13).
