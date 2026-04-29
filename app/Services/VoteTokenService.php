@@ -89,6 +89,21 @@ final class VoteTokenService {
      * Atomic validate-and-consume: validates the token and marks it used in a single
      * UPDATE query, eliminating the TOCTOU race between validate() and consume().
      *
+     * F06 hardening contract:
+     *   The actual write is delegated to VoteTokenRepository::consumeIfValid(),
+     *   which executes a single
+     *       UPDATE vote_tokens SET used_at = now()
+     *       WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW()
+     *       RETURNING ...
+     *   The atomic `UPDATE ... WHERE used_at IS NULL` is the lock — at most
+     *   one concurrent caller can succeed, regardless of how many requests
+     *   arrive simultaneously. Subsequent calls (same token) MUST return null
+     *   from `consumeIfValid` and resolve here as `valid: false` with reason
+     *   `token_already_used` from `diagnoseFailure`.
+     *
+     * Regression coverage for this contract: tests/Unit/VoteTokenServiceTest.php
+     * — see testValidateAndConsumeIsIdempotentOnRepeatedCalls.
+     *
      * @return array{valid: bool, token_hash: string, meeting_id?: string, member_id?: string, motion_id?: string, reason?: string}
      */
     public function validateAndConsume(string $token, string $tenantId = ''): array {

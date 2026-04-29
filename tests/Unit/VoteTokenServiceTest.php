@@ -270,6 +270,48 @@ class VoteTokenServiceTest extends TestCase {
         $this->assertSame('token_expired', $result['reason']);
     }
 
+    /**
+     * F06: regression test — validateAndConsume must NEVER return valid: true
+     * twice for the same token, even when called back-to-back. The repo's
+     * consumeIfValid (UPDATE ... WHERE used_at IS NULL) is the atomic gate;
+     * this test cristallizes the contract by simulating the gate via mock state.
+     */
+    public function testValidateAndConsumeIsIdempotentOnRepeatedCalls(): void {
+        $rawToken = bin2hex(random_bytes(32));
+        $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
+
+        $rowOnFirstCall = [
+            'token_hash' => $tokenHash,
+            'tenant_id'  => self::TENANT_ID,
+            'meeting_id' => self::MEETING_ID,
+            'member_id'  => self::MEMBER_ID,
+            'motion_id'  => self::MOTION_ID,
+            'expires_at' => gmdate('Y-m-d\TH:i:s\Z', time() + 3600),
+            'used_at'    => gmdate('Y-m-d\TH:i:s\Z'),
+        ];
+
+        // Simulate the SQL gate: first UPDATE returns the row, second returns null
+        // (because used_at is now NOT NULL → WHERE clause excludes it).
+        $this->tokenRepo
+            ->expects($this->exactly(2))
+            ->method('consumeIfValid')
+            ->willReturnOnConsecutiveCalls($rowOnFirstCall, null);
+
+        // The second call's null triggers diagnoseFailure → token_already_used
+        $this->tokenRepo
+            ->expects($this->once())
+            ->method('diagnoseFailure')
+            ->with($tokenHash)
+            ->willReturn('token_already_used');
+
+        $first = $this->service->validateAndConsume($rawToken);
+        $second = $this->service->validateAndConsume($rawToken);
+
+        $this->assertTrue($first['valid'], 'First call must succeed.');
+        $this->assertFalse($second['valid'], 'Second call must NEVER return valid:true.');
+        $this->assertSame('token_already_used', $second['reason']);
+    }
+
     public function testValidateAndConsumeWithAlreadyUsedTokenReturnsUsedReason(): void {
         $rawToken = bin2hex(random_bytes(32));
         $tokenHash = hash_hmac('sha256', $rawToken, APP_SECRET);
