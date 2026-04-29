@@ -37,9 +37,16 @@ abstract class ControllerTestCase extends TestCase
     // SETUP / TEARDOWN
     // =========================================================================
 
+    /** @var int Output buffer level captured at setUp() so tearDown can rewind to it. */
+    private int $obLevelAtSetUp = 0;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Snapshot ob level so tearDown can clean up any buffers left dangling by
+        // controllers that exit through api_ok/api_fail (e.g. CSV/XLSX exports).
+        $this->obLevelAtSetUp = ob_get_level();
 
         // Reset RepositoryFactory singleton so tests start with a clean state
         RepositoryFactory::reset();
@@ -67,6 +74,13 @@ abstract class ControllerTestCase extends TestCase
 
     protected function tearDown(): void
     {
+        // Rewind any output buffers left dangling by the test (e.g. exports
+        // that close their own buffer mid-execution). PHPUnit otherwise marks
+        // the test as risky/failed with "closed output buffers other than its own".
+        while (ob_get_level() > $this->obLevelAtSetUp) {
+            @ob_end_clean();
+        }
+
         // Reset AuthMiddleware first
         AuthMiddleware::reset();
 

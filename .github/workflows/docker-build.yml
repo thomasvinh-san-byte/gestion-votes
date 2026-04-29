@@ -53,8 +53,8 @@ jobs:
       - name: Install dependencies (with dev for tests)
         run: composer install --optimize-autoloader --no-interaction --no-progress
 
-      - name: Run PHPUnit tests
-        run: vendor/bin/phpunit --no-coverage
+      - name: Run PHPUnit Unit tests (excluding redis-dependent)
+        run: vendor/bin/phpunit --testsuite Unit --exclude-group redis --no-coverage
 
       - name: Run PHPStan static analysis
         run: vendor/bin/phpstan analyse --no-progress
@@ -398,6 +398,9 @@ jobs:
 
       - name: Run Integration tests
         run: vendor/bin/phpunit --testsuite Integration --no-coverage
+
+      - name: Run Unit tests requiring Redis
+        run: vendor/bin/phpunit --testsuite Unit --group redis --no-coverage
         env:
           DATABASE_URL: "pgsql:host=localhost;dbname=agvote_test;user=agvote;password=agvote"
           REDIS_HOST: localhost

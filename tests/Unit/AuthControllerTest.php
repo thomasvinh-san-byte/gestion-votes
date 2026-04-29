@@ -12,6 +12,11 @@ use AgVote\Repository\UserRepository;
 /**
  * Unit tests for AuthController.
  *
+ * @group redis
+ *
+ * Requires Redis (RateLimiter::reset called in setUp/tearDown).
+ * Run via integration job — excluded from validate (no Redis service).
+ *
  * Endpoints:
  *  - login():  POST — email/password or api_key auth, creates session
  *  - logout(): POST — destroys session

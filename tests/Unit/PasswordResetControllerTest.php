@@ -11,6 +11,11 @@ use PHPUnit\Framework\TestCase;
 /**
  * Unit tests for PasswordResetController.
  *
+ * @group redis
+ *
+ * Requires Redis (RateLimiter via PasswordResetService).
+ * Run via integration job — excluded from validate (no Redis service).
+ *
  * Strategy:
  *  - Mock PasswordResetService
  *  - Use output buffering to capture HtmlView output
