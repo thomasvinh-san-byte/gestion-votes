@@ -70,10 +70,24 @@ final class ExportService {
         return $out;
     }
 
+    /**
+     * F15: prevent CSV/XLSX formula injection.
+     *
+     * Excel, LibreOffice, and Numbers all interpret a leading `=`, `+`, `-`,
+     * `@`, tab, or CR as a formula trigger. A user-controlled cell that
+     * starts with `=cmd|...` is evaluated by Excel on open, executing
+     * arbitrary commands on the admin's machine. We prefix any such cell
+     * with `'` (apostrophe) which the spreadsheet parser treats as
+     * "literal text", neutralizing the formula.
+     */
     private function sanitizeCsvCell(mixed $value): string {
         $str = (string) $value;
-        if ($str !== '' && in_array($str[0], ['=', '+', '-', '@'], true)) {
-            return "\t" . $str;
+        if ($str === '') {
+            return $str;
+        }
+        $first = $str[0];
+        if (in_array($first, ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $str;
         }
         return $str;
     }
@@ -193,7 +207,9 @@ final class ExportService {
         $colIndex = 1;
         foreach ($headers as $header) {
             $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
-            $cell->setValue($header);
+            // F15: headers are app-controlled, but pipe through the same gate
+            // for consistency in case a future caller passes user input here.
+            $cell->setValue($this->sanitizeCsvCell($header));
             $cell->getStyle()->getFont()->setBold(true);
             $cell->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
             $colIndex++;
@@ -202,7 +218,11 @@ final class ExportService {
         foreach ($rows as $row) {
             $colIndex = 1;
             foreach ($row as $value) {
-                $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->setValue($value);
+                // F15: same formula-injection gate as CSV. setExplicitCellValue
+                // would also work but breaks number/date detection. Prefix-with-'
+                // is the OWASP-recommended approach.
+                $sheet->getCellByColumnAndRow($colIndex, $rowIndex)
+                    ->setValue($this->sanitizeCsvCell($value));
                 $colIndex++;
             }
             $rowIndex++;
