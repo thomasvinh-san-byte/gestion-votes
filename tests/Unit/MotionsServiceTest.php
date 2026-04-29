@@ -210,6 +210,10 @@ class MotionsServiceTest extends TestCase
             'id' => self::MOTION_ID,
             'meeting_id' => self::MEETING_ID,
             'motion_title' => 'Résolution DT',
+            'manual_total' => null, // F03: no prior tally — idempotence baseline
+            'manual_for' => null,
+            'manual_against' => null,
+            'manual_abstain' => null,
         ];
 
         $this->motionRepo
@@ -238,13 +242,77 @@ class MotionsServiceTest extends TestCase
             'manual_for' => 6,
             'manual_against' => 3,
             'manual_abstain' => 1,
-            'justification' => 'Problème technique',
+            'justification' => 'Problème technique majeur sur le scanner', // ≥ 20 chars (F03 gate)
         ], self::TENANT_ID);
 
         $this->assertSame(10, $result['manual_total']);
         $this->assertSame(6, $result['manual_for']);
         $this->assertSame(3, $result['manual_against']);
         $this->assertSame(1, $result['manual_abstain']);
+    }
+
+    // =========================================================================
+    // degradedTally() — F03 justification & idempotence gates
+    // =========================================================================
+
+    /**
+     * F03: justification < 20 chars → RuntimeException('justification_too_short').
+     */
+    public function testDegradedTallyRefusesShortJustification(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('justification_too_short');
+
+        // Repo MUST NOT be hit — gate fires before any DB read.
+        $this->motionRepo->expects($this->never())->method('findWithMeetingTenant');
+        $this->motionRepo->expects($this->never())->method('updateManualTally');
+
+        $this->service->degradedTally([
+            'motion_id' => self::MOTION_ID,
+            'manual_total' => 10,
+            'manual_for' => 6,
+            'manual_against' => 3,
+            'manual_abstain' => 1,
+            'justification' => 'Trop court', // 10 chars
+        ], self::TENANT_ID);
+    }
+
+    /**
+     * F03: a manual tally already exists on the motion → throw 'manual_tally_already_set'.
+     * Prevents silent overwrite of degraded-mode figures.
+     */
+    public function testDegradedTallyRefusesIfManualTallyAlreadySet(): void
+    {
+        $row = [
+            'id' => self::MOTION_ID,
+            'meeting_id' => self::MEETING_ID,
+            'motion_title' => 'Résolution DT',
+            'manual_total' => 50,    // already set
+            'manual_for' => 30,
+            'manual_against' => 15,
+            'manual_abstain' => 5,
+        ];
+
+        $this->motionRepo
+            ->expects($this->once())
+            ->method('findWithMeetingTenant')
+            ->willReturn($row);
+
+        // No write must occur on the second attempt.
+        $this->motionRepo->expects($this->never())->method('updateManualTally');
+        $this->manualActionRepo->expects($this->never())->method('createManualTally');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('manual_tally_already_set');
+
+        $this->service->degradedTally([
+            'motion_id' => self::MOTION_ID,
+            'manual_total' => 10,
+            'manual_for' => 6,
+            'manual_against' => 3,
+            'manual_abstain' => 1,
+            'justification' => 'Tentative de réécrasement du tally manuel précédent',
+        ], self::TENANT_ID);
     }
 
     // =========================================================================

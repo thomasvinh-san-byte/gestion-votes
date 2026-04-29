@@ -381,7 +381,7 @@ final class MotionsService {
         $for = (int) ($input['manual_for'] ?? 0);
         $against = (int) ($input['manual_against'] ?? 0);
         $abstain = (int) ($input['manual_abstain'] ?? 0);
-        $justification = (string) $input['justification'];
+        $justification = trim((string) $input['justification']);
 
         // Arithmetic validation (can be called from service directly)
         if ($total <= 0) {
@@ -397,10 +397,33 @@ final class MotionsService {
             throw new RuntimeException('inconsistent_tally');
         }
 
+        // F03: justification gate — operators MUST document why the manual tally
+        // is being set (forensic value when reconciling vs ballots later).
+        if (mb_strlen($justification) < 20) {
+            throw new RuntimeException('justification_too_short');
+        }
+
         $row = $this->motionRepo()->findWithMeetingTenant($motionId, $tenantId);
         if (!$row) {
             throw new RuntimeException('motion_not_found');
         }
+
+        // F03: idempotence gate — a manual tally that already exists must NOT
+        // be silently overwritten. Operators have to explicitly cancel the
+        // previous tally first (separate flow). This prevents an attacker
+        // (or a confused operator) from rewriting figures repeatedly with
+        // only generic audit entries to clean up afterwards.
+        $beforeTotal = $row['manual_total'] !== null ? (int) $row['manual_total'] : 0;
+        if ($beforeTotal > 0) {
+            throw new RuntimeException('manual_tally_already_set');
+        }
+
+        $beforeTally = [
+            'total'   => $row['manual_total'] !== null ? (int) $row['manual_total'] : null,
+            'for'     => $row['manual_for'] !== null ? (int) $row['manual_for'] : null,
+            'against' => $row['manual_against'] !== null ? (int) $row['manual_against'] : null,
+            'abstain' => $row['manual_abstain'] !== null ? (int) $row['manual_abstain'] : null,
+        ];
 
         $meetingId = (string) $row['meeting_id'];
 
@@ -418,7 +441,8 @@ final class MotionsService {
 
         audit_log('manual_tally_set', 'motion', $motionId, [
             'meeting_id' => $meetingId,
-            'tally' => ['total' => $total, 'for' => $for, 'against' => $against, 'abstain' => $abstain],
+            'before' => $beforeTally,
+            'after' => ['total' => $total, 'for' => $for, 'against' => $against, 'abstain' => $abstain],
             'justification' => $justification,
         ]);
 
