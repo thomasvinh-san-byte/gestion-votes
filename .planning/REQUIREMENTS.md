@@ -84,18 +84,18 @@
 | HARDEN-F08 | Phase 2 | Complete |
 | HARDEN-F09 | Phase 2 | Complete |
 | HARDEN-F10 | Phase 2 | Complete |
-| HARDEN-F11 | Phase 3 | Pending |
-| HARDEN-F12 | Phase 3 | Pending |
-| HARDEN-F13 | Phase 3 | Pending |
-| HARDEN-F14 | Phase 4 | Pending |
-| HARDEN-F15 | Phase 4 | Pending |
-| HARDEN-F16 | Phase 4 | Pending |
-| HARDEN-F17 | Phase 5 | Pending |
-| HARDEN-F18 | Phase 5 | Pending |
-| HARDEN-F19 | Phase 5 | Pending |
-| HARDEN-F20 | Phase 6 | Pending |
-| HARDEN-F21 | Phase 6 | Pending |
-| HARDEN-F22 | Phase 6 | Pending |
+| HARDEN-F11 | Phase 3 | Complete |
+| HARDEN-F12 | Phase 3 | Complete |
+| HARDEN-F13 | Phase 3 | Complete |
+| HARDEN-F14 | Phase 4 | Complete |
+| HARDEN-F15 | Phase 4 | Complete |
+| HARDEN-F16 | Phase 4 | Complete |
+| HARDEN-F17 | Phase 5 | Complete |
+| HARDEN-F18 | Phase 5 | Complete |
+| HARDEN-F19 | Phase 5 | Complete |
+| HARDEN-F20 | Phase 6 | Complete |
+| HARDEN-F21 | Phase 6 | Complete |
+| HARDEN-F22 | Phase 6 | Complete |
 
 **Coverage:**
 - v2.1 requirements: 21 total

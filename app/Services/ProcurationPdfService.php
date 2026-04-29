@@ -222,10 +222,21 @@ HTML;
     {
         $html = $this->renderHtml($proxy, $meeting, $orgName);
 
+        // F16: dompdf hardening. Three layers:
+        //  - isRemoteEnabled=false → never fetch HTTP/HTTPS resources from
+        //    inside the rendered HTML (no SSRF, no exfiltration).
+        //  - isPhpEnabled=false → refuse to evaluate `<script type="text/php">`
+        //    blocks, which dompdf historically supported and which led to
+        //    several CVEs (CVE-2014-2383, CVE-2022-41343, CVE-2023-22897).
+        //  - setChroot() → restrict file:// reads to a fixed asset directory.
+        //    Even if a relative path slips through, dompdf cannot escape it.
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', false);
+        $options->set('isPhpEnabled', false);
         $options->set('defaultFont', 'DejaVu Sans');
+        $chroot = realpath(__DIR__ . '/../Templates') ?: __DIR__ . '/../Templates';
+        $options->setChroot([$chroot]);
 
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html, 'UTF-8');

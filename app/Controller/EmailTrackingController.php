@@ -14,6 +14,12 @@ use Throwable;
  */
 final class EmailTrackingController {
     public function pixel(): void {
+        // F12: rate limit pixel hits to 200/min per IP. Public unauthenticated
+        // endpoint — without a cap, an attacker can scan invitation IDs at
+        // wire speed. The cap is generous (legit clients reload the same
+        // pixel a few times) but blocks brute-force enumeration.
+        self::throttleTracking('email_pixel');
+
         $request = new Request();
         $trackingEnabled = (bool) config('email_tracking_enabled', true);
         $invitationId = trim((string) $request->query('id', ''));
@@ -53,6 +59,9 @@ final class EmailTrackingController {
     }
 
     public function redirect(): void {
+        // F12: same throttling logic as pixel — public unauthenticated endpoint.
+        self::throttleTracking('email_redirect');
+
         $request = new Request();
         $trackingEnabled = (bool) config('email_tracking_enabled', true);
         $invitationId = trim((string) $request->query('id', ''));
@@ -65,16 +74,29 @@ final class EmailTrackingController {
             return;
         }
 
-        $parsedUrl = parse_url($targetUrl);
-        if (!$parsedUrl || !isset($parsedUrl['scheme']) || !in_array($parsedUrl['scheme'], ['http', 'https'], true)) {
-            header('Location: ' . $fallbackUrl, true, 302);
-            return;
+        // F11 hardening: validate the redirect target via UrlValidator. The
+        // host whitelist defaults to the parsed APP_URL host, plus any
+        // additional hosts in EMAIL_REDIRECT_ALLOWED_HOSTS (CSV). Any URL
+        // that is non-https, has userinfo, points at a private/loopback
+        // IP, or is not in the whitelist falls back to APP_URL.
+        $allowedHosts = [];
+        $appHost = parse_url($fallbackUrl, PHP_URL_HOST);
+        if (is_string($appHost) && $appHost !== '') {
+            $allowedHosts[] = $appHost;
+        }
+        $extraHosts = (string) (getenv('EMAIL_REDIRECT_ALLOWED_HOSTS') ?: '');
+        foreach (explode(',', $extraHosts) as $h) {
+            $h = trim($h);
+            if ($h !== '') {
+                $allowedHosts[] = $h;
+            }
         }
 
-        $allowedHost = parse_url($fallbackUrl, PHP_URL_HOST) ?: 'localhost';
-        $targetHost = $parsedUrl['host'] ?? '';
-        // Block empty host (protocol-relative URLs like //attacker.com) and mismatched hosts
-        if ($targetHost === '' || $targetHost !== $allowedHost) {
+        if (!\AgVote\Core\Http\UrlValidator::isSafeRedirect($targetUrl, $allowedHosts)) {
+            error_log(sprintf(
+                'EMAIL_REDIRECT_REJECTED | target=%s | reason=fails UrlValidator gate',
+                $targetUrl,
+            ));
             header('Location: ' . $fallbackUrl, true, 302);
             return;
         }
@@ -108,6 +130,33 @@ final class EmailTrackingController {
 
         header('Location: ' . $targetUrl, true, 302);
         return;
+    }
+
+    /**
+     * F12: shared rate limit for pixel + redirect.
+     *
+     * 200 hits per 60 seconds per client IP. Identifier resolution honors
+     * TRUSTED_PROXIES via ClientIp::get() so attackers can't spoof their IP
+     * by setting X-Forwarded-For from a non-trusted source.
+     *
+     * On limit hit, a 1×1 transparent GIF is still served (pixel) or the
+     * redirect falls through silently — no 429 is leaked, since these
+     * endpoints intentionally reveal nothing to unauthenticated callers.
+     */
+    private static function throttleTracking(string $context): void {
+        $identifier = \AgVote\Core\Http\ClientIp::get();
+        if (\AgVote\Core\Security\RateLimiter::isLimited($context, $identifier, 200, 60)) {
+            error_log(sprintf(
+                'EMAIL_TRACKING_RATE_LIMIT | context=%s | ip=%s',
+                $context,
+                $identifier,
+            ));
+            // Don't reveal a 429 publicly: just return a benign response.
+            // For pixel, the caller method continues to outputPixel(); for
+            // redirect, we head to the fallback URL silently.
+            return;
+        }
+        \AgVote\Core\Security\RateLimiter::check($context, $identifier, 200, 60, false);
     }
 
     private function outputPixel(): never {

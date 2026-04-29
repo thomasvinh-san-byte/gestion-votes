@@ -3,8 +3,40 @@
 **Application :** AG-Vote — Systeme de gestion de votes en assemblee generale
 **Date de l'audit initial :** 2026-02-20
 **Date de verification :** 2026-02-20
+**Mise à jour :** 2026-04-29 — milestone v2.1 Hardening Sécurité (F02-F22)
 **Perimetre :** Authentification, autorisation, CSRF, SSE/WebSocket, multi-tenant, integrite des votes, gestion des secrets
 **Constatations initiales :** 25 | **Confirmees :** 19 | **Faux positifs :** 5 | **Reclassee :** 1
+
+---
+
+## Milestone v2.1 Hardening — état des findings F01-F22
+
+| ID  | Finding                                                       | Phase | PR     | Status      |
+|-----|---------------------------------------------------------------|-------|--------|-------------|
+| F01 | Setup endpoint takeover (404 + CSRF strict)                   | v2.0  | #247   | ✓ shipped   |
+| F02 | TRUSTED_PROXIES + ClientIp helper                             | 1     | #249   | ✓ shipped   |
+| F03 | degraded_tally idempotence + audit before/after               | 1     | #249   | ✓ shipped   |
+| F04 | Per-member audit on members_bulk voting_power                 | 1     | #249   | ✓ shipped   |
+| F05 | SSE auth-first + tenant filtering                             | 1     | #249   | ✓ shipped   |
+| F06 | Vote token atomic consume (regression test)                   | 2     | #250   | ✓ shipped   |
+| F07 | Hash invitation tokens + clear legacy plaintext               | 2     | #250   | ✓ shipped   |
+| F08 | Cross-tenant IDOR primitives in MotionRepository              | 2     | #250   | ✓ shipped   |
+| F09 | resetDemo lockdown (prod gate, status whitelist, typed token) | 2     | #250   | ✓ shipped   |
+| F10 | CSRF action-scoped tokens (HMAC opt-in)                       | 2     | #250   | ✓ shipped   |
+| F11 | UrlValidator gate (webhook + email redirect)                  | 3     | #251   | ✓ shipped   |
+| F12 | Rate limits on tracking + reset, constant-time response       | 3     | #251   | ✓ shipped   |
+| F13 | Per-account progressive lockout                               | 3     | #251   | ✓ shipped   |
+| F14 | Upload PDF magic bytes + attachment + basename order          | 4     | #252   | ✓ shipped   |
+| F15 | Formula injection on CSV/XLSX exports                         | 4     | #252   | ✓ shipped   |
+| F16 | dompdf hardening (isPhpEnabled, setChroot)                    | 4     | #252   | ✓ shipped   |
+| F17 | CSP strict mode opt-in (CSP_STRICT_MODE=1)                    | 5     | #253   | ✓ shipped   |
+| F18 | SameSite=Strict default + invalid-env fallback                | 5     | #253   | ✓ shipped   |
+| F19 | bootstrap refuses APP_ENV=production + APP_DEBUG=1            | 5     | #253   | ✓ shipped   |
+| F20 | Security testsuite (tests/Security/)                          | 6     | #254   | ✓ shipped   |
+| F21 | SecuritySignal escalation logger                              | 6     | #254   | ✓ shipped   |
+| F22 | SECURITY.md (responsible disclosure) + this audit table       | 6     | #254   | ✓ shipped   |
+
+**Coverage finale :** 22/22 findings traités (21 nouvelles contre-mesures v2.1 + F01 v2.0). Run `vendor/bin/phpunit --testsuite Security --no-coverage` pour la batterie de régression.
 
 ---
 

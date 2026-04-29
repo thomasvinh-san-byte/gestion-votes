@@ -299,10 +299,28 @@ HTML;
 
     /**
      * Send webhook notification for an alert.
+     *
+     * F11 hardening: the webhook URL is operator-provided (env var) and
+     * could point at internal services or cloud metadata. We validate it
+     * against a static whitelist of allowed hosts (set via
+     * MONITOR_WEBHOOK_ALLOWED_HOSTS, comma-separated) and refuse SSRF
+     * targets (RFC1918, loopback, link-local) regardless.
      */
     private function sendWebhook(array $alert): int {
         $webhookUrl = getenv('MONITOR_WEBHOOK_URL');
         if ($webhookUrl === false || $webhookUrl === '') {
+            return 0;
+        }
+
+        $allowedHosts = array_filter(array_map(
+            'trim',
+            explode(',', (string) (getenv('MONITOR_WEBHOOK_ALLOWED_HOSTS') ?: '')),
+        ));
+        if ($allowedHosts === [] || !\AgVote\Core\Http\UrlValidator::isSafeOutbound($webhookUrl, $allowedHosts)) {
+            error_log(sprintf(
+                'MONITOR_WEBHOOK_REJECTED | url=%s | reason=not in MONITOR_WEBHOOK_ALLOWED_HOSTS or unsafe target',
+                $webhookUrl,
+            ));
             return 0;
         }
 
@@ -328,6 +346,11 @@ HTML;
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_CONNECTTIMEOUT => 5,
+                // F11: refuse to follow redirects (could pivot to internal IPs)
+                // and restrict to https only.
+                CURLOPT_FOLLOWLOCATION => false,
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
             ]);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

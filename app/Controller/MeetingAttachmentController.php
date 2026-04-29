@@ -47,6 +47,17 @@ final class MeetingAttachmentController extends AbstractController {
             api_fail('file_too_large', 400, ['detail' => 'Le fichier ne doit pas dépasser 10 Mo.']);
         }
 
+        // F14: defense in depth — magic bytes BEFORE finfo. A crafted file with
+        // %PDF- followed by garbage will pass finfo as application/pdf, but a
+        // file with finfo-spoofed metadata can sneak past finfo too. The 5-byte
+        // header check is cheap and unforgeable.
+        $magic = @file_get_contents($file['tmp_name'], false, null, 0, 5);
+        if ($magic !== '%PDF-') {
+            api_fail('invalid_pdf_magic', 400, [
+                'detail' => 'Le fichier n\'est pas un PDF valide (signature manquante).',
+            ]);
+        }
+
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']);
         $allowedMimes = ['application/pdf'];
@@ -232,12 +243,15 @@ final class MeetingAttachmentController extends AbstractController {
             api_fail('file_not_found', 404);
         }
 
-        // Sanitize filename for Content-Disposition header
-        $safeFilename = preg_replace('/[^\w\s\-\.]/', '', $att['original_name']);
-        $safeFilename = basename($safeFilename) ?: 'document.pdf';
+        // F14: basename FIRST (DB-source can contain path fragments), THEN regex.
+        $safeFilename = basename((string) $att['original_name']);
+        $safeFilename = preg_replace('/[^\w\s\-\.]/', '', $safeFilename);
+        $safeFilename = $safeFilename !== '' ? $safeFilename : 'document.pdf';
 
         header('Content-Type: application/pdf');
-        header('Content-Disposition: inline; filename="' . $safeFilename . '"');
+        // F14: serve as attachment, not inline. Prevents older PDF readers
+        // from auto-executing embedded JavaScript on the user's browser.
+        header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Content-Length: ' . (int) $att['file_size']);
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, no-store');

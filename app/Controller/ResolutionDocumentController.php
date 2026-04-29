@@ -55,6 +55,14 @@ final class ResolutionDocumentController extends AbstractController {
             api_fail('file_too_large', 400, ['detail' => 'Le fichier ne doit pas dépasser 10 Mo.']);
         }
 
+        // F14: magic bytes BEFORE finfo (see MeetingAttachmentController).
+        $magic = @file_get_contents($file['tmp_name'], false, null, 0, 5);
+        if ($magic !== '%PDF-') {
+            api_fail('invalid_pdf_magic', 400, [
+                'detail' => 'Le fichier n\'est pas un PDF valide (signature manquante).',
+            ]);
+        }
+
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']);
         $allowedMimes = ['application/pdf'];
@@ -196,12 +204,17 @@ final class ResolutionDocumentController extends AbstractController {
             api_fail('file_not_found', 404);
         }
 
-        // Sanitize filename for Content-Disposition header
-        $safeFilename = preg_replace('/[^\w\s\-\.]/', '', $doc['original_name']);
-        $safeFilename = basename($safeFilename) ?: 'document.pdf';
+        // F14: filename sanitization — basename FIRST (so a path-injected
+        // original_name from the DB is reduced to its leaf), THEN regex.
+        // Inverted ordering caused path-traversal-shaped filenames to
+        // sneak through if the DB ever held one.
+        $safeFilename = basename((string) $doc['original_name']);
+        $safeFilename = preg_replace('/[^\w\s\-\.]/', '', $safeFilename);
+        $safeFilename = $safeFilename !== '' ? $safeFilename : 'document.pdf';
 
         header('Content-Type: application/pdf');
-        header('Content-Disposition: inline; filename="' . $safeFilename . '"');
+        // F14: attachment instead of inline — see MeetingAttachmentController.
+        header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Content-Length: ' . (int) $doc['file_size']);
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, no-store');

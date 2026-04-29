@@ -25,7 +25,8 @@ final class AuthController extends AbstractController {
         }
 
         // ── Rate limiting with audit (AUTH-02) ──
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // F02 hardening: real client IP, not a spoofable forwarded header.
+        $ip = \AgVote\Core\Http\ClientIp::get();
         $maxAttempts = (int) (getenv('APP_LOGIN_MAX_ATTEMPTS') ?: 5);
         $windowSeconds = (int) (getenv('APP_LOGIN_WINDOW') ?: 300);
 
@@ -75,6 +76,31 @@ final class AuthController extends AbstractController {
             }
             $authMethod = 'password';
 
+            // F13: progressive per-account lockout. Checked AFTER the email format
+            // gate so we never leak account existence on a malformed email, but
+            // BEFORE the DB read so we don't generate load for a locked account.
+            $lockoutStatus = \AgVote\Core\Security\AccountLockout::status($email);
+            if ($lockoutStatus['locked']) {
+                $retryAfter = $lockoutStatus['retry_after_seconds'];
+                try {
+                    audit_log('auth_account_locked', 'security', null, [
+                        'email_hash' => hash('sha256', strtolower($email)),
+                        'ip' => $ip,
+                        'retry_after_seconds' => $retryAfter,
+                    ]);
+                } catch (Throwable) { /* best effort */ }
+                throw new ApiResponseException(
+                    new JsonResponse(423, [
+                        'ok' => false,
+                        'error' => 'account_locked',
+                        'detail' => 'Trop d\'echecs sur ce compte. Reessayez plus tard ou reinitialisez votre mot de passe.',
+                        'retry_after' => $retryAfter,
+                    ], [
+                        'Retry-After' => (string) $retryAfter,
+                    ]),
+                );
+            }
+
             $user = $userRepo->findByEmailGlobal($email);
 
             // Always run password_verify regardless of user existence (constant-time).
@@ -84,6 +110,24 @@ final class AuthController extends AbstractController {
             $passwordValid = password_verify($password, $hashToVerify);
 
             if (!$user || empty($user['password_hash']) || !$passwordValid) {
+                // F21: feed the security-signal escalation channel. Past
+                // threshold (10 failures / 60 s from the same client),
+                // SecuritySignal emits a SECURITY_ALERT log line that ops
+                // dashboards filter on.
+                \AgVote\Core\Security\SecuritySignal::record('auth_failure', 10, [
+                    'email_hash' => hash('sha256', strtolower($email)),
+                ]);
+                // F13: per-account failure counter (in addition to per-IP).
+                $lockoutAfterFail = \AgVote\Core\Security\AccountLockout::recordFailure($email);
+                if ($lockoutAfterFail['locked']) {
+                    try {
+                        audit_log('auth_account_lock_engaged', 'security', null, [
+                            'email_hash' => hash('sha256', strtolower($email)),
+                            'failure_count' => $lockoutAfterFail['count'],
+                            'lock_seconds' => $lockoutAfterFail['retry_after_seconds'],
+                        ]);
+                    } catch (Throwable) { /* best effort */ }
+                }
                 try {
                     $userRepo->logAuthFailure(
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
@@ -137,6 +181,12 @@ final class AuthController extends AbstractController {
         // ── Common checks ──
         if (empty($user['is_active'])) {
             api_fail('account_disabled', 403, ['detail' => 'Compte désactivé. Contactez un administrateur.']);
+        }
+
+        // F13: successful login → reset per-account failure counter.
+        // We only reach here on a verified credential match.
+        if ($authMethod === 'password' && $email !== '') {
+            \AgVote\Core\Security\AccountLockout::reset($email);
         }
 
         // ── Create session ──

@@ -24,6 +24,16 @@ services:
       APP_DEBUG: "0"
       APP_AUTH_ENABLED: "1"
       CSRF_ENABLED: "1"
+      # Hardening v2.1 — voir SECURITY_AUDIT.md F02-F22.
+      # SameSite Strict par défaut (F18). Override → SESSION_COOKIE_SAMESITE.
+      SESSION_COOKIE_SAMESITE: "${SESSION_COOKIE_SAMESITE:-Strict}"
+      # IPs des reverse-proxies (CSV). Sans ça X-Forwarded-For est ignoré (F02).
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES:-}"
+      # Whitelists optionnelles pour les sorties HTTP (F11).
+      MONITOR_WEBHOOK_ALLOWED_HOSTS: "${MONITOR_WEBHOOK_ALLOWED_HOSTS:-}"
+      EMAIL_REDIRECT_ALLOWED_HOSTS: "${EMAIL_REDIRECT_ALLOWED_HOSTS:-}"
+      # Activer après validation Report-Only sur trafic réel (F17).
+      CSP_STRICT_MODE: "${CSP_STRICT_MODE:-0}"
       RATE_LIMIT_ENABLED: "1"
       LOAD_SEED_DATA: "0"
       DB_DSN: "pgsql:host=db;port=5432;dbname=${DB_DATABASE:-vote_app};sslmode=prefer"

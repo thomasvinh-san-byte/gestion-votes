@@ -127,9 +127,11 @@ final class PasswordResetController {
      * POST /reset-password — Process email submission (rate-limited, no enumeration).
      */
     private function handleRequestPost(): void {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // F02 hardening: real client IP, not a spoofable header.
+        $ip = \AgVote\Core\Http\ClientIp::get();
+        $startedAt = microtime(true);
 
-        // Rate limit: max 5 requests per 5 minutes per IP
+        // F12: per-IP rate limit (5 per 5 min) — coarse-grained anti-flood.
         if (RateLimiter::isLimited('password_reset', $ip, 5, 300)) {
             $this->renderRequestForm(
                 errors: ['Trop de tentatives. Veuillez patienter avant de reessayer.'],
@@ -141,8 +143,23 @@ final class PasswordResetController {
         $request = new Request();
         $email = trim((string) $request->body('email', ''));
 
+        // F12: per-email rate limit (3 per 10 min) — caps the noise generated
+        // for any single account regardless of the IP rotation. Hashed
+        // identifier so a user's email never appears in Redis keys.
+        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $emailKey = hash('sha256', strtolower($email));
+            if (RateLimiter::isLimited('password_reset_email', $emailKey, 3, 600)) {
+                // Same response shape as success — no enumeration signal.
+                $this->constantTimeFinish($startedAt);
+                HtmlView::render('reset_request_form', ['errors' => [], 'success' => true]);
+                return;
+            }
+            RateLimiter::check('password_reset_email', $emailKey, 3, 600, false);
+        }
+
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            // Show success anyway — no enumeration on invalid email either
+            // Show success anyway — no enumeration on invalid email either.
+            $this->constantTimeFinish($startedAt);
             HtmlView::render('reset_request_form', [
                 'errors'  => [],
                 'success' => true,
@@ -153,10 +170,26 @@ final class PasswordResetController {
         // Always succeeds silently — service handles non-existent / inactive users
         $this->service->requestReset($email);
 
+        $this->constantTimeFinish($startedAt);
         HtmlView::render('reset_request_form', [
             'errors'  => [],
             'success' => true,
         ]);
+    }
+
+    /**
+     * F12: pad request handling time so rate-limit-rejected, invalid-email,
+     * and successful paths all take roughly the same wall-clock duration.
+     * Without this, a fast 401-style response leaks "user does not exist"
+     * vs "user exists, email queued" via a timing oracle. Floor + jitter to
+     * blunt sub-millisecond comparison.
+     */
+    private function constantTimeFinish(float $startedAt): void {
+        $elapsedMs = (microtime(true) - $startedAt) * 1000.0;
+        $targetMs = 250 + random_int(0, 80); // 250-330 ms
+        if ($elapsedMs < $targetMs) {
+            usleep((int) (($targetMs - $elapsedMs) * 1000));
+        }
     }
 
     /**
