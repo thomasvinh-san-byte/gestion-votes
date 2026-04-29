@@ -63,17 +63,26 @@ final class SecurityProvider {
         header('Cross-Origin-Opener-Policy: same-origin');
         header('Cross-Origin-Resource-Policy: same-origin');
 
-        // Enforcing CSP — baseline defense with script-src 'self' (no nonce yet).
-        header("Content-Security-Policy: default-src 'self'; "
-            . "script-src 'self'; "
-            . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
-            . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
-
-        // Report-only CSP — nonce + strict-dynamic for safe rollout validation.
-        // Violations appear in browser console as [Report Only] warnings without
-        // blocking resources. Once validated, this becomes the enforcing header.
-        header('Content-Security-Policy-Report-Only: ' . self::buildReportOnlyCsp());
+        // F17 hardening: opt-in strict CSP mode.
+        //
+        // Default: legacy enforcing CSP (script-src 'self', no nonce) +
+        // report-only nonce CSP for validation. Once a deployment has zero
+        // [Report Only] violations on real traffic, set CSP_STRICT_MODE=1 to
+        // promote the nonce-based policy to the enforcing header.
+        //
+        // Strict mode emits the nonce policy as the enforcing header AND
+        // drops the report-only header (no point reporting against itself).
+        $strictMode = getenv('CSP_STRICT_MODE') === '1';
+        if ($strictMode) {
+            header('Content-Security-Policy: ' . self::buildReportOnlyCsp());
+        } else {
+            header("Content-Security-Policy: default-src 'self'; "
+                . "script-src 'self'; "
+                . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                . "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
+                . "connect-src 'self' ws: wss:; frame-ancestors 'self'; form-action 'self'");
+            header('Content-Security-Policy-Report-Only: ' . self::buildReportOnlyCsp());
+        }
 
         // HSTS in HTTPS (X-Forwarded-Proto only honored from trusted proxies — see ClientIp).
         if (\AgVote\Core\Http\ClientIp::isHttps()) {

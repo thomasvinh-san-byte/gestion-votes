@@ -56,6 +56,23 @@ if (!defined('AG_UPLOAD_DIR')) {
 // BOOT APPLICATION
 // =============================================================================
 
+// F19 hardening: refuse to boot when production-mode debug is enabled.
+//
+// APP_DEBUG=1 in production exposes verbose error output, stack traces,
+// and (depending on integrations) credentials in the logs. This invariant
+// is checked HERE — before any provider runs — so misconfigured deploys
+// fail fast with an unambiguous message rather than silently leaking
+// internals on every error.
+$_envCheck_appEnv   = strtolower((string) (getenv('APP_ENV') ?: ''));
+$_envCheck_appDebug = (string) (getenv('APP_DEBUG') ?: '');
+if ($_envCheck_appEnv === 'production' && in_array($_envCheck_appDebug, ['1', 'true', 'on'], true)) {
+    http_response_code(500);
+    error_log('[SECURITY] APP_DEBUG=1 is forbidden in APP_ENV=production. Refusing to boot.');
+    fwrite(STDERR, "[SECURITY] APP_DEBUG=1 is forbidden in APP_ENV=production. Refusing to boot.\n");
+    exit(1);
+}
+unset($_envCheck_appEnv, $_envCheck_appDebug);
+
 \AgVote\Core\Application::boot();
 
 // =============================================================================

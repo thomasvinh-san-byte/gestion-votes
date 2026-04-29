@@ -76,13 +76,23 @@ final class SessionHelper {
     public static function cookieParams(): array {
         $secure = \AgVote\Core\Http\ClientIp::isHttps();
 
+        // F18 hardening: SameSite defaults to Strict to fully neutralize
+        // cross-site CSRF replay. Some flows that follow a third-party
+        // redirect into the app (vote-via-email-link, OAuth-style) need
+        // Lax to keep their session — set SESSION_COOKIE_SAMESITE=Lax
+        // explicitly in such deployments. Default is the secure choice.
+        $samesite = (string) (getenv('SESSION_COOKIE_SAMESITE') ?: 'Strict');
+        if (!in_array($samesite, ['Strict', 'Lax', 'None'], true)) {
+            $samesite = 'Strict';
+        }
+
         return [
             'lifetime' => 0,
             'path' => '/',
             'domain' => '',
             'secure' => $secure,
             'httponly' => true,
-            'samesite' => 'Lax',
+            'samesite' => $samesite,
         ];
     }
 }
