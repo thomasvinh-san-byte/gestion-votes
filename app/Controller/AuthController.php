@@ -110,6 +110,13 @@ final class AuthController extends AbstractController {
             $passwordValid = password_verify($password, $hashToVerify);
 
             if (!$user || empty($user['password_hash']) || !$passwordValid) {
+                // F21: feed the security-signal escalation channel. Past
+                // threshold (10 failures / 60 s from the same client),
+                // SecuritySignal emits a SECURITY_ALERT log line that ops
+                // dashboards filter on.
+                \AgVote\Core\Security\SecuritySignal::record('auth_failure', 10, [
+                    'email_hash' => hash('sha256', strtolower($email)),
+                ]);
                 // F13: per-account failure counter (in addition to per-IP).
                 $lockoutAfterFail = \AgVote\Core\Security\AccountLockout::recordFailure($email);
                 if ($lockoutAfterFail['locked']) {
