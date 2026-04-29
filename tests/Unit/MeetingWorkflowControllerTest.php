@@ -1378,115 +1378,119 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
     // RESET DEMO: MEETING ID VALIDATION
     // =========================================================================
 
-    public function testResetDemoRejectsEmptyBodyNoConfirm(): void
+    public function testResetDemoRejectsEmptyBodyMissingMeetingId(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody([]);
 
         $result = $this->callControllerMethod('resetDemo');
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
+        // F09: meeting_id is now required and checked before confirm
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    public function testResetDemoRejectsNoConfirmWithInvalidMeetingId(): void
+    public function testResetDemoRejectsNonUuidMeetingId(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody(['meeting_id' => 'invalid']);
+        $this->setJsonBody(['meeting_id' => 'invalid', 'confirm' => 'RESET-invalid']);
 
         $result = $this->callControllerMethod('resetDemo');
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
-    public function testResetDemoRejectsNoConfirmWithEmptyMeetingId(): void
+    public function testResetDemoRejectsEmptyMeetingId(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody(['meeting_id' => '']);
 
         $result = $this->callControllerMethod('resetDemo');
 
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
+        $this->assertEquals(422, $result['status']);
+        $this->assertEquals('missing_meeting_id', $result['body']['error']);
     }
 
     // =========================================================================
-    // RESET DEMO: CONFIRM GUARD
+    // RESET DEMO: TYPED CONFIRM GUARD (F09)
     // =========================================================================
 
-    public function testResetDemoRequiresConfirmReset(): void
+    public function testResetDemoRequiresTypedConfirmToken(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody([
             'meeting_id' => '12345678-1234-1234-1234-123456789abc',
+            // no confirm
         ]);
 
         $result = $this->callControllerMethod('resetDemo');
 
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
-        $this->assertStringContainsString('RESET', $result['body']['detail']);
+        $this->assertEquals('confirm_token_invalid', $result['body']['error']);
+        // The expected token is "RESET-<first-8-of-uuid>"
+        $this->assertStringContainsString('RESET-12345678', $result['body']['detail']);
     }
 
-    public function testResetDemoRejectsEmptyConfirm(): void
+    public function testResetDemoRejectsLegacyResetConfirm(): void
     {
+        // F09: the old "RESET" string is no longer accepted — it must now be
+        // typed with the meeting_id prefix. This guards against accidental
+        // copy-paste of a confirm token across meetings.
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody([
             'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'confirm' => '',
+            'confirm' => 'RESET',
         ]);
 
         $result = $this->callControllerMethod('resetDemo');
 
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
+        $this->assertEquals('confirm_token_invalid', $result['body']['error']);
     }
 
-    public function testResetDemoRejectsWrongConfirmValue(): void
+    public function testResetDemoRejectsConfirmFromOtherMeeting(): void
     {
+        // F09: confirm is bound to a specific meeting via the UUID prefix.
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->setJsonBody([
             'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'confirm' => 'yes',
+            'confirm' => 'RESET-aaaaaaaa', // valid format, wrong prefix
         ]);
 
         $result = $this->callControllerMethod('resetDemo');
 
         $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
+        $this->assertEquals('confirm_token_invalid', $result['body']['error']);
     }
 
-    public function testResetDemoRejectsCaseSensitiveConfirm(): void
+    public function testResetDemoConfirmIsCaseAndWhitespaceSensitive(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $this->setJsonBody([
-            'meeting_id' => '12345678-1234-1234-1234-123456789abc',
-            'confirm' => 'reset', // lowercase
-        ]);
+        // Replicate the gate calculation: confirm must be the strict literal
+        // "RESET-" + first 8 hex chars of meeting_id (lowercase from a
+        // lowercase UUID).
+        $meetingId = '12345678-1234-1234-1234-123456789abc';
+        $expected = 'RESET-' . substr($meetingId, 0, 8); // "RESET-12345678"
 
-        $result = $this->callControllerMethod('resetDemo');
-
-        $this->assertEquals(400, $result['status']);
-        $this->assertEquals('missing_confirm', $result['body']['error']);
-    }
-
-    public function testResetDemoConfirmMustBeExactString(): void
-    {
-        // Replicate the confirm check
         $cases = [
-            'RESET' => true,
-            'reset' => false,
-            'Reset' => false,
-            'RESET ' => false,
-            ' RESET' => false,
-            'YES' => false,
-            '' => false,
+            'RESET-12345678'    => true,    // exact match
+            'reset-12345678'    => false,   // wrong case on prefix
+            'Reset-12345678'    => false,   // wrong case on prefix
+            'RESET-12345678 '   => false,   // trailing whitespace
+            ' RESET-12345678'   => false,   // leading whitespace
+            'RESET-1234567'     => false,   // truncated hex
+            'RESET-123456789'   => false,   // too-long hex
+            'RESET'             => false,   // legacy token from old gate
+            ''                  => false,   // empty
         ];
 
-        foreach ($cases as $input => $expected) {
-            $confirm = (string) $input;
-            $this->assertEquals($expected, $confirm === 'RESET', "Confirm value '{$input}' should be " . ($expected ? 'accepted' : 'rejected'));
+        foreach ($cases as $input => $shouldAccept) {
+            $accepted = ($input === $expected);
+            $this->assertSame(
+                $shouldAccept,
+                $accepted,
+                "Confirm value '{$input}' should be " . ($shouldAccept ? 'accepted' : 'rejected'),
+            );
         }
     }
 
@@ -2353,13 +2357,14 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->injectJsonBody([
             'meeting_id' => '11111111-1111-1111-1111-111111111111',
-            'confirm' => 'RESET',
+            'confirm'    => 'RESET-11111111', // F09 typed token
         ]);
 
         $meetingRepo = $this->createMock(MeetingRepository::class);
         $meetingRepo->method('findByIdForTenant')->willReturn([
-            'status' => 'validated',
-            'title' => 'AG 2024',
+            'id'           => '11111111-1111-1111-1111-111111111111',
+            'status'       => 'validated',
+            'title'        => 'AG 2024',
             'validated_at' => '2024-01-15 10:00:00',
         ]);
         $this->injectRepos([MeetingRepository::class => $meetingRepo]);
@@ -2375,7 +2380,7 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $this->injectJsonBody([
             'meeting_id' => '11111111-1111-1111-1111-111111111111',
-            'confirm' => 'RESET',
+            'confirm'    => 'RESET-11111111', // F09 typed token
         ]);
 
         $meetingRepo = $this->createMock(MeetingRepository::class);
@@ -2386,6 +2391,67 @@ class MeetingWorkflowControllerTest extends ControllerTestCase
 
         $this->assertEquals(404, $result['status']);
         $this->assertEquals('meeting_not_found', $result['body']['error']);
+    }
+
+    /**
+     * F09: in production environment, only admins can invoke resetDemo.
+     * Operators (the default role for this route) get 403.
+     */
+    public function testResetDemoForbiddenInProductionForNonAdmin(): void
+    {
+        $previousEnv = getenv('APP_ENV');
+        putenv('APP_ENV=production');
+        try {
+            $_SERVER['REQUEST_METHOD'] = 'POST';
+            // Injected user is operator (non-admin) — F09 must refuse in prod.
+            $this->setAuth(
+                'aa000001-0000-4000-a000-000000000001',
+                'operator',
+                'ffffffff-0000-1111-2222-333333333333',
+            );
+            $this->injectJsonBody([
+                'meeting_id' => '11111111-1111-1111-1111-111111111111',
+                'confirm'    => 'RESET-11111111',
+            ]);
+
+            $result = $this->callControllerMethod('resetDemo');
+
+            $this->assertEquals(403, $result['status']);
+            $this->assertEquals('forbidden_in_production', $result['body']['error']);
+        } finally {
+            if ($previousEnv === false) {
+                putenv('APP_ENV');
+            } else {
+                putenv('APP_ENV=' . $previousEnv);
+            }
+        }
+    }
+
+    /**
+     * F09: status whitelist. Resetting a 'live' meeting is now refused
+     * even with valid typed confirm and admin role.
+     */
+    public function testResetDemoRefusesLiveMeetingStatus(): void
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->injectJsonBody([
+            'meeting_id' => '11111111-1111-1111-1111-111111111111',
+            'confirm'    => 'RESET-11111111',
+        ]);
+
+        $meetingRepo = $this->createMock(MeetingRepository::class);
+        $meetingRepo->method('findByIdForTenant')->willReturn([
+            'id'           => '11111111-1111-1111-1111-111111111111',
+            'status'       => 'live', // not in {draft, scheduled}
+            'title'        => 'AG live',
+            'validated_at' => null,
+        ]);
+        $this->injectRepos([MeetingRepository::class => $meetingRepo]);
+
+        $result = $this->callControllerMethod('resetDemo');
+
+        $this->assertEquals(409, $result['status']);
+        $this->assertEquals('meeting_status_not_resettable', $result['body']['error']);
     }
 
     // =========================================================================
