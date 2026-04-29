@@ -4,8 +4,8 @@ milestone: v2.0
 milestone_name: Operateur Live UX
 status: ready_to_plan
 stopped_at: null
-last_updated: "2026-04-21T00:00:00Z"
-last_activity: 2026-04-21 -- Roadmap v2.0 created (4 phases, 11 requirements mapped)
+last_updated: "2026-04-29T06:30:00Z"
+last_activity: 2026-04-29 -- Completed quick task 1: Sceller le setup (404 + CSRF)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 Phase: 1 of 4 (Checklist Operateur)
 Plan: 0 of ? in current phase
 Status: Ready to plan
-Last activity: 2026-04-21 -- Roadmap v2.0 created, STATE.md initialized
+Last activity: 2026-04-29 -- Completed quick task 1: Sceller le setup (404 + CSRF)
 
 Progress: [..........] 0%
 
@@ -50,6 +50,12 @@ None.
 ### Blockers/Concerns
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Sceller le setup: bloquer SetupController si un admin existe et exiger CSRF | 2026-04-29 | 8c0e64a | [1-sceller-le-setup-bloquer-setupcontroller](./quick/1-sceller-le-setup-bloquer-setupcontroller/) |
 
 ## Session Continuity
 
