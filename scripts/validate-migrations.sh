@@ -119,8 +119,10 @@ echo "=== Pass 1: Applying all migrations ==="
 for f in "$MIGRATIONS_DIR"/*.sql; do
   [ -f "$f" ] || continue
   echo "  Applying: $(basename "$f")"
-  if ! pg -f "$f" > /dev/null 2>&1; then
+  STDERR_OUTPUT=$(pg -f "$f" 2>&1 >/dev/null || true)
+  if echo "$STDERR_OUTPUT" | grep -qE '^(ERROR|FATAL):'; then
     echo "  FAIL: $(basename "$f")"
+    echo "  Details: $STDERR_OUTPUT"
     FAILED=$((FAILED + 1))
   else
     echo "  OK: $(basename "$f")"
