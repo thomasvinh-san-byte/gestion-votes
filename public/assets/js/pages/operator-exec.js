@@ -630,6 +630,7 @@
     O.fn.refreshAlerts();
     O.fn.updateExecCloseSession();
     refreshExecChecklist();
+    refreshFocusQuorum();
   }
 
   function refreshExecVote() {
@@ -898,6 +899,43 @@
     setChecklistRow('online', 'neutral', onlineCount + ' en ligne');
   }
 
+  /**
+   * Update the dedicated focus-mode quorum block (#opFocusQuorum) from current cached data.
+   * Reuses computeQuorumStats() — same data source as the Phase 1 checklist quorum row (D-3).
+   * Called from refreshExecView() and on focus mode entry from operator-tabs.js.
+   */
+  function refreshFocusQuorum() {
+    var block = document.getElementById('opFocusQuorum');
+    var valEl = document.getElementById('opFocusQuorumValue');
+    var statusEl = document.getElementById('opFocusQuorumStatus');
+    if (!block || !valEl || !statusEl) return;
+
+    var stats = computeQuorumStats();
+    var quorumMet = stats.currentVoters >= stats.required;
+    var pct = stats.totalMembers > 0
+      ? Math.round(stats.currentVoters / stats.totalMembers * 100)
+      : 0;
+
+    valEl.textContent = stats.currentVoters + '/' + stats.required + ' (' + pct + '%)';
+    statusEl.textContent = quorumMet ? 'atteint' : 'non atteint';
+
+    // Idempotent state class toggle (same pattern as setChecklistRow Phase 1)
+    var wasOk = block.classList.contains('op-focus-quorum--ok');
+    var wasAlert = block.classList.contains('op-focus-quorum--alert');
+    if (quorumMet && !wasOk) {
+      block.classList.add('op-focus-quorum--ok');
+      block.classList.remove('op-focus-quorum--alert');
+    } else if (!quorumMet && !wasAlert) {
+      block.classList.add('op-focus-quorum--alert');
+      block.classList.remove('op-focus-quorum--ok');
+    }
+
+    // Accessibility: aria-label on value reflects full status for screen readers
+    valEl.setAttribute('aria-label',
+      'Quorum : ' + stats.currentVoters + ' presents sur ' + stats.required + ' requis, ' +
+      (quorumMet ? 'atteint' : 'non atteint'));
+  }
+
   function refreshExecManualVotes() {
     var list = document.getElementById('execManualVoteList');
     if (!list) return;
@@ -1019,5 +1057,6 @@
   O.fn.refreshExecChecklist    = refreshExecChecklist;
   O.fn.updateChecklistSseRow   = updateChecklistSseRow;
   O.fn.setChecklistRow         = setChecklistRow;
+  O.fn.refreshFocusQuorum      = refreshFocusQuorum;
 
 })();
