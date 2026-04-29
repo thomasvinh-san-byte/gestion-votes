@@ -629,6 +629,7 @@
     updateExecHeader();
     O.fn.refreshAlerts();
     O.fn.updateExecCloseSession();
+    refreshExecChecklist();
   }
 
   function refreshExecVote() {
@@ -827,6 +828,76 @@
     if (execStale && devStaleEl) execStale.textContent = devStaleEl.textContent;
   }
 
+  // =========================================================================
+  // CHECKLIST PANEL UPDATES (CHECK-01..05)
+  // =========================================================================
+
+  /**
+   * Update a single checklist row's state and value.
+   * @param {string} rowName - 'sse'|'quorum'|'votes'|'online'
+   * @param {string} state   - 'ok'|'alert'|'neutral'
+   * @param {string} value   - Display value (e.g. '42/60 (70%)')
+   */
+  function setChecklistRow(rowName, state, value) {
+    var suffix = rowName.charAt(0).toUpperCase() + rowName.slice(1);
+    var row = document.getElementById('opChecklistRow' + suffix);
+    var valEl = document.getElementById('opChecklist' + suffix + 'Value');
+    if (!row || !valEl) return;
+    valEl.textContent = value;
+    // Toggle state classes — only add --alert if not already present (avoid restarting animation)
+    var isAlert = state === 'alert';
+    var wasAlert = row.classList.contains('op-checklist-row--alert');
+    if (isAlert && !wasAlert) {
+      row.classList.add('op-checklist-row--alert');
+      row.classList.remove('op-checklist-row--ok');
+    } else if (!isAlert) {
+      row.classList.remove('op-checklist-row--alert');
+      row.classList.toggle('op-checklist-row--ok', state === 'ok');
+    }
+  }
+
+  /**
+   * Update checklist SSE row and banner from SSE connection state.
+   * @param {string} state - 'live'|'reconnecting'|'offline'
+   */
+  function updateChecklistSseRow(state) {
+    var labels = { live: 'Connecte', reconnecting: 'Reconnexion…', offline: 'Deconnecte' };
+    var rowState = state === 'offline' ? 'alert' : (state === 'live' ? 'ok' : 'neutral');
+    setChecklistRow('sse', rowState, labels[state] || state);
+    // SSE banner: show only when offline
+    var banner = document.getElementById('opChecklistSseBanner');
+    if (banner) banner.hidden = (state !== 'offline');
+  }
+
+  /**
+   * Refresh all checklist indicators from current cached data.
+   * Called from refreshExecView() and on SSE events.
+   */
+  function refreshExecChecklist() {
+    // Quorum row (CHECK-01)
+    var stats = computeQuorumStats();
+    var quorumMet = stats.currentVoters >= stats.required;
+    var pct = stats.totalMembers > 0 ? Math.round(stats.currentVoters / stats.totalMembers * 100) : 0;
+    setChecklistRow('quorum', quorumMet ? 'ok' : 'alert',
+      stats.currentVoters + '/' + stats.required + ' (' + pct + '%)');
+    // Update quorum row aria-label for accessibility
+    var quorumValEl = document.getElementById('opChecklistQuorumValue');
+    if (quorumValEl) {
+      quorumValEl.setAttribute('aria-label',
+        'Quorum : ' + stats.currentVoters + ' presents sur ' + stats.required + ' requis');
+    }
+
+    // Votes row (CHECK-02)
+    var totalBallots = O.ballotsCache ? Object.keys(O.ballotsCache).length : 0;
+    var eligible = stats.currentVoters;
+    setChecklistRow('votes', 'neutral', totalBallots + '/' + eligible);
+
+    // Online voters row (CHECK-04)
+    var onlineEl = document.getElementById('execDevOnline');
+    var onlineCount = onlineEl ? onlineEl.textContent.trim() : '0';
+    setChecklistRow('online', 'neutral', onlineCount + ' en ligne');
+  }
+
   function refreshExecManualVotes() {
     var list = document.getElementById('execManualVoteList');
     if (!list) return;
@@ -945,5 +1016,8 @@
   O.fn.stopExecTimer           = stopExecTimer;
   O.fn.updateResolutionTags    = updateResolutionTags;
   O.fn.bindProgressSegmentClicks = bindProgressSegmentClicks;
+  O.fn.refreshExecChecklist    = refreshExecChecklist;
+  O.fn.updateChecklistSseRow   = updateChecklistSseRow;
+  O.fn.setChecklistRow         = setChecklistRow;
 
 })();
