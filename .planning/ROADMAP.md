@@ -13,7 +13,8 @@
 - ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
 - ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
-- 🚧 **v2.1 Hardening Sécurité** - Phases 1-6 (in progress) — 21 contremesures (F02-F22)
+- ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
+- 🚧 **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (in progress) — Bleu République + dark redesign + role markers + layout refonte
 
 ## Phases
 
@@ -186,80 +187,96 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v2.1 Hardening Sécurité (In Progress)
+<details>
+<summary>✅ v2.1 Hardening Sécurité (Phases 1-6) — SHIPPED 2026-04-29</summary>
 
-**Milestone Goal:** Eliminer les 21 contremesures de sécurité restantes (F02 à F22) identifiées par l'audit du 2026-04-29 — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads et headers HTTP. Aucune fuite cross-tenant tolérée à la sortie du milestone.
+See `.planning/milestones/v2.1-REQUIREMENTS.md` for full archive (phases moved to `.planning/milestones/v2.1-phases/`).
 
-**Scope:** Backend uniquement (controllers, repositories, middlewares, infra de tests CI). UI/UX différé à v2.2+.
+**Phases:** 6 (Sprint 0 finition + Vote intégrité + Périmètre/SSRF + Uploads + Headers/cookies + Tests/monitoring)
+**Plans:** 22
+**Requirements:** 21/21 satisfied (F02-F22)
+**Shipped:**
+- Sprint 0 finition (F02-F05): ClientIp + idempotence tally + audit per-member + SSE auth-first
+- Vote intégrité (F06-F10): atomic consume + hash invitations + IDOR repos + resetDemo lockdown + CSRF scopé
+- Périmètre & SSRF (F11-F13): UrlValidator + rate limits constant-time + AccountLockout exponential
+- Uploads & contenu (F14-F16): magic bytes PDF + formula injection + dompdf hardening
+- Headers/cookies (F17-F19): CSP_STRICT_MODE + SameSite=Strict default + prod-debug refusé
+- Tests/monitoring (F20-F22): testsuite Security 11 tripwires + SecuritySignal + SECURITY.md
 
-**Strategy:** 1 PR par phase, < 600 LOC chacune. Phases 2/3/4 peuvent partiellement paralléliser après Phase 1 ; Phase 5 indépendante ; Phase 6 = gate finale.
+</details>
+
+### 🚧 v2.2 Refonte Visuelle & Cohérence (In Progress)
+
+**Milestone Goal:** Faire passer AgVote de "fonctionnellement bon mais émotionnellement neutre" à un produit qui dégage immédiatement le sérieux civique de sa promesse — palette Bleu République harmonisée, dark mode redesigné comme un mode à part entière, identité visuelle par rôle utilisateur (admin/président/opérateur/auditeur/votant/public), refonte des écrans clés (cockpit santé opérateur, vote, PV éditorial), et lexique unifié.
+
+**Scope:** Couches visuelles + cohérence terminologique. Aucune logique métier touchée. Pyramide en 4 phases — base solide d'abord (tokens), puis composants, puis personas, puis layout. Une PR par étage.
+
+**Strategy:** 1 PR par phase. Pas de stack — chaque PR autonome, mergeable indépendamment de la suivante. Garantie : aucune phase ne doit casser visuellement ce qui existe avant elle.
 
 ## Phase Details
 
-### Phase 1: Sprint 0 finition
-**Goal**: Boucler les 4 hotfixes Sprint 0 résiduels (F1 déjà shipped en v2.0). Pose l'infrastructure (TRUSTED_PROXIES, audit per-member, idempotence) sur laquelle s'appuient les phases suivantes.
+### Phase 1: Design Tokens (la fondation)
+
+**Goal**: Établir une palette OKLCH cohérente et accessible (light + dark) avec tokens explicites pour chaque concept (couleur sémantique, surface élévation, rôle utilisateur, espacement, typo, radius, shadow), de manière à ce que les phases suivantes n'aient plus à inventer de valeur en dur.
+
 **Depends on**: Nothing (first phase)
-**Requirements**: HARDEN-F02, HARDEN-F03, HARDEN-F04, HARDEN-F05
+**Requirements**: DESIGN-T01, T02, T03, T04, T05, T06, T07, T08
 **Success Criteria** (what must be TRUE):
-  1. Une requête avec header `X-Forwarded-For` depuis une IP non listée dans `TRUSTED_PROXIES` ne contourne pas le rate-limit du login (le compteur s'incrémente sur l'IP réelle, pas l'IP usurpée).
-  2. Un 2ᵉ appel à `degraded_tally` sur la même motion sans annulation préalable retourne HTTP 409 ; l'audit log liste before/after avec le champ `reason` (>= 20 chars).
-  3. Modifier `voting_power` de 5 membres via `members_bulk` produit 5 événements `member_voting_power_changed` distincts dans `audit_events` (un par member_id).
-  4. Une session du tenant A connectée au flux SSE `/api/v1/events.php` ne reçoit aucun événement émis par un meeting du tenant B, même avec un `meeting_id` valide en query.
+  1. `--color-primary` est passé à `oklch(0.45 0.180 265)` (Bleu République, #2c468f) ; les sémantiques success/danger/warning/info sont harmonisées (chroma 0.13-0.18, lightness 0.45-0.62) sans tomber dans Material Default.
+  2. Les surfaces light tendent vers blanc sans être blanc pur — `--color-bg = oklch(0.985 0.001 0)` (#fbfbfb), `--color-surface-raised = #ffffff` est le SEUL vrai blanc, réservé aux popovers/modals.
+  3. Le dark mode est designé indépendamment : 5 niveaux d'élévation, hue 260 (légèrement bleutée), saturation des accents réduite ~25%, lightness inversée (primary lift 0.45 → 0.62), aucun noir pur (le plus profond est `oklch(0.13)`).
+  4. 6 tokens `--role-*` définis dans le spectre froid (240°-330°), différenciés par lightness/saturation, jamais par teintes opposées.
+  5. `@media (prefers-color-scheme: dark)` détecte automatiquement la préférence OS via `:where(:root:not([data-theme]))` ; un toggle JS utilisateur explicite reste prioritaire.
+  6. `DESIGN.md` à la racine sert de source de vérité unique ; les templates email_*.php utilisent les hex documentés dans la table de correspondance.
+  7. `tests/Visual/tokens.html` rend la palette en grille avec toggle Light/Dark/Auto pour validation à l'œil.
+**Plans:** 1 plan (livré inline via PR #256)
+**Status**: ✓ Implementation in PR #256 (awaiting review/merge)
 
-### Phase 2: Vote intégrité & cross-tenant
-**Goal**: Garantir l'intégrité du vote face aux attaques TOCTOU, race conditions, fuite de tokens en BD, IDOR cross-tenant et CSRF replay. Le cœur de cible de l'auditeur offensif.
+### Phase 2: Components
+
+**Goal**: Migrer les composants atomiques (boutons, cards, modales, drawers, forms, toasts) sur les nouveaux tokens et corriger les états sémantiquement creux (notamment le `disabled` qui devient gris uniforme aujourd'hui — il devrait rester teinté primary pour signifier "ce bouton EST primary, mais pas maintenant").
+
 **Depends on**: Phase 1
-**Requirements**: HARDEN-F06, HARDEN-F07, HARDEN-F08, HARDEN-F09, HARDEN-F10
+**Requirements**: DESIGN-C01, C02, C03, C04, C05
 **Success Criteria** (what must be TRUE):
-  1. Deux requêtes concurrentes `POST /vote?token=X` avec le même token retournent : la première HTTP 200, la seconde HTTP 401 ; jamais 200 deux fois (vérifié par stress test).
-  2. `SELECT token FROM invitations` en BD ne contient aucun token utilisable directement (uniquement des hashes HMAC-SHA256). Le flux invitation par email continue de fonctionner.
-  3. Une session du tenant A tentant un GET/POST/PATCH sur n'importe quelle ressource (motion, ballot, member, attachment, proxy) du tenant B retourne 404 systématiquement.
-  4. En `APP_ENV=production`, un opérateur (rôle non-admin) tentant `meeting_reset_demo` sur un meeting `live` reçoit HTTP 409 ; en draft + admin + token typé `RESET-<code>`, ça passe.
-  5. Un token CSRF valide pour `POST /meetings` est rejeté lors d'une requête `POST /admin_settings` (token scopé par couple METHOD+PATH).
+  1. Boutons disabled ne sont plus gris monochromes — variant teinté primary (`opacity: 0.45` ou similaire) qui préserve l'identité du bouton.
+  2. Cards utilisent `--radius-lg = 10px` et `--shadow-md` ; modals utilisent `--radius-lg` + `--shadow-lg` ; drawers harmonisés sur les mêmes tokens.
+  3. Forms : `.field-input`, `.field-label`, `.field-error` consistants, helper text avec convention de ponctuation appliquée.
+  4. Toasts utilisent les couleurs sémantiques harmonisées (success vert sénat, danger rouge huissier, etc.) — alignées avec les KPI cards.
+  5. `tests/Visual/components.html` rend tous les composants en grille pour validation visuelle.
 
-### Phase 3: Périmètre & SSRF
-**Goal**: Fermer les vecteurs d'exfiltration / pivot via webhooks, redirects email, et brute-force d'authentification. Defense périmétrique.
-**Depends on**: Phase 1
-**Requirements**: HARDEN-F11, HARDEN-F12, HARDEN-F13
-**Success Criteria** (what must be TRUE):
-  1. Configurer `MONITOR_WEBHOOK_URL=http://169.254.169.254/...` (cloud metadata) ou `http://10.0.0.1/...` (RFC1918) lève une exception au boot du `MonitoringService` ; seules des URLs HTTPS d'hôtes whitelistés sont acceptées.
-  2. La 11ᵉ requête `password_reset_request` depuis la même IP en 10 minutes retourne HTTP 429 avec header `Retry-After`. La 6ᵉ requête sur le même email (tous IPs confondus) idem.
-  3. 10 échecs login consécutifs sur le même email verrouillent le compte avec un message FR explicite et un header `Retry-After` qui croît exponentiellement (2, 4, 8... minutes, plafond 24h).
+### Phase 3: Personas (Role Markers + Isolation)
 
-### Phase 4: Uploads & contenu
-**Goal**: Sécuriser le pipeline upload PDF, prévenir l'injection de formules dans les exports XLSX/CSV, durcir la génération PDF (dompdf).
-**Depends on**: Phase 1
-**Requirements**: HARDEN-F14, HARDEN-F15, HARDEN-F16
-**Success Criteria** (what must be TRUE):
-  1. Un fichier non-PDF renommé en `.pdf` (magic bytes ≠ `%PDF-`) est rejeté à l'upload avec HTTP 400 ; un PDF valide est servi en download avec `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff`.
-  2. Un membre nommé `=cmd|...` est exporté dans le CSV/XLSX comme `'=cmd|...` (string littéral, jamais évalué comme formule par Excel ou LibreOffice).
-  3. Un PDF de procuration généré pour un nom de membre `<script>alert(1)</script>` rend le texte échappé (`&lt;script&gt;...`) ; aucun fetch HTTP distant ni interprétation PHP par dompdf (`isRemoteEnabled=false`, `isPhpEnabled=false`).
+**Goal**: Introduire la signature visuelle par rôle — bande 3px persona-colored au top de chaque page authentifiée + badge persona dans la sidebar — pour que l'utilisateur sache instantanément "je suis en mode admin/opérateur/auditeur/etc.". Compléter par des tests d'isolation qui empêchent la régression côté backend (un voteur qui GET /dashboard reçoit 403, etc.).
 
-### Phase 5: Headers, cookies & defense-in-depth
-**Goal**: Migrer la CSP vers nonce-strict, durcir les flags cookies de session, supprimer les fallbacks dev permissifs en production.
-**Depends on**: Nothing (peut paralléliser avec Phases 2-4 — n'utilise aucune infra de Phase 1)
-**Requirements**: HARDEN-F17, HARDEN-F18, HARDEN-F19
+**Depends on**: Phase 1 (tokens --role-*)
+**Requirements**: DESIGN-P01, P02, P03, P04
 **Success Criteria** (what must be TRUE):
-  1. La CSP est passée en mode strict avec `script-src 'self' 'nonce-$nonce'` (sans `'unsafe-inline'`). Une page sans nonce voit ses scripts rejetés en console, observable via les rapports CSP collectés.
-  2. Après login, `Set-Cookie` contient `SameSite=Strict; Secure; HttpOnly`. Le cookie ID change entre pré-login et post-login (régénération). Tester aussi sur logout et changement de rôle.
-  3. Lancer l'application avec `APP_SECRET` < 32 chars retourne une exception au boot dans tous les environnements (dev ET prod). Lancer avec `APP_ENV=production` ET `APP_DEBUG=1` est refusé.
+  1. Une bande de 3px en haut de chaque page authentifiée est colorée par `var(--role-X)` correspondant au rôle de l'utilisateur connecté.
+  2. La sidebar affiche un badge persona (texte "Admin"/"Opérateur"/etc.) avec la couleur correspondante au-dessus du nom utilisateur.
+  3. Attribut `data-persona` posé sur `<body>` côté serveur depuis la session, lu par CSS pour appliquer la couleur via `[data-persona="operator"] .role-bar { background: var(--role-operator); }`.
+  4. `tests/Security/PersonaIsolationTest.php` (nouveau) couvre : voteur sur /dashboard → 403, auditeur sur tout endpoint mutateur → 403, sidebar HTML matche le rôle (pas d'item "Admin" pour un opérateur).
 
-### Phase 6: Tests & monitoring (validation gate)
-**Goal**: Cristalliser les acquis dans la suite de tests, instrumenter le signal sécurité en prod, mettre à jour la documentation. Empêche les régressions futures.
-**Depends on**: Phases 1, 2, 3, 4, 5 (tous fixes en place avant tests/monitoring)
-**Requirements**: HARDEN-F20, HARDEN-F21, HARDEN-F22
+### Phase 4: Layout & Lexique (le ressenti final)
+
+**Goal**: Refondre les écrans à plus haute valeur émotionnelle — cockpit santé opérateur en exécution, vote screen typographie augmentée, PV/Trust/Archives traitement éditorial Newsreader, dashboard simplifié, login moins marketing — et clore le travail de cohérence avec une convention lexicale unique (membre/participant/votant + valider/verrouiller/archiver) appliquée à tout le copy.
+
+**Depends on**: Phase 2 (composants), Phase 3 (personas en place)
+**Requirements**: DESIGN-L01, L02, L03, L04, L05, X01, X02, X03, X04
 **Success Criteria** (what must be TRUE):
-  1. Le dossier `tests/Security/` contient au moins 1 test par finding F02-F22 (21 tests minimum). Le job CI exécute cette testsuite à chaque PR ; toute régression future déclenche un rouge.
-  2. 10 tentatives 401/403 en 60 secondes sur la même IP déclenchent une alerte webhook via `MonitoringService`. Toute opération sur `motions.manual_tally`, `members.voting_power`, ou tentative de `DELETE FROM audit_events` produit un log critical visible.
-  3. `SECURITY_AUDIT.md` est à jour avec les 22 findings (F01-F22) marqués CORRIGÉ avec lien vers le commit/PR. `SECURITY.md` à la racine décrit le processus de signalement (responsible disclosure).
+  1. La vue exécution opérateur affiche une **barre santé séance** unique de ~56px en haut avec 4 indicateurs (Quorum / SSE / Votants connectés / Résolution actuelle) — chacun avec sa couleur sémantique persistante. Si un indicateur passe rouge, la barre entière prend une bordure danger animée.
+  2. La page `/vote` adopte une typographie minimum 18px (`--text-lg`), boutons ≥ 96px, palette désaturée (on ne pousse pas à voter Pour visuellement). Aucun élément admin/opérateur visible dans cette vue.
+  3. Les pages `/audit`, `/trust`, `/archives`, et le rendu PV utilisent la police serif Newsreader pour le contenu (largeur de lecture plafonnée à 720px), Inter pour les contrôles UI, JetBrains Mono pour les hashes/UUID/codes.
+  4. Convention lexicale écrite et appliquée : "membre" (inscrit) / "participant" (présent) / "votant" (éligible au scrutin courant) — distinctions sémantiques claires. Idem pour "confirmer" / "valider" / "verrouiller-archiver".
+  5. Test Playwright captures les 6 personas sur les 3 pages clés (/dashboard, /operator, /audit) — 18 screenshots qui doivent visuellement révéler les bandes persona et les différences de densité voulues.
+
+</details>
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Sprint 0 finition | v2.1 | 0/? | Not started | - |
-| 2. Vote intégrité & cross-tenant | v2.1 | 0/? | Not started | - |
-| 3. Périmètre & SSRF | v2.1 | 0/? | Not started | - |
-| 4. Uploads & contenu | v2.1 | 0/? | Not started | - |
-| 5. Headers, cookies & defense-in-depth | v2.1 | 0/? | Not started | - |
-| 6. Tests & monitoring | v2.1 | 0/? | Not started | - |
+| 1. Design Tokens | v2.2 | 1/1 | ◆ In review (PR #256) | - |
+| 2. Components | v2.2 | 0/? | ○ Not started | - |
+| 3. Personas (Role Markers + Isolation) | v2.2 | 0/? | ○ Not started | - |
+| 4. Layout & Lexique | v2.2 | 0/? | ○ Not started | - |

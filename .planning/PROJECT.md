@@ -74,22 +74,24 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Validation gate cross-phase v2.0 — audit PASS, zero regression — v2.0 Phase 4
 - ✓ Hotfix securite F1: /setup 404 opaque + CSRF strict + 4 tests de regression — v2.0 (PR #247)
 - ✓ CI repair: lint-js + migrate-check verts, validate ameliore (83→21 errors), coverage redis-aware — v2.0 (PR #248)
+- ✓ v2.1 Hardening Sécurité : 21 contremesures F02-F22 shipped — defense en profondeur sur auth, vote, isolation tenant, perimetre, uploads, headers, monitoring (voir milestones/v2.1-REQUIREMENTS.md)
+- ✓ Phase 1 v2.2 Design Tokens : Bleu République + dark redesign + role tokens + DESIGN.md (PR #256, en review)
 
 ### Active
 
-## Current Milestone: v2.1 Hardening Securite (planning)
+## Current Milestone: v2.2 Refonte Visuelle & Cohérence (in progress)
 
-**Goal:** Eliminer les 21 contremesures de securite restantes (F2 a F22) identifiees par l'audit du 2026-04-29 — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads, headers HTTP.
+**Goal:** Faire passer AgVote de "fonctionnellement bon mais émotionnellement neutre" à un produit qui dégage immédiatement le sérieux civique de sa promesse — palette Bleu République harmonisée, dark mode redesigné comme un mode à part entière, identité visuelle par rôle utilisateur (admin/président/opérateur/auditeur/votant/public), refonte des écrans clés (cockpit santé opérateur, vote, PV éditorial), et lexique unifié (membre/participant/votant + valider/verrouiller/archiver).
 
-**Target categories:**
-- Sprint 0 finition: ClientIp whitelist, idempotence tally, audit per-member, SSE auth-first
-- Vote integrite & cross-tenant: token atomic, hash invitations, IDOR repos, resetDemo verrou, CSRF scope
-- Perimetre & SSRF: URL whitelist, rate limits, lockout progressif
-- Uploads & contenu: PDF magic bytes, formula injection, dompdf hardening
-- Headers & cookies: CSP nonce strict, cookies Strict, fallbacks dev
-- Tests & monitoring: tests securite CI, logging signal, doc
+**Strategy:** Pyramide stricte en 4 phases — base solide d'abord (tokens), puis composants, puis personas, puis layout. Une PR par étage, mergeable indépendamment.
 
-Voir le brouillon de requirements: `.planning/research/v2.1-securite-requirements-draft.md`.
+**Target phases:**
+- Phase 1 — Design Tokens : palette OKLCH light + dark + 6 rôles, DESIGN.md, native prefers-color-scheme, sync emails (✓ PR #256)
+- Phase 2 — Components : disabled state teinté primary, cards, modals, drawers, forms, toasts harmonisés
+- Phase 3 — Personas : bande 3px persona + badge sidebar + tests d'isolation backend
+- Phase 4 — Layout & Lexique : cockpit santé opérateur, vote screen typo, PV/audit éditorial Newsreader, lexique unifié
+
+Voir `.planning/REQUIREMENTS.md` pour les 26 requirements détaillés (DESIGN-T01..T08, C01..C05, P01..P04, L01..L05, X01..X04).
 
 ### Out of Scope
 
@@ -127,6 +129,19 @@ Shipped v1.8 (2026-04-20) — UI refonte complete. Palette moderne slate, classe
 - ~~**V2-CSP-INLINE-THEME**~~ — ✓ Resolved in v1.4 Phase 5 (nonce + strict-dynamic, report-only mode, zero violations)
 - **Phase 15 multi-browser deferrals** — webkit 2/25 + mobile-chrome 4/25 critical-path specs flaky/viewport-dependent
 - **Visual regression testing** — snapshot comparison, separate milestone
+
+## Completed Milestone: v2.1 Hardening Sécurité
+
+**Shipped:** 2026-04-29 — 6 phases, 22 plans, 21 requirements (F02-F22), all satisfied.
+
+PRs delivered: #247 (F1 setup), #249/#250/#254 (consolidées), #255.
+
+Tech debt carried to v2.2 :
+- 8 méthodes MotionRepository à `tenantId = ''` optionnel
+- Migration progressive `field()` → `fieldFor(method, path)` pour F10
+- Hash invitation token SHA-256 → HMAC-SHA256 (forcer re-issue)
+
+See `.planning/milestones/v2.1-REQUIREMENTS.md` for full archive.
 
 ## Completed Milestone: v2.0 Operateur Live UX
 
@@ -223,4 +238,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — after v2.0 milestone shipped, v2.1 Hardening Securite planning*
+*Last updated: 2026-04-29 — after v2.1 Hardening Sécurité shipped, v2.2 Refonte Visuelle & Cohérence in progress (Phase 1 in PR #256)*

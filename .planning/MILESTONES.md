@@ -1,5 +1,36 @@
 # Milestones
 
+## v2.1 Hardening Sécurité (Shipped: 2026-04-29)
+
+**Phases completed:** 6 phases, 22 plans, 21 contremesures (F02-F22)
+
+**Key accomplishments:**
+
+- F02 ClientIp helper avec whitelist TRUSTED_PROXIES — bypass X-Forwarded-For impossible
+- F03 Idempotence degraded_tally + audit before/after + reason ≥ 20 chars
+- F04 Audit per-member sur members_bulk voting_power (1 événement par ID modifié)
+- F05 SSE auth-first + isolation tenant via SseAuthGate (404 cross-tenant, pas 403)
+- F06 Vote token consume atomique cristallisé en regression test
+- F07 Migration NULL legacy invitation tokens + CHECK constraint
+- F08 IDOR cross-tenant : 4 méthodes MotionRepository auditées et durcies
+- F09 resetDemo lockdown : 4 gardes (meeting_id required, prod-admin, typed RESET-{prefix}, status whitelist)
+- F10 CSRF scopé par action (HMAC METHOD+PATH) opt-in via tokenFor()
+- F11 UrlValidator (SSRF outbound + email redirect) — refus RFC1918, link-local, userinfo
+- F12 Rate limits sur tracking + reset constant-time
+- F13 AccountLockout par compte avec backoff exponentiel (cap 24h)
+- F14-F16 Uploads PDF magic bytes + formula injection + dompdf hardening
+- F17-F19 CSP_STRICT_MODE opt-in + SameSite=Strict default + prod-debug refusé au boot
+- F20 Tests Security testsuite (11 tripwires) + F21 SecuritySignal escalator + F22 SECURITY.md responsible disclosure
+
+**PRs delivered:** #247 (F1 setup hardening), #249 + #250 + #254 (consolidées), #255
+
+**Tech debt carried to v2.2:**
+- 8 méthodes MotionRepository à `tenantId = ''` optionnel (audit des callers)
+- Migration progressive templates `field()` → `fieldFor(method, path)` (F10 sur tous les forms)
+- Switch hash invitation token SHA-256 → HMAC-SHA256 (forcer re-issue)
+
+---
+
 ## v2.0 Operateur Live UX (Shipped: 2026-04-29)
 
 **Phases completed:** 4 phases, 6 plans, 4 tasks
