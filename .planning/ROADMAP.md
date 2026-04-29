@@ -213,7 +213,9 @@ Plans:
   1. Quand un vote arrive via SSE, les compteurs pour/contre/abstention s'incrementent avec une animation visible (pas de changement instantane)
   2. Les barres de progression des resultats glissent vers leur nouvelle valeur en transition CSS fluide sans saut brusque
   3. Sur un systeme avec prefers-reduced-motion: reduce active, les compteurs et barres se mettent a jour instantanement sans animation
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 03-01-PLAN.md — animateVoteCounter helper (vanilla RAF) + bump keyframe + bar transition audit
 
 ### Phase 4: Validation Gate
 **Goal**: Toutes les fonctionnalites v2.0 sont verifiees sans regression sur le reste de l'application.
@@ -231,5 +233,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1. Checklist Operateur | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
 | 2. Mode Focus | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
-| 3. Animations Vote | v2.0 | 0/? | Not started | - |
+| 3. Animations Vote | v2.0 | 0/1 | Planned | - |
 | 4. Validation Gate | v2.0 | 0/? | Not started | - |
