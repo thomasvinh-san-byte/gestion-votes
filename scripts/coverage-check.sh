@@ -50,7 +50,20 @@ fi
 # ── Run PHPUnit with clover output ─────────────────────────────────────────
 CLOVER_FILE="coverage.xml"
 echo "Running PHPUnit Unit suite with clover coverage output..."
+# Coverage job provisions a Redis service so the FULL Unit suite (including
+# @group redis tests for RateLimiter/EventBroadcaster) can run. This keeps
+# Services coverage thresholds meaningful.
+#
+# We tolerate PHPUnit test failures here (`|| true` and `set +e/-e`):
+# coverage's job is *measurement*, not pass/fail of individual tests.
+# Test failures are surfaced by the `validate` job. As long as PHPUnit
+# generates clover.xml (it does even with failing tests), this script
+# can evaluate thresholds against the resulting coverage data.
+set +e
 php ${PHP_FLAGS} vendor/bin/phpunit --testsuite Unit --coverage-clover "${CLOVER_FILE}"
+PHPUNIT_EXIT=$?
+set -e
+echo "PHPUnit exit code: ${PHPUNIT_EXIT} (failures don't block coverage measurement)"
 
 if [[ ! -f "${CLOVER_FILE}" ]]; then
     echo "ERROR: ${CLOVER_FILE} was not generated." >&2
