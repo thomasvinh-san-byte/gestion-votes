@@ -104,7 +104,13 @@ class InvitationRepository extends AbstractRepository {
 
     /**
      * Trouve une invitation par token (via hash lookup).
-     * Cherche d'abord par token_hash, fallback sur token brut pour la retro-compatibilite.
+     *
+     * F07 hardening: prefer token_hash. The plaintext fallback exists only
+     * for legacy rows whose token_hash was never populated (very old data).
+     * Migration 20260429_invitations_clear_legacy_tokens.sql NULLs the
+     * plaintext column once a hash is set, so this fallback should be hit
+     * less and less over time. We log when it fires so ops can see when the
+     * legacy bucket is fully drained and the fallback can be removed.
      */
     public function findByToken(string $token): ?array {
         $tokenHash = hash('sha256', $token);
@@ -123,8 +129,9 @@ class InvitationRepository extends AbstractRepository {
             return $row;
         }
 
-        // Fallback: lookup par token brut (anciennes invitations non migrees)
-        return $this->selectOne(
+        // Legacy fallback: lookup par token brut (anciennes invitations non migrees).
+        // F07: log when used so we can verify the legacy bucket has drained.
+        $legacy = $this->selectOne(
             'SELECT id, meeting_id, member_id, status, expires_at, revoked_at
              FROM invitations
              WHERE token = :token
@@ -133,6 +140,11 @@ class InvitationRepository extends AbstractRepository {
              LIMIT 1',
             [':token' => $token],
         );
+        if ($legacy !== null) {
+            error_log('INVITATION_LEGACY_TOKEN_LOOKUP | invitation_id=' . (string) $legacy['id']
+                . ' — plaintext token still present in DB. Re-issue this invitation to migrate it.');
+        }
+        return $legacy;
     }
 
     /**

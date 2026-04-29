@@ -226,28 +226,44 @@ final class MeetingTransitionService {
      *
      * @return array{ok: bool, reset_count: int}
      */
+    /**
+     * Status whitelist for reset (F09 hardening). Only meetings that have not
+     * yet started a real workflow (draft) or are scheduled but not begun
+     * (scheduled) can be reset. live/frozen/closed/validated/archived are
+     * refused.
+     */
+    private const RESETTABLE_STATUSES = ['draft', 'scheduled'];
+
     public function resetDemo(string $meetingId, string $tenantId): void {
-        if ($meetingId !== '' && api_is_uuid($meetingId)) {
-            $mt = $this->repos->meeting()->findByIdForTenant($meetingId, $tenantId);
-            if (!$mt) {
-                throw new RuntimeException('meeting_not_found');
-            }
-            if (!empty($mt['validated_at'])) {
-                throw new RuntimeException('Séance validée : reset interdit (séance figée).');
-            }
-            $meetings = [$mt];
-        } else {
-            $all = $this->repos->meeting()->listByTenant($tenantId);
-            $meetings = array_filter($all, fn($m) => empty($m['validated_at']));
+        // F09: meeting_id is required at the controller level — service no
+        // longer falls back to "reset all non-validated meetings". Defense
+        // in depth: even if a future caller forgets the controller gate,
+        // the service rejects an unscoped reset.
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            throw new RuntimeException('meeting_not_found');
         }
 
-        foreach ($meetings as $mt) {
-            $mid = $mt['id'];
-            $this->repos->ballot()->deleteByMeeting($mid, $tenantId);
-            $this->repos->voteToken()->deleteByMeetingMotions($mid, $tenantId);
-            $this->repos->manualAction()->deleteByMeeting($mid, $tenantId);
-            $this->repos->motion()->resetStatesForMeeting($mid, $tenantId);
-            $this->repos->meeting()->resetForDemo($mid, $tenantId);
+        $mt = $this->repos->meeting()->findByIdForTenant($meetingId, $tenantId);
+        if (!$mt) {
+            throw new RuntimeException('meeting_not_found');
         }
+        if (!empty($mt['validated_at'])) {
+            throw new RuntimeException('Séance validée : reset interdit (séance figée).');
+        }
+
+        // F09: status whitelist. Resetting a live or closed meeting was
+        // previously accepted — it wiped ballots already cast. That is
+        // catastrophic if invoked accidentally during an actual AG.
+        $status = (string) ($mt['status'] ?? '');
+        if (!in_array($status, self::RESETTABLE_STATUSES, true)) {
+            throw new RuntimeException('meeting_status_not_resettable');
+        }
+
+        $mid = $mt['id'];
+        $this->repos->ballot()->deleteByMeeting($mid, $tenantId);
+        $this->repos->voteToken()->deleteByMeetingMotions($mid, $tenantId);
+        $this->repos->manualAction()->deleteByMeeting($mid, $tenantId);
+        $this->repos->motion()->resetStatesForMeeting($mid, $tenantId);
+        $this->repos->meeting()->resetForDemo($mid, $tenantId);
     }
 }

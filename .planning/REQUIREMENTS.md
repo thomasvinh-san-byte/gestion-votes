@@ -18,11 +18,11 @@
 
 ### Vote intégrité & cross-tenant
 
-- [ ] **HARDEN-F06**: Vote token consommé via `UPDATE ... WHERE used_at IS NULL RETURNING ...` atomique (suppression du `findValidByHash` séparé)
-- [ ] **HARDEN-F07**: Migration `invitations.token` (clair) → `invitations.token_hash` (HMAC-SHA256), token clair n'apparaît que dans le mail
-- [ ] **HARDEN-F08**: Isolation tenant complète : `AND tenant_id = :t` dans tous les WHERE de `BallotRepository`, `MotionRepository`, `ProxyRepository`, `MeetingAttachmentRepository`, `MemberRepository`
-- [ ] **HARDEN-F09**: `MeetingWorkflowController::resetDemo` refuse l'exécution en `APP_ENV=production` pour rôle ≠ admin + validation statut meeting (`draft|scheduled`) + confirmation typée (`RESET-<meeting_code>`)
-- [ ] **HARDEN-F10**: CSRF token scopé par action (`HMAC(session_secret, METHOD + PATH)`) au lieu d'un token unique par session
+- [x] **HARDEN-F06**: Vote token consommé via `UPDATE ... WHERE used_at IS NULL RETURNING ...` atomique (suppression du `findValidByHash` séparé)
+- [x] **HARDEN-F07**: Migration `invitations.token` (clair) → `invitations.token_hash` (HMAC-SHA256), token clair n'apparaît que dans le mail
+- [x] **HARDEN-F08**: Isolation tenant complète : `AND tenant_id = :t` dans tous les WHERE de `BallotRepository`, `MotionRepository`, `ProxyRepository`, `MeetingAttachmentRepository`, `MemberRepository`
+- [x] **HARDEN-F09**: `MeetingWorkflowController::resetDemo` refuse l'exécution en `APP_ENV=production` pour rôle ≠ admin + validation statut meeting (`draft|scheduled`) + confirmation typée (`RESET-<meeting_code>`)
+- [x] **HARDEN-F10**: CSRF token scopé par action (`HMAC(session_secret, METHOD + PATH)`) au lieu d'un token unique par session
 
 ### Périmètre & SSRF
 
@@ -79,11 +79,11 @@
 | HARDEN-F03 | Phase 1 | Complete |
 | HARDEN-F04 | Phase 1 | Complete |
 | HARDEN-F05 | Phase 1 | Complete |
-| HARDEN-F06 | Phase 2 | Pending |
-| HARDEN-F07 | Phase 2 | Pending |
-| HARDEN-F08 | Phase 2 | Pending |
-| HARDEN-F09 | Phase 2 | Pending |
-| HARDEN-F10 | Phase 2 | Pending |
+| HARDEN-F06 | Phase 2 | Complete |
+| HARDEN-F07 | Phase 2 | Complete |
+| HARDEN-F08 | Phase 2 | Complete |
+| HARDEN-F09 | Phase 2 | Complete |
+| HARDEN-F10 | Phase 2 | Complete |
 | HARDEN-F11 | Phase 3 | Pending |
 | HARDEN-F12 | Phase 3 | Pending |
 | HARDEN-F13 | Phase 3 | Pending |

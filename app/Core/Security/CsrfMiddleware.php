@@ -10,11 +10,22 @@ use AgVote\Core\Security\AuthMiddleware;
  * CsrfMiddleware - OWASP-compliant CSRF Protection
  *
  * Implements the Synchronizer Token pattern with HTMX support.
+ *
+ * F10 (Phase 2 v2.1) adds opt-in *action-scoped* tokens on top of the
+ * legacy session-wide token. A scoped token = HMAC(session_secret,
+ * METHOD + '|' + PATH), so a token minted for `POST /meetings` does not
+ * validate a `POST /admin_settings` even when leaked or replayed through
+ * a cross-action XSS sink. Templates can opt into the new flow via
+ * `CsrfMiddleware::fieldFor($method, $path)`. The legacy `field()` and
+ * the session-wide token continue to work — `validate()` accepts either,
+ * so no template needs to migrate atomically.
  */
 final class CsrfMiddleware {
     private const TOKEN_NAME = 'csrf_token';
     private const TOKEN_HEADER = 'X-CSRF-Token';
     private const TOKEN_LENGTH = 32;
+    private const SCOPED_SECRET_KEY = 'csrf_scoped_secret';
+    private const SCOPED_SECRET_BYTES = 32;
 
     /**
      * Initializes CSRF protection
@@ -50,13 +61,45 @@ final class CsrfMiddleware {
     }
 
     /**
-     * Generates a hidden field for forms
+     * Generates a hidden field for forms (legacy session-wide token).
      */
     public static function field(): string {
         return sprintf(
             '<input type="hidden" name="%s" value="%s">',
             htmlspecialchars(self::TOKEN_NAME, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars(self::getToken(), ENT_QUOTES, 'UTF-8'),
+        );
+    }
+
+    /**
+     * F10: returns an action-scoped CSRF token bound to (METHOD, PATH).
+     *
+     * Token = HMAC-SHA256(session_scoped_secret, "POST|/api/v1/foo").
+     * The scoped secret is generated once per session and stays server-side.
+     * A leaked or replayed scoped token will fail validation on any other
+     * action because the HMAC differs.
+     *
+     * Use case: high-value mutating endpoints (admin settings, delete,
+     * password change) where defense-in-depth is wanted.
+     *
+     * Path normalization: strip query string and trailing slash so the
+     * token survives `?foo=bar` and `/foo/` vs `/foo` mismatches.
+     */
+    public static function tokenFor(string $method, string $path): string {
+        self::init();
+        $secret = self::ensureScopedSecret();
+        $action = strtoupper(trim($method)) . '|' . self::normalizePath($path);
+        return hash_hmac('sha256', $action, $secret);
+    }
+
+    /**
+     * F10: hidden form field bound to a specific (method, path).
+     */
+    public static function fieldFor(string $method, string $path): string {
+        return sprintf(
+            '<input type="hidden" name="%s" value="%s">',
+            htmlspecialchars(self::TOKEN_NAME, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars(self::tokenFor($method, $path), ENT_QUOTES, 'UTF-8'),
         );
     }
 
@@ -82,9 +125,21 @@ final class CsrfMiddleware {
             return false;
         }
 
-        $expected = $_SESSION[self::TOKEN_NAME] ?? '';
+        $expected = (string) ($_SESSION[self::TOKEN_NAME] ?? '');
+        $matchesLegacy = $expected !== '' && hash_equals($expected, $submitted);
 
-        if (!hash_equals($expected, $submitted)) {
+        // F10: also accept an action-scoped token bound to (METHOD, current path).
+        // We only compute the scoped match if a scoped secret already exists in
+        // the session; a fresh session with no scoped tokens issued yet just
+        // skips this branch (saving an unused HMAC).
+        $matchesScoped = false;
+        if (!$matchesLegacy && isset($_SESSION[self::SCOPED_SECRET_KEY])) {
+            $rawPath = (string) ($_SERVER['REQUEST_URI'] ?? '');
+            $expectedScoped = self::tokenFor($method, $rawPath);
+            $matchesScoped = hash_equals($expectedScoped, $submitted);
+        }
+
+        if (!$matchesLegacy && !$matchesScoped) {
             if ($strict) {
                 self::fail('csrf_token_invalid');
             }
@@ -98,10 +153,27 @@ final class CsrfMiddleware {
             return false;
         }
 
-        // Extend token lifetime on successful validation (sliding window)
+        // Extend token lifetime on successful validation (sliding window).
+        // Both legacy and scoped paths refresh the timestamp.
         $_SESSION[self::TOKEN_NAME . '_time'] = time();
 
         return true;
+    }
+
+    private static function ensureScopedSecret(): string {
+        if (!isset($_SESSION[self::SCOPED_SECRET_KEY]) || !is_string($_SESSION[self::SCOPED_SECRET_KEY])) {
+            $_SESSION[self::SCOPED_SECRET_KEY] = bin2hex(random_bytes(self::SCOPED_SECRET_BYTES));
+        }
+        return (string) $_SESSION[self::SCOPED_SECRET_KEY];
+    }
+
+    private static function normalizePath(string $path): string {
+        $q = strpos($path, '?');
+        if ($q !== false) {
+            $path = substr($path, 0, $q);
+        }
+        $path = rtrim($path, '/');
+        return $path === '' ? '/' : $path;
     }
 
     private static function getSubmittedToken(): ?string {

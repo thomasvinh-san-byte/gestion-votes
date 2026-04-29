@@ -177,13 +177,6 @@ trait MotionFinderTrait {
         return $this->selectOne($sql, $params);
     }
 
-    public function findByIdAndMeeting(string $motionId, string $meetingId): ?array {
-        return $this->selectOne(
-            'SELECT id, title FROM motions WHERE id = :id AND meeting_id = :mid',
-            [':id' => $motionId, ':mid' => $meetingId],
-        );
-    }
-
     public function findForMeetingWithState(string $tenantId, string $motionId, string $meetingId): ?array {
         return $this->selectOne(
             'SELECT id, opened_at, closed_at
@@ -225,10 +218,19 @@ trait MotionFinderTrait {
         );
     }
 
-    public function findByIdAndMeetingWithDates(string $motionId, string $meetingId): ?array {
+    /**
+     * Returns the motion's id/meeting_id and timing dates, scoped to a tenant.
+     *
+     * F08 hardening: tenantId is REQUIRED. The previous signature accepted only
+     * (motionId, meetingId) and trusted callers to have validated the meeting
+     * upstream. That invariant was brittle and an IDOR primitive in disguise.
+     */
+    public function findByIdAndMeetingWithDates(string $motionId, string $meetingId, string $tenantId): ?array {
         return $this->selectOne(
-            'SELECT id, meeting_id, opened_at, closed_at FROM motions WHERE id = :id AND meeting_id = :mid',
-            [':id' => $motionId, ':mid' => $meetingId],
+            'SELECT id, meeting_id, opened_at, closed_at
+             FROM motions
+             WHERE id = :id AND meeting_id = :mid AND tenant_id = :tid',
+            [':id' => $motionId, ':mid' => $meetingId, ':tid' => $tenantId],
         );
     }
 
@@ -284,6 +286,17 @@ trait MotionFinderTrait {
         );
     }
 
+    /**
+     * Tenant-ownership oracle: does the given motion live in a tenant the user
+     * belongs to?
+     *
+     * NOTE (F08 audit): the JOIN `users.tenant_id = meetings.tenant_id` is the
+     * gate — it returns 1 row only when both sides resolve to the same tenant.
+     * This method is intentionally NOT scoped to a single tenant_id parameter:
+     * its job is to compute that ownership relation, used by AuthMiddleware to
+     * authorize cross-resource access. Callers must NOT use it as a generic
+     * lookup; for that, prefer findByIdForTenant().
+     */
     public function isOwnedByUser(string $motionId, string $userId): bool {
         return (bool) $this->scalar(
             'SELECT 1 FROM motions mo

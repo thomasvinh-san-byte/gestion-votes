@@ -32,7 +32,7 @@ final class VoteTokenController extends AbstractController {
             api_fail('meeting_not_found', 404);
         }
 
-        $motion = $this->repo()->motion()->findByIdAndMeetingWithDates($motionId, $meetingId);
+        $motion = $this->repo()->motion()->findByIdAndMeetingWithDates($motionId, $meetingId, $tenant);
         if (!$motion) {
             api_fail('motion_not_found', 404);
         }
