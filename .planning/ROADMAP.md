@@ -12,7 +12,8 @@
 - ✅ **v1.7 Audit Idempotence** - Phases 1-3 (shipped 2026-04-20) — see `.planning/milestones/v1.7-ROADMAP.md`
 - ✅ **v1.8 Refonte UI et Coherence Visuelle** - Phases 1-5 (shipped 2026-04-20) — see `.planning/milestones/v1.8-ROADMAP.md`
 - ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
-- 🚧 **v2.0 Operateur Live UX** - Phases 1-4 (in progress)
+- ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
+- 🚧 **v2.1 Hardening Sécurité** - Phases 1-6 (in progress) — 21 contremesures (F02-F22)
 
 ## Phases
 
@@ -167,75 +168,98 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
 
 </details>
 
-### v2.0 Operateur Live UX (In Progress)
+<details>
+<summary>✅ v2.0 Operateur Live UX (Phases 1-4) - SHIPPED 2026-04-29</summary>
 
-**Milestone Goal:** Ameliorer l'experience operateur en mode seance live — checklist de controle temps reel, interface epuree en mode execution, et feedback visuel anime sur les votes.
+See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
-**Scope:** operator.htmx.html uniquement. SSE EventBroadcaster deja cable — les phases consomment l'infrastructure existante.
+**Phases:** 4 (Checklist + Focus Mode + Animations + Validation Gate)
+**Plans:** 6
+**Requirements:** 11/11 satisfied
+**Audit:** PASS (cross-phase integration verified — `.planning/milestones/v2.0-MILESTONE-AUDIT.md`)
+**Shipped:**
+- Checklist temps reel: quorum/votes/SSE/connected voters avec alertes visuelles
+- Mode Focus: vue 5-zones epuree avec toggle + persistance sessionStorage
+- Animations Vote: compteurs RAF + bar transitions, respect prefers-reduced-motion
+- Hotfix securite (PR #247): /setup 404 + CSRF strict (finding F1)
+- CI repair (PR #248): lint-js + migrate-check verts, validate massivement ameliore
+
+</details>
+
+### 🚧 v2.1 Hardening Sécurité (In Progress)
+
+**Milestone Goal:** Eliminer les 21 contremesures de sécurité restantes (F02 à F22) identifiées par l'audit du 2026-04-29 — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads et headers HTTP. Aucune fuite cross-tenant tolérée à la sortie du milestone.
+
+**Scope:** Backend uniquement (controllers, repositories, middlewares, infra de tests CI). UI/UX différé à v2.2+.
+
+**Strategy:** 1 PR par phase, < 600 LOC chacune. Phases 2/3/4 peuvent partiellement paralléliser après Phase 1 ; Phase 5 indépendante ; Phase 6 = gate finale.
 
 ## Phase Details
 
-### Phase 1: Checklist Operateur
-**Goal**: L'operateur dispose d'une checklist en temps reel affichant l'etat de la seance (quorum, votes recus, connectivite SSE, votants connectes) avec alertes visuelles automatiques.
+### Phase 1: Sprint 0 finition
+**Goal**: Boucler les 4 hotfixes Sprint 0 résiduels (F1 déjà shipped en v2.0). Pose l'infrastructure (TRUSTED_PROXIES, audit per-member, idempotence) sur laquelle s'appuient les phases suivantes.
 **Depends on**: Nothing (first phase)
-**Requirements**: CHECK-01, CHECK-02, CHECK-03, CHECK-04, CHECK-05
+**Requirements**: HARDEN-F02, HARDEN-F03, HARDEN-F04, HARDEN-F05
 **Success Criteria** (what must be TRUE):
-  1. En mode live, une checklist visible affiche le ratio quorum avec indicateur vert/rouge selon l'atteinte ou non du seuil
-  2. Le compteur de votes recus dans la checklist se met a jour sans rechargement de page quand un vote arrive via SSE
-  3. L'indicateur reseau/SSE passe en rouge et affiche un badge "Deconnecte" quand la connexion SSE est interrompue
-  4. Le nombre de votants connectes est visible dans la checklist et se met a jour en temps reel
-  5. Quand un indicateur passe au rouge (quorum non atteint ou SSE coupe), une alerte visuelle apparait automatiquement sans action de l'operateur
-**Plans:** 2 plans
-Plans:
-- [x] 01-01-PLAN.md — HTML structure + CSS styles du panneau checklist
-- [x] 01-02-PLAN.md — JS wiring: SSE events, mode switching, data feeding
-**Status**: ✅ Complete (verified 2026-04-29)
+  1. Une requête avec header `X-Forwarded-For` depuis une IP non listée dans `TRUSTED_PROXIES` ne contourne pas le rate-limit du login (le compteur s'incrémente sur l'IP réelle, pas l'IP usurpée).
+  2. Un 2ᵉ appel à `degraded_tally` sur la même motion sans annulation préalable retourne HTTP 409 ; l'audit log liste before/after avec le champ `reason` (>= 20 chars).
+  3. Modifier `voting_power` de 5 membres via `members_bulk` produit 5 événements `member_voting_power_changed` distincts dans `audit_events` (un par member_id).
+  4. Une session du tenant A connectée au flux SSE `/api/v1/events.php` ne reçoit aucun événement émis par un meeting du tenant B, même avec un `meeting_id` valide en query.
 
-### Phase 2: Mode Focus
-**Goal**: L'operateur peut basculer vers une vue epuree a 5 zones qui masque les informations secondaires et conserve uniquement les controles essentiels pour conduire le scrutin.
+### Phase 2: Vote intégrité & cross-tenant
+**Goal**: Garantir l'intégrité du vote face aux attaques TOCTOU, race conditions, fuite de tokens en BD, IDOR cross-tenant et CSRF replay. Le cœur de cible de l'auditeur offensif.
 **Depends on**: Phase 1
-**Requirements**: FOCUS-01, FOCUS-02, FOCUS-03
+**Requirements**: HARDEN-F06, HARDEN-F07, HARDEN-F08, HARDEN-F09, HARDEN-F10
 **Success Criteria** (what must be TRUE):
-  1. En mode execution, l'interface affiche exactement 5 zones: titre motion, resultat vote, quorum status, chronometre, actions — les autres zones sont masquees
-  2. Les boutons lancer vote, fermer scrutin et passer motion restent cliquables et visibles dans la vue focus sans scrolling
-  3. Un toggle visible permet de passer de la vue complete a la vue focus et inversement, et l'etat persiste pendant la seance
-**Plans:** 2 plans
-Plans:
-- [x] 02-01-PLAN.md — HTML toggle + dedicated quorum block + CSS focus-mode rules
-- [x] 02-02-PLAN.md — JS wiring: toggle handler, sessionStorage persistence, refreshFocusQuorum
-**Status**: ✅ Complete (verified 2026-04-29)
+  1. Deux requêtes concurrentes `POST /vote?token=X` avec le même token retournent : la première HTTP 200, la seconde HTTP 401 ; jamais 200 deux fois (vérifié par stress test).
+  2. `SELECT token FROM invitations` en BD ne contient aucun token utilisable directement (uniquement des hashes HMAC-SHA256). Le flux invitation par email continue de fonctionner.
+  3. Une session du tenant A tentant un GET/POST/PATCH sur n'importe quelle ressource (motion, ballot, member, attachment, proxy) du tenant B retourne 404 systématiquement.
+  4. En `APP_ENV=production`, un opérateur (rôle non-admin) tentant `meeting_reset_demo` sur un meeting `live` reçoit HTTP 409 ; en draft + admin + token typé `RESET-<code>`, ça passe.
+  5. Un token CSRF valide pour `POST /meetings` est rejeté lors d'une requête `POST /admin_settings` (token scopé par couple METHOD+PATH).
 
-### Phase 3: Animations Vote
-**Goal**: Les compteurs et barres de vote s'animent fluidement a chaque nouveau vote recu via SSE, avec respect de la preference systeme prefers-reduced-motion.
-**Depends on**: Phase 2
-**Requirements**: ANIM-01, ANIM-02, ANIM-03
+### Phase 3: Périmètre & SSRF
+**Goal**: Fermer les vecteurs d'exfiltration / pivot via webhooks, redirects email, et brute-force d'authentification. Defense périmétrique.
+**Depends on**: Phase 1
+**Requirements**: HARDEN-F11, HARDEN-F12, HARDEN-F13
 **Success Criteria** (what must be TRUE):
-  1. Quand un vote arrive via SSE, les compteurs pour/contre/abstention s'incrementent avec une animation visible (pas de changement instantane)
-  2. Les barres de progression des resultats glissent vers leur nouvelle valeur en transition CSS fluide sans saut brusque
-  3. Sur un systeme avec prefers-reduced-motion: reduce active, les compteurs et barres se mettent a jour instantanement sans animation
-**Plans:** 1 plan
-Plans:
-- [x] 03-01-PLAN.md — animateVoteCounter helper (vanilla RAF) + bump keyframe + bar transition audit
-**Status**: ✅ Complete (verified 2026-04-29)
+  1. Configurer `MONITOR_WEBHOOK_URL=http://169.254.169.254/...` (cloud metadata) ou `http://10.0.0.1/...` (RFC1918) lève une exception au boot du `MonitoringService` ; seules des URLs HTTPS d'hôtes whitelistés sont acceptées.
+  2. La 11ᵉ requête `password_reset_request` depuis la même IP en 10 minutes retourne HTTP 429 avec header `Retry-After`. La 6ᵉ requête sur le même email (tous IPs confondus) idem.
+  3. 10 échecs login consécutifs sur le même email verrouillent le compte avec un message FR explicite et un header `Retry-After` qui croît exponentiellement (2, 4, 8... minutes, plafond 24h).
 
-### Phase 4: Validation Gate
-**Goal**: Toutes les fonctionnalites v2.0 sont verifiees sans regression sur le reste de l'application.
-**Depends on**: Phase 3
-**Requirements**: CHECK-01, CHECK-02, CHECK-03, CHECK-04, CHECK-05, FOCUS-01, FOCUS-02, FOCUS-03, ANIM-01, ANIM-02, ANIM-03
+### Phase 4: Uploads & contenu
+**Goal**: Sécuriser le pipeline upload PDF, prévenir l'injection de formules dans les exports XLSX/CSV, durcir la génération PDF (dompdf).
+**Depends on**: Phase 1
+**Requirements**: HARDEN-F14, HARDEN-F15, HARDEN-F16
 **Success Criteria** (what must be TRUE):
-  1. Les tests E2E operator-e2e.spec.js passent au vert sans modification des assertions existantes
-  2. Aucune regression visuelle ou fonctionnelle sur les autres pages de l'application (dashboard, motions, scrutins)
-  3. La syntaxe PHP de tous les fichiers modifies est valide (`php -l`)
-**Plans:** 1 plan
-Plans:
-- [x] 04-01-PLAN.md — Static regression audit (JS syntax + orphan refs + PHP boundary) + manual checklist consolidation in 04-AUDIT.md
-**Status**: ✅ Complete (audit PASS 2026-04-29 — Playwright E2E + manual QA pending CI/human)
+  1. Un fichier non-PDF renommé en `.pdf` (magic bytes ≠ `%PDF-`) est rejeté à l'upload avec HTTP 400 ; un PDF valide est servi en download avec `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff`.
+  2. Un membre nommé `=cmd|...` est exporté dans le CSV/XLSX comme `'=cmd|...` (string littéral, jamais évalué comme formule par Excel ou LibreOffice).
+  3. Un PDF de procuration généré pour un nom de membre `<script>alert(1)</script>` rend le texte échappé (`&lt;script&gt;...`) ; aucun fetch HTTP distant ni interprétation PHP par dompdf (`isRemoteEnabled=false`, `isPhpEnabled=false`).
+
+### Phase 5: Headers, cookies & defense-in-depth
+**Goal**: Migrer la CSP vers nonce-strict, durcir les flags cookies de session, supprimer les fallbacks dev permissifs en production.
+**Depends on**: Nothing (peut paralléliser avec Phases 2-4 — n'utilise aucune infra de Phase 1)
+**Requirements**: HARDEN-F17, HARDEN-F18, HARDEN-F19
+**Success Criteria** (what must be TRUE):
+  1. La CSP est passée en mode strict avec `script-src 'self' 'nonce-$nonce'` (sans `'unsafe-inline'`). Une page sans nonce voit ses scripts rejetés en console, observable via les rapports CSP collectés.
+  2. Après login, `Set-Cookie` contient `SameSite=Strict; Secure; HttpOnly`. Le cookie ID change entre pré-login et post-login (régénération). Tester aussi sur logout et changement de rôle.
+  3. Lancer l'application avec `APP_SECRET` < 32 chars retourne une exception au boot dans tous les environnements (dev ET prod). Lancer avec `APP_ENV=production` ET `APP_DEBUG=1` est refusé.
+
+### Phase 6: Tests & monitoring (validation gate)
+**Goal**: Cristalliser les acquis dans la suite de tests, instrumenter le signal sécurité en prod, mettre à jour la documentation. Empêche les régressions futures.
+**Depends on**: Phases 1, 2, 3, 4, 5 (tous fixes en place avant tests/monitoring)
+**Requirements**: HARDEN-F20, HARDEN-F21, HARDEN-F22
+**Success Criteria** (what must be TRUE):
+  1. Le dossier `tests/Security/` contient au moins 1 test par finding F02-F22 (21 tests minimum). Le job CI exécute cette testsuite à chaque PR ; toute régression future déclenche un rouge.
+  2. 10 tentatives 401/403 en 60 secondes sur la même IP déclenchent une alerte webhook via `MonitoringService`. Toute opération sur `motions.manual_tally`, `members.voting_power`, ou tentative de `DELETE FROM audit_events` produit un log critical visible.
+  3. `SECURITY_AUDIT.md` est à jour avec les 22 findings (F01-F22) marqués CORRIGÉ avec lien vers le commit/PR. `SECURITY.md` à la racine décrit le processus de signalement (responsible disclosure).
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Checklist Operateur | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
-| 2. Mode Focus | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
-| 3. Animations Vote | v2.0 | 1/1 | ✅ Complete | 2026-04-29 |
-| 4. Validation Gate | v2.0 | 1/1 | ✅ Complete | 2026-04-29 |
+| 1. Sprint 0 finition | v2.1 | 0/? | Not started | - |
+| 2. Vote intégrité & cross-tenant | v2.1 | 0/? | Not started | - |
+| 3. Périmètre & SSRF | v2.1 | 0/? | Not started | - |
+| 4. Uploads & contenu | v2.1 | 0/? | Not started | - |
+| 5. Headers, cookies & defense-in-depth | v2.1 | 0/? | Not started | - |
+| 6. Tests & monitoring | v2.1 | 0/? | Not started | - |

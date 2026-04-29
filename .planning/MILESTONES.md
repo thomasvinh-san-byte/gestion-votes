@@ -1,5 +1,14 @@
 # Milestones
 
+## v2.0 Operateur Live UX (Shipped: 2026-04-29)
+
+**Phases completed:** 4 phases, 6 plans, 4 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v1.4 Régler Deferred et Dette Technique (Shipped: 2026-04-10)
 
 **Phases completed:** 6 phases, 14 plans, 33 tasks

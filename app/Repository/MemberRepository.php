@@ -546,4 +546,34 @@ class MemberRepository extends AbstractRepository {
             $params,
         );
     }
+
+    /**
+     * Fetch current voting_power for a list of member IDs scoped to the tenant.
+     *
+     * Used by audit-trail callers (F04) that must record `before → after` snapshots
+     * per member, not just an aggregate count.
+     *
+     * @param  list<string> $ids
+     * @return array<string, float>  id => current voting_power
+     */
+    public function listVotingPowersByIds(array $ids, string $tenantId): array {
+        $ids = $this->filterExistingIds($ids, $tenantId);
+        if (count($ids) === 0) {
+            return [];
+        }
+        $params = [':tid' => $tenantId];
+        $in = $this->buildInClause('id', $ids, $params);
+
+        $rows = $this->selectAll(
+            "SELECT id, voting_power FROM members
+             WHERE id IN ({$in}) AND tenant_id = :tid AND deleted_at IS NULL",
+            $params,
+        );
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(string) $row['id']] = (float) $row['voting_power'];
+        }
+        return $map;
+    }
 }

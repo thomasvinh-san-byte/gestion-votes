@@ -203,7 +203,8 @@ trait MotionFinderTrait {
     }
 
     public function findWithMeetingTenant(string $motionId, string $tenantId = ''): ?array {
-        $sql = 'SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id
+        $sql = 'SELECT mo.id AS motion_id, mo.title AS motion_title, mo.meeting_id, m.tenant_id,
+                       mo.manual_total, mo.manual_for, mo.manual_against, mo.manual_abstain
              FROM motions mo
              JOIN meetings m ON m.id = mo.meeting_id
              WHERE mo.id = :id';

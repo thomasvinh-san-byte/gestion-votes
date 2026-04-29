@@ -221,7 +221,7 @@ function api_guard_meeting_exists(string $meetingId): array {
  * Apply rate limiting
  */
 function api_rate_limit(string $context, int $maxAttempts = 100, int $windowSeconds = 60): void {
-    $identifier = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $identifier = \AgVote\Core\Http\ClientIp::get();
 
     // If authenticated, use user ID
     $userId = api_current_user_id();

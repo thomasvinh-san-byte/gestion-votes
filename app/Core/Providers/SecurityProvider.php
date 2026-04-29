@@ -75,10 +75,8 @@ final class SecurityProvider {
         // blocking resources. Once validated, this becomes the enforcing header.
         header('Content-Security-Policy-Report-Only: ' . self::buildReportOnlyCsp());
 
-        // HSTS in HTTPS (also detect TLS-terminating reverse proxy via X-Forwarded-Proto)
-        $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-        if ($isHttps) {
+        // HSTS in HTTPS (X-Forwarded-Proto only honored from trusted proxies — see ClientIp).
+        if (\AgVote\Core\Http\ClientIp::isHttps()) {
             header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
         }
     }

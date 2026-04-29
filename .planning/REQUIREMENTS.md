@@ -1,72 +1,108 @@
-# Requirements: AG-VOTE v2.0
+# Requirements: AgVote v2.1 Hardening Sécurité
 
-**Defined:** 2026-04-21
-**Core Value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
+**Defined:** 2026-04-29
+**Core Value:** L'application doit etre fiable en production — defense en profondeur sur authentification, integrite du vote, isolation tenant, perimetre, uploads et headers HTTP. Aucune fuite cross-tenant tolérée.
 
-## v2.0 Requirements
+**Source des findings :** Audit sécurité du 2026-04-29 (offensive analysis sur branche `claude/code-review-security-ux-ui-DU6oj`) + audit antérieur `SECURITY_AUDIT.md` (2026-02-20). Finding F1 (setup hardening) déjà shipped en v2.0 via PR #247.
 
-Requirements pour le milestone Operateur Live UX. Chaque requirement est testable et oriente utilisateur.
+---
 
-### Checklist Operateur
+## v2.1 Requirements
 
-- [x] **CHECK-01**: En mode live, une checklist affiche le statut quorum (atteint/non atteint) avec le ratio votants/total
-- [x] **CHECK-02**: La checklist indique le nombre de votes recus en temps reel via SSE
-- [x] **CHECK-03**: La checklist montre le statut connexion reseau et SSE (connecte/deconnecte)
-- [x] **CHECK-04**: La checklist affiche le nombre de votants connectes en temps reel
-- [x] **CHECK-05**: Si un indicateur passe au rouge (quorum non atteint, SSE deconnecte), une alerte visuelle automatique apparait
+### Sprint 0 finition
 
-### Interface Epuree
+- [x] **HARDEN-F02**: TRUSTED_PROXIES env var + helper `ClientIp::get()` qui n'accepte `X-Forwarded-For` / `X-Forwarded-Proto` qu'à partir d'IPs de proxy whitelistées
+- [x] **HARDEN-F03**: Idempotence sur `degraded_tally` (HTTP 409 au 2ᵉ appel) + audit before/after + reason obligatoire (>= 20 chars)
+- [x] **HARDEN-F04**: Audit trail per-member sur `members_bulk` voting_power (1 événement `member_voting_power_changed` par ID modifié, avec before/after/reason)
+- [x] **HARDEN-F05**: Auth-first dans SSE stream (`public/api/v1/events.php`) + filtrage des événements par `tenant_id` du user authentifié
 
-- [x] **FOCUS-01**: En mode execution, l'interface operateur se reduit a 5 zones: titre motion, resultat vote, quorum status, chronometre, actions
-- [x] **FOCUS-02**: Les boutons d'action (lancer vote, fermer scrutin, passer motion) sont visibles dans la vue epuree
-- [x] **FOCUS-03**: L'operateur peut basculer entre vue complete et vue focus via un toggle visible
+### Vote intégrité & cross-tenant
 
-### Animations Vote
+- [ ] **HARDEN-F06**: Vote token consommé via `UPDATE ... WHERE used_at IS NULL RETURNING ...` atomique (suppression du `findValidByHash` séparé)
+- [ ] **HARDEN-F07**: Migration `invitations.token` (clair) → `invitations.token_hash` (HMAC-SHA256), token clair n'apparaît que dans le mail
+- [ ] **HARDEN-F08**: Isolation tenant complète : `AND tenant_id = :t` dans tous les WHERE de `BallotRepository`, `MotionRepository`, `ProxyRepository`, `MeetingAttachmentRepository`, `MemberRepository`
+- [ ] **HARDEN-F09**: `MeetingWorkflowController::resetDemo` refuse l'exécution en `APP_ENV=production` pour rôle ≠ admin + validation statut meeting (`draft|scheduled`) + confirmation typée (`RESET-<meeting_code>`)
+- [ ] **HARDEN-F10**: CSRF token scopé par action (`HMAC(session_secret, METHOD + PATH)`) au lieu d'un token unique par session
 
-- [x] **ANIM-01**: Les compteurs de vote (pour/contre/abstention) s'animent en temps reel quand un vote arrive via SSE
-- [x] **ANIM-02**: Les barres de progression des resultats s'animent en transition fluide (pas de saut brusque)
-- [x] **ANIM-03**: L'animation respecte prefers-reduced-motion (desactivee si l'utilisateur le demande)
+### Périmètre & SSRF
 
-## Future Requirements
+- [ ] **HARDEN-F11**: Helper `UrlValidator::isSafeOutbound($url, $allowedHosts)` (refus RFC1918, link-local, loopback, IDN suspects ; `https` only ; whitelist hôtes exacts) appliqué à `MonitoringService::sendWebhook` et `EmailTrackingController::redirect`
+- [ ] **HARDEN-F12**: Rate limiting sur `email_pixel`/`email_redirect` (100 req/60s par IP), sur `password_reset_request` (5 req/600s par IP ET par email), réponse à temps constant sur reset
+- [ ] **HARDEN-F13**: Lockout progressif par compte (2^n minutes plafonné à 24h) après N échecs login, header `Retry-After` retourné
 
-Deferred to next milestone.
+### Uploads & contenu
 
-### Affichage Public
+- [ ] **HARDEN-F14**: Upload PDF — défense en profondeur (magic bytes `%PDF-` + finfo + extension, stockage hors webroot par tenant, `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff`, `basename()` AVANT `preg_replace`)
+- [ ] **HARDEN-F15**: `ExportService` préfixe `'` devant tout cell qui commence par `=`, `+`, `-`, `@`, `\t`, `\r` (CSV ET XLSX)
+- [ ] **HARDEN-F16**: dompdf hardening (`setIsRemoteEnabled(false)`, `setIsPhpEnabled(false)`, `setChroot()`, toutes variables user via `htmlspecialchars()`)
 
-- **PUB-01**: Taille de texte adaptee a la distance (labels 24px+, pourcentages 40px+)
-- **PUB-02**: Animation sur les barres de resultats quand les votes arrivent
-- **PUB-03**: Etat par defaut "Seance a venir" au lieu de "Aucune seance"
+### Headers, cookies & defense-in-depth
+
+- [ ] **HARDEN-F17**: Migration CSP de `script-src 'self' 'unsafe-inline'` vers `script-src 'self' 'nonce-$nonce'` (mode Report-Only 1 semaine puis enforce, externalisation des handlers inline)
+- [ ] **HARDEN-F18**: Cookies session `SameSite=Strict` (à valider pour vote.php cross-site), `Secure=true` forcé, `HttpOnly=true` ; `session_regenerate_id(true)` à login/logout/changement de rôle
+- [ ] **HARDEN-F19**: `AuthMiddleware::getAppSecret()` `throw` si `APP_SECRET < 32 chars` en dev ET prod ; `bootstrap.php` refuse de booter si `APP_ENV=production` et `APP_DEBUG=1`
+
+### Tests & monitoring
+
+- [ ] **HARDEN-F20**: Nouveau dossier `tests/Security/` avec 1 test par finding (cross-tenant, CSRF cross-action, rate-limit IP-spoofing, vote double, formula injection) ; testsuite exécutée à chaque PR
+- [ ] **HARDEN-F21**: Logging signal sécurité — échecs login (email + ip_via_proxy + ip_real + UA), alerte sur 10 401/403 en 60s, alerte temps réel sur `audit_events.delete`, `motions.manual_tally`, `members.voting_power`
+- [ ] **HARDEN-F22**: `SECURITY_AUDIT.md` mis à jour à chaque sprint avec liens PR/commit + ajout d'un `SECURITY.md` à la racine pour responsible disclosure
+
+---
+
+## v2.2+ Requirements (deferred)
+
+### UI/UX
+
+- **UX-NEXT**: Reprendre l'audit UX/UI du 2026-04-29 (34 findings : 3 critiques modales, 8 élevés a11y, 16 moyens responsive/contrastes, 7 faibles polish) — milestone séparé après stabilisation sécurité
+
+---
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Refonte affichage public | Trop large -- milestone dedie PUB-01..03 |
-| Nouvelles fonctionnalites metier | Focus sur UX operateur |
-| Migration framework | Refactoring incremental uniquement |
-| PDFs de convocation/emargement | Hors perimetre de l'app |
-| Raccourcis clavier | Hors perimetre |
+| UI/UX improvements | Reportés en v2.2+ — focus exclusif sécurité ce milestone |
+| Refactoring non-sécuritaire | Hors scope, ne pas mélanger nettoyage et hardening |
+| Migration framework (Symfony, Laravel) | Refactoring incrémental seulement, pas de big-bang |
+| Application-level test failures (21 tests pré-existants) | Tracés séparément en dette de tests, PR dédiée future |
+| Pre-existing 21 PHPUnit failures | Tracé en STATE.md blockers, PR dédiée |
+| Auth/refacto majeur (OAuth, SSO) | Hors scope sécu — défense de l'existant uniquement |
+
+---
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHECK-01 | Phase 1 | Complete |
-| CHECK-02 | Phase 1 | Complete |
-| CHECK-03 | Phase 1 | Complete |
-| CHECK-04 | Phase 1 | Complete |
-| CHECK-05 | Phase 1 | Complete |
-| FOCUS-01 | Phase 2 | Complete |
-| FOCUS-02 | Phase 2 | Complete |
-| FOCUS-03 | Phase 2 | Complete |
-| ANIM-01 | Phase 3 | Complete |
-| ANIM-02 | Phase 3 | Complete |
-| ANIM-03 | Phase 3 | Complete |
+| HARDEN-F02 | Phase 1 | Complete |
+| HARDEN-F03 | Phase 1 | Complete |
+| HARDEN-F04 | Phase 1 | Complete |
+| HARDEN-F05 | Phase 1 | Complete |
+| HARDEN-F06 | Phase 2 | Pending |
+| HARDEN-F07 | Phase 2 | Pending |
+| HARDEN-F08 | Phase 2 | Pending |
+| HARDEN-F09 | Phase 2 | Pending |
+| HARDEN-F10 | Phase 2 | Pending |
+| HARDEN-F11 | Phase 3 | Pending |
+| HARDEN-F12 | Phase 3 | Pending |
+| HARDEN-F13 | Phase 3 | Pending |
+| HARDEN-F14 | Phase 4 | Pending |
+| HARDEN-F15 | Phase 4 | Pending |
+| HARDEN-F16 | Phase 4 | Pending |
+| HARDEN-F17 | Phase 5 | Pending |
+| HARDEN-F18 | Phase 5 | Pending |
+| HARDEN-F19 | Phase 5 | Pending |
+| HARDEN-F20 | Phase 6 | Pending |
+| HARDEN-F21 | Phase 6 | Pending |
+| HARDEN-F22 | Phase 6 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 11 total
-- Mapped to phases: 11
-- Unmapped: 0
+- v2.1 requirements: 21 total
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-04-21 — Traceability updated: 2026-04-21*
+
+*Requirements defined: 2026-04-29 from .planning/research/v2.1-securite-requirements-draft.md*
+*Last updated: 2026-04-29 — initial definition*

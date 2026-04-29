@@ -271,7 +271,15 @@ final class MotionsController extends AbstractController {
             ], api_current_tenant_id());
         } catch (RuntimeException $e) {
             $code = $e->getMessage();
-            $statusMap = ['motion_not_found' => 404, 'invalid_total' => 422, 'invalid_numbers' => 422, 'vote_exceeds_total' => 422, 'inconsistent_tally' => 422];
+            $statusMap = [
+                'motion_not_found'         => 404,
+                'invalid_total'            => 422,
+                'invalid_numbers'          => 422,
+                'vote_exceeds_total'       => 422,
+                'inconsistent_tally'       => 422,
+                'justification_too_short'  => 422,
+                'manual_tally_already_set' => 409,
+            ];
             api_fail($code, $statusMap[$code] ?? 400);
         }
         api_ok(['meeting_id' => $result['meeting_id'], 'motion_id' => $result['motion_id'], 'manual_total' => $result['manual_total'], 'manual_for' => $result['manual_for'], 'manual_against' => $result['manual_against'], 'manual_abstain' => $result['manual_abstain']]);

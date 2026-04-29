@@ -74,8 +74,7 @@ final class SessionHelper {
      * @return array{lifetime: int, path: string, domain: string, secure: bool, httponly: bool, samesite: string}
      */
     public static function cookieParams(): array {
-        $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+        $secure = \AgVote\Core\Http\ClientIp::isHttps();
 
         return [
             'lifetime' => 0,
