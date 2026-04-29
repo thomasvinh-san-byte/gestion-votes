@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Operateur Live UX
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-04-29T00:00:00Z"
-last_activity: 2026-04-29 -- Phase 3 complete (Animations Vote), verified PASS
+status: ready_to_complete
+stopped_at: "Phase 4 audit PASS -- ready for /gsd:complete-milestone v2.0 (manual + CI verifications pending)"
+last_updated: "2026-04-29T06:02:21Z"
+last_activity: 2026-04-29 -- Phase 4 (Validation Gate) audit PASS
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 75
+  completed_phases: 4
+  total_plans: 6
+  completed_plans: 6
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** L'application doit etre fiable en production -- aucun crash lie a des fallbacks fichiers, des fuites memoire, ou des timeouts silencieux.
-**Current focus:** Phase 4 -- Validation Gate
+**Current focus:** v2.0 milestone closure (Phase 4 audit PASS, manual + CI verifications pending)
 
 ## Current Position
 
-Phase: 4 of 4 (Validation Gate)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-29 -- Phase 3 verified PASS, ready for Phase 4 planning
+Phase: 4 of 4 (Validation Gate) -- COMPLETE
+Plan: 1 of 1 in current phase -- COMPLETE
+Status: Ready to complete milestone
+Last activity: 2026-04-29 -- Phase 4 audit PASS, milestone v2.0 ready for closure (manual + CI pending)
 
-Progress: [########..] 75%
+Progress: [##########] 100%
 
 ## Accumulated Context
 
@@ -52,10 +52,14 @@ Recent decisions affecting current work:
 - [Phase 03 D-3]: `.op-bar-fill` transition CSS deja en place, audited only
 - [Phase 03 D-4]: prefers-reduced-motion = hard cut (skip RAF + bump class)
 - [Phase 03 D-5]: First-render guard via `_activeVoteAnimReady` Map keyed by motion ID
+- [Phase 04 D-1]: Validation gate = audit-only phase (no new code, no deps modified)
+- [Phase 04 D-2]: Playwright E2E deferred to CI (libatk infra blocker, not installed locally)
+- [Phase 04 D-3]: Zero PHP files modified in v2.0 confirmed via git log filter
 
 ### Pending Todos
 
-None.
+- Manual verification checklist (8 items consolidated in 04-AUDIT.md sec. 6) -- a executer par QA humain avant tag de release
+- Suite Playwright E2E -- a executer en CI (8 verifications visuelles)
 
 ### Blockers/Concerns
 
@@ -64,7 +68,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-29
-Stopped at: Phase 3 verified PASS -- pret pour `/gsd:plan-phase 4`
+Stopped at: Phase 4 audit PASS -- pret pour `/gsd:complete-milestone v2.0` (manual + CI verifications en attente)
 Resume file: None
 
-**Next action:** `/gsd:plan-phase 4` -- Validation Gate
+**Next action:** `/gsd:complete-milestone v2.0` -- cloturer milestone (apres QA manuelle + Playwright CI)

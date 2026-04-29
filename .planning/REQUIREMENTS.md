@@ -17,15 +17,15 @@ Requirements pour le milestone Operateur Live UX. Chaque requirement est testabl
 
 ### Interface Epuree
 
-- [ ] **FOCUS-01**: En mode execution, l'interface operateur se reduit a 5 zones: titre motion, resultat vote, quorum status, chronometre, actions
-- [ ] **FOCUS-02**: Les boutons d'action (lancer vote, fermer scrutin, passer motion) sont visibles dans la vue epuree
-- [ ] **FOCUS-03**: L'operateur peut basculer entre vue complete et vue focus via un toggle visible
+- [x] **FOCUS-01**: En mode execution, l'interface operateur se reduit a 5 zones: titre motion, resultat vote, quorum status, chronometre, actions
+- [x] **FOCUS-02**: Les boutons d'action (lancer vote, fermer scrutin, passer motion) sont visibles dans la vue epuree
+- [x] **FOCUS-03**: L'operateur peut basculer entre vue complete et vue focus via un toggle visible
 
 ### Animations Vote
 
-- [ ] **ANIM-01**: Les compteurs de vote (pour/contre/abstention) s'animent en temps reel quand un vote arrive via SSE
-- [ ] **ANIM-02**: Les barres de progression des resultats s'animent en transition fluide (pas de saut brusque)
-- [ ] **ANIM-03**: L'animation respecte prefers-reduced-motion (desactivee si l'utilisateur le demande)
+- [x] **ANIM-01**: Les compteurs de vote (pour/contre/abstention) s'animent en temps reel quand un vote arrive via SSE
+- [x] **ANIM-02**: Les barres de progression des resultats s'animent en transition fluide (pas de saut brusque)
+- [x] **ANIM-03**: L'animation respecte prefers-reduced-motion (desactivee si l'utilisateur le demande)
 
 ## Future Requirements
 
@@ -56,12 +56,12 @@ Deferred to next milestone.
 | CHECK-03 | Phase 1 | Complete |
 | CHECK-04 | Phase 1 | Complete |
 | CHECK-05 | Phase 1 | Complete |
-| FOCUS-01 | Phase 2 | Pending |
-| FOCUS-02 | Phase 2 | Pending |
-| FOCUS-03 | Phase 2 | Pending |
-| ANIM-01 | Phase 3 | Pending |
-| ANIM-02 | Phase 3 | Pending |
-| ANIM-03 | Phase 3 | Pending |
+| FOCUS-01 | Phase 2 | Complete |
+| FOCUS-02 | Phase 2 | Complete |
+| FOCUS-03 | Phase 2 | Complete |
+| ANIM-01 | Phase 3 | Complete |
+| ANIM-02 | Phase 3 | Complete |
+| ANIM-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 11 total

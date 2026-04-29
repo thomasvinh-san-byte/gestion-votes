@@ -226,7 +226,10 @@ Plans:
   1. Les tests E2E operator-e2e.spec.js passent au vert sans modification des assertions existantes
   2. Aucune regression visuelle ou fonctionnelle sur les autres pages de l'application (dashboard, motions, scrutins)
   3. La syntaxe PHP de tous les fichiers modifies est valide (`php -l`)
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [x] 04-01-PLAN.md — Static regression audit (JS syntax + orphan refs + PHP boundary) + manual checklist consolidation in 04-AUDIT.md
+**Status**: ✅ Complete (audit PASS 2026-04-29 — Playwright E2E + manual QA pending CI/human)
 
 ## Progress
 
@@ -235,4 +238,4 @@ Plans:
 | 1. Checklist Operateur | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
 | 2. Mode Focus | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
 | 3. Animations Vote | v2.0 | 1/1 | ✅ Complete | 2026-04-29 |
-| 4. Validation Gate | v2.0 | 0/? | Not started | - |
+| 4. Validation Gate | v2.0 | 1/1 | ✅ Complete | 2026-04-29 |
