@@ -932,6 +932,12 @@
   overflow: hidden;
 }
 
+/* Vote progress bar fill — ANIM-02 (Phase 3, audit confirmed).
+   `transition: width` glides the bar when JS updates --bar-pct via
+   setProperty (operator-exec.js refreshExecVote). Kept on `width` (not
+   `transform: scaleX`) to preserve border-radius (UI-SPEC tradeoff).
+   Reduced-motion (ANIM-03): handled globally by design-system.css:3059-3068
+   which forces transition-duration to 0.01ms — no per-rule override needed. */
 .op-bar-fill {
   height: 100%;
   border-radius: 4px;
@@ -951,6 +957,34 @@
   text-align: left;
   color: var(--color-text-muted);
   flex-shrink: 0;
+}
+
+/* =============================================================================
+   PHASE 3 — VOTE COUNTER ANIMATIONS (ANIM-01, ANIM-02, ANIM-03)
+   - Bump keyframe: applied as one-shot class .op-vote-counter--bump on the
+     parent .op-vote-counter cell when its counter increments via SSE.
+   - Counter numeric tween: handled in JS (operator-exec.js animateVoteCounter)
+     via vanilla requestAnimationFrame — no CSS animation on the number itself.
+   - Bar slide (.op-bar-fill, line ~935): existing rule
+     `transition: width 0.4s var(--ease-default)` already glides the bars
+     when JS updates --bar-pct. No change required here for ANIM-02.
+   - Reduced-motion (ANIM-03): the global rule in design-system.css:3059-3068
+     forces animation-duration and transition-duration to 0.01ms for *,
+     *::before, *::after — this neutralizes the bump keyframe and the bar
+     transition automatically. The JS guard PREFERS_REDUCED_MOTION in
+     operator-exec.js handles the counter tween (which is JS-driven, not CSS).
+   ============================================================================= */
+
+@keyframes opVoteCounterBump {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.op-vote-counter--bump {
+  animation: opVoteCounterBump var(--duration-deliberate, 300ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+  /* transform-origin defaults to center — correct for the cell. */
+  /* Class is removed by JS on `animationend` (no setTimeout cleanup). */
 }
 
 /* Exec vote title (subtitle under VOTE EN COURS badge) */
@@ -1970,6 +2004,295 @@
 }
 
 /* =============================================================================
+   CHECKLIST PANEL — real-time session monitoring sidebar (exec mode)
+   ============================================================================= */
+
+.op-exec-body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.op-checklist-panel {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6) 0;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow-y: auto;
+}
+
+.op-checklist-panel--collapsed {
+  width: 32px;
+  padding: var(--space-2) 0;
+  align-items: center;
+  overflow: hidden;
+}
+
+.op-checklist-panel--collapsed .op-checklist-header,
+.op-checklist-panel--collapsed .op-checklist-rows,
+.op-checklist-panel--collapsed .op-checklist-sse-banner {
+  display: none;
+}
+
+.op-checklist-sse-banner {
+  background: var(--color-danger-subtle);
+  border-bottom: 1px solid var(--color-danger);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-danger-text);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  line-height: 1.4;
+}
+
+.op-checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.op-checklist-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.op-checklist-toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.op-checklist-toggle:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.op-checklist-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.op-checklist-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-left: 3px solid transparent;
+}
+
+.op-checklist-row--alert {
+  background: var(--color-danger-subtle);
+  border-left-color: var(--color-danger);
+}
+
+.op-checklist-row--alert .op-checklist-icon {
+  color: var(--color-danger);
+}
+
+.op-checklist-row--ok .op-checklist-icon {
+  color: var(--color-success);
+}
+
+.op-checklist-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.op-checklist-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.op-checklist-value {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .op-checklist-row--alert .op-checklist-icon {
+    animation: checklistPulse 1s ease-in-out 3;
+  }
+
+  @keyframes checklistPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.3; }
+  }
+
+  .op-checklist-panel:not(.op-checklist-panel--collapsed) {
+    transition: width 200ms var(--ease-standard, ease);
+  }
+}
+
+/* =============================================================================
+   FOCUS MODE — vue epuree avec 5 zones essentielles uniquement (Phase 2)
+   Modifier `.op-focus-mode` applied to #viewExec via JS toggle + sessionStorage.
+   ============================================================================= */
+
+/* Rule 1 — Hide secondary zones inside #viewExec (FOCUS-01, CONTEXT D-7) */
+.op-focus-mode .op-exec-status-bar,
+.op-focus-mode .op-kpi-strip,
+.op-focus-mode .op-tags,
+.op-focus-mode .op-resolution-progress,
+.op-focus-mode .op-guidance,
+.op-focus-mode .exec-close-banner,
+.op-focus-mode .op-resolution-header,
+.op-focus-mode .op-tabs,
+.op-focus-mode .op-checklist-panel,
+.op-focus-mode .exec-speaker-panel,
+.op-focus-mode #execManualVoteList,
+.op-focus-mode #execManualSearch,
+.op-focus-mode #opBtnRoomDisplay {
+  display: none !important;
+}
+
+/* Rule 1b — Sidebar agenda lives outside #viewExec; hide via :has on parent */
+.op-body:has(#viewExec.op-focus-mode) .op-sidebar {
+  display: none !important;
+}
+
+/* Rule 2 — Sticky action bar (FOCUS-02, CONTEXT D-6) */
+.op-focus-mode .op-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Rule 3 — Enlarge focal elements for distance readability */
+.op-focus-mode .exec-vote-title,
+.op-focus-mode .op-resolution-title {
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  margin-bottom: var(--space-3);
+}
+
+.op-focus-mode .op-vote-card {
+  padding: var(--space-6) var(--space-4);
+}
+
+.op-focus-mode .op-live-chrono {
+  font-size: var(--text-2xl);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* Rule 4 — Dedicated quorum block (zone 3): hidden by default, large card in focus */
+.op-focus-quorum[hidden] {
+  display: none;
+}
+
+.op-focus-mode .op-focus-quorum {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  margin: 0 var(--space-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.op-focus-mode .op-focus-quorum-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.op-focus-mode .op-focus-quorum-value {
+  font-size: var(--text-3xl);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.op-focus-mode .op-focus-quorum-status {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* State variants — applied by Plan 02 JS via .op-focus-quorum--ok / --alert */
+.op-focus-mode .op-focus-quorum--ok {
+  border-color: var(--color-success);
+  background: var(--color-success-subtle);
+}
+
+.op-focus-mode .op-focus-quorum--ok .op-focus-quorum-value,
+.op-focus-mode .op-focus-quorum--ok .op-focus-quorum-status {
+  color: var(--color-success-text);
+}
+
+.op-focus-mode .op-focus-quorum--alert {
+  border-color: var(--color-danger);
+  background: var(--color-danger-subtle);
+}
+
+.op-focus-mode .op-focus-quorum--alert .op-focus-quorum-value,
+.op-focus-mode .op-focus-quorum--alert .op-focus-quorum-status {
+  color: var(--color-danger-text);
+}
+
+/* Rule 5 — Toggle button styling + aria-pressed icon swap */
+.op-focus-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.op-focus-toggle[aria-pressed="true"] {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-text);
+  border-color: var(--color-primary);
+}
+
+.op-focus-toggle[aria-pressed="true"] .op-focus-icon-on {
+  display: none;
+}
+
+.op-focus-toggle[aria-pressed="true"] .op-focus-icon-off {
+  display: inline-block;
+}
+
+.op-focus-toggle[aria-pressed="false"] .op-focus-icon-off {
+  display: none;
+}
+
+/* =============================================================================
    RESPONSIVE — 1024px: collapse sidebar to horizontal strip
    ============================================================================= */
 
@@ -2010,6 +2333,7 @@
   .setup-dashboard-grid { grid-template-columns: 1fr; }
   .hub-layout { grid-template-columns: 1fr; }
   .hub-sidebar { display: none; }
+  .op-checklist-panel { display: none; }
 }
 
 @media (max-width: 768px) {

@@ -27,6 +27,28 @@
   var _prevVoteTotal = 0;
   var _deltaFadeTimer = null;
 
+  // -------------------------------------------------------------------------
+  // PHASE 3 — VOTE COUNTER ANIMATION STATE (ANIM-01, ANIM-03)
+  // -------------------------------------------------------------------------
+
+  // Cached `prefers-reduced-motion: reduce` MediaQueryList. matchMedia is supported
+  // in all target browsers (chromium, firefox, webkit, mobile-chrome). Re-checked
+  // on each tween call via `.matches` so OS-level changes take effect on next vote.
+  var PREFERS_REDUCED_MOTION = (typeof window !== 'undefined' && window.matchMedia)
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+
+  // First-render guard: tracks whether the active vote card has had its first
+  // refresh for a given motion ID. Maps motionId -> true once initial values
+  // have been written instantly (no tween). Per CONTEXT D-5: prevents the
+  // "0 -> 47" flash when opening exec mode on a motion already in progress.
+  var _activeVoteAnimReady = new Map();
+
+  // Cancellation handles for in-flight RAF tweens, keyed by element. Used to
+  // cancel a stale tween when a new SSE event arrives mid-animation
+  // (CONTEXT D-1 — RAF gives precise cancellation control).
+  var _voteTweenRafs = new WeakMap();
+
   // =========================================================================
   // KPI ANIMATION HELPERS (VIS-05)
   // Uses Anime.js (loaded via CDN with defer) for count-up animation.
@@ -95,6 +117,119 @@
         el.textContent = obj.val + '%';
       }
     });
+  }
+
+  /**
+   * Animate an integer counter from `from` to `to` over ~400ms using
+   * requestAnimationFrame. Vanilla — no Anime.js dependency (CONTEXT D-1).
+   *
+   * Behavior:
+   *  - prefers-reduced-motion: reduce -> writes target directly, no RAF (D-4).
+   *  - delta === 0 -> no-op (idempotent).
+   *  - Cancels any in-flight tween on the same element before starting a new
+   *    one. The new tween starts from the currently-displayed integer
+   *    (read via parseInt(textContent), not from the cached `from` arg) so
+   *    cancellation mid-tween is visually continuous.
+   *  - Integer ticking via Math.round(start + delta * eased) on each frame.
+   *  - Ease-out cubic: t -> 1 - (1 - t)^3. No overshoot (counters must never
+   *    overshoot — overshoot reads as data corruption per UI-SPEC).
+   *
+   * @param {HTMLElement} el           Counter element (.op-vote-count span).
+   * @param {number}      from         Previous displayed integer (for delta).
+   * @param {number}      to           Target integer.
+   * @param {object}     [opts]
+   * @param {boolean}    [opts.silent] When true, write `to` directly with no
+   *                                   tween (used by snapshot/catch-up paths
+   *                                   per CONTEXT D-6).
+   */
+  function animateVoteCounter(el, from, to, opts) {
+    if (!el) return;
+    opts = opts || {};
+
+    var target = parseInt(to, 10) || 0;
+
+    // Silent path (snapshot/catch-up) or reduced-motion: hard-write target.
+    if (opts.silent || PREFERS_REDUCED_MOTION.matches) {
+      // Cancel any in-flight tween before instant-writing.
+      var pendingRaf = _voteTweenRafs.get(el);
+      if (pendingRaf) {
+        cancelAnimationFrame(pendingRaf);
+        _voteTweenRafs.delete(el);
+      }
+      el.textContent = String(target);
+      return;
+    }
+
+    // Read currently-displayed integer (not the `from` arg) so a cancelled
+    // tween restart is continuous from whatever is on screen right now.
+    var displayed = parseInt(el.textContent, 10);
+    if (isNaN(displayed)) displayed = parseInt(from, 10) || 0;
+
+    if (displayed === target) return;
+
+    // Cancel previous in-flight tween on this element.
+    var prevRaf = _voteTweenRafs.get(el);
+    if (prevRaf) cancelAnimationFrame(prevRaf);
+
+    var start = displayed;
+    var delta = target - start;
+    var startTime = (typeof performance !== 'undefined' && performance.now)
+      ? performance.now()
+      : Date.now();
+    var duration = 400; // --duration-elaborate
+
+    function step(now) {
+      var t = Math.min(1, (now - startTime) / duration);
+      // Ease-out cubic.
+      var eased = 1 - Math.pow(1 - t, 3);
+      var current = Math.round(start + delta * eased);
+      el.textContent = String(current);
+      if (t < 1) {
+        var nextId = requestAnimationFrame(step);
+        _voteTweenRafs.set(el, nextId);
+      } else {
+        // Defensive final write — guarantees textContent === target exactly.
+        el.textContent = String(target);
+        _voteTweenRafs.delete(el);
+      }
+    }
+
+    var rafId = requestAnimationFrame(step);
+    _voteTweenRafs.set(el, rafId);
+  }
+
+  /**
+   * Add the .op-vote-counter--bump class to the .op-vote-counter ancestor of
+   * the given counter element. The class is removed automatically on
+   * `animationend` — no setTimeout cleanup, no re-flow on every frame.
+   *
+   * Idempotency: if the bump class is already present (rapid SSE burst),
+   * remove it and force-reflow the parent before re-adding so the keyframe
+   * restarts (browsers collapse identical class adds otherwise — UI-SPEC
+   * "Coalescing rule for the bump pulse").
+   *
+   * @param {HTMLElement} counterEl  The .op-vote-count span (child of cell).
+   */
+  function _bumpVoteCounter(counterEl) {
+    if (!counterEl) return;
+    var cell = counterEl.closest ? counterEl.closest('.op-vote-counter') : null;
+    if (!cell) return;
+
+    if (cell.classList.contains('op-vote-counter--bump')) {
+      // Force reflow so the second pulse is visible.
+      cell.classList.remove('op-vote-counter--bump');
+      // Reading offsetWidth flushes pending style/layout — required to
+      // restart the keyframe in the next frame.
+      void cell.offsetWidth;
+    }
+    cell.classList.add('op-vote-counter--bump');
+
+    // One-shot cleanup on animationend (handles both natural completion AND
+    // reduced-motion 0.01ms case). { once: true } removes the listener
+    // automatically — no leaked handlers across many votes.
+    cell.addEventListener('animationend', function onBumpEnd() {
+      cell.classList.remove('op-vote-counter--bump');
+    }, { once: true });
   }
 
   // =========================================================================
@@ -629,9 +764,12 @@
     updateExecHeader();
     O.fn.refreshAlerts();
     O.fn.updateExecCloseSession();
+    refreshExecChecklist();
+    refreshFocusQuorum();
   }
 
-  function refreshExecVote() {
+  function refreshExecVote(opts) {
+    opts = opts || {};
     var titleEl = document.getElementById('execVoteTitle');
     var forEl = document.getElementById('execVoteFor');
     var againstEl = document.getElementById('execVoteAgainst');
@@ -661,9 +799,34 @@
         else if (v === 'abstain') ab++;
       });
 
-      if (forEl) forEl.textContent = fc;
-      if (againstEl) againstEl.textContent = ac;
-      if (abstainEl) abstainEl.textContent = ab;
+      // Phase 3: animate counters (ANIM-01) with first-render guard (D-5) and
+      // silent suppression for snapshot/catch-up paths (D-6).
+      var motionId = O.currentOpenMotion ? O.currentOpenMotion.id : null;
+      var animReady = motionId ? _activeVoteAnimReady.get(motionId) === true : false;
+      var silent = !!opts.silent || !animReady;
+
+      // Read previous values BEFORE writing — needed for increment detection
+      // (bump pulse only fires on delta > 0 per UI-SPEC).
+      var prevFor = forEl ? (parseInt(forEl.textContent, 10) || 0) : 0;
+      var prevAgainst = againstEl ? (parseInt(againstEl.textContent, 10) || 0) : 0;
+      var prevAbstain = abstainEl ? (parseInt(abstainEl.textContent, 10) || 0) : 0;
+
+      if (forEl) animateVoteCounter(forEl, prevFor, fc, { silent: silent });
+      if (againstEl) animateVoteCounter(againstEl, prevAgainst, ac, { silent: silent });
+      if (abstainEl) animateVoteCounter(abstainEl, prevAbstain, ab, { silent: silent });
+
+      // Bump pulse on incremented cells only (delta > 0). Suppressed when silent
+      // OR when reduced-motion is active (the global CSS rule neutralizes the
+      // keyframe to 0.01ms anyway, but skipping the class add saves a reflow).
+      if (!silent && !PREFERS_REDUCED_MOTION.matches) {
+        if (forEl && fc > prevFor) _bumpVoteCounter(forEl);
+        if (againstEl && ac > prevAgainst) _bumpVoteCounter(againstEl);
+        if (abstainEl && ab > prevAbstain) _bumpVoteCounter(abstainEl);
+      }
+
+      // Mark this motion as having had its first render — subsequent SSE
+      // refreshes will animate from now on (D-5).
+      if (motionId && !animReady) _activeVoteAnimReady.set(motionId, true);
 
       var total = fc + ac + ab;
       var pctFor = total > 0 ? Math.round((fc / total) * 100) : 0;
@@ -827,6 +990,113 @@
     if (execStale && devStaleEl) execStale.textContent = devStaleEl.textContent;
   }
 
+  // =========================================================================
+  // CHECKLIST PANEL UPDATES (CHECK-01..05)
+  // =========================================================================
+
+  /**
+   * Update a single checklist row's state and value.
+   * @param {string} rowName - 'sse'|'quorum'|'votes'|'online'
+   * @param {string} state   - 'ok'|'alert'|'neutral'
+   * @param {string} value   - Display value (e.g. '42/60 (70%)')
+   */
+  function setChecklistRow(rowName, state, value) {
+    var suffix = rowName.charAt(0).toUpperCase() + rowName.slice(1);
+    var row = document.getElementById('opChecklistRow' + suffix);
+    var valEl = document.getElementById('opChecklist' + suffix + 'Value');
+    if (!row || !valEl) return;
+    valEl.textContent = value;
+    // Toggle state classes — only add --alert if not already present (avoid restarting animation)
+    var isAlert = state === 'alert';
+    var wasAlert = row.classList.contains('op-checklist-row--alert');
+    if (isAlert && !wasAlert) {
+      row.classList.add('op-checklist-row--alert');
+      row.classList.remove('op-checklist-row--ok');
+    } else if (!isAlert) {
+      row.classList.remove('op-checklist-row--alert');
+      row.classList.toggle('op-checklist-row--ok', state === 'ok');
+    }
+  }
+
+  /**
+   * Update checklist SSE row and banner from SSE connection state.
+   * @param {string} state - 'live'|'reconnecting'|'offline'
+   */
+  function updateChecklistSseRow(state) {
+    var labels = { live: 'Connecte', reconnecting: 'Reconnexion…', offline: 'Deconnecte' };
+    var rowState = state === 'offline' ? 'alert' : (state === 'live' ? 'ok' : 'neutral');
+    setChecklistRow('sse', rowState, labels[state] || state);
+    // SSE banner: show only when offline
+    var banner = document.getElementById('opChecklistSseBanner');
+    if (banner) banner.hidden = (state !== 'offline');
+  }
+
+  /**
+   * Refresh all checklist indicators from current cached data.
+   * Called from refreshExecView() and on SSE events.
+   */
+  function refreshExecChecklist() {
+    // Quorum row (CHECK-01)
+    var stats = computeQuorumStats();
+    var quorumMet = stats.currentVoters >= stats.required;
+    var pct = stats.totalMembers > 0 ? Math.round(stats.currentVoters / stats.totalMembers * 100) : 0;
+    setChecklistRow('quorum', quorumMet ? 'ok' : 'alert',
+      stats.currentVoters + '/' + stats.required + ' (' + pct + '%)');
+    // Update quorum row aria-label for accessibility
+    var quorumValEl = document.getElementById('opChecklistQuorumValue');
+    if (quorumValEl) {
+      quorumValEl.setAttribute('aria-label',
+        'Quorum : ' + stats.currentVoters + ' presents sur ' + stats.required + ' requis');
+    }
+
+    // Votes row (CHECK-02)
+    var totalBallots = O.ballotsCache ? Object.keys(O.ballotsCache).length : 0;
+    var eligible = stats.currentVoters;
+    setChecklistRow('votes', 'neutral', totalBallots + '/' + eligible);
+
+    // Online voters row (CHECK-04)
+    var onlineEl = document.getElementById('execDevOnline');
+    var onlineCount = onlineEl ? onlineEl.textContent.trim() : '0';
+    setChecklistRow('online', 'neutral', onlineCount + ' en ligne');
+  }
+
+  /**
+   * Update the dedicated focus-mode quorum block (#opFocusQuorum) from current cached data.
+   * Reuses computeQuorumStats() — same data source as the Phase 1 checklist quorum row (D-3).
+   * Called from refreshExecView() and on focus mode entry from operator-tabs.js.
+   */
+  function refreshFocusQuorum() {
+    var block = document.getElementById('opFocusQuorum');
+    var valEl = document.getElementById('opFocusQuorumValue');
+    var statusEl = document.getElementById('opFocusQuorumStatus');
+    if (!block || !valEl || !statusEl) return;
+
+    var stats = computeQuorumStats();
+    var quorumMet = stats.currentVoters >= stats.required;
+    var pct = stats.totalMembers > 0
+      ? Math.round(stats.currentVoters / stats.totalMembers * 100)
+      : 0;
+
+    valEl.textContent = stats.currentVoters + '/' + stats.required + ' (' + pct + '%)';
+    statusEl.textContent = quorumMet ? 'atteint' : 'non atteint';
+
+    // Idempotent state class toggle (same pattern as setChecklistRow Phase 1)
+    var wasOk = block.classList.contains('op-focus-quorum--ok');
+    var wasAlert = block.classList.contains('op-focus-quorum--alert');
+    if (quorumMet && !wasOk) {
+      block.classList.add('op-focus-quorum--ok');
+      block.classList.remove('op-focus-quorum--alert');
+    } else if (!quorumMet && !wasAlert) {
+      block.classList.add('op-focus-quorum--alert');
+      block.classList.remove('op-focus-quorum--ok');
+    }
+
+    // Accessibility: aria-label on value reflects full status for screen readers
+    valEl.setAttribute('aria-label',
+      'Quorum : ' + stats.currentVoters + ' presents sur ' + stats.required + ' requis, ' +
+      (quorumMet ? 'atteint' : 'non atteint'));
+  }
+
   function refreshExecManualVotes() {
     var list = document.getElementById('execManualVoteList');
     if (!list) return;
@@ -945,5 +1215,9 @@
   O.fn.stopExecTimer           = stopExecTimer;
   O.fn.updateResolutionTags    = updateResolutionTags;
   O.fn.bindProgressSegmentClicks = bindProgressSegmentClicks;
+  O.fn.refreshExecChecklist    = refreshExecChecklist;
+  O.fn.updateChecklistSseRow   = updateChecklistSseRow;
+  O.fn.setChecklistRow         = setChecklistRow;
+  O.fn.refreshFocusQuorum      = refreshFocusQuorum;
 
 })();

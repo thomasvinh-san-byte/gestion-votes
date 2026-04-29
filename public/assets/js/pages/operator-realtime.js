@@ -34,6 +34,8 @@
     var lb = document.getElementById('opSseLabel');
     if (el) el.setAttribute('data-sse-state', state);
     if (lb) lb.textContent = SSE_LABELS[state] || state;
+    // Sync checklist SSE row + banner (CHECK-03)
+    if (O.fn.updateChecklistSseRow) O.fn.updateChecklistSseRow(state);
   }
 
   /**
@@ -145,6 +147,7 @@
     case 'attendance.updated':
       O.fn.loadQuorumStatus();
       if (O.currentMode === 'setup') O.fn.loadDashboard();
+      if (O.currentMode === 'exec' && O.fn.refreshExecChecklist) O.fn.refreshExecChecklist();
       break;
 
     case 'quorum.updated':

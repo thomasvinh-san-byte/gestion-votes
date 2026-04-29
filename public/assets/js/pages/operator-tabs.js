@@ -2100,6 +2100,46 @@ window.OpS = { fn: {} };
       if (OpS.fn.startExecTimer) OpS.fn.startExecTimer();
     }
 
+    // Show/hide checklist panel based on mode (CHECK panel visibility)
+    var checklistPanel = document.getElementById('opChecklistPanel');
+    if (checklistPanel) {
+      if (mode === 'exec') {
+        checklistPanel.hidden = false;
+        // Restore collapsed state from sessionStorage
+        var collapsed = sessionStorage.getItem('opChecklistCollapsed') === 'true';
+        checklistPanel.classList.toggle('op-checklist-panel--collapsed', collapsed);
+        var toggleBtn = document.getElementById('opChecklistToggle');
+        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+      } else {
+        checklistPanel.hidden = true;
+      }
+    }
+
+    // Focus mode: restore opFocusMode state from sessionStorage on entry to exec mode (FOCUS-03)
+    // Cleared visually on entry to setup mode (focus is exec-only per CONTEXT D-5),
+    // sessionStorage preserved so the user gets their state back on next exec entry.
+    if (mode === 'exec' && viewExec) {
+      var isFocus = sessionStorage.getItem('opFocusMode') === 'true';
+      viewExec.classList.toggle('op-focus-mode', isFocus);
+      var focusBtn = document.getElementById('opBtnFocusMode');
+      if (focusBtn) {
+        focusBtn.setAttribute('aria-pressed', String(isFocus));
+        focusBtn.title = isFocus ? 'Revenir a la vue complete' : 'Mode focus: 5 zones essentielles';
+        focusBtn.setAttribute('aria-label',
+          isFocus
+            ? 'Quitter le mode focus — afficher toutes les informations'
+            : 'Activer le mode focus — masquer les informations secondaires');
+      }
+      // Sync the dedicated quorum block visibility (Plan 01 emits hidden attribute by default)
+      var focusQuorum = document.getElementById('opFocusQuorum');
+      if (focusQuorum) focusQuorum.hidden = !isFocus;
+      // Refresh quorum data on entry so the block is populated, not "—"
+      if (isFocus && O.fn && O.fn.refreshFocusQuorum) O.fn.refreshFocusQuorum();
+    } else if (mode === 'setup') {
+      // Clear focus mode visual state when leaving exec (sessionStorage untouched per Pitfall 4)
+      if (viewExec) viewExec.classList.remove('op-focus-mode');
+    }
+
     updatePrimaryButton();
     updateContextHint();
     announce(mode === 'setup' ? 'Mode préparation activé' : 'Mode exécution activé');
@@ -3131,6 +3171,42 @@ window.OpS = { fn: {} };
   // Mode switch buttons
   btnModeSetup?.addEventListener('click', () => setMode('setup'));
   btnModeExec?.addEventListener('click', () => setMode('exec'));
+
+  // Checklist panel collapse toggle (persisted in sessionStorage)
+  var checklistToggleBtn = document.getElementById('opChecklistToggle');
+  if (checklistToggleBtn) {
+    checklistToggleBtn.addEventListener('click', function() {
+      var panel = document.getElementById('opChecklistPanel');
+      if (!panel) return;
+      var isCollapsed = panel.classList.toggle('op-checklist-panel--collapsed');
+      this.setAttribute('aria-expanded', String(!isCollapsed));
+      this.title = isCollapsed ? 'Afficher le panneau de controle' : 'Reduire le panneau';
+      sessionStorage.setItem('opChecklistCollapsed', String(isCollapsed));
+    });
+  }
+
+  // Focus mode toggle (persisted in sessionStorage per D-5)
+  var focusToggleBtn = document.getElementById('opBtnFocusMode');
+  if (focusToggleBtn) {
+    focusToggleBtn.addEventListener('click', function() {
+      var view = document.getElementById('viewExec');
+      if (!view) return;
+      var isFocus = view.classList.toggle('op-focus-mode');
+      this.setAttribute('aria-pressed', String(isFocus));
+      this.title = isFocus ? 'Revenir a la vue complete' : 'Mode focus: 5 zones essentielles';
+      this.setAttribute('aria-label',
+        isFocus
+          ? 'Quitter le mode focus — afficher toutes les informations'
+          : 'Activer le mode focus — masquer les informations secondaires');
+      sessionStorage.setItem('opFocusMode', String(isFocus));
+      // Sync the dedicated quorum block visibility ([hidden] has higher precedence
+      // than display:flex without !important — toggle the attribute explicitly)
+      var focusQuorum = document.getElementById('opFocusQuorum');
+      if (focusQuorum) focusQuorum.hidden = !isFocus;
+      // Pull fresh quorum data on entry so the block doesn't show stale "—"
+      if (isFocus && O.fn && O.fn.refreshFocusQuorum) O.fn.refreshFocusQuorum();
+    });
+  }
 
   // Meeting bar refresh
   document.getElementById('btnBarRefresh')?.addEventListener('click', () => {

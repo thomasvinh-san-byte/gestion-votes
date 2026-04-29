@@ -167,7 +167,7 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v2.0 Operateur Live UX (In Progress)
+### v2.0 Operateur Live UX (In Progress)
 
 **Milestone Goal:** Ameliorer l'experience operateur en mode seance live — checklist de controle temps reel, interface epuree en mode execution, et feedback visuel anime sur les votes.
 
@@ -185,7 +185,11 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
   3. L'indicateur reseau/SSE passe en rouge et affiche un badge "Deconnecte" quand la connexion SSE est interrompue
   4. Le nombre de votants connectes est visible dans la checklist et se met a jour en temps reel
   5. Quand un indicateur passe au rouge (quorum non atteint ou SSE coupe), une alerte visuelle apparait automatiquement sans action de l'operateur
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [x] 01-01-PLAN.md — HTML structure + CSS styles du panneau checklist
+- [x] 01-02-PLAN.md — JS wiring: SSE events, mode switching, data feeding
+**Status**: ✅ Complete (verified 2026-04-29)
 
 ### Phase 2: Mode Focus
 **Goal**: L'operateur peut basculer vers une vue epuree a 5 zones qui masque les informations secondaires et conserve uniquement les controles essentiels pour conduire le scrutin.
@@ -195,7 +199,11 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
   1. En mode execution, l'interface affiche exactement 5 zones: titre motion, resultat vote, quorum status, chronometre, actions — les autres zones sont masquees
   2. Les boutons lancer vote, fermer scrutin et passer motion restent cliquables et visibles dans la vue focus sans scrolling
   3. Un toggle visible permet de passer de la vue complete a la vue focus et inversement, et l'etat persiste pendant la seance
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [x] 02-01-PLAN.md — HTML toggle + dedicated quorum block + CSS focus-mode rules
+- [x] 02-02-PLAN.md — JS wiring: toggle handler, sessionStorage persistence, refreshFocusQuorum
+**Status**: ✅ Complete (verified 2026-04-29)
 
 ### Phase 3: Animations Vote
 **Goal**: Les compteurs et barres de vote s'animent fluidement a chaque nouveau vote recu via SSE, avec respect de la preference systeme prefers-reduced-motion.
@@ -205,7 +213,10 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
   1. Quand un vote arrive via SSE, les compteurs pour/contre/abstention s'incrementent avec une animation visible (pas de changement instantane)
   2. Les barres de progression des resultats glissent vers leur nouvelle valeur en transition CSS fluide sans saut brusque
   3. Sur un systeme avec prefers-reduced-motion: reduce active, les compteurs et barres se mettent a jour instantanement sans animation
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [x] 03-01-PLAN.md — animateVoteCounter helper (vanilla RAF) + bump keyframe + bar transition audit
+**Status**: ✅ Complete (verified 2026-04-29)
 
 ### Phase 4: Validation Gate
 **Goal**: Toutes les fonctionnalites v2.0 sont verifiees sans regression sur le reste de l'application.
@@ -215,13 +226,16 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
   1. Les tests E2E operator-e2e.spec.js passent au vert sans modification des assertions existantes
   2. Aucune regression visuelle ou fonctionnelle sur les autres pages de l'application (dashboard, motions, scrutins)
   3. La syntaxe PHP de tous les fichiers modifies est valide (`php -l`)
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [x] 04-01-PLAN.md — Static regression audit (JS syntax + orphan refs + PHP boundary) + manual checklist consolidation in 04-AUDIT.md
+**Status**: ✅ Complete (audit PASS 2026-04-29 — Playwright E2E + manual QA pending CI/human)
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Checklist Operateur | v2.0 | 0/? | Not started | - |
-| 2. Mode Focus | v2.0 | 0/? | Not started | - |
-| 3. Animations Vote | v2.0 | 0/? | Not started | - |
-| 4. Validation Gate | v2.0 | 0/? | Not started | - |
+| 1. Checklist Operateur | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
+| 2. Mode Focus | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
+| 3. Animations Vote | v2.0 | 1/1 | ✅ Complete | 2026-04-29 |
+| 4. Validation Gate | v2.0 | 1/1 | ✅ Complete | 2026-04-29 |
