@@ -256,6 +256,12 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   5. Raccourcis clavier actifs sur la vue exécution : `L` lance le vote actif, `F` ferme le scrutin actif, `→` ou `N` passe à la résolution suivante, `?` affiche un overlay des raccourcis. Désactivés dans les inputs/textareas/contenteditable.
   6. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright operator-e2e.
 
+**Plans:** 4 plans
+- [ ] 01.1-PLAN.md — Custom element <ag-health-bar> + stylesheet (states, pulse, responsive)
+- [ ] 01.2-PLAN.md — Keyboard shortcuts module + overlay (L/F/→/?/Escape)
+- [ ] 01.3-PLAN.md — Wire <ag-health-bar> + keybindings into operator.htmx.html (SSE + at-risk threshold)
+- [ ] 01.4-PLAN.md — Playwright E2E: health-bar states, keyboard shortcuts, regression check
+
 ### Phase 2: Pages éditoriales
 
 **Goal**: Donner aux pages à valeur de preuve (`/audit`, `/trust`, `/archives`, `/report`) un traitement éditorial qui dégage immédiatement le sérieux légal — police serif Fraunces sur le contenu, largeur de lecture plafonnée, monospace JetBrains Mono pour les hashes/UUID.
