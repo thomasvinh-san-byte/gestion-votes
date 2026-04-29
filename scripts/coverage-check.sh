@@ -50,9 +50,10 @@ fi
 # ── Run PHPUnit with clover output ─────────────────────────────────────────
 CLOVER_FILE="coverage.xml"
 echo "Running PHPUnit Unit suite with clover coverage output..."
-# Exclude redis-tagged tests: this job has no Redis service. Redis-dependent
-# tests run in the integration job which provisions Redis.
-php ${PHP_FLAGS} vendor/bin/phpunit --testsuite Unit --exclude-group redis --coverage-clover "${CLOVER_FILE}"
+# Coverage job provisions a Redis service so the FULL Unit suite (including
+# @group redis tests for RateLimiter/EventBroadcaster) can run. This keeps
+# Services coverage thresholds meaningful.
+php ${PHP_FLAGS} vendor/bin/phpunit --testsuite Unit --coverage-clover "${CLOVER_FILE}"
 
 if [[ ! -f "${CLOVER_FILE}" ]]; then
     echo "ERROR: ${CLOVER_FILE} was not generated." >&2
