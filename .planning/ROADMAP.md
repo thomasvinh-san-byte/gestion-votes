@@ -187,8 +187,9 @@ See `.planning/milestones/v1.9-ROADMAP.md` for full details.
   5. Quand un indicateur passe au rouge (quorum non atteint ou SSE coupe), une alerte visuelle apparait automatiquement sans action de l'operateur
 **Plans:** 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — HTML structure + CSS styles du panneau checklist
-- [ ] 01-02-PLAN.md — JS wiring: SSE events, mode switching, data feeding
+- [x] 01-01-PLAN.md — HTML structure + CSS styles du panneau checklist
+- [x] 01-02-PLAN.md — JS wiring: SSE events, mode switching, data feeding
+**Status**: ✅ Complete (verified 2026-04-29)
 
 ### Phase 2: Mode Focus
 **Goal**: L'operateur peut basculer vers une vue epuree a 5 zones qui masque les informations secondaires et conserve uniquement les controles essentiels pour conduire le scrutin.
@@ -224,7 +225,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Checklist Operateur | v2.0 | 0/2 | Planning complete | - |
+| 1. Checklist Operateur | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
 | 2. Mode Focus | v2.0 | 0/? | Not started | - |
 | 3. Animations Vote | v2.0 | 0/? | Not started | - |
 | 4. Validation Gate | v2.0 | 0/? | Not started | - |
