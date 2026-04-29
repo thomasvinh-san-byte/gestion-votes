@@ -199,7 +199,11 @@ Plans:
   1. En mode execution, l'interface affiche exactement 5 zones: titre motion, resultat vote, quorum status, chronometre, actions — les autres zones sont masquees
   2. Les boutons lancer vote, fermer scrutin et passer motion restent cliquables et visibles dans la vue focus sans scrolling
   3. Un toggle visible permet de passer de la vue complete a la vue focus et inversement, et l'etat persiste pendant la seance
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [x] 02-01-PLAN.md — HTML toggle + dedicated quorum block + CSS focus-mode rules
+- [x] 02-02-PLAN.md — JS wiring: toggle handler, sessionStorage persistence, refreshFocusQuorum
+**Status**: ✅ Complete (verified 2026-04-29)
 
 ### Phase 3: Animations Vote
 **Goal**: Les compteurs et barres de vote s'animent fluidement a chaque nouveau vote recu via SSE, avec respect de la preference systeme prefers-reduced-motion.
@@ -226,6 +230,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Checklist Operateur | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
-| 2. Mode Focus | v2.0 | 0/? | Not started | - |
+| 2. Mode Focus | v2.0 | 2/2 | ✅ Complete | 2026-04-29 |
 | 3. Animations Vote | v2.0 | 0/? | Not started | - |
 | 4. Validation Gate | v2.0 | 0/? | Not started | - |
