@@ -384,10 +384,17 @@ class MemberRepository extends AbstractRepository {
     }
 
     /**
-     * Verifie si un membre a ete cree par un utilisateur.
+     * Tenant-ownership oracle: does the given member live in a tenant the user
+     * belongs to?
+     *
+     * NOTE (F08 audit): the JOIN `users.tenant_id = members.tenant_id` is the
+     * gate — it returns 1 row only when both sides resolve to the same tenant.
+     * This method is intentionally NOT scoped to a single tenant_id parameter:
+     * its job is to compute that ownership relation, used by AuthMiddleware to
+     * authorize cross-resource access. Callers must NOT use it as a generic
+     * member lookup; for that, prefer findByIdForTenant().
      */
     public function isOwnedByUser(string $memberId, string $userId): bool {
-        // Check if user belongs to the same tenant as the member
         return (bool) $this->scalar(
             'SELECT 1 FROM members mb
              JOIN users u ON u.tenant_id = mb.tenant_id

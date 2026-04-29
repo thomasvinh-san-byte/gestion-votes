@@ -190,21 +190,65 @@ final class MeetingWorkflowController extends AbstractController {
 
     public function resetDemo(): void {
         $in = api_request('POST');
-        if ((string) ($in['confirm'] ?? '') !== 'RESET') {
-            api_fail('missing_confirm', 400, ['detail' => 'Envoyez {confirm:"RESET"} pour éviter les resets accidentels.']);
-        }
+
+        // F09 hardening — defense in depth around a destructive operation.
         $tenantId = api_current_tenant_id();
         $meetingId = trim((string) ($in['meeting_id'] ?? ''));
+
+        // 1. meeting_id is REQUIRED. The previous code, when called with empty
+        //    meeting_id, wiped EVERY non-validated meeting in the tenant. That
+        //    behavior was an accidental "rm -rf" primitive — removed.
+        if ($meetingId === '' || !api_is_uuid($meetingId)) {
+            api_fail('missing_meeting_id', 422, ['detail' => 'meeting_id (UUID) est requis. Le reset global est interdit.']);
+        }
+
+        // 2. Production + non-admin → hard refuse. Demo reset is a developer
+        //    tool; in prod only an admin should ever invoke it (and even then
+        //    only for explicit demo accounts).
+        $isProd = strtolower((string) (getenv('APP_ENV') ?: '')) === 'production';
+        $role = (string) (api_current_role() ?? '');
+        if ($isProd && $role !== 'admin') {
+            api_fail('forbidden_in_production', 403, [
+                'detail' => 'Le reset démo est interdit en production hors compte admin.',
+            ]);
+        }
+
+        // 3. Typed confirmation — operator MUST type the meeting_id prefix.
+        //    Stops accidental clicks and replay across meetings.
+        $expectedConfirm = 'RESET-' . substr($meetingId, 0, 8);
+        $providedConfirm = (string) ($in['confirm'] ?? '');
+        if ($providedConfirm !== $expectedConfirm) {
+            api_fail('confirm_token_invalid', 400, [
+                'detail' => 'Confirmation requise: {confirm:"' . $expectedConfirm . '"}',
+            ]);
+        }
+
+        // 4. Snapshot the meeting state BEFORE we wipe it, so the audit row
+        //    records what was actually reset (status, title, validated state).
+        $meetingBefore = $this->repo()->meeting()->findByIdForTenant($meetingId, $tenantId);
+        if (!$meetingBefore) {
+            api_fail('meeting_not_found', 404);
+        }
+
         try {
             $service = new MeetingTransitionService($this->repo());
-            api_transaction(function () use ($service, $meetingId, $tenantId) {
+            api_transaction(function () use ($service, $meetingId, $tenantId, $meetingBefore) {
                 $service->resetDemo($meetingId, $tenantId);
-                audit_log('meeting.reset_demo', 'meeting', $meetingId, ['reset_by' => api_current_user_id()], $meetingId);
+                audit_log('meeting.reset_demo', 'meeting', $meetingId, [
+                    'reset_by'      => api_current_user_id(),
+                    'before_status' => $meetingBefore['status'] ?? null,
+                    'before_title'  => $meetingBefore['title'] ?? null,
+                ], $meetingId);
             });
         } catch (RuntimeException $e) {
             $msg = $e->getMessage();
             if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
             if (str_contains($msg, 'validée')) { api_fail('meeting_validated', 409, ['detail' => $msg]); }
+            if ($msg === 'meeting_status_not_resettable') {
+                api_fail('meeting_status_not_resettable', 409, [
+                    'detail' => 'Le reset n\'est autorisé que sur les séances en statut draft ou scheduled.',
+                ]);
+            }
             api_fail('business_error', 400, ['detail' => $msg]);
         }
         api_ok(['ok' => true, 'reset_count' => 1]);
