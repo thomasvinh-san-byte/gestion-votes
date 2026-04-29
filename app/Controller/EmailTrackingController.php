@@ -65,16 +65,29 @@ final class EmailTrackingController {
             return;
         }
 
-        $parsedUrl = parse_url($targetUrl);
-        if (!$parsedUrl || !isset($parsedUrl['scheme']) || !in_array($parsedUrl['scheme'], ['http', 'https'], true)) {
-            header('Location: ' . $fallbackUrl, true, 302);
-            return;
+        // F11 hardening: validate the redirect target via UrlValidator. The
+        // host whitelist defaults to the parsed APP_URL host, plus any
+        // additional hosts in EMAIL_REDIRECT_ALLOWED_HOSTS (CSV). Any URL
+        // that is non-https, has userinfo, points at a private/loopback
+        // IP, or is not in the whitelist falls back to APP_URL.
+        $allowedHosts = [];
+        $appHost = parse_url($fallbackUrl, PHP_URL_HOST);
+        if (is_string($appHost) && $appHost !== '') {
+            $allowedHosts[] = $appHost;
+        }
+        $extraHosts = (string) (getenv('EMAIL_REDIRECT_ALLOWED_HOSTS') ?: '');
+        foreach (explode(',', $extraHosts) as $h) {
+            $h = trim($h);
+            if ($h !== '') {
+                $allowedHosts[] = $h;
+            }
         }
 
-        $allowedHost = parse_url($fallbackUrl, PHP_URL_HOST) ?: 'localhost';
-        $targetHost = $parsedUrl['host'] ?? '';
-        // Block empty host (protocol-relative URLs like //attacker.com) and mismatched hosts
-        if ($targetHost === '' || $targetHost !== $allowedHost) {
+        if (!\AgVote\Core\Http\UrlValidator::isSafeRedirect($targetUrl, $allowedHosts)) {
+            error_log(sprintf(
+                'EMAIL_REDIRECT_REJECTED | target=%s | reason=fails UrlValidator gate',
+                $targetUrl,
+            ));
             header('Location: ' . $fallbackUrl, true, 302);
             return;
         }
