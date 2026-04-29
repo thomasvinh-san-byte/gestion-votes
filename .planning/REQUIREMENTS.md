@@ -9,11 +9,11 @@ Requirements pour le milestone Operateur Live UX. Chaque requirement est testabl
 
 ### Checklist Operateur
 
-- [ ] **CHECK-01**: En mode live, une checklist affiche le statut quorum (atteint/non atteint) avec le ratio votants/total
-- [ ] **CHECK-02**: La checklist indique le nombre de votes recus en temps reel via SSE
-- [ ] **CHECK-03**: La checklist montre le statut connexion reseau et SSE (connecte/deconnecte)
-- [ ] **CHECK-04**: La checklist affiche le nombre de votants connectes en temps reel
-- [ ] **CHECK-05**: Si un indicateur passe au rouge (quorum non atteint, SSE deconnecte), une alerte visuelle automatique apparait
+- [x] **CHECK-01**: En mode live, une checklist affiche le statut quorum (atteint/non atteint) avec le ratio votants/total
+- [x] **CHECK-02**: La checklist indique le nombre de votes recus en temps reel via SSE
+- [x] **CHECK-03**: La checklist montre le statut connexion reseau et SSE (connecte/deconnecte)
+- [x] **CHECK-04**: La checklist affiche le nombre de votants connectes en temps reel
+- [x] **CHECK-05**: Si un indicateur passe au rouge (quorum non atteint, SSE deconnecte), une alerte visuelle automatique apparait
 
 ### Interface Epuree
 
@@ -51,11 +51,11 @@ Deferred to next milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHECK-01 | Phase 1 | Pending |
-| CHECK-02 | Phase 1 | Pending |
-| CHECK-03 | Phase 1 | Pending |
-| CHECK-04 | Phase 1 | Pending |
-| CHECK-05 | Phase 1 | Pending |
+| CHECK-01 | Phase 1 | Complete |
+| CHECK-02 | Phase 1 | Complete |
+| CHECK-03 | Phase 1 | Complete |
+| CHECK-04 | Phase 1 | Complete |
+| CHECK-05 | Phase 1 | Complete |
 | FOCUS-01 | Phase 2 | Pending |
 | FOCUS-02 | Phase 2 | Pending |
 | FOCUS-03 | Phase 2 | Pending |
