@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Hardening Securite
 status: ready_to_plan
-stopped_at: "v2.0 archived; v2.1 requirements drafted; awaiting /gsd:new-milestone"
-last_updated: "2026-04-29T07:45:00Z"
-last_activity: 2026-04-29 -- v2.0 milestone shipped and archived; v2.1 Hardening Securite branch ready
+stopped_at: "v2.1 milestone initialized — roadmap with 6 phases, 21 requirements mapped"
+last_updated: "2026-04-29T08:00:00Z"
+last_activity: 2026-04-29 -- v2.1 Hardening Securite roadmap created (6 phases, 21 reqs mapped)
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,11 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Milestone: v2.1 Hardening Securite (planning)
+Milestone: v2.1 Hardening Securite
 Branch: feat/v2.1-hardening-securite
-Status: Requirements drafted at .planning/research/v2.1-securite-requirements-draft.md, awaiting /gsd:new-milestone init
+Phase: 1 of 6 (Sprint 0 finition) — not started
+Status: Ready to plan Phase 1 (`/gsd:plan-phase 1` or `/gsd:discuss-phase 1`)
 
-Progress: [..........] 0%
+Progress: [..........] 0% (0/6 phases)
 
 ## Accumulated Context
 
@@ -63,4 +64,4 @@ Last session: 2026-04-29
 Stopped at: v2.0 milestone shipped and archived; v2.1 branch created from main; requirements drafted
 Resume file: .planning/research/v2.1-securite-requirements-draft.md
 
-**Next action:** `/gsd:new-milestone` -- initialiser v2.1 Hardening Securite (coller depuis le brouillon)
+**Next action:** `/gsd:plan-phase 1` -- planifier Sprint 0 finition (F02-F05 : ClientIp + idempotence tally + audit per-member + SSE auth-first)
