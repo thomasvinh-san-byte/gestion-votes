@@ -14,8 +14,8 @@
 - ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
 - ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
-- 🚧 **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (in PR #256, partial — 5 items reportés v2.3)
-- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (planning) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
+- ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
+- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (planning, 29 requirements après revue UX) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, screenshot panel gate
 
 ## Phases
 
