@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 04
-stopped_at: "Plan 04.5 livré — ERR-02 + ERR-03 closed via tests/Security/UxConventionsTest.php (commit ec9c8f6, 227 lignes, 3 tests / 4 assertions vert au premier run en 4 ms : testTop50CodesContainsAtLeast50Entries garde-fou F2, testNextStepPresence top 50 codes virgule + verbe d'action, testNoForbiddenPhrases scan exhaustif 5 regex bannies). TOP_50_CODES list copiée verbatim depuis 04.4-SUMMARY (50/50 codes). Pas de bug remonté par le test : 04.4 a livré un dictionnaire conforme par construction. Filet permanent opérationnel pour détecter toute régression future. Phase 04 progress 5/6 plans : reste 04.6 (ERR-04 audit prévention top 5 codes + milestone screenshot panel gate reminder)."
-last_updated: "2026-04-30T11:14:30.000Z"
+stopped_at: "Plan 04.6 livré — ERR-04 audit prévention complet (commit bbe69c7, 04.6-AUDIT.md 16599 bytes). 5/5 codes audités (overdelivery vs ≥2/5) : missing_meeting_id + invalid_meeting_id prévenus par design v2.3 (MeetingContext singleton + 0 saisie UUID manuelle UI) ; meeting_not_found + motion_not_found + business_error déférés v2.4 avec rationale (race conditions fondamentales + refonte business_error en codes spécifiques). Stream timeout API post-AUDIT-commit — orchestrator a finalisé SUMMARY 04.6 + state updates inline (3e fois cette phase, pattern reproductible). **Phase 04 (Lexique + UX critique) : 6/6 COMPLÈTE.** Screenshot panel gate (milestone-level) en pending — gate manuelle post-merge documentée dans 04.6-SUMMARY § milestone_gate_status. Branche feat/v2.3-cockpit-operateur prête pour /gsd:ship Phase 1+2+3+4 cumulés."
+last_updated: "2026-04-30T11:30:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 21
-  completed_plans: 19
-  percent: 90
+  completed_plans: 20
+  percent: 95
 ---
 
 # AG-VOTE -- Project State
