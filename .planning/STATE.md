@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Executing Phase 01
-stopped_at: "Phase 01 plan 01.3 (live integration of <ag-health-bar> + keybindings into operator.htmx.html, SSE-driven attributes, legacy P/F handler removed) shipped — commits 5d719cd, 416566e, b61854f. Plan 01.4 next."
-last_updated: "2026-04-30T05:30:00.000Z"
+status: Phase 01 complete (Playwright manual followup pending)
+stopped_at: "Phase 01 (Cockpit Opérateur live) — 4/4 plans shipped. 01.4 specs (cockpit-health-bar 8 tests + cockpit-keyboard-shortcuts 7 tests) committed e6ff174 + 5714ccc. Playwright runtime not available in sandbox — manual run of the 3 specs (incl. critical-path-operator regression) required before /gsd:ship."
+last_updated: "2026-04-30T05:35:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
-Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
-Phase: 01 (Cockpit Opérateur live) — EXECUTING
-Plan: 3 of 4 — DONE (next: 01.4 verification)
+Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
+Phase: 01 (Cockpit Opérateur live) — COMPLETE (planning + execution + 2 new E2E specs ; Playwright manual runs deferred)
+Plan: 4 of 4 — DONE
 
-Progress: [#######...] 75% (3/4 plans of phase 01)
+Progress: [##########] 100% (4/4 plans of phase 01) — 1/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
