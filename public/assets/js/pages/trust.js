@@ -451,12 +451,14 @@
       const detail = entry.message || entry.detail || '';
       const actionLabel = entry.action_label || entry.action;
       const sha = entry.sha256 || entry.hash || '';
+      // MODAL-03 : aria-haspopup="dialog" — la ligne ouvre <ag-modal id="auditEventModal">.
+      // Le suffixe '…' sur la cellule action sert de signifiant visuel (détail à venir).
       return `
-        <tr>
+        <tr aria-haspopup="dialog" style="cursor: pointer;">
           <td class="audit-checkbox"><input type="checkbox" aria-label="Sélectionner"></td>
           <td class="audit-num">${idx + 1}</td>
           <td>${Utils.formatDate(time)}</td>
-          <td>${escapeHtml(actionLabel)}${detail ? '<div class="text-xs text-muted">' + escapeHtml(detail) + '</div>' : ''}</td>
+          <td>${escapeHtml(actionLabel)}…${detail ? '<div class="text-xs text-muted">' + escapeHtml(detail) + '</div>' : ''}</td>
           <td><span class="badge badge-neutral">${escapeHtml(entry.actor || 'système')}</span></td>
           <td class="audit-hash-col"><code class="text-xs">${sha ? escapeHtml(sha.substring(0, 12)) + '...' : '—'}</code></td>
         </tr>
@@ -630,7 +632,6 @@
   // ==========================================================================
 
   var auditModal = document.getElementById('auditEventModal');
-  var auditModalClose = document.getElementById('auditModalClose');
 
   function openAuditEventModal(entry) {
     if (!auditModal) return;
@@ -644,19 +645,10 @@
     setVal('modalEventDetail', entry.message || entry.detail);
     var hashEl = document.getElementById('modalEventHash');
     if (hashEl) hashEl.textContent = entry.sha256 || entry.hash || '—';
-    auditModal.hidden = false;
+    if (typeof auditModal.open === 'function') auditModal.open();
   }
 
-  function closeAuditEventModal() {
-    if (auditModal) auditModal.hidden = true;
-  }
-
-  if (auditModalClose) auditModalClose.addEventListener('click', closeAuditEventModal);
-  if (auditModal) {
-    auditModal.addEventListener('click', function(e) {
-      if (e.target === auditModal) closeAuditEventModal();
-    });
-  }
+  // close listener supprimé : <ag-modal> fournit le bouton X et gère Escape/backdrop nativement.
 
   // Click on audit table row to show detail
   document.getElementById('auditTableBody')?.addEventListener('click', function(e) {
