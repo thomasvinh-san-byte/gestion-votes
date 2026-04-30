@@ -4,7 +4,7 @@ milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Phase 01 complete (Playwright manual followup pending)
 stopped_at: "Phase 01 (Cockpit Opérateur live) — 4/4 plans shipped. 01.4 specs (cockpit-health-bar 8 tests + cockpit-keyboard-shortcuts 7 tests) committed e6ff174 + 5714ccc. Playwright runtime not available in sandbox — manual run of the 3 specs (incl. critical-path-operator regression) required before /gsd:ship."
-last_updated: "2026-04-30T05:35:00.000Z"
+last_updated: "2026-04-30T06:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
@@ -70,7 +70,7 @@ Recent decisions affecting v2.2:
 ### Pending Todos
 
 - **Avant /gsd:ship Phase 1 :** exécuter manuellement les 3 specs Playwright (cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator) sur machine dev — sandbox sans Playwright. Voir `.planning/phases/01-cockpit-operateur/01.4-SUMMARY.md` § Followups.
-- **Avant /gsd:plan-phase 2 :** exécuter quick task **TECH-01** (consolidation 73 box-shadow + 57 borders → ≤6 + ≤8 tokens, voir REQUIREMENTS.md). Crée le filet de sécurité pour les nouveaux CSS éditoriaux. `/gsd:quick "Consolidation shadows + borders vers tokens design-system (Schoger S-2)"`.
+- ~~**Avant /gsd:plan-phase 2 :** exécuter quick task **TECH-01**~~ → DONE (quick 260430-86c, 28 commits, 234 borders consolidées, 6 nouveaux tokens). Voir `.planning/quick/260430-86c-consolidation-73-box-shadow-57-borders-v/260430-86c-SUMMARY.md`. Cas BASSE confiance (≈140 borders + ≈45 shadows custom) reportés dans Phase 2/3 par fichier.
 - Planifier v2.3 Phase 2 (Pages éditoriales) via `/gsd:plan-phase 2` — sur base requirements amendée Schoger (EDITORIAL-01..09 dont nouveaux 08 grid + 09 cleanup hardcoded).
 
 ### Blockers/Concerns
@@ -82,6 +82,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Sceller le setup: bloquer SetupController si un admin existe et exiger CSRF | 2026-04-29 | 8c0e64a | [1-sceller-le-setup-bloquer-setupcontroller](./quick/1-sceller-le-setup-bloquer-setupcontroller/) |
+| 2 | TECH-01 — Consolidation 73 box-shadow + 57 borders → tokens design-system (Schoger S-2) : 234 occurrences remplacées sur 25 fichiers, 6 nouveaux tokens (`--shadow-xs`, `--border-default/subtle/strong/dashed/focus`) | 2026-04-30 | 0ec33a2 | [260430-86c-consolidation-73-box-shadow-57-borders-v](./quick/260430-86c-consolidation-73-box-shadow-57-borders-v/) |
 
 ## Session Continuity
 
