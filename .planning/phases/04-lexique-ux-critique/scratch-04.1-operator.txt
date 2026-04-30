@@ -1,0 +1,111 @@
+Migration lexicale public/operator.htmx.html — Plan 04.1 LEX-01 + LEX-02
+========================================================================
+
+Audit grep : 38 occurrences correspondant à `membre|participant|votant|Approuver|approuv`.
+
+Décisions cas par cas (chaque ligne classifiée selon <lexicon_rules> du plan) :
+
+[CONSERVÉ] Ligne 76  — "gérez membres et résolutions" (onboarding-tip Mode Préparation)
+  Justification : "membres" ici désigne les inscrits du registre que l'opérateur va gérer (CRUD). Inscrit générique → garder.
+
+[CONSERVÉ] Ligne 95  — tooltip "Disponible après ajout des membres, enregistrement des présences et configuration du vote"
+  Justification : "ajout des membres" = action CRUD d'ajout au registre. Inscrit générique → garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 134 — `data-tab="participants" ... id="tab-btn-participants"`
+  Justification : id/data technique. Hors scope copy. Garder verbatim.
+
+[CONSERVÉ] Ligne 282 — `<span id="hubParticipants">0 participants</span>`
+  Justification : compteur de présents à la séance (copy + id). "participants" est exactement le bon terme : nombre de personnes présentes à la séance. Garder.
+
+[CONSERVÉ] Ligne 300 — "Ajoutez les participants et les résolutions pour pouvoir lancer la séance."
+  Justification : à l'étape de préparation, l'opérateur ajoute les présents/votants attendus à la séance — terme "participants" cohérent (présents prévus). Acceptable comme "personnes attendues à la séance". Garder.
+
+[CONSERVÉ] Ligne 358 — popover "Quorum : Nombre minimum de participants requis pour que les votes soient valides."
+  Justification : définition canonique de quorum = nombre minimum de présents. "participants" exactement cohérent. Garder.
+
+[CONSERVÉ] Ligne 415 — "Aucun membre enregistré. Ajoutez des membres pour pouvoir gérer les présences et lancer la séance."
+  Justification : empty-state du registre (CRUD inscription). Inscrit générique → garder.
+
+[CONSERVÉ] Ligne 445 — popover "Politique de quorum : Définit le nombre minimum de participants requis pour que la séance soit valide."
+  Justification : définition canonique du quorum (présence). Garder.
+
+[CONSERVÉ] Ligne 481 — popover "Président de séance : Dirige la séance, accorde la parole aux participants."
+  Justification : "participants" désigne les présents en séance ayant droit à la parole. Cohérent. Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 527 — `data-tab-switch="participants"` + label visible "Étape suivante : Participants"
+  Justification : id technique + label d'étape "Participants" = onglet présence/quorum. Cohérent avec la convention. Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 534 — `id="tab-participants" aria-labelledby="tab-btn-participants"`
+  Justification : id/aria technique. Garder verbatim.
+
+[CONSERVÉ] Ligne 561 — `aria-label="Chargement des membres"` (skeleton de chargement liste)
+  Justification : la liste affichée dans cet onglet est la liste des inscrits (registre filtré). Inscrit générique → garder.
+
+[CONSERVÉ] Ligne 572-573 — empty-state "Aucun membre enregistré" / "Ajoutez des membres dans le registre avant de pouvoir gérer les présences."
+  Justification : copy de gestion du registre (CRUD). Inscrit générique → garder.
+
+[CONSERVÉ] Ligne 577 — "Gérer les membres"
+  Justification : lien vers /members (CRUD). Garder.
+
+[CONSERVÉ] Ligne 584 — "+ Ajouter un membre"
+  Justification : action CRUD ajout inscrit. Garder.
+
+[CONSERVÉ] Ligne 586 — "Import membres"
+  Justification : import CSV du registre (inscrits). Garder.
+
+[CONSERVÉ] Ligne 589 — `placeholder="Rechercher un membre..." aria-label="Rechercher un membre"`
+  Justification : recherche dans la liste des inscrits/présents en gestion préparation. Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 601 — tooltip "Délégation de vote : un membre absent autorise un autre à voter en son nom"
+  Justification : doctrine légale procuration — un inscrit (absent) autorise un autre inscrit (présent) à voter. "membre" = inscrit générique du registre, pas un votant éligible à un scrutin spécifique. Garder.
+
+[CONSERVÉ] Ligne 620 — "Gestion avancée des membres"
+  Justification : lien vers /members (CRUD). Garder.
+
+[CONSERVÉ] Ligne 664 — "Créez au moins une résolution pour que les participants puissent voter."
+  Justification : "participants" = présents à la séance (qui pourront voter). Acceptable. Note : "votants" serait plus précis (les présents éligibles au scrutin), mais le contexte ici est "préparation/setup résolution" et la nuance entre participant et votant n'est pas tranchée à ce stade (avant l'ouverture du scrutin). Garder pour éviter sur-interprétation.
+
+[CONSERVÉ TECHNIQUE] Ligne 718 — `data-step="members" data-goto-tab="participants"` (conformité checklist)
+  Justification : data-* technique. Garder verbatim.
+
+[CONSERVÉ] Ligne 720 — label "Membres inscrits"
+  Justification : étape de conformité = vérifier que des membres existent dans le registre (inscription). Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 721 — hint "Au moins un membre actif"
+  Justification : critère de conformité sur le registre (inscrit actif). Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 724 — `data-step="attendance" data-goto-tab="participants"`
+  Justification : data-* technique. Garder verbatim.
+
+[CONSERVÉ] Ligne 727 — hint "Au moins un membre marqué présent"
+  Justification : ici on pourrait écrire "Au moins un participant" (= un inscrit marqué présent). Mais le checklist parle du transit "membre → présent" (un inscrit qui devient présent). Le sens "membre marqué présent" reste compréhensible et exact. Pour cohérence avec ligne 720 ("Membres inscrits"), garder "membre" et laisser le mot "présent" porter la nuance présence. Garder.
+
+[CONSERVÉ] Ligne 824 — radio "Tous les membres" (cible des invitations)
+  Justification : les invitations sont envoyées à tous les inscrits du registre actif, pas seulement aux éligibles d'un scrutin précis. Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 1036 — tooltip "Nombre minimum de participants requis pour valider le scrutin"
+  Justification : définition quorum = présence requise. Garder.
+
+[MIGRATION] Ligne 1062 — `placeholder="Nom du membre…"` dans un champ de recherche dont le `<label>` ligne 1061 est "Rechercher un votant"
+  AVANT  : <input type="text" class="form-input form-input-sm" id="manualVoteSearch" placeholder="Nom du membre…" aria-label="Rechercher un votant">
+  APRÈS  : <input type="text" class="form-input form-input-sm" id="manualVoteSearch" placeholder="Nom du votant…" aria-label="Rechercher un votant">
+  Justification : ce champ est dans le bloc de saisie manuelle d'un vote (mode dégradé) — l'opérateur cherche un VOTANT (éligible au scrutin actif), pas un inscrit générique. Le `<label>` et l'`aria-label` disent "Rechercher un votant" mais le `placeholder` dit "membre" — incohérence intra-champ. Aligner sur "votant" (terme dominant du label).
+  Discipline : touche uniquement le placeholder, pas l'id ni l'aria. 1 ligne diff.
+
+[CONSERVÉ] Ligne 1107 — "Liste des participants" (description Feuille de présence CSV)
+  Justification : feuille de présence = liste des présents en séance. "participants" exactement cohérent. Garder.
+
+[CONSERVÉ] Ligne 1420 — `aria-label="Rechercher un votant (mode exécution)"`
+  Justification : déjà "votant" (scrutin actif en mode exécution). Cohérent. Garder.
+
+[CONSERVÉ] Ligne 1673 — "La liste des membres sera gelée"
+  Justification : message de fermeture de séance — la liste des inscrits éligibles est figée. Pourrait être "votants" mais "membres" reste compréhensible (l'effet métier porte sur les inscrits du registre). Pour rester fidèle à la règle d'or "si tu hésites, garde le mot original", on garde "membres". Note : à reconsidérer dans une itération future si l'UX review remonte une demande de précision.
+
+[CONSERVÉ - HORS SCOPE LEX-01] Aucune occurrence "Approuver" / "approbation" / "Approuv*" trouvée dans operator.htmx.html (vérifié grep). Pas de migration LEX-02 nécessaire ici.
+
+Total : 1 migration appliquée (L1062 placeholder), 37 occurrences conservées avec justification.
+
+Anti-patterns évités :
+- Pas de modification d'id/data-* techniques (134, 282, 527, 534, 718, 724).
+- Pas de transformation aveugle "membre" → "votant" (la doctrine procuration ligne 601 et l'invitation ligne 824 restent en "membre" inscrit-générique).
+- Pas de transformation hors contexte finalisation (LEX-02 N/A ici).
