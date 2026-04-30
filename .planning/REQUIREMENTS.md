@@ -3,7 +3,7 @@
 **Defined:** 2026-04-29
 **Core Value:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle, appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique. Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
 
-**Source des requirements :** items reportés depuis v2.2 (L01, L03, L04, L05, X01) + audit UX/UI initial (3 critiques modales, 8 a11y, 16 responsive/contrastes, 7 polish) + critique Norman/Zhuo (quorum-as-a-feeling, error → next-step) + recherche inline `.planning/research/SUMMARY.md` + revue UX 2026-04-29 (`.planning/v2.3-UX-REVIEW.md` — hiérarchie cockpit, prévention quorum, raccourcis clavier, print, empty state, prévention erreurs, modal triggers).
+**Source des requirements :** items reportés depuis v2.2 (L01, L03, L04, L05, X01) + audit UX/UI initial (3 critiques modales, 8 a11y, 16 responsive/contrastes, 7 polish) + critique Norman/Zhuo (quorum-as-a-feeling, error → next-step) + recherche inline `.planning/research/SUMMARY.md` + revue UX 2026-04-29 (`.planning/v2.3-UX-REVIEW.md` — hiérarchie cockpit, prévention quorum, raccourcis clavier, print, empty state, prévention erreurs, modal triggers) + revue UX 2026-04-30 (`.planning/v2.3-UX-REVIEW-SCHOGER.md` — clarté visuelle Refactoring UI : text-align lock, CSS grid pattern, audit tabs declutter, login pattern, dashboard shortcut-cards, hardcoded values cleanup).
 
 ---
 
@@ -24,13 +24,15 @@
 
 ### Pages éditoriales (Phase 2)
 
-- [ ] **EDITORIAL-01**: Les pages `/audit`, `/trust`, `/archives`, `/report` adoptent un wrapper `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6 sur le contenu.
-- [ ] **EDITORIAL-02**: Les contrôles UI (boutons, filtres, dropdowns) restent en `var(--font-sans)` (Bricolage) — le serif est réservé au contenu lu.
+- [ ] **EDITORIAL-01**: Les pages `/audit`, `/trust`, `/archives`, `/report` adoptent un wrapper `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6 sur le contenu. **Le wrapper `.ag-editorial > *` est verrouillé en `text-align: left` explicite** — un test PHPUnit (ou CSS lint) interdit `text-align: center` sur tout enfant direct de `.ag-editorial`. *Refactoring UI* : centrer du long-form text est un anti-pattern de lisibilité, ce verrou prévient la régression "pour rendre joli".
+- [ ] **EDITORIAL-02**: Les contrôles UI (boutons, filtres, dropdowns) restent en `var(--font-sans)` (Bricolage) — le serif est réservé au contenu lu. **Sur `/audit`, audit obligatoire des 5 filter tabs actuels** : si 2-3 tabs sont utilisés <5 % du temps (mesure via logs ou jugement produit), les déplacer dans `<details>` "Plus de filtres" (Schoger Ch.10 : *"Every tab is a tax"*). Le contenu prend la lumière, pas la chrome.
 - [ ] **EDITORIAL-03**: Les hashes/UUID/codes affichés (audit chain, vote tokens, IDs) utilisent `var(--font-mono)` (JetBrains Mono).
 - [ ] **EDITORIAL-04**: Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace **uniquement en en-tête de section, en liste, ou en tableau** (jamais inline dans un paragraphe serif — le pill casse alors le rythme de lecture). Inline en flux, le numéro reste en mono sans pill.
 - [ ] **EDITORIAL-05**: Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" actionnable. Le modal d'ouverture **doit commencer par un préambule pédagogique en français** avant la chaîne `audit_events` (sinon on montre du jargon — l'inverse de "rassurant"). Texte de référence : *"Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne."*
 - [ ] **EDITORIAL-06**: Sous 768px, la largeur de lecture passe à 100% avec padding latéral (pas de scroll horizontal sur petit écran).
 - [ ] **EDITORIAL-07**: Styles `@media print` sur les pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) : masquage des contrôles UI (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. La sortie imprimée doit être lisible en N&B sans dépendre du contraste couleur.
+- [ ] **EDITORIAL-08**: Layout `.ag-editorial` utilise **`display: grid`** (pas flex) pour structurer la colonne contenu (max-width 720px) et une colonne sidebar latérale (hash d'intégrité, méta, navigation interne) sur viewport ≥ 1024px. Sous 1024px, la grille collapse en flux vertical naturel. *Refactoring UI* : Grid pour layout, flex pour alignement intra-cellule. Évite les hacks `flex-basis` / `min-width: 0`.
+- [ ] **EDITORIAL-09**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/audit.css` (et tout fichier CSS touché par le wrapper `.ag-editorial`) — remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 2 : compter `grep -E "(padding|margin):\s+[0-9]+" public/assets/css/audit.css` ; cible post-phase = 0. *Refactoring UI* : *"Si tu n'utilises pas le système partout, tu n'as pas un système — tu as une suggestion."*
 
 ### Layouts secondaires (Phase 3)
 
@@ -42,8 +44,15 @@
   Aucune hero card si > 60 min — on ne crie pas pour rien.
 - [ ] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
 - [ ] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
-- [ ] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`).
+- [ ] **DASHBOARD-05**: Audit + groupement des **15 shortcut-cards** actuelles : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions" ou groupé par persona. Le PLAN.md de Phase 3 nomme les 5 retenues et justifie leur priorité (mêmes critères produit que DASHBOARD-01). *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*
+- [ ] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
+- [ ] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
 - [ ] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
+- [ ] **LOGIN-03**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` (top offenders Schoger : 42 hardcodes dans `pages.css`, plus dans `login.css`). Remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 3 : `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` ; cible post-phase = 0 sur ces deux fichiers.
+
+### Tech debt visuelle transverse v2.3 (quick task pré-Phase 2)
+
+- [ ] **TECH-01**: **Consolidation des box-shadow et borders** vers le design system. Baseline mesurée : 73 box-shadow distinctes + 57 border distinctes dans `public/assets/css/`. Cible : ≤ 6 shadow tokens (`--shadow-xs/sm/md/lg/xl/2xl`) + ≤ 8 border tokens (border, border-subtle, border-strong + 5 contextuels). Audit + remplacement automatique des occurrences existantes vers le token le plus proche. Quick task (`/gsd:quick`) à exécuter **avant** `/gsd:plan-phase 2` pour que les nouveaux CSS éditoriaux héritent d'un système consolidé. *Refactoring UI* : *"Just because you can pick any value doesn't mean you should — keep elevation levels to 5-6 maximum."*
 
 ### Lexique + UX critique (Phase 4)
 
@@ -67,6 +76,8 @@
 - **UX-V2-02**: A/B testing visuel (différentes hiérarchies KPI sur dashboard)
 - **UX-V2-03**: Mobile-first redesign de la vue opérateur (responsive ≠ mobile-native)
 - **UX-V2-04**: Empty states enrichis sur toutes les pages (illustrations légères)
+- **UX-V2-05** *(Schoger S-1)*: **Cockpit declutter** — réduire la densité visuelle de `operator.htmx.html` de 70 boutons visibles en mode exec à ≤ 25. Pour chaque bouton secondary/ghost actuel, décider : visible permanent OU menu contextuel (`...`) OU drawer OU hover-revealed. *Refactoring UI Ch.1* : *"You can't make everything stand out — you must demote the rest."* Phase dédiée v2.4 (effort M-L). Préserver les flows existants (lancer/fermer/passer motion). Hors scope strict v2.3 — la Phase 1 cockpit a ajouté la hiérarchie (`<ag-health-bar>`, raccourcis), reste à enlever le bruit.
+- **UX-V2-06** *(Schoger S-6)*: **Persona color confinement** — sur `operator.htmx.html` (et autres vues multi-rôle), les 6 couleurs persona (admin/président/opérateur/auditeur/votant/public) doivent être confinées à 1-2 surfaces d'identité (badge sidebar, bordure left du nom utilisateur). Pas de coloration persona sur les composants fonctionnels (boutons, panneaux, états) qui restent dans la palette sémantique unifiée. Aujourd'hui : 11 couleurs distinctes coexistent sur la même page (6 personas + 5 sémantiques) — l'œil ne sait plus ce qui est urgent. *Refactoring UI Ch.5* : *"Use color to draw attention, not to label everything."* Effort M, post-v2.3.
 
 ### Sécurité tech debt v2.1
 
@@ -106,12 +117,18 @@
 | EDITORIAL-05 | Phase 2 | Pending |
 | EDITORIAL-06 | Phase 2 | Pending |
 | EDITORIAL-07 | Phase 2 | Pending |
+| EDITORIAL-08 | Phase 2 | Pending (Schoger S-4) |
+| EDITORIAL-09 | Phase 2 | Pending (Schoger S-3) |
+| TECH-01 | Quick task pré-Phase 2 | Pending (Schoger S-2) |
 | DASHBOARD-01 | Phase 3 | Pending |
 | DASHBOARD-02 | Phase 3 | Pending |
 | DASHBOARD-03 | Phase 3 | Pending |
 | DASHBOARD-04 | Phase 3 | Pending |
-| LOGIN-01 | Phase 3 | Pending |
+| DASHBOARD-05 | Phase 3 | Pending (Schoger S-8) |
+| DASHBOARD-06 | Phase 3 | Pending (Schoger S-4) |
+| LOGIN-01 | Phase 3 | Pending (amendée Schoger S-5) |
 | LOGIN-02 | Phase 3 | Pending |
+| LOGIN-03 | Phase 3 | Pending (Schoger S-3) |
 | LEX-01 | Phase 4 | Pending |
 | LEX-02 | Phase 4 | Pending |
 | MODAL-01 | Phase 4 | Pending |
@@ -123,11 +140,12 @@
 | ERR-04 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 29 total (22 bootstrap + 7 ajoutés par revue UX 2026-04-29)
-- Mapped to phases: 29
+- v1 requirements: 36 total (22 bootstrap + 7 revue Zhuo/Norman 2026-04-29 + 7 revue Schoger 2026-04-30 dont 1 quick task transverse)
+- Mapped to phases: 36
 - Unmapped: 0 ✓
+- v2 deferred backlog: 6 entrées (UX-V2-01..04 + UX-V2-05 cockpit declutter Schoger S-1 + UX-V2-06 persona color confinement Schoger S-6)
 
 ---
 
 *Requirements defined: 2026-04-29 — informed by .planning/research/SUMMARY.md*
-*Last updated: 2026-04-29 — revue UX (.planning/v2.3-UX-REVIEW.md) ajoute COCKPIT-06/07, EDITORIAL-07, DASHBOARD-04, MODAL-03, ERR-03/04 et amende COCKPIT-01/02, EDITORIAL-04/05, DASHBOARD-01/02*
+*Last updated: 2026-04-30 — revue UX Schoger (.planning/v2.3-UX-REVIEW-SCHOGER.md) ajoute EDITORIAL-08/09, DASHBOARD-05/06, LOGIN-03, TECH-01 (quick task pré-Phase 2), backlog UX-V2-05/06 ; amende EDITORIAL-01 (text-align lock), EDITORIAL-02 (audit filter tabs), LOGIN-01 (login-brand-grid removal)*

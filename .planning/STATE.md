@@ -69,8 +69,9 @@ Recent decisions affecting v2.2:
 
 ### Pending Todos
 
-- Planifier v2.3 Phase 1 (Cockpit Opérateur live) via /gsd:plan-phase 1 — sur base requirements amendée (COCKPIT-01..07)
-- Décider si la branche d'exécution sera `feat/v2.3-cockpit-operateur` (recommandé : 1 PR par phase) ou continuer sur `claude/gsd-ux-review-YG5K0`
+- **Avant /gsd:ship Phase 1 :** exécuter manuellement les 3 specs Playwright (cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator) sur machine dev — sandbox sans Playwright. Voir `.planning/phases/01-cockpit-operateur/01.4-SUMMARY.md` § Followups.
+- **Avant /gsd:plan-phase 2 :** exécuter quick task **TECH-01** (consolidation 73 box-shadow + 57 borders → ≤6 + ≤8 tokens, voir REQUIREMENTS.md). Crée le filet de sécurité pour les nouveaux CSS éditoriaux. `/gsd:quick "Consolidation shadows + borders vers tokens design-system (Schoger S-2)"`.
+- Planifier v2.3 Phase 2 (Pages éditoriales) via `/gsd:plan-phase 2` — sur base requirements amendée Schoger (EDITORIAL-01..09 dont nouveaux 08 grid + 09 cleanup hardcoded).
 
 ### Blockers/Concerns
 
