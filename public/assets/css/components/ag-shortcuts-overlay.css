@@ -71,7 +71,7 @@
 .ag-shortcuts-overlay__list kbd {
   font-family: var(--font-mono);
   background: var(--surface-sunken);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: 4px;
   padding: 0.125rem 0.375rem;
   font-size: 0.8125rem;
@@ -80,7 +80,7 @@
 .ag-shortcuts-overlay__close {
   display: inline-block;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--surface-base);
   border-radius: var(--radius-base, 8px);
   cursor: pointer;
