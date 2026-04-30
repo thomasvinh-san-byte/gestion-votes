@@ -167,11 +167,26 @@
               </a>
             </div>
             <div id="prochaines" class="dashboard-sessions__list loading" aria-live="polite">
-              <!-- Skeleton placeholders — JS replaces with session cards or empty state -->
+              <!-- Skeleton placeholders — JS replaces avec session cards OU le template empty-state ci-dessous -->
               <div class="skeleton skeleton-session"></div>
               <div class="skeleton skeleton-session"></div>
               <div class="skeleton skeleton-session"></div>
             </div>
+            <!-- Empty state DASHBOARD-04 (B2 fix) : utilise le custom element existant
+                 <ag-empty-state> étendu avec icon="none" (pas d'illustration décorative).
+                 EDITORIAL-04 verbatim : "Aucune séance prévue. Créez-en une pour commencer."
+                 Hydraté côté client par dashboard.js quand meetings.length === 0
+                 (F2 : rendu HTMX/JS-side, pas de branche serveur côté DashboardController
+                 qui retourne du JSON via api_ok). -->
+            <template id="dashboardEmptyState">
+              <ag-empty-state
+                icon="none"
+                title="Aucune séance prévue."
+                description="Créez-en une pour commencer."
+                action-label="Créer une séance"
+                action-href="/seances/nouvelle">
+              </ag-empty-state>
+            </template>
           </section>
 
           <!-- Aside: Quick actions -->
