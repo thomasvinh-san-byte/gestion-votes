@@ -42,7 +42,8 @@
   - *Urgent* (séance prévue dans < 5 min) : hero card accent warning, action *"Démarrer maintenant"*.
   - *Live* (séance en cours) : hero card accent danger avec pulse douce (respect `prefers-reduced-motion`), action *"Reprendre"*.
   Aucune hero card si > 60 min — on ne crie pas pour rien.
-- [ ] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
+- [x] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
+  **NOTE 2026-04-30 (Plan 03.3 — Rule 4 deviation) :** audit factuel `grep -nE 'quick-action|action-rapide|actions-bar|quick-actions|class="actions"|Actions rapides|Raccourcis|Actions principales' public/dashboard.htmx.html` retourne 0 match — aucun bloc "actions rapides" distinct n'existe. Les actions rapides historiques sont les 3 shortcut-cards de `<aside class="dashboard-aside">` (titre "Accès rapides"). DASHBOARD-03 livré en secondarisant l'aside via `background: var(--color-surface)` → `var(--color-bg-subtle)` (token sunken canonique du design-system). Pas de déplacement DOM. Cohérent avec Plan 03.2 (Rule 4 zero-DOM-mutation pattern). Voir `.planning/phases/03-layouts-secondaires/03.3-SUMMARY.md`. Commit `e36b579`.
 - [x] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
 - [x] **DASHBOARD-05**: Audit + groupement des shortcut-cards : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions". *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*  
   **NOTE 2026-04-30 (Plan 03.2 — Rule 4 deviation) :** la revue Schoger S-8 supposait 15 shortcut-cards (erreur de comptage initial — le substring `shortcut-card` matchait aussi les enfants BEM `__icon`, `__text`, `__title`, `__sub`). **Réalité du code post-Plan 03.1 : 3 shortcut-cards** dans `<aside class="dashboard-aside">` (Créer une séance, Piloter un vote, Consulter le suivi — toutes flux quotidien fréquent). 3 ≤ 5 → l'objectif "top 5 + reste plié" est *de facto* atteint. Aucun diff code livré pour DASHBOARD-05. Le `<details>` "Toutes les actions" n'a pas de raison d'être (rien à plier). Marqué `[x]` Done sans modification visible. Voir `.planning/phases/03-layouts-secondaires/03.2-SUMMARY.md` pour la trace complète.
@@ -123,7 +124,7 @@
 | TECH-01 | Quick task pré-Phase 2 | Pending (Schoger S-2) |
 | DASHBOARD-01 | Phase 3 | Done (03.1) |
 | DASHBOARD-02 | Phase 3 | Done (03.1) |
-| DASHBOARD-03 | Phase 3 | Pending |
+| DASHBOARD-03 | Phase 3 | Done (Plan 03.3 Rule 4 deviation, commit e36b579 — sunken background sur dashboard-aside) |
 | DASHBOARD-04 | Phase 3 | Done (03.1) |
 | DASHBOARD-05 | Phase 3 | Done (n=3 already ≤5, zero-diff per Plan 03.2 audit) |
 | DASHBOARD-06 | Phase 3 | Done (03.1, Schoger S-4) |

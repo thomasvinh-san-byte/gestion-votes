@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 03
-stopped_at: "Plan 03.4 livré — Login simplifié : suppression div .login-brand-grid (HTML), suppression règles CSS .login-brand-grid + .login-orb + @keyframes brand-glow-drift orphelines + règle prefers-reduced-motion obsolete. Glow atténué (judgment call autorisé) : opacity 0.18→0.12, animation drift retirée. <ul class=\"login-brand-features\"> réduit de 3 <li> à 1 (Vote sécurisé conservé verbatim). Ratio grid-template-columns 2fr 3fr (40/60 form-dominant) verrouillé. Commit unique ef217e2 (45 lignes deletes, 3 inserts) — atomique car LOGIN-01 + LOGIN-02 cohérents par construction sur le brand panel. 2 fichiers modifiés (public/login.html, public/assets/css/login.css). 0 forbidden words, braces balanced, 0 string FR altérée. SUMMARY 03.4 + STATE + ROADMAP + REQUIREMENTS mis à jour. Phase 03 = 2/5 plans done."
-last_updated: "2026-04-30T10:00:00.000Z"
+stopped_at: "Plan 03.3 livré (Rule 4 spec-vs-reality deviation, Cas 2) — DASHBOARD-03 livré en secondarisant visuellement <aside class=\"dashboard-aside\"> via background var(--color-surface) → var(--color-bg-subtle). Audit factuel pré-edit : grep 'quick-action|Actions rapides|Raccourcis|...' = 0 match dans public/dashboard.htmx.html → aucun bloc 'actions rapides' distinct n'existe ; les actions rapides historiques sont les 3 shortcut-cards de l'aside (titre 'Accès rapides'). Cohérent avec pattern Rule 4 zero-DOM-mutation Plan 03.2. Commit unique e36b579 (12 inserts/3 deletes pages.css : commentaire d'audit DASHBOARD-03 + Rule 4 lignes 1237-1248 + token swap ligne 1253). Pas de !important, pas de fallback inline, token --color-bg-subtle confirmé existant design-system.css ligne 328 light + 656/808 dark. Hiérarchie visuelle finale dashboard verrouillée : hero card > KPI > sessions > [aside relégué]. Aucune mutation HTML. SUMMARY 03.3 + STATE + ROADMAP + REQUIREMENTS mis à jour. Phase 03 = 4/5 plans done (reste 03.5)."
+last_updated: "2026-04-30T10:30:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 15
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 87
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03.1 work)
 Phase: 03 (Layouts secondaires) — EXECUTING
-Plan: 3 of 5 (next — Plan 03.2 ou 03.3 selon ordre)
+Plan: 5 of 5 (next — Plan 03.5, dernier de la phase)
 
-Progress: [########..] 80% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 2/5 plans of phase 03 — 2/4 phases of milestone v2.3 done
+Progress: [########.#] 87% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 4/5 plans of phase 03 — 2/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,12 @@ Progress: [########..] 80% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 2/5
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 03:
+
+- [v2.3 P3.3] Cas 2 retenu (Rule 4 spec-vs-reality mismatch) : audit `grep -nE 'quick-action|action-rapide|actions-bar|quick-actions|class="actions"|Actions rapides|Raccourcis|Actions principales' public/dashboard.htmx.html` retourne 0 match. Aucun bloc "actions rapides" distinct n'existe — les actions rapides historiques sont les 3 shortcut-cards de `<aside class="dashboard-aside">` (titre "Accès rapides"). DASHBOARD-03 livré via background swap `var(--color-surface)` → `var(--color-bg-subtle)` sur l'aside (intention Schoger "secondariser visuellement" préservée). Pas de déplacement DOM. Pattern Rule 4 zero-DOM-mutation cohérent avec Plan 03.2.
+- [v2.3 P3.3] Token `--color-bg-subtle` retenu (pas `--surface-sunken`) : seul candidat existant dans design-system.css (ligne 328 light + 656/808 dark). Utilisé 13× dans pages.css comme token sunken canonique. `--surface-sunken` n'existe pas comme nom littéral. Pas de fallback inline — token garanti défini par `:root` et `[data-theme="dark"]`.
+- [v2.3 P3.3] Path CSS adapté (déjà documenté Plan 03.1) : le PLAN ciblait `public/assets/css/dashboard.css` inexistant, application transparente sur `public/assets/css/pages.css`.
+- [v2.3 P3.3] Commit `e36b579` déjà committé en début de session (artefact session antérieure) — vérifié byte-by-byte vs spec task_specifics : conforme (Cas 2, message Cas 2 standard, diff 12/3, pas de `!important`, token correct). Pas de réécriture nécessaire.
+- [v2.3 P3.3] Hiérarchie visuelle finale dashboard verrouillée : hero card (DASHBOARD-02) > KPI 3 cards (DASHBOARD-01/06) > sessions + empty state (DASHBOARD-04) > [aside relégué via sunken — DASHBOARD-03]. Aside reste à droite (grid 1fr 280px desktop) ou sous le contenu (responsive ≤1024px) — la "relegation" est visuelle, pas spatiale.
 
 - [v2.3 P3.4] Glow atténué (judgment call autorisé par `<product_decision_locked>` LOGIN-01) : `opacity` 0.18→0.12 + suppression `animation: brand-glow-drift` + cleanup des `@keyframes brand-glow-drift` devenues orphelines + règle `@media (prefers-reduced-motion: reduce)` qui désactivait l'animation supprimée. Le glow reste fonctionnel comme single subtle gradient (≠ pattern), conformément à l'autorisation explicite du plan.
 - [v2.3 P3.4] Commit unique `ef217e2` plutôt que scission LOGIN-01 / LOGIN-02 : les deux requirements modifient le même bloc HTML (panneau brand) avec un diff total de 45 lignes deletes + 3 inserts. Atomicité préférée à découpage artificiel.
@@ -143,7 +149,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 03.4 livré — Login simplifié : suppression div `.login-brand-grid` (HTML) + règles CSS `.login-brand-grid` + `.login-orb` + `@keyframes brand-glow-drift` orphelines + règle `prefers-reduced-motion` obsolete. Glow atténué (opacity 0.18→0.12, animation drift retirée). `<ul class="login-brand-features">` réduit de 3 `<li>` à 1 (Vote sécurisé conservé verbatim). Ratio `grid-template-columns: 2fr 3fr` (40/60 form-dominant) verrouillé. Commit unique `ef217e2` (45 lignes deletes, 3 inserts). 2 fichiers modifiés (public/login.html, public/assets/css/login.css). LOGIN-01 + LOGIN-02 marqués `[x]` dans REQUIREMENTS.md. Phase 03 progress = 2/5 dans ROADMAP.md.
+Stopped at: Plan 03.3 livré — DASHBOARD-03 (Rule 4 spec-vs-reality, Cas 2) : `<aside class="dashboard-aside">` (titre "Accès rapides", 3 shortcut-cards) secondarisé visuellement via `background: var(--color-surface) → var(--color-bg-subtle)`. Audit factuel pré-edit a confirmé 0 bloc "actions rapides" distinct ; les actions rapides historiques sont les 3 shortcut-cards de l'aside (cohérent avec inventaire Plan 03.2). Commit unique `e36b579` (12 inserts / 3 deletes sur pages.css : commentaire d'audit lignes 1237-1248 + token swap ligne 1253). Pas de `!important`, pas de fallback inline, token `--color-bg-subtle` confirmé existant. Aucune mutation HTML. SUMMARY 03.3 + STATE + ROADMAP + REQUIREMENTS mis à jour. Phase 03 progress = 4/5 dans ROADMAP.md.
 Resume file: None
 
-**Next action:** Plan 03.2 ou 03.3 à exécuter (3/5 prochain). Followups Phase 03 cumulés : ajouter logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence calculée (pas en 03.1, hero card reste `[hidden]`) ; LOGIN-03 (cleanup padding/margin hardcodés login.css + pages.css) attendu en plan ultérieur. Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité.
+**Next action:** Plan 03.5 à exécuter (dernier de la phase). Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence (héritée 03.1, hero card reste `[hidden]`) ; LOGIN-03 cleanup padding/margin hardcodés login.css + pages.css (héritée 03.4) ; capture before/after du dashboard avec aside sunken — Schoger test ultime (héritée 03.3, manuelle). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité.
