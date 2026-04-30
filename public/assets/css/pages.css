@@ -45,7 +45,7 @@
 
 .calendar-nav-btn {
   padding: 0.5rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--color-surface);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -71,7 +71,7 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
   background: var(--color-border);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -194,7 +194,7 @@
 
 .settings-section {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius);
   padding: 1.5rem;
 }
@@ -204,7 +204,7 @@
   font-weight: 600;
   margin: 0 0 1rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -239,7 +239,7 @@
 
 .result-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius);
   padding: 1.5rem;
   text-align: center;
@@ -346,7 +346,7 @@
   gap: 1rem;
   padding: 1rem 1.25rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius);
   text-decoration: none;
   color: var(--color-text);
@@ -412,7 +412,7 @@
   gap: 0.75rem;
   padding: 0.75rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-sm);
   margin-bottom: 0.5rem;
   transition: border-color 150ms, box-shadow 150ms;
@@ -497,7 +497,7 @@
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   overflow: hidden;
   transition: border-color var(--duration-normal) var(--ease-default), box-shadow var(--duration-normal) var(--ease-default), transform var(--duration-normal) var(--ease-default);
@@ -512,7 +512,7 @@
 
 .meeting-card-header {
   padding: 1.25rem 1.25rem 1rem;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
 }
 
 .meeting-card-title {
@@ -744,7 +744,7 @@
   display: inline-block;
   padding: 0.35rem 0.75rem;
   font-size: var(--text-sm);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-full);
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -814,7 +814,7 @@
   gap: 0.5rem;
   padding: 0.4rem 0.75rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -861,7 +861,7 @@
   gap: 1.5rem;
   padding: 1rem 1.5rem;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   flex-wrap: wrap;
 }
 
@@ -919,7 +919,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   flex-wrap: wrap;
   gap: 1rem;
 }
@@ -1097,7 +1097,7 @@
   justify-content: space-between;
   margin-bottom: var(--space-4, 16px);
   padding-bottom: var(--space-3, 12px);
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
 }
 .dashboard-panel-title {
   display: flex;
