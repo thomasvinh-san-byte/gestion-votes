@@ -115,7 +115,7 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   flex-shrink: 0;
 }
 
@@ -231,7 +231,7 @@
   font-size: var(--text-xl);
   color: var(--color-text);
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   padding: 0.25rem 0.75rem;
   border-radius: 8px;
   white-space: nowrap;
@@ -968,7 +968,7 @@
   justify-content: space-between;
   padding: 1rem 1.5rem;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   flex-shrink: 0;
 }
 
@@ -1013,7 +1013,7 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: 100px;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--color-surface);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -1055,7 +1055,7 @@
   align-items: stretch;
   justify-content: space-around;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   flex-shrink: 0;
   padding: 0;
   padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -1487,8 +1487,8 @@
     background: var(--color-bg-subtle);
   }
   .vote-app {
-    border-left: 1px solid var(--color-border);
-    border-right: 1px solid var(--color-border);
+    border-left: var(--border-default);
+    border-right: var(--border-default);
     box-shadow: var(--shadow-sm);
   }
 }
@@ -1501,7 +1501,7 @@
   gap: 6px;
   padding: 0.5rem 1rem;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
   flex-shrink: 0;
 }
 
@@ -1563,7 +1563,7 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md, 8px);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -1970,7 +1970,7 @@
   background: var(--color-surface);
   border-radius: var(--radius-base, 8px);
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
 }
 
 .blocked-overlay-icon {
