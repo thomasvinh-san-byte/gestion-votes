@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Executing Phase 03
-stopped_at: "Plan 03.3 livré (Rule 4 spec-vs-reality deviation, Cas 2) — DASHBOARD-03 livré en secondarisant visuellement <aside class=\"dashboard-aside\"> via background var(--color-surface) → var(--color-bg-subtle). Audit factuel pré-edit : grep 'quick-action|Actions rapides|Raccourcis|...' = 0 match dans public/dashboard.htmx.html → aucun bloc 'actions rapides' distinct n'existe ; les actions rapides historiques sont les 3 shortcut-cards de l'aside (titre 'Accès rapides'). Cohérent avec pattern Rule 4 zero-DOM-mutation Plan 03.2. Commit unique e36b579 (12 inserts/3 deletes pages.css : commentaire d'audit DASHBOARD-03 + Rule 4 lignes 1237-1248 + token swap ligne 1253). Pas de !important, pas de fallback inline, token --color-bg-subtle confirmé existant design-system.css ligne 328 light + 656/808 dark. Hiérarchie visuelle finale dashboard verrouillée : hero card > KPI > sessions > [aside relégué]. Aucune mutation HTML. SUMMARY 03.3 + STATE + ROADMAP + REQUIREMENTS mis à jour. Phase 03 = 4/5 plans done (reste 03.5)."
-last_updated: "2026-04-30T10:30:00.000Z"
+status: Phase 03 COMPLETE
+stopped_at: "Plan 03.5 livré — LOGIN-03 (cleanup padding/margin hardcodés) finalisé sur login.css (2 hardcodes baseline → 0, déjà committé 1195cbe en début de session) et pages.css (60 hardcodes baseline → 0, commit 723123d). Token usage : 36 × var(--space-*) login.css + 76 × var(--space-*) pages.css. Atomic commits per fichier respectés. Arrondis cosmétiques documentés (5 cas) : 14px/0.875rem → space-3 (12px, -2px) sur 6 occurrences pages.css cohérent décision Plan 02.5, 0.4rem → space-1-5 (-0.4px), 0.35rem → space-1-5 (+0.4px), 0.15rem → space-0-5 (-0.4px), 22px → space-5 (-2px login.css), 52px → space-14 (+4px login.css préserve zone clic field-eye). Cas spéciaux préservés (0, auto, em hors padding/margin). Bonus TECH-01 : aucune substitution shadow/border supplémentaire — déjà migrées par TECH-01 quick task et Plan 03.4. gap: 14px dashboard-urgent conservé (hors scope plan, follow-up backlog). Phase 03 COMPLETE 5/5 plans, milestone v2.3 progress = 3/4 phases."
+last_updated: "2026-04-30T11:15:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # AG-VOTE -- Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
-Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03.1 work)
-Phase: 03 (Layouts secondaires) — EXECUTING
-Plan: 5 of 5 (next — Plan 03.5, dernier de la phase)
+Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
+Phase: 03 (Layouts secondaires) — COMPLETE
+Plan: 5 of 5 done — Phase 04 (Lexique + UX critique) ready to plan
 
-Progress: [########.#] 87% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 4/5 plans of phase 03 — 2/4 phases of milestone v2.3 done
+Progress: [#########.] 93% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 — 3/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,12 @@ Progress: [########.#] 87% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 4/5
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 03:
+
+- [v2.3 P3.5] Arrondi cosmétique 14px/0.875rem → var(--space-3) (12px) appliqué 6× dans pages.css (.dashboard-urgent padding, .section-header margin/padding, .tab-toolbar margin, .meeting-card-body × 2, .meeting-card-header) — perte -2px assumée pour cohérence design-system, alignée sur la décision Plan 02.5 (audit-chip trust.css). Le commentaire CSS "wireframe density 14px" ligne 1347 perd 2px → cohérence > densité pixel-perfect.
+- [v2.3 P3.5] Sub-rem exotiques (0.4rem, 0.35rem, 0.15rem) toutes mappées sur tokens existants (space-1-5 ou space-0-5) — différences < 0.5px imperceptibles. Tokens space-1-25 / space-1-625 / etc. n'existent pas dans design-system, ne pas en créer pour 1 occurrence chacune.
+- [v2.3 P3.5] Bonus TECH-01 (shadow/border substitutions) NON effectué dans Plan 03.5 : audit a montré que les borders/shadows de pages.css et login.css étaient déjà majoritairement migrées (TECH-01 quick task 0ec33a2 + Plan 03.4 cleanup). Restent uniquement quelques borders 2px custom (.vote-live-panel, .create-card, .file-drop-zone, .dashboard-urgent) classées BASSE confiance dans l'inventaire TECH-01 — pas de gain trivial à capter, scope respecté.
+- [v2.3 P3.5] gap: 14px (.dashboard-urgent) conservé tel quel : `gap` n'entre pas dans la portée du plan (regex padding|margin uniquement). Followup possible dans une dette future si normalisation `gap` souhaitée.
+- [v2.3 P3.5] Atomic commits per file respectés : 1195cbe (login.css, +2/-2) + 723123d (pages.css, +61/-61). Phase 03 finalisée (5/5 plans). LOGIN-03 closed.
 
 - [v2.3 P3.3] Cas 2 retenu (Rule 4 spec-vs-reality mismatch) : audit `grep -nE 'quick-action|action-rapide|actions-bar|quick-actions|class="actions"|Actions rapides|Raccourcis|Actions principales' public/dashboard.htmx.html` retourne 0 match. Aucun bloc "actions rapides" distinct n'existe — les actions rapides historiques sont les 3 shortcut-cards de `<aside class="dashboard-aside">` (titre "Accès rapides"). DASHBOARD-03 livré via background swap `var(--color-surface)` → `var(--color-bg-subtle)` sur l'aside (intention Schoger "secondariser visuellement" préservée). Pas de déplacement DOM. Pattern Rule 4 zero-DOM-mutation cohérent avec Plan 03.2.
 - [v2.3 P3.3] Token `--color-bg-subtle` retenu (pas `--surface-sunken`) : seul candidat existant dans design-system.css (ligne 328 light + 656/808 dark). Utilisé 13× dans pages.css comme token sunken canonique. `--surface-sunken` n'existe pas comme nom littéral. Pas de fallback inline — token garanti défini par `:root` et `[data-theme="dark"]`.
@@ -149,7 +155,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 03.3 livré — DASHBOARD-03 (Rule 4 spec-vs-reality, Cas 2) : `<aside class="dashboard-aside">` (titre "Accès rapides", 3 shortcut-cards) secondarisé visuellement via `background: var(--color-surface) → var(--color-bg-subtle)`. Audit factuel pré-edit a confirmé 0 bloc "actions rapides" distinct ; les actions rapides historiques sont les 3 shortcut-cards de l'aside (cohérent avec inventaire Plan 03.2). Commit unique `e36b579` (12 inserts / 3 deletes sur pages.css : commentaire d'audit lignes 1237-1248 + token swap ligne 1253). Pas de `!important`, pas de fallback inline, token `--color-bg-subtle` confirmé existant. Aucune mutation HTML. SUMMARY 03.3 + STATE + ROADMAP + REQUIREMENTS mis à jour. Phase 03 progress = 4/5 dans ROADMAP.md.
+Stopped at: Plan 03.5 livré — Phase 03 COMPLETE (5/5 plans). LOGIN-03 closed : login.css (commit 1195cbe, 2 hardcodes → 0, 36 × var(--space-*)) + pages.css (commit 723123d, 60 hardcodes → 0, 76 × var(--space-*)) entièrement migrés sur tokens design-system. 5 arrondis cosmétiques documentés dans SUMMARY (14px/0.875rem → space-3, 0.4rem → space-1-5, 0.35rem → space-1-5, 0.15rem → space-0-5, 22px/52px sur login.css). Bonus TECH-01 non effectué (déjà majoritairement fait par TECH-01 quick task + Plan 03.4 — scope respecté). Atomic commits per file. SUMMARY 03.5 créé avec self-check PASSED. STATE + ROADMAP mis à jour : Phase 03 = 5/5, milestone v2.3 = 3/4 phases done (93%).
 Resume file: None
 
-**Next action:** Plan 03.5 à exécuter (dernier de la phase). Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence (héritée 03.1, hero card reste `[hidden]`) ; LOGIN-03 cleanup padding/margin hardcodés login.css + pages.css (héritée 03.4) ; capture before/after du dashboard avec aside sunken — Schoger test ultime (héritée 03.3, manuelle). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité.
+**Next action:** Phase 04 (Lexique + UX critique) à planifier via `/gsd:plan-phase 4` — sur base requirements LEX-01..02, MODAL-01..03, ERR-01..04 (8-9 requirements selon découpage final). Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence (héritée 03.1, hero card reste `[hidden]`) ; capture before/after du dashboard avec aside sunken — Schoger test ultime (héritée 03.3, manuelle) ; gap: 14px .dashboard-urgent normalisation (héritée 03.5, optionnelle). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité Playwright spec.

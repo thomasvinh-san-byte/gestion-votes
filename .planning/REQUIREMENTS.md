@@ -50,7 +50,7 @@
 - [x] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
 - [x] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
 - [x] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
-- [ ] **LOGIN-03**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` (top offenders Schoger : 42 hardcodes dans `pages.css`, plus dans `login.css`). Remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 3 : `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` ; cible post-phase = 0 sur ces deux fichiers.
+- [x] **LOGIN-03**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` (top offenders Schoger : 42 hardcodes dans `pages.css`, plus dans `login.css`). Remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 3 : `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` ; cible post-phase = 0 sur ces deux fichiers. **DONE Plan 03.5** : login.css 2→0 (commit 1195cbe), pages.css 60→0 (commit 723123d), 36 + 76 occurrences var(--space-*).
 
 ### Tech debt visuelle transverse v2.3 (quick task pré-Phase 2)
 
@@ -130,7 +130,7 @@
 | DASHBOARD-06 | Phase 3 | Done (03.1, Schoger S-4) |
 | LOGIN-01 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
 | LOGIN-02 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
-| LOGIN-03 | Phase 3 | Pending (Schoger S-3) |
+| LOGIN-03 | Phase 3 | DONE 2026-04-30 (Plan 03.5, commits 1195cbe + 723123d) |
 | LEX-01 | Phase 4 | Pending |
 | LEX-02 | Phase 4 | Pending |
 | MODAL-01 | Phase 4 | Pending |
