@@ -74,7 +74,7 @@
   gap: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
-  padding-bottom: 2px;
+  padding-bottom: var(--space-0-5);
 }
 
 .audit-filter-tabs::-webkit-scrollbar {
