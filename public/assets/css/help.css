@@ -61,7 +61,7 @@
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--color-text);
@@ -174,7 +174,7 @@
 
 .help-tab {
   padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: none;
   border-radius: 9999px;
   font-size: var(--text-sm);
@@ -232,7 +232,7 @@
 
 .faq-item {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-2);
   overflow: hidden;
@@ -314,7 +314,7 @@
 
 .doc-links-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-top: var(--space-6);
@@ -322,7 +322,7 @@
 
 .doc-links-card-header {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   font-weight: 700;
   font-size: var(--text-base);
   display: flex;
@@ -346,7 +346,7 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--color-text);
@@ -378,12 +378,12 @@
   font-weight: 600;
   color: var(--color-text-muted);
   background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
 }
 
 .exports-table td {
   padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
 }
 
 .exports-table tbody tr:hover {
