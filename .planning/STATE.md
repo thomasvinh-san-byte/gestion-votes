@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 02
-stopped_at: "Plan 02.4 livré sur `feat/v2.3-cockpit-operateur` — bloc `@media print` ajouté à `editorial.css` (+135 lignes, total 245 ; commit bc1845f) : `@page` A4 marges 2cm/1.5cm, footer `Page X sur Y` via `counter(page)/counter(pages)`, reset N&B `:root,body { background:#fff!important; color:#000!important }`, masquage UI controls (`.btn`, `button`, `input`, `.audit-filter-tabs(__more)`, `details>summary`, sidebar, modals, nav, htmx-indicator), `page-break-inside: avoid` sur `.ag-resolution`/`.ag-integrity-footer`/table/blockquote/pre, `page-break-after: avoid` sur h1/h2/h3, URLs externes affichées en mono via `a[href]:not([href^=\"#\"]):after`, `.ag-editorial-print-header` révélé `display: block`. F-5 lock Schoger respecté (0 `position: running`). EDITORIAL-07 livré PARTIEL : en-tête début de doc uniquement, pas répété par page (limitation navigateur ; route dompdf en backlog v2.4 si requis). 0 mot interdit. Braces balanced. Phase 02 progress: 4/6."
-last_updated: "2026-04-30T07:18:00.000Z"
+stopped_at: "Plan 02.5 livré sur `feat/v2.3-cockpit-operateur` — cleanup hardcoded padding/margin sur 4 CSS éditoriaux (audit/trust/report/archives). 29 substitutions cumulées (1+25+4+0), 0 hardcoded restant sur les 4 fichiers (verify grep auto). 3 commits atomiques (7da8173 audit, 7849cf3 trust, 93931a3 report) ; archives.css déjà entièrement tokenisé baseline (commentaire de tête littéral) → aucun commit nécessaire. Token usage proof : 47/32/16/37 var(--space-*) cumulés. 28 tokens TECH-01 (border-default/subtle/strong, shadow-md) absorbés via héritage quick task 260430-86c. Cas spéciaux conservés : padding:0 resets (3 lignes report.css print), padding 0 5px count badge archives.css ligne 107 (non matché grep), border-left 3px sémantique status accents (BASSE confiance hors TECH-01). 1 valeur exotique arrondie : 0.875rem (14px) → var(--space-3) (12px) sur .audit-chip — perte cosmétique mineure (-2px horizontal padding). 0 mot interdit, braces équilibrées, 0 régression structurelle. EDITORIAL-09 livré. Phase 02 progress: 5/6."
+last_updated: "2026-04-30T07:35:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
 Phase: 02 (Pages éditoriales) — EXECUTING
-Plan: 5 of 6 (Plans 02.1 + 02.2 + 02.3 + 02.4 done)
+Plan: 6 of 6 (Plans 02.1 + 02.2 + 02.3 + 02.4 + 02.5 done)
 
-Progress: [##########] 100% (4/4 plans of phase 01) + 4/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
+Progress: [##########] 100% (4/4 plans of phase 01) + 5/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,11 @@ Progress: [##########] 100% (4/4 plans of phase 01) + 4/6 plans of phase 02 — 
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 02:
+
+- [v2.3 P2.5] Baseline réelle ≠ baseline plan au démarrage de session : audit.css déjà committé (7da8173), trust.css avait 24/25 substitutions en working tree pré-existantes. Continuité respectée — finalisation ligne 619 trust.css (1 ligne restante) + report.css (4 substitutions) ; ne pas re-créer un commit pour audit.css déjà committé. Result: 3 commits atomiques (audit/trust/report), pas 4 — archives.css déjà entièrement tokenisé baseline donc aucun commit créé (honnêteté > critère "4 commits").
+- [v2.3 P2.5] archives.css : 0 modification nécessaire. Le fichier était déjà littéralement conforme à son commentaire de tête "All values use design-system tokens — no magic numbers". Border-left status accents (`3px solid var(--color-primary/success/warning)`) laissés tels quels : BASSE confiance TECH-01 (couleur sémantique + width non-1px hors table de mapping).
+- [v2.3 P2.5] Cas spéciaux laissés sur les 4 fichiers : `padding: 0` resets en @media print (report.css 3 lignes), `padding: 0 5px` count badge archives.css ligne 107 (non matché grep, pas de token --space-1-25 standard), `box-shadow: 0 0 0 4px var(--color-primary-subtle)` focus ring report.css (BASSE confiance, focus ring pattern hors mapping TECH-01).
+- [v2.3 P2.5] Valeur exotique arrondie : `0.875rem` (=14px, padding horizontal `.audit-chip` trust.css) → `var(--space-3)` (=12px) — perte 2px cosmétique mineure assumée pour la cohérence design-system. Aucune autre exotique sur les 3 fichiers modifiés.
 
 - [v2.3 P2.4] F-5 lock Schoger respecté : pas de `position: running()` ni `@page { @top-left { content: element(...) } }` — supportés uniquement par Prince/antiword, ignorés par Chrome/Firefox/Safari à l'impression navigateur. Pragmatic fallback : `<header class="ag-editorial-print-header">` masqué hors print (déclaré `display:none` ligne 88 de editorial.css), révélé dans `@media print` via `display:block`. Apparaît en début de document, pas répété par page.
 - [v2.3 P2.4] EDITORIAL-07 livré PARTIEL : numéro de page footer livré (counter(page)/counter(pages) supporté Chrome/FF/Safari), en-tête présent en début de doc uniquement (pas par page). Si répétition par page devient requise, route via dompdf (ProcurationPdfService déjà dans le codebase) en backlog v2.4 — pipeline serveur supporte CSS Paged Media complet.
@@ -114,7 +119,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 02.4 livré sur `feat/v2.3-cockpit-operateur` — bloc `@media print` ajouté à `editorial.css` (+135 lignes, total 245 ; commit bc1845f). `@page` A4 + footer `Page X sur Y` (counter(page)/counter(pages)), reset N&B, masquage UI controls (boutons/sidebar/modals/nav/htmx-indicator), `page-break-inside: avoid` sur blocs critiques (.ag-resolution, .ag-integrity-footer, table, blockquote, pre), `page-break-after: avoid` sur h1/h2/h3, URLs externes affichées en mono via `:after`, `.ag-editorial-print-header` révélé `display:block`. F-5 lock Schoger respecté (0 `position: running`). 7/7 acceptance grep checks PASSED. EDITORIAL-07 livré PARTIEL (en-tête début de doc, pas répété par page — limitation navigateur). SUMMARY 02.4 écrit. Phase 02: 4/6.
+Stopped at: Plan 02.5 livré — cleanup hardcoded padding/margin sur 4 CSS éditoriaux (audit/trust/report/archives). 29 substitutions cumulées (1+25+4+0), 0 hardcoded restant. 3 commits atomiques (7da8173 audit, 7849cf3 trust, 93931a3 report) ; archives.css déjà entièrement tokenisé → 0 commit nécessaire. Token usage post-cleanup : 47/32/16/37 var(--space-*) cumulés sur les 4 fichiers ; 28 tokens TECH-01 (border-default/subtle/strong + shadow-md) absorbés via héritage quick 260430-86c. Cas spéciaux conservés (padding:0 resets, count badge 5px non-matché, border-left sémantique status). 1 exotique arrondie 0.875rem → space-3 sur .audit-chip. EDITORIAL-09 livré. SUMMARY 02.5 écrit. Phase 02: 5/6.
 Resume file: None
 
-**Next action:** Plan 02.5 — Résolutions (`.ag-resolution-pill` insertion en en-têtes/listes/tableaux du PV final). La pill est déjà livrée 02.1 + protégée par `page-break-inside: avoid` en print 02.4. Démarrage immédiat via `/gsd:execute-phase`.
+**Next action:** Plan 02.6 — Tests Playwright + EditorialConventionsTest::testEditorialCssHasNoHardcodedSpacing pour figer la conformité. Démarrage immédiat via `/gsd:execute-phase`.
