@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Executing Phase 02
-stopped_at: "Plan 02.5 livré sur `feat/v2.3-cockpit-operateur` — cleanup hardcoded padding/margin sur 4 CSS éditoriaux (audit/trust/report/archives). 29 substitutions cumulées (1+25+4+0), 0 hardcoded restant sur les 4 fichiers (verify grep auto). 3 commits atomiques (7da8173 audit, 7849cf3 trust, 93931a3 report) ; archives.css déjà entièrement tokenisé baseline (commentaire de tête littéral) → aucun commit nécessaire. Token usage proof : 47/32/16/37 var(--space-*) cumulés. 28 tokens TECH-01 (border-default/subtle/strong, shadow-md) absorbés via héritage quick task 260430-86c. Cas spéciaux conservés : padding:0 resets (3 lignes report.css print), padding 0 5px count badge archives.css ligne 107 (non matché grep), border-left 3px sémantique status accents (BASSE confiance hors TECH-01). 1 valeur exotique arrondie : 0.875rem (14px) → var(--space-3) (12px) sur .audit-chip — perte cosmétique mineure (-2px horizontal padding). 0 mot interdit, braces équilibrées, 0 régression structurelle. EDITORIAL-09 livré. Phase 02 progress: 5/6."
-last_updated: "2026-04-30T07:35:00.000Z"
+status: Phase 02 Complete — Ready for Phase 03
+stopped_at: "Plan 02.6 livré sur `feat/v2.3-cockpit-operateur` — EditorialConventionsTest (4 guard tests PHPUnit, 37 assertions) figeant EDITORIAL-01/04/05/09. Run unique 12 ms vert (budget CLAUDE.md préservé : 1 run sur 3 autorisés). Namespace Tests\\Security cohérent CopyConventionsTest + PersonaIsolationTest, suite Security déjà déclarée phpunit.xml. 4 tests : testAgEditorialChildrenNotCentered (XPath 4 pages), testIntegrityModalContainsPedagogicalPreamble (3 strings verbatim FR), testEditorialCssHasNoHardcodedSpacing (regex 4 CSS), testResolutionPillNotInsideParagraph (F-4 Schoger lock). N-3 dédup respecté : 0 testNoForbiddenWords (CopyConventionsTest couvre déjà copropriete/syndic). DOMDocument permissif (libxml NOERROR/NOWARNING + préfixe UTF-8) pour fragments HTMX. Commit 143305b. Phase 02 : 6/6 COMPLÈTE. Followup Playwright E2E modal-intégrité reporté machine dev avant /gsd:ship."
+last_updated: "2026-04-30T07:43:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
-Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
-Phase: 02 (Pages éditoriales) — EXECUTING
-Plan: 6 of 6 (Plans 02.1 + 02.2 + 02.3 + 02.4 + 02.5 done)
+Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 work)
+Phase: 02 (Pages éditoriales) — COMPLETE
+Plan: 6 of 6 (Plans 02.1 + 02.2 + 02.3 + 02.4 + 02.5 + 02.6 done)
 
-Progress: [##########] 100% (4/4 plans of phase 01) + 5/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
+Progress: [##########] 100% (4/4 plans of phase 01) + 6/6 plans of phase 02 — 2/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,13 @@ Progress: [##########] 100% (4/4 plans of phase 01) + 5/6 plans of phase 02 — 
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 02:
+
+- [v2.3 P2.6] Namespace `Tests\Security` (pas Tests\Unit, pas AgVote\Tests\Security) — alignement strict avec CopyConventionsTest + PersonaIsolationTest existants. Suite "Security" déjà déclarée dans phpunit.xml ligne 10-12. Composer.json déclare AgVote\Tests\ mais les tests historiques ne l'utilisent pas — convention figée par usage.
+- [v2.3 P2.6] N-3 dédup : pas de `testNoForbiddenWordsInEditorialPages` ici. CopyConventionsTest::testNoForbiddenSyndicalTerms scanne déjà copropriété/syndic sur public/*.html, public/*.htmx.html, public/partials/*.html, app/Templates/*.php (708 assertions globales). Dupliquer le test dans EditorialConventionsTest aurait été du double maintenance pour 0 gain de couverture.
+- [v2.3 P2.6] F-4 Schoger lock posé : `testResolutionPillNotInsideParagraph` (XPath `//p//*[ag-resolution-pill]` retourne 0 sur 4 pages). La règle "pill mono UNIQUEMENT en headers/lists/tables" était documentée dans editorial.css mais non testée — désormais figée. Fail immédiat si une PR future place une pill dans un paragraphe serif.
+- [v2.3 P2.6] DOMDocument permissif (`LIBXML_NOERROR | LIBXML_NOWARNING`) + préfixe `<?xml encoding="UTF-8">` — les `.htmx.html` sont des fragments, pas des documents W3C complets. Trade-off assumé : on ne valide pas le HTML, on extrait juste les invariants éditoriaux via XPath.
+- [v2.3 P2.6] Régex padding/margin large `(padding|margin)(-[a-z]+)?:\s+[0-9]+(\.[0-9]+)?(px|rem|em)` — couvre toutes variantes (-top/-right/-bottom/-left/-block/-inline/...). Plus large que strict besoin mais 0 faux négatif. Confirmé : 0 match sur les 4 CSS post-02.5.
+- [v2.3 P2.6] Run PHPUnit unique vert au premier essai (4 tests, 37 assertions, 12 ms). Budget CLAUDE.md max 3 préservé. Le fichier était présent en working tree (artefact session antérieure) avec le bon contenu — vérifié byte-by-byte vs spec PLAN.md, pas de réécriture nécessaire.
 
 - [v2.3 P2.5] Baseline réelle ≠ baseline plan au démarrage de session : audit.css déjà committé (7da8173), trust.css avait 24/25 substitutions en working tree pré-existantes. Continuité respectée — finalisation ligne 619 trust.css (1 ligne restante) + report.css (4 substitutions) ; ne pas re-créer un commit pour audit.css déjà committé. Result: 3 commits atomiques (audit/trust/report), pas 4 — archives.css déjà entièrement tokenisé baseline donc aucun commit créé (honnêteté > critère "4 commits").
 - [v2.3 P2.5] archives.css : 0 modification nécessaire. Le fichier était déjà littéralement conforme à son commentaire de tête "All values use design-system tokens — no magic numbers". Border-left status accents (`3px solid var(--color-primary/success/warning)`) laissés tels quels : BASSE confiance TECH-01 (couleur sémantique + width non-1px hors table de mapping).
@@ -119,7 +126,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 02.5 livré — cleanup hardcoded padding/margin sur 4 CSS éditoriaux (audit/trust/report/archives). 29 substitutions cumulées (1+25+4+0), 0 hardcoded restant. 3 commits atomiques (7da8173 audit, 7849cf3 trust, 93931a3 report) ; archives.css déjà entièrement tokenisé → 0 commit nécessaire. Token usage post-cleanup : 47/32/16/37 var(--space-*) cumulés sur les 4 fichiers ; 28 tokens TECH-01 (border-default/subtle/strong + shadow-md) absorbés via héritage quick 260430-86c. Cas spéciaux conservés (padding:0 resets, count badge 5px non-matché, border-left sémantique status). 1 exotique arrondie 0.875rem → space-3 sur .audit-chip. EDITORIAL-09 livré. SUMMARY 02.5 écrit. Phase 02: 5/6.
+Stopped at: Plan 02.6 livré — tests/Security/EditorialConventionsTest.php créé (4 tests, 37 assertions, run 12 ms vert au premier essai). Budget CLAUDE.md max 3 runs préservé (1 seul run effectué). EDITORIAL-01/04/05/09 figés par tests gardiens : centrage interdit sur enfant `.ag-editorial`, préambule pédagogique verbatim FR dans ag-integrity-modal.js, 0 hardcoded spacing sur 4 CSS éditoriaux, pill mono jamais dans `<p>` serif (F-4 Schoger lock). Namespace Tests\\Security cohérent CopyConventionsTest + PersonaIsolationTest. N-3 dédup respecté (pas de doublon forbidden-words). DOMDocument permissif pour fragments HTMX. Commit 143305b. SUMMARY 02.6 écrit. **Phase 02 (Pages éditoriales) : 6/6 COMPLÈTE.** Branche feat/v2.3-cockpit-operateur prête pour PR review (Phase 01 + 02 cumulés).
 Resume file: None
 
-**Next action:** Plan 02.6 — Tests Playwright + EditorialConventionsTest::testEditorialCssHasNoHardcodedSpacing pour figer la conformité. Démarrage immédiat via `/gsd:execute-phase`.
+**Next action:** Phase 03 (Layouts secondaires — DASHBOARD-01..06 + LOGIN-01..03) à planifier via `/gsd:plan-phase 3`. Followup avant `/gsd:ship` Phase 02 : exécuter manuellement la spec Playwright modal-intégrité (à créer) sur machine dev (sandbox sans Playwright). Followups Phase 1 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + nouveau modal-intégrité Phase 2.

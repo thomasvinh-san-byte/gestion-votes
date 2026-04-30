@@ -324,6 +324,6 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 3. Personas | v2.2 | 1/1 | ✓ In PR #256 | - |
 | 4. Layout & Lexique (partial) | v2.2 | 1/1 | ⚠ Partial in PR #256 | - |
 | 1. Cockpit Opérateur live | v2.3 | 4/4 | ✓ Complete (Playwright manual) | 2026-04-30 |
-| 2. Pages éditoriales | v2.3 | 4/6 | ◐ In progress | - |
+| 2. Pages éditoriales | v2.3 | 6/6 | ✓ Complete | 2026-04-30 |
 | 3. Layouts secondaires | v2.3 | 0/? | ○ Not started | - |
 | 4. Lexique + UX critique | v2.3 | 0/? | ○ Not started | - |
