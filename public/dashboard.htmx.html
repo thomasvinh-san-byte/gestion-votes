@@ -80,10 +80,9 @@
           </div>
         </a>
 
-        <!-- KPI Row — 4 cards filling width -->
+        <!-- KPI Row — 3 cards (DASHBOARD-01: Convoc. en attente déposé vers /hub footer link) -->
         <div class="dashboard-kpis loading">
           <!-- Skeleton placeholders — removed by JS after API response -->
-          <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
           <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
           <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
           <div class="skeleton skeleton-kpi" aria-hidden="true"></div>
@@ -110,17 +109,6 @@
             </ag-tooltip>
           </div>
           <div class="kpi-card-wrapper">
-            <ag-tooltip text="Convocations en attente d'envoi" position="bottom">
-              <a href="/hub" class="kpi-card kpi-card--3" aria-label="Convocations en attente">
-                <div class="kpi-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-                </div>
-                <div class="kpi-value" id="kpiConvoc">-</div>
-                <div class="kpi-label">Convoc. en attente</div>
-              </a>
-            </ag-tooltip>
-          </div>
-          <div class="kpi-card-wrapper">
             <ag-tooltip text="Proc&egrave;s-verbaux &agrave; finaliser et envoyer" position="bottom">
               <a href="/postsession" class="kpi-card kpi-card--4" aria-label="PV &agrave; envoyer">
                 <div class="kpi-icon">
@@ -132,6 +120,11 @@
             </ag-tooltip>
           </div>
         </div>
+
+        <!-- F1: KPI déposé "Convocations" — accès discret en footer KPI (DASHBOARD-01) -->
+        <p class="kpi-row__footer-link">
+          <a href="/hub" class="link-muted">Voir aussi : convocations en attente</a>
+        </p>
 
         <!-- Body: Sessions + Aside -->
         <div class="dashboard-body">

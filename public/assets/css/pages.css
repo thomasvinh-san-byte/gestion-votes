@@ -1009,15 +1009,29 @@
   padding: var(--space-4) var(--space-6);
 }
 
-/* KPI grid: 4-column */
+/* KPI grid: 3-column (DASHBOARD-06 — Convoc. en attente déposé en footer link, cf. F1) */
 .dashboard-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-card, 24px);
-  margin-bottom: var(--space-card, 24px);
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-lg);
+  margin-bottom: var(--gap-lg);
 }
 .dashboard-kpis ag-tooltip {
   display: contents;
+}
+
+/* F1 — KPI déposé "intégré ailleurs" : lien discret vers /hub */
+.kpi-row__footer-link {
+  margin: 0 0 var(--gap-lg) 0;
+  text-align: right;
+  font-size: var(--text-sm);
+}
+.kpi-row__footer-link a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.kpi-row__footer-link a:hover {
+  text-decoration: underline;
 }
 
 /* Body: sessions + aside */
@@ -1061,7 +1075,7 @@
 }
 .kpi-card--1 .kpi-icon { background: var(--color-primary-subtle); color: var(--color-primary); }
 .kpi-card--2 .kpi-icon { background: var(--color-danger-subtle); color: var(--color-danger); }
-.kpi-card--3 .kpi-icon { background: var(--color-warning-subtle); color: var(--color-warning); }
+/* .kpi-card--3 retiré (DASHBOARD-01 — Convoc. en attente déplacé en footer link) */
 .kpi-card--4 .kpi-icon { background: var(--color-accent-subtle, var(--color-primary-subtle)); color: var(--color-accent, var(--color-primary)); }
 
 .kpi-card .kpi-value {
@@ -1225,7 +1239,7 @@
 }
 @media (max-width: 768px) {
   .dashboard-kpis {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
