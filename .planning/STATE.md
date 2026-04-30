@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Phase 02 Complete — Ready for Phase 03
-stopped_at: "Plan 02.6 livré sur `feat/v2.3-cockpit-operateur` — EditorialConventionsTest (4 guard tests PHPUnit, 37 assertions) figeant EDITORIAL-01/04/05/09. Run unique 12 ms vert (budget CLAUDE.md préservé : 1 run sur 3 autorisés). Namespace Tests\\Security cohérent CopyConventionsTest + PersonaIsolationTest, suite Security déjà déclarée phpunit.xml. 4 tests : testAgEditorialChildrenNotCentered (XPath 4 pages), testIntegrityModalContainsPedagogicalPreamble (3 strings verbatim FR), testEditorialCssHasNoHardcodedSpacing (regex 4 CSS), testResolutionPillNotInsideParagraph (F-4 Schoger lock). N-3 dédup respecté : 0 testNoForbiddenWords (CopyConventionsTest couvre déjà copropriete/syndic). DOMDocument permissif (libxml NOERROR/NOWARNING + préfixe UTF-8) pour fragments HTMX. Commit 143305b. Phase 02 : 6/6 COMPLÈTE. Followup Playwright E2E modal-intégrité reporté machine dev avant /gsd:ship."
-last_updated: "2026-04-30T07:43:00.000Z"
+status: Executing Phase 03
+stopped_at: "Plan 02.6 livré — tests/Security/EditorialConventionsTest.php créé (4 tests, 37 assertions, run 12 ms vert au premier essai). Budget CLAUDE.md max 3 runs préservé (1 seul run effectué). EDITORIAL-01/04/05/09 figés par tests gardiens : centrage interdit sur enfant `.ag-editorial`, préambule pédagogique verbatim FR dans ag-integrity-modal.js, 0 hardcoded spacing sur 4 CSS éditoriaux, pill mono jamais dans `<p>` serif (F-4 Schoger lock). Namespace Tests\\Security cohérent CopyConventionsTest + PersonaIsolationTest. N-3 dédup respecté (pas de doublon forbidden-words). DOMDocument permissif pour fragments HTMX. Commit 143305b. SUMMARY 02.6 écrit. **Phase 02 (Pages éditoriales) : 6/6 COMPLÈTE.** Branche feat/v2.3-cockpit-operateur prête pour PR review (Phase 01 + 02 cumulés)."
+last_updated: "2026-04-30T09:08:38.295Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 10
+  total_plans: 15
   completed_plans: 10
-  percent: 100
+  percent: 67
 ---
 
 # AG-VOTE -- Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** Phase 02 — Pages éditoriales
+**Current focus:** Phase 03 — Layouts secondaires
 
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 work)
-Phase: 02 (Pages éditoriales) — COMPLETE
-Plan: 6 of 6 (Plans 02.1 + 02.2 + 02.3 + 02.4 + 02.5 + 02.6 done)
+Phase: 03 (Layouts secondaires) — EXECUTING
+Plan: 1 of 5
 
 Progress: [##########] 100% (4/4 plans of phase 01) + 6/6 plans of phase 02 — 2/4 phases of milestone v2.3 done
 
