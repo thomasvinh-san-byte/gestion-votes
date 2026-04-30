@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 02
-stopped_at: "Plan 02.2 livré sur `feat/v2.3-cockpit-operateur` — `<ag-integrity-modal>` custom element + companion CSS (commits 339b8ab + 941ce5e). Light DOM, observedAttributes data-date+data-events, préambule pédagogique français VERBATIM EDITORIAL-05 (Voici la preuve... sceau cryptographique... une seule virgule), XSS-safe via _escape() sur date+ev.hash+ev.prev+ev.at (6 calls), B-2 fix auto-hidden dans connectedCallback (anti-flash), Escape ferme + focus trap basique, focus restoration via _previouslyFocused. CSS tokens-only F-6 vérifié (--color-surface-raised, --color-text-secondary/muted, --shadow-lg, --border-default, --radius-md, --font-display Fraunces préambule, --font-mono JetBrains Mono hashes, --space-*). Aucun !important, braces équilibrées, 0 mot interdit. EDITORIAL-05 satisfait. Phase 02 progress: 2/6."
-last_updated: "2026-04-30T07:01:30.000Z"
+stopped_at: "Plan 02.3 livré sur `feat/v2.3-cockpit-operateur` — wrapper `.ag-editorial` appliqué aux 4 pages éditoriales (audit, trust, archives, report) + audit filter triage F-2 (3 visibles : Tous/Votes/Présences ; 2 pliés dans `<details class='audit-filter-tabs__more'><summary>Plus de filtres</summary>` : Sécurité/Système ; tous les `data-type`/`role=tab`/`aria-selected` préservés) + integrity footer + tag `<ag-integrity-modal hidden>` sur audit + report avec click handler nonce-d CSP-safe (commit 7902a4a). F-3 décision : hydratation client (`data-events='[]'` initial, scripts page existants hydratent via `setAttribute` XSS-safe DOM API) plutôt que server-side templating. F-4 lock pill mono inline interdit dans `<p>` serif respecté (0 occurrence). 0 mot interdit (copropriété/syndic). 0 placeholder littéral `{$...}`. Phase 02 progress: 3/6."
+last_updated: "2026-04-30T07:09:30.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 6
-  percent: 60
+  completed_plans: 7
+  percent: 70
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
 Phase: 02 (Pages éditoriales) — EXECUTING
-Plan: 3 of 6 (Plans 02.1 + 02.2 done)
+Plan: 4 of 6 (Plans 02.1 + 02.2 + 02.3 done)
 
-Progress: [##########] 100% (4/4 plans of phase 01) + 2/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
+Progress: [##########] 100% (4/4 plans of phase 01) + 3/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,12 @@ Progress: [##########] 100% (4/4 plans of phase 01) + 2/6 plans of phase 02 — 
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 02:
+
+- [v2.3 P2.3] Wrapper `.ag-editorial` appliqué en class supplémentaire sur conteneurs existants (`.container`, `.audit-page`, `.archives-main`) plutôt que via un nouveau `<div>` wrapping — minimise le diff HTML, préserve la cascade legacy `.container > .card`, évite tout risque de régression sur les sélecteurs descendants.
+- [v2.3 P2.3] Audit filter triage F-2 (Schoger S-7) : `Sécurité` + `Système` déplacés dans `<details class="audit-filter-tabs__more"><summary>Plus de filtres</summary>` ; `Tous` / `Votes` / `Présences` restent visibles. Le selector JS `[data-type="..."]` matche identiquement quelle que soit la position dans le DOM, aucune adaptation côté `audit.js` requise.
+- [v2.3 P2.3] F-3 décision : hydratation client (`data-events='[]'` initial sur `<ag-integrity-modal>`) plutôt que server-side `%%KEY%%` templating. Justification : `HtmlView::render()` actuel n'a pas de pattern dédié pour JSON arrays HTML-escaped en attribut ; les scripts page existants (`audit.js` / `report.js`) hydrateront via `setAttribute('data-events', JSON.stringify(events))` qui est XSS-safe par construction (DOM API escape). `Array.isArray` check côté custom element gère gracefully `[]` initial (cf 02.2).
+- [v2.3 P2.3] Pas de pill `.ag-resolution-pill` insérée dans `report.htmx.html` ce cycle : la page report est un cockpit d'exports/email/preview avec le PV affiché via `<iframe id="pvFrame">` (document séparé), pas un document éditorial inline. Les pills viendront en Plan 02.5 (résolutions) ciblant le rendu PV final.
+- [v2.3 P2.3] Pas de `<aside class="ag-editorial-sidebar">` ajouté sur les 4 pages : la structure recommandée par le plan était indicative. Les pages utilisent déjà des grilles natives (`.grid grid-cols-1 md:grid-cols-2`) ou des layouts optimisés (KPI grid + toolbar + table sur audit). Évaluation d'un sidebar éditorial reportée après 02.6 (Playwright) si l'UX review le demande.
 
 - [v2.3 P2.2] `<ag-integrity-modal>` en light DOM (cohérence ag-health-bar Phase 01) — la cascade laisse passer les tokens design-system et le stylesheet companion cible directement les classes BEM.
 - [v2.3 P2.2] Auto-hidden via `setAttribute('hidden', '')` dans connectedCallback (B-2 fix) — sans ce verrou le modal flasherait visible avant l'application du CSS `[hidden]`. Override via attribut `data-keep-open` réservé aux tests.
@@ -101,7 +107,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 02.2 livré sur `feat/v2.3-cockpit-operateur` — `<ag-integrity-modal>` custom element JS (commit 339b8ab, 162 lignes) + stylesheet companion (commit 941ce5e, 93 lignes). Préambule pédagogique français VERBATIM EDITORIAL-05, XSS-safe (_escape ×6), B-2 auto-hidden, focus restoration. SUMMARY 02.2 écrit. EDITORIAL-05 satisfait. REQUIREMENTS et ROADMAP mis à jour.
+Stopped at: Plan 02.3 livré sur `feat/v2.3-cockpit-operateur` — wrapper `.ag-editorial` appliqué aux 4 pages éditoriales (audit/trust/archives/report) + audit filter triage (Sécurité+Système pliés dans `<details>'Plus de filtres'`) + integrity footer + `<ag-integrity-modal hidden>` tag sur audit + report (commit 7902a4a, 4 fichiers, +53/-6 lignes). 9/9 acceptance grep checks PASSED. F-3 décision client-hydration documentée. F-4 pill-in-`<p>` lock respecté. SUMMARY 02.3 écrit. EDITORIAL-01/02/03/06/08 satisfaits.
 Resume file: None
 
-**Next action:** Plan 02.3 — Page Trust/Audit refonte éditoriale (intégration `<ag-integrity-modal>` + lien "Vérifier l'intégrité"). Démarrage immédiat via `/gsd:execute-phase`. Note: le STATE précédent mentionnait "BalancedTitleService" pour 02.2 — c'était une confusion de planning ; le plan 02.2 sur disque livre bien `<ag-integrity-modal>`. Aucun BalancedTitleService à exécuter.
+**Next action:** Plan 02.4 — Print stylesheet (`@media print`). Cible : révéler `.ag-editorial-print-header` (déjà posé masqué par 02.1), masquer les `<details>` repliés et le footer integrity en print, mise en page document légal pour PV imprimable. Démarrage immédiat via `/gsd:execute-phase`.
