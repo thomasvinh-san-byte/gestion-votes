@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 04
-stopped_at: "Plan 04.1 livré — LEX-01 + LEX-02 closed. Migration lexicale cas-par-cas sur 4 fichiers (operator.htmx.html, help.htmx.html, members.htmx.html, ErrorDictionary.php) : 89 occurrences analysées dans leur contexte, 2 migrations chirurgicales (operator L1062 placeholder 'Nom du membre…' → 'Nom du votant…' ; ErrorDictionary L227 message token_member_mismatch 'membre' → 'votant'), 87 conservations justifiées (CRUD registre, doctrine procuration, présence quorum, codes API). Glossaire pédagogique #vocabulaire ajouté à help.htmx.html (membre/participant/votant + confirmer/valider/verrouiller-archiver + Approuver banni). LEX-02 : scan transverse complet app/+public/ retourne 0 occurrence d'Approuver, bannishment acquis par construction. 3 commits atomiques (8890696, 0d6b651, dbdee25) + 5 scratchs d'audit. SUMMARY 04.1 + REQUIREMENTS LEX-01/02 marqués [x]. CLAUDE.md respecté (php -l ErrorDictionary OK, 0 copropriété/syndic, atomic commits)."
-last_updated: "2026-04-30T10:30:00.000Z"
+stopped_at: "Plan 04.2 livré — MODAL-01 + MODAL-03 closed. Migration des 7 modales legacy `.modal` vers le web component `<ag-modal>` sur 6 fichiers HTML (operator/audit/meetings/archives/trust/validate) avec adaptation JS associée (6 fichiers, API open()/close() au lieu de hidden=true/false ou style.display). Triggers a11y : 3 statiques HTML (operator #btnLaunchSession, archives #btnExportsModal, validate #btnValidate) + 2 dynamiques JS (audit .audit-timeline-item via renderTimeline, trust <tr> via renderAuditLog) portent aria-haspopup=\"dialog\" + signifiant visuel (suffixe `…` ou chevron-right SVG). Trigger meetings .session-menu-btn non modifié (ouvre <ag-popover> menu, pas dialog). op-quorum-modal conservé (CSS class custom). Bug Rule 1 fixé : meetings.js openEditModal cherchait des radios sur un <select> — préremplissage type silencieusement broken depuis longtemps, corrigé en passant. 6 commits atomiques (882f5e3 audit, 506655e meetings, abfa15a archives, 8706cdc trust, c6bd233 validate, 316a44e operator). SUMMARY 04.2 + REQUIREMENTS MODAL-01/03 marqués [x]. 04.1 lexique migration sur operator (L1062 'Nom du votant…') préservée. CLAUDE.md respecté (0 copropriété/syndic sur 12 fichiers, node -c OK x6, atomic commits per fichier HTML+JS)."
+last_updated: "2026-04-30T11:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 21
-  completed_plans: 16
-  percent: 76
+  completed_plans: 17
+  percent: 81
 ---
 
 # AG-VOTE -- Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
-Phase: 04 (Lexique + UX critique) — EXECUTING (1/6 plans done)
-Plan: 2 of 6 (next)
+Phase: 04 (Lexique + UX critique) — EXECUTING (2/6 plans done)
+Plan: 3 of 6 (next)
 
-Progress: [#########.] 95% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 + 1/6 plans of phase 04 — 3/4 phases of milestone v2.3 done
+Progress: [#########.] 95% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 + 2/6 plans of phase 04 — 3/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -40,6 +40,14 @@ Progress: [#########.] 95% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5
 Decisions are logged in PROJECT.md Key Decisions table.
 
 Recent decisions affecting v2.3 Phase 04:
+
+- [v2.3 P4.2] Scope étendu aux 6 fichiers JS associés (déviation Rule 3) : sans adaptation `.hidden = false` → `.open()`, les modales legacy ne s'ouvrent plus (`<ag-modal>` ne contrôle pas `hidden` natif — il pilote son overlay interne via `open()`/`close()` qui synchronisent `aria-hidden` + animation backdrop). 6 commits atomiques (1 par fichier HTML) groupent HTML + JS associé indissociablement. Frontmatter PLAN listait 6 HTML, SUMMARY 04.2 documente les 12 fichiers (6 HTML + 6 JS) dans `affects` pour traçabilité.
+- [v2.3 P4.2] `op-quorum-modal` (operator.htmx.html L1613) **conservé** : CSS class custom (`.op-quorum-modal`), pas du legacy `.modal` au sens strict. Le grep d'acceptance `grep -F 'class="modal'` (fixed-string) ne matche pas `class="op-quorum-modal"`. Le wrapper parent `<div class="op-quorum-overlay" role="dialog" aria-modal="true">` fournit déjà la sémantique a11y. Migration totale reportée v2.4 si harmonisation souhaitée (CSS sur-mesure à revoir).
+- [v2.3 P4.2] Trigger `.session-menu-btn` (meetings.htmx.html) **non modifié** : il ouvre un `<ag-popover>` (menu de 4 actions), pas une `<ag-modal>` directement. Sémantiquement `aria-haspopup="menu"` est plus juste qu'`aria-haspopup="dialog"`. La modale est ouverte indirectement via `handlePopoverAction` côté JS. Pattern popover-routed documenté dans SUMMARY ; out-of-scope MODAL-03.
+- [v2.3 P4.2] Triggers dynamiques (audit timeline items, trust audit rows) : `aria-haspopup="dialog"` injecté dans le rendu JS (`audit.js::renderTimeline` + `trust.js::renderAuditLog`). Suffixe `…` ajouté à la cellule action des rows trust comme signifiant visuel ; chevron-right SVG déjà présent comme signifiant sur audit timeline items. Pattern : enrichir le rendu JS quand le trigger n'a pas de markup statique HTML.
+- [v2.3 P4.2] Pattern d'event listening pour reset UI sur fermeture (validate.js) : on ne peut pas wrapper `closeValidateModal` car l'utilisateur peut fermer via Escape, X header, ou backdrop click — gérés en interne par `<ag-modal>`. Solution : écouter l'événement custom `ag-modal-close` que le composant dispatch dans `close()`. Pattern non-invasif réutilisable pour toute logique de reset post-modal.
+- [v2.3 P4.2] Bug Rule 1 fixé en passant : `meetings.js::openEditModal` cherchait `modal.querySelector('input[name="editMeetingType"]')` (radios) mais le markup est `<select id="editMeetingType">`. Le `querySelector` retournait null, le pré-remplissage du type de séance ne fonctionnait jamais — bug silencieux préexistant. Switch vers `typeSelect.value = typeVal`. Inclus dans commit 506655e.
+- [v2.3 P4.2] Sub-classes CSS modal-suffixed conservées : `.audit-modal-row/-label/-value/-hash` (trust), `.validate-modal-warning/-checkbox` (validate), `.launch-modal-summary/-warning` (operator). Ces classes ne matchent pas `class="modal` (préfixées par `audit-`/`validate-`/`launch-`) — pas de cleanup CSS effectué (out-of-scope, risque de régression sur autres usages non audités).
 
 - [v2.3 P4.1] Migration lexicale **cas-par-cas** appliquée à la lettre (règle d'or "si tu hésites, garde le mot original" respectée systématiquement). 89 occurrences relues dans leur contexte, 2 migrations chirurgicales : (a) operator.htmx.html L1062 placeholder `Nom du membre…` → `Nom du votant…` (alignement sur `<label>` et `aria-label` qui disaient déjà "votant"), (b) ErrorDictionary.php L227 message `token_member_mismatch` `'... ce membre.'` → `'... ce votant.'` (token de vote = scrutin actif, "votant" plus précis ; clé technique inchangée pour préserver le contrat API). 87 conservations justifiées dans 4 scratchs `.planning/phases/04-lexique-ux-critique/scratch-04.1-{operator,help,members,errordict}.txt`.
 - [v2.3 P4.1] **members.htmx.html : 0 transformation copy** — par construction la page traite du registre CRUD (inscrits), `membre` est sémantiquement correct partout (18/18 conservés). Page-référence pour le concept "membre = inscrit générique".
@@ -165,7 +173,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 04.1 livré — LEX-01 + LEX-02 closed. Migration lexicale cas-par-cas sur 4 fichiers (operator.htmx.html, help.htmx.html, members.htmx.html, ErrorDictionary.php) : 89 occurrences analysées dans leur contexte, 2 migrations chirurgicales (operator L1062 placeholder ; ErrorDictionary L227 token message), 87 conservations justifiées. Glossaire pédagogique #vocabulaire ajouté à help.htmx.html. LEX-02 (Approuver banni) acquis par construction : scan transverse 0 hit. 3 atomic commits (8890696, 0d6b651, dbdee25) + 5 scratchs. SUMMARY 04.1 + REQUIREMENTS LEX-01/02 [x]. Phase 04 = 1/6.
+Stopped at: Plan 04.2 livré — MODAL-01 + MODAL-03 closed (MODAL-02 reste pending pour Plan 04.3 — test E2E Playwright). 7 modales legacy `.modal` migrées vers `<ag-modal>` sur 6 HTML + 6 JS associés adaptés (open()/close() API au lieu de hidden=true/false ou style.display). Triggers a11y : 3 statiques HTML (operator/archives/validate) + 2 dynamiques JS (audit/trust) avec `aria-haspopup="dialog"` + signifiant visuel. meetings popover-routed (out-of-scope MODAL-03). op-quorum-modal CSS class custom conservé. Bug Rule 1 fixé en passant : meetings.js openEditModal cherchait des radios sur un <select>. 6 commits atomiques HTML+JS (882f5e3 audit, 506655e meetings, abfa15a archives, 8706cdc trust, c6bd233 validate, 316a44e operator). SUMMARY 04.2 + REQUIREMENTS MODAL-01/03 [x] + STATE.md decisions × 7. 04.1 'Nom du votant…' préservé. Phase 04 = 2/6.
 Resume file: None
 
-**Next action:** Plan 04.2 — MODAL-01..03 (audit modales legacy, migration vers `<ag-modal>`, focus trap a11y, affordance triggers `aria-haspopup="dialog"`). Followups Phase 04 : ERR-01..04 (Plans 04.3-04.6) — enrichissement next-step top 50 codes ErrorDictionary, test PHPUnit `UxConventionsTest`, audit prévention top 5 codes émis. Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` ; capture before/after dashboard ; gap: 14px .dashboard-urgent normalisation. Followups Phases 01-02 : Playwright specs (cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator, modal-intégrité).
+**Next action:** Plan 04.3 — MODAL-02 (test E2E Playwright qui ouvre une modale, vérifie Escape la ferme + restore focus). Plans 04.4-04.6 : ERR-01..04 (enrichissement next-step top 50 codes ErrorDictionary, test PHPUnit `UxConventionsTest`, audit prévention top 5 codes émis). Followups Phase 04 04.2 cumulés : (1) tests E2E manuels des 7 modales (Tab cycle / Escape / backdrop click / restore focus) — sandbox sans browser ; (2) cleanup CSS legacy `.modal-backdrop/.modal-dialog/.modal-header/.modal-body/.modal-footer/.modal-title/.modal-actions/.modal-close-btn` après audit transverse hors-scope (templates serveur PHP non audités) ; (3) trigger `.session-menu-btn` meetings — décider sémantique a11y si `<ag-popover>` ne porte pas déjà `aria-haspopup="menu"` ; (4) migration `op-quorum-modal` v2.4 si harmonisation souhaitée. Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` ; capture before/after dashboard ; gap: 14px .dashboard-urgent normalisation. Followups Phases 01-02 : Playwright specs (cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator, modal-intégrité).

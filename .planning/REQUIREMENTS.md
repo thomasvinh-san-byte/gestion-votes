@@ -60,9 +60,9 @@
 
 - [x] **LEX-01**: Convention "membre/participant/votant" appliquée par migration cas-par-cas (lecture du contexte) sur le copy utilisateur. Distinction sémantique : membre = inscrit, participant = présent, votant = éligible au scrutin courant. **DONE Plan 04.1** : 89 occurrences analysées sur 4 fichiers (operator/help/members/ErrorDictionary), 2 migrées (operator L1062 placeholder + ErrorDictionary L227 token message), 87 conservées avec justification écrite (cf. 5 scratchs). Glossaire pédagogique #vocabulaire ajouté à help.htmx.html.
 - [x] **LEX-02**: Convention "confirmer/valider/verrouiller-archiver" appliquée. "Approuver" banni du copy de finalisation (ambiguë juridiquement). **DONE Plan 04.1** : scan transverse complet `app/` + `public/` retourne 0 occurrence d'Approuver — bannishment acquis par construction. Glossaire help.htmx.html documente la règle (confirmer/valider/verrouiller-archiver) et l'unique apparition pédagogique.
-- [ ] **MODAL-01**: Audit des modales legacy `.modal` CSS class. Migration vers `<ag-modal>` web component pour bénéficier du focus trap natif (Tab + Shift+Tab + Escape).
+- [x] **MODAL-01**: Audit des modales legacy `.modal` CSS class. Migration vers `<ag-modal>` web component pour bénéficier du focus trap natif (Tab + Shift+Tab + Escape). **DONE Plan 04.2** : 7 modales legacy migrées sur 6 fichiers HTML (operator/audit/meetings/archives/trust/validate) ; 6 fichiers JS associés adaptés (`open()`/`close()` API). `op-quorum-modal` conservé (CSS class custom, pas legacy `.modal`).
 - [ ] **MODAL-02**: Toutes les modales actives doivent permettre Escape pour fermer (a11y critique). Ajout d'un test E2E qui ouvre une modale et vérifie que Escape la ferme + restore le focus à l'élément précédent.
-- [ ] **MODAL-03**: **Affordance des triggers** : tous les boutons/liens qui ouvrent une `<ag-modal>` doivent porter `aria-haspopup="dialog"` + un signifiant visuel (ellipsis "…", icône, ou suffixe textuel). Norman : un focus trap interne est inutile si l'utilisateur ne sait pas qu'il s'apprête à entrer dans un dialog. Audit + correctifs sur les triggers de Phase 4 dans le même PR que MODAL-01/02.
+- [x] **MODAL-03**: **Affordance des triggers** : tous les boutons/liens qui ouvrent une `<ag-modal>` doivent porter `aria-haspopup="dialog"` + un signifiant visuel (ellipsis "…", icône, ou suffixe textuel). Norman : un focus trap interne est inutile si l'utilisateur ne sait pas qu'il s'apprête à entrer dans un dialog. Audit + correctifs sur les triggers de Phase 4 dans le même PR que MODAL-01/02. **DONE Plan 04.2** : 3 triggers HTML statiques (operator `#btnLaunchSession`, archives `#btnExportsModal`, validate `#btnValidate`) + 2 triggers dynamiques injectés en JS (audit timeline items, trust audit table rows). meetings utilise un `<ag-popover>` (menu) — non concerné.
 - [ ] **ERR-01**: Top 50 codes `ErrorDictionary.php` (les plus utilisés) enrichis avec un "next-step" actionnable. Exemple : `"Vous avez déjà voté sur cette résolution."` → `"Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent."`
 - [ ] **ERR-02**: Test PHPUnit `tests/Security/UxConventionsTest.php` qui scanne ErrorDictionary et exige au moins une virgule + un verbe d'action (impératif ou subjonctif) dans chaque message des 50 codes les plus utilisés. Filet permanent contre la régression. **Note pour le planner :** `tests/Security/CopyConventionsTest.php` existe déjà depuis v2.2 phase 4 (3 cas, 708 assertions — terms forbidden, no "secrétaire de séance", no leftover placeholders). `UxConventionsTest` est complémentaire (cible `ErrorDictionary` spécifiquement) — ne pas dupliquer ni étendre `CopyConventionsTest`.
 - [ ] **ERR-03**: Le test `UxConventionsTest` rejette aussi une **liste de phrases creuses** (regex), même si la forme passe (virgule + verbe) : `/réessayer\.?$/i`, `/contactez (le|l')admin/i`, `/erreur survenue/i`, `/une erreur est survenue/i`, `/veuillez réessayer plus tard/i`. Un message de la liste top 50 qui matche est un échec de test — il doit être réécrit avec un next-step concret.
@@ -133,9 +133,9 @@
 | LOGIN-03 | Phase 3 | DONE 2026-04-30 (Plan 03.5, commits 1195cbe + 723123d) |
 | LEX-01 | Phase 4 | Done (Plan 04.1, commits 8890696 + 0d6b651 + dbdee25) |
 | LEX-02 | Phase 4 | Done (Plan 04.1, bannishment acquis par construction — scan transverse 0 hit) |
-| MODAL-01 | Phase 4 | Pending |
+| MODAL-01 | Phase 4 | Done (P4.2) |
 | MODAL-02 | Phase 4 | Pending |
-| MODAL-03 | Phase 4 | Pending |
+| MODAL-03 | Phase 4 | Done (P4.2) |
 | ERR-01 | Phase 4 | Pending |
 | ERR-02 | Phase 4 | Pending |
 | ERR-03 | Phase 4 | Pending |
