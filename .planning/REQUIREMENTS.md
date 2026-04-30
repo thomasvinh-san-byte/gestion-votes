@@ -36,16 +36,16 @@
 
 ### Layouts secondaires (Phase 3)
 
-- [ ] **DASHBOARD-01**: Le dashboard affiche au plus 3 KPI cards (au lieu de 4 actuellement). **Le PLAN.md de la phase 3 doit nommer explicitement le KPI supprimé et justifier pourquoi il a la moindre charge décisionnelle au quotidien** (critère produit, pas process). Le KPI déposé est intégré ailleurs (lien vers `/analytics`) — aucune information perdue.
-- [ ] **DASHBOARD-02**: La hero card pleine largeur affiche **3 états distincts** selon l'imminence d'une séance :
+- [x] **DASHBOARD-01**: Le dashboard affiche au plus 3 KPI cards (au lieu de 4 actuellement). **Le PLAN.md de la phase 3 doit nommer explicitement le KPI supprimé et justifier pourquoi il a la moindre charge décisionnelle au quotidien** (critère produit, pas process). Le KPI déposé est intégré ailleurs (lien vers `/analytics`) — aucune information perdue.
+- [x] **DASHBOARD-02**: La hero card pleine largeur affiche **3 états distincts** selon l'imminence d'une séance :
   - *Ambient* (séance prévue dans < 60 min, > 5 min) : hero card neutre, action *"Préparer la séance"*.
   - *Urgent* (séance prévue dans < 5 min) : hero card accent warning, action *"Démarrer maintenant"*.
   - *Live* (séance en cours) : hero card accent danger avec pulse douce (respect `prefers-reduced-motion`), action *"Reprendre"*.
   Aucune hero card si > 60 min — on ne crie pas pour rien.
 - [ ] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
-- [ ] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
+- [x] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
 - [ ] **DASHBOARD-05**: Audit + groupement des **15 shortcut-cards** actuelles : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions" ou groupé par persona. Le PLAN.md de Phase 3 nomme les 5 retenues et justifie leur priorité (mêmes critères produit que DASHBOARD-01). *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*
-- [ ] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
+- [x] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
 - [ ] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
 - [ ] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
 - [ ] **LOGIN-03**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` (top offenders Schoger : 42 hardcodes dans `pages.css`, plus dans `login.css`). Remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 3 : `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` ; cible post-phase = 0 sur ces deux fichiers.
@@ -120,12 +120,12 @@
 | EDITORIAL-08 | Phase 2 | Done (02.1 + 02.3) |
 | EDITORIAL-09 | Phase 2 | Done (02.5 cleanup + 02.6 guard test) |
 | TECH-01 | Quick task pré-Phase 2 | Pending (Schoger S-2) |
-| DASHBOARD-01 | Phase 3 | Pending |
-| DASHBOARD-02 | Phase 3 | Pending |
+| DASHBOARD-01 | Phase 3 | Done (03.1) |
+| DASHBOARD-02 | Phase 3 | Done (03.1) |
 | DASHBOARD-03 | Phase 3 | Pending |
-| DASHBOARD-04 | Phase 3 | Pending |
+| DASHBOARD-04 | Phase 3 | Done (03.1) |
 | DASHBOARD-05 | Phase 3 | Pending (Schoger S-8) |
-| DASHBOARD-06 | Phase 3 | Pending (Schoger S-4) |
+| DASHBOARD-06 | Phase 3 | Done (03.1, Schoger S-4) |
 | LOGIN-01 | Phase 3 | Pending (amendée Schoger S-5) |
 | LOGIN-02 | Phase 3 | Pending |
 | LOGIN-03 | Phase 3 | Pending (Schoger S-3) |

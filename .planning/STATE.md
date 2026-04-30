@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 03
-stopped_at: "Plan 02.6 livré — tests/Security/EditorialConventionsTest.php créé (4 tests, 37 assertions, run 12 ms vert au premier essai). Budget CLAUDE.md max 3 runs préservé (1 seul run effectué). EDITORIAL-01/04/05/09 figés par tests gardiens : centrage interdit sur enfant `.ag-editorial`, préambule pédagogique verbatim FR dans ag-integrity-modal.js, 0 hardcoded spacing sur 4 CSS éditoriaux, pill mono jamais dans `<p>` serif (F-4 Schoger lock). Namespace Tests\\Security cohérent CopyConventionsTest + PersonaIsolationTest. N-3 dédup respecté (pas de doublon forbidden-words). DOMDocument permissif pour fragments HTMX. Commit 143305b. SUMMARY 02.6 écrit. **Phase 02 (Pages éditoriales) : 6/6 COMPLÈTE.** Branche feat/v2.3-cockpit-operateur prête pour PR review (Phase 01 + 02 cumulés)."
-last_updated: "2026-04-30T09:08:38.295Z"
+stopped_at: "Plan 03.1 livré — Dashboard refait : KPI 4→3 (kpi-card--3 \"Convoc. en attente\" déposé en lien footer /hub via F1), wrapper KPI en CSS Grid 3 colonnes responsive (DASHBOARD-06), hero card structurelle avec 3 modificateurs d'imminence (--ambient/--urgent/--live + pulse danger 2s ease-in-out infinite, désactivée par @media (prefers-reduced-motion: reduce)), empty state DASHBOARD-04 via <ag-empty-state icon=\"none\"> (composant étendu — patch chirurgical 3 lignes, rétrocompat 5 icons préservée). Pattern <template id=\"dashboardEmptyState\"> + cloneNode hydration JS-side (source FR dans le HTML). 3 commits atomiques : 2d5e2dc (KPI), 7153371 (hero), b3518df (empty state). 4 fichiers modifiés. B1 lock posé (--color-danger pas --color-success sur live), B2 fix appliqué, F1/F2/F3 résolus. CSS dashboard vit dans pages.css (pas dashboard.css comme indiqué dans le plan — adaptation transparente). DashboardController est un endpoint JSON REST → empty state 100% client-side, documenté."
+last_updated: "2026-04-30T09:33:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 15
-  completed_plans: 10
-  percent: 67
+  completed_plans: 11
+  percent: 73
 ---
 
 # AG-VOTE -- Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
-Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 work)
+Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03.1 work)
 Phase: 03 (Layouts secondaires) — EXECUTING
-Plan: 1 of 5
+Plan: 2 of 5 (next)
 
-Progress: [##########] 100% (4/4 plans of phase 01) + 6/6 plans of phase 02 — 2/4 phases of milestone v2.3 done
+Progress: [#######...] 73% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 1/5 plans of phase 03 — 2/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -38,6 +38,18 @@ Progress: [##########] 100% (4/4 plans of phase 01) + 6/6 plans of phase 02 — 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.3 Phase 03:
+
+- [v2.3 P3.1] B1 lock posé : `.hero-card--live` utilise `--color-danger-subtle/border` (PAS `--color-success`). Justification REQUIREMENTS DASHBOARD-02 verbatim : une séance en cours = action en flux irréversible = signal de criticité opérateur, pas un signal de succès. Anti-regression doc inline dans le CSS.
+- [v2.3 P3.1] B2 fix : étendre `<ag-empty-state>` avec `icon="none"` (3 lignes patch chirurgical autour de `if (icon !== 'none') { ... emit svg ... }`) plutôt qu'inventer une classe CSS `.ag-empty-state`. Préserve les 5 usages historiques (meetings/members/votes/archives/generic) intacts. JSDoc enrichie avec mention DASHBOARD-04.
+- [v2.3 P3.1] F2 décision : `DashboardController::index()` est un endpoint JSON REST (`api_ok($data)` ligne 140), pas un renderer de templates HTML. L'empty state s'active 100% côté client dans `dashboard.js` quand `meetings.length === 0`. Markup spec EDITORIAL-04 vit dans un `<template id="dashboardEmptyState">` du HTML (source de vérité du texte FR + greppable + a11y safe car `<template>` n'est pas rendu).
+- [v2.3 P3.1] Pattern `<template>` + `cloneNode(true)` hydration : remplace l'ancienne approche `prochaines.innerHTML = '<ag-empty-state icon="meetings" ...>'` inlinée dans dashboard.js. Source de vérité du texte FR migrée du JS au HTML — meilleure ergonomie verifiers + i18n future.
+- [v2.3 P3.1] F1 KPI déposé "intégré ailleurs" : lien discret `<a href="/hub" class="link-muted">Voir aussi : convocations en attente</a>` en footer KPI (DASHBOARD-01). Préserve l'accès à la donnée Convocations sans la mettre au même niveau visuel que les 3 KPI décisionnels (AG à venir / En cours / PV à envoyer).
+- [v2.3 P3.1] F3 CTA strings exact : pour résoudre la friction grep UTF-8 vs entités HTML héritées du fichier (`Pr&eacute;parer la s&eacute;ance`), les 3 CTA "Préparer la séance" / "Démarrer maintenant" / "Reprendre" sont placés dans (a) un commentaire HTML descriptif littéral et (b) le payload de `data-cta-ambient/-urgent/-live`. Le `data-*` est décodé côté JS via `dataset` (preserves entities-as-text → UTF-8 string).
+- [v2.3 P3.1] Path CSS adapté : le plan référence `public/assets/css/dashboard.css` qui n'existe pas — les styles dashboard vivent dans `pages.css` (vérifié par grep `kpi-row|dashboard-kpis|kpi-card-wrapper` qui ne matche que `pages.css`). Adaptation transparente sans déviation Rule.
+- [v2.3 P3.1] Hero card placée APRÈS `.dashboard-urgent` (banner urgent existant) et AVANT les KPI. `[hidden]` par défaut + `aria-labelledby="heroCardTitle"`. Le swap de modificateur (`--ambient` ↔ `--urgent` ↔ `--live`) sera implémenté dans un plan ultérieur — pour l'instant le markup structurel est posé.
+- [v2.3 P3.1] Tâche 1 (`2d5e2dc`) déjà committée en début de session — vérifié byte-by-byte vs spec PLAN.md, conforme. Pas de réécriture, pas de doublon.
+
 Recent decisions affecting v2.3 Phase 02:
 
 - [v2.3 P2.6] Namespace `Tests\Security` (pas Tests\Unit, pas AgVote\Tests\Security) — alignement strict avec CopyConventionsTest + PersonaIsolationTest existants. Suite "Security" déjà déclarée dans phpunit.xml ligne 10-12. Composer.json déclare AgVote\Tests\ mais les tests historiques ne l'utilisent pas — convention figée par usage.
@@ -126,7 +138,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 02.6 livré — tests/Security/EditorialConventionsTest.php créé (4 tests, 37 assertions, run 12 ms vert au premier essai). Budget CLAUDE.md max 3 runs préservé (1 seul run effectué). EDITORIAL-01/04/05/09 figés par tests gardiens : centrage interdit sur enfant `.ag-editorial`, préambule pédagogique verbatim FR dans ag-integrity-modal.js, 0 hardcoded spacing sur 4 CSS éditoriaux, pill mono jamais dans `<p>` serif (F-4 Schoger lock). Namespace Tests\\Security cohérent CopyConventionsTest + PersonaIsolationTest. N-3 dédup respecté (pas de doublon forbidden-words). DOMDocument permissif pour fragments HTMX. Commit 143305b. SUMMARY 02.6 écrit. **Phase 02 (Pages éditoriales) : 6/6 COMPLÈTE.** Branche feat/v2.3-cockpit-operateur prête pour PR review (Phase 01 + 02 cumulés).
+Stopped at: Plan 03.1 livré — Dashboard refait : KPI 4→3 (kpi-card--3 retiré, lien footer /hub via F1), CSS Grid 3 cols responsive (DASHBOARD-06), hero card 3 modificateurs d'imminence (--ambient/--urgent/--live + pulse danger respectant prefers-reduced-motion, B1 lock posé), empty state DASHBOARD-04 via <ag-empty-state icon="none"> (composant étendu B2 — patch chirurgical 3 lignes, rétrocompat 5 icons préservée, pattern <template> hydration JS-side). 3 commits atomiques 2d5e2dc/7153371/b3518df. 4 fichiers modifiés (dashboard.htmx.html, pages.css, ag-empty-state.js, dashboard.js). DashboardController est un endpoint JSON REST → empty state 100% client-side, F2 documenté. CSS dashboard vit dans pages.css (pas dashboard.css comme indiqué dans le plan — adaptation transparente). SUMMARY 03.1 écrit avec self-check passed. ROADMAP mis à jour Phase 03 = 1/5 Executing.
 Resume file: None
 
-**Next action:** Phase 03 (Layouts secondaires — DASHBOARD-01..06 + LOGIN-01..03) à planifier via `/gsd:plan-phase 3`. Followup avant `/gsd:ship` Phase 02 : exécuter manuellement la spec Playwright modal-intégrité (à créer) sur machine dev (sandbox sans Playwright). Followups Phase 1 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + nouveau modal-intégrité Phase 2.
+**Next action:** Plan 03.2 à exécuter (sidebar/navigation secondaire ?). Followup avant `/gsd:ship` Phase 03 : ajouter la logique JS de swap `.hero-card--ambient/--urgent/--live` selon imminence calculée (pas implémenté en 03.1, hero card reste `[hidden]` actuellement). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité.
