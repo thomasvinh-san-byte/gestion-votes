@@ -410,30 +410,7 @@
     if (resultatPanel) resultatPanel.classList.add('active');
   }
 
-  // =========================================================================
-  // KEYBOARD SHORTCUTS
-  // =========================================================================
-
-  document.addEventListener('keydown', function(e) {
-    // Skip if in input/textarea/select or meta/ctrl/alt key held
-    var tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-    // Only active in execution mode
-    if (O.currentMode !== 'exec') return;
-
-    if (e.key === 'p' || e.key === 'P') {
-      e.preventDefault();
-      var proclaimBtn = document.getElementById('opBtnProclaim');
-      if (proclaimBtn && !proclaimBtn.disabled) handleProclaim();
-    }
-    if (e.key === 'f' || e.key === 'F') {
-      e.preventDefault();
-      var toggleBtn = document.getElementById('opBtnToggleVote');
-      if (toggleBtn && !toggleBtn.disabled) toggleBtn.click();
-    }
-  });
+  // Keyboard shortcuts moved to /assets/js/pages/operator-keybindings.js (Phase v2.3 / COCKPIT-06).
 
   // =========================================================================
   // AGENDA SIDEBAR RENDERING

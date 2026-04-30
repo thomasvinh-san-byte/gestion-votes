@@ -75,7 +75,7 @@
 .filter-tab {
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full, 999px);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: var(--text-sm, 0.875rem);
@@ -163,7 +163,7 @@
 /* ─── View toggle button group ─── */
 .view-toggle {
   display: flex;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md, 8px);
   overflow: hidden;
   flex-shrink: 0;
@@ -215,7 +215,7 @@
 
 .archive-card-enhanced {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: border-color var(--duration-normal), box-shadow var(--duration-normal), background var(--duration-normal);
@@ -265,7 +265,7 @@
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
   background: var(--color-surface-raised, var(--color-surface));
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
 }
 
 .archive-card-body {
@@ -278,7 +278,7 @@
   justify-content: space-between;
   padding: var(--space-3) var(--space-5);
   background: var(--color-bg-subtle);
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
 }
 
 /* =============================================================================
@@ -321,7 +321,7 @@
   padding: var(--space-2);
   background: var(--color-surface);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
 }
 
 .archive-info-value {
@@ -411,7 +411,7 @@
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
 }
 
 /* =============================================================================

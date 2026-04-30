@@ -14,8 +14,8 @@
 - ✅ **v1.9 UX Standards & Retention** - Phases 1-5 (shipped 2026-04-21) — see `.planning/milestones/v1.9-ROADMAP.md`
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
 - ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
-- 🚧 **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (in PR #256, partial — 5 items reportés v2.3)
-- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (planning) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
+- ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
+- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (Phase 1 ✓ livrée 2026-04-30, 36 requirements après 2 revues UX Zhuo/Norman + Schoger) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, screenshot panel gate, + 1 quick task transverse TECH-01 (consolidation shadows/borders) à exécuter avant Phase 2
 
 ## Phases
 
@@ -226,60 +226,91 @@ See `.planning/REQUIREMENTS.md` (will be archived to v2.2-REQUIREMENTS.md when v
 
 **Strategy:** 4 phases, build order : cockpit (plus haute valeur) → éditorial → secondaires → lexique+UX (filet de sécurité). 1 PR par phase, base = main une fois v2.2 (PR #256) mergée.
 
+**Milestone Success Gate — Screenshot Panel:** En fin de Phase 4, capture des screenshots avant (snapshot v2.2-merge) et après (snapshot v2.3-merge) sur 5 écrans clés : `/login`, `/dashboard`, `/operator` (mode exec), `/audit` (PV), un modal d'erreur. 3 observateurs internes notent chaque paire sur 5 dimensions (échelle 1-5) :
+
+| Dimension | Question |
+|---|---|
+| Confiance | "Cette interface m'inspire confiance" |
+| Compréhension | "Je comprends quoi faire sans qu'on m'explique" |
+| Charge | "Je ne suis pas surchargé visuellement" |
+| Action | "Je sais quelle action prendre ensuite" |
+| Sérieux | "Ça a l'air légal / professionnel" |
+
+**Critère de réussite :** médiane gagne **≥ +1 point** sur chaque dimension entre snapshot v2.2-merge et snapshot v2.3-merge. Sinon — Phase 4 ne peut pas être déclarée complete et un correctif de polish s'ajoute avant merge.
+
+Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") qui était jusqu'ici dans la goal sans être mesuré.
+
 ## Phase Details
 
 ### Phase 1: Cockpit Opérateur live
 
-**Goal**: Refonte de la vue exécution opérateur en y intégrant une barre santé séance unique avec 4 indicateurs persistants (Quorum / SSE / Votants connectés / Résolution), encapsulée dans un custom element `<ag-health-bar>` réutilisable et testable.
+**Goal**: Refonte de la vue exécution opérateur en y intégrant une barre santé séance unique avec hiérarchie à deux niveaux (primary : Quorum + Résolution / ambient : SSE + votes restants), encapsulée dans un custom element `<ag-health-bar>` réutilisable et testable. La barre supporte un état d'anticipation "quorum à risque" et des raccourcis clavier pour les actions critiques sous stress.
 
 **Depends on**: Nothing (first phase)
-**Requirements**: COCKPIT-01, COCKPIT-02, COCKPIT-03, COCKPIT-04, COCKPIT-05
+**Requirements**: COCKPIT-01, COCKPIT-02, COCKPIT-03, COCKPIT-04, COCKPIT-05, COCKPIT-06, COCKPIT-07
 **Success Criteria** (what must be TRUE):
-  1. La vue exécution opérateur (`/operator` en mode exec) affiche une barre santé persistante au top, avec 4 indicateurs lisibles à 1m d'écran : Quorum atteint vert / non-atteint rouge avec ratio, SSE état (live/reconnecting/offline), nombre de votants connectés en temps réel, numéro + titre tronqué de la résolution active.
-  2. Quand le quorum bascule en non-atteint pendant la séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) entoure la zone vote — animation supprimée si `prefers-reduced-motion: reduce`.
-  3. Sous 768px viewport, la barre santé devient un stack vertical (4 lignes) plutôt qu'une compression horizontale illisible.
-  4. Le custom element `<ag-health-bar>` est consommé via `<ag-health-bar quorum-met="true" quorum-ratio="156/150" sse-state="live" voters-online="142" motion-number="3" motion-title="..."></ag-health-bar>` ; tous les attributs reactifs.
-  5. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright operator-e2e.
+  1. La vue exécution opérateur (`/operator` en mode exec) affiche une barre santé persistante au top avec **hiérarchie à 2 niveaux** : Quorum (atteint vert / à risque warning / non-atteint rouge avec ratio) et numéro + titre tronqué de la résolution active en typo dominante (primary) ; SSE état (live/reconnecting/offline) et "Votes restants : N / Total" sur la résolution active en pill 12-13px à droite (ambient). Lisible à 1m d'écran sur le primary.
+  2. Quand le quorum bascule en non-atteint pendant la séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) entoure la zone vote — animation supprimée si `prefers-reduced-motion: reduce`. Quand le ratio descend sous 110 % du seuil mais reste atteint, l'indicateur Quorum passe en couleur warning (sans pulse) — état "à risque" anticipatif.
+  3. Sous 768px viewport, la barre santé devient un stack vertical plutôt qu'une compression horizontale illisible.
+  4. Le custom element `<ag-health-bar>` est consommé via attributs réactifs (quorum-state, quorum-ratio, sse-state, votes-remaining, motion-number, motion-title) ; tous les changements d'attribut déclenchent un re-render.
+  5. Raccourcis clavier actifs sur la vue exécution : `L` lance le vote actif, `F` ferme le scrutin actif, `→` ou `N` passe à la résolution suivante, `?` affiche un overlay des raccourcis. Désactivés dans les inputs/textareas/contenteditable.
+  6. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright operator-e2e.
+
+**Plans:** 4 plans
+- [x] 01.1-PLAN.md — Custom element <ag-health-bar> + stylesheet (states, pulse, responsive) — shipped 2026-04-30 (commits c337607, 8338ff8)
+- [x] 01.2-PLAN.md — Keyboard shortcuts module + overlay (L/F/→/?/Escape) — shipped 2026-04-30 (commits 22f571e, d2a81c2)
+- [x] 01.3-PLAN.md — Wire <ag-health-bar> + keybindings into operator.htmx.html (SSE + at-risk threshold) — shipped 2026-04-30 (commits 5d719cd, 416566e, b61854f)
+- [x] 01.4-PLAN.md — Playwright E2E: health-bar states, keyboard shortcuts, regression check
 
 ### Phase 2: Pages éditoriales
 
 **Goal**: Donner aux pages à valeur de preuve (`/audit`, `/trust`, `/archives`, `/report`) un traitement éditorial qui dégage immédiatement le sérieux légal — police serif Fraunces sur le contenu, largeur de lecture plafonnée, monospace JetBrains Mono pour les hashes/UUID.
 
-**Depends on**: Phase 1 (custom element pattern établi)
-**Requirements**: EDITORIAL-01, EDITORIAL-02, EDITORIAL-03, EDITORIAL-04, EDITORIAL-05, EDITORIAL-06
+**Depends on**: Phase 1 (custom element pattern établi) + quick task TECH-01 (consolidation shadows/borders) **livrée avant le démarrage de Phase 2**
+**Requirements**: EDITORIAL-01, EDITORIAL-02, EDITORIAL-03, EDITORIAL-04, EDITORIAL-05, EDITORIAL-06, EDITORIAL-07, EDITORIAL-08, EDITORIAL-09
 **Success Criteria** (what must be TRUE):
-  1. Les 4 pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) wrappent leur contenu dans `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6.
-  2. Les contrôles UI (boutons, filtres, dropdowns) restent en sans-serif (Bricolage Grotesque) — la dualité serif/sans est un signal fort de "ceci est un document légal".
+  1. Les 4 pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) wrappent leur contenu dans `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6. Tous les enfants directs `.ag-editorial > *` sont en `text-align: left` explicite — verrouillé par test (CSS lint ou PHPUnit qui scanne les templates).
+  2. Les contrôles UI (boutons, filtres, dropdowns) restent en sans-serif (Bricolage Grotesque) — la dualité serif/sans est un signal fort de "ceci est un document légal". **Audit livré** des 5 filter tabs sur `/audit` : tabs utilisés <5 % du temps déplacés dans `<details>` "Plus de filtres" (le PLAN.md nomme les tabs retenus en avant et ceux pliés).
   3. Les hashes audit, UUID de motions, codes de vote affichés utilisent `var(--font-mono)` (JetBrains Mono).
-  4. Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace.
-  5. Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" qui ouvre un modal montrant la chaîne de hash audit_events.
+  4. Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace **uniquement en en-tête de section, en liste, ou en tableau** ; inline en flux serif, ils restent en mono sans pill (le pill casserait le rythme de lecture).
+  5. Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" qui ouvre un modal. Le modal commence par un préambule pédagogique en français ("Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne.") avant d'afficher la chaîne de hash audit_events.
   6. Sous 768px, la largeur 720px passe à 100% width avec padding latéral — pas de scroll horizontal.
+  7. `@media print` actif sur les 4 pages éditoriales : contrôles UI masqués (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. Imprimé en N&B reste lisible sans dépendre du contraste couleur.
+  8. Le wrapper `.ag-editorial` utilise **`display: grid`** (pas flex) pour structurer la colonne contenu (max-width 720px) et une colonne sidebar (hash d'intégrité + méta + nav interne) sur viewport ≥ 1024px ; collapse vertical sous 1024px.
+  9. **0 padding/margin hardcodés** dans `public/assets/css/audit.css` après Phase 2 (et tout autre CSS touché par `.ag-editorial`) — `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/audit.css` retourne 0. Tous via tokens.
 
 ### Phase 3: Layouts secondaires
 
 **Goal**: Simplifier le dashboard pour qu'il livre l'info principale en un coup d'œil, et alléger la page de login de son orbe animé + de son surplus marketing pour faire de la place au formulaire.
 
-**Depends on**: Nothing (peut paralléliser avec Phase 1-2)
-**Requirements**: DASHBOARD-01, DASHBOARD-02, DASHBOARD-03, LOGIN-01, LOGIN-02
+**Depends on**: Quick task TECH-01 (consolidation shadows/borders) **livrée** avant Phase 3
+**Requirements**: DASHBOARD-01, DASHBOARD-02, DASHBOARD-03, DASHBOARD-04, DASHBOARD-05, DASHBOARD-06, LOGIN-01, LOGIN-02, LOGIN-03
 **Success Criteria** (what must be TRUE):
-  1. Le dashboard affiche au plus 3 KPI cards (au lieu de 4). Le 4ᵉ KPI est intégré dans la hero card ou redirigé vers `/analytics` — aucune information perdue.
-  2. Quand une séance est `live` ou `scheduled` dans la prochaine heure, une hero card pleine largeur la met en avant au-dessus des KPI (avec bouton "Reprendre" / "Démarrer").
+  1. Le dashboard affiche au plus 3 KPI cards (au lieu de 4). Le PLAN.md de la phase nomme explicitement le KPI supprimé et justifie pourquoi il a la moindre charge décisionnelle. Le KPI déposé est intégré ailleurs (lien vers `/analytics`) — aucune information perdue.
+  2. La hero card pleine largeur affiche **3 états distincts** d'imminence : *ambient* (séance dans <60min, >5min, action "Préparer"), *urgent* (séance dans <5min, accent warning, action "Démarrer maintenant"), *live* (séance en cours, accent danger pulse, action "Reprendre"). Aucune hero card si >60min.
   3. Les actions rapides (Créer séance, Importer membres, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` background.
-  4. La page `/login.html` ne contient plus l'orbe animé (suppression de `.login-orb` et de la radial-gradient associée).
-  5. Le panel brand login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — ratio 50/50 ou 40/60 form-dominant.
+  4. **Empty state** quand aucune séance prévue ni récente (<30j) : message centré "Aucune séance prévue. Créez-en une pour commencer." + CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative.
+  5. **Audit + groupement des 15 shortcut-cards** : top 5 utilisés en avant en grille principale, le reste replié derrière un disclosure "Toutes les actions" ou groupé par persona. Le PLAN.md nomme les 5 retenues et justifie leur priorité.
+  6. **Layout dashboard via `display: grid`** : hero card pleine largeur + grille KPI 3 colonnes (`grid-template-columns: repeat(3, 1fr)` ou équivalent). Plus de `flex-basis` hacks pour aligner les KPI.
+  7. La page `/login.html` ne contient plus l'orbe animé (suppression de `.login-orb` et de la radial-gradient associée) **ni le pattern de fond `login-brand-grid`**. Le `login-brand-glow` radial atténué peut rester comme single subtle gradient.
+  8. Le panel brand login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — ratio 50/50 ou 40/60 form-dominant.
+  9. **0 padding/margin hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` après Phase 3 — `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` retourne 0/0. Tous via tokens.
 
 ### Phase 4: Lexique + UX critique
 
 **Goal**: Cristalliser la convention lexicale unifiée (membre/participant/votant + confirmer/valider/verrouiller-archiver) dans le copy utilisateur, migrer les modales legacy vers `<ag-modal>` (focus trap), et enrichir les top 50 codes ErrorDictionary avec un "next-step" actionnable conformément à la critique Norman.
 
 **Depends on**: Phases 1, 2, 3 (la convention s'applique à un copy stabilisé)
-**Requirements**: LEX-01, LEX-02, MODAL-01, MODAL-02, ERR-01, ERR-02
+**Requirements**: LEX-01, LEX-02, MODAL-01, MODAL-02, MODAL-03, ERR-01, ERR-02, ERR-03, ERR-04
 **Success Criteria** (what must be TRUE):
   1. Aucune modale active dans l'app n'utilise plus la classe legacy `.modal` — toutes migrées vers `<ag-modal>` web component qui fournit Tab + Shift+Tab + Escape natifs.
   2. Test E2E `tests/e2e/specs/modal-focus-trap.spec.js` ouvre une modale, vérifie que Escape la ferme, et que le focus retourne à l'élément qui l'a ouverte.
-  3. Convention "membre/participant/votant" appliquée par migration cas-par-cas sur `public/*.htmx.html`, `app/Templates/*.php`, `app/Services/ErrorDictionary.php`. Distinction sémantique respectée : "membre du conseil" reste, "membre votant" devient "votant".
-  4. Top 50 codes ErrorDictionary les plus utilisés ont chacun un "next-step" actionnable (au moins une virgule + un verbe d'action en impératif ou subjonctif). Exemple validé : `'already_voted' => 'Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent.'`.
-  5. `tests/Security/UxConventionsTest.php` (nouveau) scanne ErrorDictionary et exige le next-step présent dans chaque message des 50 codes les plus fréquents — filet permanent contre la régression.
+  3. Tous les boutons/liens qui ouvrent une `<ag-modal>` portent `aria-haspopup="dialog"` et un signifiant visuel (ellipsis, icône, ou suffixe textuel). Audit + correctifs livrés dans le même PR que MODAL-01/02.
+  4. Convention "membre/participant/votant" appliquée par migration cas-par-cas sur `public/*.htmx.html`, `app/Templates/*.php`, `app/Services/ErrorDictionary.php`. Distinction sémantique respectée : "membre du conseil" reste, "membre votant" devient "votant".
+  5. Top 50 codes ErrorDictionary les plus utilisés ont chacun un "next-step" actionnable (au moins une virgule + un verbe d'action en impératif ou subjonctif). Exemple validé : `'already_voted' => 'Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent.'`.
+  6. `tests/Security/UxConventionsTest.php` (nouveau) scanne ErrorDictionary et exige (a) un next-step dans chaque message des 50 codes les plus fréquents et (b) qu'aucun de ces messages ne matche les regex de phrases creuses interdites (`/réessayer\.?$/i`, `/contactez (le|l')admin/i`, `/erreur survenue/i`, `/une erreur est survenue/i`, `/veuillez réessayer plus tard/i`).
+  7. **Audit prévention** des 5 codes ErrorDictionary les plus émis : le PLAN.md identifie pour chacun si l'erreur peut être prévenue par contrainte UI plutôt que rattrapée. Au moins 2 sur 5 sont marqués "prévenu en v2.3" (ou "reporté v2.4 avec rationale écrite").
+  8. **Screenshot panel gate** réussi : médiane des 3 observateurs ≥ +1 point sur chaque dimension (cf. milestone gate ci-dessus).
 
 </details>
 
@@ -292,7 +323,7 @@ See `.planning/REQUIREMENTS.md` (will be archived to v2.2-REQUIREMENTS.md when v
 | 2. Components | v2.2 | 1/1 | ✓ In PR #256 | - |
 | 3. Personas | v2.2 | 1/1 | ✓ In PR #256 | - |
 | 4. Layout & Lexique (partial) | v2.2 | 1/1 | ⚠ Partial in PR #256 | - |
-| 1. Cockpit Opérateur live | v2.3 | 0/? | ○ Not started | - |
-| 2. Pages éditoriales | v2.3 | 0/? | ○ Not started | - |
-| 3. Layouts secondaires | v2.3 | 0/? | ○ Not started | - |
+| 1. Cockpit Opérateur live | v2.3 | 4/4 | ✓ Complete (Playwright manual) | 2026-04-30 |
+| 2. Pages éditoriales | v2.3 | 6/6 | ✓ Complete | 2026-04-30 |
+| 3. Layouts secondaires | v2.3 | 5/5 | ✓ Complete | 2026-04-30 |
 | 4. Lexique + UX critique | v2.3 | 0/? | ○ Not started | - |

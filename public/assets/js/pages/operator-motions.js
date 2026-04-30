@@ -22,6 +22,10 @@
       if (O.currentMeetingId !== snapshotMeetingId) return; // stale — discard
       O.motionsCache = body?.data?.items || [];
       O.currentOpenMotion = O.motionsCache.find(m => m.opened_at && !m.closed_at) || null;
+      // Plan 01.3 / F-5 — notify <ag-health-bar> of motion change.
+      if (window.O && window.O.fn && typeof window.O.fn.notifyMotionChange === 'function') {
+        window.O.fn.notifyMotionChange();
+      }
       if (O.motionsCache.length === 0) {
         O.fn.showTabEmpty('ordre-du-jour', 'Aucune r\u00e9solution');
         document.getElementById('tabCountResolutions').textContent = 0;
@@ -894,6 +898,10 @@
         setNotif('success', 'Vote clôturé');
       }
       O.currentOpenMotion = null;
+      // Plan 01.3 / F-5 — notify <ag-health-bar> of motion change.
+      if (window.O && window.O.fn && typeof window.O.fn.notifyMotionChange === 'function') {
+        window.O.fn.notifyMotionChange();
+      }
       O.ballotsCache = {};
       await loadResolutions();
       await loadVoteTab();

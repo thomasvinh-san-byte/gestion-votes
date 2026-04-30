@@ -347,6 +347,13 @@ table {
   --color-border-dash:   oklch(0.70 0.010 257);
   --color-border-focus:  oklch(0.45 0.180 265 / 0.50);  /* aligned with --color-primary L* */
 
+  /* Border shorthand tokens (TECH-01 / Schoger S-2) */
+  --border-default: 1px solid var(--color-border);
+  --border-subtle:  1px solid var(--color-border-subtle);
+  --border-strong:  1px solid var(--color-border-strong);
+  --border-dashed:  1px dashed var(--color-border-dash);
+  --border-focus:   2px solid var(--color-border-focus);
+
   --color-primary:        oklch(0.45 0.180 265);  /* v2.2 — Bleu République (#2c468f) */
   --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, black);
   --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, black);
@@ -466,6 +473,9 @@ table {
      ═══════════════════════════════════════════════════════════════════════════ */
 
   --shadow-color: 15 23 42;  /* cool slate black — rgb channels (slate-900) */
+
+  /* Shadow XS — for very subtle 1px shadows (TECH-01 / Schoger S-2) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   --shadow-sm:  0 1px 2px rgb(var(--shadow-color) / 0.06),
                 0 1px 1px rgb(var(--shadow-color) / 0.04);

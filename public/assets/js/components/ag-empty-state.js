@@ -18,7 +18,11 @@
  *     <button slot="action" class="btn btn-primary btn-sm">Importer</button>
  *   </ag-empty-state>
  *
- * Icon values: meetings | members | votes | archives | generic
+ * Icon values: meetings | members | votes | archives | generic | none
+ *
+ * icon="none" — DASHBOARD-04 pattern : pas d'illustration décorative, pure typographie
+ *               + CTA. Le bloc <div class="empty-state-icon"> est entièrement omis.
+ *               Rétrocompat préservée avec les usages existants (meetings/members/...).
  */
 
 // Inline SVG strings — duplicated from shared.js to keep component self-contained
@@ -56,9 +60,12 @@ class AgEmptyState extends HTMLElement {
     // Preserve slotted action child if present before overwriting innerHTML
     var slottedAction = this.querySelector('[slot="action"]');
 
-    var svg = EMPTY_SVG[icon] || EMPTY_SVG.generic;
     var h = '<div class="empty-state animate-fade-in">';
-    h += '<div class="empty-state-icon">' + svg + '</div>';
+    // icon="none" — skip le bloc icon (DASHBOARD-04 pure typographie)
+    if (icon !== 'none') {
+      var svg = EMPTY_SVG[icon] || EMPTY_SVG.generic;
+      h += '<div class="empty-state-icon">' + svg + '</div>';
+    }
     h += '<div class="empty-state-title">' + _esc(title) + '</div>';
     if (desc) h += '<div class="empty-state-description">' + _esc(desc) + '</div>';
     if (actionLabel && actionHref) {

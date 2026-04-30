@@ -30,7 +30,7 @@
   padding: var(--space-4) var(--space-6);
   background: var(--color-surface-overlay);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
 }
 
 .landing-nav {
@@ -45,7 +45,7 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text);
@@ -134,7 +134,7 @@
   width: 380px;
   flex-shrink: 0;
   background: var(--color-surface-raised); /* QA-02: elevated login card above landing page background */
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-xl, 16px);
   padding: var(--space-8);
   box-shadow: var(--shadow-lg);
@@ -180,7 +180,7 @@
 .login-alt {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
 }
 
 .login-alt a {
@@ -236,7 +236,7 @@
 
 .role-card {
   background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   transition: transform var(--duration-normal) var(--ease-out),
@@ -348,7 +348,7 @@
   color: var(--color-text-muted);
   margin-top: var(--space-3);
   padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
 }
 
 /* =============================================================================
@@ -374,7 +374,7 @@
   gap: var(--space-4);
   padding: var(--space-6);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-xl);
   transition: transform var(--duration-normal) var(--ease-out),
               box-shadow var(--duration-normal) var(--ease-out);
@@ -392,7 +392,7 @@
   align-items: center;
   justify-content: center;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md);
   flex-shrink: 0;
   color: var(--color-primary);
@@ -431,7 +431,7 @@
 
 .landing-footer {
   padding: var(--space-8) var(--space-6);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   text-align: center;
 }
 
@@ -489,7 +489,7 @@
     right: 0;
     flex-direction: column;
     background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: var(--border-default);
     padding: var(--space-4);
     gap: var(--space-2);
     box-shadow: var(--shadow-lg);

@@ -18,7 +18,7 @@
   gap: 1.25rem;
   padding: 1.5rem 1.75rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-md);
   position: relative;
@@ -121,7 +121,7 @@
 
 .hub-checklist-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -260,7 +260,7 @@
 
 .hub-quorum-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -329,7 +329,7 @@
 
 .hub-motions-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -406,7 +406,7 @@
 
 .hub-attachments-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -466,7 +466,7 @@
   margin-bottom: var(--space-card, 1.5rem);
   padding: 1rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-sm);
 }
