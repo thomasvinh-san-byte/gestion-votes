@@ -258,7 +258,7 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 
 **Plans:** 4 plans
 - [x] 01.1-PLAN.md — Custom element <ag-health-bar> + stylesheet (states, pulse, responsive) — shipped 2026-04-30 (commits c337607, 8338ff8)
-- [ ] 01.2-PLAN.md — Keyboard shortcuts module + overlay (L/F/→/?/Escape)
+- [x] 01.2-PLAN.md — Keyboard shortcuts module + overlay (L/F/→/?/Escape) — shipped 2026-04-30 (commits 22f571e, d2a81c2)
 - [ ] 01.3-PLAN.md — Wire <ag-health-bar> + keybindings into operator.htmx.html (SSE + at-risk threshold)
 - [ ] 01.4-PLAN.md — Playwright E2E: health-bar states, keyboard shortcuts, regression check
 

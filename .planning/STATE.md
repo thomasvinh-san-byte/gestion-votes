@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 01
-stopped_at: "Phase 01 plan 01.1 (ag-health-bar custom element + stylesheet) shipped — commits c337607, 8338ff8. Plans 01.2/01.3/01.4 next."
-last_updated: "2026-04-30T04:55:00.000Z"
+stopped_at: "Phase 01 plan 01.2 (operator-keybindings module + ag-shortcuts-overlay stylesheet) shipped — commits 22f571e, d2a81c2. Plans 01.3/01.4 next."
+last_updated: "2026-04-30T04:58:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
 Phase: 01 (Cockpit Opérateur live) — EXECUTING
-Plan: 1 of 4 — DONE (next: 01.2)
+Plan: 2 of 4 — DONE (next: 01.3)
 
-Progress: [##........] 25% (1/4 plans of phase 01)
+Progress: [#####.....] 50% (2/4 plans of phase 01)
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -43,6 +43,10 @@ Recent decisions affecting v2.3 Phase 01:
 - [v2.3 P1.1] `<ag-health-bar>` en light DOM (pas shadow DOM) — nécessaire pour l'héritage des tokens design-system et pour que le stylesheet companion adresse `#viewExec` dans la même cascade.
 - [v2.3 P1.1] Pulse "missed" sur la zone vote (`#viewExec[data-quorum-state="missed"]`) plutôt que sur le bar lui-même — fix F-2 du plan-checker, aligné sur ROADMAP SC #2.
 - [v2.3 P1.1] Substitutions de tokens documentées dans le CSS : `--color-surface` (≠ `--surface-base`), `--color-bg-subtle` (≠ `--surface-sunken`), valeur littérale `999px` (pas de `--radius-pill` dans design-system.css).
+- [v2.3 P1.2] Module raccourcis = IIFE (pas ES module) — convention de `public/assets/js/pages/*` ; intégré par `<script src>` dans Plan 01.3, sans build step.
+- [v2.3 P1.2] Anti-trap COCKPIT-06 : exclusion `isContentEditable` ajoutée (le handler legacy de `operator-exec.js` la manquait) ; modifier keys exclus avant tout dispatch.
+- [v2.3 P1.2] Fallback chain L/F → `#opBtnToggleVote` : permet à 01.2 de fonctionner avant ET après que Plan 01.3 sépare le toggle en `#opBtnLaunchVote` / `#opBtnCloseVote`.
+- [v2.3 P1.2] Overlay `?` reste accessible hors mode exec — c'est de la documentation passive ; seules les actions L/F/→/N sont gated par `_isExecMode()`.
 
 Recent decisions affecting v2.2:
 
@@ -75,7 +79,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 01.1 livré sur `feat/v2.3-cockpit-operateur` — `<ag-health-bar>` (light DOM, 6 attributs réactifs, French labels) + stylesheet (3 états quorum, pulse sur `#viewExec[data-quorum-state="missed"]`, prefers-reduced-motion override, responsive <768px). Commits c337607 (JS) + 8338ff8 (CSS).
+Stopped at: Plan 01.2 livré sur `feat/v2.3-cockpit-operateur` — `operator-keybindings.js` IIFE (L/F/→/N/?/Échap, anti-trap input + isContentEditable + modifier keys, fallback `#opBtnToggleVote`, overlay lazy `#agShortcutsOverlay` avec labels français) + `ag-shortcuts-overlay.css` (BEM, tokens, [hidden], no !important). Commits 22f571e (JS) + d2a81c2 (CSS).
 Resume file: None
 
-**Next action:** Plan 01.2 — Keyboard shortcuts module + overlay (L/F/→/?/Escape). Plan 01.2 et 01.1 sont en wave 1 (parallélisables) ; vérifier si 01.2 a déjà démarré avant de lancer.
+**Next action:** Plan 01.3 — câbler `<ag-health-bar>` et `operator-keybindings.js` dans `public/operator.htmx.html`, supprimer le handler keydown legacy de `operator-exec.js` (lignes 417-436), driver les attributs depuis le flux SSE, miroir `quorum-state` sur `#viewExec[data-quorum-state]`. Plan 01.4 = vérification Playwright.
