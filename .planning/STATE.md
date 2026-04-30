@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 04
-stopped_at: "Plan 04.4 livré — ERR-01 closed (exécuté hors-ordre, 04.3 reste pending pour test E2E Playwright modal-focus-trap). Enrichissement chirurgical de 33 codes du top 50 émis dans `app/Services/ErrorDictionary.php` avec un next-step actionnable (virgule + verbe d'action). Baseline 206 codes preserved byte-for-byte (aucun ajout/suppression de code, contrat API intact). Strict heuristic verbes-du-plan : 49 → 81 enriched messages (+32 au-dessus du seuil ≥50). 17 des 50 codes étaient déjà enrichis par le passé (zone sections principales) — laissés tels quels ; 33 codes en zone suppléments (messages courts type 'X invalide.' / 'Y introuvable.' / 'Échec de Z.') ont reçu un next-step concret. 18 codes adjacents thématiquement enrichis pour cohérence inter-codes (déviation mineure scope, coût 0). 0 phrase bannie ERR-03 introduite (réessayer plus tard, contactez l'admin, erreur survenue). LEX-02 acquis (0 Approuver). 04.1 lexique migration `token_member_mismatch` → 'ce votant' préservée. Atomic commit 48ffc3f. TOP_50_CODES list documentée dans 04.4-SUMMARY pour consommation par 04.5 `UxConventionsTest`."
-last_updated: "2026-04-30T11:30:00.000Z"
+stopped_at: "Plan 04.3 livré — MODAL-02 closed via tests/e2e/specs/modal-focus-trap.spec.js (commit e4f5cf6, 257 lignes, 6 tests tagged @a11y-v2.3 : Tab cycle, Shift+Tab cycle, Escape close, focus restore Escape, focus restore X button, cross-modal smoke exportsModal). Stream timeout API post-commit — orchestrator a finalisé SUMMARY 04.3 + STATE update inline. Spec syntactiquement valide (node --check exit 0), Playwright runtime déféré machine dev (followup 04.3-FOLLOWUP-1). Phase 04 progress 4/6 plans : reste 04.5 (UxConventionsTest, depends 04.4 = TOP_50_CODES list dispo dans 04.4-SUMMARY) + 04.6 (audit prévention 5 codes + milestone gate reminder)."
+last_updated: "2026-04-30T11:45:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 21
-  completed_plans: 18
-  percent: 86
+  completed_plans: 19
+  percent: 90
 ---
 
 # AG-VOTE -- Project State
