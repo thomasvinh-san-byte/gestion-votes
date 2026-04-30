@@ -702,8 +702,8 @@
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
                   <span>Tous les pré-requis sont remplis. Vous pouvez lancer la séance.</span>
                 </div>
-                <button class="btn btn-lg btn-success" id="btnLaunchSession">
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance
+                <button class="btn btn-lg btn-success" id="btnLaunchSession" aria-haspopup="dialog">
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg> Lancer la séance…
                 </button>
               </div>
 
@@ -1653,39 +1653,31 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
-  <!-- Launch confirmation modal -->
-  <div class="modal-backdrop launch-modal" id="launchModal" hidden role="dialog" aria-modal="true" aria-labelledby="launchModalTitle">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
-        <h3 id="launchModalTitle">Lancer la séance</h3>
-      </div>
-      <div class="modal-body">
-        <div id="launchModalMeetingTitle" class="text-lg font-bold mb-4"></div>
-        <div class="launch-modal-summary" id="launchModalSummary">
-          <!-- Filled by JS -->
-        </div>
-        <div class="launch-modal-warning mt-4">
-          <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
-          <div>
-            <strong>Une fois lancée :</strong>
-            <ul class="mt-1 text-sm">
-              <li>La liste des membres sera gelée</li>
-              <li>Les résolutions ne pourront plus être modifiées</li>
-              <li>Les votes pourront commencer</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="launchModalCancel">Annuler</button>
-        <button class="btn btn-lg btn-success" id="launchModalConfirm">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
-          Confirmer le lancement
-        </button>
+  <!-- Launch confirmation modal — migré vers <ag-modal> -->
+  <ag-modal id="launchModal" title="Lancer la séance" size="lg">
+    <div id="launchModalMeetingTitle" class="text-lg font-bold mb-4"></div>
+    <div class="launch-modal-summary" id="launchModalSummary">
+      <!-- Filled by JS -->
+    </div>
+    <div class="launch-modal-warning mt-4">
+      <svg class="icon icon-text icon-sm" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
+      <div>
+        <strong>Une fois lancée :</strong>
+        <ul class="mt-1 text-sm">
+          <li>La liste des membres sera gelée</li>
+          <li>Les résolutions ne pourront plus être modifiées</li>
+          <li>Les votes pourront commencer</li>
+        </ul>
       </div>
     </div>
-  </div>
+    <div slot="footer">
+      <button class="btn btn-secondary" id="launchModalCancel">Annuler</button>
+      <button class="btn btn-lg btn-success" id="launchModalConfirm">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+        Confirmer le lancement
+      </button>
+    </div>
+  </ag-modal>
 
   <!-- Tour overlay (hidden, activated by tour trigger) -->
   <div class="tour-overlay" id="tourOverlay" aria-hidden="true"></div>
