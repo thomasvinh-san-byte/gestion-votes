@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Phase 03 COMPLETE
-stopped_at: "Plan 03.5 livré — LOGIN-03 (cleanup padding/margin hardcodés) finalisé sur login.css (2 hardcodes baseline → 0, déjà committé 1195cbe en début de session) et pages.css (60 hardcodes baseline → 0, commit 723123d). Token usage : 36 × var(--space-*) login.css + 76 × var(--space-*) pages.css. Atomic commits per fichier respectés. Arrondis cosmétiques documentés (5 cas) : 14px/0.875rem → space-3 (12px, -2px) sur 6 occurrences pages.css cohérent décision Plan 02.5, 0.4rem → space-1-5 (-0.4px), 0.35rem → space-1-5 (+0.4px), 0.15rem → space-0-5 (-0.4px), 22px → space-5 (-2px login.css), 52px → space-14 (+4px login.css préserve zone clic field-eye). Cas spéciaux préservés (0, auto, em hors padding/margin). Bonus TECH-01 : aucune substitution shadow/border supplémentaire — déjà migrées par TECH-01 quick task et Plan 03.4. gap: 14px dashboard-urgent conservé (hors scope plan, follow-up backlog). Phase 03 COMPLETE 5/5 plans, milestone v2.3 progress = 3/4 phases."
-last_updated: "2026-04-30T11:15:00.000Z"
+status: Executing Phase 04
+stopped_at: "Plan 03.5 livré — Phase 03 COMPLETE (5/5 plans). LOGIN-03 closed : login.css (commit 1195cbe, 2 hardcodes → 0, 36 × var(--space-*)) + pages.css (commit 723123d, 60 hardcodes → 0, 76 × var(--space-*)) entièrement migrés sur tokens design-system. 5 arrondis cosmétiques documentés dans SUMMARY (14px/0.875rem → space-3, 0.4rem → space-1-5, 0.35rem → space-1-5, 0.15rem → space-0-5, 22px/52px sur login.css). Bonus TECH-01 non effectué (déjà majoritairement fait par TECH-01 quick task + Plan 03.4 — scope respecté). Atomic commits per file. SUMMARY 03.5 créé avec self-check PASSED. STATE + ROADMAP mis à jour : Phase 03 = 5/5, milestone v2.3 = 3/4 phases done (93%)."
+last_updated: "2026-04-30T10:21:17.453Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 15
-  completed_plans: 14
-  percent: 93
+  total_plans: 21
+  completed_plans: 15
+  percent: 71
 ---
 
 # AG-VOTE -- Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** Phase 03 — Layouts secondaires
+**Current focus:** Phase 04 — Lexique + UX critique
 
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
-Phase: 03 (Layouts secondaires) — COMPLETE
-Plan: 5 of 5 done — Phase 04 (Lexique + UX critique) ready to plan
+Phase: 04 (Lexique + UX critique) — EXECUTING
+Plan: 1 of 6
 
 Progress: [#########.] 93% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 — 3/4 phases of milestone v2.3 done
 
