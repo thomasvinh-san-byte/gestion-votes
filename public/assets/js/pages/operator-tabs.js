@@ -853,13 +853,13 @@ window.OpS = { fn: {} };
       `;
     }
 
-    modal.style.display = 'flex';
-    document.getElementById('launchModalConfirm')?.focus();
+    if (typeof modal.open === 'function') modal.open();
+    setTimeout(() => { document.getElementById('launchModalConfirm')?.focus(); }, 50);
   }
 
   function hideLaunchModal() {
     const modal = document.getElementById('launchModal');
-    if (modal) modal.style.display = 'none';
+    if (modal && typeof modal.close === 'function') modal.close();
   }
 
   async function launchSession() {
@@ -905,12 +905,9 @@ window.OpS = { fn: {} };
     }
   }
 
-  // Launch modal event listeners
+  // Launch modal event listeners — backdrop click + Escape gérés nativement par <ag-modal>.
   document.getElementById('launchModalCancel')?.addEventListener('click', hideLaunchModal);
   document.getElementById('launchModalConfirm')?.addEventListener('click', launchSessionConfirmed);
-  document.getElementById('launchModal')?.addEventListener('click', function(e) {
-    if (e.target === this) hideLaunchModal();
-  });
 
   // =========================================================================
   // TAB: PARAMÈTRES - Settings

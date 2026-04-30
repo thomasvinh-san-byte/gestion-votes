@@ -289,45 +289,39 @@
 
         </div>
 
-        <!-- Event detail modal (hidden) -->
-        <div class="modal-backdrop" id="auditEventModal" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle" hidden>
-          <div class="modal">
-            <div class="modal-header">
-              <h3 class="modal-title" id="auditModalTitle">D&eacute;tail de l'&eacute;v&eacute;nement</h3>
-              <button class="btn btn-ghost btn-icon btn-sm" id="auditModalClose" aria-label="Fermer">&times;</button>
+        <!-- Event detail modal — migré vers <ag-modal> -->
+        <ag-modal id="auditEventModal" title="Détail de l'événement" size="md">
+          <div id="auditModalBody">
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">#</span>
+              <span class="audit-modal-value" id="modalEventId">&mdash;</span>
             </div>
-            <div class="modal-body" id="auditModalBody">
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">#</span>
-                <span class="audit-modal-value" id="modalEventId">&mdash;</span>
-              </div>
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">Horodatage</span>
-                <span class="audit-modal-value" id="modalEventTime">&mdash;</span>
-              </div>
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">&Eacute;v&eacute;nement</span>
-                <span class="audit-modal-value" id="modalEventAction">&mdash;</span>
-              </div>
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">Cat&eacute;gorie</span>
-                <span class="audit-modal-value" id="modalEventCategory">&mdash;</span>
-              </div>
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">Utilisateur</span>
-                <span class="audit-modal-value" id="modalEventUser">&mdash;</span>
-              </div>
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">D&eacute;tail</span>
-                <span class="audit-modal-value" id="modalEventDetail">&mdash;</span>
-              </div>
-              <div class="audit-modal-row">
-                <span class="audit-modal-label">SHA-256</span>
-                <div class="audit-modal-hash" id="modalEventHash">&mdash;</div>
-              </div>
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">Horodatage</span>
+              <span class="audit-modal-value" id="modalEventTime">&mdash;</span>
+            </div>
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">&Eacute;v&eacute;nement</span>
+              <span class="audit-modal-value" id="modalEventAction">&mdash;</span>
+            </div>
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">Cat&eacute;gorie</span>
+              <span class="audit-modal-value" id="modalEventCategory">&mdash;</span>
+            </div>
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">Utilisateur</span>
+              <span class="audit-modal-value" id="modalEventUser">&mdash;</span>
+            </div>
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">D&eacute;tail</span>
+              <span class="audit-modal-value" id="modalEventDetail">&mdash;</span>
+            </div>
+            <div class="audit-modal-row">
+              <span class="audit-modal-label">SHA-256</span>
+              <div class="audit-modal-hash" id="modalEventHash">&mdash;</div>
             </div>
           </div>
-        </div>
+        </ag-modal>
       </div>
     </main>
     <footer class="app-footer mobile-footer" role="contentinfo">

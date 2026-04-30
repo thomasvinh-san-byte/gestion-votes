@@ -157,9 +157,9 @@
 
   if (confirmCheckbox) confirmCheckbox.addEventListener('change', updateModalConfirmState);
 
-  // Close modal helper
+  // Close modal helper — délègue à <ag-modal>.close() (focus restore + Escape natifs).
   function closeValidateModal() {
-    if (validateModal) validateModal.hidden = true;
+    if (validateModal && typeof validateModal.close === 'function') validateModal.close();
     if (confirmCheckbox) confirmCheckbox.checked = false;
     if (btnModalConfirm) btnModalConfirm.disabled = true;
   }
@@ -169,14 +169,12 @@
     btnModalCancel.addEventListener('click', closeValidateModal);
   }
 
-  // Backdrop click closes modal
+  // Backdrop click + Escape : gérés nativement par <ag-modal>.
+  // On reset l'état checkbox via 'ag-modal-close' (dispatché par le composant).
   if (validateModal) {
-    validateModal.addEventListener('click', (e) => {
-      if (e.target === validateModal) closeValidateModal();
-    });
-    // Escape key closes modal
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !validateModal.hidden) closeValidateModal();
+    validateModal.addEventListener('ag-modal-close', () => {
+      if (confirmCheckbox) confirmCheckbox.checked = false;
+      if (btnModalConfirm) btnModalConfirm.disabled = true;
     });
   }
 
@@ -202,9 +200,9 @@
     }
 
     // Show modal instead of confirm()
-    if (validateModal) {
-      validateModal.hidden = false;
-      if (confirmCheckbox) confirmCheckbox.focus();
+    if (validateModal && typeof validateModal.open === 'function') {
+      validateModal.open();
+      setTimeout(() => { if (confirmCheckbox) confirmCheckbox.focus(); }, 50);
     }
   });
 

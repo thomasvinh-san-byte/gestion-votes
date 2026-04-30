@@ -43,7 +43,7 @@
   var _auditSearch = document.getElementById('auditSearch');
   var _auditSort = document.getElementById('auditSort');
   var _detailModal = document.getElementById('auditDetailModal');
-  var _detailBackdrop = document.getElementById('auditDetailBackdrop');
+  // _detailBackdrop déprécié : <ag-modal> gère son propre backdrop (focus trap natif).
 
   /* ── Format date ── */
   function formatTimestamp(iso) {
@@ -248,7 +248,8 @@
       // Map severity to high/medium/low for CSS data-severity border coloring
       var severityMap = { danger: 'high', warning: 'medium', info: 'low', success: 'low' };
       var severityLevel = severityMap[evt.severity] || 'low';
-      return '<div class="audit-timeline-item" data-event-id="' + esc(evt.id) + '" data-severity="' + esc(severityLevel) + '">' +
+      // MODAL-03 : aria-haspopup="dialog" + role=button — l'item ouvre <ag-modal id="auditDetailModal">
+      return '<div class="audit-timeline-item" role="button" tabindex="0" aria-haspopup="dialog" data-event-id="' + esc(evt.id) + '" data-severity="' + esc(severityLevel) + '">' +
         '<span class="audit-timeline-dot ' + esc(evt.severity) + '"></span>' +
         '<div class="audit-timeline-content">' +
           '<div class="audit-timeline-header">' +
@@ -397,24 +398,18 @@
     if (detailHash) detailHash.textContent = evt.hash;
 
     // Store current event id for export
-    _detailModal.dataset.currentEventId = eventId;
+    if (_detailModal) _detailModal.dataset.currentEventId = eventId;
 
-    // Show
-    if (_detailModal) {
-      _detailModal.style.display = 'block';
-      _detailModal.setAttribute('aria-hidden', 'false');
+    // Open via <ag-modal> (focus trap + Escape gérés en interne)
+    if (_detailModal && typeof _detailModal.open === 'function') {
+      _detailModal.open();
     }
-    if (_detailBackdrop) _detailBackdrop.style.display = 'block';
-    document.body.style.overflow = 'hidden';
   }
 
   function closeDetailModal() {
-    if (_detailModal) {
-      _detailModal.style.display = 'none';
-      _detailModal.setAttribute('aria-hidden', 'true');
+    if (_detailModal && typeof _detailModal.close === 'function') {
+      _detailModal.close();
     }
-    if (_detailBackdrop) _detailBackdrop.style.display = 'none';
-    document.body.style.overflow = '';
   }
 
   /* ── CSV Export ── */
@@ -665,12 +660,10 @@
       });
     }
 
-    // Close modal buttons
-    var btnClose1 = document.getElementById('btnCloseAuditDetail');
+    // Close modal button (footer "Fermer"). Le bouton X du header et le backdrop
+    // sont gérés en interne par <ag-modal>. L'Escape aussi.
     var btnClose2 = document.getElementById('btnCloseAuditDetail2');
-    if (btnClose1) btnClose1.addEventListener('click', closeDetailModal);
     if (btnClose2) btnClose2.addEventListener('click', closeDetailModal);
-    if (_detailBackdrop) _detailBackdrop.addEventListener('click', closeDetailModal);
 
     // Export detail button
     var btnExportDetail = document.getElementById('btnExportDetail');
@@ -696,12 +689,7 @@
       });
     }
 
-    // Escape key closes modal
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && _detailModal && _detailModal.style.display !== 'none') {
-        closeDetailModal();
-      }
-    });
+    // Escape : géré nativement par <ag-modal> via document.addEventListener('keydown').
 
     // Reset filters delegation (from empty state reset button in table and timeline views)
     var auditContainer = document.getElementById('auditTableBody') && document.getElementById('auditTableBody').closest('table') ||

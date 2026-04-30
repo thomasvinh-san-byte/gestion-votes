@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Phase 03 COMPLETE
-stopped_at: "Plan 03.5 livré — LOGIN-03 (cleanup padding/margin hardcodés) finalisé sur login.css (2 hardcodes baseline → 0, déjà committé 1195cbe en début de session) et pages.css (60 hardcodes baseline → 0, commit 723123d). Token usage : 36 × var(--space-*) login.css + 76 × var(--space-*) pages.css. Atomic commits per fichier respectés. Arrondis cosmétiques documentés (5 cas) : 14px/0.875rem → space-3 (12px, -2px) sur 6 occurrences pages.css cohérent décision Plan 02.5, 0.4rem → space-1-5 (-0.4px), 0.35rem → space-1-5 (+0.4px), 0.15rem → space-0-5 (-0.4px), 22px → space-5 (-2px login.css), 52px → space-14 (+4px login.css préserve zone clic field-eye). Cas spéciaux préservés (0, auto, em hors padding/margin). Bonus TECH-01 : aucune substitution shadow/border supplémentaire — déjà migrées par TECH-01 quick task et Plan 03.4. gap: 14px dashboard-urgent conservé (hors scope plan, follow-up backlog). Phase 03 COMPLETE 5/5 plans, milestone v2.3 progress = 3/4 phases."
-last_updated: "2026-04-30T11:15:00.000Z"
+status: Executing Phase 04
+stopped_at: "Plan 04.6 livré — ERR-04 audit prévention complet (commit bbe69c7, 04.6-AUDIT.md 16599 bytes). 5/5 codes audités (overdelivery vs ≥2/5) : missing_meeting_id + invalid_meeting_id prévenus par design v2.3 (MeetingContext singleton + 0 saisie UUID manuelle UI) ; meeting_not_found + motion_not_found + business_error déférés v2.4 avec rationale (race conditions fondamentales + refonte business_error en codes spécifiques). Stream timeout API post-AUDIT-commit — orchestrator a finalisé SUMMARY 04.6 + state updates inline (3e fois cette phase, pattern reproductible). **Phase 04 (Lexique + UX critique) : 6/6 COMPLÈTE.** Screenshot panel gate (milestone-level) en pending — gate manuelle post-merge documentée dans 04.6-SUMMARY § milestone_gate_status. Branche feat/v2.3-cockpit-operateur prête pour /gsd:ship Phase 1+2+3+4 cumulés."
+last_updated: "2026-04-30T11:30:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_phases: 4
+  total_plans: 21
+  completed_plans: 20
+  percent: 95
 ---
 
 # AG-VOTE -- Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** Phase 03 — Layouts secondaires
+**Current focus:** Phase 04 — Lexique + UX critique
 
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
-Phase: 03 (Layouts secondaires) — COMPLETE
-Plan: 5 of 5 done — Phase 04 (Lexique + UX critique) ready to plan
+Phase: 04 (Lexique + UX critique) — EXECUTING (5/6 plans done — 04.1, 04.2, 04.3, 04.4, 04.5 ; 04.6 pending)
+Plan: 5 of 6 (next — 04.6 ERR-04 audit prévention top 5 codes + milestone screenshot panel gate reminder)
 
-Progress: [#########.] 93% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 — 3/4 phases of milestone v2.3 done
+Progress: [#########.] 98% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 + 5/6 plans of phase 04 — 3/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -38,6 +38,41 @@ Progress: [#########.] 93% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+Recent decisions affecting v2.3 Phase 04:
+
+- [v2.3 P4.5] Plan 04.5 livré : `tests/Security/UxConventionsTest.php` créé (227 lignes, 3 tests / 4 assertions vert au premier run). Filet permanent ERR-02 + ERR-03. **Aucun bug remonté par le test** — 04.4 a livré un dictionnaire conforme à ERR-02 (top 50 = virgule + verbe d'action) ET ERR-03 (0 phrase bannie) par construction. Le test verrouille l'état actuel : toute PR future qui dégrade un message du top 50 ou réintroduit `réessayer.|contactez l'admin|erreur survenue|une erreur est survenue|veuillez réessayer plus tard` échoue immédiatement en CI.
+- [v2.3 P4.5] **3 tests** (PLAN demandait minimum 2) : (1) `testTop50CodesContainsAtLeast50Entries` garde-fou F2 fix iter 1 — assertion `assertGreaterThanOrEqual(50, count(TOP_50_CODES))` dans test dédié plutôt que setUp() pour visibilité dans le rapport PHPUnit ; (2) `testNextStepPresence` virgule + verbe d'action sur les 50 codes ; (3) `testNoForbiddenPhrases` scan exhaustif (top 50 ou non) sur 5 regex bannies via `ErrorDictionary::getCodes()`.
+- [v2.3 P4.5] **API publique de ErrorDictionary utilisée** (`hasMessage`, `getMessage`, `getCodes`) plutôt que parsing texte brut du fichier source — test plus robuste si l'implémentation interne change (migration vers DB, fichier YAML, etc.). Trade-off : couplage direct à la classe — accepté car ErrorDictionary est la source de vérité unique.
+- [v2.3 P4.5] **TOP_50_CODES copié verbatim depuis 04.4-SUMMARY** (50 codes, ranking par émission `api_fail()`). Commentaire de chaque entrée porte le rank + nombre d'émissions. Révision ~1× par milestone si le ranking évolue.
+- [v2.3 P4.5] **FORBIDDEN_PATTERNS = 5 regex** spécifiées par ROADMAP §SC #6 verbatim (pas d'extension ajoutée). **ACTION_VERBS = 53 verbes** (impératif 2e personne pluriel + variantes accentuées/non-accentuées + pivot `'que '`). Détection via `mb_strtolower` + `strpos` (performance + simplicité, 50 × 53 = 2650 substr checks max).
+- [v2.3 P4.5] **Pas de duplication CopyConventionsTest** : `grep -ciE 'copropriété|syndic'` retourne 0. Suite v2.2 P4 (CopyConventions) + Phase 02.6 (EditorialConventions) + Phase 04.5 (UxConventions) forme un trio orthogonal : copy forbidden words / editorial DOM rules / error dictionary UX. Chaque test couvre un invariant distinct.
+- [v2.3 P4.5] Atomic commit `ec9c8f6` (227 insertions, 1 fichier créé). Format anglais conforme CLAUDE.md. Self-check PASSED. Phase 04 progresses 4/6 → 5/6.
+
+- [v2.3 P4.4] Plan 04.4 exécuté **hors-ordre** (avant 04.3 MODAL-02) sur demande utilisateur. 04.3 reste pending. Pas de dépendance bloquante : ERR-01 (`ErrorDictionary.php`) et MODAL-02 (test E2E) touchent des fichiers disjoints. Frontmatter 04.4 listait `depends_on: [1]` (Plan 04.1 lexique migration) — respecté (token_member_mismatch préservé byte-for-byte). Plan counter STATE.md = 3/6 (04.1+04.2+04.4 done), 04.3 sera 4/6 quand livré.
+- [v2.3 P4.4] Top 50 codes identifié par grep statique uniquement (`api_fail()` est le seul pattern d'émission — `ApiResponseException::fail` et `ErrorDictionary::getMessage` directs retournent 0 hit dans le scan). 4 codes émis mais absents du dictionnaire (`authentication_required`, `access_denied`, `invalid_pdf_magic`, `file_not_found`) écartés du top 50 par critère "doit exister" — bug séparé hors-scope (out-of-scope captured dans 04.4-SUMMARY).
+- [v2.3 P4.4] Sur 50 codes ciblés ERR-01 : 17 déjà enrichis par le passé (zone "sections principales" du dictionnaire avec messages longs déjà conformes — ex: `meeting_not_found`, `unauthorized`, `forbidden`, `invalid_token`, `business_error`). 33 nouvellement enrichis (zone "suppléments" avec messages courts type 'X invalide.' / 'Y introuvable.' / 'Échec de Z.'). Pas de re-réécriture des messages déjà bien faits — discipline de patch minimal.
+- [v2.3 P4.4] Déviation mineure scope (cohérence) : 18 codes adjacents thématiquement (hors top 50) enrichis dans le même bloc que les 33 ciblés (ex: dans bloc "File upload" cibler `upload_error`/`file_too_large`/`invalid_mime_type`/`file_read_error`/`invalid_file_type` mais aussi enrichir `invalid_csv`/`import_failed` voisins). Justification : éviter rupture de qualité de copy entre messages contigus dans le source. Coût 0, bénéfice +18 messages enrichis. Documenté dans metrics frontmatter 04.4-SUMMARY (`adjacent_codes_enriched_for_coherence: 18`).
+- [v2.3 P4.4] Baseline 206 codes preserved byte-for-byte (avant: 206 paires `=>`, après: 206) — aucun code ajouté ni supprimé. Le contrat API (`ErrorDictionary::getMessage($code)` callers) est strictement intact. Strict heuristic verbes-du-plan compteur passe de 49 → 81 (+32 above threshold ≥50).
+- [v2.3 P4.4] `rate_limit_exceeded` (1 émission grep, hors top 50) **non touché** : message `'Trop de requêtes. Veuillez réessayer dans quelques instants.'` contient « réessayer » mais ne matche AUCUNE des 5 regex bannies par ERR-03 (la phrase bannie est `/veuillez réessayer plus tard/i` — « plus tard » absent ici). Borderline mais hors-scope strict (top 50 only). À enrichir si remontée terrain le justifie. Documenté en out-of-scope 04.4-SUMMARY.
+- [v2.3 P4.4] TOP_50_CODES list cristallisée dans 04.4-SUMMARY (table des 50 codes ranking + état avant/après). Cette liste est la source de vérité pour `tests/Security/UxConventionsTest.php` qui sera créé en Plan 04.5 — copy-paste exact de la liste sans recompter.
+- [v2.3 P4.4] Atomic commit 48ffc3f conformément à CLAUDE.md (message en anglais, format `feat(04-4): description`, body bullets descriptifs). Self-check PASSED dans 04.4-SUMMARY.
+
+ (déviation Rule 3) : sans adaptation `.hidden = false` → `.open()`, les modales legacy ne s'ouvrent plus (`<ag-modal>` ne contrôle pas `hidden` natif — il pilote son overlay interne via `open()`/`close()` qui synchronisent `aria-hidden` + animation backdrop). 6 commits atomiques (1 par fichier HTML) groupent HTML + JS associé indissociablement. Frontmatter PLAN listait 6 HTML, SUMMARY 04.2 documente les 12 fichiers (6 HTML + 6 JS) dans `affects` pour traçabilité.
+- [v2.3 P4.2] `op-quorum-modal` (operator.htmx.html L1613) **conservé** : CSS class custom (`.op-quorum-modal`), pas du legacy `.modal` au sens strict. Le grep d'acceptance `grep -F 'class="modal'` (fixed-string) ne matche pas `class="op-quorum-modal"`. Le wrapper parent `<div class="op-quorum-overlay" role="dialog" aria-modal="true">` fournit déjà la sémantique a11y. Migration totale reportée v2.4 si harmonisation souhaitée (CSS sur-mesure à revoir).
+- [v2.3 P4.2] Trigger `.session-menu-btn` (meetings.htmx.html) **non modifié** : il ouvre un `<ag-popover>` (menu de 4 actions), pas une `<ag-modal>` directement. Sémantiquement `aria-haspopup="menu"` est plus juste qu'`aria-haspopup="dialog"`. La modale est ouverte indirectement via `handlePopoverAction` côté JS. Pattern popover-routed documenté dans SUMMARY ; out-of-scope MODAL-03.
+- [v2.3 P4.2] Triggers dynamiques (audit timeline items, trust audit rows) : `aria-haspopup="dialog"` injecté dans le rendu JS (`audit.js::renderTimeline` + `trust.js::renderAuditLog`). Suffixe `…` ajouté à la cellule action des rows trust comme signifiant visuel ; chevron-right SVG déjà présent comme signifiant sur audit timeline items. Pattern : enrichir le rendu JS quand le trigger n'a pas de markup statique HTML.
+- [v2.3 P4.2] Pattern d'event listening pour reset UI sur fermeture (validate.js) : on ne peut pas wrapper `closeValidateModal` car l'utilisateur peut fermer via Escape, X header, ou backdrop click — gérés en interne par `<ag-modal>`. Solution : écouter l'événement custom `ag-modal-close` que le composant dispatch dans `close()`. Pattern non-invasif réutilisable pour toute logique de reset post-modal.
+- [v2.3 P4.2] Bug Rule 1 fixé en passant : `meetings.js::openEditModal` cherchait `modal.querySelector('input[name="editMeetingType"]')` (radios) mais le markup est `<select id="editMeetingType">`. Le `querySelector` retournait null, le pré-remplissage du type de séance ne fonctionnait jamais — bug silencieux préexistant. Switch vers `typeSelect.value = typeVal`. Inclus dans commit 506655e.
+- [v2.3 P4.2] Sub-classes CSS modal-suffixed conservées : `.audit-modal-row/-label/-value/-hash` (trust), `.validate-modal-warning/-checkbox` (validate), `.launch-modal-summary/-warning` (operator). Ces classes ne matchent pas `class="modal` (préfixées par `audit-`/`validate-`/`launch-`) — pas de cleanup CSS effectué (out-of-scope, risque de régression sur autres usages non audités).
+
+- [v2.3 P4.1] Migration lexicale **cas-par-cas** appliquée à la lettre (règle d'or "si tu hésites, garde le mot original" respectée systématiquement). 89 occurrences relues dans leur contexte, 2 migrations chirurgicales : (a) operator.htmx.html L1062 placeholder `Nom du membre…` → `Nom du votant…` (alignement sur `<label>` et `aria-label` qui disaient déjà "votant"), (b) ErrorDictionary.php L227 message `token_member_mismatch` `'... ce membre.'` → `'... ce votant.'` (token de vote = scrutin actif, "votant" plus précis ; clé technique inchangée pour préserver le contrat API). 87 conservations justifiées dans 4 scratchs `.planning/phases/04-lexique-ux-critique/scratch-04.1-{operator,help,members,errordict}.txt`.
+- [v2.3 P4.1] **members.htmx.html : 0 transformation copy** — par construction la page traite du registre CRUD (inscrits), `membre` est sémantiquement correct partout (18/18 conservés). Page-référence pour le concept "membre = inscrit générique".
+- [v2.3 P4.1] **help.htmx.html : 0 transformation copy** — 22/22 occurrences déjà cohérentes (membre = doctrine procuration légale + CRUD registre, votant = scrutin actif déjà bien nommé). Ajout d'une section pédagogique `#vocabulaire` (acceptance criteria task 2 du plan) entre `#faqContent` et `#exports-table` : 2 listes `<dl>` définissant membre/participant/votant + confirmer/valider/verrouiller-archiver + mention bannishment `Approuver`. Pattern HTML conservateur (`<dl class="vocab-list">` semantically correct, rendu navigateur natif acceptable sans CSS additionnel).
+- [v2.3 P4.1] **LEX-02 acquis par construction** sur l'ensemble du codebase v2.3 : scan transverse `grep -rnE 'Approuver' app/ public/` retourne 0 hit. Pas de dette out-of-scope à reporter v2.4. L'unique apparition du mot est désormais pédagogique dans le glossaire help.htmx.html (« Le verbe `Approuver` est volontairement banni du copy de finalisation »).
+- [v2.3 P4.1] Atomic commits per fichier modifié (3 commits car members.htmx.html avait 0 diff copy — son scratch d'audit est inclus dans le commit 0d6b651 avec help.htmx.html). Commits : `8890696` (operator), `0d6b651` (help + members + glossaire), `dbdee25` (ErrorDictionary).
+- [v2.3 P4.1] Anti-régression CLAUDE.md respectée : `php -l app/Services/ErrorDictionary.php` exit 0 ; `grep copropriété|syndic` retourne 0 sur les 4 fichiers ; atomic commits per file ; messages de commit en anglais format `feat(04-1): description`.
+
 Recent decisions affecting v2.3 Phase 03:
 
 - [v2.3 P3.5] Arrondi cosmétique 14px/0.875rem → var(--space-3) (12px) appliqué 6× dans pages.css (.dashboard-urgent padding, .section-header margin/padding, .tab-toolbar margin, .meeting-card-body × 2, .meeting-card-header) — perte -2px assumée pour cohérence design-system, alignée sur la décision Plan 02.5 (audit-chip trust.css). Le commentaire CSS "wireframe density 14px" ligne 1347 perd 2px → cohérence > densité pixel-perfect.
@@ -155,7 +190,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 03.5 livré — Phase 03 COMPLETE (5/5 plans). LOGIN-03 closed : login.css (commit 1195cbe, 2 hardcodes → 0, 36 × var(--space-*)) + pages.css (commit 723123d, 60 hardcodes → 0, 76 × var(--space-*)) entièrement migrés sur tokens design-system. 5 arrondis cosmétiques documentés dans SUMMARY (14px/0.875rem → space-3, 0.4rem → space-1-5, 0.35rem → space-1-5, 0.15rem → space-0-5, 22px/52px sur login.css). Bonus TECH-01 non effectué (déjà majoritairement fait par TECH-01 quick task + Plan 03.4 — scope respecté). Atomic commits per file. SUMMARY 03.5 créé avec self-check PASSED. STATE + ROADMAP mis à jour : Phase 03 = 5/5, milestone v2.3 = 3/4 phases done (93%).
+Stopped at: Plan 04.5 livré — ERR-02 + ERR-03 closed via `tests/Security/UxConventionsTest.php` (commit ec9c8f6, 227 lignes, 3 tests / 4 assertions vert au premier run en 4 ms). testTop50CodesContainsAtLeast50Entries (garde-fou F2), testNextStepPresence (top 50 codes virgule + verbe), testNoForbiddenPhrases (scan exhaustif 5 regex bannies via `ErrorDictionary::getCodes()`). TOP_50_CODES copié verbatim depuis 04.4-SUMMARY (50/50 codes). FORBIDDEN_PATTERNS = 5 regex ROADMAP §SC #6 verbatim. ACTION_VERBS = 53 verbes français (impératif 2e personne pluriel + variantes). API publique de ErrorDictionary utilisée (hasMessage/getMessage/getCodes), pas de parsing texte brut. **Aucun bug remonté par le test** — 04.4 a livré un dictionnaire conforme par construction. Pas de duplication CopyConventionsTest (0 mention copropriété/syndic). Filet permanent opérationnel. SUMMARY 04.5 + REQUIREMENTS ERR-02/ERR-03 [x] + ROADMAP 5/6 + STATE.md decisions × 7. Phase 04 = 5/6.
 Resume file: None
 
-**Next action:** Phase 04 (Lexique + UX critique) à planifier via `/gsd:plan-phase 4` — sur base requirements LEX-01..02, MODAL-01..03, ERR-01..04 (8-9 requirements selon découpage final). Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence (héritée 03.1, hero card reste `[hidden]`) ; capture before/after du dashboard avec aside sunken — Schoger test ultime (héritée 03.3, manuelle) ; gap: 14px .dashboard-urgent normalisation (héritée 03.5, optionnelle). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité Playwright spec.
+**Next action:** Plan 04.6 — ERR-04 (audit prévention des 5 codes ErrorDictionary les plus émis : pour chacun identifier si l'erreur peut être prévenue par contrainte UI plutôt que rattrapée ; au moins 2 sur 5 marqués "prévenu en v2.3" ou "reporté v2.4 avec rationale écrite") + milestone screenshot panel gate reminder (capture before/after sur 5 écrans clés, médiane des 3 observateurs ≥ +1 point sur chaque dimension). Followups Phase 04 04.5 cumulés : (1) révision périodique TOP_50_CODES ~1× par milestone si ranking change ; (2) si les 4 codes hors-dictionnaire (`authentication_required`, `access_denied`, `invalid_pdf_magic`, `file_not_found`) sont ajoutés, mettre à jour TOP_50_CODES simultanément. Followups Phase 04 04.4 cumulés : (1) ajouter au dictionnaire les 4 codes émis mais absents — quick task possible ; (2) `rate_limit_exceeded` borderline — enrichir si remontée terrain ; (3) codes longue traîne (~150 codes) restent minimal — acceptable. Followups 04.2 cumulés : (1) tests E2E manuels des 7 modales ; (2) cleanup CSS legacy `.modal-*` ; (3) trigger `.session-menu-btn` meetings ; (4) migration `op-quorum-modal` v2.4. Followups 04.3 : Playwright runtime sur machine dev (modal-focus-trap.spec.js). Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` ; capture before/after dashboard ; gap: 14px .dashboard-urgent normalisation. Followups Phases 01-02 : Playwright specs (cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator, modal-intégrité).

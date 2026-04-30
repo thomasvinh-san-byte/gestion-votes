@@ -1,0 +1,80 @@
+Migration lexicale app/Services/ErrorDictionary.php — Plan 04.1 LEX-01 + LEX-02
+================================================================================
+
+Audit grep : 11 occurrences correspondant à `membre|participant|votant|Approuver|approuv`.
+
+Décisions cas par cas (chaque ligne classifiée selon <lexicon_rules> du plan) :
+
+[CONSERVÉ] Ligne 58 — `'missing_member_id' => 'Identifiant de membre requis.'`
+  Justification : code API générique (clé `member_id`). L'inscrit générique du registre.
+  Le code lui-même contient "member" (DB column member_id). Garder.
+
+[CONSERVÉ] Ligne 60 — `'member_not_active' => 'Ce membre n\'est pas actif.'`
+  Justification : état CRUD du registre (is_active=false). Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 61 — `'member_already_exists' => 'Un membre avec cet email existe déjà.'`
+  Justification : conflit de duplication CRUD du registre. Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 65 — `'member_not_present' => 'Ce membre n\'est pas enregistré comme présent.'`
+  Justification : message émis quand on tente une opération sur un inscrit qui n'a pas
+  encore été marqué "présent" pour la séance. Au moment du message, il n'est PAS encore
+  participant — c'est l'inscrit qui est référencé par son id de registre. Inscrit
+  générique. Garder.
+
+[CONSERVÉ] Ligne 66 — `'member_already_present' => 'Ce membre est déjà enregistré comme présent.'`
+  Justification : symétrique de L65. Le message porte sur l'inscrit (member_id) dont
+  l'enregistrement de présence existe déjà. Garder.
+
+[CONSERVÉ] Ligne 83 — `'proxy_already_exists' => 'Une procuration existe déjà pour ce membre.'`
+  Justification : doctrine procuration légale (l'inscrit délègue son droit de vote).
+  Référence à l'inscrit du registre, pas à un votant éligible à un scrutin précis.
+  Cohérent avec la convention lexicale appliquée à help.htmx.html L354-356. Garder.
+
+[CONSERVÉ] Ligne 125 — `'invalid_member_id' => 'Identifiant de membre invalide.'`
+  Justification : code API (validation de paramètre member_id). Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 127 — `'missing_meeting_or_member' => 'Séance et membre requis.'`
+  Justification : code API exigeant les paramètres `meeting_id` et `member_id`. Inscrit
+  générique. Garder.
+
+[CONSERVÉ] Ligne 157 — `'invalid_member_ids' => 'Identifiants de membres invalides.'`
+  Justification : code API (bulk operation sur member_ids[]). Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 158 — `'no_members' => 'Aucun membre à traiter.'`
+  Justification : opération bulk vide sur le registre. Inscrit générique. Garder.
+
+[MIGRATION] Ligne 227 — `'token_member_mismatch' => 'Le token ne correspond pas à ce membre.'`
+  AVANT  : 'Le token ne correspond pas à ce membre.'
+  APRÈS  : 'Le token ne correspond pas à ce votant.'
+  Justification : ce message d'erreur s'applique exclusivement au token de VOTE, dans le
+  contexte d'un scrutin actif. Le token n'est utile qu'à un éligible au scrutin (votant).
+  Bien que la clé technique reste 'token_member_mismatch' (préservation du contrat API),
+  le message utilisateur gagne en précision sémantique en utilisant 'votant'. C'est
+  exactement le cas typique LEX-01 où la nuance "éligible scrutin" est mieux portée par
+  "votant" que par "membre".
+  Discipline : touche uniquement la valeur (string), la clé reste inchangée pour ne pas
+  casser les appelants `ErrorDictionary::getMessage('token_member_mismatch')`.
+
+[CONSERVÉ - HORS SCOPE LEX-02] Aucune occurrence "Approuver" / "approbation" trouvée.
+  Pas de migration LEX-02 nécessaire ici.
+
+Total : 1 migration appliquée (L227 message), 10 occurrences conservées avec justification.
+
+Vérification : `php -l app/Services/ErrorDictionary.php` exit 0 (No syntax errors detected).
+
+==== SCAN TRANSVERSE OUT-OF-SCOPE ====
+
+Commande exécutée :
+  grep -rnE '\bmembre votant\b|\bApprouver\b' app/ public/ --include='*.php' --include='*.html' --include='*.htmx.html'
+
+Résultat : 0 hit dans le codebase entier.
+
+Conclusion : la convention LEX-02 ("Approuver" banni) est déjà acquise par construction
+sur l'ensemble du codebase. Aucune dette out-of-scope à reporter v2.4.
+
+Le scratch `.planning/phases/04-lexique-ux-critique/scratch-04.1-out-of-scope.txt`
+formalise ce constat.
+
+Anti-patterns évités :
+- Pas de modification des clés de tableau (contracts API stables).
+- Pas de transformation aveugle "membre" → "votant" sur les messages CRUD/registre/proxy.

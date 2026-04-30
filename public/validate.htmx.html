@@ -154,8 +154,8 @@
                   La validation archive définitivement la séance.<br>
                   <strong>Plus aucune modification ne sera possible.</strong>
                 </div>
-                <button class="btn btn-lg btn-danger" id="btnValidate" disabled>
-                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Valider et archiver la séance
+                <button class="btn btn-lg btn-danger" id="btnValidate" aria-haspopup="dialog" disabled>
+                  <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Valider et archiver la séance…
                 </button>
               </div>
 
@@ -202,34 +202,24 @@
     </footer>
   </div>
 
-  <!-- Validation confirmation modal -->
-  <div class="modal-backdrop" id="validateModal" role="dialog" aria-modal="true" aria-labelledby="validateModalTitle" hidden>
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="validateModalTitle">
-          <svg class="icon icon-text icon-md" aria-hidden="true"><use href="/assets/icons.svg#icon-alert-triangle"></use></svg>
-          Confirmation de validation
-        </h3>
-      </div>
-      <div class="modal-body">
-        <div class="validate-modal-warning">
-          <strong>ATTENTION : Cette action est IRRÉVERSIBLE.</strong>
-          <p>La séance sera définitivement archivée et aucune modification ultérieure ne sera possible.</p>
-        </div>
-        <label class="validate-modal-checkbox">
-          <input type="checkbox" id="confirmIrreversible">
-          <span>Je comprends que cette action est irréversible et que plus aucune modification ne sera possible.</span>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" id="btnModalCancel" type="button">Annuler</button>
-        <button class="btn btn-danger btn-lg" id="btnModalConfirm" type="button" disabled>
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
-          Confirmer la validation
-        </button>
-      </div>
+  <!-- Validation confirmation modal — migré vers <ag-modal> -->
+  <ag-modal id="validateModal" title="Confirmation de validation" size="md">
+    <div class="validate-modal-warning">
+      <strong>ATTENTION : Cette action est IRRÉVERSIBLE.</strong>
+      <p>La séance sera définitivement archivée et aucune modification ultérieure ne sera possible.</p>
     </div>
-  </div>
+    <label class="validate-modal-checkbox">
+      <input type="checkbox" id="confirmIrreversible">
+      <span>Je comprends que cette action est irréversible et que plus aucune modification ne sera possible.</span>
+    </label>
+    <div slot="footer">
+      <button class="btn btn-secondary" id="btnModalCancel" type="button">Annuler</button>
+      <button class="btn btn-danger btn-lg" id="btnModalConfirm" type="button" disabled>
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
+        Confirmer la validation
+      </button>
+    </div>
+  </ag-modal>
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>

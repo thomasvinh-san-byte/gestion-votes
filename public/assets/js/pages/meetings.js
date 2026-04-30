@@ -452,16 +452,20 @@
     document.getElementById('editMeetingDate').value = m.scheduled_at ? m.scheduled_at.slice(0, 10) : '';
 
     var typeVal = m.meeting_type || 'ag_ordinaire';
-    var typeRadio = modal.querySelector('input[name="editMeetingType"][value="' + typeVal + '"]');
-    if (typeRadio) typeRadio.checked = true;
+    // editMeetingType is a <select>, set value directly (no radios in current markup).
+    var typeSelect = document.getElementById('editMeetingType');
+    if (typeSelect) typeSelect.value = typeVal;
 
-    modal.hidden = false;
-    document.getElementById('editMeetingTitle').focus();
+    if (typeof modal.open === 'function') modal.open();
+    setTimeout(function() {
+      var titleEl = document.getElementById('editMeetingTitle');
+      if (titleEl) titleEl.focus();
+    }, 50);
   }
 
   function closeEditModal() {
     var modal = document.getElementById('editMeetingModal');
-    if (modal) modal.hidden = true;
+    if (modal && typeof modal.close === 'function') modal.close();
   }
 
   async function saveEditMeeting() {
@@ -512,12 +516,12 @@
 
     document.getElementById('deleteMeetingId').value = m.id || m.meeting_id;
     document.getElementById('deleteMeetingName').textContent = m.title || '(sans titre)';
-    modal.hidden = false;
+    if (typeof modal.open === 'function') modal.open();
   }
 
   function closeDeleteModal() {
     var modal = document.getElementById('deleteMeetingModal');
-    if (modal) modal.hidden = true;
+    if (modal && typeof modal.close === 'function') modal.close();
   }
 
   async function confirmDeleteMeeting() {
@@ -545,11 +549,9 @@
   function initModals() {
     var editModal = document.getElementById('editMeetingModal');
     if (editModal) {
+      // <ag-modal> gère lui-même son backdrop/Escape/X. On ne câble que les boutons "Annuler".
       editModal.querySelectorAll('[data-close-modal]').forEach(function(btn) {
         btn.addEventListener('click', closeEditModal);
-      });
-      editModal.addEventListener('click', function(e) {
-        if (e.target === editModal) closeEditModal();
       });
       var saveBtn = document.getElementById('editMeetingSaveBtn');
       if (saveBtn) saveBtn.addEventListener('click', saveEditMeeting);
@@ -560,17 +562,15 @@
       deleteModal.querySelectorAll('[data-close-modal]').forEach(function(btn) {
         btn.addEventListener('click', closeDeleteModal);
       });
-      deleteModal.addEventListener('click', function(e) {
-        if (e.target === deleteModal) closeDeleteModal();
-      });
       var confirmBtn = document.getElementById('deleteMeetingConfirmBtn');
       if (confirmBtn) confirmBtn.addEventListener('click', confirmDeleteMeeting);
     }
 
+    // Escape : géré nativement par <ag-modal>. Listener legacy supprimé.
+    // (placeholder pour rester syntaxiquement valide — ne fait plus rien.)
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
-        if (editModal && !editModal.hidden) closeEditModal();
-        if (deleteModal && !deleteModal.hidden) closeDeleteModal();
+        // No-op : ag-modal gère.
       }
     });
   }

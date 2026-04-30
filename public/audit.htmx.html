@@ -237,49 +237,39 @@
     </footer>
   </div><!-- .app-shell -->
 
-  <!-- Event Detail Modal -->
-  <div class="modal-backdrop" id="auditDetailBackdrop" hidden aria-hidden="true"></div>
-  <div class="modal" id="auditDetailModal" role="dialog" aria-modal="true" aria-labelledby="auditDetailModalTitle" aria-hidden="true" hidden>
-    <div class="modal-header">
-      <h3 class="modal-title" id="auditDetailModalTitle">
-        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-shield"></use></svg>
-        D&eacute;tail de l&apos;&eacute;v&eacute;nement
-      </h3>
-      <button class="btn btn-ghost btn-icon btn-sm" id="btnCloseAuditDetail" aria-label="Fermer">&times;</button>
-    </div>
-    <div class="modal-body">
-      <!-- 2x2 Metadata Grid -->
-      <div class="audit-detail-grid">
-        <div class="audit-detail-item">
-          <div class="audit-detail-label">Horodatage</div>
-          <div class="audit-detail-value" id="detailTimestamp">—</div>
-        </div>
-        <div class="audit-detail-item">
-          <div class="audit-detail-label">Cat&eacute;gorie</div>
-          <div class="audit-detail-value" id="detailCategory">—</div>
-        </div>
-        <div class="audit-detail-item">
-          <div class="audit-detail-label">Utilisateur</div>
-          <div class="audit-detail-value" id="detailUser">—</div>
-        </div>
-        <div class="audit-detail-item">
-          <div class="audit-detail-label">S&eacute;v&eacute;rit&eacute;</div>
-          <div class="audit-detail-value" id="detailSeverity">—</div>
-        </div>
+  <!-- Event Detail Modal — migré vers <ag-modal> (focus trap natif Tab/Shift+Tab/Escape) -->
+  <ag-modal id="auditDetailModal" title="Détail de l'événement" size="lg">
+    <!-- 2x2 Metadata Grid -->
+    <div class="audit-detail-grid">
+      <div class="audit-detail-item">
+        <div class="audit-detail-label">Horodatage</div>
+        <div class="audit-detail-value" id="detailTimestamp">—</div>
       </div>
-      <!-- Description -->
-      <div class="audit-detail-description" id="detailDescription">—</div>
-      <!-- SHA-256 Hash -->
-      <div class="audit-detail-hash" id="detailHash">—</div>
+      <div class="audit-detail-item">
+        <div class="audit-detail-label">Cat&eacute;gorie</div>
+        <div class="audit-detail-value" id="detailCategory">—</div>
+      </div>
+      <div class="audit-detail-item">
+        <div class="audit-detail-label">Utilisateur</div>
+        <div class="audit-detail-value" id="detailUser">—</div>
+      </div>
+      <div class="audit-detail-item">
+        <div class="audit-detail-label">S&eacute;v&eacute;rit&eacute;</div>
+        <div class="audit-detail-value" id="detailSeverity">—</div>
+      </div>
     </div>
-    <div class="modal-footer">
+    <!-- Description -->
+    <div class="audit-detail-description" id="detailDescription">—</div>
+    <!-- SHA-256 Hash -->
+    <div class="audit-detail-hash" id="detailHash">—</div>
+    <div slot="footer">
       <button class="btn btn-ghost" id="btnCloseAuditDetail2">Fermer</button>
       <button class="btn btn-secondary" id="btnExportDetail">
         <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-download"></use></svg>
         Exporter
       </button>
     </div>
-  </div>
+  </ag-modal>
 
   <!-- Integrity footer + modal (B-2 fix : auto-hidden côté JS dans connectedCallback) -->
   <footer class="ag-integrity-footer">
