@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 01
-stopped_at: "v2.2 entièrement mergée dans main (PR #256 = edd7079). v2.3 bootstrap + UX review (Zhuo/Norman) appliquée — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi, screenshot panel gate ajouté."
-last_updated: "2026-04-30T04:48:42.561Z"
+stopped_at: "Phase 01 plan 01.1 (ag-health-bar custom element + stylesheet) shipped — commits c337607, 8338ff8. Plans 01.2/01.3/01.4 next."
+last_updated: "2026-04-30T04:55:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
 Phase: 01 (Cockpit Opérateur live) — EXECUTING
-Plan: 1 of 4
+Plan: 1 of 4 — DONE (next: 01.2)
 
-Progress: [..........] 0% (planning)
+Progress: [##........] 25% (1/4 plans of phase 01)
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -38,6 +38,12 @@ Progress: [..........] 0% (planning)
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.3 Phase 01:
+
+- [v2.3 P1.1] `<ag-health-bar>` en light DOM (pas shadow DOM) — nécessaire pour l'héritage des tokens design-system et pour que le stylesheet companion adresse `#viewExec` dans la même cascade.
+- [v2.3 P1.1] Pulse "missed" sur la zone vote (`#viewExec[data-quorum-state="missed"]`) plutôt que sur le bar lui-même — fix F-2 du plan-checker, aligné sur ROADMAP SC #2.
+- [v2.3 P1.1] Substitutions de tokens documentées dans le CSS : `--color-surface` (≠ `--surface-base`), `--color-bg-subtle` (≠ `--surface-sunken`), valeur littérale `999px` (pas de `--radius-pill` dans design-system.css).
+
 Recent decisions affecting v2.2:
 
 - [v2.2 strategy] Pyramide stricte : tokens → components → personas → layout. Une PR par étage, pas de stack.
@@ -68,8 +74,8 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 
 ## Session Continuity
 
-Last session: 2026-04-29
-Stopped at: v2.2 entièrement mergée dans main (PR #256 = edd7079). v2.3 bootstrap + UX review (Zhuo/Norman) appliquée — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi, screenshot panel gate ajouté.
+Last session: 2026-04-30
+Stopped at: Plan 01.1 livré sur `feat/v2.3-cockpit-operateur` — `<ag-health-bar>` (light DOM, 6 attributs réactifs, French labels) + stylesheet (3 états quorum, pulse sur `#viewExec[data-quorum-state="missed"]`, prefers-reduced-motion override, responsive <768px). Commits c337607 (JS) + 8338ff8 (CSS).
 Resume file: None
 
-**Next action:** `/gsd:plan-phase 1` pour Cockpit Opérateur live (COCKPIT-01..07). Recommandation : créer `feat/v2.3-cockpit-operateur` depuis main avant de planifier — la branche `claude/gsd-ux-review-YG5K0` reste réservée à la revue (1 commit, prête à merger ou cherry-pick).
+**Next action:** Plan 01.2 — Keyboard shortcuts module + overlay (L/F/→/?/Escape). Plan 01.2 et 01.1 sont en wave 1 (parallélisables) ; vérifier si 01.2 a déjà démarré avant de lancer.
