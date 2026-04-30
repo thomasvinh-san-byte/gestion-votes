@@ -22,6 +22,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/operator.css">
+  <link rel="stylesheet" href="/assets/css/components/ag-health-bar.css">
+  <link rel="stylesheet" href="/assets/css/components/ag-shortcuts-overlay.css">
 </head>
 <body>
   <!-- Skip links -->
@@ -58,10 +60,7 @@
       </div>
 
       <div class="op-meeting-bar-right">
-        <span class="op-sse-indicator" id="opSseIndicator" data-sse-state="offline" aria-live="polite" aria-label="Connexion en direct">
-          <span class="op-sse-dot" aria-hidden="true"></span>
-          <span class="op-sse-label" id="opSseLabel">Hors ligne</span>
-        </span>
+        <!-- Legacy SSE indicator removed in Phase v2.3 / COCKPIT-01 — the ambient sse-state pill on <ag-health-bar id="opHealthBar"> is now the single SSE state surface. -->
         <span class="op-clock-chip"><strong id="barClock">--:--</strong></span>
         <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données" aria-label="Actualiser les données">
           <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
@@ -1166,6 +1165,16 @@
              ============================================================ -->
         <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution">
 
+          <!-- Phase v2.3 / COCKPIT-01..05,07 — single source of truth for session health.
+               Attributes are driven reactively by operator-realtime.js from SSE events. -->
+          <ag-health-bar id="opHealthBar"
+            quorum-state="met"
+            quorum-ratio="—"
+            sse-state="offline"
+            votes-remaining="—"
+            motion-number=""
+            motion-title="Aucune résolution active"></ag-health-bar>
+
           <!-- Execution mode header -->
           <div class="op-exec-header" id="opExecHeader">
             <div class="op-exec-header-left">
@@ -1511,10 +1520,9 @@
                   </button>
                 </ag-tooltip>
                 <ag-tooltip text="Sélectionnez une résolution d'abord" position="top">
-                  <button class="btn btn-warning btn-lg" id="opBtnToggleVote" disabled>
-                    <span class="op-kbd-hint">F</span>
-                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg>
-                    Fermer le vote
+                  <button class="btn btn-warning btn-lg" id="opBtnToggleVote" aria-keyshortcuts="L" disabled>
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-play"></use></svg>
+                    Lancer le vote <kbd>L</kbd>
                   </button>
                 </ag-tooltip>
                 <button class="btn btn-sm btn-secondary" id="execBtnCloseVote" hidden>
@@ -1716,6 +1724,8 @@
   <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-motions.js"></script>
   <script nonce="%%CSP_NONCE%%" src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js" defer></script>
   <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-exec.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/components/ag-health-bar.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-keybindings.js"></script>
   <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-realtime.js"></script>
 </body>
 </html>
