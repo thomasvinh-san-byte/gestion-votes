@@ -170,3 +170,46 @@ border:        1px dashed var(--color-border-strong); → border:        var(--b
 | Tokens manquants à créer (T2) | 1 (`--shadow-xs`) | 5 (`--border-default/subtle/strong/dashed/focus`) |
 
 **Conclusion** : la dette est principalement sur les *borders* — la consolidation T3 va supprimer ~50% des variantes borders distinctes (les 232 occurrences haute-confiance se collapsent en 3 tokens). Les shadows sont déjà bien tokenisées ; le travail résiduel est de la chirurgie fine sur des cas custom (focus glows, glossy buttons, overlays larges) qui doit accompagner le refactor visuel de chaque page en Phase 2/3.
+
+---
+
+## Replacement Report (T3 — exécution)
+
+Remplacements effectivement appliqués par le `sed` (legacy → token). La commande appliquée n'a pas l'ancrage `^\s*`, donc 2 occurrences inline (déclarations sur la même ligne qu'un sélecteur) ont été remplacées en bonus dans `operator.css` — toujours dans le périmètre HAUTE confiance (`1px solid var(--color-border-subtle);` strict, pas de fallback).
+
+| Fichier | Shadows remplacées / total | Borders remplacées / total | Reportées (basse conf) | Commit |
+|---|---:|---:|---:|---|
+| `admin.css` | 0/0 | 1/1 | — | 62fa71d |
+| `analytics.css` | 0/0 | 10/10 | — | d73df5b |
+| `app.css` | 0/0 | 14/14 | borders avec fallback inline laissées | 494b1d5 |
+| `archives.css` | 0/0 | 7/7 | — | b16b1c6 |
+| `audit.css` | 0/0 | 5/5 | — | 00a5114 |
+| `doc.css` | 0/0 | 9/9 | — | ffa79ad |
+| `email-templates.css` | 0/0 | 9/9 | — | 8185065 |
+| `help.css` | 0/0 | 8/8 | — | c0f2b0b |
+| `hub.css` | 0/0 | 6/6 | — | 1dafbd1 |
+| `landing.css` | 0/0 | 10/10 | — | b376d0b |
+| `login.css` | 0/0 | 2/2 | — | 9c96874 |
+| `meetings.css` | 0/0 | 9/9 | — | 96953b4 |
+| `members.css` | 0/0 | 24/24 | — | d10fcde |
+| `operator.css` | 0/0 | **36/36** (10 subtle au lieu de 8 estimés — voir note) | — | 7b59e6a |
+| `pages.css` | 0/0 | 14/14 | — | 0de33fa |
+| `postsession.css` | 0/0 | 9/9 | — | ee07e77 |
+| `public.css` | 0/0 | 6/6 | — | 432df67 |
+| `report.css` | 0/0 | 1/1 | — | ece7148 |
+| `settings.css` | 0/0 | 4/4 | — | c8de7a4 |
+| `trust.css` | 0/0 | 12/12 | — | 69d0905 |
+| `users.css` | 0/0 | 7/7 | — | aa28061 |
+| `validate.css` | 0/0 | 2/2 | — | 2b8d9c6 |
+| `vote.css` | 0/0 | 10/10 | borders `--vote-*-shadow*` (tokens locaux) laissés | 064f980 |
+| `wizard.css` | 0/0 | 17/17 | — | 06d5824 |
+| `components/ag-shortcuts-overlay.css` | 0/0 | 2/2 | — | 58ef5e2 |
+| **Total** | **0** | **234** | ≈140 occ. BASSE | — |
+
+**Garde-fous respectés** :
+- `design-system.css` non modifié (T3) — c'est la source de vérité des tokens.
+- Aucune ligne avec fallback inline (`var(--color-border, #...)`, `var(--color-border-subtle, var(--color-border))`) n'a été touchée.
+- Aucune occurrence avec `2px`, `1.5px`, `dashed var(--color-border)` (couleur ≠ dash) n'a été touchée.
+- Toutes les accolades `{` / `}` restent équilibrées sur les 25 fichiers modifiés.
+
+**Note operator.css** : 10 occurrences `1px solid var(--color-border-subtle);` remplacées au lieu de 8 estimées en T1 — l'estimation initiale s'appuyait sur un grep ancré `^\s*border` qui ratait 2 lignes inline (sélecteur + propriété sur la même ligne). Le `sed` non ancré les a captées correctement, dans le strict respect du pattern HAUTE confiance.
