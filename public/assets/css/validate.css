@@ -154,7 +154,7 @@
   display: flex;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   justify-content: flex-end;
 }
 
@@ -177,7 +177,7 @@
   padding: var(--space-3);
   background: var(--color-surface);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-left: 3px solid var(--color-primary);
 }
 
