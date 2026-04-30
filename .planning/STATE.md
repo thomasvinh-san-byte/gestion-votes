@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 03
-stopped_at: "Plan 03.1 livré — Dashboard refait : KPI 4→3 (kpi-card--3 \"Convoc. en attente\" déposé en lien footer /hub via F1), wrapper KPI en CSS Grid 3 colonnes responsive (DASHBOARD-06), hero card structurelle avec 3 modificateurs d'imminence (--ambient/--urgent/--live + pulse danger 2s ease-in-out infinite, désactivée par @media (prefers-reduced-motion: reduce)), empty state DASHBOARD-04 via <ag-empty-state icon=\"none\"> (composant étendu — patch chirurgical 3 lignes, rétrocompat 5 icons préservée). Pattern <template id=\"dashboardEmptyState\"> + cloneNode hydration JS-side (source FR dans le HTML). 3 commits atomiques : 2d5e2dc (KPI), 7153371 (hero), b3518df (empty state). 4 fichiers modifiés. B1 lock posé (--color-danger pas --color-success sur live), B2 fix appliqué, F1/F2/F3 résolus. CSS dashboard vit dans pages.css (pas dashboard.css comme indiqué dans le plan — adaptation transparente). DashboardController est un endpoint JSON REST → empty state 100% client-side, documenté."
-last_updated: "2026-04-30T09:33:00.000Z"
+stopped_at: "Plan 03.4 livré — Login simplifié : suppression div .login-brand-grid (HTML), suppression règles CSS .login-brand-grid + .login-orb + @keyframes brand-glow-drift orphelines + règle prefers-reduced-motion obsolete. Glow atténué (judgment call autorisé) : opacity 0.18→0.12, animation drift retirée. <ul class=\"login-brand-features\"> réduit de 3 <li> à 1 (Vote sécurisé conservé verbatim). Ratio grid-template-columns 2fr 3fr (40/60 form-dominant) verrouillé. Commit unique ef217e2 (45 lignes deletes, 3 inserts) — atomique car LOGIN-01 + LOGIN-02 cohérents par construction sur le brand panel. 2 fichiers modifiés (public/login.html, public/assets/css/login.css). 0 forbidden words, braces balanced, 0 string FR altérée. SUMMARY 03.4 + STATE + ROADMAP + REQUIREMENTS mis à jour. Phase 03 = 2/5 plans done."
+last_updated: "2026-04-30T10:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_plans: 12
+  percent: 80
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03.1 work)
 Phase: 03 (Layouts secondaires) — EXECUTING
-Plan: 2 of 5 (next)
+Plan: 3 of 5 (next — Plan 03.2 ou 03.3 selon ordre)
 
-Progress: [#######...] 73% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 1/5 plans of phase 03 — 2/4 phases of milestone v2.3 done
+Progress: [########..] 80% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 2/5 plans of phase 03 — 2/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,11 @@ Progress: [#######...] 73% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 1/5
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 03:
+
+- [v2.3 P3.4] Glow atténué (judgment call autorisé par `<product_decision_locked>` LOGIN-01) : `opacity` 0.18→0.12 + suppression `animation: brand-glow-drift` + cleanup des `@keyframes brand-glow-drift` devenues orphelines + règle `@media (prefers-reduced-motion: reduce)` qui désactivait l'animation supprimée. Le glow reste fonctionnel comme single subtle gradient (≠ pattern), conformément à l'autorisation explicite du plan.
+- [v2.3 P3.4] Commit unique `ef217e2` plutôt que scission LOGIN-01 / LOGIN-02 : les deux requirements modifient le même bloc HTML (panneau brand) avec un diff total de 45 lignes deletes + 3 inserts. Atomicité préférée à découpage artificiel.
+- [v2.3 P3.4] Ratio `grid-template-columns: 2fr 3fr` (40% brand / 60% form) préservé tel quel — la baseline n'avait pas dérivé vers 3fr 2fr (brand-dominant). F4 fix verrouillé par construction conforme ROADMAP §8 "form-dominant".
+- [v2.3 P3.4] Bénéfice retenu = "Vote sécurisé" verbatim (le 2e `<li>` historique). Libellé `<strong>Vote sécurisé</strong> <span>Token unique, chiffrement, anti-rejeu</span>` non modifié — fidélité au product_decision_locked LOGIN-02.
 
 - [v2.3 P3.1] B1 lock posé : `.hero-card--live` utilise `--color-danger-subtle/border` (PAS `--color-success`). Justification REQUIREMENTS DASHBOARD-02 verbatim : une séance en cours = action en flux irréversible = signal de criticité opérateur, pas un signal de succès. Anti-regression doc inline dans le CSS.
 - [v2.3 P3.1] B2 fix : étendre `<ag-empty-state>` avec `icon="none"` (3 lignes patch chirurgical autour de `if (icon !== 'none') { ... emit svg ... }`) plutôt qu'inventer une classe CSS `.ag-empty-state`. Préserve les 5 usages historiques (meetings/members/votes/archives/generic) intacts. JSDoc enrichie avec mention DASHBOARD-04.
@@ -138,7 +143,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 03.1 livré — Dashboard refait : KPI 4→3 (kpi-card--3 retiré, lien footer /hub via F1), CSS Grid 3 cols responsive (DASHBOARD-06), hero card 3 modificateurs d'imminence (--ambient/--urgent/--live + pulse danger respectant prefers-reduced-motion, B1 lock posé), empty state DASHBOARD-04 via <ag-empty-state icon="none"> (composant étendu B2 — patch chirurgical 3 lignes, rétrocompat 5 icons préservée, pattern <template> hydration JS-side). 3 commits atomiques 2d5e2dc/7153371/b3518df. 4 fichiers modifiés (dashboard.htmx.html, pages.css, ag-empty-state.js, dashboard.js). DashboardController est un endpoint JSON REST → empty state 100% client-side, F2 documenté. CSS dashboard vit dans pages.css (pas dashboard.css comme indiqué dans le plan — adaptation transparente). SUMMARY 03.1 écrit avec self-check passed. ROADMAP mis à jour Phase 03 = 1/5 Executing.
+Stopped at: Plan 03.4 livré — Login simplifié : suppression div `.login-brand-grid` (HTML) + règles CSS `.login-brand-grid` + `.login-orb` + `@keyframes brand-glow-drift` orphelines + règle `prefers-reduced-motion` obsolete. Glow atténué (opacity 0.18→0.12, animation drift retirée). `<ul class="login-brand-features">` réduit de 3 `<li>` à 1 (Vote sécurisé conservé verbatim). Ratio `grid-template-columns: 2fr 3fr` (40/60 form-dominant) verrouillé. Commit unique `ef217e2` (45 lignes deletes, 3 inserts). 2 fichiers modifiés (public/login.html, public/assets/css/login.css). LOGIN-01 + LOGIN-02 marqués `[x]` dans REQUIREMENTS.md. Phase 03 progress = 2/5 dans ROADMAP.md.
 Resume file: None
 
-**Next action:** Plan 03.2 à exécuter (sidebar/navigation secondaire ?). Followup avant `/gsd:ship` Phase 03 : ajouter la logique JS de swap `.hero-card--ambient/--urgent/--live` selon imminence calculée (pas implémenté en 03.1, hero card reste `[hidden]` actuellement). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité.
+**Next action:** Plan 03.2 ou 03.3 à exécuter (3/5 prochain). Followups Phase 03 cumulés : ajouter logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence calculée (pas en 03.1, hero card reste `[hidden]`) ; LOGIN-03 (cleanup padding/margin hardcodés login.css + pages.css) attendu en plan ultérieur. Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité.

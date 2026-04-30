@@ -46,8 +46,8 @@
 - [x] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
 - [ ] **DASHBOARD-05**: Audit + groupement des **15 shortcut-cards** actuelles : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions" ou groupé par persona. Le PLAN.md de Phase 3 nomme les 5 retenues et justifie leur priorité (mêmes critères produit que DASHBOARD-01). *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*
 - [x] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
-- [ ] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
-- [ ] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
+- [x] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
+- [x] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
 - [ ] **LOGIN-03**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` (top offenders Schoger : 42 hardcodes dans `pages.css`, plus dans `login.css`). Remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 3 : `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` ; cible post-phase = 0 sur ces deux fichiers.
 
 ### Tech debt visuelle transverse v2.3 (quick task pré-Phase 2)
@@ -126,8 +126,8 @@
 | DASHBOARD-04 | Phase 3 | Done (03.1) |
 | DASHBOARD-05 | Phase 3 | Pending (Schoger S-8) |
 | DASHBOARD-06 | Phase 3 | Done (03.1, Schoger S-4) |
-| LOGIN-01 | Phase 3 | Pending (amendée Schoger S-5) |
-| LOGIN-02 | Phase 3 | Pending |
+| LOGIN-01 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
+| LOGIN-02 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
 | LOGIN-03 | Phase 3 | Pending (Schoger S-3) |
 | LEX-01 | Phase 4 | Pending |
 | LEX-02 | Phase 4 | Pending |
