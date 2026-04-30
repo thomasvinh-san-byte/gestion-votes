@@ -1,0 +1,14 @@
+Scan transverse out-of-scope — Plan 04.1
+==========================================
+
+Commande exécutée :
+  grep -rnE '\bmembre votant\b|\bApprouver\b' app/ public/ --include='*.php' --include='*.html' --include='*.htmx.html'
+  | grep -v -E 'operator\.htmx\.html|help\.htmx\.html|members\.htmx\.html|ErrorDictionary\.php'
+
+Résultat : 0 hit.
+
+Conclusion : aucun fichier hors-scope ne contient "membre votant" ni "Approuver".
+Pas de dette out-of-scope à reporter v2.4.
+
+Note : la convention LEX-02 ("Approuver" banni) est déjà acquise par construction sur
+l'ensemble du codebase scanné — aucun verbe "Approuver" présent en aucun fichier PHP/HTML.

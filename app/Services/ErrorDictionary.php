@@ -224,7 +224,7 @@ final class ErrorDictionary {
         'invalid_weight' => 'Poids de vote invalide.',
         'missing_kind' => 'Type d\'incident requis.',
         'paper_ballot_not_found_or_used' => 'Bulletin papier introuvable ou déjà utilisé.',
-        'token_member_mismatch' => 'Le token ne correspond pas à ce membre.',
+        'token_member_mismatch' => 'Le token ne correspond pas à ce votant.',
         'token_motion_mismatch' => 'Le token ne correspond pas à cette résolution.',
 
         // Motions (suppléments)
