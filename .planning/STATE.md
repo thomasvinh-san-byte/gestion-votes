@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 02
-stopped_at: "Plan 02.3 livré sur `feat/v2.3-cockpit-operateur` — wrapper `.ag-editorial` appliqué aux 4 pages éditoriales (audit, trust, archives, report) + audit filter triage F-2 (3 visibles : Tous/Votes/Présences ; 2 pliés dans `<details class='audit-filter-tabs__more'><summary>Plus de filtres</summary>` : Sécurité/Système ; tous les `data-type`/`role=tab`/`aria-selected` préservés) + integrity footer + tag `<ag-integrity-modal hidden>` sur audit + report avec click handler nonce-d CSP-safe (commit 7902a4a). F-3 décision : hydratation client (`data-events='[]'` initial, scripts page existants hydratent via `setAttribute` XSS-safe DOM API) plutôt que server-side templating. F-4 lock pill mono inline interdit dans `<p>` serif respecté (0 occurrence). 0 mot interdit (copropriété/syndic). 0 placeholder littéral `{$...}`. Phase 02 progress: 3/6."
-last_updated: "2026-04-30T07:09:30.000Z"
+stopped_at: "Plan 02.4 livré sur `feat/v2.3-cockpit-operateur` — bloc `@media print` ajouté à `editorial.css` (+135 lignes, total 245 ; commit bc1845f) : `@page` A4 marges 2cm/1.5cm, footer `Page X sur Y` via `counter(page)/counter(pages)`, reset N&B `:root,body { background:#fff!important; color:#000!important }`, masquage UI controls (`.btn`, `button`, `input`, `.audit-filter-tabs(__more)`, `details>summary`, sidebar, modals, nav, htmx-indicator), `page-break-inside: avoid` sur `.ag-resolution`/`.ag-integrity-footer`/table/blockquote/pre, `page-break-after: avoid` sur h1/h2/h3, URLs externes affichées en mono via `a[href]:not([href^=\"#\"]):after`, `.ag-editorial-print-header` révélé `display: block`. F-5 lock Schoger respecté (0 `position: running`). EDITORIAL-07 livré PARTIEL : en-tête début de doc uniquement, pas répété par page (limitation navigateur ; route dompdf en backlog v2.4 si requis). 0 mot interdit. Braces balanced. Phase 02 progress: 4/6."
+last_updated: "2026-04-30T07:18:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
 Phase: 02 (Pages éditoriales) — EXECUTING
-Plan: 4 of 6 (Plans 02.1 + 02.2 + 02.3 done)
+Plan: 5 of 6 (Plans 02.1 + 02.2 + 02.3 + 02.4 done)
 
-Progress: [##########] 100% (4/4 plans of phase 01) + 3/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
+Progress: [##########] 100% (4/4 plans of phase 01) + 4/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,13 @@ Progress: [##########] 100% (4/4 plans of phase 01) + 3/6 plans of phase 02 — 
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 02:
+
+- [v2.3 P2.4] F-5 lock Schoger respecté : pas de `position: running()` ni `@page { @top-left { content: element(...) } }` — supportés uniquement par Prince/antiword, ignorés par Chrome/Firefox/Safari à l'impression navigateur. Pragmatic fallback : `<header class="ag-editorial-print-header">` masqué hors print (déclaré `display:none` ligne 88 de editorial.css), révélé dans `@media print` via `display:block`. Apparaît en début de document, pas répété par page.
+- [v2.3 P2.4] EDITORIAL-07 livré PARTIEL : numéro de page footer livré (counter(page)/counter(pages) supporté Chrome/FF/Safari), en-tête présent en début de doc uniquement (pas par page). Si répétition par page devient requise, route via dompdf (ProcurationPdfService déjà dans le codebase) en backlog v2.4 — pipeline serveur supporte CSS Paged Media complet.
+- [v2.3 P2.4] `.ag-resolution-pill` retiré du `page-break-inside: avoid` (NIT N-2 du checker iter 1) : une pill inline-flex ne peut pas, par construction CSS, être coupée par un saut de page (les inlines suivent leur ligne parent). Règle redondante.
+- [v2.3 P2.4] `!important` autorisé exceptionnellement dans `@media print` — pattern standard CSS Paged Media pour forcer l'override des styles écran à l'impression. Exception explicite à la règle "no `!important`" de Plan 02.1.
+- [v2.3 P2.4] `.ag-integrity-footer` conservé visible en print (display: block !important) avec `border-top: 1px solid #000`, mais `.ag-integrity-footer a` (lien clickable du verify modal) masqué — inutile sur papier. `page-break-before: avoid` pour coller le hash à son PV.
+- [v2.3 P2.4] Liens externes affichés en mono : `.ag-editorial a[href]:not([href^="#"]):after { content: " (" attr(href) ")" }`. Sélecteur `:not([href^="#"])` exclut les ancres internes (`#section`) inutiles sur papier.
 
 - [v2.3 P2.3] Wrapper `.ag-editorial` appliqué en class supplémentaire sur conteneurs existants (`.container`, `.audit-page`, `.archives-main`) plutôt que via un nouveau `<div>` wrapping — minimise le diff HTML, préserve la cascade legacy `.container > .card`, évite tout risque de régression sur les sélecteurs descendants.
 - [v2.3 P2.3] Audit filter triage F-2 (Schoger S-7) : `Sécurité` + `Système` déplacés dans `<details class="audit-filter-tabs__more"><summary>Plus de filtres</summary>` ; `Tous` / `Votes` / `Présences` restent visibles. Le selector JS `[data-type="..."]` matche identiquement quelle que soit la position dans le DOM, aucune adaptation côté `audit.js` requise.
@@ -107,7 +114,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 02.3 livré sur `feat/v2.3-cockpit-operateur` — wrapper `.ag-editorial` appliqué aux 4 pages éditoriales (audit/trust/archives/report) + audit filter triage (Sécurité+Système pliés dans `<details>'Plus de filtres'`) + integrity footer + `<ag-integrity-modal hidden>` tag sur audit + report (commit 7902a4a, 4 fichiers, +53/-6 lignes). 9/9 acceptance grep checks PASSED. F-3 décision client-hydration documentée. F-4 pill-in-`<p>` lock respecté. SUMMARY 02.3 écrit. EDITORIAL-01/02/03/06/08 satisfaits.
+Stopped at: Plan 02.4 livré sur `feat/v2.3-cockpit-operateur` — bloc `@media print` ajouté à `editorial.css` (+135 lignes, total 245 ; commit bc1845f). `@page` A4 + footer `Page X sur Y` (counter(page)/counter(pages)), reset N&B, masquage UI controls (boutons/sidebar/modals/nav/htmx-indicator), `page-break-inside: avoid` sur blocs critiques (.ag-resolution, .ag-integrity-footer, table, blockquote, pre), `page-break-after: avoid` sur h1/h2/h3, URLs externes affichées en mono via `:after`, `.ag-editorial-print-header` révélé `display:block`. F-5 lock Schoger respecté (0 `position: running`). 7/7 acceptance grep checks PASSED. EDITORIAL-07 livré PARTIEL (en-tête début de doc, pas répété par page — limitation navigateur). SUMMARY 02.4 écrit. Phase 02: 4/6.
 Resume file: None
 
-**Next action:** Plan 02.4 — Print stylesheet (`@media print`). Cible : révéler `.ag-editorial-print-header` (déjà posé masqué par 02.1), masquer les `<details>` repliés et le footer integrity en print, mise en page document légal pour PV imprimable. Démarrage immédiat via `/gsd:execute-phase`.
+**Next action:** Plan 02.5 — Résolutions (`.ag-resolution-pill` insertion en en-têtes/listes/tableaux du PV final). La pill est déjà livrée 02.1 + protégée par `page-break-inside: avoid` en print 02.4. Démarrage immédiat via `/gsd:execute-phase`.

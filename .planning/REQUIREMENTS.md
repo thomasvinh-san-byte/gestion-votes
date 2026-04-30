@@ -30,7 +30,7 @@
 - [ ] **EDITORIAL-04**: Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace **uniquement en en-tête de section, en liste, ou en tableau** (jamais inline dans un paragraphe serif — le pill casse alors le rythme de lecture). Inline en flux, le numéro reste en mono sans pill.
 - [x] **EDITORIAL-05**: Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" actionnable. Le modal d'ouverture **doit commencer par un préambule pédagogique en français** avant la chaîne `audit_events` (sinon on montre du jargon — l'inverse de "rassurant"). Texte de référence : *"Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne."*
 - [x] **EDITORIAL-06**: Sous 768px, la largeur de lecture passe à 100% avec padding latéral (pas de scroll horizontal sur petit écran).
-- [ ] **EDITORIAL-07**: Styles `@media print` sur les pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) : masquage des contrôles UI (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. La sortie imprimée doit être lisible en N&B sans dépendre du contraste couleur.
+- [x] **EDITORIAL-07**: Styles `@media print` sur les pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) : masquage des contrôles UI (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. La sortie imprimée doit être lisible en N&B sans dépendre du contraste couleur. *(Livré PARTIEL Plan 02.4 commit bc1845f : numéro de page footer + masquage UI + page-break + reset N&B livrés intégralement ; en-tête présent en début de document uniquement, pas répété par page — limitation navigateur F-5 Schoger, route via dompdf en backlog v2.4 si répétition par page requise.)*
 - [x] **EDITORIAL-08**: Layout `.ag-editorial` utilise **`display: grid`** (pas flex) pour structurer la colonne contenu (max-width 720px) et une colonne sidebar latérale (hash d'intégrité, méta, navigation interne) sur viewport ≥ 1024px. Sous 1024px, la grille collapse en flux vertical naturel. *Refactoring UI* : Grid pour layout, flex pour alignement intra-cellule. Évite les hacks `flex-basis` / `min-width: 0`.
 - [ ] **EDITORIAL-09**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/audit.css` (et tout fichier CSS touché par le wrapper `.ag-editorial`) — remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 2 : compter `grep -E "(padding|margin):\s+[0-9]+" public/assets/css/audit.css` ; cible post-phase = 0. *Refactoring UI* : *"Si tu n'utilises pas le système partout, tu n'as pas un système — tu as une suggestion."*
 
@@ -116,7 +116,7 @@
 | EDITORIAL-04 | Phase 2 | Pending |
 | EDITORIAL-05 | Phase 2 | Done (02.2) |
 | EDITORIAL-06 | Phase 2 | Done (02.1 + 02.3) |
-| EDITORIAL-07 | Phase 2 | Pending |
+| EDITORIAL-07 | Phase 2 | Done partial (02.4) |
 | EDITORIAL-08 | Phase 2 | Done (02.1 + 02.3) |
 | EDITORIAL-09 | Phase 2 | Pending (Schoger S-3) |
 | TECH-01 | Quick task pré-Phase 2 | Pending (Schoger S-2) |
