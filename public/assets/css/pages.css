@@ -1096,6 +1096,82 @@
 }
 
 /* =============================================================================
+   DASHBOARD — Hero Card (DASHBOARD-02 — 3 états d'imminence)
+   =============================================================================
+   Variantes :
+     .hero-card--ambient : séance prévue >5min et <60min — CTA "Préparer la séance"
+     .hero-card--urgent  : séance prévue <5min            — CTA "Démarrer maintenant"
+     .hero-card--live    : séance en cours                — CTA "Reprendre" + pulse danger
+
+   B1 lock : --live utilise les tokens --color-danger* (pas --color-success).
+   Une séance live = action en flux irréversible = signal de criticité opérateur,
+   pas un signal de succès. Pulse encadrée par prefers-reduced-motion: reduce. */
+
+.hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  border-radius: var(--radius-base);
+  margin-bottom: var(--gap-lg);
+  transition: var(--transition-shadow);
+}
+.hero-card[hidden] { display: none; }
+.hero-card__body { flex: 1; min-width: 0; }
+.hero-card__eyebrow {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.hero-card__title {
+  font-size: var(--text-2xl, 1.5rem);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--leading-tight, 1.25);
+}
+.hero-card__meta {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.hero-card__action { flex-shrink: 0; }
+
+/* État ambient (séance >5min et <60min) — surface neutre */
+.hero-card--ambient {
+  background: var(--color-surface);
+  border: var(--border-subtle);
+}
+
+/* État urgent (séance <5min) — accent ocre/warning */
+.hero-card--urgent {
+  background: var(--color-warning-subtle);
+  border: 1px solid var(--color-warning-border);
+}
+
+/* État live (séance en cours) — accent danger pulse (B1 lock)
+   var(--color-danger-*) — PAS var(--color-success-*). */
+.hero-card--live {
+  background: var(--color-danger-subtle);
+  border: 1px solid var(--color-danger-border);
+  animation: hero-card-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hero-card-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-danger) 60%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-danger) 0%, transparent); }
+}
+
+/* prefers-reduced-motion : pulse désactivée si l'utilisateur le demande
+   (pattern inverse cohérent avec COCKPIT-03) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-card--live { animation: none; }
+}
+
+/* =============================================================================
    DASHBOARD — Sessions Panel
    ============================================================================= */
 

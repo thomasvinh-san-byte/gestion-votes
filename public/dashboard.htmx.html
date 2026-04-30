@@ -80,6 +80,31 @@
           </div>
         </a>
 
+        <!-- Hero card: 3 états selon imminence (DASHBOARD-02)
+             - hero-card--ambient : séance prévue >5min et <60min ; CTA "Préparer la séance"
+             - hero-card--urgent  : séance prévue <5min ; CTA "Démarrer maintenant"
+             - hero-card--live    : séance en cours ; CTA "Reprendre" + pulse danger
+             La classe modificateur est appliquée par dashboard.js selon l'imminence calculée
+             côté client à partir de la liste des séances. État par défaut : ambient (placeholder
+             tant que l'API n'a pas répondu). Le block est masqué via [hidden] tant qu'aucune
+             séance imminente ne le justifie.
+
+             B1 lock : .hero-card--live utilise --color-danger* (pas --color-success) — une
+             séance en flux signale criticité opérateur, pas réussite. Pulse encadrée par
+             prefers-reduced-motion: reduce. -->
+        <section class="hero-card hero-card--ambient" id="heroCard" hidden aria-labelledby="heroCardTitle">
+          <div class="hero-card__body">
+            <div class="hero-card__eyebrow" id="heroCardEyebrow">Prochaine s&eacute;ance</div>
+            <h2 class="hero-card__title" id="heroCardTitle">&mdash;</h2>
+            <p class="hero-card__meta" id="heroCardMeta"></p>
+          </div>
+          <div class="hero-card__action">
+            <!-- CTA strings figés DASHBOARD-02 : "Préparer la séance" / "Démarrer maintenant" / "Reprendre"
+                 Le label est swappé par dashboard.js selon la classe modificateur active. -->
+            <a class="btn btn-primary" id="heroCardCta" href="/hub" data-cta-ambient="Pr&eacute;parer la s&eacute;ance" data-cta-urgent="D&eacute;marrer maintenant" data-cta-live="Reprendre">Pr&eacute;parer la s&eacute;ance</a>
+          </div>
+        </section>
+
         <!-- KPI Row — 3 cards (DASHBOARD-01: Convoc. en attente déposé vers /hub footer link) -->
         <div class="dashboard-kpis loading">
           <!-- Skeleton placeholders — removed by JS after API response -->
