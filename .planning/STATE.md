@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 04
-stopped_at: "Plan 03.5 livré — Phase 03 COMPLETE (5/5 plans). LOGIN-03 closed : login.css (commit 1195cbe, 2 hardcodes → 0, 36 × var(--space-*)) + pages.css (commit 723123d, 60 hardcodes → 0, 76 × var(--space-*)) entièrement migrés sur tokens design-system. 5 arrondis cosmétiques documentés dans SUMMARY (14px/0.875rem → space-3, 0.4rem → space-1-5, 0.35rem → space-1-5, 0.15rem → space-0-5, 22px/52px sur login.css). Bonus TECH-01 non effectué (déjà majoritairement fait par TECH-01 quick task + Plan 03.4 — scope respecté). Atomic commits per file. SUMMARY 03.5 créé avec self-check PASSED. STATE + ROADMAP mis à jour : Phase 03 = 5/5, milestone v2.3 = 3/4 phases done (93%)."
-last_updated: "2026-04-30T10:21:17.453Z"
+stopped_at: "Plan 04.1 livré — LEX-01 + LEX-02 closed. Migration lexicale cas-par-cas sur 4 fichiers (operator.htmx.html, help.htmx.html, members.htmx.html, ErrorDictionary.php) : 89 occurrences analysées dans leur contexte, 2 migrations chirurgicales (operator L1062 placeholder 'Nom du membre…' → 'Nom du votant…' ; ErrorDictionary L227 message token_member_mismatch 'membre' → 'votant'), 87 conservations justifiées (CRUD registre, doctrine procuration, présence quorum, codes API). Glossaire pédagogique #vocabulaire ajouté à help.htmx.html (membre/participant/votant + confirmer/valider/verrouiller-archiver + Approuver banni). LEX-02 : scan transverse complet app/+public/ retourne 0 occurrence d'Approuver, bannishment acquis par construction. 3 commits atomiques (8890696, 0d6b651, dbdee25) + 5 scratchs d'audit. SUMMARY 04.1 + REQUIREMENTS LEX-01/02 marqués [x]. CLAUDE.md respecté (php -l ErrorDictionary OK, 0 copropriété/syndic, atomic commits)."
+last_updated: "2026-04-30T10:30:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 21
-  completed_plans: 15
-  percent: 71
+  completed_plans: 16
+  percent: 76
 ---
 
 # AG-VOTE -- Project State
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
-Phase: 04 (Lexique + UX critique) — EXECUTING
-Plan: 1 of 6
+Phase: 04 (Lexique + UX critique) — EXECUTING (1/6 plans done)
+Plan: 2 of 6 (next)
 
-Progress: [#########.] 93% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 — 3/4 phases of milestone v2.3 done
+Progress: [#########.] 95% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 + 1/6 plans of phase 04 — 3/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -38,6 +38,16 @@ Progress: [#########.] 93% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+Recent decisions affecting v2.3 Phase 04:
+
+- [v2.3 P4.1] Migration lexicale **cas-par-cas** appliquée à la lettre (règle d'or "si tu hésites, garde le mot original" respectée systématiquement). 89 occurrences relues dans leur contexte, 2 migrations chirurgicales : (a) operator.htmx.html L1062 placeholder `Nom du membre…` → `Nom du votant…` (alignement sur `<label>` et `aria-label` qui disaient déjà "votant"), (b) ErrorDictionary.php L227 message `token_member_mismatch` `'... ce membre.'` → `'... ce votant.'` (token de vote = scrutin actif, "votant" plus précis ; clé technique inchangée pour préserver le contrat API). 87 conservations justifiées dans 4 scratchs `.planning/phases/04-lexique-ux-critique/scratch-04.1-{operator,help,members,errordict}.txt`.
+- [v2.3 P4.1] **members.htmx.html : 0 transformation copy** — par construction la page traite du registre CRUD (inscrits), `membre` est sémantiquement correct partout (18/18 conservés). Page-référence pour le concept "membre = inscrit générique".
+- [v2.3 P4.1] **help.htmx.html : 0 transformation copy** — 22/22 occurrences déjà cohérentes (membre = doctrine procuration légale + CRUD registre, votant = scrutin actif déjà bien nommé). Ajout d'une section pédagogique `#vocabulaire` (acceptance criteria task 2 du plan) entre `#faqContent` et `#exports-table` : 2 listes `<dl>` définissant membre/participant/votant + confirmer/valider/verrouiller-archiver + mention bannishment `Approuver`. Pattern HTML conservateur (`<dl class="vocab-list">` semantically correct, rendu navigateur natif acceptable sans CSS additionnel).
+- [v2.3 P4.1] **LEX-02 acquis par construction** sur l'ensemble du codebase v2.3 : scan transverse `grep -rnE 'Approuver' app/ public/` retourne 0 hit. Pas de dette out-of-scope à reporter v2.4. L'unique apparition du mot est désormais pédagogique dans le glossaire help.htmx.html (« Le verbe `Approuver` est volontairement banni du copy de finalisation »).
+- [v2.3 P4.1] Atomic commits per fichier modifié (3 commits car members.htmx.html avait 0 diff copy — son scratch d'audit est inclus dans le commit 0d6b651 avec help.htmx.html). Commits : `8890696` (operator), `0d6b651` (help + members + glossaire), `dbdee25` (ErrorDictionary).
+- [v2.3 P4.1] Anti-régression CLAUDE.md respectée : `php -l app/Services/ErrorDictionary.php` exit 0 ; `grep copropriété|syndic` retourne 0 sur les 4 fichiers ; atomic commits per file ; messages de commit en anglais format `feat(04-1): description`.
+
 Recent decisions affecting v2.3 Phase 03:
 
 - [v2.3 P3.5] Arrondi cosmétique 14px/0.875rem → var(--space-3) (12px) appliqué 6× dans pages.css (.dashboard-urgent padding, .section-header margin/padding, .tab-toolbar margin, .meeting-card-body × 2, .meeting-card-header) — perte -2px assumée pour cohérence design-system, alignée sur la décision Plan 02.5 (audit-chip trust.css). Le commentaire CSS "wireframe density 14px" ligne 1347 perd 2px → cohérence > densité pixel-perfect.
@@ -155,7 +165,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 03.5 livré — Phase 03 COMPLETE (5/5 plans). LOGIN-03 closed : login.css (commit 1195cbe, 2 hardcodes → 0, 36 × var(--space-*)) + pages.css (commit 723123d, 60 hardcodes → 0, 76 × var(--space-*)) entièrement migrés sur tokens design-system. 5 arrondis cosmétiques documentés dans SUMMARY (14px/0.875rem → space-3, 0.4rem → space-1-5, 0.35rem → space-1-5, 0.15rem → space-0-5, 22px/52px sur login.css). Bonus TECH-01 non effectué (déjà majoritairement fait par TECH-01 quick task + Plan 03.4 — scope respecté). Atomic commits per file. SUMMARY 03.5 créé avec self-check PASSED. STATE + ROADMAP mis à jour : Phase 03 = 5/5, milestone v2.3 = 3/4 phases done (93%).
+Stopped at: Plan 04.1 livré — LEX-01 + LEX-02 closed. Migration lexicale cas-par-cas sur 4 fichiers (operator.htmx.html, help.htmx.html, members.htmx.html, ErrorDictionary.php) : 89 occurrences analysées dans leur contexte, 2 migrations chirurgicales (operator L1062 placeholder ; ErrorDictionary L227 token message), 87 conservations justifiées. Glossaire pédagogique #vocabulaire ajouté à help.htmx.html. LEX-02 (Approuver banni) acquis par construction : scan transverse 0 hit. 3 atomic commits (8890696, 0d6b651, dbdee25) + 5 scratchs. SUMMARY 04.1 + REQUIREMENTS LEX-01/02 [x]. Phase 04 = 1/6.
 Resume file: None
 
-**Next action:** Phase 04 (Lexique + UX critique) à planifier via `/gsd:plan-phase 4` — sur base requirements LEX-01..02, MODAL-01..03, ERR-01..04 (8-9 requirements selon découpage final). Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` selon imminence (héritée 03.1, hero card reste `[hidden]`) ; capture before/after du dashboard avec aside sunken — Schoger test ultime (héritée 03.3, manuelle) ; gap: 14px .dashboard-urgent normalisation (héritée 03.5, optionnelle). Followups Phases 01-02 cumulent : cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator + modal-intégrité Playwright spec.
+**Next action:** Plan 04.2 — MODAL-01..03 (audit modales legacy, migration vers `<ag-modal>`, focus trap a11y, affordance triggers `aria-haspopup="dialog"`). Followups Phase 04 : ERR-01..04 (Plans 04.3-04.6) — enrichissement next-step top 50 codes ErrorDictionary, test PHPUnit `UxConventionsTest`, audit prévention top 5 codes émis. Followups Phase 03 cumulés : logique JS swap `.hero-card--ambient/--urgent/--live` ; capture before/after dashboard ; gap: 14px .dashboard-urgent normalisation. Followups Phases 01-02 : Playwright specs (cockpit-health-bar, cockpit-keyboard-shortcuts, critical-path-operator, modal-intégrité).

@@ -58,8 +58,8 @@
 
 ### Lexique + UX critique (Phase 4)
 
-- [ ] **LEX-01**: Convention "membre/participant/votant" appliquée par migration cas-par-cas (lecture du contexte) sur le copy utilisateur. Distinction sémantique : membre = inscrit, participant = présent, votant = éligible au scrutin courant.
-- [ ] **LEX-02**: Convention "confirmer/valider/verrouiller-archiver" appliquée. "Approuver" banni du copy de finalisation (ambiguë juridiquement).
+- [x] **LEX-01**: Convention "membre/participant/votant" appliquée par migration cas-par-cas (lecture du contexte) sur le copy utilisateur. Distinction sémantique : membre = inscrit, participant = présent, votant = éligible au scrutin courant. **DONE Plan 04.1** : 89 occurrences analysées sur 4 fichiers (operator/help/members/ErrorDictionary), 2 migrées (operator L1062 placeholder + ErrorDictionary L227 token message), 87 conservées avec justification écrite (cf. 5 scratchs). Glossaire pédagogique #vocabulaire ajouté à help.htmx.html.
+- [x] **LEX-02**: Convention "confirmer/valider/verrouiller-archiver" appliquée. "Approuver" banni du copy de finalisation (ambiguë juridiquement). **DONE Plan 04.1** : scan transverse complet `app/` + `public/` retourne 0 occurrence d'Approuver — bannishment acquis par construction. Glossaire help.htmx.html documente la règle (confirmer/valider/verrouiller-archiver) et l'unique apparition pédagogique.
 - [ ] **MODAL-01**: Audit des modales legacy `.modal` CSS class. Migration vers `<ag-modal>` web component pour bénéficier du focus trap natif (Tab + Shift+Tab + Escape).
 - [ ] **MODAL-02**: Toutes les modales actives doivent permettre Escape pour fermer (a11y critique). Ajout d'un test E2E qui ouvre une modale et vérifie que Escape la ferme + restore le focus à l'élément précédent.
 - [ ] **MODAL-03**: **Affordance des triggers** : tous les boutons/liens qui ouvrent une `<ag-modal>` doivent porter `aria-haspopup="dialog"` + un signifiant visuel (ellipsis "…", icône, ou suffixe textuel). Norman : un focus trap interne est inutile si l'utilisateur ne sait pas qu'il s'apprête à entrer dans un dialog. Audit + correctifs sur les triggers de Phase 4 dans le même PR que MODAL-01/02.
@@ -131,8 +131,8 @@
 | LOGIN-01 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
 | LOGIN-02 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
 | LOGIN-03 | Phase 3 | DONE 2026-04-30 (Plan 03.5, commits 1195cbe + 723123d) |
-| LEX-01 | Phase 4 | Pending |
-| LEX-02 | Phase 4 | Pending |
+| LEX-01 | Phase 4 | Done (Plan 04.1, commits 8890696 + 0d6b651 + dbdee25) |
+| LEX-02 | Phase 4 | Done (Plan 04.1, bannishment acquis par construction — scan transverse 0 hit) |
 | MODAL-01 | Phase 4 | Pending |
 | MODAL-02 | Phase 4 | Pending |
 | MODAL-03 | Phase 4 | Pending |

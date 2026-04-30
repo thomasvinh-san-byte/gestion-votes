@@ -326,4 +326,4 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 1. Cockpit Opérateur live | v2.3 | 4/4 | ✓ Complete (Playwright manual) | 2026-04-30 |
 | 2. Pages éditoriales | v2.3 | 6/6 | ✓ Complete | 2026-04-30 |
 | 3. Layouts secondaires | v2.3 | 5/5 | ✓ Complete | 2026-04-30 |
-| 4. Lexique + UX critique | v2.3 | 0/? | ○ Not started | - |
+| 4. Lexique + UX critique | v2.3 | 1/6 | ▶ In progress (LEX-01 + LEX-02 done — Plan 04.1) | - |
