@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 02
-stopped_at: "Plan 01.3 livré sur `feat/v2.3-cockpit-operateur` — intégration live : `<ag-health-bar id="opHealthBar">` monté dans `#viewExec` avec ses 6 attributs par défaut, scripts `ag-health-bar.js` + `operator-keybindings.js` chargés AVANT `operator-realtime.js` (B-1), helpers `_computeQuorumState`/`_hb`/`_setHb` dans realtime.js (avec mirror F-2 sur `#viewExec[data-quorum-state]`), `quorum.updated` drive `quorum-state` (met/at-risk/missed via seuil 110%) + `quorum-ratio` (toast retiré), `attendance.updated` drive `votes-remaining`, `window.O.fn.notifyMotionChange` exposé et appelé depuis les 2 sites `O.currentOpenMotion =` dans motions.js (F-5), legacy `#opSseIndicator` + handler P/F supprimés (F-6). Commits 5d719cd (HTML wiring), 416566e (realtime + motions), b61854f (exec.js cleanup)."
-last_updated: "2026-04-30T06:51:09.861Z"
+stopped_at: "Plan 02.1 livré sur `feat/v2.3-cockpit-operateur` — fichier `public/assets/css/editorial.css` créé (110 lignes, commit 9775aea). Wrapper `.ag-editorial` en CSS grid (colonnes minmax(0, 720px) minmax(0, 1fr)), verrou `text-align: left` sur enfants directs, typography duality complète (Fraunces sur contenu, Bricolage sur contrôles UI, JetBrains Mono sur hashes), `.ag-resolution-pill` mono réutilisable (radius-full + border-subtle + shadow-xs), breakpoints collapse <1024px et padding réduit <768px, `.ag-editorial-print-header` masqué (révélation prévue Plan 02.4). 100% tokens design-system, aucun !important, aucune valeur numérique padding/margin/gap. EDITORIAL-01/02/03/06/08 satisfaits."
+last_updated: "2026-04-30T07:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 4
-  percent: 40
+  completed_plans: 5
+  percent: 50
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
 Phase: 02 (Pages éditoriales) — EXECUTING
-Plan: 1 of 6
+Plan: 2 of 6 (Plan 02.1 done)
 
-Progress: [##########] 100% (4/4 plans of phase 01) — 1/4 phases of milestone v2.3 done
+Progress: [##########] 100% (4/4 plans of phase 01) + 1/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -38,6 +38,14 @@ Progress: [##########] 100% (4/4 plans of phase 01) — 1/4 phases of milestone 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting v2.3 Phase 02:
+
+- [v2.3 P2.1] Token `--radius-pill` absent du design-system : utilisation de `--radius-full` (= 9999px) directement sur `.ag-resolution-pill`. Le seul usage existant de `--radius-pill` dans le codebase est en fallback `var(--radius-pill, 9999px)` — pas un token réel.
+- [v2.3 P2.1] Wrapper `.ag-editorial` en CSS grid (display: grid) — `display: flex` proscrit sur le wrapper par EDITORIAL-08 ; `inline-flex` autorisé pour alignement intra-cellule (`.ag-resolution-pill`).
+- [v2.3 P2.1] Collapse responsive au breakpoint 1024px (max-width: 1023.98px) — sidebar passe sous le contenu, pas à droite. Breakpoint 768px ajoute padding réduit + max-width 100% sur la colonne contenu.
+- [v2.3 P2.1] `box-shadow: var(--shadow-xs)` ajouté sur `.ag-resolution-pill` (non explicite dans le plan, mais cohérent avec consolidation Schoger S-2 / TECH-01 — élévation discrète).
+- [v2.3 P2.1] Sélecteur `details > summary` inclus dans la typography duality (Bricolage sur contrôles) — couvre le pattern HTMX accordéon des pages audit/trust.
+
 Recent decisions affecting v2.3 Phase 01:
 
 - [v2.3 P1.1] `<ag-health-bar>` en light DOM (pas shadow DOM) — nécessaire pour l'héritage des tokens design-system et pour que le stylesheet companion adresse `#viewExec` dans la même cascade.
@@ -87,7 +95,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 01.3 livré sur `feat/v2.3-cockpit-operateur` — intégration live : `<ag-health-bar id="opHealthBar">` monté dans `#viewExec` avec ses 6 attributs par défaut, scripts `ag-health-bar.js` + `operator-keybindings.js` chargés AVANT `operator-realtime.js` (B-1), helpers `_computeQuorumState`/`_hb`/`_setHb` dans realtime.js (avec mirror F-2 sur `#viewExec[data-quorum-state]`), `quorum.updated` drive `quorum-state` (met/at-risk/missed via seuil 110%) + `quorum-ratio` (toast retiré), `attendance.updated` drive `votes-remaining`, `window.O.fn.notifyMotionChange` exposé et appelé depuis les 2 sites `O.currentOpenMotion =` dans motions.js (F-5), legacy `#opSseIndicator` + handler P/F supprimés (F-6). Commits 5d719cd (HTML wiring), 416566e (realtime + motions), b61854f (exec.js cleanup).
+Stopped at: Plan 02.1 livré sur `feat/v2.3-cockpit-operateur` — `public/assets/css/editorial.css` créé (commit 9775aea, 110 lignes). Wrapper `.ag-editorial` CSS grid + verrou `text-align: left` + typography duality (Fraunces / Bricolage / JetBrains Mono) + `.ag-resolution-pill` + breakpoints 1024/768. SUMMARY 02.1 écrit. EDITORIAL-01/02/03/06/08 satisfaits.
 Resume file: None
 
-**Next action:** Plan 01.4 — vérification Playwright. Injecter des événements SSE simulés (`quorum.updated` à 5/10, 10/10, 11/10) et vérifier les transitions `quorum-state` ; tester les raccourcis L/F/→/N/?/Échap ; confirmer absence de toast "Quorum atteint !" et absence de réaction au P legacy ; smoke-tester le CSS pulse sur `#viewExec[data-quorum-state="missed"]`.
+**Next action:** Plan 02.2 — BalancedTitleService PHP (text-wrap: balance polyfill côté serveur pour titres). Aucune dépendance avec 02.1, peut démarrer immédiatement via `/gsd:execute-phase`.
