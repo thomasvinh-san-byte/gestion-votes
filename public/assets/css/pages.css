@@ -1235,13 +1235,22 @@
 }
 
 /* =============================================================================
-   DASHBOARD — Aside (Quick Actions)
-   ============================================================================= */
+   DASHBOARD — Aside (Quick Actions / "Accès rapides") — DASHBOARD-03
+   =============================================================================
+   Plan 03.3 Rule 4 deviation : aucun bloc "actions rapides" distinct n'existe
+   dans le dashboard ; les "actions rapides" historiques sont en fait les 3
+   shortcut-cards de cet aside (cf SUMMARY 03.2 — inventaire factuel). DASHBOARD-03
+   livré en secondarisant visuellement l'aside via un background sunken
+   (var(--color-bg-subtle)) au lieu de surface neutre. La hiérarchie visuelle
+   posée : hero card > KPI > sessions > [aside relégué]. Le bloc reste accessible
+   à droite (grid 1fr 280px desktop, passe sous le contenu en responsive ≤1024px),
+   sans déplacement DOM (les shortcut-cards et le titre "Accès rapides" sont
+   préservés tels quels). */
 
 .dashboard-aside {
   position: sticky;
   top: 80px;
-  background: var(--color-surface);
+  background: var(--color-bg-subtle);
   border-radius: var(--radius-base);
   border: 1px solid var(--color-border-alpha);
   padding: var(--space-card, 24px);
