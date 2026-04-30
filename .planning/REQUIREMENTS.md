@@ -11,16 +11,16 @@
 
 ### Cockpit Opérateur live (Phase 1)
 
-- [ ] **COCKPIT-01**: Une barre santé séance unique s'affiche au top de la vue exécution opérateur, persistante pendant toute la durée de la séance, avec **deux niveaux hiérarchiques** :
+- [x] **COCKPIT-01**: Une barre santé séance unique s'affiche au top de la vue exécution opérateur, persistante pendant toute la durée de la séance, avec **deux niveaux hiérarchiques** :
   - *Primary* (typo dominante, action-relevant) : Quorum + Résolution active
   - *Ambient* (pill 12-13px, télémétrie système) : SSE state + Votants connectés
   L'œil de l'opérateur sous stress doit cibler le primary sans concurrence visuelle de l'ambient.
-- [ ] **COCKPIT-02**: L'indicateur Quorum (primary) affiche en permanence l'état atteint (vert) ou non-atteint (rouge), avec le ratio votants présents / quorum requis. **L'indicateur "personnes" principal mesure les votes restants sur la résolution active** (`Votes restants : 23 / 142`), répondant à la question opérationnelle de l'opérateur — pas une métrique de connectivité technique. Plus de notification toast éphémère.
-- [ ] **COCKPIT-03**: Quand le quorum bascule en non-atteint pendant une séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) apparaît autour de la zone vote — respecte `prefers-reduced-motion: reduce`.
-- [ ] **COCKPIT-04**: La barre santé devient un stack vertical en responsive (< 768px) plutôt qu'une compression horizontale illisible.
-- [ ] **COCKPIT-05**: Un nouveau custom element `<ag-health-bar>` encapsule la logique : data-attributes pour les valeurs, animations CSS, responsive collapse, tests d'isolation.
+- [x] **COCKPIT-02**: L'indicateur Quorum (primary) affiche en permanence l'état atteint (vert) ou non-atteint (rouge), avec le ratio votants présents / quorum requis. **L'indicateur "personnes" principal mesure les votes restants sur la résolution active** (`Votes restants : 23 / 142`), répondant à la question opérationnelle de l'opérateur — pas une métrique de connectivité technique. Plus de notification toast éphémère.
+- [x] **COCKPIT-03**: Quand le quorum bascule en non-atteint pendant une séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) apparaît autour de la zone vote — respecte `prefers-reduced-motion: reduce`.
+- [x] **COCKPIT-04**: La barre santé devient un stack vertical en responsive (< 768px) plutôt qu'une compression horizontale illisible.
+- [x] **COCKPIT-05**: Un nouveau custom element `<ag-health-bar>` encapsule la logique : data-attributes pour les valeurs, animations CSS, responsive collapse, tests d'isolation.
 - [x] **COCKPIT-06**: Raccourcis clavier sur la vue exécution opérateur (sous stress, le clavier est plus rapide que la souris) : `L` lance le vote actif, `F` ferme le scrutin actif, `→` ou `N` passe à la résolution suivante, `?` affiche un overlay de la liste des raccourcis. Ne s'activent pas dans les inputs/textareas/contenteditable. Indication visuelle discrète sur les boutons concernés (tooltip avec la touche).
-- [ ] **COCKPIT-07**: État intermédiaire **"quorum à risque"** affiché quand le ratio descend sous 110 % du seuil mais reste atteint. Couleur warning douce (jamais rouge — le quorum est encore atteint), pas de pulse. Bascule visuelle anticipée → l'opérateur a 30s pour mobiliser au lieu de 0. Prévention > détection > récupération (Norman).
+- [x] **COCKPIT-07**: État intermédiaire **"quorum à risque"** affiché quand le ratio descend sous 110 % du seuil mais reste atteint. Couleur warning douce (jamais rouge — le quorum est encore atteint), pas de pulse. Bascule visuelle anticipée → l'opérateur a 30s pour mobiliser au lieu de 0. Prévention > détection > récupération (Norman).
 
 ### Pages éditoriales (Phase 2)
 
@@ -92,13 +92,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COCKPIT-01 | Phase 1 | Pending |
-| COCKPIT-02 | Phase 1 | Pending |
-| COCKPIT-03 | Phase 1 | Pending |
-| COCKPIT-04 | Phase 1 | Pending |
-| COCKPIT-05 | Phase 1 | Pending |
-| COCKPIT-06 | Phase 1 | Done (01.2) |
-| COCKPIT-07 | Phase 1 | Pending |
+| COCKPIT-01 | Phase 1 | Done (01.1 + 01.3) |
+| COCKPIT-02 | Phase 1 | Done (01.3) |
+| COCKPIT-03 | Phase 1 | Done (01.1 + 01.3) |
+| COCKPIT-04 | Phase 1 | Done (01.1) |
+| COCKPIT-05 | Phase 1 | Done (01.1 + 01.3) |
+| COCKPIT-06 | Phase 1 | Done (01.2 + 01.3) |
+| COCKPIT-07 | Phase 1 | Done (01.3) |
 | EDITORIAL-01 | Phase 2 | Pending |
 | EDITORIAL-02 | Phase 2 | Pending |
 | EDITORIAL-03 | Phase 2 | Pending |

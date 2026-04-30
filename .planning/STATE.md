@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 01
-stopped_at: "Phase 01 plan 01.2 (operator-keybindings module + ag-shortcuts-overlay stylesheet) shipped — commits 22f571e, d2a81c2. Plans 01.3/01.4 next."
-last_updated: "2026-04-30T04:58:00.000Z"
+stopped_at: "Phase 01 plan 01.3 (live integration of <ag-health-bar> + keybindings into operator.htmx.html, SSE-driven attributes, legacy P/F handler removed) shipped — commits 5d719cd, 416566e, b61854f. Plan 01.4 next."
+last_updated: "2026-04-30T05:30:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
 Phase: 01 (Cockpit Opérateur live) — EXECUTING
-Plan: 2 of 4 — DONE (next: 01.3)
+Plan: 3 of 4 — DONE (next: 01.4 verification)
 
-Progress: [#####.....] 50% (2/4 plans of phase 01)
+Progress: [#######...] 75% (3/4 plans of phase 01)
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -47,6 +47,12 @@ Recent decisions affecting v2.3 Phase 01:
 - [v2.3 P1.2] Anti-trap COCKPIT-06 : exclusion `isContentEditable` ajoutée (le handler legacy de `operator-exec.js` la manquait) ; modifier keys exclus avant tout dispatch.
 - [v2.3 P1.2] Fallback chain L/F → `#opBtnToggleVote` : permet à 01.2 de fonctionner avant ET après que Plan 01.3 sépare le toggle en `#opBtnLaunchVote` / `#opBtnCloseVote`.
 - [v2.3 P1.2] Overlay `?` reste accessible hors mode exec — c'est de la documentation passive ; seules les actions L/F/→/N sont gated par `_isExecMode()`.
+- [v2.3 P1.3] Seuil at-risk = `c < r * 1.10` (10% buffer au-dessus du quorum requis) — formule unique dans `_computeQuorumState`, appelée uniquement depuis `quorum.updated`.
+- [v2.3 P1.3] Mirror `data-quorum-state` sur `#viewExec` intégré dans `_setHb` (helper unique) — pas d'event-bus, pas de listener supplémentaire ; idempotence via `getAttribute() !== s` avant `setAttribute()`.
+- [v2.3 P1.3] `window.O.fn.notifyMotionChange` défini dans `operator-realtime.js` (pas dans motions.js) — garde toutes les écritures `<ag-health-bar>` dans un seul fichier ; `operator-motions.js` ne voit que le hook public.
+- [v2.3 P1.3] `#opSseIndicator` retiré entièrement (DOM + writes) — la pastille ambient `sse-state` du `<ag-health-bar>` est désormais l'unique surface d'état SSE (COCKPIT-01).
+- [v2.3 P1.3] Toast `Quorum atteint !` retiré — l'indicateur persistant remplace la notif éphémère (COCKPIT-02).
+- [v2.3 P1.3] Re-anchor `opPresenceBadge` sur `.op-meeting-bar-right` (avec fallbacks `#opHealthBar` puis `document.body`) — fix Rule 1 nécessaire suite à la suppression de `#opSseIndicator` qui hébergeait le badge.
 
 Recent decisions affecting v2.2:
 
@@ -79,7 +85,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 01.2 livré sur `feat/v2.3-cockpit-operateur` — `operator-keybindings.js` IIFE (L/F/→/N/?/Échap, anti-trap input + isContentEditable + modifier keys, fallback `#opBtnToggleVote`, overlay lazy `#agShortcutsOverlay` avec labels français) + `ag-shortcuts-overlay.css` (BEM, tokens, [hidden], no !important). Commits 22f571e (JS) + d2a81c2 (CSS).
+Stopped at: Plan 01.3 livré sur `feat/v2.3-cockpit-operateur` — intégration live : `<ag-health-bar id="opHealthBar">` monté dans `#viewExec` avec ses 6 attributs par défaut, scripts `ag-health-bar.js` + `operator-keybindings.js` chargés AVANT `operator-realtime.js` (B-1), helpers `_computeQuorumState`/`_hb`/`_setHb` dans realtime.js (avec mirror F-2 sur `#viewExec[data-quorum-state]`), `quorum.updated` drive `quorum-state` (met/at-risk/missed via seuil 110%) + `quorum-ratio` (toast retiré), `attendance.updated` drive `votes-remaining`, `window.O.fn.notifyMotionChange` exposé et appelé depuis les 2 sites `O.currentOpenMotion =` dans motions.js (F-5), legacy `#opSseIndicator` + handler P/F supprimés (F-6). Commits 5d719cd (HTML wiring), 416566e (realtime + motions), b61854f (exec.js cleanup).
 Resume file: None
 
-**Next action:** Plan 01.3 — câbler `<ag-health-bar>` et `operator-keybindings.js` dans `public/operator.htmx.html`, supprimer le handler keydown legacy de `operator-exec.js` (lignes 417-436), driver les attributs depuis le flux SSE, miroir `quorum-state` sur `#viewExec[data-quorum-state]`. Plan 01.4 = vérification Playwright.
+**Next action:** Plan 01.4 — vérification Playwright. Injecter des événements SSE simulés (`quorum.updated` à 5/10, 10/10, 11/10) et vérifier les transitions `quorum-state` ; tester les raccourcis L/F/→/N/?/Échap ; confirmer absence de toast "Quorum atteint !" et absence de réaction au P legacy ; smoke-tester le CSS pulse sur `#viewExec[data-quorum-state="missed"]`.
