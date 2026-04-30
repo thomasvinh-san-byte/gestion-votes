@@ -44,7 +44,8 @@
   Aucune hero card si > 60 min — on ne crie pas pour rien.
 - [ ] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
 - [x] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
-- [ ] **DASHBOARD-05**: Audit + groupement des **15 shortcut-cards** actuelles : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions" ou groupé par persona. Le PLAN.md de Phase 3 nomme les 5 retenues et justifie leur priorité (mêmes critères produit que DASHBOARD-01). *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*
+- [x] **DASHBOARD-05**: Audit + groupement des shortcut-cards : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions". *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*  
+  **NOTE 2026-04-30 (Plan 03.2 — Rule 4 deviation) :** la revue Schoger S-8 supposait 15 shortcut-cards (erreur de comptage initial — le substring `shortcut-card` matchait aussi les enfants BEM `__icon`, `__text`, `__title`, `__sub`). **Réalité du code post-Plan 03.1 : 3 shortcut-cards** dans `<aside class="dashboard-aside">` (Créer une séance, Piloter un vote, Consulter le suivi — toutes flux quotidien fréquent). 3 ≤ 5 → l'objectif "top 5 + reste plié" est *de facto* atteint. Aucun diff code livré pour DASHBOARD-05. Le `<details>` "Toutes les actions" n'a pas de raison d'être (rien à plier). Marqué `[x]` Done sans modification visible. Voir `.planning/phases/03-layouts-secondaires/03.2-SUMMARY.md` pour la trace complète.
 - [x] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
 - [x] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
 - [x] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
@@ -124,7 +125,7 @@
 | DASHBOARD-02 | Phase 3 | Done (03.1) |
 | DASHBOARD-03 | Phase 3 | Pending |
 | DASHBOARD-04 | Phase 3 | Done (03.1) |
-| DASHBOARD-05 | Phase 3 | Pending (Schoger S-8) |
+| DASHBOARD-05 | Phase 3 | Done (n=3 already ≤5, zero-diff per Plan 03.2 audit) |
 | DASHBOARD-06 | Phase 3 | Done (03.1, Schoger S-4) |
 | LOGIN-01 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
 | LOGIN-02 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
