@@ -28,7 +28,7 @@
 - [ ] **EDITORIAL-02**: Les contrôles UI (boutons, filtres, dropdowns) restent en `var(--font-sans)` (Bricolage) — le serif est réservé au contenu lu. **Sur `/audit`, audit obligatoire des 5 filter tabs actuels** : si 2-3 tabs sont utilisés <5 % du temps (mesure via logs ou jugement produit), les déplacer dans `<details>` "Plus de filtres" (Schoger Ch.10 : *"Every tab is a tax"*). Le contenu prend la lumière, pas la chrome.
 - [ ] **EDITORIAL-03**: Les hashes/UUID/codes affichés (audit chain, vote tokens, IDs) utilisent `var(--font-mono)` (JetBrains Mono).
 - [ ] **EDITORIAL-04**: Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace **uniquement en en-tête de section, en liste, ou en tableau** (jamais inline dans un paragraphe serif — le pill casse alors le rythme de lecture). Inline en flux, le numéro reste en mono sans pill.
-- [ ] **EDITORIAL-05**: Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" actionnable. Le modal d'ouverture **doit commencer par un préambule pédagogique en français** avant la chaîne `audit_events` (sinon on montre du jargon — l'inverse de "rassurant"). Texte de référence : *"Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne."*
+- [x] **EDITORIAL-05**: Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" actionnable. Le modal d'ouverture **doit commencer par un préambule pédagogique en français** avant la chaîne `audit_events` (sinon on montre du jargon — l'inverse de "rassurant"). Texte de référence : *"Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne."*
 - [ ] **EDITORIAL-06**: Sous 768px, la largeur de lecture passe à 100% avec padding latéral (pas de scroll horizontal sur petit écran).
 - [ ] **EDITORIAL-07**: Styles `@media print` sur les pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) : masquage des contrôles UI (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. La sortie imprimée doit être lisible en N&B sans dépendre du contraste couleur.
 - [ ] **EDITORIAL-08**: Layout `.ag-editorial` utilise **`display: grid`** (pas flex) pour structurer la colonne contenu (max-width 720px) et une colonne sidebar latérale (hash d'intégrité, méta, navigation interne) sur viewport ≥ 1024px. Sous 1024px, la grille collapse en flux vertical naturel. *Refactoring UI* : Grid pour layout, flex pour alignement intra-cellule. Évite les hacks `flex-basis` / `min-width: 0`.
@@ -114,7 +114,7 @@
 | EDITORIAL-02 | Phase 2 | Pending |
 | EDITORIAL-03 | Phase 2 | Pending |
 | EDITORIAL-04 | Phase 2 | Pending |
-| EDITORIAL-05 | Phase 2 | Pending |
+| EDITORIAL-05 | Phase 2 | Done (02.2) |
 | EDITORIAL-06 | Phase 2 | Pending |
 | EDITORIAL-07 | Phase 2 | Pending |
 | EDITORIAL-08 | Phase 2 | Pending (Schoger S-4) |

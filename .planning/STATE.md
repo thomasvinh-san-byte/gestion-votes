@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
 status: Executing Phase 02
-stopped_at: "Plan 02.1 livré sur `feat/v2.3-cockpit-operateur` — fichier `public/assets/css/editorial.css` créé (110 lignes, commit 9775aea). Wrapper `.ag-editorial` en CSS grid (colonnes minmax(0, 720px) minmax(0, 1fr)), verrou `text-align: left` sur enfants directs, typography duality complète (Fraunces sur contenu, Bricolage sur contrôles UI, JetBrains Mono sur hashes), `.ag-resolution-pill` mono réutilisable (radius-full + border-subtle + shadow-xs), breakpoints collapse <1024px et padding réduit <768px, `.ag-editorial-print-header` masqué (révélation prévue Plan 02.4). 100% tokens design-system, aucun !important, aucune valeur numérique padding/margin/gap. EDITORIAL-01/02/03/06/08 satisfaits."
-last_updated: "2026-04-30T07:00:00.000Z"
+stopped_at: "Plan 02.2 livré sur `feat/v2.3-cockpit-operateur` — `<ag-integrity-modal>` custom element + companion CSS (commits 339b8ab + 941ce5e). Light DOM, observedAttributes data-date+data-events, préambule pédagogique français VERBATIM EDITORIAL-05 (Voici la preuve... sceau cryptographique... une seule virgule), XSS-safe via _escape() sur date+ev.hash+ev.prev+ev.at (6 calls), B-2 fix auto-hidden dans connectedCallback (anti-flash), Escape ferme + focus trap basique, focus restoration via _previouslyFocused. CSS tokens-only F-6 vérifié (--color-surface-raised, --color-text-secondary/muted, --shadow-lg, --border-default, --radius-md, --font-display Fraunces préambule, --font-mono JetBrains Mono hashes, --space-*). Aucun !important, braces équilibrées, 0 mot interdit. EDITORIAL-05 satisfait. Phase 02 progress: 2/6."
+last_updated: "2026-04-30T07:01:30.000Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 5
-  percent: 50
+  completed_plans: 6
+  percent: 60
 ---
 
 # AG-VOTE -- Project State
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
 Phase: 02 (Pages éditoriales) — EXECUTING
-Plan: 2 of 6 (Plan 02.1 done)
+Plan: 3 of 6 (Plans 02.1 + 02.2 done)
 
-Progress: [##########] 100% (4/4 plans of phase 01) + 1/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
+Progress: [##########] 100% (4/4 plans of phase 01) + 2/6 plans of phase 02 — 1/4 phases of milestone v2.3 done
 
 **Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
 
@@ -39,6 +39,12 @@ Progress: [##########] 100% (4/4 plans of phase 01) + 1/6 plans of phase 02 — 
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting v2.3 Phase 02:
+
+- [v2.3 P2.2] `<ag-integrity-modal>` en light DOM (cohérence ag-health-bar Phase 01) — la cascade laisse passer les tokens design-system et le stylesheet companion cible directement les classes BEM.
+- [v2.3 P2.2] Auto-hidden via `setAttribute('hidden', '')` dans connectedCallback (B-2 fix) — sans ce verrou le modal flasherait visible avant l'application du CSS `[hidden]`. Override via attribut `data-keep-open` réservé aux tests.
+- [v2.3 P2.2] Préambule construit par concaténation `+` plutôt que template literal — évite tout conflit avec apostrophes typographiques (n'a, l'a, ci-dessous —) dans la phrase verbatim et garantit que `grep -F` matche les 3 fragments-clés EDITORIAL-05 sans escape mismatch.
+- [v2.3 P2.2] Focus restoration: `_previouslyFocused` capturé dans `open()`, restauré dans `_releaseFocus()` via `close()` avec try/catch silencieux (l'élément précédent peut avoir disparu, ex: HTMX swap). Comble la régression a11y du squelette du plan.
+- [v2.3 P2.2] Validation `Array.isArray(events)` ajoutée après `JSON.parse` — `JSON.parse('"abc"')` ou `JSON.parse('42')` retourneraient des non-arrays qui planteraient `events.map()`. Le squelette du plan attrapait seulement les SyntaxError.
 
 - [v2.3 P2.1] Token `--radius-pill` absent du design-system : utilisation de `--radius-full` (= 9999px) directement sur `.ag-resolution-pill`. Le seul usage existant de `--radius-pill` dans le codebase est en fallback `var(--radius-pill, 9999px)` — pas un token réel.
 - [v2.3 P2.1] Wrapper `.ag-editorial` en CSS grid (display: grid) — `display: flex` proscrit sur le wrapper par EDITORIAL-08 ; `inline-flex` autorisé pour alignement intra-cellule (`.ag-resolution-pill`).
@@ -95,7 +101,7 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 ## Session Continuity
 
 Last session: 2026-04-30
-Stopped at: Plan 02.1 livré sur `feat/v2.3-cockpit-operateur` — `public/assets/css/editorial.css` créé (commit 9775aea, 110 lignes). Wrapper `.ag-editorial` CSS grid + verrou `text-align: left` + typography duality (Fraunces / Bricolage / JetBrains Mono) + `.ag-resolution-pill` + breakpoints 1024/768. SUMMARY 02.1 écrit. EDITORIAL-01/02/03/06/08 satisfaits.
+Stopped at: Plan 02.2 livré sur `feat/v2.3-cockpit-operateur` — `<ag-integrity-modal>` custom element JS (commit 339b8ab, 162 lignes) + stylesheet companion (commit 941ce5e, 93 lignes). Préambule pédagogique français VERBATIM EDITORIAL-05, XSS-safe (_escape ×6), B-2 auto-hidden, focus restoration. SUMMARY 02.2 écrit. EDITORIAL-05 satisfait. REQUIREMENTS et ROADMAP mis à jour.
 Resume file: None
 
-**Next action:** Plan 02.2 — BalancedTitleService PHP (text-wrap: balance polyfill côté serveur pour titres). Aucune dépendance avec 02.1, peut démarrer immédiatement via `/gsd:execute-phase`.
+**Next action:** Plan 02.3 — Page Trust/Audit refonte éditoriale (intégration `<ag-integrity-modal>` + lien "Vérifier l'intégrité"). Démarrage immédiat via `/gsd:execute-phase`. Note: le STATE précédent mentionnait "BalancedTitleService" pour 02.2 — c'était une confusion de planning ; le plan 02.2 sur disque livre bien `<ag-integrity-modal>`. Aucun BalancedTitleService à exécuter.
