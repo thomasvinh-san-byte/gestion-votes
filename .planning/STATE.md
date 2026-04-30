@@ -2,14 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: planning
-stopped_at: "v2.3 milestone bootstrap + UX review (lentille Zhuo/Norman) — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi (3 états DASHBOARD-02, hiérarchie 2 niveaux cockpit, screenshot panel gate). Phase 1 (Cockpit Opérateur live) prête à planifier sur base amendée."
-last_updated: "2026-04-29T15:00:00Z"
-last_activity: 2026-04-29 -- v2.3 UX review on branche claude/gsd-ux-review-YG5K0 (.planning/v2.3-UX-REVIEW.md) — 7 nouveaux requirements (COCKPIT-06/07, EDITORIAL-07, DASHBOARD-04, MODAL-03, ERR-03/04) + 6 amendements (COCKPIT-01/02, EDITORIAL-04/05, DASHBOARD-01/02) + screenshot panel gate
+status: Executing Phase 01
+stopped_at: "v2.2 entièrement mergée dans main (PR #256 = edd7079). v2.3 bootstrap + UX review (Zhuo/Norman) appliquée — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi, screenshot panel gate ajouté."
+last_updated: "2026-04-30T04:48:42.561Z"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 ---
@@ -21,13 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** v2.3 Layout Refonte & UX Polish — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
+**Current focus:** Phase 01 — Cockpit Opérateur live
 
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
-Phase: 0 of 4 — milestone initialized + UX review applied (29 requirements), ready_to_plan Phase 1
+Phase: 01 (Cockpit Opérateur live) — EXECUTING
+Plan: 1 of 4
 
 Progress: [..........] 0% (planning)
 
