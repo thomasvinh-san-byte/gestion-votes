@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Phase 01 complete (Playwright manual followup pending)
-stopped_at: "Phase 01 (Cockpit Opérateur live) — 4/4 plans shipped. 01.4 specs (cockpit-health-bar 8 tests + cockpit-keyboard-shortcuts 7 tests) committed e6ff174 + 5714ccc. Playwright runtime not available in sandbox — manual run of the 3 specs (incl. critical-path-operator regression) required before /gsd:ship."
-last_updated: "2026-04-30T06:00:00.000Z"
+status: Executing Phase 02
+stopped_at: "Plan 01.3 livré sur `feat/v2.3-cockpit-operateur` — intégration live : `<ag-health-bar id="opHealthBar">` monté dans `#viewExec` avec ses 6 attributs par défaut, scripts `ag-health-bar.js` + `operator-keybindings.js` chargés AVANT `operator-realtime.js` (B-1), helpers `_computeQuorumState`/`_hb`/`_setHb` dans realtime.js (avec mirror F-2 sur `#viewExec[data-quorum-state]`), `quorum.updated` drive `quorum-state` (met/at-risk/missed via seuil 110%) + `quorum-ratio` (toast retiré), `attendance.updated` drive `votes-remaining`, `window.O.fn.notifyMotionChange` exposé et appelé depuis les 2 sites `O.currentOpenMotion =` dans motions.js (F-5), legacy `#opSseIndicator` + handler P/F supprimés (F-6). Commits 5d719cd (HTML wiring), 416566e (realtime + motions), b61854f (exec.js cleanup)."
+last_updated: "2026-04-30T06:51:09.861Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 4
+  total_plans: 10
   completed_plans: 4
-  percent: 100
+  percent: 40
 ---
 
 # AG-VOTE -- Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** Phase 01 — Cockpit Opérateur live
+**Current focus:** Phase 02 — Pages éditoriales
 
 ## Current Position
 
 Milestone: v2.3 Layout Refonte & UX Polish
 Branch: feat/v2.3-cockpit-operateur (Phase 01 work)
-Phase: 01 (Cockpit Opérateur live) — COMPLETE (planning + execution + 2 new E2E specs ; Playwright manual runs deferred)
-Plan: 4 of 4 — DONE
+Phase: 02 (Pages éditoriales) — EXECUTING
+Plan: 1 of 6
 
 Progress: [##########] 100% (4/4 plans of phase 01) — 1/4 phases of milestone v2.3 done
 
