@@ -1,0 +1,139 @@
+/* AG-VOTE — ag-health-bar component stylesheet
+ *
+ * Tokens used : --color-success, --color-warning, --color-danger,
+ *               --color-text, --color-text-muted, --color-border,
+ *               --color-surface (substitué à --surface-base, inexistant),
+ *               --color-bg-subtle (substitué à --surface-sunken, inexistant),
+ *               --font-sans.
+ * Substitutions confirmées contre design-system.css le 2026-04-30.
+ * --radius-pill n'existe pas dans design-system.css — valeur littérale 999px utilisée
+ * (cohérent avec ag-quorum-bar.js qui emploie 9999px pour le même rôle).
+ *
+ * Plan 01.3 mirrore l'attribut data-quorum-state du composant sur #viewExec
+ * (la zone vote) pour que la pulse "missed" entoure la zone vote — pas le bar.
+ */
+
+.ag-health-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface, #fff);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  font-family: var(--font-sans);
+}
+
+.ag-health-bar__primary {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ag-health-bar__ambient {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+/* Two-tier hierarchy : primary typo dominante (COCKPIT-01) */
+.ag-health-bar__quorum-label,
+.ag-health-bar__motion-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.ag-health-bar__quorum-ratio,
+.ag-health-bar__motion-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ag-health-bar__motion-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+
+/* Ambient pills 12-13px (COCKPIT-01) */
+.ag-health-bar__sse,
+.ag-health-bar__votes {
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Three quorum states (COCKPIT-02 + COCKPIT-07) */
+.ag-health-bar__quorum[data-state="met"] .ag-health-bar__quorum-ratio { color: var(--color-success); }
+.ag-health-bar__quorum[data-state="at-risk"] .ag-health-bar__quorum-ratio { color: var(--color-warning); }
+.ag-health-bar__quorum[data-state="missed"] .ag-health-bar__quorum-ratio { color: var(--color-danger); }
+
+/* SSE pill state coloring */
+.ag-health-bar__sse[data-state="live"] {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+}
+.ag-health-bar__sse[data-state="reconnecting"] {
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+}
+.ag-health-bar__sse[data-state="offline"] {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+
+/* Pulse on missed quorum (COCKPIT-03 + ROADMAP SC #2 — pulse entoure la zone vote)
+ * Plan 01.3 mirrore data-quorum-state="missed" sur #viewExec.
+ * La pulse cible la zone vote, pas le bar. Le bar reçoit une bordure danger statique.
+ */
+@keyframes ag-health-bar-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-danger) 60%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-danger) 0%, transparent); }
+}
+
+#viewExec[data-quorum-state="missed"] {
+  animation: ag-health-bar-pulse 1.5s ease-in-out infinite;
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+
+.ag-health-bar:has(.ag-health-bar__quorum[data-state="missed"]) {
+  border: 1px solid var(--color-danger);
+}
+
+/* prefers-reduced-motion (COCKPIT-03) */
+@media (prefers-reduced-motion: reduce) {
+  #viewExec[data-quorum-state="missed"] {
+    animation: none;
+  }
+}
+
+/* Responsive vertical stack below 768px (COCKPIT-04) */
+@media (max-width: 767px) {
+  .ag-health-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .ag-health-bar__primary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .ag-health-bar__ambient {
+    justify-content: flex-start;
+  }
+  .ag-health-bar__motion-title {
+    max-width: 100%;
+    white-space: normal;
+  }
+}
