@@ -391,6 +391,9 @@ table {
   /* Transparent spacer (preserves layout width without visible border) */
   --border-transparent: 1px solid transparent;                                              /* spacer (pages, members) */
 
+  /* Reset (zero border) — for buttons / form controls */
+  --border-none: 0;                                                                         /* button reset (ag-integrity-modal close) */
+
   --color-primary:        oklch(0.45 0.180 265);  /* v2.2 — Bleu République (#2c468f) */
   --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, black);
   --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, black);
