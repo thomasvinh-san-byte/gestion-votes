@@ -107,6 +107,10 @@ final class ErrorDictionary {
 
         // Generic business errors
         'business_error' => 'L\'opération n\'a pas pu être effectuée, vérifiez les prérequis de l\'action ou consultez le détail affiché.',
+        // Specific business errors (Plan 02.1 — migration depuis business_error)
+        'meeting_transition_failed' => 'La transition de séance a échoué, vérifiez le statut courant et les pré-requis du workflow ou consultez le détail affiché.',
+        'meeting_operation_failed' => 'L\'opération sur la séance a échoué, vérifiez les pré-requis affichés ou actualisez la page avant de relancer l\'action.',
+        'meeting_state_read_failed' => 'Lecture de l\'état de séance impossible, actualisez la page ou vérifiez auprès de l\'opérateur que la séance est encore active.',
         'conflict' => 'Conflit avec l\'état actuel de la ressource, actualisez la page pour récupérer la dernière version puis recommencez.',
         'precondition_failed' => 'Une condition préalable n\'est pas remplie, vérifiez les prérequis affichés avant de renouveler l\'action.',
         'invalid_state' => 'L\'opération n\'est pas possible dans l\'état actuel, vérifiez le statut de la ressource avant de recommencer.',
