@@ -41,6 +41,37 @@ trait MotionWriterTrait {
         );
     }
 
+    /**
+     * Insert a fixture motion attached to a meeting for test/dev seeding.
+     *
+     * Reuses the standard `create()` SQL path with sensible defaults
+     * (no agenda, no policies, public ballot). MUST only be called from
+     * dev-only endpoints — not a substitute for the full motion-creation
+     * workflow which validates ownership, agenda binding, and policies.
+     *
+     * Source: TEST-V24-01 / D-01 — Plan 03.1 (Phase 3 v2.4).
+     */
+    public function createForTest(
+        string $tenantId,
+        string $meetingId,
+        string $title = 'Fixture motion',
+        string $description = '',
+    ): string {
+        $id = api_uuid4();
+        $this->create(
+            $id,
+            $tenantId,
+            $meetingId,
+            null,
+            $title,
+            $description,
+            false,
+            null,
+            null,
+        );
+        return $id;
+    }
+
     public function update(
         string $motionId,
         string $tenantId,
