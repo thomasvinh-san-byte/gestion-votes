@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Polish & Robustness
-status: Phase 1 complete — 2/2 plans shipped, awaiting dev-machine gates
-stopped_at: "Phase 1 v2.4 (Cockpit Polish & Hygiène) shipped 2026-05-04 sur branche feat/v2.4-cockpit-polish (post-merge PR #259 v2.3 sur main, commit 2cca533). 2/2 plans atomiques livrés en parallèle : 01.1 declutter (5 commits af4d5d5..ac9578f, baseline 55 cliquables → ≤25 cible, contextual-only via data-vote-state SSE mirror, disclosure 'Plus d'actions' avec localStorage persist, sub-tab collapse, cockpit-button-count.spec.js 5 tests) + 01.2 palette (6 commits 0d44047..db1cabf, --color-danger* operator.css 21→9 -57%, sidebar zero décoratif vérifié, hero card live B1 lock préservé, CockpitPaletteTest 3 tests/23 assertions GREEN). Coordination parallèle réussie (zones disjointes structural vs color tokens, 0 conflit git). Caveat documenté : sub-tab Avancé peut pousser count à ~28 si activé — à valider dev machine, fix CSS 1-line si nécessaire (01.3 follow-up). Pending dev-machine : Playwright cockpit-button-count + non-régression keyboard-shortcuts/critical-path/health-bar + screenshots before/after 1280×720."
-last_updated: "2026-05-04T05:50:00.000Z"
+status: Phase 2 complete — 5/5 plans across phases 1+2, awaiting dev-machine gates
+stopped_at: "Phases 1 + 2 v2.4 shipped 2026-05-04 sur branche feat/v2.4-cockpit-polish. Phase 1 (Cockpit Polish) : 2/2 plans (declutter + palette), 11 commits. Phase 2 (Error Observability) : 3/3 plans en parallèle, 15 commits. Plan 02.1 ErrorDictionary : 11 callers business_error → 1 fallback légitime, 3 codes spécifiques nommés depuis audit (meeting_transition_failed/operation_failed/state_read_failed — hypothèses CONTEXT rejetées par audit, tous callers domaine meeting), 3/3 tests GREEN. Plan 02.2 SSE debounce : découverte scout = ag-integrity-modal utilise attributeChangedCallback (pas EventSource), debounce appliqué là, hero card live n'a pas d'émetteur SSE actuel → AC #2 différée v2.5+, utility window.AgSseDebounce.create() réutilisable, 2 specs Playwright (run dev-machine déféré). Plan 02.3 Logger : 0 sites Logger::error/critical/alert dans codebase (estimation 30-50 réfutée), 47 error_log() legacy déférés v2.5+, helper errorContext()/criticalContext()/alertContext() shipped forward-compatible, page admin /admin/error-stats avec RBAC + RoleMiddleware admin, audit_events table ne capture pas api_fail() émissions → admin page affiche 6 actions audit-flavored avec banner limitation, 7 tests/31 assertions GREEN. Coordination 3-way parallèle réussie (zones disjointes ErrorDictionary/JS/Logger+admin, 0 conflit git). Pending dev-machine : Playwright sse-burst-idempotency + screenshots Phase 1."
+last_updated: "2026-05-04T06:30:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 25
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
+  percent: 50
 ---
 
 # AG-VOTE -- Project State
@@ -20,20 +20,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04)
 
 **Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
-**Current focus:** Phase 2 v2.4 (Error Observability) — démarre quand utilisateur veut
+**Current focus:** Phase 3 v2.4 (Test Infrastructure) — démarre quand utilisateur veut
 
 ## Current Position
 
 Milestone: v2.4 Polish & Robustness
 Branch: feat/v2.4-cockpit-polish (active, depuis main commit 2cca533)
-Phase: 1 ✓ COMPLETE (Cockpit Polish & Hygiène, 2/2 plans, 11 commits)
-Plan: 2 of 2 done — 01.1 declutter shipped + 01.2 palette shipped
-Status: Phase 1 complete — awaiting dev-machine gates (Playwright run + screenshots before/after) avant /gsd:ship Phase 1
-Last activity: 2026-05-04 — Plans 01.1 + 01.2 exécutés en parallèle, 0 conflit, PHPUnit CockpitPaletteTest 3/3 GREEN
+Phase: 2 ✓ COMPLETE (Error Observability, 3/3 plans, 15 commits)
+Plan: 5 of 5 done across phases 1+2
+Status: Phases 1+2 complete — awaiting dev-machine gates avant /gsd:ship 1+2
+Last activity: 2026-05-04 — Phase 2 plans 02.1+02.2+02.3 exécutés en parallèle 3-way, 0 conflit, PHPUnit 13 tests/57 assertions GREEN cumulés
 
-**Progress milestone v2.4** : ████████░░░░░░░░░░░░░░░░ 25% (1/4 phases)
+**Progress milestone v2.4** : ████████████░░░░░░░░░░░░ 50% (2/4 phases)
 
-**Caveat documenté** : sub-tab "Avancé" peut faire passer count à ~28 si activé — fix CSS 1-line en 01.3 follow-up si dev-machine confirme.
+**Caveats documentés** :
+- Phase 1 : sub-tab "Avancé" peut faire passer count à ~28 si activé (01.3 follow-up potentiel)
+- Phase 2 : hero card live SSE (AC ERR-V24-02 #2) différée v2.5+ — pas d'émetteur SSE actuel (audit Plan 02.2)
+- Phase 2 : 47 sites `error_log()` legacy déférés v2.5+ migration vers Logger::errorContext()
+- Phase 2 : audit_events ne capture pas api_fail() → page admin error-stats limitée à 6 actions audit-flavored avec banner limitation
 
 ## Accumulated Context
 
