@@ -65,6 +65,7 @@ use AgVote\Controller\RgpdExportController;
 use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\SetupController;
+use AgVote\Controller\TestSeedController;
 use AgVote\Controller\TrustController;
 use AgVote\Controller\PageController;
 use AgVote\Controller\VotePublicController;
@@ -159,6 +160,15 @@ return function (Router $router): void {
         $router->mapAny("{$prefix}/dev_seed_members", DevSeedController::class, 'seedMembers', $op);
         $router->mapAny("{$prefix}/dev_seed_attendances", DevSeedController::class, 'seedAttendances', $op);
         $router->map('POST', "{$prefix}/test/seed-user", DevSeedController::class, 'seedUser');
+        // TEST-V24-01 / D-01..D-04 — seed a meeting + motions for Playwright @integration specs.
+        // Triple-guarded: this conditional registration + EnvGuardMiddleware + controller-level guardProduction().
+        $router->map(
+            'POST',
+            "{$prefix}/test/seed-meeting",
+            TestSeedController::class,
+            'seedMeeting',
+            ['env_guard' => true],
+        );
     }
 
     // ── Documentation ──
