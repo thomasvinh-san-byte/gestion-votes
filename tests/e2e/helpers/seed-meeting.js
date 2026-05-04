@@ -53,4 +53,28 @@ async function seedMeeting(request, { tenantId, status = 'setup', motionsCount =
   return meetingId;
 }
 
-module.exports = { seedMeeting };
+/**
+ * Default tenant used by the dev/test stack — mirrors `DEFAULT_TENANT_ID`
+ * defined in `app/Core/Application.php`.
+ */
+const DEFAULT_TENANT_ID = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+/**
+ * Shorthand for the most common @integration setup: a running meeting with a
+ * handful of motions ready to drive cockpit/operator UI specs.
+ *
+ * Returns an object so callers can grow consumed fields without breaking the
+ * helper contract (e.g. add `motion_ids` once Playwright specs need them).
+ *
+ * Source: TEST-V24-01 / D-02 — Plan 03.1 (Phase 3 v2.4).
+ *
+ * @param {import('@playwright/test').APIRequestContext} request
+ * @param {{ tenantId?: string, motionsCount?: number }} [opts]
+ * @returns {Promise<{ id: string }>}
+ */
+async function seedRunningMeeting(request, { tenantId = DEFAULT_TENANT_ID, motionsCount = 3 } = {}) {
+  const id = await seedMeeting(request, { tenantId, status: 'running', motionsCount });
+  return { id };
+}
+
+module.exports = { seedMeeting, seedRunningMeeting, DEFAULT_TENANT_ID };
