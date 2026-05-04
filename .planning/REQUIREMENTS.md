@@ -54,7 +54,7 @@
 
 ### Tech debt visuelle transverse v2.3 (quick task pré-Phase 2)
 
-- [ ] **TECH-01**: **Consolidation des box-shadow et borders** vers le design system. Baseline mesurée : 73 box-shadow distinctes + 57 border distinctes dans `public/assets/css/`. Cible : ≤ 6 shadow tokens (`--shadow-xs/sm/md/lg/xl/2xl`) + ≤ 8 border tokens (border, border-subtle, border-strong + 5 contextuels). Audit + remplacement automatique des occurrences existantes vers le token le plus proche. Quick task (`/gsd:quick`) à exécuter **avant** `/gsd:plan-phase 2` pour que les nouveaux CSS éditoriaux héritent d'un système consolidé. *Refactoring UI* : *"Just because you can pick any value doesn't mean you should — keep elevation levels to 5-6 maximum."*
+- [x] **TECH-01**: **Consolidation des box-shadow et borders** vers le design system. Baseline mesurée : 73 box-shadow distinctes + 57 border distinctes dans `public/assets/css/`. Cible : ≤ 6 shadow tokens (`--shadow-xs/sm/md/lg/xl/2xl`) + ≤ 8 border tokens (border, border-subtle, border-strong + 5 contextuels). Audit + remplacement automatique des occurrences existantes vers le token le plus proche. Quick task (`/gsd:quick`) à exécuter **avant** `/gsd:plan-phase 2` pour que les nouveaux CSS éditoriaux héritent d'un système consolidé. *Refactoring UI* : *"Just because you can pick any value doesn't mean you should — keep elevation levels to 5-6 maximum."* **DONE Quick `260430-86c` (2026-04-30, commits 7da8173..0fc6289) : 234 occurrences consolidées sur 25 fichiers CSS, 6 nouveaux tokens ajoutés à `design-system.css` (`--shadow-xs`, `--border-default/subtle/strong/dashed/focus`). Cas BASSE confiance (~140 borders + ~45 shadows custom avec fallbacks inline ou widths non-standard) reportés au cas-par-cas dans Phase 2/3 SUMMARY (absorbés en partie par EDITORIAL-09 + LOGIN-03).**
 
 ### Lexique + UX critique (Phase 4)
 
@@ -121,7 +121,7 @@
 | EDITORIAL-07 | Phase 2 | Done partial (02.4) |
 | EDITORIAL-08 | Phase 2 | Done (02.1 + 02.3) |
 | EDITORIAL-09 | Phase 2 | Done (02.5 cleanup + 02.6 guard test) |
-| TECH-01 | Quick task pré-Phase 2 | Pending (Schoger S-2) |
+| TECH-01 | Quick task pré-Phase 2 | Done (Quick 260430-86c, 234 borders consolidées sur 25 fichiers, 6 tokens ajoutés) |
 | DASHBOARD-01 | Phase 3 | Done (03.1) |
 | DASHBOARD-02 | Phase 3 | Done (03.1) |
 | DASHBOARD-03 | Phase 3 | Done (Plan 03.3 Rule 4 deviation, commit e36b579 — sunken background sur dashboard-aside) |

@@ -6,8 +6,7 @@
  * Provides:
  *  - Quorum warning modal (showQuorumWarning / handleQuorumAction)
  *  - Action bar: Proclamer (handleProclaim), Vote toggle
- *  - Keyboard shortcuts: P (proclaim), F (vote toggle)
- *  - Agenda sidebar rendering (renderAgendaList)
+ *  - Agenda sidebar rendering (renderAgendaList) with Enter/Space keyboard a11y
  *  - Execution header timer (updateExecHeaderTimer)
  *  - KPI strip updates (opKpiPresent, opKpiQuorum, opKpiVoted, opKpiResolution)
  *  - Progress track click navigation (bindProgressSegmentClicks)
