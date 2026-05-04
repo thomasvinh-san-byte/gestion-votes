@@ -167,7 +167,7 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-success-subtle);
-  border: 1px solid var(--color-success);
+  border: var(--border-success);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
 }
@@ -238,7 +238,7 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  border: var(--border-warning);
   border-radius: var(--radius);
   margin-bottom: var(--space-4);
 }
@@ -339,7 +339,7 @@
 
 /* ─── PV Summary card (Step 4) ─── */
 .ps-pv-summary {
-  border: 2px solid var(--color-success);
+  border: var(--border-emphasis-success);
 }
 
 .ps-pv-summary-content {
@@ -409,13 +409,13 @@
 .result-adopted {
   background: var(--color-success-subtle);
   color: var(--color-success-text);
-  border: 1px solid var(--color-success-border);
+  border: var(--border-success);
 }
 
 .result-rejected {
   background: var(--color-danger-subtle);
   color: var(--color-danger-text);
-  border: 1px solid var(--color-danger-border);
+  border: var(--border-danger);
 }
 
 /* Left-border color coding driven by data-verdict attribute (set by postsession.js) */
