@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: Layout Refonte & UX Polish
-status: Executing Phase 04
-stopped_at: "Plan 04.6 livré — ERR-04 audit prévention complet (commit bbe69c7, 04.6-AUDIT.md 16599 bytes). 5/5 codes audités (overdelivery vs ≥2/5) : missing_meeting_id + invalid_meeting_id prévenus par design v2.3 (MeetingContext singleton + 0 saisie UUID manuelle UI) ; meeting_not_found + motion_not_found + business_error déférés v2.4 avec rationale (race conditions fondamentales + refonte business_error en codes spécifiques). Stream timeout API post-AUDIT-commit — orchestrator a finalisé SUMMARY 04.6 + state updates inline (3e fois cette phase, pattern reproductible). **Phase 04 (Lexique + UX critique) : 6/6 COMPLÈTE.** Screenshot panel gate (milestone-level) en pending — gate manuelle post-merge documentée dans 04.6-SUMMARY § milestone_gate_status. Branche feat/v2.3-cockpit-operateur prête pour /gsd:ship Phase 1+2+3+4 cumulés."
-last_updated: "2026-04-30T11:30:00.000Z"
+status: Shipped — PR #259 awaiting manual gates + merge
+stopped_at: "Milestone v2.3 shipped via PR #259 (https://github.com/thomasvinh-san-byte/gestion-votes/pull/259). 116 commits, 124 files (+14650/-1319), 35/35 reqs PASSED per .planning/v2.3-MILESTONE-AUDIT.md. Code review v2.3 = 0 critical / 2 warnings (vérifiés déjà mitigés post-review) / 6 infos. Hygiene cleanup F2 (operator-exec.js docstring) + F3 (orphan partial operator-exec.html) appliqué dans commit 80475c3. PHPUnit guards (EditorialConventionsTest + UxConventionsTest) 7/7 PASSED, 41 assertions. Pending = 3 gates manuelles bloquées sandbox (A1 Playwright CDN denied, B1.1 visual review, D1 screenshot panel) → à exécuter sur dev machine avant merge. Backlog v2.4 trié en 4 phases (Cockpit Polish / Error Obs / Test Infra / Print+Tech Debt) + v2.5 dédié sécurité — voir .planning/v2.4-BACKLOG-PLAN.md."
+last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 21
-  completed_plans: 20
-  percent: 95
+  completed_plans: 21
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
