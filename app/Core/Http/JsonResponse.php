@@ -43,7 +43,15 @@ final class JsonResponse {
 
         $enriched = \AgVote\Service\ErrorDictionary::enrichError($error, $extra);
 
-        return new self($code, ['ok' => false, 'error' => $error] + $enriched);
+        // Expose request_id on 5xx so users can give support a grep-able handle
+        // into error_events / log files. 4xx are user-actionable, no debug
+        // handle needed.
+        $body = ['ok' => false, 'error' => $error] + $enriched;
+        if ($code >= 500) {
+            $body['request_id'] = \AgVote\Core\Logger::getRequestId();
+        }
+
+        return new self($code, $body);
     }
 
     public function getStatusCode(): int {
