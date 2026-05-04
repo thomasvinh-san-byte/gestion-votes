@@ -113,7 +113,7 @@ function audit_log(
             $payload,
         );
     } catch (\Throwable $e) {
-        error_log('audit_log failed: ' . $e->getMessage());
+        \AgVote\Core\Logger::error('audit_log failed', ['exception' => $e->getMessage()]);
     }
 }
 

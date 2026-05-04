@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 use AgVote\Controller\AdminController;
 use AgVote\Controller\AdminErrorStatsController;
+use AgVote\Controller\MetricsController;
 use AgVote\Controller\AgendaController;
 use AgVote\Controller\AnalyticsController;
 use AgVote\Controller\AttendancesController;
@@ -88,6 +89,12 @@ return function (Router $router): void {
     $rlAdmin = ['role' => 'admin', 'rate_limit' => ['admin_ops', 30, 60]];
     $rlOpAdm = ['role' => ['operator', 'admin', 'president'], 'rate_limit' => ['admin_ops', 30, 60]];
     $router->mapAny("{$prefix}/admin_audit_log", AdminController::class, 'auditLog', $admin);
+    $router->map('GET', "{$prefix}/admin_error_stats", AdminErrorStatsController::class, 'stats', $admin);
+
+    // Metrics ingestion (public-ish, rate-limited)
+    $router->map('POST', "{$prefix}/metrics/next-step-clicked", MetricsController::class, 'nextStepClicked', [
+        'rate_limit' => ['metrics_ingest', 60, 60],
+    ]);
     $router->mapAny("{$prefix}/admin_meeting_roles", AdminController::class, 'meetingRoles', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_reset_demo", MeetingWorkflowController::class, 'resetDemo', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_roles", AdminController::class, 'roles', $admin);
@@ -388,9 +395,11 @@ return function (Router $router): void {
     // -- Setup (first-run, no auth) --
     $router->mapAny('/setup', SetupController::class, 'setup');
 
-    // -- Admin error stats (admin-only, role enforced by middleware) --
-    // ERR-V24-03 / D-10 — Plan 02.3
-    $router->map('GET', '/admin/error-stats', AdminErrorStatsController::class, 'show', $admin);
+    // -- Admin error stats : page route registered via PAGE SHELL ROUTES
+    //    below ('admin-error-stats'). JSON endpoint registered above
+    //    ($prefix/admin_error_stats → stats()).
+    //    LOG-V25-03 reworked v2.4 P2.3 (audit_events filter) into a real
+    //    error_events backend; the legacy 'show' method is no longer used.
 
     // -- Account (session-authenticated) --
     $router->mapAny('/account', AccountController::class, 'account');
@@ -408,7 +417,7 @@ return function (Router $router): void {
     $pageRoutes = [
         'dashboard', 'wizard', 'hub', 'operator', 'postsession',
         'vote', 'validate', 'archives', 'meetings', 'audit', 'members',
-        'users', 'analytics', 'settings', 'admin', 'help',
+        'users', 'analytics', 'settings', 'admin', 'admin-error-stats', 'help',
         'email-templates', 'public', 'report', 'trust', 'docs',
     ];
     foreach ($pageRoutes as $page) {

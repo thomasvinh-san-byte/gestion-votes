@@ -72,6 +72,6 @@ final class SecuritySignal {
             'client_ip'   => $clientIp,
             'request_uri' => $_SERVER['REQUEST_URI'] ?? null,
         ] + $context;
-        error_log('SECURITY_ALERT ' . json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        \AgVote\Core\Logger::alert('SECURITY_ALERT', $payload);
     }
 }

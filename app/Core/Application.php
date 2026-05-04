@@ -202,9 +202,9 @@ final class Application {
         if ($isProduction) {
             $appUrl = (string) (getenv('APP_URL') ?: (self::$config['app_url'] ?? ''));
             if ($appUrl === '' || str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1')) {
-                error_log('[CONFIG WARNING] APP_URL is not set or points to localhost in production. '
-                    . 'Set APP_URL to your public URL (e.g. https://vote.mondomaine.fr). '
-                    . 'Email links and CORS will be incorrect until this is fixed.');
+                \AgVote\Core\Logger::warning('APP_URL is unset or points to localhost in production — email links and CORS will be incorrect', [
+                    'app_url' => $appUrl,
+                ]);
             }
         }
 
@@ -239,7 +239,10 @@ final class Application {
 
         $debug = self::$debug;
         set_exception_handler(function (Throwable $e) use ($debug) {
-            error_log('Uncaught exception: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            \AgVote\Core\Logger::error('Uncaught exception in Application handler', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             if (!headers_sent()) {
                 http_response_code(500);

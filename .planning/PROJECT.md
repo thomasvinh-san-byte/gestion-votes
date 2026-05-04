@@ -80,7 +80,15 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-## Current Milestone: v2.4 Polish & Robustness (planning)
+## Current Milestone: v2.5 Real-time Live Cockpit + Logger Migration (in progress)
+
+**Status (2026-05-04):** Phase 5 SSE Live Pulse code done (heartbeat backend + frontend, tests deferred), Phase 6 Logger Migration & Error Tracking ✓ COMPLETE (4/4 reqs), Phase 7 Cockpit Polish résiduel pending. Bonus SEC-V2-01 closeout : 27 method signatures hardened across 11 repos.
+
+Voir `.planning/REQUIREMENTS.md` (section "Milestone v2.5") pour les 12 reqs détaillés.
+
+---
+
+## Previously: v2.4 Polish & Robustness (shipped PR #260)
 
 **Goal:** Consolider la fiabilité production post-v2.3 — éliminer les frictions toolchain (test infra, code-review scope), refactorer les codes d'erreur génériques en codes ciblés observables, et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée (≤25 boutons visibles, palette danger confinée).
 

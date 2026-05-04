@@ -76,72 +76,48 @@ class NotificationRepository extends AbstractRepository {
     /**
      * Liste les notifications par audience (depuis un ID, ordre ASC).
      */
-    public function listSinceId(string $meetingId, int $sinceId, int $limit, string $audience = '', string $tenantId = ''): array {
+    public function listSinceId(string $meetingId, int $sinceId, int $limit, string $audience, string $tenantId): array {
         $limit = max(1, min(100, $limit));
         if ($audience === '' || $audience === 'all') {
-            $params = [':mid' => $meetingId, ':since' => $sinceId, ':lim' => $limit];
-            $tenantClause = '';
-            if ($tenantId !== '') {
-                $tenantClause = ' AND tenant_id = :tid';
-                $params[':tid'] = $tenantId;
-            }
             return $this->selectAll(
-                "SELECT id, severity, code, message, data, read_at, created_at
+                'SELECT id, severity, code, message, data, read_at, created_at
                  FROM meeting_notifications
-                 WHERE meeting_id = :mid AND id > :since{$tenantClause}
-                 ORDER BY id ASC LIMIT :lim",
-                $params,
+                 WHERE meeting_id = :mid AND id > :since AND tenant_id = :tid
+                 ORDER BY id ASC LIMIT :lim',
+                [':mid' => $meetingId, ':since' => $sinceId, ':lim' => $limit, ':tid' => $tenantId],
             );
         }
-        $params = [':mid' => $meetingId, ':since' => $sinceId, ':aud' => $audience, ':lim' => $limit];
-        $tenantClause = '';
-        if ($tenantId !== '') {
-            $tenantClause = ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
         return $this->selectAll(
-            "SELECT id, severity, code, message, data, read_at, created_at
+            'SELECT id, severity, code, message, data, read_at, created_at
              FROM meeting_notifications
-             WHERE meeting_id = :mid AND id > :since
-               AND (audience @> ARRAY[:aud]::text[]){$tenantClause}
-             ORDER BY id ASC LIMIT :lim",
-            $params,
+             WHERE meeting_id = :mid AND id > :since AND tenant_id = :tid
+               AND (audience @> ARRAY[:aud]::text[])
+             ORDER BY id ASC LIMIT :lim',
+            [':mid' => $meetingId, ':since' => $sinceId, ':aud' => $audience, ':lim' => $limit, ':tid' => $tenantId],
         );
     }
 
     /**
      * Dernieres notifications (ordre DESC, pour init UI).
      */
-    public function listRecent(string $meetingId, int $limit, string $audience = '', string $tenantId = ''): array {
+    public function listRecent(string $meetingId, int $limit, string $audience, string $tenantId): array {
         $limit = max(1, min(200, $limit));
         if ($audience === '' || $audience === 'all') {
-            $params = [':mid' => $meetingId, ':lim' => $limit];
-            $tenantClause = '';
-            if ($tenantId !== '') {
-                $tenantClause = ' AND tenant_id = :tid';
-                $params[':tid'] = $tenantId;
-            }
             return $this->selectAll(
-                "SELECT id, severity, code, message, data, read_at, created_at
+                'SELECT id, severity, code, message, data, read_at, created_at
                  FROM meeting_notifications
-                 WHERE meeting_id = :mid{$tenantClause}
-                 ORDER BY id DESC LIMIT :lim",
-                $params,
+                 WHERE meeting_id = :mid AND tenant_id = :tid
+                 ORDER BY id DESC LIMIT :lim',
+                [':mid' => $meetingId, ':lim' => $limit, ':tid' => $tenantId],
             );
         }
-        $params = [':mid' => $meetingId, ':aud' => $audience, ':lim' => $limit];
-        $tenantClause = '';
-        if ($tenantId !== '') {
-            $tenantClause = ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
         return $this->selectAll(
-            "SELECT id, severity, code, message, data, read_at, created_at
+            'SELECT id, severity, code, message, data, read_at, created_at
              FROM meeting_notifications
-             WHERE meeting_id = :mid
-               AND (audience @> ARRAY[:aud]::text[]){$tenantClause}
-             ORDER BY id DESC LIMIT :lim",
-            $params,
+             WHERE meeting_id = :mid AND tenant_id = :tid
+               AND (audience @> ARRAY[:aud]::text[])
+             ORDER BY id DESC LIMIT :lim',
+            [':mid' => $meetingId, ':aud' => $audience, ':lim' => $limit, ':tid' => $tenantId],
         );
     }
 

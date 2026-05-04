@@ -52,7 +52,7 @@ final class EmailTrackingController {
                 );
             }
         } catch (Throwable $e) {
-            error_log('Email pixel tracking error: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('Email pixel tracking failed', ['exception' => $e->getMessage()]);
         }
 
         $this->outputPixel();
@@ -93,10 +93,7 @@ final class EmailTrackingController {
         }
 
         if (!\AgVote\Core\Http\UrlValidator::isSafeRedirect($targetUrl, $allowedHosts)) {
-            error_log(sprintf(
-                'EMAIL_REDIRECT_REJECTED | target=%s | reason=fails UrlValidator gate',
-                $targetUrl,
-            ));
+            \AgVote\Core\Logger::warning('Email redirect rejected by UrlValidator', ['target' => $targetUrl]);
             header('Location: ' . $fallbackUrl, true, 302);
             return;
         }
@@ -123,7 +120,7 @@ final class EmailTrackingController {
                         );
                     }
                 } catch (Throwable $e) {
-                    error_log('Email redirect tracking error: ' . $e->getMessage());
+                    \AgVote\Core\Logger::error('Email redirect tracking failed', ['exception' => $e->getMessage()]);
                 }
             }
         }
@@ -146,11 +143,7 @@ final class EmailTrackingController {
     private static function throttleTracking(string $context): void {
         $identifier = \AgVote\Core\Http\ClientIp::get();
         if (\AgVote\Core\Security\RateLimiter::isLimited($context, $identifier, 200, 60)) {
-            error_log(sprintf(
-                'EMAIL_TRACKING_RATE_LIMIT | context=%s | ip=%s',
-                $context,
-                $identifier,
-            ));
+            \AgVote\Core\Logger::warning('Email tracking rate limit hit', ['context' => $context, 'ip' => $identifier]);
             // Don't reveal a 429 publicly: just return a benign response.
             // For pixel, the caller method continues to outputPixel(); for
             // redirect, we head to the fallback URL silently.

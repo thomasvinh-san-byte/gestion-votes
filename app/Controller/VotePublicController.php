@@ -36,10 +36,16 @@ final class VotePublicController {
         try {
             $this->doVote();
         } catch (\PDOException $e) {
-            error_log('VotePublicController::vote [DB]: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            \AgVote\Core\Logger::error('VotePublicController::vote DB failure', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             HtmlView::text('Erreur interne du serveur. Veuillez réessayer.', 500);
         } catch (Throwable $e) {
-            error_log('VotePublicController::vote: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            \AgVote\Core\Logger::error('VotePublicController::vote uncaught', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             HtmlView::text('Erreur interne du serveur. Veuillez réessayer.', 500);
         }
     }

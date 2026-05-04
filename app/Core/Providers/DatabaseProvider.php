@@ -45,7 +45,7 @@ final class DatabaseProvider {
                 self::$pdo->exec("SET statement_timeout = {$timeoutMs}");
             }
         } catch (Throwable $e) {
-            error_log('DB error: ' . $e->getMessage());
+            \AgVote\Core\Logger::critical('Database connection failed', ['exception' => $e->getMessage()]);
             http_response_code(500);
             header('Content-Type: application/json; charset=utf-8');
             $payload = ['ok' => false, 'error' => 'database_error', 'message' => 'Erreur de connexion à la base de données.'];

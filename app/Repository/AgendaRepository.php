@@ -11,33 +11,27 @@ class AgendaRepository extends AbstractRepository {
     /**
      * Liste les agendas d'une seance, tries par index.
      */
-    public function listForMeeting(string $meetingId, string $tenantId = ''): array {
-        $sql = 'SELECT id, meeting_id, idx, title, description, is_approved, created_at
+    public function listForMeeting(string $meetingId, string $tenantId): array {
+        return $this->selectAll(
+            'SELECT id, meeting_id, idx, title, description, is_approved, created_at
                 FROM agendas
-                WHERE meeting_id = :meeting_id';
-        $params = [':meeting_id' => $meetingId];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $sql .= ' ORDER BY idx ASC';
-        return $this->selectAll($sql, $params);
+                WHERE meeting_id = :meeting_id AND tenant_id = :tid
+                ORDER BY idx ASC',
+            [':meeting_id' => $meetingId, ':tid' => $tenantId],
+        );
     }
 
     /**
      * Liste les agendas avec colonnes renommees (pour agendas_for_meeting).
      */
-    public function listForMeetingCompact(string $meetingId, string $tenantId = ''): array {
-        $sql = 'SELECT id AS agenda_id, title AS agenda_title, idx AS agenda_idx
+    public function listForMeetingCompact(string $meetingId, string $tenantId): array {
+        return $this->selectAll(
+            'SELECT id AS agenda_id, title AS agenda_title, idx AS agenda_idx
                 FROM agendas
-                WHERE meeting_id = :meeting_id';
-        $params = [':meeting_id' => $meetingId];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $sql .= ' ORDER BY idx ASC';
-        return $this->selectAll($sql, $params);
+                WHERE meeting_id = :meeting_id AND tenant_id = :tid
+                ORDER BY idx ASC',
+            [':meeting_id' => $meetingId, ':tid' => $tenantId],
+        );
     }
 
     /**

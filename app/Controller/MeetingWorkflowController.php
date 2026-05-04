@@ -89,14 +89,14 @@ final class MeetingWorkflowController extends AbstractController {
         }
         $fromStatus = $txResult;
         try { EventBroadcaster::meetingStatusChanged($meetingId, $tenantId, $toStatus, $fromStatus); }
-        catch (Throwable $e) { error_log('[SSE] Broadcast failed after meeting transition: ' . $e->getMessage()); }
+        catch (Throwable $e) { \AgVote\Core\Logger::error('SSE broadcast failed after meeting transition', ['exception' => $e->getMessage(), 'meeting_id' => $meetingId]); }
         $resultsEmailCount = 0;
         if ($toStatus === 'closed') {
             try {
                 global $config;
                 $mergedConfig = \AgVote\Service\MailerService::buildMailerConfig($config ?? [], $this->repo()->settings(), $tenantId);
                 $resultsEmailCount = (new EmailQueueService($mergedConfig))->scheduleResults($tenantId, $meetingId)['scheduled'] ?? 0;
-            } catch (Throwable $e) { error_log('[Email] Results email scheduling failed: ' . $e->getMessage()); }
+            } catch (Throwable $e) { \AgVote\Core\Logger::error('Email results scheduling failed', ['exception' => $e->getMessage(), 'meeting_id' => $meetingId]); }
         }
         api_ok(['meeting_id' => $meetingId, 'from_status' => $fromStatus, 'to_status' => $toStatus,
             'transitioned_at' => date('c'), 'warnings' => $workflowCheck['warnings'] ?? [], 'results_emails' => $resultsEmailCount]);
@@ -143,7 +143,7 @@ final class MeetingWorkflowController extends AbstractController {
             ], $meetingId);
         });
         try { EventBroadcaster::meetingStatusChanged($meetingId, $tenant, 'live', $fromStatus); }
-        catch (Throwable $e) { error_log('[SSE] Broadcast failed after meeting launch: ' . $e->getMessage()); }
+        catch (Throwable $e) { \AgVote\Core\Logger::error('SSE broadcast failed after meeting launch', ['exception' => $e->getMessage(), 'meeting_id' => $meetingId]); }
         api_ok(['meeting_id' => $meetingId, 'from_status' => $fromStatus, 'to_status' => 'live',
             'path' => $path, 'transitioned_at' => date('c'), 'warnings' => $preCheck['warnings']]);
     }

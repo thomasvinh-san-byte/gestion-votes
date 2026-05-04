@@ -44,12 +44,18 @@ abstract class AbstractController {
         } catch (InvalidArgumentException $e) {
             api_fail('invalid_request', 422, ['detail' => $e->getMessage()]);
         } catch (\PDOException $e) {
-            error_log(static::class . '::' . $method . ' [DB]: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            \AgVote\Core\Logger::error(static::class . '::' . $method . ' DB failure', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             api_fail('internal_error', 500, ['message' => 'Erreur interne du serveur. Veuillez réessayer.']);
         } catch (RuntimeException $e) {
             api_fail('business_error', 400, ['detail' => $e->getMessage()]);
         } catch (Throwable $e) {
-            error_log(static::class . '::' . $method . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            \AgVote\Core\Logger::error(static::class . '::' . $method . ' uncaught', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             api_fail('internal_error', 500, ['message' => 'Erreur interne du serveur. Veuillez réessayer.']);
         }
     }
@@ -82,7 +88,10 @@ abstract class AbstractController {
         } catch (\AgVote\Core\Http\ApiResponseException $e) {
             throw $e;
         } catch (\PDOException $e) {
-            error_log('wrapApiCall [DB]: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            \AgVote\Core\Logger::error('wrapApiCall DB failure', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             api_fail('internal_error', 500, ['message' => 'Erreur interne du serveur. Veuillez réessayer.']);
         } catch (Throwable $e) {
             api_fail($errorCode, $httpCode, ['detail' => $e->getMessage()]);

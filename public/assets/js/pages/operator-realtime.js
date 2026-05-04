@@ -270,6 +270,10 @@
       O.fn.loadDashboard();
       break;
 
+    case 'meeting.heartbeat':
+      applyHeartbeat(data);
+      break;
+
     default:
       schedulePoll(200);
       break;
@@ -303,6 +307,52 @@
       badge.style.display = '';
     } else if (badge) {
       badge.style.display = 'none';
+    }
+  }
+
+  // Heartbeat pulse: renders quorum + presence + status from a server snapshot
+  // every 10s. Idempotent — safe to call repeatedly. Skips repaints when payload
+  // is identical to last known state.
+  var _lastHeartbeatHash = null;
+  function applyHeartbeat(data) {
+    if (!data || typeof data !== 'object') return;
+
+    var hash = JSON.stringify({
+      s: data.status, q: data.quorum, o: data.operator_count,
+    });
+    if (hash === _lastHeartbeatHash) return;
+    _lastHeartbeatHash = hash;
+
+    if (typeof data.operator_count === 'number') {
+      updateOperatorPresenceBadge(data.operator_count);
+    }
+
+    if (data.quorum && data.quorum.applied) {
+      var badge = document.getElementById('quorumStatusBadge');
+      var detail = document.getElementById('quorumStatusDetail');
+      var card = document.getElementById('quorumStatusCard');
+      if (badge) {
+        badge.textContent = (data.quorum.met === true) ? 'Atteint' : (data.quorum.met === false ? 'Non atteint' : '—');
+        badge.classList.remove('badge-success', 'badge-warning', 'badge-danger');
+        badge.classList.add(data.quorum.met === true ? 'badge-success' : 'badge-warning');
+      }
+      if (detail) {
+        var pres = data.quorum.present_members || 0;
+        var elig = data.quorum.eligible_members || 0;
+        detail.textContent = pres + ' présent' + (pres > 1 ? 's' : '') + ' sur ' + elig;
+      }
+      if (card && card.hasAttribute('hidden')) card.removeAttribute('hidden');
+
+      var nowMet = data.quorum.met === true;
+      if (_prevQuorumMet === false && nowMet) {
+        setNotif('success', 'Quorum atteint !');
+      }
+      _prevQuorumMet = nowMet;
+    }
+
+    if (data.server_time) {
+      var ts = document.getElementById('opSseTimestamp');
+      if (ts) ts.textContent = new Date(data.server_time).toLocaleTimeString('fr-FR');
     }
   }
 

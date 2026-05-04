@@ -155,7 +155,7 @@ final class AttendancesService {
             $stats = $this->attendanceRepo->getStatsByMode($meetingId, $tenantId);
             EventBroadcaster::attendanceUpdated($meetingId, $stats);
         } catch (Throwable $e) {
-            error_log('[SSE] Broadcast failed after bulk attendance update: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('SSE broadcast failed after bulk attendance update', ['exception' => $e->getMessage()]);
         }
     }
 }

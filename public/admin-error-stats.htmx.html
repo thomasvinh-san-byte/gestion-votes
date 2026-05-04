@@ -1,0 +1,211 @@
+<!doctype html>
+<!-- GO-LIVE-STATUS: ready — Admin observability dashboard for error_events (LOG-V25-03 v2.5). -->
+<html lang="fr" data-page-role="admin">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <style id="critical-tokens" nonce="%%CSP_NONCE%%">
+    :root { --color-bg: oklch(0.922 0.013 95); --color-surface: oklch(0.969 0.006 95); --color-text: oklch(0.180 0.012 75); }
+    [data-theme="dark"] { --color-bg: oklch(0.090 0.008 78); --color-surface: oklch(0.115 0.009 78); --color-text: oklch(0.908 0.015 265); }
+    html, body { background: var(--color-bg); }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1650E0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B0F1A" media="(prefers-color-scheme: dark)">
+  <title>Erreurs API &mdash; AG-VOTE</title>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/theme-init.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <a href="#main-nav" class="skip-link">Aller &agrave; la navigation</a>
+
+  <div class="app-shell">
+    <aside class="app-sidebar" data-include-sidebar data-page="admin"></aside>
+
+    <header class="app-header" role="banner">
+      <div class="flex items-center gap-4">
+        <div>
+          <nav class="breadcrumb" aria-label="Fil d'Ariane">
+            <a href="/admin" class="bc-item">Administration</a>
+            <span class="bc-sep">&rsaquo;</span>
+            <span class="bc-item bc-current" aria-current="page">Erreurs API</span>
+          </nav>
+          <h1 class="page-title">Observabilit&eacute; erreurs serveur</h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="windowSelect" class="form-select form-input-sm" aria-label="Fen&ecirc;tre temporelle">
+          <option value="24">24 heures</option>
+          <option value="72">3 jours</option>
+          <option value="168" selected>7 jours</option>
+          <option value="720">30 jours</option>
+        </select>
+        <label class="checkbox-inline">
+          <input type="checkbox" id="globalToggle"> Vue cross-tenant
+        </label>
+        <button id="btnRefresh" class="btn btn-secondary btn-sm" type="button">Actualiser</button>
+      </div>
+    </header>
+
+    <main class="app-main" id="main-content" role="main">
+      <div class="admin-content">
+
+        <div class="admin-kpis">
+          <div class="kpi-card kpi-card--1">
+            <div class="kpi-value" id="kpiTotal">&mdash;</div>
+            <div class="kpi-label">Erreurs &eacute;mises</div>
+          </div>
+          <div class="kpi-card kpi-card--2">
+            <div class="kpi-value" id="kpiDistinct">&mdash;</div>
+            <div class="kpi-label">Codes distincts</div>
+          </div>
+          <div class="kpi-card kpi-card--3">
+            <div class="kpi-value" id="kpiTopCode" style="font-family: var(--font-mono); font-size: 1.1rem;">&mdash;</div>
+            <div class="kpi-label">Top code</div>
+          </div>
+          <div class="kpi-card kpi-card--4">
+            <div class="kpi-value" id="kpiPeakHour">&mdash;</div>
+            <div class="kpi-label">Pic horaire (max)</div>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <div class="section-header">
+            <h2>R&eacute;partition horaire</h2>
+            <span class="section-count" id="timelineMeta">&mdash;</span>
+          </div>
+          <div id="timelineChart" style="height:180px;background:var(--color-surface);border-radius:8px;padding:1rem;overflow:hidden;">
+            <div class="text-muted" id="timelineEmpty">Chargement&hellip;</div>
+            <svg id="timelineSvg" width="100%" height="100%" viewBox="0 0 800 140" preserveAspectRatio="none" hidden></svg>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <div class="section-header">
+            <div class="section-header__left">
+              <h2>Top codes</h2>
+              <span id="topCodesCount" class="section-count">&mdash;</span>
+            </div>
+          </div>
+          <div id="topCodesTable">
+            <div class="text-muted">Chargement&hellip;</div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/htmx.min.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/core/include-sidebar.js"></script>
+  <script nonce="%%CSP_NONCE%%">
+  (function() {
+    'use strict';
+
+    const $ = (id) => document.getElementById(id);
+
+    async function loadStats() {
+      const hours = parseInt($('windowSelect').value, 10) || 168;
+      const isGlobal = $('globalToggle').checked ? '1' : '0';
+      const url = '/api/v1/admin_error_stats?hours=' + hours + '&global=' + isGlobal + '&limit=20';
+      try {
+        const res = await fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+        if (!res.ok) {
+          render({ ok: false, error: res.status === 403 ? 'Accès refusé (admin uniquement)' : 'Erreur ' + res.status });
+          return;
+        }
+        const data = await res.json();
+        if (!data.ok) { render({ ok: false, error: data.error || 'Erreur inconnue' }); return; }
+        render(data);
+      } catch (e) {
+        render({ ok: false, error: 'Réseau indisponible : ' + e.message });
+      }
+    }
+
+    function render(data) {
+      if (!data.ok) {
+        $('kpiTotal').textContent = '–';
+        $('topCodesTable').innerHTML = '<div class="alert alert-danger">' + escapeHtml(data.error) + '</div>';
+        return;
+      }
+      const total = data.total || 0;
+      const codes = data.top_codes || [];
+      const timeline = data.timeline || [];
+
+      $('kpiTotal').textContent = total.toLocaleString('fr-FR');
+      $('kpiDistinct').textContent = codes.length.toString();
+      $('kpiTopCode').textContent = codes.length ? codes[0].error_code : '—';
+      const peak = timeline.reduce((m, b) => Math.max(m, b.count), 0);
+      $('kpiPeakHour').textContent = peak.toLocaleString('fr-FR');
+
+      $('topCodesCount').textContent = codes.length + ' code' + (codes.length > 1 ? 's' : '');
+      if (!codes.length) {
+        $('topCodesTable').innerHTML = '<div class="text-muted">Aucune erreur sur la fenêtre sélectionnée — bonne nouvelle.</div>';
+      } else {
+        const max = codes[0].count;
+        const rows = codes.map((c) => {
+          const pct = max > 0 ? Math.round((c.count / max) * 100) : 0;
+          const clicks = c.next_step_clicks || 0;
+          const ctr = c.next_step_ctr || 0;
+          const ctrLabel = clicks === 0 ? '—' : (Math.round(ctr * 100) + '% (' + clicks + ')');
+          const ctrColor = ctr >= 0.2 ? 'var(--color-success,#0a7c3a)' : (ctr > 0 ? 'var(--color-text-muted,#666)' : 'var(--color-text-muted,#999)');
+          return '<tr>' +
+            '<td><code>' + escapeHtml(c.error_code) + '</code></td>' +
+            '<td style="text-align:right;font-variant-numeric:tabular-nums;">' + c.count.toLocaleString('fr-FR') + '</td>' +
+            '<td><div class="bar-track" style="background:var(--color-surface-2,#eee);height:8px;border-radius:4px;"><div class="bar-fill" style="background:var(--color-primary,#1650E0);height:100%;width:' + pct + '%;border-radius:4px;"></div></div></td>' +
+            '<td style="text-align:right;font-variant-numeric:tabular-nums;color:' + ctrColor + ';" title="Clics sur le next-step / total émissions">' + ctrLabel + '</td>' +
+            '<td style="font-size:0.8rem;color:var(--color-text-muted);">' + formatTime(c.last_occurred_at) + '</td>' +
+          '</tr>';
+        }).join('');
+        $('topCodesTable').innerHTML = '<table class="table table-sm"><thead><tr><th>Code</th><th style="text-align:right;">Émis</th><th>Part</th><th style="text-align:right;">CTR next-step</th><th>Dernier</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      }
+
+      renderTimeline(timeline);
+      $('timelineMeta').textContent = timeline.length + ' h enregistrées · pic ' + peak;
+    }
+
+    function renderTimeline(buckets) {
+      const empty = $('timelineEmpty');
+      const svg = $('timelineSvg');
+      if (!buckets.length) {
+        empty.hidden = false;
+        empty.textContent = 'Aucune donnée';
+        svg.hidden = true;
+        return;
+      }
+      empty.hidden = true;
+      svg.hidden = false;
+      const max = buckets.reduce((m, b) => Math.max(m, b.count), 1);
+      const w = 800, h = 140;
+      const barW = w / buckets.length;
+      const bars = buckets.map((b, i) => {
+        const barH = (b.count / max) * (h - 10);
+        const x = i * barW;
+        const y = h - barH;
+        return '<rect x="' + x.toFixed(2) + '" y="' + y.toFixed(2) + '" width="' + (barW - 1).toFixed(2) + '" height="' + barH.toFixed(2) + '" fill="var(--color-primary,#1650E0)" opacity="0.85"><title>' + b.bucket + ' · ' + b.count + '</title></rect>';
+      }).join('');
+      svg.innerHTML = bars;
+    }
+
+    function formatTime(iso) {
+      try { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }); }
+      catch (_) { return iso; }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    $('btnRefresh').addEventListener('click', loadStats);
+    $('windowSelect').addEventListener('change', loadStats);
+    $('globalToggle').addEventListener('change', loadStats);
+    loadStats();
+  })();
+  </script>
+</body>
+</html>

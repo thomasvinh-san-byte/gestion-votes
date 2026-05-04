@@ -202,14 +202,11 @@ class MeetingRepository extends AbstractRepository {
     /**
      * Titre d'une seance par son ID.
      */
-    public function findTitle(string $meetingId, string $tenantId = ''): ?string {
-        $sql = 'SELECT title FROM meetings WHERE id = :id';
-        $params = [':id' => $meetingId];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $val = $this->scalar($sql, $params);
+    public function findTitle(string $meetingId, string $tenantId): ?string {
+        $val = $this->scalar(
+            'SELECT title FROM meetings WHERE id = :id AND tenant_id = :tid',
+            [':id' => $meetingId, ':tid' => $tenantId],
+        );
         return $val !== null ? (string) $val : null;
     }
 

@@ -210,12 +210,11 @@ final class CsrfMiddleware {
     }
 
     private static function fail(string $code): never {
-        error_log(sprintf(
-            'CSRF failure: %s | IP: %s | URI: %s',
-            $code,
-            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            $_SERVER['REQUEST_URI'] ?? 'unknown',
-        ));
+        \AgVote\Core\Logger::warning('CSRF check failed', [
+            'code' => $code,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+        ]);
 
         throw new \AgVote\Core\Http\ApiResponseException(
             new \AgVote\Core\Http\JsonResponse(403, [

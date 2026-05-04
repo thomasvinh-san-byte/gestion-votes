@@ -206,7 +206,7 @@ final class BallotsService {
             $tally = $this->ballotRepo->tally($motionId, $tenantId);
             EventBroadcaster::voteCast($meetingId, $motionId, $tally);
         } catch (Throwable $e) {
-            error_log('[SSE] Broadcast failed after vote cast: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('SSE broadcast failed after vote cast', ['exception' => $e->getMessage()]);
         }
 
         $row = $this->ballotRepo->findByMotionAndMember($motionId, $memberId, $tenantId);

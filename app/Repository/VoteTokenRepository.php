@@ -72,16 +72,14 @@ class VoteTokenRepository extends AbstractRepository {
      * or returns null if token is not found, already used, or expired.
      * Single UPDATE…RETURNING eliminates TOCTOU race condition.
      */
-    public function consumeIfValid(string $tokenHash, string $tenantId = ''): ?array {
-        $sql = 'UPDATE vote_tokens SET used_at = now()
-                WHERE token_hash = :hash AND used_at IS NULL AND expires_at > NOW()';
-        $params = [':hash' => $tokenHash];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $sql .= ' RETURNING token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at';
-        return $this->selectOne($sql, $params);
+    public function consumeIfValid(string $tokenHash, string $tenantId): ?array {
+        return $this->selectOne(
+            'UPDATE vote_tokens SET used_at = now()
+                WHERE token_hash = :hash AND used_at IS NULL AND expires_at > NOW()
+                  AND tenant_id = :tid
+                RETURNING token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at, used_at',
+            [':hash' => $tokenHash, ':tid' => $tenantId],
+        );
     }
 
     /**

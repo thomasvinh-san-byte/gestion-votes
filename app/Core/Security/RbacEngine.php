@@ -68,7 +68,7 @@ final class RbacEngine {
             }
             return $roles;
         } catch (Throwable $e) {
-            error_log('getMeetingRoles error: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('RbacEngine::getMeetingRoles failed', ['exception' => $e->getMessage()]);
             return [];
         }
     }
@@ -155,7 +155,7 @@ final class RbacEngine {
         try {
             return self::getRepoFactory()->meeting()->findByIdForTenant($meetingId, $tenantId) !== null;
         } catch (Throwable $e) {
-            error_log('Meeting access check error: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('RbacEngine meeting access check failed', ['exception' => $e->getMessage()]);
             return false;
         }
     }

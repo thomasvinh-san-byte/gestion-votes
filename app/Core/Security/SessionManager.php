@@ -167,7 +167,7 @@ final class SessionManager {
             ];
         } catch (Throwable $e) {
             // DB failure: keep session alive, try again next interval
-            error_log('Session revalidation DB error: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('Session revalidation DB failure', ['exception' => $e->getMessage()]);
             return [
                 'valid' => true,
                 'user' => null,

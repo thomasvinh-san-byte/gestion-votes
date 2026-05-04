@@ -82,7 +82,7 @@ final class QuorumController extends AbstractController {
             echo '</section>';
 
         } catch (Throwable $e) {
-            error_log('quorum_card error: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('quorum_card render failed', ['exception' => $e->getMessage()]);
             $safe = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
             echo '<section class="card"><div class="row between"><div><div class="k">Quorum</div><div class="muted tiny">' . $safe . '</div></div><span class="badge badge-danger">erreur</span></div></section>';
         }

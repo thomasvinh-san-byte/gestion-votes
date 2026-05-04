@@ -15,6 +15,7 @@ use AgVote\Repository\EmailEventRepository;
 use AgVote\Repository\EmailQueueRepository;
 use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Repository\EmergencyProcedureRepository;
+use AgVote\Repository\ErrorEventsRepository;
 use AgVote\Repository\ExportTemplateRepository;
 use AgVote\Repository\InvitationRepository;
 use AgVote\Repository\ManualActionRepository;
@@ -25,6 +26,7 @@ use AgVote\Repository\MeetingStatsRepository;
 use AgVote\Repository\MemberGroupRepository;
 use AgVote\Repository\MemberRepository;
 use AgVote\Repository\MotionRepository;
+use AgVote\Repository\NextStepClicksRepository;
 use AgVote\Repository\NotificationRepository;
 use AgVote\Repository\PasswordResetRepository;
 use AgVote\Repository\PolicyRepository;
@@ -87,6 +89,7 @@ final class RepositoryFactory {
     public function emailQueue(): EmailQueueRepository { return $this->get(EmailQueueRepository::class); }
     public function emailTemplate(): EmailTemplateRepository { return $this->get(EmailTemplateRepository::class); }
     public function emergencyProcedure(): EmergencyProcedureRepository { return $this->get(EmergencyProcedureRepository::class); }
+    public function errorEvent(): ErrorEventsRepository { return $this->get(ErrorEventsRepository::class); }
     public function exportTemplate(): ExportTemplateRepository { return $this->get(ExportTemplateRepository::class); }
     public function invitation(): InvitationRepository { return $this->get(InvitationRepository::class); }
     public function manualAction(): ManualActionRepository { return $this->get(ManualActionRepository::class); }
@@ -97,6 +100,7 @@ final class RepositoryFactory {
     public function memberGroup(): MemberGroupRepository { return $this->get(MemberGroupRepository::class); }
     public function member(): MemberRepository { return $this->get(MemberRepository::class); }
     public function motion(): MotionRepository { return $this->get(MotionRepository::class); }
+    public function nextStepClick(): NextStepClicksRepository { return $this->get(NextStepClicksRepository::class); }
     public function notification(): NotificationRepository { return $this->get(NotificationRepository::class); }
     public function passwordReset(): PasswordResetRepository { return $this->get(PasswordResetRepository::class); }
     public function policy(): PolicyRepository { return $this->get(PolicyRepository::class); }
