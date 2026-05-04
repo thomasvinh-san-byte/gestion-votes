@@ -80,6 +80,37 @@ class Logger {
     }
 
     /**
+     * Log un message d'erreur avec contexte standardise auto-rempli.
+     *
+     * Ajoute automatiquement les cles 'request_id', 'user_id', 'tenant_id'
+     * dans le contexte si elles ne sont pas deja fournies par l'appelant.
+     * L'appelant fournit typiquement 'error_code' et 'caller' (__METHOD__).
+     *
+     * Source: ERR-V24-03 / D-09 — Plan 02.3 (Phase 2 v2.4).
+     *
+     * @param string $message Message libre (technique, non visible utilisateur).
+     * @param array  $context Contexte caller. Cles recommandees:
+     *                        'error_code' (string), 'caller' (string, __METHOD__).
+     */
+    public static function errorContext(string $message, array $context = []): void {
+        self::log('error', $message, self::mergeAutoContext($context));
+    }
+
+    /**
+     * Log un message critique avec contexte standardise auto-rempli.
+     */
+    public static function criticalContext(string $message, array $context = []): void {
+        self::log('critical', $message, self::mergeAutoContext($context));
+    }
+
+    /**
+     * Log un message d'alerte avec contexte standardise auto-rempli.
+     */
+    public static function alertContext(string $message, array $context = []): void {
+        self::log('alert', $message, self::mergeAutoContext($context));
+    }
+
+    /**
      * Log un message de niveau CRITICAL.
      */
     public static function critical(string $message, array $context = []): void {
@@ -169,6 +200,40 @@ class Logger {
     public static function security(string $event, array $context = []): void {
         $context['security_event'] = $event;
         self::warning("Security: {$event}", $context);
+    }
+
+    /**
+     * Fusionne le contexte auto-rempli avec celui fourni par l'appelant.
+     *
+     * Auto-fill: request_id (depuis self::getRequestId()), user_id et tenant_id
+     * via les helpers globaux api_current_user_id() / api_current_tenant_id() si
+     * disponibles. Le contexte caller a la priorite — ses cles ne sont pas ecrasees.
+     *
+     * @param array $callerContext Contexte fourni par l'appelant.
+     * @return array Contexte fusionne (auto + caller, caller gagne en cas de conflit).
+     */
+    private static function mergeAutoContext(array $callerContext): array {
+        $auto = [
+            'request_id' => self::getRequestId(),
+        ];
+
+        if (function_exists('api_current_user_id')) {
+            try {
+                $auto['user_id'] = api_current_user_id();
+            } catch (Throwable $e) {
+                // No-op: missing session context must not crash the logger.
+            }
+        }
+        if (function_exists('api_current_tenant_id')) {
+            try {
+                $auto['tenant_id'] = api_current_tenant_id();
+            } catch (Throwable $e) {
+                // No-op: missing tenant context must not crash the logger.
+            }
+        }
+
+        // Caller-provided keys take precedence over auto-filled ones.
+        return array_merge($auto, $callerContext);
     }
 
     /**
