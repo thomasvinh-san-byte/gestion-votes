@@ -317,10 +317,9 @@ HTML;
             explode(',', (string) (getenv('MONITOR_WEBHOOK_ALLOWED_HOSTS') ?: '')),
         ));
         if ($allowedHosts === [] || !\AgVote\Core\Http\UrlValidator::isSafeOutbound($webhookUrl, $allowedHosts)) {
-            error_log(sprintf(
-                'MONITOR_WEBHOOK_REJECTED | url=%s | reason=not in MONITOR_WEBHOOK_ALLOWED_HOSTS or unsafe target',
-                $webhookUrl,
-            ));
+            \AgVote\Core\Logger::warning('Monitor webhook rejected — not in allowed hosts or unsafe target', [
+                'url' => $webhookUrl,
+            ]);
             return 0;
         }
 

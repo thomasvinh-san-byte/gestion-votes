@@ -148,7 +148,7 @@ class EventBroadcaster {
         try {
             self::queueRedis($event);
         } catch (Throwable $e) {
-            error_log('EventBroadcaster::queue failed: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('EventBroadcaster::queue failed', ['exception' => $e->getMessage()]);
             return;
         }
 
@@ -156,7 +156,7 @@ class EventBroadcaster {
             try {
                 self::publishToSse($event);
             } catch (Throwable $e) {
-                error_log('EventBroadcaster::publishToSse failed: ' . $e->getMessage());
+                \AgVote\Core\Logger::error('EventBroadcaster::publishToSse failed', ['exception' => $e->getMessage()]);
             }
         }
     }
