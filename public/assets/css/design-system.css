@@ -354,6 +354,18 @@ table {
   --border-dashed:  1px dashed var(--color-border-dash);
   --border-focus:   2px solid var(--color-border-focus);
 
+  /* Border shorthand tokens — semantic & width variants (v2.4 P4 / TECH-V24-02) */
+  --border-success: 1px solid var(--color-success);
+  --border-warning: 1px solid var(--color-warning);
+  --border-danger:  1px solid var(--color-danger);
+  --border-primary: 1px solid var(--color-primary);
+
+  --border-emphasis:         2px solid var(--color-border);
+  --border-emphasis-dashed:  2px dashed var(--color-border);
+  --border-emphasis-success: 2px solid var(--color-success);
+  --border-emphasis-danger:  2px solid var(--color-danger);
+  --border-emphasis-primary: 2px solid var(--color-primary);
+
   --color-primary:        oklch(0.45 0.180 265);  /* v2.2 — Bleu République (#2c468f) */
   --color-primary-hover:  color-mix(in oklch, var(--color-primary) 88%, black);
   --color-primary-active: color-mix(in oklch, var(--color-primary) 76%, black);
@@ -490,6 +502,12 @@ table {
                   0 0 0 4px var(--color-border-focus);
   --shadow-focus-danger: 0 0 0 2px var(--color-surface-raised),
                           0 0 0 4px var(--color-danger-focus);
+
+  /* Focus / glow shadow shorthand tokens (v2.4 P4 / TECH-V24-02) */
+  --shadow-focus-glow:        0 0 0 3px var(--color-primary-glow);
+  --shadow-focus-ring:        0 0 0 2px var(--color-primary-subtle);
+  --shadow-focus-ring-lg:     0 0 0 4px var(--color-primary-subtle);
+  --shadow-focus-ring-danger: 0 0 0 4px var(--color-danger-subtle);
 
   /* ═══════════════════════════════════════════════════════════════════════════
      SEMANTIC — Layout
