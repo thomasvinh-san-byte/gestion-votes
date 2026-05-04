@@ -1520,7 +1520,7 @@
 .vote-dot.active {
   background: var(--color-primary);
   transform: scale(1.4);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  box-shadow: var(--shadow-focus-glow);
 }
 
 .vote-dot-counter {
