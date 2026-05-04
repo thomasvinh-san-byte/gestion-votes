@@ -91,12 +91,19 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 **Status (2026-05-04):** v2.5 archived, ready for next milestone definition via `/gsd-new-milestone`.
 
+**Recently shipped (post-v2.5 close, on main, no PR yet):**
+
+- ✓ **SEC-V2-02** : `CsrfMiddleware::field()` migré vers `fieldFor('POST', '/setup')` action-scopé HMAC sur le seul caller production (`setup_form.php`). `field()` marqué `@deprecated`. *Commit `ade443f`.*
+- ✓ **SEC-V2-03** : `InvitationRepository` hashage migré de `hash('sha256')` vers `hash_hmac('sha256', $token, APP_SECRET)` (4 sites centralisés via `hashToken()` helper). Migration SQL `20260504_invitation_revoke_pre_hmac.sql` révoque les invitations pré-HMAC avec audit log. *Commit `ade443f`.*
+- ✓ **COCKPIT-V25-01** : sub-tab Avancé wrapping 4 actions secondaires (Unanimité / Passerelle / Procuration / Suspendre) dans `<details>` disclosure `#opAvanceActions`. Net delta -3 cliquables visibles. Test spec étendu (1 nouveau cas Playwright). *Commit `eeb9aa4`.*
+- ✓ **TOKENS-V25-01** : audit `.planning/v2.5-TOKENS-AUDIT.md` (43 tokens classés 22 keep / 21 consolidate, 4-phase remediation plan). Phase 7.1 (alpha unification) exécutée : `--border-primary-alpha-22` + `--border-success-alpha-20` retirés (visual delta 3-5% imperceptible). *Commit `d7bf36e`.*
+
 **Tech Debt carried to next milestone:**
 
 - **HEARTBEAT-V25-03/04** : PHPUnit + Playwright tests for `meeting.heartbeat` payload (déférés stop-tests directive v2.5)
-- **COCKPIT-V25-01** : sub-tab Avancé du cockpit operator ne fait plus passer le compte cliquables à >25 (Phase 7 v2.5 reportée)
-- **TOKENS-V25-01** : audit 49 tokens 1-site dans `design-system.css` (D-08 amendé v2.4) — décision *keep* / *consolidate* documentée (Phase 7 v2.5 reportée)
+- **TOKENS-V25-01 Phases 7.2-7.4** : width/soft/none cleanup + emphasis flatten + ring variants unification — 4-phase remediation plan ready for pickup, target <30 tokens 1-site
 - **Gates dev-machine v2.4 inheritance** : Playwright runs (cockpit-button-count, sse-burst-idempotency, cockpit-keyboard-shortcuts, critical-path-operator, cockpit-health-bar) + screenshots Phase 1 + 3 PVs longs PDF visuels + CSS smoke regression 17 fichiers migrés tokens
+- **3 DB migrations à appliquer côté ops** avant prod : `20260504_error_events.sql` + `20260504_next_step_clicks.sql` + `20260504_invitation_revoke_pre_hmac.sql` (toutes idempotentes)
 
 ---
 
