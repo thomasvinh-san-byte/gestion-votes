@@ -11,6 +11,22 @@ use DateTimeImmutable;
  */
 class InvitationRepository extends AbstractRepository {
     /**
+     * SEC-V2-03 (v2.6) — HMAC-SHA256 keyed with APP_SECRET.
+     *
+     * Replaces plain hash('sha256', $token) which leaked the lookup primitive
+     * if the database read was compromised (rainbow table on guessable
+     * tokens). HMAC requires the server-side APP_SECRET to compute candidate
+     * hashes — uncomputable from a DB-only leak.
+     *
+     * Migration 20260504_invitation_revoke_pre_hmac.sql revokes all pending
+     * invitations whose token_hash predates this change. Operators must
+     * re-issue affected invitations.
+     */
+    private static function hashToken(string $token): string {
+        return hash_hmac('sha256', $token, APP_SECRET);
+    }
+
+    /**
      * Liste les invitations d'une seance avec infos membre (via service).
      */
     public function listForMeeting(string $meetingId, string $tenantId): array {
@@ -64,7 +80,7 @@ class InvitationRepository extends AbstractRepository {
         string $token,
         string $status = 'pending',
     ): void {
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
         $this->execute(
             'INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, updated_at)
              VALUES (:tenant_id, :meeting_id, :member_id, :email, :token_hash, :status, now())
@@ -110,7 +126,7 @@ class InvitationRepository extends AbstractRepository {
      * legacy bucket is fully drained and the fallback can be removed.
      */
     public function findByToken(string $token): ?array {
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
 
         // Lookup par hash (securise) — exclut invitations expirees et revoquees
         $row = $this->selectOne(
@@ -156,7 +172,7 @@ class InvitationRepository extends AbstractRepository {
         ?string $email,
         string $token,
     ): void {
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
         $expiresAt = (new DateTimeImmutable('+' . self::DEFAULT_TTL_DAYS . ' days'))->format('c');
         $this->execute(
             "INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, expires_at, updated_at)
@@ -207,7 +223,7 @@ class InvitationRepository extends AbstractRepository {
         string $status,
         ?string $sentAt,
     ): void {
-        $tokenHash = hash('sha256', $token);
+        $tokenHash = self::hashToken($token);
         $expiresAt = (new DateTimeImmutable('+' . self::DEFAULT_TTL_DAYS . ' days'))->format('c');
         $this->execute(
             'INSERT INTO invitations (tenant_id, meeting_id, member_id, email, token_hash, status, sent_at, expires_at, updated_at)

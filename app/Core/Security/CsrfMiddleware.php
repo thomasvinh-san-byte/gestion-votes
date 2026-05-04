@@ -61,7 +61,12 @@ final class CsrfMiddleware {
     }
 
     /**
-     * Generates a hidden field for forms (legacy session-wide token).
+     * @deprecated SEC-V2-02 (v2.6) — use fieldFor(method, path) instead.
+     *
+     * Action-scoped HMAC tokens (fieldFor) survive token leak / replay across
+     * actions, where the legacy session-wide token does not. Kept for backward
+     * compatibility but no longer called from any production template — verified
+     * via grep before deprecation.
      */
     public static function field(): string {
         return sprintf(
