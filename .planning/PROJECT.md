@@ -75,24 +75,27 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Hotfix securite F1: /setup 404 opaque + CSRF strict + 4 tests de regression — v2.0 (PR #247)
 - ✓ CI repair: lint-js + migrate-check verts, validate ameliore (83→21 errors), coverage redis-aware — v2.0 (PR #248)
 - ✓ v2.1 Hardening Sécurité : 21 contremesures F02-F22 shipped — defense en profondeur sur auth, vote, isolation tenant, perimetre, uploads, headers, monitoring (voir milestones/v2.1-REQUIREMENTS.md)
-- ✓ Phase 1 v2.2 Design Tokens : Bleu République + dark redesign + role tokens + DESIGN.md (PR #256, en review)
+- ✓ v2.2 Design Tokens & Components (PR #256 mergé)
+- ✓ v2.3 Layout Refonte & UX Polish (PR #259 ouvert, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
 
 ### Active
 
-## Current Milestone: v2.3 Layout Refonte & UX Polish (planning)
+## Current Milestone: v2.4 Polish & Robustness (planning)
 
-**Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant".
+**Goal:** Consolider la fiabilité production post-v2.3 — éliminer les frictions toolchain (test infra, code-review scope), refactorer les codes d'erreur génériques en codes ciblés observables, et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée (≤25 boutons visibles, palette danger confinée).
 
-**Strategy:** 4 phases — cockpit (plus haute valeur d'abord) → éditorial → secondaires → lexique+UX (filet de sécurité en dernier). 1 PR par phase. Aucune nouvelle dépendance (Fraunces déjà chargée, ag-modal existant, axe-core intégré).
+**Strategy:** 4 phases sequentielles. P1+P2 parallélisables (zones disjointes : cockpit JS/CSS vs services PHP). P3 prérequis avant v2.5 sécurité (pentest sans friction Playwright). P4 opportuniste, peut chevaucher.
 
 **Target phases:**
-- Phase 1 — Cockpit Opérateur live : barre santé séance unique (Quorum / SSE / Votants / Résolution), `<ag-health-bar>` custom element, quorum-as-a-feeling
-- Phase 2 — Pages éditoriales : `<ag-editorial>` wrapper sur /audit, /trust, /archives, /report avec Fraunces serif + Bricolage UI + JetBrains Mono codes
-- Phase 3 — Layouts secondaires : dashboard simplifié (3 KPI + hero card), login moins marketing (orbe supprimé)
-- Phase 4 — Lexique + UX critique : convention membre/participant/votant + modales focus trap + ErrorDictionary "next-step" enrichi
+- Phase 1 — Cockpit Polish & Hygiène : declutter ≤25 boutons + persona color confinement (Schoger S-1/S-6)
+- Phase 2 — Error Observability : business_error → codes ciblés + race conditions empty-state idempotency + Logger context enrichment
+- Phase 3 — Test Infrastructure : seed-meeting helper + code-reviewer scope splits + Playwright dual-install fix + README + Explore patterns doc
+- Phase 4 — Print + Tech Debt residuel : dompdf header impression + ~140 borders + ~45 shadows residuels (tokens ≥95 %)
 
-Voir `.planning/REQUIREMENTS.md` pour les 22 requirements détaillés (COCKPIT-01..05, EDITORIAL-01..06, DASHBOARD-01..03, LOGIN-01..02, LEX-01..02, MODAL-01..02, ERR-01..02).
-Voir `.planning/research/SUMMARY.md` pour la recherche STACK + FEATURES + ARCHITECTURE + PITFALLS.
+Voir `.planning/REQUIREMENTS.md` pour les 12 requirements détaillés (COCKPIT-V24-01/02, ERR-V24-01..03, TEST-V24-01..05, TECH-V24-01/02).
+Voir `.planning/v2.4-BACKLOG-PLAN.md` pour le découpage thématique source.
+
+**Pré-requis** : v2.3 PR #259 mergée avant Phase 1 v2.4.
 
 ### Out of Scope
 
@@ -239,4 +242,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — v2.2 in PR #256 (4 phases shipped, 5 items reportés), v2.3 Layout Refonte & UX Polish in planning*
+*Last updated: 2026-05-04 — v2.3 shipped via PR #259 (35/35 reqs PASSED, gates manuelles pending dev machine), v2.4 Polish & Robustness in planning (12 reqs, 4 phases)*
