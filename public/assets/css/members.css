@@ -150,13 +150,13 @@
 .onboarding-step.done {
   color: var(--color-success-on-subtle);
   background: color-mix(in oklch, var(--color-success) 8%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-success) 20%, transparent);
+  border: var(--border-success-alpha-20);
 }
 
 .onboarding-step.action {
   color: var(--color-primary-on-subtle);
   background: color-mix(in oklch, var(--color-primary) 8%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-primary) 25%, transparent);
+  border: var(--border-primary-alpha-25);
   font-weight: var(--font-semibold);
 }
 
@@ -633,7 +633,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
+  border: var(--border-transparent);
   background: transparent;
   border-radius: var(--radius-sm);
   cursor: pointer;
