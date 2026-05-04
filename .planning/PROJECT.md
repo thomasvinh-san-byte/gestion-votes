@@ -76,23 +76,23 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ CI repair: lint-js + migrate-check verts, validate ameliore (83→21 errors), coverage redis-aware — v2.0 (PR #248)
 - ✓ v2.1 Hardening Sécurité : 21 contremesures F02-F22 shipped — defense en profondeur sur auth, vote, isolation tenant, perimetre, uploads, headers, monitoring (voir milestones/v2.1-REQUIREMENTS.md)
 - ✓ Phase 1 v2.2 Design Tokens : Bleu République + dark redesign + role tokens + DESIGN.md (PR #256, en review)
+- ✓ v2.3 Layout Refonte & UX Polish : 35/35 reqs PASSED, 116 commits, 124 files (+14650/-1319) — PR #259
+- ✓ v2.4 Polish & Robustness : 12/12 reqs satisfied, 9/9 plans, 4/4 phases, cockpit ≤25 cliquables, business_error → 3 codes spécifiques, dompdf header/footer, borders/shadows tokens 100% — PR #260
 
 ### Active
 
-## Current Milestone: v2.3 Layout Refonte & UX Polish (planning)
+## Current Milestone: v2.5 Real-time Live Cockpit + Logger Migration (planning)
 
-**Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant".
+**Goal:** Compléter la boucle observabilité v2.4 — donner au cockpit opérateur un signal temps réel autonome (heartbeat 10s), migrer la dette `error_log()` legacy vers `Logger::errorContext()`, et instrumenter la table d'erreurs serveur pour que `/admin/error-stats` montre un signal exploitable. Continuité directe du verdict `tech_debt` du v2.4-MILESTONE-AUDIT.md (12 items différés explicitement).
 
-**Strategy:** 4 phases — cockpit (plus haute valeur d'abord) → éditorial → secondaires → lexique+UX (filet de sécurité en dernier). 1 PR par phase. Aucune nouvelle dépendance (Fraunces déjà chargée, ag-modal existant, axe-core intégré).
+**Strategy:** 3 phases — SSE Live Pulse (déjà partiellement livré commit `02179ea`) → Logger Migration & Error Tracking → Cockpit Polish résiduel. Aucune nouvelle dépendance.
 
 **Target phases:**
-- Phase 1 — Cockpit Opérateur live : barre santé séance unique (Quorum / SSE / Votants / Résolution), `<ag-health-bar>` custom element, quorum-as-a-feeling
-- Phase 2 — Pages éditoriales : `<ag-editorial>` wrapper sur /audit, /trust, /archives, /report avec Fraunces serif + Bricolage UI + JetBrains Mono codes
-- Phase 3 — Layouts secondaires : dashboard simplifié (3 KPI + hero card), login moins marketing (orbe supprimé)
-- Phase 4 — Lexique + UX critique : convention membre/participant/votant + modales focus trap + ErrorDictionary "next-step" enrichi
+- Phase 1 — SSE Live Pulse : `meeting.heartbeat` 10s tick avec quorum + status + presence, listener frontend `applyHeartbeat()` debounced par hash payload, tests PHPUnit + Playwright
+- Phase 2 — Logger Migration & Error Tracking : 47 `error_log()` legacy → `Logger::errorContext()`, capture serveur des `api_fail()` (table `error_events`), `/admin/error-stats` consomme la vraie source, tracking next-step ErrorDictionary
+- Phase 3 — Cockpit Polish résiduel : sub-tab Avancé ≤25 strict (1-line CSS fix), audit 49 tokens 1-site design-system.css (D-08 amendé v2.4) avec décision keep/consolidate documentée
 
-Voir `.planning/REQUIREMENTS.md` pour les 22 requirements détaillés (COCKPIT-01..05, EDITORIAL-01..06, DASHBOARD-01..03, LOGIN-01..02, LEX-01..02, MODAL-01..02, ERR-01..02).
-Voir `.planning/research/SUMMARY.md` pour la recherche STACK + FEATURES + ARCHITECTURE + PITFALLS.
+Voir `.planning/REQUIREMENTS.md` pour les 10 requirements détaillés (HEARTBEAT-V25-01..04, LOG-V25-01..04, COCKPIT-V25-01, TOKENS-V25-01).
 
 ### Out of Scope
 

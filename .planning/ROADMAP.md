@@ -303,16 +303,68 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 
 </details>
 
+---
+
+## Milestone v2.5 — Real-time Live Cockpit + Logger Migration
+
+**Defined:** 2026-05-04 — sourced from `.planning/v2.4-MILESTONE-AUDIT.md` tech_debt frontmatter (12 items deferred).
+
+**Milestone Goal:** Boucler les items differred du milestone v2.4 — donner au cockpit operator un signal SSE temps réel autonome, migrer la dette `error_log()` legacy vers `Logger::errorContext()`, et instrumenter une vraie source `error_events` pour `/admin/error-stats`.
+
+**Strategy:** 3 phases continuant la numérotation depuis v2.3 (5, 6, 7). Aucune nouvelle dépendance.
+
+### Phase 5: SSE Live Pulse
+
+**Goal:** Émettre un `meeting.heartbeat` SSE toutes les 10s avec snapshot quorum + status + presence, et câbler le frontend cockpit operator pour rafraîchir les éléments live sans dépendre d'un dispatch d'event explicite.
+
+**Depends on:** v2.4 (PR #260) — l'utility `AgSseDebounce.create()` existe et le hero card live attend ce signal
+**Requirements:** HEARTBEAT-V25-01, HEARTBEAT-V25-02, HEARTBEAT-V25-03, HEARTBEAT-V25-04
+**Success Criteria:**
+  1. `public/api/v1/events.php` émet `meeting.heartbeat` event SSE toutes les 10s pendant la connexion long-poll. Payload contient `meeting_id`, `server_time`, `status`, `validated_at`, `quorum {applied, met, present_members, eligible_members, present_weight, eligible_weight}`, `operator_count`. Sub-queries try/catch isolées. *Critère partiellement satisfait — commit `02179ea`.*
+  2. `event-stream.js` whitelist inclut `meeting.heartbeat`. `operator-realtime.js` dispatche vers `applyHeartbeat(data)` qui hash le payload et skip DOM repaint si identique. *Critère partiellement satisfait — commit `02179ea`.*
+  3. PHPUnit `HeartbeatPayloadTest` ≥3 tests GREEN (cas nominal, séance introuvable, redis fail) sur `buildHeartbeatPayload()`.
+  4. Playwright `sse-heartbeat.spec.js` valide réception d'≥1 event `meeting.heartbeat` après 12s de connexion + DOM `quorumStatusBadge` reflète le payload.
+
+### Phase 6: Logger Migration & Error Tracking
+
+**Goal:** Migrer 47 sites `error_log()` legacy vers `Logger::errorContext()`, créer la table `error_events` qui capture chaque `api_fail()` côté serveur, recâbler `/admin/error-stats` sur cette source, et instrumenter le tracking next-step ErrorDictionary.
+
+**Depends on:** v2.4 (PR #260) — `Logger::errorContext()` helper et page `/admin/error-stats` existent (filtrent actuellement audit_events avec banner limitation)
+**Requirements:** LOG-V25-01, LOG-V25-02, LOG-V25-03, LOG-V25-04
+**Success Criteria:**
+  1. `grep -rn "error_log(" app/ public/api/` retourne 0 résultat (hors `app/Core/Logger.php`). Audit produit `06-logger-migration/AUDIT.md` figeant la liste cible avant migration. Atomic commit per fichier migré.
+  2. Table `error_events` créée par migration SQL versionnée, RLS tenant_id en place. `api_fail()` enrichi pour insérer une row à chaque retour erreur (insert direct ou async via Logger queue). Tests : `ErrorEventsRepositoryTest` (3 cas) + `ApiFailCaptureTest` (3 codes émis → 3 rows persistées + tenant isolation).
+  3. `/admin/error-stats` consomme `error_events` (banner "limitation 6 actions audit-flavored" retiré). Page affiche top 10 codes 7j + courbe émission par heure + drill-down par tenant. RBAC admin préservé. `AdminErrorStatsControllerTest` 4 cas GREEN.
+  4. Endpoint `POST /api/v1/metrics/next-step-clicked` avec rate-limit + CSRF. ErrorDictionary suggestions HTMX émettent beacon. `/admin/error-stats` affiche % clic / ignorance par code.
+
+### Phase 7: Cockpit Polish résiduel
+
+**Goal:** Boucler les 2 caveats v2.4 sur le cockpit operator — sub-tab Avancé qui peut faire passer la barre des 25 cliquables, et audit des 49 tokens 1-site introduits par le push 95%→100% borders/shadows.
+
+**Depends on:** v2.4 (PR #260) — sub-tab Avancé et tokens 1-site existent uniquement post-merge
+**Requirements:** COCKPIT-V25-01, TOKENS-V25-01
+**Success Criteria:**
+  1. Spec Playwright `cockpit-button-count.spec.js` étendu d'1 cas (sub-tab Avancé activé) → toujours ≤25 cliquables visibles. Fix typique 1-line CSS dans `operator.css`.
+  2. Audit document `.planning/v2.5-TOKENS-AUDIT.md` examine 49 tokens 1-site (liste figée v2.4 P4.3), classe chacun en *keep* (valeur unique légitime, par ex. animation-keyframe spécifique) ou *consolidate* (rapprocher d'un token existant + migrer le call-site avec atomic commit). Compte final tokens 1-site < 30.
+
+---
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Design Tokens | v2.2 | 1/1 | ✓ In PR #256 | - |
-| 2. Components | v2.2 | 1/1 | ✓ In PR #256 | - |
-| 3. Personas | v2.2 | 1/1 | ✓ In PR #256 | - |
-| 4. Layout & Lexique (partial) | v2.2 | 1/1 | ⚠ Partial in PR #256 | - |
-| 1. Cockpit Opérateur live | v2.3 | 0/? | ○ Not started | - |
-| 2. Pages éditoriales | v2.3 | 0/? | ○ Not started | - |
-| 3. Layouts secondaires | v2.3 | 0/? | ○ Not started | - |
-| 4. Lexique + UX critique | v2.3 | 0/? | ○ Not started | - |
+| 1. Design Tokens | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
+| 2. Components | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
+| 3. Personas | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
+| 4. Layout & Lexique (partial) | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
+| 1. Cockpit Opérateur live | v2.3 | 4/4 | ✓ Shipped PR #259 | 2026-05-03 |
+| 2. Pages éditoriales | v2.3 | 6/6 | ✓ Shipped PR #259 | 2026-05-03 |
+| 3. Layouts secondaires | v2.3 | 5/5 | ✓ Shipped PR #259 | 2026-05-03 |
+| 4. Lexique + UX critique | v2.3 | 6/6 | ✓ Shipped PR #259 | 2026-05-03 |
+| 1. Cockpit Polish & Hygiène | v2.4 | 2/2 | ✓ Shipped PR #260 | 2026-05-04 |
+| 2. Error Observability | v2.4 | 3/3 | ✓ Shipped PR #260 | 2026-05-04 |
+| 3. Test Infrastructure | v2.4 | 2/2 | ✓ Shipped PR #260 | 2026-05-04 |
+| 4. Print + Tech Debt résiduel | v2.4 | 3/3 | ✓ Shipped PR #260 | 2026-05-04 |
+| 5. SSE Live Pulse | v2.5 | 0.5/2 | ◆ In progress (heartbeat livré 02179ea, tests pending) | - |
+| 6. Logger Migration & Error Tracking | v2.5 | 0/4 | ○ Not started | - |
+| 7. Cockpit Polish résiduel | v2.5 | 0/2 | ○ Not started | - |

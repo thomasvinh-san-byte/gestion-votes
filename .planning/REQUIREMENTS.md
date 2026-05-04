@@ -130,4 +130,53 @@
 ---
 
 *Requirements defined: 2026-04-29 — informed by .planning/research/SUMMARY.md*
-*Last updated: 2026-04-29 — revue UX (.planning/v2.3-UX-REVIEW.md) ajoute COCKPIT-06/07, EDITORIAL-07, DASHBOARD-04, MODAL-03, ERR-03/04 et amende COCKPIT-01/02, EDITORIAL-04/05, DASHBOARD-01/02*
+*Last updated: 2026-05-04 — milestone v2.5 ajoute 10 reqs (HEARTBEAT-V25-01..04, LOG-V25-01..04, COCKPIT-V25-01, TOKENS-V25-01) sourcés de v2.4-MILESTONE-AUDIT.md tech_debt frontmatter*
+
+---
+
+## Milestone v2.5 — Real-time Live Cockpit + Logger Migration
+
+**Defined:** 2026-05-04 (post v2.4-MILESTONE-AUDIT.md `tech_debt` verdict)
+**Goal:** Boucler les 12 items deferred du milestone v2.4 — observabilité serveur réelle, signal SSE temps réel autonome, finitions cockpit.
+
+### v2.5 Phase 5 (continued numbering): SSE Live Pulse
+
+- [x] **HEARTBEAT-V25-01**: `public/api/v1/events.php` émet `meeting.heartbeat` toutes les 10s avec payload `{meeting_id, server_time, status, validated_at, quorum: {applied, met, present_members, eligible_members, present_weight, eligible_weight}, operator_count}`. Chaque sub-query (status, quorum, operator_count) try/catch isolée — un échec ne casse pas la boucle SSE. *Livré commit `02179ea`.*
+- [x] **HEARTBEAT-V25-02**: Frontend `operator-realtime.js` consomme `meeting.heartbeat` via `applyHeartbeat(data)` qui rafraîchit `quorumStatusBadge`, `quorumStatusDetail`, badge présence opérateurs, timestamp SSE. Hash de payload (`JSON.stringify({s, q, o})`) pour skip DOM thrash sur snapshots identiques. Détection transition quorum (false → true) → toast "Quorum atteint !". `event-stream.js` whitelist mise à jour. *Livré commit `02179ea`.*
+- [ ] **HEARTBEAT-V25-03**: Test PHPUnit `tests/Unit/Sse/HeartbeatPayloadTest.php` qui vérifie `buildHeartbeatPayload()` retourne les clés attendues sur cas nominal (séance live + quorum applied) et dégrade proprement (séance introuvable, tenant null, redis sCard fail). Mockable via repos nullable. ≥3 tests / ≥10 assertions GREEN.
+- [ ] **HEARTBEAT-V25-04**: Spec Playwright `tests/e2e/specs/sse-heartbeat.spec.js` qui ouvre la cockpit operator sur séance live, attend ≥12s de connexion SSE, asserte ≥1 event `meeting.heartbeat` reçu et `quorumStatusBadge` reflète le payload. Skip-tag `@integration` si `seedMeeting` indisponible.
+
+### v2.5 Phase 6: Logger Migration & Error Tracking
+
+- [ ] **LOG-V25-01**: 47 sites `error_log()` legacy identifiés par audit v2.4 P2.3 migrés vers `Logger::errorContext($message, $code, $context)`. Liste cible figée dans `.planning/phases/06-logger-migration/AUDIT.md` produite avant migration. Atomic commit per fichier. Aucun `error_log(` brut ne doit rester en code applicatif (hors `app/Core/Logger.php`).
+- [ ] **LOG-V25-02**: Table `error_events` créée via migration SQL (`database/migrations/`) avec colonnes `id, occurred_at, request_id, tenant_id, user_id, error_code, http_status, route, payload (jsonb)`. `api_fail($code, $status)` enrichi pour capturer (insert async ou direct) chaque retour erreur serveur. Tests PHPUnit : `ErrorEventsRepositoryTest` (insert + retrieval + tenant isolation) + `ApiFailCaptureTest` (3 codes émis → 3 rows persistées).
+- [ ] **LOG-V25-03**: `/admin/error-stats` (livré v2.4 P2.3 avec source `audit_events` filtrée) re-câblée sur `error_events` avec retrait du banner "limitation 6 actions audit-flavored". Page affiche : top 10 codes émis sur 7j, courbe émission par heure, drill-down par tenant. RBAC admin préservé. `AdminErrorStatsControllerTest` couvre 4 cas (admin → 200 + data, operator → 403, codes filtrés par tenant, pagination ≥100).
+- [ ] **LOG-V25-04**: Instrumentation HTMX du tracking next-step ErrorDictionary — chaque suggestion cliquée émet beacon `POST /api/v1/metrics/next-step-clicked` avec `{error_code, suggestion_text, ts}`. Compteur agrégé par code consultable dans `/admin/error-stats` (% clics sur suggestion vs ignorance). Métrique valide la valeur ajoutée des next-steps v2.3 P4.4.
+
+### v2.5 Phase 7: Cockpit Polish résiduel
+
+- [ ] **COCKPIT-V25-01**: Sub-tab Avancé du cockpit operator ne fait plus passer le compte de cliquables visibles à >25 quand activé. Caveat documenté v2.4 audit ("peut faire passer à ~28"). Fix typique 1-line CSS. Spec Playwright `cockpit-button-count.spec.js` étendu d'1 cas (sub-tab activé → ≤25).
+- [ ] **TOKENS-V25-01**: Audit des 49 tokens 1-site introduits v2.4 P4.3 dans `design-system.css` (D-08 amendé). Pour chaque : décision dans `.planning/v2.5-TOKENS-AUDIT.md` : *keep* (valeur unique légitime) ou *consolidate* (rapprocher d'un token existant + migrer le call-site). Objectif : ramener tokens 1-site sous 30. Atomic commit per consolidation.
+
+---
+
+### v2.5 Traceability
+
+| Requirement | Phase | Status | Evidence |
+|-------------|-------|--------|----------|
+| HEARTBEAT-V25-01 | 5 | ✓ Done | commit `02179ea` |
+| HEARTBEAT-V25-02 | 5 | ✓ Done | commit `02179ea` |
+| HEARTBEAT-V25-03 | 5 | Pending | — |
+| HEARTBEAT-V25-04 | 5 | Pending | — |
+| LOG-V25-01 | 6 | Pending | — |
+| LOG-V25-02 | 6 | Pending | — |
+| LOG-V25-03 | 6 | Pending | — |
+| LOG-V25-04 | 6 | Pending | — |
+| COCKPIT-V25-01 | 7 | Pending | — |
+| TOKENS-V25-01 | 7 | Pending | — |
+
+**v2.5 Coverage:**
+- Total requirements: 10
+- Mapped to phases: 10 ✓
+- Already satisfied: 2/10 (heartbeat backend + frontend, livrés ahead of GSD planning)
+- Pending: 8/10

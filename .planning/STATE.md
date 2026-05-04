@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Layout Refonte & UX Polish
+milestone: v2.5
+milestone_name: Real-time Live Cockpit + Logger Migration
 status: planning
-stopped_at: "v2.3 milestone bootstrap + UX review (lentille Zhuo/Norman) — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi (3 états DASHBOARD-02, hiérarchie 2 niveaux cockpit, screenshot panel gate). Phase 1 (Cockpit Opérateur live) prête à planifier sur base amendée."
-last_updated: "2026-04-29T15:00:00Z"
-last_activity: 2026-04-29 -- v2.3 UX review on branche claude/gsd-ux-review-YG5K0 (.planning/v2.3-UX-REVIEW.md) — 7 nouveaux requirements (COCKPIT-06/07, EDITORIAL-07, DASHBOARD-04, MODAL-03, ERR-03/04) + 6 amendements (COCKPIT-01/02, EDITORIAL-04/05, DASHBOARD-01/02) + screenshot panel gate
+stopped_at: "v2.5 milestone bootstrap post v2.4-MILESTONE-AUDIT.md tech_debt verdict (12 items deferred). 3 phases (5/6/7) continuing numbering depuis v2.3. 10 reqs (HEARTBEAT-V25-01..04 / LOG-V25-01..04 / COCKPIT-V25-01 / TOKENS-V25-01). 2 reqs déjà satisfied ahead-of-planning (heartbeat backend + frontend, commit 02179ea sur claude/gsd-ux-review-YG5K0)."
+last_updated: "2026-05-04T08:30:00Z"
+last_activity: 2026-05-04 -- v2.5 milestone scoped from v2.4 audit tech debt + heartbeat work shipped commit 02179ea (events.php meeting.heartbeat 10s tick + applyHeartbeat frontend)
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,20 +18,21 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-29)
+See: .planning/PROJECT.md (updated 2026-05-04)
 
-**Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** v2.3 Layout Refonte & UX Polish — cockpit santé, pages éditoriales, lexique unifié, modales focus trap
+**Core value:** L'application doit être fiable en production — observabilité serveur réelle, signal SSE temps réel autonome, finitions cockpit.
+**Current focus:** v2.5 Real-time Live Cockpit + Logger Migration — Phase 5 SSE Live Pulse (50% in flight, tests pending)
 
 ## Current Position
 
-Milestone: v2.3 Layout Refonte & UX Polish
-Branch: claude/gsd-ux-review-YG5K0 (revue UX appliquée — base = main edd7079 = post-merge PR #256)
-Phase: 0 of 4 — milestone initialized + UX review applied (29 requirements), ready_to_plan Phase 1
+Milestone: v2.5 Real-time Live Cockpit + Logger Migration
+Branch: claude/gsd-ux-review-YG5K0
+Phase: 5 of 7 (continuing numbering from v2.3) — SSE Live Pulse, heartbeat backend+frontend livrés commit 02179ea ahead of GSD planning, tests (HEARTBEAT-V25-03 PHPUnit + HEARTBEAT-V25-04 Playwright) pending
+Plan: 0 of N — phase 5 plan not yet created
 
-Progress: [..........] 0% (planning)
+Progress: [#.........] 5% (2/10 reqs satisfied)
 
-**Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
+**Base de planning :** v2.2 mergée (PR #256), v2.3 shipped (PR #259), v2.4 shipped (PR #260, awaiting merge). Heartbeat work landed on this branch sans cadre GSD — formalisé rétroactivement par ce milestone.
 
 ## Accumulated Context
 
