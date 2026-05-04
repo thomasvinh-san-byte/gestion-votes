@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Polish & Robustness
-status: Planning — REQUIREMENTS.md defined, ROADMAP.md to approve
-stopped_at: "Milestone v2.3 shipped via PR #259 (https://github.com/thomasvinh-san-byte/gestion-votes/pull/259). 116 commits, 124 files (+14650/-1319), 35/35 reqs PASSED per .planning/v2.3-MILESTONE-AUDIT.md. Code review v2.3 = 0 critical / 2 warnings (vérifiés déjà mitigés post-review) / 6 infos. Hygiene cleanup F2 (operator-exec.js docstring) + F3 (orphan partial operator-exec.html) appliqué dans commit 80475c3. PHPUnit guards (EditorialConventionsTest + UxConventionsTest) 7/7 PASSED, 41 assertions. Pending = 3 gates manuelles bloquées sandbox (A1 Playwright CDN denied, B1.1 visual review, D1 screenshot panel) → à exécuter sur dev machine avant merge. Backlog v2.4 trié en 4 phases (Cockpit Polish / Error Obs / Test Infra / Print+Tech Debt) + v2.5 dédié sécurité — voir .planning/v2.4-BACKLOG-PLAN.md."
-last_updated: "2026-05-04T00:00:00.000Z"
+status: Phase 1 complete — 2/2 plans shipped, awaiting dev-machine gates
+stopped_at: "Phase 1 v2.4 (Cockpit Polish & Hygiène) shipped 2026-05-04 sur branche feat/v2.4-cockpit-polish (post-merge PR #259 v2.3 sur main, commit 2cca533). 2/2 plans atomiques livrés en parallèle : 01.1 declutter (5 commits af4d5d5..ac9578f, baseline 55 cliquables → ≤25 cible, contextual-only via data-vote-state SSE mirror, disclosure 'Plus d'actions' avec localStorage persist, sub-tab collapse, cockpit-button-count.spec.js 5 tests) + 01.2 palette (6 commits 0d44047..db1cabf, --color-danger* operator.css 21→9 -57%, sidebar zero décoratif vérifié, hero card live B1 lock préservé, CockpitPaletteTest 3 tests/23 assertions GREEN). Coordination parallèle réussie (zones disjointes structural vs color tokens, 0 conflit git). Caveat documenté : sub-tab Avancé peut pousser count à ~28 si activé — à valider dev machine, fix CSS 1-line si nécessaire (01.3 follow-up). Pending dev-machine : Playwright cockpit-button-count + non-régression keyboard-shortcuts/critical-path/health-bar + screenshots before/after 1280×720."
+last_updated: "2026-05-04T05:50:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 25
 ---
 
 # AG-VOTE -- Project State
@@ -20,18 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04)
 
 **Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
-**Current focus:** Milestone v2.4 planning — Phase 1 démarre après merge PR #259
+**Current focus:** Phase 2 v2.4 (Error Observability) — démarre quand utilisateur veut
 
 ## Current Position
 
 Milestone: v2.4 Polish & Robustness
-Branch: feat/v2.3-cockpit-operateur (en attente merge PR #259 v2.3, prochaine branche `feat/v2.4-polish-robustness` à créer post-merge)
-Phase: Not started (defining roadmap)
-Plan: —
-Status: Planning — REQUIREMENTS.md v2.4 définis (12 reqs, 4 phases), ROADMAP.md à approuver
-Last activity: 2026-05-04 — Milestone v2.4 started, v2.3 archive REQUIREMENTS.md → milestones/v2.3-REQUIREMENTS.md
+Branch: feat/v2.4-cockpit-polish (active, depuis main commit 2cca533)
+Phase: 1 ✓ COMPLETE (Cockpit Polish & Hygiène, 2/2 plans, 11 commits)
+Plan: 2 of 2 done — 01.1 declutter shipped + 01.2 palette shipped
+Status: Phase 1 complete — awaiting dev-machine gates (Playwright run + screenshots before/after) avant /gsd:ship Phase 1
+Last activity: 2026-05-04 — Plans 01.1 + 01.2 exécutés en parallèle, 0 conflit, PHPUnit CockpitPaletteTest 3/3 GREEN
 
-**Pré-requis** : v2.3 PR #259 merge sur main avant Phase 1 v2.4 (gates manuelles A1+B1.1+D1 sur dev machine).
+**Progress milestone v2.4** : ████████░░░░░░░░░░░░░░░░ 25% (1/4 phases)
+
+**Caveat documenté** : sub-tab "Avancé" peut faire passer count à ~28 si activé — fix CSS 1-line en 01.3 follow-up si dev-machine confirme.
 
 ## Accumulated Context
 
