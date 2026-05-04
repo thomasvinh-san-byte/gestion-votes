@@ -11,6 +11,8 @@ declare(strict_types=1);
  *   php bin/console ratelimit:cleanup                                    # clean old rate-limit files
  *   php bin/console ratelimit:reset --context=login --identifier=1.2.3.4 # reset a locked-out account
  *   php bin/console redis:health                                         # check Redis connectivity
+ *   php bin/console observability:purge-events                           # purge error_events + next_step_clicks past retention
+ *   php bin/console rgpd:purge-retention --tenant-id=XXX                 # purge member data past RGPD retention
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -19,16 +21,20 @@ require_once __DIR__ . '/../vendor/autoload.php';
 \AgVote\Core\Application::bootCli();
 
 use Symfony\Component\Console\Application;
+use AgVote\Command\DataRetentionCommand;
 use AgVote\Command\EmailProcessQueueCommand;
 use AgVote\Command\MonitoringCheckCommand;
+use AgVote\Command\ObservabilityPurgeCommand;
 use AgVote\Command\RateLimitCleanupCommand;
 use AgVote\Command\RateLimitResetCommand;
 use AgVote\Command\RedisHealthCommand;
 
 $app = new Application('AG-VOTE', '1.0.0');
 
+$app->addCommand(new DataRetentionCommand());
 $app->addCommand(new EmailProcessQueueCommand());
 $app->addCommand(new MonitoringCheckCommand());
+$app->addCommand(new ObservabilityPurgeCommand());
 $app->addCommand(new RateLimitCleanupCommand());
 $app->addCommand(new RateLimitResetCommand());
 $app->addCommand(new RedisHealthCommand());
