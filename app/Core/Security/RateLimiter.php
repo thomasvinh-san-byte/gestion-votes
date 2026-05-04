@@ -120,12 +120,11 @@ final class RateLimiter {
     }
 
     private static function denyWithRetryAfter(int $retryAfter, string $context): never {
-        error_log(sprintf(
-            'RATE_LIMIT | context=%s | ip=%s | retry_after=%d',
-            $context,
-            \AgVote\Core\Http\ClientIp::get(),
-            $retryAfter,
-        ));
+        \AgVote\Core\Logger::warning('Rate limit hit', [
+            'context' => $context,
+            'ip' => \AgVote\Core\Http\ClientIp::get(),
+            'retry_after' => $retryAfter,
+        ]);
 
         throw new \AgVote\Core\Http\ApiResponseException(
             new \AgVote\Core\Http\JsonResponse(429, [

@@ -40,7 +40,7 @@ try {
     $pdo->query('SELECT 1');
     $checks['database'] = true;
 } catch (Throwable $e) {
-    error_log('health: db check failed: ' . $e->getMessage());
+    \AgVote\Core\Logger::error('health: db check failed', ['exception' => $e->getMessage()]);
 }
 
 // --- Redis check ---
@@ -62,10 +62,10 @@ try {
     } else {
         // Redis extension not loaded — mark as unavailable but not a failure
         // in environments where Redis is optional
-        error_log('health: Redis extension not loaded');
+        \AgVote\Core\Logger::warning('health: Redis extension not loaded');
     }
 } catch (Throwable $e) {
-    error_log('health: redis check failed: ' . $e->getMessage());
+    \AgVote\Core\Logger::error('health: redis check failed', ['exception' => $e->getMessage()]);
 }
 
 // --- Filesystem check ---
@@ -77,10 +77,10 @@ try {
         $checks['filesystem'] = true;
         @unlink($testFile);
     } else {
-        error_log('health: filesystem check failed: cannot write to ' . $uploadDir);
+        \AgVote\Core\Logger::error('health: filesystem check failed — cannot write', ['upload_dir' => $uploadDir]);
     }
 } catch (Throwable $e) {
-    error_log('health: filesystem check failed: ' . $e->getMessage());
+    \AgVote\Core\Logger::error('health: filesystem check failed', ['exception' => $e->getMessage()]);
 }
 
 // --- Aggregate status ---

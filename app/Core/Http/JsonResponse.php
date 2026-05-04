@@ -33,7 +33,11 @@ final class JsonResponse {
         // Strip internal details from 5xx in non-development
         $appEnv = $_ENV['APP_ENV'] ?? 'demo';
         if ($appEnv !== 'development' && $code >= 500) {
-            error_log("[api_fail] {$error}: " . ($extra['detail'] ?? '(no detail)'));
+            \AgVote\Core\Logger::error('api_fail emitted server error', [
+                'error_code' => $error,
+                'detail' => $extra['detail'] ?? '(no detail)',
+                'http_status' => $code,
+            ]);
             unset($extra['detail']);
         }
 

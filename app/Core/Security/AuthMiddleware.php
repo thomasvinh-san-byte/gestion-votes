@@ -67,7 +67,7 @@ final class AuthMiddleware {
                 $lastActivity = $_SESSION['auth_last_activity'] ?? 0;
                 $now = time();
                 if (SessionManager::checkExpiry($lastActivity)) {
-                    error_log(sprintf('SESSION_EXPIRED | user_id=%s | idle=%ds', $_SESSION['auth_user']['id'] ?? 'unknown', $now - $lastActivity));
+                    \AgVote\Core\Logger::info('Session expired', ['user_id' => $_SESSION['auth_user']['id'] ?? 'unknown', 'idle_seconds' => $now - $lastActivity]);
                     $_SESSION = [];
                     session_destroy();
                     self::$sessionExpired = true;
@@ -78,7 +78,7 @@ final class AuthMiddleware {
                 if (($now - $lastDbCheck) >= SessionManager::getRevalidateInterval()) {
                     $result = SessionManager::revalidateUser((string) ($_SESSION['auth_user']['id'] ?? ''));
                     if (!$result['valid'] && $result['reason'] !== 'db_error') {
-                        error_log(sprintf('SESSION_REVOKED | user_id=%s | reason=%s', $_SESSION['auth_user']['id'] ?? 'unknown', $result['reason']));
+                        \AgVote\Core\Logger::warning('Session revoked', ['user_id' => $_SESSION['auth_user']['id'] ?? 'unknown', 'reason' => $result['reason']]);
                         $_SESSION = [];
                         session_destroy();
                         return null;
@@ -156,7 +156,7 @@ final class AuthMiddleware {
         if (!$user) { return false; }
         try {
             return RepositoryFactory::getInstance()->meeting()->findByIdForTenant($meetingId, $user['tenant_id'] ?? self::getDefaultTenantId()) !== null;
-        } catch (Throwable $e) { error_log('Meeting access check error: ' . $e->getMessage()); return false; }
+        } catch (Throwable $e) { \AgVote\Core\Logger::error('Meeting access check failed', ['exception' => $e->getMessage()]); return false; }
     }
     public static function canTransition(string $from, string $to, ?string $meetingId = null): bool {
         return RbacEngine::canTransition(self::getCurrentUser(), $from, $to, $meetingId);
@@ -209,14 +209,14 @@ final class AuthMiddleware {
         return ($key = trim($key)) !== '' ? $key : null;
     }
     private static function findUserByApiKey(string $apiKey): ?array {
-        try { $secret = self::getAppSecret(); } catch (Throwable $e) { error_log('API key auth unavailable: ' . $e->getMessage()); return null; }
+        try { $secret = self::getAppSecret(); } catch (Throwable $e) { \AgVote\Core\Logger::error('API key auth unavailable', ['exception' => $e->getMessage()]); return null; }
         $hash = hash_hmac('sha256', $apiKey, $secret);
         try {
             $row = RepositoryFactory::getInstance()->user()->findByApiKeyHashGlobal($hash);
             if (!$row) { self::logAuthFailure('invalid_api_key', $apiKey); return null; }
             if (!$row['is_active']) { self::logAuthFailure('user_inactive', $apiKey); return null; }
             return $row;
-        } catch (Throwable $e) { error_log('API key lookup error: ' . $e->getMessage()); return null; }
+        } catch (Throwable $e) { \AgVote\Core\Logger::error('API key lookup failed', ['exception' => $e->getMessage()]); return null; }
     }
     public static function generateApiKey(): array {
         $key = bin2hex(random_bytes(32));
@@ -232,13 +232,22 @@ final class AuthMiddleware {
         throw new \AgVote\Core\Http\ApiResponseException(new \AgVote\Core\Http\JsonResponse($httpCode, $body, ['WWW-Authenticate' => 'ApiKey realm="AG-Vote API"']));
     }
     private static function logAuthFailure(string $reason, ?string $credential = null): void {
-        error_log(sprintf('AUTH_FAILURE | reason=%s | ip=%s | uri=%s', $reason, $_SERVER['REMOTE_ADDR'] ?? 'unknown', $_SERVER['REQUEST_URI'] ?? 'unknown'));
+        \AgVote\Core\Logger::warning('Auth failure', [
+            'reason' => $reason,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+        ]);
     }
     private static function logAccessAttempt(string $resource, bool $granted): void {
         $user = self::getCurrentUser();
         self::$accessLog[] = ['timestamp' => date('c'), 'user_id' => $user['id'] ?? null, 'user_role' => $user['role'] ?? 'anonymous', 'resource' => $resource, 'granted' => $granted];
         if (!$granted) {
-            error_log(sprintf('ACCESS_DENIED | user=%s | role=%s | resource=%s | uri=%s', $user['id'] ?? 'anonymous', $user['role'] ?? 'anonymous', $resource, $_SERVER['REQUEST_URI'] ?? 'unknown'));
+            \AgVote\Core\Logger::warning('Access denied', [
+                'user_id' => $user['id'] ?? 'anonymous',
+                'role' => $user['role'] ?? 'anonymous',
+                'resource' => $resource,
+                'uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+            ]);
         }
     }
     public static function getAccessLog(): array { return self::$accessLog; }
