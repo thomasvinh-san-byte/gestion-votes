@@ -452,8 +452,7 @@
 
 .admin-tab:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 var(--ring-offset) var(--color-surface),
-              0 0 0 calc(var(--ring-offset) + var(--ring-width)) var(--ring-color);
+  box-shadow: var(--shadow-focus-offset);
 }
 
 .admin-tab.active {
