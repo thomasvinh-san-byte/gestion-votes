@@ -137,6 +137,22 @@ test.describe('@cockpit-v2.4 cockpit button count', () => {
     expect(count, `proclaiming state has ${count} clickables (cap ${MAX_VISIBLE})`).toBeLessThanOrEqual(MAX_VISIBLE);
   });
 
+  test('≤25 cliquables visibles — sub-tab Avancé activé (COCKPIT-V25-01)', async ({ page }) => {
+    // v2.5 fix : la disclosure #opAvanceActions cache 4 actions secondaires
+    // (Unanimité, Passerelle, Procuration, Suspendre) sous un summary unique
+    // pour ne pas faire passer le sub-tab Avancé au-dessus du budget de 25.
+    // Closes COCKPIT-V25-01 (caveat documenté v2.4-MILESTONE-AUDIT.md "~28").
+    await gotoOperatorExecLive(page, { voteState: 'idle' });
+    // Activer le sub-tab Avancé
+    await page.locator('.op-tab[data-op-tab="avance"]').click();
+    await expect(page.locator('#opPanelAvance')).toHaveClass(/active/);
+    // Vérifier que la disclosure n'est PAS ouverte par défaut
+    await expect(page.locator('#opAvanceActions')).not.toHaveAttribute('open', '');
+    const count = await page.locator(VISIBLE_CLICKABLE).count();
+    test.info().annotations.push({ type: 'count.avance', description: String(count) });
+    expect(count, `avance sub-tab has ${count} clickables (cap ${MAX_VISIBLE})`).toBeLessThanOrEqual(MAX_VISIBLE);
+  });
+
   test('critical-path D-06 toujours visible (sacred buttons)', async ({ page }) => {
     // Test critical-path sur les 3 états : Lancer/Fermer toujours, Clôturer
     // séance toujours, Proclaim visible quand vote-state=closed.

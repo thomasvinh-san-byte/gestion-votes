@@ -1506,28 +1506,38 @@
                       <span class="text-sm text-muted">Aucun vote ouvert</span>
                     </div>
                   </div>
-                  <div class="flex gap-2 mb-3">
-                    <ag-tooltip text="Déclarer adopté à l'unanimité" position="top">
-                      <button class="btn btn-sm btn-secondary" id="opBtnUnanimity" type="button" disabled>
-                        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Unanimité
-                      </button>
-                    </ag-tooltip>
-                    <ag-tooltip text="Reporter cette résolution (Passerelle art. 25-1)" position="top">
-                      <button class="btn btn-sm btn-secondary" id="opBtnPasserelle" type="button" disabled>
-                        Passerelle 25-1
-                      </button>
-                    </ag-tooltip>
-                    <ag-tooltip text="Gérer les pouvoirs de vote (procurations)" position="top">
-                      <button class="btn btn-sm btn-secondary" id="opBtnProxy" type="button" disabled>
-                        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Procuration
-                      </button>
-                    </ag-tooltip>
-                    <ag-tooltip text="Suspendre la séance" position="top">
-                      <button class="btn btn-sm btn-secondary" id="opBtnSuspend" type="button" disabled>
-                        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pause"></use></svg> Suspendre
-                      </button>
-                    </ag-tooltip>
-                  </div>
+                  <!-- COCKPIT-V25-01: 4 actions secondaires masquées par défaut sous une
+                       disclosure pour ne pas faire passer le sub-tab Avancé au-dessus du
+                       budget de 25 cliquables visibles (cf. v2.4 audit). Ouverture mémorisée
+                       par operator-disclosure.js (localStorage agOperatorDisclosure:opAvanceActions). -->
+                  <details class="op-action-disclosure mb-3" id="opAvanceActions" data-disclosure-key="opAvanceActions">
+                    <summary class="op-action-disclosure__summary">
+                      <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-more-horizontal"></use></svg>
+                      Actions secondaires
+                    </summary>
+                    <div class="flex gap-2 mt-2">
+                      <ag-tooltip text="Déclarer adopté à l'unanimité" position="top">
+                        <button class="btn btn-sm btn-secondary" id="opBtnUnanimity" type="button" disabled>
+                          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg> Unanimité
+                        </button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Reporter cette résolution (Passerelle art. 25-1)" position="top">
+                        <button class="btn btn-sm btn-secondary" id="opBtnPasserelle" type="button" disabled>
+                          Passerelle 25-1
+                        </button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Gérer les pouvoirs de vote (procurations)" position="top">
+                        <button class="btn btn-sm btn-secondary" id="opBtnProxy" type="button" disabled>
+                          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-users"></use></svg> Procuration
+                        </button>
+                      </ag-tooltip>
+                      <ag-tooltip text="Suspendre la séance" position="top">
+                        <button class="btn btn-sm btn-secondary" id="opBtnSuspend" type="button" disabled>
+                          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-pause"></use></svg> Suspendre
+                        </button>
+                      </ag-tooltip>
+                    </div>
+                  </details>
                   <div class="form-group form-group-full">
                     <label class="form-label">Notes opérateur</label>
                     <textarea class="form-textarea" id="opSecretaryNotes" rows="3" placeholder="Notes internes de l'opérateur de séance..."></textarea>
