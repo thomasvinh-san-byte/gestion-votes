@@ -325,7 +325,7 @@
 
 [data-sse-state="live"] .op-sse-dot {
   background: var(--color-success);
-  box-shadow: 0 0 6px var(--color-success-glow);
+  box-shadow: var(--shadow-glow-success-sm);
   animation: ssePulse 2s ease-in-out infinite;
 }
 
@@ -339,8 +339,8 @@
 }
 
 @keyframes ssePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 40%, transparent); }
-  50%       { opacity: 0.85; box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-success) 0%, transparent); }
+  0%, 100% { opacity: 1; box-shadow: var(--shadow-keyframe-sse-pulse-from); }
+  50%       { opacity: 0.85; box-shadow: var(--shadow-keyframe-sse-pulse-mid); }
 }
 
 /* Dark mode — keep vivid (intentional override) */
@@ -815,15 +815,15 @@
   height: 10px;
   border-radius: 50%;
   background: var(--color-success);
-  box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 40%, transparent);
+  box-shadow: var(--shadow-keyframe-sse-pulse-from);
   animation: liveDotPulse 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 @keyframes liveDotPulse {
-  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 50%, transparent); }
-  70%  { box-shadow: 0 0 0 8px color-mix(in oklch, var(--color-success) 0%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 0%, transparent); }
+  0%   { box-shadow: var(--shadow-keyframe-live-dot-from); }
+  70%  { box-shadow: var(--shadow-keyframe-live-dot-mid); }
+  100% { box-shadow: var(--shadow-keyframe-live-dot-end); }
 }
 
 /* =============================================================================
@@ -2205,7 +2205,7 @@
   bottom: 0;
   z-index: 10;
   background: var(--color-surface);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-edge-top);
   padding: var(--space-3) var(--space-4);
 }
 
