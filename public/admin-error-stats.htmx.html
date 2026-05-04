@@ -150,14 +150,19 @@
         const max = codes[0].count;
         const rows = codes.map((c) => {
           const pct = max > 0 ? Math.round((c.count / max) * 100) : 0;
+          const clicks = c.next_step_clicks || 0;
+          const ctr = c.next_step_ctr || 0;
+          const ctrLabel = clicks === 0 ? '—' : (Math.round(ctr * 100) + '% (' + clicks + ')');
+          const ctrColor = ctr >= 0.2 ? 'var(--color-success,#0a7c3a)' : (ctr > 0 ? 'var(--color-text-muted,#666)' : 'var(--color-text-muted,#999)');
           return '<tr>' +
             '<td><code>' + escapeHtml(c.error_code) + '</code></td>' +
             '<td style="text-align:right;font-variant-numeric:tabular-nums;">' + c.count.toLocaleString('fr-FR') + '</td>' +
             '<td><div class="bar-track" style="background:var(--color-surface-2,#eee);height:8px;border-radius:4px;"><div class="bar-fill" style="background:var(--color-primary,#1650E0);height:100%;width:' + pct + '%;border-radius:4px;"></div></div></td>' +
+            '<td style="text-align:right;font-variant-numeric:tabular-nums;color:' + ctrColor + ';" title="Clics sur le next-step / total émissions">' + ctrLabel + '</td>' +
             '<td style="font-size:0.8rem;color:var(--color-text-muted);">' + formatTime(c.last_occurred_at) + '</td>' +
           '</tr>';
         }).join('');
-        $('topCodesTable').innerHTML = '<table class="table table-sm"><thead><tr><th>Code</th><th style="text-align:right;">Émis</th><th>Part</th><th>Dernier</th></tr></thead><tbody>' + rows + '</tbody></table>';
+        $('topCodesTable').innerHTML = '<table class="table table-sm"><thead><tr><th>Code</th><th style="text-align:right;">Émis</th><th>Part</th><th style="text-align:right;">CTR next-step</th><th>Dernier</th></tr></thead><tbody>' + rows + '</tbody></table>';
       }
 
       renderTimeline(timeline);

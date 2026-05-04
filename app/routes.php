@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 use AgVote\Controller\AdminController;
 use AgVote\Controller\AdminErrorStatsController;
+use AgVote\Controller\MetricsController;
 use AgVote\Controller\AgendaController;
 use AgVote\Controller\AnalyticsController;
 use AgVote\Controller\AttendancesController;
@@ -88,6 +89,11 @@ return function (Router $router): void {
     $rlOpAdm = ['role' => ['operator', 'admin', 'president'], 'rate_limit' => ['admin_ops', 30, 60]];
     $router->mapAny("{$prefix}/admin_audit_log", AdminController::class, 'auditLog', $admin);
     $router->map('GET', "{$prefix}/admin_error_stats", AdminErrorStatsController::class, 'stats', $admin);
+
+    // Metrics ingestion (public-ish, rate-limited)
+    $router->map('POST', "{$prefix}/metrics/next-step-clicked", MetricsController::class, 'nextStepClicked', [
+        'rate_limit' => ['metrics_ingest', 60, 60],
+    ]);
     $router->mapAny("{$prefix}/admin_meeting_roles", AdminController::class, 'meetingRoles', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_reset_demo", MeetingWorkflowController::class, 'resetDemo', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_roles", AdminController::class, 'roles', $admin);

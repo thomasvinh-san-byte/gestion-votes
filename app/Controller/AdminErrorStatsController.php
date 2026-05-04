@@ -39,11 +39,27 @@ final class AdminErrorStatsController extends AbstractController {
         }
 
         $repo = $this->repo()->errorEvent();
+        $clicksRepo = $this->repo()->nextStepClick();
+        $topCodes = $repo->topCodesSince($hours, $limit, $tenantFilter);
+        $clicks = $clicksRepo->clicksByCodeSince($hours, $tenantFilter);
+        $clickIndex = [];
+        foreach ($clicks as $c) {
+            $clickIndex[$c['error_code']] = $c['clicks'];
+        }
+        // Decorate top codes with click count + CTR
+        $topCodes = array_map(static function (array $row) use ($clickIndex) {
+            $clicks = (int) ($clickIndex[$row['error_code']] ?? 0);
+            $count = (int) $row['count'];
+            $row['next_step_clicks'] = $clicks;
+            $row['next_step_ctr'] = $count > 0 ? round($clicks / $count, 3) : 0.0;
+            return $row;
+        }, $topCodes);
+
         api_ok([
             'window_hours' => $hours,
             'tenant_filter' => $tenantFilter,
             'total' => $repo->totalSince($hours, $tenantFilter),
-            'top_codes' => $repo->topCodesSince($hours, $limit, $tenantFilter),
+            'top_codes' => $topCodes,
             'timeline' => $repo->timelineSince($hours, $tenantFilter),
         ]);
     }
