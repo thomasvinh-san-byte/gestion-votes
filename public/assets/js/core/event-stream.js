@@ -107,6 +107,7 @@
       'attendance.updated',
       'quorum.updated',
       'meeting.status_changed',
+      'meeting.heartbeat',
       'speech.queue_updated',
       'document.added',
       'document.removed',
