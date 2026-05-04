@@ -15,6 +15,7 @@ use AgVote\Repository\EmailEventRepository;
 use AgVote\Repository\EmailQueueRepository;
 use AgVote\Repository\EmailTemplateRepository;
 use AgVote\Repository\EmergencyProcedureRepository;
+use AgVote\Repository\ErrorEventsRepository;
 use AgVote\Repository\ExportTemplateRepository;
 use AgVote\Repository\InvitationRepository;
 use AgVote\Repository\ManualActionRepository;
@@ -87,6 +88,7 @@ final class RepositoryFactory {
     public function emailQueue(): EmailQueueRepository { return $this->get(EmailQueueRepository::class); }
     public function emailTemplate(): EmailTemplateRepository { return $this->get(EmailTemplateRepository::class); }
     public function emergencyProcedure(): EmergencyProcedureRepository { return $this->get(EmergencyProcedureRepository::class); }
+    public function errorEvent(): ErrorEventsRepository { return $this->get(ErrorEventsRepository::class); }
     public function exportTemplate(): ExportTemplateRepository { return $this->get(ExportTemplateRepository::class); }
     public function invitation(): InvitationRepository { return $this->get(InvitationRepository::class); }
     public function manualAction(): ManualActionRepository { return $this->get(ManualActionRepository::class); }

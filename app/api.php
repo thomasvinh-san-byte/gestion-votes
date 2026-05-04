@@ -46,6 +46,22 @@ function api_ok(array $data = [], int $code = 200): never {
 }
 
 function api_fail(string $error, int $code = 400, array $extra = []): never {
+    // LOG-V25-02: capture every api_fail() server-side for /admin/error-stats.
+    // Best-effort — must never break the response (DB down, repo unavailable, etc.).
+    try {
+        \AgVote\Core\Providers\RepositoryFactory::getInstance()->errorEvent()->capture(
+            $error,
+            $code,
+            api_current_tenant_id() ?: null,
+            api_current_user_id() ?: null,
+            $_SERVER['REQUEST_URI'] ?? null,
+            $_SERVER['REQUEST_METHOD'] ?? null,
+            \AgVote\Core\Logger::getRequestId(),
+            $extra,
+        );
+    } catch (\Throwable $e) {
+        // Swallow — the user response must always be sent.
+    }
     throw new \AgVote\Core\Http\ApiResponseException(
         \AgVote\Core\Http\JsonResponse::fail($error, $code, $extra),
     );
