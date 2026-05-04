@@ -17,6 +17,26 @@
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Console opérateur — AG-VOTE</title>
   <script nonce="%%CSP_NONCE%%" src="/assets/js/theme-init.js"></script>
+  <!-- Phase v2.4 / COCKPIT-V24-01 / D-05 sidebar collapse defaults :
+       sur la console opérateur, seuls les groupes "prep" et "live" sont ouverts
+       par défaut. Si l'utilisateur a déjà personnalisé sa sidebar (clé non vide),
+       on respecte sa préférence. Doit s'exécuter AVANT shell.js qui lit cette clé. -->
+  <script nonce="%%CSP_NONCE%%">
+    (function() {
+      try {
+        var KEY = 'ag-vote-sidebar-groups';
+        if (!window.localStorage.getItem(KEY)) {
+          window.localStorage.setItem(KEY, JSON.stringify({
+            prep:  false,
+            live:  false,
+            post:  true,
+            audit: true,
+            admin: true
+          }));
+        }
+      } catch (e) { /* private mode / quota — fallback to default expanded */ }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
