@@ -391,52 +391,8 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 
 ---
 
-## Milestone v2.5 — Real-time Live Cockpit + Logger Migration
-
-**Defined:** 2026-05-04 — sourced from `.planning/v2.4-MILESTONE-AUDIT.md` tech_debt frontmatter (12 items deferred).
-
-**Milestone Goal:** Boucler les items deferred du milestone v2.4 — donner au cockpit operator un signal SSE temps réel autonome, migrer la dette `error_log()` legacy vers `Logger::*`, et instrumenter une vraie source `error_events` pour `/admin/error-stats`.
-
-**Strategy:** 3 phases continuant la numérotation depuis v2.4 (5, 6, 7). Aucune nouvelle dépendance.
-
-### Phase 5: SSE Live Pulse
-
-**Goal:** Émettre `meeting.heartbeat` SSE 10s avec snapshot quorum + status + presence ; câbler frontend cockpit operator.
-
-**Depends on:** v2.4 (PR #260 merged)
-**Requirements:** HEARTBEAT-V25-01, HEARTBEAT-V25-02, HEARTBEAT-V25-03, HEARTBEAT-V25-04
-**Status:** ◆ Code done (commit `02179ea`), tests deferred per stop-tests directive
-
-### Phase 6: Logger Migration & Error Tracking
-
-**Goal:** Migrer 47 sites `error_log()` legacy ; créer `error_events` table qui capture chaque `api_fail()` ; recâbler `/admin/error-stats` ; instrumenter tracking next-step.
-
-**Depends on:** v2.4 (PR #260 merged)
-**Requirements:** LOG-V25-01, LOG-V25-02, LOG-V25-03, LOG-V25-04
-**Status:** ✓ Complete (4/4 reqs done)
-
-### Phase 7: Cockpit Polish résiduel
-
-**Goal:** Boucler les 2 caveats v2.4 — sub-tab Avancé ≤25 cliquables strict + audit 49 tokens 1-site.
-
-**Depends on:** v2.4 (PR #260 merged)
-**Requirements:** COCKPIT-V25-01, TOKENS-V25-01
-**Status:** ⏸ Pending
-
-### Bonus — SEC-V2-01 closeout
-
-**Goal:** Éliminer le footgun `tenantId = ''` default dans le repository layer.
-
-**Requirements:** SEC-V2-01, SEC-V2-01-extended
-**Status:** ✓ Complete (27 method signatures hardened across 11 repos)
-
 ---
 
-### v2.5 Progress
+## Archived Milestones
 
-| Phase | Plans | Status | Completed |
-|---|---|---|---|
-| 5. SSE Live Pulse | 2/4 | ◆ Code done, tests deferred | 2026-05-04 (partial) |
-| 6. Logger Migration & Error Tracking | 4/4 | ✓ Complete | 2026-05-04 |
-| 7. Cockpit Polish résiduel | 0/2 | ⏸ Pending | - |
-| Bonus SEC-V2-01 | 2/2 | ✓ Complete | 2026-05-04 |
+- ✅ **v2.5 Real-time Live Cockpit + Logger Migration** — Phases 5-7 + bonus SEC-V2-01 (shipped 2026-05-04, PR #261/#262) — see [`.planning/milestones/v2.5-ROADMAP.md`](milestones/v2.5-ROADMAP.md)

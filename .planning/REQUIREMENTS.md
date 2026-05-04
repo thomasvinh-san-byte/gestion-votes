@@ -106,56 +106,6 @@ Explicitement exclu de v2.4 :
 
 ---
 
-## Milestone v2.5 — Real-time Live Cockpit + Logger Migration
+## Archived Milestones
 
-**Defined:** 2026-05-04 (post v2.4-MILESTONE-AUDIT.md `tech_debt` verdict)
-**Goal:** Boucler les 12 items deferred du milestone v2.4 — observabilité serveur réelle, signal SSE temps réel autonome, finitions cockpit.
-
-### v2.5 Phase 5: SSE Live Pulse
-
-- [x] **HEARTBEAT-V25-01**: `public/api/v1/events.php` émet `meeting.heartbeat` toutes les 10s avec payload `{meeting_id, server_time, status, validated_at, quorum: {applied, met, present_members, eligible_members, present_weight, eligible_weight}, operator_count}`. Sub-queries try/catch isolées. *Livré commit `02179ea`.*
-- [x] **HEARTBEAT-V25-02**: Frontend `operator-realtime.js` consomme `meeting.heartbeat` via `applyHeartbeat()` qui rafraîchit `quorumStatusBadge`/`quorumStatusDetail`/badge présence/timestamp SSE. Hash payload pour skip DOM thrash. Détection transition quorum → toast "Quorum atteint !". *Livré commit `02179ea`.*
-- [ ] **HEARTBEAT-V25-03**: PHPUnit `HeartbeatPayloadTest` ≥3 tests GREEN sur `buildHeartbeatPayload()` (cas nominal + dégradations). *Différé — directive utilisateur stop-tests.*
-- [ ] **HEARTBEAT-V25-04**: Playwright `sse-heartbeat.spec.js` (≥1 event reçu après 12s). *Différé — directive utilisateur stop-tests.*
-
-### v2.5 Phase 6: Logger Migration & Error Tracking
-
-- [x] **LOG-V25-01**: 47 sites `error_log()` legacy migrés vers `Logger::error/warning/critical/alert/info` avec sévérité différenciée. 6 commits atomiques. 46/48 sites migrés ; 2 résiduels documentés (bootstrap pre-Logger gate + Logger sink fallback). *Commits `f26317a`..`c8fa35c`.*
-- [x] **LOG-V25-02**: Table `error_events` (`database/migrations/20260504_error_events.sql`) + 3 indexes. `ErrorEventsRepository::capture()` try/catch isolé. `api_fail()` hooké pour capturer chaque return erreur AVANT throw `ApiResponseException`. *Commit `372c36a`.*
-- [x] **LOG-V25-03**: `/admin/error-stats` recâblée sur `error_events` (skip de la version v2.4 transitionnelle). `AdminErrorStatsController::stats()` + page HTMX (4 KPI + timeline SVG + top codes table). Window 1-720h, scope tenant + cross-tenant admin + drill-down. *Commit `d3f4765`.*
-- [x] **LOG-V25-04**: Endpoint `POST /api/v1/metrics/next-step-clicked` (`MetricsController`) rate-limit 60/min. `next_step_clicks` table + repo + JS utility `window.AgErrorMetrics.trackNextStep()` (sendBeacon préféré). Page `/admin/error-stats` étendue avec colonne CTR. *Commit `f1ae41c`.*
-
-### v2.5 Phase 7: Cockpit Polish résiduel
-
-- [ ] **COCKPIT-V25-01**: Sub-tab Avancé du cockpit operator ne fait plus passer le compte de cliquables visibles à >25 quand activé. Spec Playwright `cockpit-button-count.spec.js` étendu d'1 cas.
-- [ ] **TOKENS-V25-01**: Audit des 49 tokens 1-site introduits v2.4 P4.3 dans `design-system.css`. Décision *keep* / *consolidate* documentée dans `.planning/v2.5-TOKENS-AUDIT.md`. Objectif tokens 1-site < 30.
-
-### v2.5 Bonus — SEC-V2-01 closeout
-
-- [x] **SEC-V2-01**: 8 méthodes MotionRepository à `tenantId = ''` optionnel migrées vers paramètre requis avec filtre tenant inconditionnel. *Commit `bef552f`.*
-- [x] **SEC-V2-01-extended**: Pattern étendu à 10 repos additionnels (19 méthodes). Audit-ready : zéro `tenantId = ''` default dans `app/Repository/`. *Commit `ec1ee49`.*
-
----
-
-### v2.5 Traceability
-
-| Requirement | Phase | Status | Evidence |
-|-------------|-------|--------|----------|
-| HEARTBEAT-V25-01 | 5 | ✓ Done | commit `02179ea` |
-| HEARTBEAT-V25-02 | 5 | ✓ Done | commit `02179ea` |
-| HEARTBEAT-V25-03 | 5 | ⏸ Deferred (tests) | — |
-| HEARTBEAT-V25-04 | 5 | ⏸ Deferred (tests) | — |
-| LOG-V25-01 | 6 | ✓ Done | commits `f26317a`..`c8fa35c` |
-| LOG-V25-02 | 6 | ✓ Done | commit `372c36a` |
-| LOG-V25-03 | 6 | ✓ Done | commit `d3f4765` |
-| LOG-V25-04 | 6 | ✓ Done | commit `f1ae41c` |
-| COCKPIT-V25-01 | 7 | ⏸ Pending | — |
-| TOKENS-V25-01 | 7 | ⏸ Pending | — |
-| SEC-V2-01 | 6 (bonus) | ✓ Done | commit `bef552f` |
-| SEC-V2-01-extended | 6 (bonus) | ✓ Done | commit `ec1ee49` |
-
-**v2.5 Coverage:** 12 requirements total · 8/12 done · 2/12 deferred (tests) · 2/12 pending (Phase 7)
-
----
-
-*Requirements v2.5 defined: 2026-05-04 — sourced from .planning/v2.4-MILESTONE-AUDIT.md tech_debt frontmatter (12 items) + SEC-V2-01 v2 backlog item.*
+- **v2.5 Real-time Live Cockpit + Logger Migration** (shipped 2026-05-04) — see [`.planning/milestones/v2.5-REQUIREMENTS.md`](milestones/v2.5-REQUIREMENTS.md)

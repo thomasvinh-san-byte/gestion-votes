@@ -77,14 +77,26 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ v2.1 Hardening Sécurité : 21 contremesures F02-F22 shipped — defense en profondeur sur auth, vote, isolation tenant, perimetre, uploads, headers, monitoring (voir milestones/v2.1-REQUIREMENTS.md)
 - ✓ v2.2 Design Tokens & Components (PR #256 mergé)
 - ✓ v2.3 Layout Refonte & UX Polish (PR #259 ouvert, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
+- ✓ v2.4 Polish & Robustness (PR #260 mergé 2026-05-04, 12/12 reqs `tech_debt` verdict, 12 items deferred to v2.5) — voir entrée v2.4 dans `.planning/MILESTONES.md`
+- ✓ v2.5 Real-time Live Cockpit + Logger Migration (PR #261/#262 mergé 2026-05-04, 8/12 done + 2 SEC bonus, 4 deferred v2.6+) — voir `.planning/milestones/v2.5-REQUIREMENTS.md`
+  - `meeting.heartbeat` 10s SSE tick avec snapshot quorum + status + presence
+  - 47 sites `error_log()` migrés vers `Logger::*` avec sévérité différenciée
+  - `error_events` table + `api_fail()` capture + `/admin/error-stats` recâblée
+  - `next_step_clicks` tracking endpoint + dashboard CTR colonne
+  - SEC-V2-01 closeout étendu : 27 method signatures hardened across 11 repos
 
 ### Active
 
-## Current Milestone: v2.5 Real-time Live Cockpit + Logger Migration (in progress)
+## Current Milestone: Planning next milestone
 
-**Status (2026-05-04):** Phase 5 SSE Live Pulse code done (heartbeat backend + frontend, tests deferred), Phase 6 Logger Migration & Error Tracking ✓ COMPLETE (4/4 reqs), Phase 7 Cockpit Polish résiduel pending. Bonus SEC-V2-01 closeout : 27 method signatures hardened across 11 repos.
+**Status (2026-05-04):** v2.5 archived, ready for next milestone definition via `/gsd-new-milestone`.
 
-Voir `.planning/REQUIREMENTS.md` (section "Milestone v2.5") pour les 12 reqs détaillés.
+**Tech Debt carried to next milestone:**
+
+- **HEARTBEAT-V25-03/04** : PHPUnit + Playwright tests for `meeting.heartbeat` payload (déférés stop-tests directive v2.5)
+- **COCKPIT-V25-01** : sub-tab Avancé du cockpit operator ne fait plus passer le compte cliquables à >25 (Phase 7 v2.5 reportée)
+- **TOKENS-V25-01** : audit 49 tokens 1-site dans `design-system.css` (D-08 amendé v2.4) — décision *keep* / *consolidate* documentée (Phase 7 v2.5 reportée)
+- **Gates dev-machine v2.4 inheritance** : Playwright runs (cockpit-button-count, sse-burst-idempotency, cockpit-keyboard-shortcuts, critical-path-operator, cockpit-health-bar) + screenshots Phase 1 + 3 PVs longs PDF visuels + CSS smoke regression 17 fichiers migrés tokens
 
 ---
 

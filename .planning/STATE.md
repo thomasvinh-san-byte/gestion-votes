@@ -1,27 +1,27 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.5
-milestone_name: Real-time Live Cockpit + Logger Migration
-status: phase_7_blocked_v24_merge
-stopped_at: "v2.5 Phase 6 (Logger Migration & Error Tracking) shipped — 4/4 reqs done. Phase 5 SSE Live Pulse 2/4 (heartbeat code done, PHPUnit + Playwright tests deferred per user stop-tests directive). Phase 7 (COCKPIT-V25-01 + TOKENS-V25-01) blocked on v2.4 PR #260 merge — depends on hero card sub-tab Avancé + 49 tokens 1-site introduits par v2.4 P4.3."
-last_updated: "2026-05-04T10:00:00Z"
-last_activity: 2026-05-04 -- v2.5 Phase 6 complete (LOG-V25-01..04 shipped commits f26317a/e031d56/da67427/e522b98/e7f1020/c8fa35c/372c36a/d3f4765/f1ae41c)
+milestone: ""
+milestone_name: ""
+status: between_milestones
+stopped_at: "v2.5 archived (PR #261/#262 merged 2026-05-04, tag v2.5). 8/12 reqs done + 2 SEC bonus done · 4 deferred (2 tests stop-tests directive + 2 Phase 7 reportée v2.6+). Tech debt carried to next milestone documented in PROJECT.md."
+last_updated: "2026-05-04T12:00:00Z"
+last_activity: 2026-05-04 -- /gsd:complete-milestone v2.5 (archived to milestones/v2.5-{ROADMAP,REQUIREMENTS}.md, MILESTONES.md updated, ROADMAP.md collapsed, PROJECT.md evolved, REQUIREMENTS.md v2.5 stripped, tag v2.5)
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 10
-  completed_plans: 6
-  percent: 60
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE -- Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-04)
+See: .planning/PROJECT.md (updated 2026-05-04 after v2.5 milestone)
 
-**Core value:** L'application doit être fiable en production — observabilité serveur réelle, signal SSE temps réel autonome, finitions cockpit.
-**Current focus:** v2.5 Real-time Live Cockpit + Logger Migration — Phase 5 SSE Live Pulse (50% in flight, tests pending)
+**Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
+**Current focus:** Planning next milestone (v2.6) — run `/gsd-new-milestone` to start questioning → research → requirements → roadmap cycle.
 
 ## Current Position
 

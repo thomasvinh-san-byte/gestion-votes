@@ -1,5 +1,50 @@
 # Milestones
 
+## v2.5 Real-time Live Cockpit + Logger Migration (Shipped: 2026-05-04)
+
+**PRs delivered:** #261 (v2.5 implementation) + #262 (v2.4 dead artifacts cleanup)
+**Phases:** 5-7 (continuing numbering from v2.4) + bonus SEC-V2-01 closeout
+**Plans:** 12 reqs (10 v2.5 + 2 SEC bonus) · 8 done · 4 deferred
+
+**Key accomplishments:**
+
+- `meeting.heartbeat` 10s SSE tick — payload {status, validated_at, quorum: {applied, met, present_members, eligible_members, present_weight, eligible_weight}, operator_count}, sub-queries try/catch isolated
+- 47 sites `error_log()` legacy migrated to `Logger::error/warning/critical/alert/info` with severity differentiation (CSRF/auth/rate-limit → warning, DB → critical, security signal → alert)
+- `error_events` table + `ErrorEventsRepository` + `api_fail()` capture hook (try/catch isolated, never breaks user response)
+- `/admin/error-stats` rewired on `error_events` (supersede v2.4 transitional version that filtered audit_events) — 4 KPI cards + timeline SVG inline + top codes table with proportion bars + window selector + cross-tenant toggle (admin) + drill-down by tenant
+- `next_step_clicks` table + `MetricsController` POST endpoint + `window.AgErrorMetrics` JS utility (sendBeacon preferred) — dashboard extended with CTR column (vert ≥20%, muted sinon)
+- **SEC-V2-01 closeout extended** : 27 method signatures hardened across 11 repos (Motion + Policy + Agenda + ManualAction + Meeting + MeetingReport + Notification + ReminderSchedule + Invitation + EmailQueue + VoteToken) — eliminated `tenantId = ''` default footgun. Audit-ready : zero default in `app/Repository/`.
+
+**Tech Debt carried to v2.6+:**
+
+- HEARTBEAT-V25-03/04 (PHPUnit + Playwright tests deferred per stop-tests directive)
+- COCKPIT-V25-01 (sub-tab Avancé ≤25 strict — débloqué post-v2.4 merge mais non exécuté)
+- TOKENS-V25-01 (49 tokens 1-site audit `design-system.css`)
+- Gates dev-machine v2.4 (Playwright runs, screenshots, PDF visuels, CSS smoke) inheritance
+
+**Known deferred items at close:** 4 (see v2.5-ROADMAP.md `### Known Gaps`)
+
+---
+
+## v2.4 Polish & Robustness (Shipped: 2026-05-04 via PR #260)
+
+**Phases completed:** 4 phases, 9 plans, 12 reqs (12/12 done with caveats)
+**Verdict:** `tech_debt` (no critical blockers, dev-machine gates pending)
+
+**Key accomplishments:**
+
+- COCKPIT-V24-01/02 — Cockpit ≤25 cliquables visibles + rouge danger confiné (operator.css `--color-danger*` 21→9, sidebar 0 décoratif)
+- ERR-V24-01 — `business_error` → 3 codes spécifiques (`meeting_transition_failed` / `operation_failed` / `state_read_failed`)
+- ERR-V24-02 — `<ag-integrity-modal>` debounced via `attributeChangedCallback`, utility `window.AgSseDebounce.create()`
+- ERR-V24-03 — `Logger::errorContext/criticalContext/alertContext` helpers + `/admin/error-stats` v2.4 (audit_events filtered with banner — superseded by v2.5)
+- TEST-V24-01..05 — `seedMeeting()` helper triple-guarded + dual-install Playwright resolved + tests/e2e/README + EXPLORE-PATTERNS.md
+- TECH-V24-01 — dompdf `@page` header `[Titre] — JJ/MM/YYYY` + footer `Page X sur Y` via `counter(page|pages)`
+- TECH-V24-02 — Borders/shadows tokens 100.00% (218/218 borders + 104/104 shadows, 49 nouveaux tokens 1-site dans design-system.css, D-08 amendé)
+
+**Tech Debt carried to v2.5:** 12 items deferred — closed in v2.5 (see v2.5 entry above)
+
+---
+
 ## v2.1 Hardening Sécurité (Shipped: 2026-04-29)
 
 **Phases completed:** 6 phases, 22 plans, 21 contremesures (F02-F22)
