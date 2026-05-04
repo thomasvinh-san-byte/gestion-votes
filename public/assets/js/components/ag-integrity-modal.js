@@ -26,6 +26,13 @@
  *
  * Light DOM volontaire : la cascade laisse passer les tokens design-system.css
  * et le stylesheet companion (ag-integrity-modal.css) cible directement les classes BEM.
+ *
+ * SSE burst guard (Plan 02.2 / ERR-V24-02) : les mutations d'attributs `data-events`
+ * et `data-date` sont debounced (>=250ms) pour eviter un double-render lorsqu'un
+ * emetteur SSE pousse plusieurs events en rafale. Le debounce passe par l'utility
+ * `window.AgSseDebounce` (public/assets/js/utils/sse-debounce.js). Override via
+ * `data-sse-debounce-ms` (defaut 250). Le compteur `data-render-count` est incremente
+ * a chaque render effectif (assertion E2E sse-burst-idempotency.spec.js).
  */
 
 class AgIntegrityModal extends HTMLElement {
@@ -54,10 +61,46 @@ class AgIntegrityModal extends HTMLElement {
     }
   }
 
+  /**
+   * Resolve la fenetre debounce SSE en ms. Lu a chaque event pour permettre
+   * un override live (tests E2E, dev tooling) via setAttribute('data-sse-debounce-ms', ...).
+   * @returns {number}
+   */
+  get _debounceMs() {
+    var raw = parseInt(this.getAttribute('data-sse-debounce-ms') || '250', 10);
+    if (isNaN(raw) || raw < 0) return 250;
+    return raw;
+  }
+
   attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue !== newValue && this.isConnected) {
+    if (oldValue === newValue || !this.isConnected) return;
+
+    // Initial render (avant que connectedCallback ait pose data-rendered) reste synchrone
+    // pour ne pas masquer le rendu au premier paint. Les mutations subsequentes (burst SSE)
+    // passent par le debounce.
+    if (!this.hasAttribute('data-rendered')) {
       this._render();
+      return;
     }
+
+    if (!this._debouncedRender) {
+      var self = this;
+      var debounceFactory = (window.AgSseDebounce && window.AgSseDebounce.create)
+        ? window.AgSseDebounce.create
+        : null;
+      if (!debounceFactory) {
+        // Fallback degrade si sse-debounce.js n'a pas charge (ne doit pas arriver
+        // en production : index.js orchestre le chargement). Render synchrone +
+        // increment compteur pour conserver le contrat data-render-count.
+        this._render();
+        var current = parseInt(this.getAttribute('data-render-count') || '0', 10);
+        if (isNaN(current)) current = 0;
+        this.setAttribute('data-render-count', String(current + 1));
+        return;
+      }
+      this._debouncedRender = debounceFactory(this, function () { self._render(); }, function () { return self._debounceMs; });
+    }
+    this._debouncedRender();
   }
 
   open() {
