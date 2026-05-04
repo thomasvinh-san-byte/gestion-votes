@@ -90,16 +90,13 @@ class InvitationRepository extends AbstractRepository {
     /**
      * Trouve une invitation par meeting + member.
      */
-    public function findByMeetingAndMember(string $meetingId, string $memberId, string $tenantId = ''): ?array {
-        $sql = 'SELECT id, meeting_id, member_id, email, token, status, created_at, updated_at
+    public function findByMeetingAndMember(string $meetingId, string $memberId, string $tenantId): ?array {
+        return $this->selectOne(
+            'SELECT id, meeting_id, member_id, email, token, status, created_at, updated_at
              FROM invitations
-             WHERE meeting_id = :meeting_id AND member_id = :member_id';
-        $params = [':meeting_id' => $meetingId, ':member_id' => $memberId];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        return $this->selectOne($sql, $params);
+             WHERE meeting_id = :meeting_id AND member_id = :member_id AND tenant_id = :tid',
+            [':meeting_id' => $meetingId, ':member_id' => $memberId, ':tid' => $tenantId],
+        );
     }
 
     /**
@@ -186,15 +183,11 @@ class InvitationRepository extends AbstractRepository {
     /**
      * Trouve le statut d'une invitation par meeting et member.
      */
-    public function findStatusByMeetingAndMember(string $meetingId, string $memberId, string $tenantId = ''): ?string {
-        $sql = 'SELECT status FROM invitations WHERE meeting_id = :mid AND member_id = :uid';
-        $params = [':mid' => $meetingId, ':uid' => $memberId];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $sql .= ' LIMIT 1';
-        $val = $this->scalar($sql, $params);
+    public function findStatusByMeetingAndMember(string $meetingId, string $memberId, string $tenantId): ?string {
+        $val = $this->scalar(
+            'SELECT status FROM invitations WHERE meeting_id = :mid AND member_id = :uid AND tenant_id = :tid LIMIT 1',
+            [':mid' => $meetingId, ':uid' => $memberId, ':tid' => $tenantId],
+        );
         return $val !== null ? (string) $val : null;
     }
 
@@ -238,18 +231,15 @@ class InvitationRepository extends AbstractRepository {
     /**
      * Liste les tokens/invitations pour rapport PV (avec nom du membre).
      */
-    public function listTokensForReport(string $meetingId, string $tenantId = ''): array {
-        $sql = 'SELECT m.full_name, i.created_at, i.revoked_at, i.last_used_at
+    public function listTokensForReport(string $meetingId, string $tenantId): array {
+        return $this->selectAll(
+            'SELECT m.full_name, i.created_at, i.revoked_at, i.last_used_at
              FROM invitations i
              JOIN members m ON m.id = i.member_id
-             WHERE i.meeting_id = :mid';
-        $params = [':mid' => $meetingId];
-        if ($tenantId !== '') {
-            $sql .= ' AND i.tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $sql .= ' ORDER BY m.full_name ASC';
-        return $this->selectAll($sql, $params);
+             WHERE i.meeting_id = :mid AND i.tenant_id = :tid
+             ORDER BY m.full_name ASC',
+            [':mid' => $meetingId, ':tid' => $tenantId],
+        );
     }
 
     /**

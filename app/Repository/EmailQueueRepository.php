@@ -77,27 +77,20 @@ class EmailQueueRepository extends AbstractRepository {
     /**
      * Marque un email comme envoye.
      */
-    public function markSent(string $id, string $tenantId = ''): void {
-        if ($tenantId !== '') {
-            $this->execute(
-                "UPDATE email_queue SET status = 'sent', sent_at = now(), updated_at = now()
-                 WHERE id = :id AND tenant_id = :tid",
-                [':id' => $id, ':tid' => $tenantId],
-            );
-        } else {
-            $this->execute(
-                "UPDATE email_queue SET status = 'sent', sent_at = now(), updated_at = now()
-                 WHERE id = :id",
-                [':id' => $id],
-            );
-        }
+    public function markSent(string $id, string $tenantId): void {
+        $this->execute(
+            "UPDATE email_queue SET status = 'sent', sent_at = now(), updated_at = now()
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':tid' => $tenantId],
+        );
     }
 
     /**
      * Marque un email comme echoue (avec retry si possible).
      */
-    public function markFailed(string $id, string $error, string $tenantId = ''): void {
-        $sql = "UPDATE email_queue
+    public function markFailed(string $id, string $error, string $tenantId): void {
+        $this->execute(
+            "UPDATE email_queue
              SET status = CASE
                      WHEN retry_count + 1 >= max_retries THEN 'failed'
                      ELSE 'pending'
@@ -109,13 +102,9 @@ class EmailQueueRepository extends AbstractRepository {
                      ELSE scheduled_at
                  END,
                  updated_at = now()
-             WHERE id = :id";
-        $params = [':id' => $id, ':error' => $error];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $this->execute($sql, $params);
+             WHERE id = :id AND tenant_id = :tid",
+            [':id' => $id, ':error' => $error, ':tid' => $tenantId],
+        );
     }
 
     /**

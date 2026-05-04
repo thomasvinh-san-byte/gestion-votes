@@ -58,17 +58,14 @@ class ManualActionRepository extends AbstractRepository {
     /**
      * Liste les actions manuelles d'une seance (pour rapport).
      */
-    public function listForMeeting(string $meetingId, string $tenantId = ''): array {
-        $sql = 'SELECT action_type, value, justification, created_at
+    public function listForMeeting(string $meetingId, string $tenantId): array {
+        return $this->selectAll(
+            'SELECT action_type, value, justification, created_at
                 FROM manual_actions
-                WHERE meeting_id = :mid';
-        $params = [':mid' => $meetingId];
-        if ($tenantId !== '') {
-            $sql .= ' AND tenant_id = :tid';
-            $params[':tid'] = $tenantId;
-        }
-        $sql .= ' ORDER BY created_at ASC';
-        return $this->selectAll($sql, $params);
+                WHERE meeting_id = :mid AND tenant_id = :tid
+                ORDER BY created_at ASC',
+            [':mid' => $meetingId, ':tid' => $tenantId],
+        );
     }
 
     /**
