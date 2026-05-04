@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Polish & Robustness
-status: Milestone v2.4 PHASES COMPLETE — 9/9 plans, 100% ratio borders/shadows, awaiting dev-machine gates + lifecycle
+status: Milestone v2.4 SHIPPED — PR #260, awaiting dev-machine gates + merge
 stopped_at: "Milestone v2.4 Polish & Robustness — 4/4 phases complete (103 commits depuis main, 9/9 plans). Phase 1 Cockpit (2 plans, 11 commits): declutter ≤25 + palette danger 21→9. Phase 2 Error Obs (3 plans, 15 commits): business_error 11→1, SSE debounce attributeChangedCallback, Logger::errorContext + admin /admin/error-stats. Phase 3 Test Infra (2 plans, 13 commits): /api/v1/test/seed-meeting endpoint dev-only triple-guarded, dual-install Playwright résolu, gsd-code-reviewer doc + e2e README + EXPLORE-PATTERNS.md. Phase 4 Print + Tech Debt (3 plans, 55+ commits): dompdf @page header/footer 18 PHPUnit GREEN, borders/shadows ratio 62.7% → 83.2% (04.2 partial) → 100% (04.3 push 95% strict via 49 tokens 1-site capture verbatim). Cumulative tests: 31+ PHPUnit GREEN, 3+ Playwright specs nouveaux (run dev-machine déféré). Coordination parallèle 8-way (toutes phases) : 0 conflit git. Pending dev-machine gates : Playwright (cockpit-button-count + sse-burst-idempotency + F-4 modal/keyboard) + screenshots before/after Phases 1+4 + 3 PVs longs PDF visuels + smoke regression CSS borders/shadows 17 files."
 last_updated: "2026-05-04T07:45:00.000Z"
 progress:
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04)
 
 **Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
-**Current focus:** Milestone v2.4 lifecycle (audit + complete + cleanup) — awaiting user trigger
+**Current focus:** Milestone v2.4 PR #260 SHIPPED — dev-machine gates + merge pending
 
 ## Current Position
 
