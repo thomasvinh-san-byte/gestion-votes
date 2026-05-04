@@ -698,7 +698,7 @@ body.projection-body {
 .meeting-picker-card:hover,
 .meeting-picker-card:focus-visible {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  box-shadow: var(--shadow-focus-glow);
   outline: none;
 }
 
@@ -917,7 +917,7 @@ body.projection-body {
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border: var(--border-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  box-shadow: var(--shadow-focus-glow);
 }
 
 .tracker-pill.adopted {
