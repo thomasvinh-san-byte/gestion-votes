@@ -742,6 +742,9 @@
     O.fn.updateExecCloseSession();
     refreshExecChecklist();
     refreshFocusQuorum();
+    // v2.4 P1 / COCKPIT-V24-01 / D-04 — mirror vote-state on #viewExec
+    // so contextual buttons ([data-show-when]) toggle visibility.
+    if (O.fn.syncVoteState) O.fn.syncVoteState();
   }
 
   function refreshExecVote(opts) {

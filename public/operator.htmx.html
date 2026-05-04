@@ -1163,7 +1163,12 @@
         <!-- ============================================================
              VIEW: EXECUTION — exec console with vote card as centerpiece
              ============================================================ -->
-        <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution">
+        <!-- Phase v2.4 / COCKPIT-V24-01 (D-04 contextual-only) — data-vote-state mirror :
+             attribut sur #viewExec piloté par operator-realtime.js (pattern v2.3 P1 _setHb).
+             Valeurs : idle (aucun vote actif), open (vote ouvert), closed (vote fermé non proclamé).
+             Les boutons critical-path et contextual-only ciblent cet attribut via [data-show-when]
+             (cf. operator.css section "EXEC VIEW — contextual button visibility"). -->
+        <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution" data-vote-state="idle">
 
           <!-- Phase v2.3 / COCKPIT-01..05,07 — single source of truth for session health.
                Attributes are driven reactively by operator-realtime.js from SSE events. -->
@@ -1511,8 +1516,11 @@
               </div><!-- /op-resolution-card -->
 
               <!-- Sticky action bar (pinned at bottom) -->
+              <!-- Phase v2.4 / COCKPIT-V24-01 (D-04) : boutons contextuels via data-show-when.
+                   Proclamer visible uniquement vote-state=closed ; CloseVote uniquement open.
+                   ToggleVote (Lancer/Fermer) toujours visible — label switché par JS. -->
               <div class="op-action-bar" id="opActionBar" hidden>
-                <ag-tooltip text="Proclamer le résultat du vote (raccourci : P)" position="top">
+                <ag-tooltip text="Proclamer le résultat du vote (raccourci : P)" position="top" data-show-when="vote-state:closed">
                   <button class="btn btn-primary btn-lg" id="opBtnProclaim" disabled>
                     <span class="op-kbd-hint">P</span>
                     <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
@@ -1525,7 +1533,7 @@
                     Lancer le vote <kbd>L</kbd>
                   </button>
                 </ag-tooltip>
-                <button class="btn btn-sm btn-secondary" id="execBtnCloseVote" hidden>
+                <button class="btn btn-sm btn-secondary" id="execBtnCloseVote" hidden data-show-when="vote-state:open">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote
                 </button>
               </div>
