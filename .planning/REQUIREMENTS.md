@@ -1,103 +1,79 @@
-# Requirements: AgVote v2.3 Layout Refonte & UX Polish
+# Requirements: AgVote v2.4 Polish & Robustness
 
-**Defined:** 2026-04-29
-**Core Value:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle, appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique. Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
+**Defined:** 2026-05-04
+**Core Value:** Consolider la fiabilité production post-v2.3 — éliminer les frictions de toolchain identifiées, refactorer les codes d'erreur génériques en codes ciblés observables, et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée.
 
-**Source des requirements :** items reportés depuis v2.2 (L01, L03, L04, L05, X01) + audit UX/UI initial (3 critiques modales, 8 a11y, 16 responsive/contrastes, 7 polish) + critique Norman/Zhuo (quorum-as-a-feeling, error → next-step) + recherche inline `.planning/research/SUMMARY.md` + revue UX 2026-04-29 (`.planning/v2.3-UX-REVIEW.md` — hiérarchie cockpit, prévention quorum, raccourcis clavier, print, empty state, prévention erreurs, modal triggers) + revue UX 2026-04-30 (`.planning/v2.3-UX-REVIEW-SCHOGER.md` — clarté visuelle Refactoring UI : text-align lock, CSS grid pattern, audit tabs declutter, login pattern, dashboard shortcut-cards, hardcoded values cleanup).
+**Source des requirements :** backlog v2.3 trié dans `.planning/v2.4-BACKLOG-PLAN.md` (4 phases validées) — heritage Schoger S-1 + S-6, code-review v2.3 followups, Phase 4 audit ERR-04 followups, A1 gate friction (sandbox install Playwright), Phase 3 Schoger S-8 propagation d'erreur scan.
+
+**Pré-requis** : v2.3 mergée (PR #259) avant démarrage Phase 1 v2.4.
 
 ---
 
 ## v1 Requirements
 
-### Cockpit Opérateur live (Phase 1)
+### Cockpit Polish & Hygiène (Phase 1)
 
-- [x] **COCKPIT-01**: Une barre santé séance unique s'affiche au top de la vue exécution opérateur, persistante pendant toute la durée de la séance, avec **deux niveaux hiérarchiques** :
-  - *Primary* (typo dominante, action-relevant) : Quorum + Résolution active
-  - *Ambient* (pill 12-13px, télémétrie système) : SSE state + Votants connectés
-  L'œil de l'opérateur sous stress doit cibler le primary sans concurrence visuelle de l'ambient.
-- [x] **COCKPIT-02**: L'indicateur Quorum (primary) affiche en permanence l'état atteint (vert) ou non-atteint (rouge), avec le ratio votants présents / quorum requis. **L'indicateur "personnes" principal mesure les votes restants sur la résolution active** (`Votes restants : 23 / 142`), répondant à la question opérationnelle de l'opérateur — pas une métrique de connectivité technique. Plus de notification toast éphémère.
-- [x] **COCKPIT-03**: Quand le quorum bascule en non-atteint pendant une séance, une bordure danger animée (pulse 1.5s, opacity max 0.6) apparaît autour de la zone vote — respecte `prefers-reduced-motion: reduce`.
-- [x] **COCKPIT-04**: La barre santé devient un stack vertical en responsive (< 768px) plutôt qu'une compression horizontale illisible.
-- [x] **COCKPIT-05**: Un nouveau custom element `<ag-health-bar>` encapsule la logique : data-attributes pour les valeurs, animations CSS, responsive collapse, tests d'isolation.
-- [x] **COCKPIT-06**: Raccourcis clavier sur la vue exécution opérateur (sous stress, le clavier est plus rapide que la souris) : `L` lance le vote actif, `F` ferme le scrutin actif, `→` ou `N` passe à la résolution suivante, `?` affiche un overlay de la liste des raccourcis. Ne s'activent pas dans les inputs/textareas/contenteditable. Indication visuelle discrète sur les boutons concernés (tooltip avec la touche).
-- [x] **COCKPIT-07**: État intermédiaire **"quorum à risque"** affiché quand le ratio descend sous 110 % du seuil mais reste atteint. Couleur warning douce (jamais rouge — le quorum est encore atteint), pas de pulse. Bascule visuelle anticipée → l'opérateur a 30s pour mobiliser au lieu de 0. Prévention > détection > récupération (Norman).
+- [ ] **COCKPIT-V24-01**: Le cockpit opérateur affiche au plus **25 boutons / éléments cliquables visibles** simultanément (vs ~70 actuellement). Le PLAN.md de la phase identifie chaque bouton actuel, propose un regroupement (panel rétractable, persona-scoped, contextual-only), et justifie quels sont conservés en avant. *Schoger S-1 — declutter.*
 
-### Pages éditoriales (Phase 2)
+- [ ] **COCKPIT-V24-02**: Le rouge danger (`--color-danger`, `--color-danger-subtle`) est utilisé **uniquement** pour signaler un état critique nécessitant une action immédiate (quorum perdu, vote raté). Les indicateurs de présence/connexion utilisent une palette neutre ou success ; la sidebar/nav opérateur n'a aucun rouge décoratif. Audit livré dans le PLAN.md. *Schoger S-6 — persona color confinement.*
 
-- [x] **EDITORIAL-01**: Les pages `/audit`, `/trust`, `/archives`, `/report` adoptent un wrapper `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6 sur le contenu. **Le wrapper `.ag-editorial > *` est verrouillé en `text-align: left` explicite** — un test PHPUnit (ou CSS lint) interdit `text-align: center` sur tout enfant direct de `.ag-editorial`. *Refactoring UI* : centrer du long-form text est un anti-pattern de lisibilité, ce verrou prévient la régression "pour rendre joli".
-- [x] **EDITORIAL-02**: Les contrôles UI (boutons, filtres, dropdowns) restent en `var(--font-sans)` (Bricolage) — le serif est réservé au contenu lu. **Sur `/audit`, audit obligatoire des 5 filter tabs actuels** : si 2-3 tabs sont utilisés <5 % du temps (mesure via logs ou jugement produit), les déplacer dans `<details>` "Plus de filtres" (Schoger Ch.10 : *"Every tab is a tax"*). Le contenu prend la lumière, pas la chrome.
-- [x] **EDITORIAL-03**: Les hashes/UUID/codes affichés (audit chain, vote tokens, IDs) utilisent `var(--font-mono)` (JetBrains Mono).
-- [x] **EDITORIAL-04**: Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace **uniquement en en-tête de section, en liste, ou en tableau** (jamais inline dans un paragraphe serif — le pill casse alors le rythme de lecture). Inline en flux, le numéro reste en mono sans pill.
-- [x] **EDITORIAL-05**: Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" actionnable. Le modal d'ouverture **doit commencer par un préambule pédagogique en français** avant la chaîne `audit_events` (sinon on montre du jargon — l'inverse de "rassurant"). Texte de référence : *"Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne."*
-- [x] **EDITORIAL-06**: Sous 768px, la largeur de lecture passe à 100% avec padding latéral (pas de scroll horizontal sur petit écran).
-- [x] **EDITORIAL-07**: Styles `@media print` sur les pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) : masquage des contrôles UI (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. La sortie imprimée doit être lisible en N&B sans dépendre du contraste couleur. *(Livré PARTIEL Plan 02.4 commit bc1845f : numéro de page footer + masquage UI + page-break + reset N&B livrés intégralement ; en-tête présent en début de document uniquement, pas répété par page — limitation navigateur F-5 Schoger, route via dompdf en backlog v2.4 si répétition par page requise.)*
-- [x] **EDITORIAL-08**: Layout `.ag-editorial` utilise **`display: grid`** (pas flex) pour structurer la colonne contenu (max-width 720px) et une colonne sidebar latérale (hash d'intégrité, méta, navigation interne) sur viewport ≥ 1024px. Sous 1024px, la grille collapse en flux vertical naturel. *Refactoring UI* : Grid pour layout, flex pour alignement intra-cellule. Évite les hacks `flex-basis` / `min-width: 0`.
-- [x] **EDITORIAL-09**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/audit.css` (et tout fichier CSS touché par le wrapper `.ag-editorial`) — remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 2 : compter `grep -E "(padding|margin):\s+[0-9]+" public/assets/css/audit.css` ; cible post-phase = 0. *Refactoring UI* : *"Si tu n'utilises pas le système partout, tu n'as pas un système — tu as une suggestion."*
+### Error Observability & Resilience (Phase 2)
 
-### Layouts secondaires (Phase 3)
+- [ ] **ERR-V24-01**: Le code d'erreur générique `business_error` est remplacé par **3 codes spécifiques** dans `app/Services/ErrorDictionary.php` couvrant les 3 cas d'usage actuels documentés en 04.6-AUDIT.md. Chaque caller migré vers le code spécifique. `business_error` reste émis < 5 % des erreurs en prod. *04.6-FOLLOWUP-2.*
 
-- [x] **DASHBOARD-01**: Le dashboard affiche au plus 3 KPI cards (au lieu de 4 actuellement). **Le PLAN.md de la phase 3 doit nommer explicitement le KPI supprimé et justifier pourquoi il a la moindre charge décisionnelle au quotidien** (critère produit, pas process). Le KPI déposé est intégré ailleurs (lien vers `/analytics`) — aucune information perdue.
-- [x] **DASHBOARD-02**: La hero card pleine largeur affiche **3 états distincts** selon l'imminence d'une séance :
-  - *Ambient* (séance prévue dans < 60 min, > 5 min) : hero card neutre, action *"Préparer la séance"*.
-  - *Urgent* (séance prévue dans < 5 min) : hero card accent warning, action *"Démarrer maintenant"*.
-  - *Live* (séance en cours) : hero card accent danger avec pulse douce (respect `prefers-reduced-motion`), action *"Reprendre"*.
-  Aucune hero card si > 60 min — on ne crie pas pour rien.
-- [x] **DASHBOARD-03**: Les actions rapides (Créer, Importer, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` pour les visuellement secondariser.
-  **NOTE 2026-04-30 (Plan 03.3 — Rule 4 deviation) :** audit factuel `grep -nE 'quick-action|action-rapide|actions-bar|quick-actions|class="actions"|Actions rapides|Raccourcis|Actions principales' public/dashboard.htmx.html` retourne 0 match — aucun bloc "actions rapides" distinct n'existe. Les actions rapides historiques sont les 3 shortcut-cards de `<aside class="dashboard-aside">` (titre "Accès rapides"). DASHBOARD-03 livré en secondarisant l'aside via `background: var(--color-surface)` → `var(--color-bg-subtle)` (token sunken canonique du design-system). Pas de déplacement DOM. Cohérent avec Plan 03.2 (Rule 4 zero-DOM-mutation pattern). Voir `.planning/phases/03-layouts-secondaires/03.3-SUMMARY.md`. Commit `e36b579`.
-- [x] **DASHBOARD-04**: **Empty state** quand aucune séance n'est planifiée et aucune n'a été tenue récemment (< 30 jours) : message clair en français au centre du dashboard ("Aucune séance prévue. Créez-en une pour commencer.") avec CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative — pure typographie + bouton.
-- [x] **DASHBOARD-05**: Audit + groupement des shortcut-cards : top 5 utilisés en avant (en grille principale), le reste replié derrière un disclosure "Toutes les actions". *Refactoring UI* : *"Reduce by half, see what breaks. Almost nothing breaks."*  
-  **NOTE 2026-04-30 (Plan 03.2 — Rule 4 deviation) :** la revue Schoger S-8 supposait 15 shortcut-cards (erreur de comptage initial — le substring `shortcut-card` matchait aussi les enfants BEM `__icon`, `__text`, `__title`, `__sub`). **Réalité du code post-Plan 03.1 : 3 shortcut-cards** dans `<aside class="dashboard-aside">` (Créer une séance, Piloter un vote, Consulter le suivi — toutes flux quotidien fréquent). 3 ≤ 5 → l'objectif "top 5 + reste plié" est *de facto* atteint. Aucun diff code livré pour DASHBOARD-05. Le `<details>` "Toutes les actions" n'a pas de raison d'être (rien à plier). Marqué `[x]` Done sans modification visible. Voir `.planning/phases/03-layouts-secondaires/03.2-SUMMARY.md` pour la trace complète.
-- [x] **DASHBOARD-06**: Layout dashboard utilise **`display: grid`** pour la hero card pleine largeur + grille KPI 3 colonnes. Remplace les `flex-basis` hacks. Définit un grid template explicite (`grid-template-columns: repeat(3, 1fr)`, `grid-template-areas` si lisibilité gagnée). *Refactoring UI* : Grid pour layout, alignement parfait sans calcul.
-- [x] **LOGIN-01**: La page `/login.html` supprime l'orbe animé radial-gradient (`login.css:60`) **ET le pattern de fond `login-brand-grid`** (background-image gradient pattern). Garde le `login-brand-glow` radial atténué (single subtle gradient ≠ pattern). *Refactoring UI* : *"Patterns and textures belong on marketing pages, not on tool entry points where the user wants to do their job."*
-- [x] **LOGIN-02**: Le panel brand sur login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — le formulaire prend plus de place.
-- [x] **LOGIN-03**: Cleanup des padding/margin **hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` (top offenders Schoger : 42 hardcodes dans `pages.css`, plus dans `login.css`). Remplacement par les tokens existants `--space-*` / `--pad-*` / `--gap-*`. Audit baseline avant Phase 3 : `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` ; cible post-phase = 0 sur ces deux fichiers. **DONE Plan 03.5** : login.css 2→0 (commit 1195cbe), pages.css 60→0 (commit 723123d), 36 + 76 occurrences var(--space-*).
+- [ ] **ERR-V24-02**: Les empty-states avec rafale d'événements SSE (modal d'intégrité, dashboard hero card live) implémentent un guard d'idempotence (debounce ≥250ms ou state-machine `idle | rendering | rendered`) qui **prévient les double-render** lors de bursts. Test E2E reproductible avec injection synthétique de 5 events en 100ms. *04.6-FOLLOWUP-3.*
 
-### Tech debt visuelle transverse v2.3 (quick task pré-Phase 2)
+- [ ] **ERR-V24-03**: `Logger::error()` enrichi avec contexte standardisé (`request_id`, `user_id`, `tenant_id`, `error_code`, `caller`) sur tous les call-sites identifiés par l'audit. Un dashboard simple (page admin ou commande CLI) affiche le **taux d'utilisation du next-step ErrorDictionary** par code (cliques sur la suggestion vs ignorance) — métrique pour valider Phase 4 v2.3 ERR-02.
 
-- [x] **TECH-01**: **Consolidation des box-shadow et borders** vers le design system. Baseline mesurée : 73 box-shadow distinctes + 57 border distinctes dans `public/assets/css/`. Cible : ≤ 6 shadow tokens (`--shadow-xs/sm/md/lg/xl/2xl`) + ≤ 8 border tokens (border, border-subtle, border-strong + 5 contextuels). Audit + remplacement automatique des occurrences existantes vers le token le plus proche. Quick task (`/gsd:quick`) à exécuter **avant** `/gsd:plan-phase 2` pour que les nouveaux CSS éditoriaux héritent d'un système consolidé. *Refactoring UI* : *"Just because you can pick any value doesn't mean you should — keep elevation levels to 5-6 maximum."* **DONE Quick `260430-86c` (2026-04-30, commits 7da8173..0fc6289) : 234 occurrences consolidées sur 25 fichiers CSS, 6 nouveaux tokens ajoutés à `design-system.css` (`--shadow-xs`, `--border-default/subtle/strong/dashed/focus`). Cas BASSE confiance (~140 borders + ~45 shadows custom avec fallbacks inline ou widths non-standard) reportés au cas-par-cas dans Phase 2/3 SUMMARY (absorbés en partie par EDITORIAL-09 + LOGIN-03).**
+### Test Infrastructure (Phase 3)
 
-### Lexique + UX critique (Phase 4)
+- [ ] **TEST-V24-01**: `tests/e2e/helpers/seed-meeting.js` est implémenté (signature `seedMeeting({tenantId, status, motionsCount}) → meetingId`) et active le test `@integration` F-4 (modal-focus-trap.spec.js) précédemment skippé. Test passe en CI dev. *01.4-FOLLOWUP-2.*
 
-- [x] **LEX-01**: Convention "membre/participant/votant" appliquée par migration cas-par-cas (lecture du contexte) sur le copy utilisateur. Distinction sémantique : membre = inscrit, participant = présent, votant = éligible au scrutin courant. **DONE Plan 04.1** : 89 occurrences analysées sur 4 fichiers (operator/help/members/ErrorDictionary), 2 migrées (operator L1062 placeholder + ErrorDictionary L227 token message), 87 conservées avec justification écrite (cf. 5 scratchs). Glossaire pédagogique #vocabulaire ajouté à help.htmx.html.
-- [x] **LEX-02**: Convention "confirmer/valider/verrouiller-archiver" appliquée. "Approuver" banni du copy de finalisation (ambiguë juridiquement). **DONE Plan 04.1** : scan transverse complet `app/` + `public/` retourne 0 occurrence d'Approuver — bannishment acquis par construction. Glossaire help.htmx.html documente la règle (confirmer/valider/verrouiller-archiver) et l'unique apparition pédagogique.
-- [x] **MODAL-01**: Audit des modales legacy `.modal` CSS class. Migration vers `<ag-modal>` web component pour bénéficier du focus trap natif (Tab + Shift+Tab + Escape). **DONE Plan 04.2** : 7 modales legacy migrées sur 6 fichiers HTML (operator/audit/meetings/archives/trust/validate) ; 6 fichiers JS associés adaptés (`open()`/`close()` API). `op-quorum-modal` conservé (CSS class custom, pas legacy `.modal`).
-- [x] **MODAL-02**: Toutes les modales actives doivent permettre Escape pour fermer (a11y critique). Ajout d'un test E2E qui ouvre une modale et vérifie que Escape la ferme + restore le focus à l'élément précédent. **DONE Plan 04.3** : `tests/e2e/specs/modal-focus-trap.spec.js` (commit e4f5cf6, 257 lignes, 6 tests tagged `@a11y-v2.3` — Tab cycle, Shift+Tab cycle, Escape close, focus restore Escape, focus restore X button, cross-modal smoke `exportsModal`). Playwright runtime à exécuter machine dev (followup 04.3-FOLLOWUP-1).
-- [x] **MODAL-03**: **Affordance des triggers** : tous les boutons/liens qui ouvrent une `<ag-modal>` doivent porter `aria-haspopup="dialog"` + un signifiant visuel (ellipsis "…", icône, ou suffixe textuel). Norman : un focus trap interne est inutile si l'utilisateur ne sait pas qu'il s'apprête à entrer dans un dialog. Audit + correctifs sur les triggers de Phase 4 dans le même PR que MODAL-01/02. **DONE Plan 04.2** : 3 triggers HTML statiques (operator `#btnLaunchSession`, archives `#btnExportsModal`, validate `#btnValidate`) + 2 triggers dynamiques injectés en JS (audit timeline items, trust audit table rows). meetings utilise un `<ag-popover>` (menu) — non concerné.
-- [x] **ERR-01**: Top 50 codes `ErrorDictionary.php` (les plus utilisés) enrichis avec un "next-step" actionnable. Exemple : `"Vous avez déjà voté sur cette résolution."` → `"Vous avez déjà voté sur cette résolution. Pour modifier, demandez à l'opérateur d'annuler le précédent."` **DONE Plan 04.4** : 33 codes du top 50 nouvellement enrichis (17 déjà enrichis par le passé), baseline 206 codes preserved, strict heuristic 49 → 81 (+32 above threshold), 0 phrase bannie ERR-03, 04.1 lexique préservée. TOP_50_CODES list cristallisée dans 04.4-SUMMARY pour consommation par 04.5 `UxConventionsTest`.
-- [x] **ERR-02**: Test PHPUnit `tests/Security/UxConventionsTest.php` qui scanne ErrorDictionary et exige au moins une virgule + un verbe d'action (impératif ou subjonctif) dans chaque message des 50 codes les plus utilisés. Filet permanent contre la régression. **Note pour le planner :** `tests/Security/CopyConventionsTest.php` existe déjà depuis v2.2 phase 4 (3 cas, 708 assertions — terms forbidden, no "secrétaire de séance", no leftover placeholders). `UxConventionsTest` est complémentaire (cible `ErrorDictionary` spécifiquement) — ne pas dupliquer ni étendre `CopyConventionsTest`. **DONE Plan 04.5** : 3 tests vert au premier run en 4 ms (testTop50CodesContainsAtLeast50Entries garde-fou F2 + testNextStepPresence top 50 + testNoForbiddenPhrases scan exhaustif). TOP_50_CODES copié verbatim depuis 04.4-SUMMARY (50/50). API publique de ErrorDictionary utilisée (hasMessage/getMessage/getCodes), pas de parsing texte brut.
-- [x] **ERR-03**: Le test `UxConventionsTest` rejette aussi une **liste de phrases creuses** (regex), même si la forme passe (virgule + verbe) : `/réessayer\.?$/i`, `/contactez (le|l')admin/i`, `/erreur survenue/i`, `/une erreur est survenue/i`, `/veuillez réessayer plus tard/i`. Un message de la liste top 50 qui matche est un échec de test — il doit être réécrit avec un next-step concret. **DONE Plan 04.5** : `testNoForbiddenPhrases` scanne le dictionnaire entier (pas seulement top 50) via `ErrorDictionary::getCodes()` — couverture exhaustive. 5 regex bannies verbatim. 0 hit au premier run (04.4 a livré un dictionnaire conforme par construction).
-- [x] **ERR-04**: **Audit prévention** sur les 5 codes `ErrorDictionary` les plus émis sur les 30 derniers jours (ou stat équivalente issue des logs) : pour chacun, le PLAN.md de Phase 4 doit répondre *"peut-on faire disparaître cette erreur par contrainte UI plutôt que de la rattraper ?"*. Exemple : `already_voted` → désactiver le bouton vote après soumission (Norman : *constraints > error messages*). Au moins 2 des 5 codes doivent être marqués "prévenu en v2.3" ou "prévention reportée v2.4 avec rationale". **DONE Plan 04.6 commit bbe69c7** : `04.6-AUDIT.md` — 5/5 codes audités (overdelivery vs ≥2/5 requis). Décisions : `missing_meeting_id` + `invalid_meeting_id` **prévenus par design v2.3** (architecture MeetingContext + 0 saisie UUID manuelle UI) ; `meeting_not_found` + `motion_not_found` + `business_error` **déférés v2.4 avec rationale écrite** (race conditions fondamentales pour les 2 first, refonte structurelle en codes spécifiques pour business_error). Followups capturés.
+- [ ] **TEST-V24-02**: `gsd-code-reviewer` accepte un argument `--scope=js|php|tests|all` et un budget timeout configurable (`--timeout-min=N`, défaut 60). Documentation dans `.claude/get-shit-done/agents/gsd-code-reviewer.md`. Vérifié via review v2.4 sur 50+ fichiers sans timeout. *GSD-V2.4-1.*
+
+- [ ] **TEST-V24-03**: Le dual-install Playwright (root `package.json` + `tests/e2e/package.json`) est résolu : un seul `package.json` source de vérité (`tests/e2e/`), root supprimé ou stub minimal vers tests/e2e. README à jour. *GSD-V2.4-2.*
+
+- [ ] **TEST-V24-04**: `tests/e2e/README.md` créé (ou enrichi) avec : install commands (`sudo npx playwright install --with-deps chromium`), browsers téléchargés par défaut, gestion auth-setup rate-limit (5min cooldown assessor), procédures debug. *GSD-V2.4-3.*
+
+- [ ] **TEST-V24-05**: Un guide `.planning/codebase/EXPLORE-PATTERNS.md` documente le pattern de scan évitant les faux-positifs BEM substring (ex: `shortcut-cards` matche `shortcut-cards__title` mais pas `shortcut-cards-grid`). 3 anti-patterns concrets recensés, exemple correct fourni. *03.2-FOLLOWUP-1.*
+
+### Print + Tech Debt residuel (Phase 4)
+
+- [ ] **TECH-V24-01**: L'export PDF (dompdf via `ProcurationPdfService` + `MeetingReportsService` si applicable) génère un **header répété** sur chaque page (titre séance + date) et un footer numéro de page. Vérifié visuellement sur 3 PVs longs (≥10 pages). *EDITORIAL-07-FULL — partial v2.3 = CSS print only.*
+
+- [ ] **TECH-V24-02**: Le ratio borders/shadows utilisant les design tokens vs valeurs hardcodées atteint **≥95 %** (vs ~70 % post-v2.3 quick TECH-01). Audit produit la liste des ~140 borders + ~45 shadows residuels et les migre cas-par-cas. Atomic commits per fichier pour revert ciblé. *TECH-01-BASSE.*
 
 ---
 
-## v2 Requirements (deferred)
+## v2 Requirements (déférés milestone v2.5+)
 
-### UX backlog v2 (post-v2.3)
+### Sécurité (milestone v2.5 dédié)
 
-- **UX-V2-01**: Animation système (transitions cross-page, skeleton loading enrichi)
-- **UX-V2-02**: A/B testing visuel (différentes hiérarchies KPI sur dashboard)
-- **UX-V2-03**: Mobile-first redesign de la vue opérateur (responsive ≠ mobile-native)
-- **UX-V2-04**: Empty states enrichis sur toutes les pages (illustrations légères)
-- **UX-V2-05** *(Schoger S-1)*: **Cockpit declutter** — réduire la densité visuelle de `operator.htmx.html` de 70 boutons visibles en mode exec à ≤ 25. Pour chaque bouton secondary/ghost actuel, décider : visible permanent OU menu contextuel (`...`) OU drawer OU hover-revealed. *Refactoring UI Ch.1* : *"You can't make everything stand out — you must demote the rest."* Phase dédiée v2.4 (effort M-L). Préserver les flows existants (lancer/fermer/passer motion). Hors scope strict v2.3 — la Phase 1 cockpit a ajouté la hiérarchie (`<ag-health-bar>`, raccourcis), reste à enlever le bruit.
-- **UX-V2-06** *(Schoger S-6)*: **Persona color confinement** — sur `operator.htmx.html` (et autres vues multi-rôle), les 6 couleurs persona (admin/président/opérateur/auditeur/votant/public) doivent être confinées à 1-2 surfaces d'identité (badge sidebar, bordure left du nom utilisateur). Pas de coloration persona sur les composants fonctionnels (boutons, panneaux, états) qui restent dans la palette sémantique unifiée. Aujourd'hui : 11 couleurs distinctes coexistent sur la même page (6 personas + 5 sémantiques) — l'œil ne sait plus ce qui est urgent. *Refactoring UI Ch.5* : *"Use color to draw attention, not to label everything."* Effort M, post-v2.3.
+- **SEC-V24-01**: `MotionRepository` tenantId check sur tous finders publics
+- **SEC-V24-02**: `F10` `fieldFor()` sanitization input
+- **SEC-V24-03**: Hash invitation HMAC vs plain token
 
-### Sécurité tech debt v2.1
+### UX ambitieux (milestone v2.6+)
 
-- **SEC-V2-01**: 8 méthodes MotionRepository à `tenantId = ''` optionnel (audit des callers)
-- **SEC-V2-02**: Migration progressive `field()` → `fieldFor(method, path)` pour activer F10 sur tous les forms
-- **SEC-V2-03**: Hash invitation token SHA-256 → HMAC-SHA256 (forcer re-issue)
+- **UX-V24-01**: Système d'animations cohérent (motion design tokens)
+- **UX-V24-02**: A/B testing infra KPI
+- **UX-V24-03**: Mobile-first opérateur (refonte responsive complète)
+- **UX-V24-04**: Empty states illustrés (designer dependency)
 
 ---
 
 ## Out of Scope
 
+Explicitement exclu de v2.4 :
+
 | Feature | Reason |
 |---------|--------|
-| Refonte du backend / logique métier | v2.3 est purement visuel + UX — aucune logique modifiée |
-| Nouveaux écrans / fonctionnalités | UX existante stabilisée d'abord |
-| Migration framework (Vue, React, Symfony) | Refactoring incrémental seulement |
-| i18n complète (anglais, espagnol) | App ciblée FR uniquement |
-| Mobile native (iOS / Android) | Web-first, responsive suffisant |
+| Refonte business logic | v2.4 = polish + observability, pas de nouveau métier |
+| Nouvelles dépendances framework | Stack PHP 8.4 + HTMX + vanilla JS reste fixe |
+| Migration `gh` CLI | MCP server github suffit, dual stack overhead non justifié |
+| Sécurité backend (SEC-*) | Bloc cohérent → milestone v2.5 dédié |
+| Mobile responsive opérateur | Hors-scope (v2.6+ design lead requis) |
+| Animations / motion design | Hors-scope (v2.6+ design system requis) |
 
 ---
 
@@ -105,49 +81,25 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COCKPIT-01 | Phase 1 | Done (01.1 + 01.3) |
-| COCKPIT-02 | Phase 1 | Done (01.3) |
-| COCKPIT-03 | Phase 1 | Done (01.1 + 01.3) |
-| COCKPIT-04 | Phase 1 | Done (01.1) |
-| COCKPIT-05 | Phase 1 | Done (01.1 + 01.3) |
-| COCKPIT-06 | Phase 1 | Done (01.2 + 01.3) |
-| COCKPIT-07 | Phase 1 | Done (01.3) |
-| EDITORIAL-01 | Phase 2 | Done (02.1 + 02.3 + 02.6 guard test) |
-| EDITORIAL-02 | Phase 2 | Done (02.1 + 02.3) |
-| EDITORIAL-03 | Phase 2 | Done (02.1 + 02.3) |
-| EDITORIAL-04 | Phase 2 | Done (02.1 CSS + 02.6 guard test) |
-| EDITORIAL-05 | Phase 2 | Done (02.2 + 02.6 guard test) |
-| EDITORIAL-06 | Phase 2 | Done (02.1 + 02.3) |
-| EDITORIAL-07 | Phase 2 | Done partial (02.4) |
-| EDITORIAL-08 | Phase 2 | Done (02.1 + 02.3) |
-| EDITORIAL-09 | Phase 2 | Done (02.5 cleanup + 02.6 guard test) |
-| TECH-01 | Quick task pré-Phase 2 | Done (Quick 260430-86c, 234 borders consolidées sur 25 fichiers, 6 tokens ajoutés) |
-| DASHBOARD-01 | Phase 3 | Done (03.1) |
-| DASHBOARD-02 | Phase 3 | Done (03.1) |
-| DASHBOARD-03 | Phase 3 | Done (Plan 03.3 Rule 4 deviation, commit e36b579 — sunken background sur dashboard-aside) |
-| DASHBOARD-04 | Phase 3 | Done (03.1) |
-| DASHBOARD-05 | Phase 3 | Done (n=3 already ≤5, zero-diff per Plan 03.2 audit) |
-| DASHBOARD-06 | Phase 3 | Done (03.1, Schoger S-4) |
-| LOGIN-01 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
-| LOGIN-02 | Phase 3 | Done (Plan 03.4, commit ef217e2) |
-| LOGIN-03 | Phase 3 | DONE 2026-04-30 (Plan 03.5, commits 1195cbe + 723123d) |
-| LEX-01 | Phase 4 | Done (Plan 04.1, commits 8890696 + 0d6b651 + dbdee25) |
-| LEX-02 | Phase 4 | Done (Plan 04.1, bannishment acquis par construction — scan transverse 0 hit) |
-| MODAL-01 | Phase 4 | Done (P4.2) |
-| MODAL-02 | Phase 4 | Done (Plan 04.3, commit e4f5cf6, 6 Playwright tests — runtime manual followup) |
-| MODAL-03 | Phase 4 | Done (P4.2) |
-| ERR-01 | Phase 4 | Done (Plan 04.4, commit 48ffc3f) |
-| ERR-02 | Phase 4 | Done (Plan 04.5, commit ec9c8f6, 3 tests / 4 assertions vert en 4 ms) |
-| ERR-03 | Phase 4 | Done (Plan 04.5, commit ec9c8f6, scan exhaustif via getCodes()) |
-| ERR-04 | Phase 4 | Done (Plan 04.6, commit bbe69c7, AUDIT.md 5/5 codes — 2 prévenus v2.3 + 3 déférés v2.4 rationale écrite) |
+| COCKPIT-V24-01 | Phase 1 | Pending |
+| COCKPIT-V24-02 | Phase 1 | Pending |
+| ERR-V24-01 | Phase 2 | Pending |
+| ERR-V24-02 | Phase 2 | Pending |
+| ERR-V24-03 | Phase 2 | Pending |
+| TEST-V24-01 | Phase 3 | Pending |
+| TEST-V24-02 | Phase 3 | Pending |
+| TEST-V24-03 | Phase 3 | Pending |
+| TEST-V24-04 | Phase 3 | Pending |
+| TEST-V24-05 | Phase 3 | Pending |
+| TECH-V24-01 | Phase 4 | Pending |
+| TECH-V24-02 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 36 total (22 bootstrap + 7 revue Zhuo/Norman 2026-04-29 + 7 revue Schoger 2026-04-30 dont 1 quick task transverse)
-- Mapped to phases: 36
+- v1 requirements: 12 total
+- Mapped to phases: 12
 - Unmapped: 0 ✓
-- v2 deferred backlog: 6 entrées (UX-V2-01..04 + UX-V2-05 cockpit declutter Schoger S-1 + UX-V2-06 persona color confinement Schoger S-6)
 
 ---
 
-*Requirements defined: 2026-04-29 — informed by .planning/research/SUMMARY.md*
-*Last updated: 2026-04-30 — revue UX Schoger (.planning/v2.3-UX-REVIEW-SCHOGER.md) ajoute EDITORIAL-08/09, DASHBOARD-05/06, LOGIN-03, TECH-01 (quick task pré-Phase 2), backlog UX-V2-05/06 ; amende EDITORIAL-01 (text-align lock), EDITORIAL-02 (audit filter tabs), LOGIN-01 (login-brand-grid removal)*
+*Requirements defined: 2026-05-04 from `.planning/v2.4-BACKLOG-PLAN.md`*
+*Last updated: 2026-05-04 — initial v2.4 definition*

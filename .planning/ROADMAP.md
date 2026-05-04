@@ -15,7 +15,8 @@
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
 - ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
 - ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
-- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (Phase 1 ✓ livrée 2026-04-30, 36 requirements après 2 revues UX Zhuo/Norman + Schoger) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, screenshot panel gate, + 1 quick task transverse TECH-01 (consolidation shadows/borders) à exécuter avant Phase 2
+- ✅ **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (PR #259 ouvert 2026-05-04, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, + quick task TECH-01 (234 borders consolidées, 6 nouveaux tokens) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
+- 🚧 **v2.4 Polish & Robustness** - Phases 1-4 (planning, 12 requirements, démarre post-merge PR #259) — cockpit declutter ≤25 boutons + persona color confinement, error observability (business_error → codes ciblés + race conditions empty-state idempotency), test infrastructure (seed-meeting helper, code-reviewer scope splits, Playwright dual-install fix), print + tech debt residuel (dompdf header + ~140 borders + ~45 shadows tokens ≥95 %)
 
 ## Phases
 
@@ -218,7 +219,7 @@ See `.planning/REQUIREMENTS.md` (will be archived to v2.2-REQUIREMENTS.md when v
 
 </details>
 
-### 🚧 v2.3 Layout Refonte & UX Polish (Planning)
+### ✅ v2.3 Layout Refonte & UX Polish (Shipped — PR #259, gates pending dev machine)
 
 **Milestone Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
 
@@ -314,6 +315,62 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 
 </details>
 
+### 🚧 v2.4 Polish & Robustness (Planning)
+
+**Milestone Goal:** Consolider la fiabilité production post-v2.3 — éliminer les frictions toolchain identifiées (test infra dual-install, code-reviewer timeout sur 33 fichiers), refactorer les codes d'erreur génériques en codes ciblés observables (`business_error` → 3 codes spécifiques), et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée (≤25 boutons visibles, palette danger confinée à l'urgence).
+
+**Scope:** Polish UI ciblé + observability + tooling. Zéro logique métier nouvelle. Sécurité backend (SEC-V2-01..03) déférée milestone v2.5 dédié. Mobile-first opérateur + animations design-system déférés v2.6+.
+
+**Strategy:** 4 phases. P1+P2 parallélisables (zones disjointes : cockpit JS/CSS vs services PHP). P3 prérequis avant v2.5 (pentest sans friction). P4 opportuniste, peut chevaucher P1-P3.
+
+**Source des requirements** : `.planning/v2.4-BACKLOG-PLAN.md` — tri thématique des 17 entrées backlog v2.3.
+
+## Phase Details (v2.4)
+
+### Phase 1: Cockpit Polish & Hygiène
+
+**Goal**: Atteindre une charge cognitive opérateur maîtrisée — réduire de ~70 à ≤25 le nombre de boutons/éléments cliquables visibles simultanément dans le cockpit, et confiner la palette rouge danger aux états critiques uniquement (jamais décoratif sur sidebar/nav/présence).
+
+**Depends on**: v2.3 mergée (PR #259)
+**Requirements**: COCKPIT-V24-01, COCKPIT-V24-02
+**Success Criteria** (what must be TRUE):
+  1. Le cockpit opérateur en mode `exec` affiche **≤25 boutons / éléments cliquables visibles simultanément** sur viewport ≥1024px. Le PLAN.md identifie chaque bouton actuel (~70), propose un regroupement (panel rétractable, persona-scoped, contextual-only), et justifie quels sont conservés en avant. Audit avant/après livré.
+  2. Le rouge `--color-danger` / `--color-danger-subtle` apparaît **uniquement** dans des états critiques (quorum perdu animé, vote raté, hero card live). Sidebar opérateur, nav, indicateurs de présence/connexion utilisent une palette neutre ou success. Audit grep livré dans le PLAN.md identifiant tous les call-sites actuels et leur traitement (gardé / migré / supprimé).
+  3. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright `cockpit-keyboard-shortcuts.spec.js` et `critical-path-operator.spec.js`.
+
+### Phase 2: Error Observability & Resilience
+
+**Goal**: Le code générique `business_error` est remplacé par 3 codes spécifiques (couvrant les 3 cas d'usage documentés en 04.6-AUDIT.md), les empty-states avec rafale d'événements SSE prévient les double-render via guards d'idempotence, et `Logger::error()` est enrichi avec contexte standardisé (`request_id`, `user_id`, `tenant_id`, `error_code`, `caller`) sur tous les call-sites identifiés.
+
+**Depends on**: v2.3 mergée (parallélisable avec P1)
+**Requirements**: ERR-V24-01, ERR-V24-02, ERR-V24-03
+**Success Criteria** (what must be TRUE):
+  1. `business_error` reste émis < 5 % des erreurs en prod (mesure via grep logs ou dashboard). Les 3 codes spécifiques sont définis dans `app/Services/ErrorDictionary.php` avec next-step conforme à v2.3 ERR-02. Tous les callers `business_error` migrés.
+  2. Test E2E reproductible avec injection synthétique de 5 events SSE en 100ms : modal d'intégrité ne re-render pas (debounce ≥250ms ou state-machine `idle | rendering | rendered`). Idem pour dashboard hero card live.
+  3. `Logger::error()` accepte un context array standardisé. Les 50+ call-sites identifiés par audit grep sont migrés. Un dashboard simple (page admin ou commande CLI) affiche le **taux d'utilisation du next-step ErrorDictionary** par code — métrique pour valider Phase 4 v2.3 ERR-02 en production.
+
+### Phase 3: Test Infrastructure
+
+**Goal**: Toolchain sans friction — un nouveau contributeur passe d'un clone à `green tests run` en <30 min. `gsd-code-reviewer` peut auditer 50+ fichiers sans timeout. Le pattern "Explore scan anti-BEM-substring" est documenté pour éviter les faux-positifs (cf. Phase 3 v2.3 Schoger S-8).
+
+**Depends on**: v2.3 mergée (prérequis pour milestone v2.5 sécurité — pentest sans friction Playwright)
+**Requirements**: TEST-V24-01, TEST-V24-02, TEST-V24-03, TEST-V24-04, TEST-V24-05
+**Success Criteria** (what must be TRUE):
+  1. `tests/e2e/helpers/seed-meeting.js` est implémenté avec signature `seedMeeting({tenantId, status, motionsCount}) → meetingId` et active le test `@integration` F-4 (`modal-focus-trap.spec.js`) précédemment skippé. Test passe en CI dev.
+  2. `gsd-code-reviewer` accepte `--scope=js|php|tests|all` et `--timeout-min=N` (défaut 60). Vérifié via review v2.4 sur 50+ fichiers sans timeout. Documentation à jour.
+  3. Dual-install Playwright résolu : un seul `package.json` source de vérité (`tests/e2e/`), root supprimé ou stub minimal. README dual-install supprimé.
+  4. `tests/e2e/README.md` documente install + browsers + auth-setup rate-limit + procédures debug. Vérifié par walkthrough fresh-clone (≤30 min jusqu'au premier test vert).
+  5. `.planning/codebase/EXPLORE-PATTERNS.md` documente le pattern de scan anti-BEM-substring avec 3 anti-patterns concrets et exemple correct.
+
+### Phase 4: Print + Tech Debt residuel
+
+**Goal**: L'export PDF (dompdf) gagne un header répété + footer pagination sur tous les PVs. Les ~140 borders et ~45 shadows hardcoded restantes (cas BASSE confiance reportés depuis TECH-01 quick) sont migrées vers tokens ; ratio ≥95 %.
+
+**Depends on**: v2.3 mergée (opportuniste, peut chevaucher P1-P3)
+**Requirements**: TECH-V24-01, TECH-V24-02
+**Success Criteria** (what must be TRUE):
+  1. Génération PDF (`ProcurationPdfService` + `MeetingReportsService` si applicable) produit un header répété sur chaque page (titre séance + date) et un footer numéro de page. Vérifié visuellement sur 3 PVs longs (≥10 pages).
+  2. `grep -cE "(border|box-shadow):\s+[0-9]+|#[0-9a-f]{3,6}" public/assets/css/` ratio tokens vs hardcoded ≥95 %. Liste produite des residuels et migrations livrées en atomic commits per fichier.
 
 ## Progress
 
@@ -327,3 +384,7 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 2. Pages éditoriales | v2.3 | 6/6 | ✓ Complete | 2026-04-30 |
 | 3. Layouts secondaires | v2.3 | 5/5 | ✓ Complete | 2026-04-30 |
 | 4. Lexique + UX critique | v2.3 | 6/6 | ✓ Complete (Playwright + screenshot panel manual followups) | 2026-04-30 |
+| 1. Cockpit Polish & Hygiène | v2.4 | 0/0 | ○ Planning (post-merge PR #259) | - |
+| 2. Error Observability | v2.4 | 0/0 | ○ Planning | - |
+| 3. Test Infrastructure | v2.4 | 0/0 | ○ Planning | - |
+| 4. Print + Tech Debt residuel | v2.4 | 0/0 | ○ Planning | - |

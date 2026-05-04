@@ -1,37 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Layout Refonte & UX Polish
-status: Shipped — PR #259 awaiting manual gates + merge
+milestone: v2.4
+milestone_name: Polish & Robustness
+status: Planning — REQUIREMENTS.md defined, ROADMAP.md to approve
 stopped_at: "Milestone v2.3 shipped via PR #259 (https://github.com/thomasvinh-san-byte/gestion-votes/pull/259). 116 commits, 124 files (+14650/-1319), 35/35 reqs PASSED per .planning/v2.3-MILESTONE-AUDIT.md. Code review v2.3 = 0 critical / 2 warnings (vérifiés déjà mitigés post-review) / 6 infos. Hygiene cleanup F2 (operator-exec.js docstring) + F3 (orphan partial operator-exec.html) appliqué dans commit 80475c3. PHPUnit guards (EditorialConventionsTest + UxConventionsTest) 7/7 PASSED, 41 assertions. Pending = 3 gates manuelles bloquées sandbox (A1 Playwright CDN denied, B1.1 visual review, D1 screenshot panel) → à exécuter sur dev machine avant merge. Backlog v2.4 trié en 4 phases (Cockpit Polish / Error Obs / Test Infra / Print+Tech Debt) + v2.5 dédié sécurité — voir .planning/v2.4-BACKLOG-PLAN.md."
 last_updated: "2026-05-04T00:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE -- Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-29)
+See: .planning/PROJECT.md (updated 2026-05-04)
 
-**Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** Phase 04 — Lexique + UX critique
+**Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
+**Current focus:** Milestone v2.4 planning — Phase 1 démarre après merge PR #259
 
 ## Current Position
 
-Milestone: v2.3 Layout Refonte & UX Polish
-Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
-Phase: 04 (Lexique + UX critique) — EXECUTING (5/6 plans done — 04.1, 04.2, 04.3, 04.4, 04.5 ; 04.6 pending)
-Plan: 5 of 6 (next — 04.6 ERR-04 audit prévention top 5 codes + milestone screenshot panel gate reminder)
+Milestone: v2.4 Polish & Robustness
+Branch: feat/v2.3-cockpit-operateur (en attente merge PR #259 v2.3, prochaine branche `feat/v2.4-polish-robustness` à créer post-merge)
+Phase: Not started (defining roadmap)
+Plan: —
+Status: Planning — REQUIREMENTS.md v2.4 définis (12 reqs, 4 phases), ROADMAP.md à approuver
+Last activity: 2026-05-04 — Milestone v2.4 started, v2.3 archive REQUIREMENTS.md → milestones/v2.3-REQUIREMENTS.md
 
-Progress: [#########.] 98% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 + 5/6 plans of phase 04 — 3/4 phases of milestone v2.3 done
-
-**Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
+**Pré-requis** : v2.3 PR #259 merge sur main avant Phase 1 v2.4 (gates manuelles A1+B1.1+D1 sur dev machine).
 
 ## Accumulated Context
 
