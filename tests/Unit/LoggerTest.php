@@ -296,4 +296,79 @@ class LoggerTest extends TestCase {
         $content = file_get_contents($this->tempLogFile);
         $this->assertStringContainsString('Should appear after reset', $content);
     }
+
+    // =========================================================================
+    // ERROR CONTEXT TESTS — Plan 02.3 / ERR-V24-03 / D-09
+    // =========================================================================
+
+    /**
+     * Le helper errorContext() doit auto-remplir request_id (toujours dispo via
+     * Logger::getRequestId()) en plus du contexte fourni par l'appelant.
+     */
+    public function testErrorContextAutoFillsRequestId(): void {
+        Logger::errorContext('Vote already cast', [
+            'error_code' => 'vote_already_cast',
+            'caller'     => __METHOD__,
+        ]);
+
+        $content = file_get_contents($this->tempLogFile);
+        $lines = array_filter(explode("\n", trim($content)));
+        $this->assertNotEmpty($lines, 'errorContext should write a log entry');
+        $entry = json_decode(end($lines), true);
+
+        $this->assertSame('ERROR', $entry['level']);
+        $this->assertSame('Vote already cast', $entry['message']);
+        $this->assertArrayHasKey('context', $entry);
+
+        $ctx = $entry['context'];
+        // Auto-filled keys.
+        $this->assertArrayHasKey('request_id', $ctx);
+        $this->assertNotEmpty($ctx['request_id']);
+        // Caller-provided keys preserved.
+        $this->assertSame('vote_already_cast', $ctx['error_code']);
+        $this->assertStringContainsString('testErrorContextAutoFillsRequestId', $ctx['caller']);
+    }
+
+    /**
+     * Le contexte fourni par l'appelant doit avoir la priorite sur l'auto-fill.
+     * Si l'appelant fournit explicitement un user_id ou un request_id, il
+     * doit gagner sur la valeur auto-detectee.
+     */
+    public function testErrorContextMergesWithCallerContextAndCallerWins(): void {
+        Logger::errorContext('Custom error', [
+            'error_code' => 'custom_code',
+            'caller'     => 'Some::method',
+            // Caller fournit un request_id explicite — doit gagner.
+            'request_id' => 'custom-req-id-xyz',
+            // Champ libre additionnel — doit etre preserve.
+            'extra_key'  => 'extra_value',
+        ]);
+
+        $content = file_get_contents($this->tempLogFile);
+        $lines = array_filter(explode("\n", trim($content)));
+        $entry = json_decode(end($lines), true);
+
+        $ctx = $entry['context'];
+        $this->assertSame('custom_code', $ctx['error_code']);
+        $this->assertSame('Some::method', $ctx['caller']);
+        // Caller a fourni request_id → doit gagner sur l'auto-fill.
+        $this->assertSame('custom-req-id-xyz', $ctx['request_id']);
+        // Champs libres preserves.
+        $this->assertSame('extra_value', $ctx['extra_key']);
+    }
+
+    /**
+     * criticalContext() et alertContext() partagent la meme mecanique de fusion.
+     */
+    public function testCriticalAndAlertContextHelpers(): void {
+        Logger::criticalContext('Critical incident', ['error_code' => 'crit_x']);
+        Logger::alertContext('Alert incident', ['error_code' => 'alert_y']);
+
+        $content = file_get_contents($this->tempLogFile);
+        $this->assertStringContainsString('"level":"CRITICAL"', $content);
+        $this->assertStringContainsString('"level":"ALERT"', $content);
+        $this->assertStringContainsString('"error_code":"crit_x"', $content);
+        $this->assertStringContainsString('"error_code":"alert_y"', $content);
+        $this->assertStringContainsString('"request_id"', $content);
+    }
 }

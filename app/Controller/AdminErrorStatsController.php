@@ -58,6 +58,8 @@ final class AdminErrorStatsController {
 
     /**
      * Point d'entree dispatche par le router.
+     *
+     * @throws AdminErrorStatsForbiddenException in PHPUnit context if role != admin.
      */
     public function show(): void {
         SessionHelper::start();
@@ -65,8 +67,7 @@ final class AdminErrorStatsController {
         // Re-verification defensive (la route applique deja role:admin via RoleMiddleware).
         $role = AuthMiddleware::getCurrentRole();
         if ($role !== 'admin') {
-            http_response_code(403);
-            HtmlView::text('Accès refusé. Cette page est réservée aux administrateurs.', 403);
+            $this->forbid('Accès refusé. Cette page est réservée aux administrateurs.');
         }
 
         $period = $this->resolvePeriod($_GET['period'] ?? '7d');
@@ -162,6 +163,21 @@ final class AdminErrorStatsController {
             // No-op: dictionary may not know the code.
         }
         return $code;
+    }
+
+    /**
+     * Refuse l'acces avec une reponse 403.
+     *
+     * En tests (PHPUNIT_RUNNING): leve une exception capturable, pas d'exit().
+     * En production: rend un message HTML simple via HtmlView::text() qui exit.
+     */
+    private function forbid(string $message): never {
+        http_response_code(403);
+        if (defined('PHPUNIT_RUNNING') && PHPUNIT_RUNNING === true) {
+            echo $message;
+            throw new AdminErrorStatsForbiddenException($message);
+        }
+        HtmlView::text($message, 403);
     }
 
     /**
