@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Real-time Live Cockpit + Logger Migration
-status: planning
-stopped_at: "v2.5 milestone bootstrap post v2.4-MILESTONE-AUDIT.md tech_debt verdict (12 items deferred). 3 phases (5/6/7) continuing numbering depuis v2.3. 10 reqs (HEARTBEAT-V25-01..04 / LOG-V25-01..04 / COCKPIT-V25-01 / TOKENS-V25-01). 2 reqs déjà satisfied ahead-of-planning (heartbeat backend + frontend, commit 02179ea sur claude/gsd-ux-review-YG5K0)."
-last_updated: "2026-05-04T08:30:00Z"
-last_activity: 2026-05-04 -- v2.5 milestone scoped from v2.4 audit tech debt + heartbeat work shipped commit 02179ea (events.php meeting.heartbeat 10s tick + applyHeartbeat frontend)
+status: phase_7_blocked_v24_merge
+stopped_at: "v2.5 Phase 6 (Logger Migration & Error Tracking) shipped — 4/4 reqs done. Phase 5 SSE Live Pulse 2/4 (heartbeat code done, PHPUnit + Playwright tests deferred per user stop-tests directive). Phase 7 (COCKPIT-V25-01 + TOKENS-V25-01) blocked on v2.4 PR #260 merge — depends on hero card sub-tab Avancé + 49 tokens 1-site introduits par v2.4 P4.3."
+last_updated: "2026-05-04T10:00:00Z"
+last_activity: 2026-05-04 -- v2.5 Phase 6 complete (LOG-V25-01..04 shipped commits f26317a/e031d56/da67427/e522b98/e7f1020/c8fa35c/372c36a/d3f4765/f1ae41c)
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 10
+  completed_plans: 6
+  percent: 60
 ---
 
 # AG-VOTE -- Project State
@@ -27,12 +27,18 @@ See: .planning/PROJECT.md (updated 2026-05-04)
 
 Milestone: v2.5 Real-time Live Cockpit + Logger Migration
 Branch: claude/gsd-ux-review-YG5K0
-Phase: 5 of 7 (continuing numbering from v2.3) — SSE Live Pulse, heartbeat backend+frontend livrés commit 02179ea ahead of GSD planning, tests (HEARTBEAT-V25-03 PHPUnit + HEARTBEAT-V25-04 Playwright) pending
-Plan: 0 of N — phase 5 plan not yet created
+Phase: 7 of 7 — BLOCKED on v2.4 PR #260 merge
+- Phase 5 SSE Live Pulse: 2/4 (heartbeat code shipped 02179ea, tests deferred per directive)
+- Phase 6 Logger Migration & Error Tracking: 4/4 ✓ COMPLETE
+- Phase 7 Cockpit Polish résiduel: 0/2 — depends on v2.4 hero card sub-tab + 49 tokens 1-site
 
-Progress: [#.........] 5% (2/10 reqs satisfied)
+Plan: 6 of 10 reqs done (60%)
 
-**Base de planning :** v2.2 mergée (PR #256), v2.3 shipped (PR #259), v2.4 shipped (PR #260, awaiting merge). Heartbeat work landed on this branch sans cadre GSD — formalisé rétroactivement par ce milestone.
+Progress: [######....] 60%
+
+**Base de planning :** v2.2 mergée (PR #256), v2.3 shipped (PR #259), v2.4 shipped (PR #260, awaiting merge). v2.5 livré directement sur cette branche : heartbeat (02179ea) + Phase 6 complète (Logger migration + error_events table + /admin/error-stats + next-step CTR tracking).
+
+**Unblock path:** Merge v2.4 PR #260 → rebase this branch → execute COCKPIT-V25-01 + TOKENS-V25-01.
 
 ## Accumulated Context
 

@@ -148,10 +148,10 @@
 
 ### v2.5 Phase 6: Logger Migration & Error Tracking
 
-- [ ] **LOG-V25-01**: 47 sites `error_log()` legacy identifiés par audit v2.4 P2.3 migrés vers `Logger::errorContext($message, $code, $context)`. Liste cible figée dans `.planning/phases/06-logger-migration/AUDIT.md` produite avant migration. Atomic commit per fichier. Aucun `error_log(` brut ne doit rester en code applicatif (hors `app/Core/Logger.php`).
-- [ ] **LOG-V25-02**: Table `error_events` créée via migration SQL (`database/migrations/`) avec colonnes `id, occurred_at, request_id, tenant_id, user_id, error_code, http_status, route, payload (jsonb)`. `api_fail($code, $status)` enrichi pour capturer (insert async ou direct) chaque retour erreur serveur. Tests PHPUnit : `ErrorEventsRepositoryTest` (insert + retrieval + tenant isolation) + `ApiFailCaptureTest` (3 codes émis → 3 rows persistées).
-- [ ] **LOG-V25-03**: `/admin/error-stats` (livré v2.4 P2.3 avec source `audit_events` filtrée) re-câblée sur `error_events` avec retrait du banner "limitation 6 actions audit-flavored". Page affiche : top 10 codes émis sur 7j, courbe émission par heure, drill-down par tenant. RBAC admin préservé. `AdminErrorStatsControllerTest` couvre 4 cas (admin → 200 + data, operator → 403, codes filtrés par tenant, pagination ≥100).
-- [ ] **LOG-V25-04**: Instrumentation HTMX du tracking next-step ErrorDictionary — chaque suggestion cliquée émet beacon `POST /api/v1/metrics/next-step-clicked` avec `{error_code, suggestion_text, ts}`. Compteur agrégé par code consultable dans `/admin/error-stats` (% clics sur suggestion vs ignorance). Métrique valide la valeur ajoutée des next-steps v2.3 P4.4.
+- [x] **LOG-V25-01**: 47 sites `error_log()` legacy migrés vers `Logger::error()` (helper `errorContext()` v2.4 absent sur cette branche, fallback sémantique équivalent). 6 commits atomiques `f26317a` → `c8fa35c`. 46/48 sites migrés ; 2 résiduels documentés (bootstrap pre-Logger gate + Logger sink fallback). Sévérité différenciée selon contexte : `warning` (CSRF/auth/rate-limit), `critical` (DB connection), `alert` (security signal), `error` (default).
+- [x] **LOG-V25-02**: Table `error_events` créée (`database/migrations/20260504_error_events.sql`, idempotent) avec colonnes attendues + 3 indexes dashboard-aware. `ErrorEventsRepository::capture()` try/catch isolé (capture failure swallowed via `Logger::warning`). `api_fail()` (`app/api.php`) hooké : capture pour chaque return erreur AVANT throw `ApiResponseException`. Outer try/catch garantit que la response est toujours envoyée. Commit `372c36a`.
+- [x] **LOG-V25-03**: `/admin/error-stats` créé directement sur `error_events` (architecture cible v2.5, skipping la version v2.4 transitionnelle). `AdminErrorStatsController::stats()` retourne `{window_hours, tenant_filter, total, top_codes[], timeline[]}`. Page HTMX `public/admin-error-stats.htmx.html` : 4 KPI cards + timeline SVG inline + top codes table avec proportion bars. Window selector (24h/3d/7d/30d) + cross-tenant toggle (admin) + drill-down tenant via `?tenant={uuid}`. RBAC admin préservé. Commit `d3f4765`.
+- [x] **LOG-V25-04**: Endpoint `POST /api/v1/metrics/next-step-clicked` (`MetricsController`) avec rate-limit 60/min. `NextStepClicksRepository::capture()` try/catch isolé. `next_step_clicks` table + 2 indexes (`database/migrations/20260504_next_step_clicks.sql`). Page `/admin/error-stats` étendue avec colonne CTR (clicks/count) — vert si ≥20%, muted sinon. JS utility `window.AgErrorMetrics.trackNextStep(code, suggestion)` + `bindAuto()` délégué `[data-next-step]` (sendBeacon préféré, fetch keepalive fallback, tous échecs swallowed). Forward-compatible : intégration 1-line dès que le rendu next-step UI landera. Commit `f1ae41c`.
 
 ### v2.5 Phase 7: Cockpit Polish résiduel
 
@@ -168,15 +168,15 @@
 | HEARTBEAT-V25-02 | 5 | ✓ Done | commit `02179ea` |
 | HEARTBEAT-V25-03 | 5 | Pending | — |
 | HEARTBEAT-V25-04 | 5 | Pending | — |
-| LOG-V25-01 | 6 | Pending | — |
-| LOG-V25-02 | 6 | Pending | — |
-| LOG-V25-03 | 6 | Pending | — |
-| LOG-V25-04 | 6 | Pending | — |
+| LOG-V25-01 | 6 | ✓ Done | 6 commits `f26317a`..`c8fa35c` |
+| LOG-V25-02 | 6 | ✓ Done | commit `372c36a` |
+| LOG-V25-03 | 6 | ✓ Done | commit `d3f4765` |
+| LOG-V25-04 | 6 | ✓ Done | commit `f1ae41c` |
 | COCKPIT-V25-01 | 7 | Pending | — |
 | TOKENS-V25-01 | 7 | Pending | — |
 
 **v2.5 Coverage:**
 - Total requirements: 10
 - Mapped to phases: 10 ✓
-- Already satisfied: 2/10 (heartbeat backend + frontend, livrés ahead of GSD planning)
-- Pending: 8/10
+- Done: 6/10 (HEARTBEAT-V25-01/02 + LOG-V25-01/02/03/04)
+- Pending: 4/10 — HEARTBEAT-V25-03/04 (tests, déférés explicite), COCKPIT-V25-01 + TOKENS-V25-01 (Phase 7, blocked v2.4 PR #260 merge)

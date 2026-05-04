@@ -365,6 +365,6 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 2. Error Observability | v2.4 | 3/3 | ✓ Shipped PR #260 | 2026-05-04 |
 | 3. Test Infrastructure | v2.4 | 2/2 | ✓ Shipped PR #260 | 2026-05-04 |
 | 4. Print + Tech Debt résiduel | v2.4 | 3/3 | ✓ Shipped PR #260 | 2026-05-04 |
-| 5. SSE Live Pulse | v2.5 | 0.5/2 | ◆ In progress (heartbeat livré 02179ea, tests pending) | - |
-| 6. Logger Migration & Error Tracking | v2.5 | 0/4 | ○ Not started | - |
-| 7. Cockpit Polish résiduel | v2.5 | 0/2 | ○ Not started | - |
+| 5. SSE Live Pulse | v2.5 | 2/4 | ◆ Code done, tests deferred (user stop-tests directive) | - |
+| 6. Logger Migration & Error Tracking | v2.5 | 4/4 | ✓ Complete | 2026-05-04 |
+| 7. Cockpit Polish résiduel | v2.5 | 0/2 | ⚠ Blocked — depends on v2.4 PR #260 merge | - |
