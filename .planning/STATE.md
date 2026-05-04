@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Polish & Robustness
-status: Phase 3 complete — 7/9 plans across phases 1+2+3, awaiting dev-machine gates
-stopped_at: "Phases 1+2+3 v2.4 shipped 2026-05-04 sur branche feat/v2.4-cockpit-polish. Phase 1 (Cockpit) 2/2 plans 11 commits. Phase 2 (Error Obs) 3/3 plans 15 commits. Phase 3 (Test Infra) 2/2 plans 13 commits. Plan 03.1 seedMeeting+dual-install : 8 atomic commits (fde0dd4..a04c74d), endpoint dev-only /api/v1/test/seed-meeting triple-guarded (route condition + EnvGuardMiddleware + controller guardProduction + audit_log), MeetingRepository::createForTest + MotionRepository::createForTest réutilisent paths existants, helper seedMeeting Playwright + seedRunningMeeting variant, F-4 réactivé dans cockpit-keyboard-shortcuts.spec.js (PAS modal-focus-trap.spec.js comme plan supposait — adaptation documentée), root package.json plus de @playwright/test (proxy scripts vers tests/e2e), bin/check-deps.sh symmetric guard (exit 1 si root regression, exit 2 si SOT loss), 18/18 PHPUnit GREEN. Plan 03.2 docs : 5 atomic commits (5259732..9842434), gsd-code-reviewer.md +71 lignes (--scope/--timeout-min/--exclude + chunking pattern), tests/e2e/README.md réécrit 212 lignes avec 6 sections obligatoires + walkthrough <=30 min, EXPLORE-PATTERNS.md 167 lignes lead avec insight critique 'POSIX \\b unsafe pour CSS hyphenated tokens, utiliser <token>($|[^a-zA-Z_-])' validé real-file (.op-tab naive=7 vs correct=3), 03.2-VALIDATION TEST-02 runtime déféré dev-machine. Path correction : agent .claude/agents/ pas .claude/get-shit-done/agents/. Coordination 4-way parallèle réussie (Phases 2+3 partiel overlap, 0 conflit). Cumulative 18 PHPUnit + 13 PHPUnit Phase 2 = 31 tests GREEN. Pending dev-machine : Playwright F-4 + sse-burst-idempotency + cockpit-button-count + screenshots Phase 1."
-last_updated: "2026-05-04T07:00:00.000Z"
+status: Milestone v2.4 PHASES COMPLETE — 9/9 plans, 100% ratio borders/shadows, awaiting dev-machine gates + lifecycle
+stopped_at: "Milestone v2.4 Polish & Robustness — 4/4 phases complete (103 commits depuis main, 9/9 plans). Phase 1 Cockpit (2 plans, 11 commits): declutter ≤25 + palette danger 21→9. Phase 2 Error Obs (3 plans, 15 commits): business_error 11→1, SSE debounce attributeChangedCallback, Logger::errorContext + admin /admin/error-stats. Phase 3 Test Infra (2 plans, 13 commits): /api/v1/test/seed-meeting endpoint dev-only triple-guarded, dual-install Playwright résolu, gsd-code-reviewer doc + e2e README + EXPLORE-PATTERNS.md. Phase 4 Print + Tech Debt (3 plans, 55+ commits): dompdf @page header/footer 18 PHPUnit GREEN, borders/shadows ratio 62.7% → 83.2% (04.2 partial) → 100% (04.3 push 95% strict via 49 tokens 1-site capture verbatim). Cumulative tests: 31+ PHPUnit GREEN, 3+ Playwright specs nouveaux (run dev-machine déféré). Coordination parallèle 8-way (toutes phases) : 0 conflit git. Pending dev-machine gates : Playwright (cockpit-button-count + sse-burst-idempotency + F-4 modal/keyboard) + screenshots before/after Phases 1+4 + 3 PVs longs PDF visuels + smoke regression CSS borders/shadows 17 files."
+last_updated: "2026-05-04T07:45:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 75
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 9
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
@@ -20,28 +20,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04)
 
 **Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
-**Current focus:** Phase 4 v2.4 (Print + Tech Debt residuel) — démarre quand utilisateur veut
+**Current focus:** Milestone v2.4 lifecycle (audit + complete + cleanup) — awaiting user trigger
 
 ## Current Position
 
 Milestone: v2.4 Polish & Robustness
-Branch: feat/v2.4-cockpit-polish (active, depuis main commit 2cca533)
-Phase: 3 ✓ COMPLETE (Test Infrastructure, 2/2 plans, 13 commits)
-Plan: 7 of 7 done across phases 1+2+3
-Status: Phases 1+2+3 complete — awaiting dev-machine gates avant /gsd:ship
-Last activity: 2026-05-04 — Phase 3 plans 03.1+03.2 exécutés en parallèle, 0 conflit, F-4 @integration test reactivated, 18 PHPUnit GREEN
+Branch: feat/v2.4-cockpit-polish (103 commits depuis main, ready for ship)
+Phase: 4 ✓ COMPLETE (Print + Tech Debt, 3/3 plans, 55+ commits)
+Plan: 9 of 9 done across all 4 phases
+Status: ALL PHASES COMPLETE — awaiting dev-machine gates + lifecycle (audit/complete/cleanup)
+Last activity: 2026-05-04 — Phase 4 plans 04.1+04.2+04.3 done, ratio borders/shadows 62.7% → 100% strict
 
-**Progress milestone v2.4** : ██████████████████░░░░░░ 75% (3/4 phases)
+**Progress milestone v2.4** : ████████████████████████ 100% (4/4 phases)
 
 **Caveats documentés** :
 - Phase 1 : sub-tab "Avancé" peut faire passer count à ~28 si activé (01.3 follow-up potentiel)
 - Phase 2 : hero card live SSE (AC ERR-V24-02 #2) différée v2.5+ — pas d'émetteur SSE actuel
 - Phase 2 : 47 sites `error_log()` legacy déférés v2.5+ migration vers Logger::errorContext()
 - Phase 2 : audit_events ne capture pas api_fail() → page admin error-stats limitée à 6 actions audit-flavored
-- Phase 3 : F-4 trouvé dans cockpit-keyboard-shortcuts.spec.js (pas modal-focus-trap.spec.js comme plan supposait — réactivé là)
+- Phase 3 : F-4 trouvé dans cockpit-keyboard-shortcuts.spec.js (pas modal-focus-trap.spec.js comme plan supposait)
 - Phase 3 : agent file path corrigé `.claude/agents/` (pas `.claude/get-shit-done/agents/`)
 - Phase 3 : insight EXPLORE-PATTERNS — POSIX `\b` unsafe pour CSS hyphenated tokens, utiliser `<token>($|[^a-zA-Z_-])`
 - Phase 3 : TEST-V24-02 runtime validation (code-reviewer 50+ files) déférée dev-machine
+- Phase 4 : 04.2 livré 83.2 % partial — user a choisi Option 2 (push 95% strict via 1-site tokens)
+- Phase 4 : 04.3 follow-up a atteint 100% (49 nouveaux tokens 1-site, capture verbatim, 0 nouvelle valeur littérale)
+- Phase 4 : D-08 amendé (token proliferation acceptée par décision utilisateur), backlog v2.5+ pour consolidation potentielle
 
 ## Accumulated Context
 
