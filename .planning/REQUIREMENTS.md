@@ -70,7 +70,8 @@
 
 ### Sécurité tech debt v2.1
 
-- **SEC-V2-01**: 8 méthodes MotionRepository à `tenantId = ''` optionnel (audit des callers)
+- ✓ **SEC-V2-01**: 8 méthodes MotionRepository à `tenantId = ''` optionnel migrées vers paramètre requis avec filtre tenant inconditionnel. 14/14 callers passaient déjà tenant explicite — empty-default était dead defensive code hiding security smell. Commit `bef552f` (Phase 6 v2.5 follow-up).
+- ✓ **SEC-V2-01-extended**: Pattern étendu à 10 repos supplémentaires (19 méthodes additionnelles) — Policy/Agenda/ManualAction/Meeting/MeetingReport/Notification/ReminderSchedule/Invitation/EmailQueue/VoteToken. 19/19 callers verified pass tenant explicit. Audit-ready : zéro `tenantId = ''` default dans `app/Repository/`. Commit `ec1ee49`.
 - **SEC-V2-02**: Migration progressive `field()` → `fieldFor(method, path)` pour activer F10 sur tous les forms
 - **SEC-V2-03**: Hash invitation token SHA-256 → HMAC-SHA256 (forcer re-issue)
 
