@@ -147,7 +147,17 @@
           var prochaines = document.getElementById('prochaines');
           if (prochaines) {
             if (meetings.length === 0) {
-              prochaines.innerHTML = '<ag-empty-state icon="meetings" title="Aucune s\u00e9ance" description="Cr\u00e9ez votre premi\u00e8re s\u00e9ance pour g\u00e9rer vos assembl\u00e9es g\u00e9n\u00e9rales." action-label="Nouvelle s\u00e9ance" action-href="/wizard"></ag-empty-state>';
+              // DASHBOARD-04 \u2014 empty state via <ag-empty-state icon="none"> (B2 fix).
+              // Hydrat\u00e9 depuis le <template id="dashboardEmptyState"> du markup
+              // pour garder la source de v\u00e9rit\u00e9 du texte FR dans le HTML.
+              var tpl = document.getElementById('dashboardEmptyState');
+              if (tpl && tpl.content) {
+                prochaines.innerHTML = '';
+                prochaines.appendChild(tpl.content.cloneNode(true));
+              } else {
+                // Fallback si le template a \u00e9t\u00e9 supprim\u00e9
+                prochaines.innerHTML = '<ag-empty-state icon="none" title="Aucune s\u00e9ance pr\u00e9vue." description="Cr\u00e9ez-en une pour commencer." action-label="Cr\u00e9er une s\u00e9ance" action-href="/seances/nouvelle"></ag-empty-state>';
+              }
               prochaines.classList.remove('loading');
             } else {
               var sorted = meetings.slice().sort(function (a, b) {

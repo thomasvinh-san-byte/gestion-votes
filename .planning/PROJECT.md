@@ -75,24 +75,35 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 - ✓ Hotfix securite F1: /setup 404 opaque + CSRF strict + 4 tests de regression — v2.0 (PR #247)
 - ✓ CI repair: lint-js + migrate-check verts, validate ameliore (83→21 errors), coverage redis-aware — v2.0 (PR #248)
 - ✓ v2.1 Hardening Sécurité : 21 contremesures F02-F22 shipped — defense en profondeur sur auth, vote, isolation tenant, perimetre, uploads, headers, monitoring (voir milestones/v2.1-REQUIREMENTS.md)
-- ✓ Phase 1 v2.2 Design Tokens : Bleu République + dark redesign + role tokens + DESIGN.md (PR #256, en review)
-- ✓ v2.3 Layout Refonte & UX Polish : 35/35 reqs PASSED, 116 commits, 124 files (+14650/-1319) — PR #259
-- ✓ v2.4 Polish & Robustness : 12/12 reqs satisfied, 9/9 plans, 4/4 phases, cockpit ≤25 cliquables, business_error → 3 codes spécifiques, dompdf header/footer, borders/shadows tokens 100% — PR #260
+- ✓ v2.2 Design Tokens & Components (PR #256 mergé)
+- ✓ v2.3 Layout Refonte & UX Polish (PR #259 ouvert, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
 
 ### Active
 
-## Current Milestone: v2.5 Real-time Live Cockpit + Logger Migration (planning)
+## Current Milestone: v2.5 Real-time Live Cockpit + Logger Migration (in progress)
 
-**Goal:** Compléter la boucle observabilité v2.4 — donner au cockpit opérateur un signal temps réel autonome (heartbeat 10s), migrer la dette `error_log()` legacy vers `Logger::errorContext()`, et instrumenter la table d'erreurs serveur pour que `/admin/error-stats` montre un signal exploitable. Continuité directe du verdict `tech_debt` du v2.4-MILESTONE-AUDIT.md (12 items différés explicitement).
+**Status (2026-05-04):** Phase 5 SSE Live Pulse code done (heartbeat backend + frontend, tests deferred), Phase 6 Logger Migration & Error Tracking ✓ COMPLETE (4/4 reqs), Phase 7 Cockpit Polish résiduel pending. Bonus SEC-V2-01 closeout : 27 method signatures hardened across 11 repos.
 
-**Strategy:** 3 phases — SSE Live Pulse (déjà partiellement livré commit `02179ea`) → Logger Migration & Error Tracking → Cockpit Polish résiduel. Aucune nouvelle dépendance.
+Voir `.planning/REQUIREMENTS.md` (section "Milestone v2.5") pour les 12 reqs détaillés.
+
+---
+
+## Previously: v2.4 Polish & Robustness (shipped PR #260)
+
+**Goal:** Consolider la fiabilité production post-v2.3 — éliminer les frictions toolchain (test infra, code-review scope), refactorer les codes d'erreur génériques en codes ciblés observables, et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée (≤25 boutons visibles, palette danger confinée).
+
+**Strategy:** 4 phases sequentielles. P1+P2 parallélisables (zones disjointes : cockpit JS/CSS vs services PHP). P3 prérequis avant v2.5 sécurité (pentest sans friction Playwright). P4 opportuniste, peut chevaucher.
 
 **Target phases:**
-- Phase 1 — SSE Live Pulse : `meeting.heartbeat` 10s tick avec quorum + status + presence, listener frontend `applyHeartbeat()` debounced par hash payload, tests PHPUnit + Playwright
-- Phase 2 — Logger Migration & Error Tracking : 47 `error_log()` legacy → `Logger::errorContext()`, capture serveur des `api_fail()` (table `error_events`), `/admin/error-stats` consomme la vraie source, tracking next-step ErrorDictionary
-- Phase 3 — Cockpit Polish résiduel : sub-tab Avancé ≤25 strict (1-line CSS fix), audit 49 tokens 1-site design-system.css (D-08 amendé v2.4) avec décision keep/consolidate documentée
+- Phase 1 — Cockpit Polish & Hygiène : declutter ≤25 boutons + persona color confinement (Schoger S-1/S-6)
+- Phase 2 — Error Observability : business_error → codes ciblés + race conditions empty-state idempotency + Logger context enrichment
+- Phase 3 — Test Infrastructure : seed-meeting helper + code-reviewer scope splits + Playwright dual-install fix + README + Explore patterns doc
+- Phase 4 — Print + Tech Debt residuel : dompdf header impression + ~140 borders + ~45 shadows residuels (tokens ≥95 %)
 
-Voir `.planning/REQUIREMENTS.md` pour les 10 requirements détaillés (HEARTBEAT-V25-01..04, LOG-V25-01..04, COCKPIT-V25-01, TOKENS-V25-01).
+Voir `.planning/REQUIREMENTS.md` pour les 12 requirements détaillés (COCKPIT-V24-01/02, ERR-V24-01..03, TEST-V24-01..05, TECH-V24-01/02).
+Voir `.planning/v2.4-BACKLOG-PLAN.md` pour le découpage thématique source.
+
+**Pré-requis** : v2.3 PR #259 mergée avant Phase 1 v2.4.
 
 ### Out of Scope
 
@@ -239,4 +250,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — v2.2 in PR #256 (4 phases shipped, 5 items reportés), v2.3 Layout Refonte & UX Polish in planning*
+*Last updated: 2026-05-04 — v2.3 shipped via PR #259 (35/35 reqs PASSED, gates manuelles pending dev machine), v2.4 Polish & Robustness in planning (12 reqs, 4 phases)*

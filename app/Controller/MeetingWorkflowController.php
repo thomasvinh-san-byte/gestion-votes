@@ -36,7 +36,7 @@ final class MeetingWorkflowController extends AbstractController {
             $msg = $e->getMessage();
             if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
             if (str_contains($msg, 'archivée')) { api_fail('archived_immutable', 403, ['detail' => $msg]); }
-            api_fail('business_error', 400, ['detail' => $msg]);
+            api_fail('meeting_transition_failed', 400, ['detail' => $msg]);
         }
         if (!empty($preCheck['already_in_target'])) {
             api_ok([
@@ -168,7 +168,7 @@ final class MeetingWorkflowController extends AbstractController {
             $result = (new MeetingTransitionService($this->repo()))->readyCheck($meetingId, api_current_tenant_id());
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            api_fail('meeting_transition_failed', 400, ['detail' => $e->getMessage()]);
         }
         api_ok($result);
     }
@@ -249,7 +249,7 @@ final class MeetingWorkflowController extends AbstractController {
                     'detail' => 'Le reset n\'est autorisé que sur les séances en statut draft ou scheduled.',
                 ]);
             }
-            api_fail('business_error', 400, ['detail' => $msg]);
+            api_fail('meeting_transition_failed', 400, ['detail' => $msg]);
         }
         api_ok(['ok' => true, 'reset_count' => 1]);
     }

@@ -181,68 +181,52 @@
     </footer>
   </div>
 
-  <!-- Edit meeting modal -->
-  <div class="modal-backdrop" id="editMeetingModal" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
-      <header class="modal-header">
-        <h3 class="modal-title" id="editModalTitle">Modifier la s&eacute;ance</h3>
-        <button class="btn btn-icon btn-ghost modal-close-btn" data-close-modal aria-label="Fermer">&times;</button>
-      </header>
-      <div class="modal-body">
-        <input type="hidden" id="editMeetingId">
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label class="form-label" for="editMeetingTitle">Titre <span class="text-danger">*</span></label>
-            <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off" placeholder="Titre de la s&eacute;ance">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="editMeetingDate">Date</label>
-            <input class="form-input date-picker-input" type="date" id="editMeetingDate">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="editMeetingType">Type de s&eacute;ance</label>
-          <select name="editMeetingType" id="editMeetingType" class="form-select">
-            <option value="ag_ordinaire">AG ordinaire</option>
-            <option value="ag_extraordinaire">AG extraordinaire</option>
-            <option value="conseil">Conseil</option>
-            <option value="bureau">Bureau</option>
-            <option value="autre">Autre</option>
-          </select>
-        </div>
+  <!-- Edit meeting modal — migré vers <ag-modal> -->
+  <ag-modal id="editMeetingModal" title="Modifier la séance" size="md">
+    <input type="hidden" id="editMeetingId">
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label" for="editMeetingTitle">Titre <span class="text-danger">*</span></label>
+        <input class="form-input" type="text" id="editMeetingTitle" required autocomplete="off" placeholder="Titre de la s&eacute;ance">
       </div>
-      <footer class="modal-footer">
-        <button class="btn btn-secondary" data-close-modal>Annuler</button>
-        <button class="btn btn-primary" id="editMeetingSaveBtn">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
-          Enregistrer
-        </button>
-      </footer>
+      <div class="form-group">
+        <label class="form-label" for="editMeetingDate">Date</label>
+        <input class="form-input date-picker-input" type="date" id="editMeetingDate">
+      </div>
     </div>
-  </div>
+    <div class="form-group">
+      <label class="form-label" for="editMeetingType">Type de s&eacute;ance</label>
+      <select name="editMeetingType" id="editMeetingType" class="form-select">
+        <option value="ag_ordinaire">AG ordinaire</option>
+        <option value="ag_extraordinaire">AG extraordinaire</option>
+        <option value="conseil">Conseil</option>
+        <option value="bureau">Bureau</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div slot="footer">
+      <button class="btn btn-secondary" data-close-modal>Annuler</button>
+      <button class="btn btn-primary" id="editMeetingSaveBtn">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check"></use></svg>
+        Enregistrer
+      </button>
+    </div>
+  </ag-modal>
 
-  <!-- Delete meeting confirmation modal -->
-  <div class="modal-backdrop" id="deleteMeetingModal" hidden>
-    <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
-      <header class="modal-header">
-        <h3 class="modal-title" id="deleteModalTitle">Supprimer la s&eacute;ance</h3>
-        <button class="btn btn-icon btn-ghost modal-close-btn" data-close-modal aria-label="Fermer">&times;</button>
-      </header>
-      <div class="modal-body">
-        <p>&Ecirc;tes-vous s&ucirc;r de vouloir supprimer cette s&eacute;ance&nbsp;?</p>
-        <p class="text-sm text-muted">Cette action est irr&eacute;versible. Seules les s&eacute;ances en brouillon peuvent &ecirc;tre supprim&eacute;es.</p>
-        <p class="font-semibold mt-2" id="deleteMeetingName"></p>
-        <input type="hidden" id="deleteMeetingId">
-      </div>
-      <footer class="modal-footer">
-        <button class="btn btn-secondary" data-close-modal>Annuler</button>
-        <button class="btn btn-danger" id="deleteMeetingConfirmBtn">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
-          Supprimer
-        </button>
-      </footer>
+  <!-- Delete meeting confirmation modal — migré vers <ag-modal> -->
+  <ag-modal id="deleteMeetingModal" title="Supprimer la séance" size="sm">
+    <p>&Ecirc;tes-vous s&ucirc;r de vouloir supprimer cette s&eacute;ance&nbsp;?</p>
+    <p class="text-sm text-muted">Cette action est irr&eacute;versible. Seules les s&eacute;ances en brouillon peuvent &ecirc;tre supprim&eacute;es.</p>
+    <p class="font-semibold mt-2" id="deleteMeetingName"></p>
+    <input type="hidden" id="deleteMeetingId">
+    <div slot="footer">
+      <button class="btn btn-secondary" data-close-modal>Annuler</button>
+      <button class="btn btn-danger" id="deleteMeetingConfirmBtn">
+        <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-trash"></use></svg>
+        Supprimer
+      </button>
     </div>
-  </div>
+  </ag-modal>
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close aria-hidden="true"></div>

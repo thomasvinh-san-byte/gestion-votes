@@ -19,24 +19,101 @@
   var sseStream = null;
   var sseConnected = false;
   var _sseFallbackToastEl = null;
-  var _prevQuorumMet = null;
   var _operatorPresenceCount = 0;
   var _presenceHeartbeatTimer = null;
 
   // =========================================================================
-  // SSE INDICATOR (OPC-02)
+  // <ag-health-bar> attribute helpers (Phase v2.3 / COCKPIT-01..05,07)
   // =========================================================================
 
-  var SSE_LABELS = { live: '\u25cf En direct', reconnecting: '\u26a0 Reconnexion...', offline: '\u2715 Hors ligne' };
+  /**
+   * Derive the ag-health-bar quorum-state from current/required ratio.
+   * - missed: current < required
+   * - at-risk: required <= current < required * 1.10  (within 10% buffer above threshold)
+   * - met: current >= required * 1.10
+   * Per COCKPIT-07.
+   */
+  function _computeQuorumState(current, required) {
+    var c = Number(current); var r = Number(required);
+    if (!isFinite(c) || !isFinite(r) || r <= 0) return 'met';
+    if (c < r) return 'missed';
+    if (c < r * 1.10) return 'at-risk';
+    return 'met';
+  }
+  function _hb() { return document.getElementById('opHealthBar'); }
+  function _setHb(attr, val) {
+    var el = _hb();
+    if (!el) return;
+    var s = (val == null || val === '') ? '' : String(val);
+    if (el.getAttribute(attr) !== s) el.setAttribute(attr, s);
+    // F-2: mirror quorum-state onto #viewExec so the danger pulse can target the vote zone
+    // (per ROADMAP SC #2 + COCKPIT-03 \u2014 pulse "entoure la zone vote", not the bar itself).
+    if (attr === 'quorum-state') {
+      var view = document.getElementById('viewExec');
+      if (view && view.getAttribute('data-quorum-state') !== s) view.setAttribute('data-quorum-state', s);
+    }
+  }
+
+  // =========================================================================
+  // <viewExec> data-vote-state mirror (Phase v2.4 / COCKPIT-V24-01 / D-04)
+  // =========================================================================
+  /**
+   * Compute current vote-state from O.currentOpenMotion and write to #viewExec.
+   * Pattern h\u00e9rit\u00e9 de _setHb(quorum-state) v2.3 P1 \u2014 single mirror, no event wiring
+   * required, safe to call multiple times (no-op if attribute unchanged).
+   *
+   * Values:
+   *   idle    \u2014 aucun vote actif (no currentOpenMotion)
+   *   open    \u2014 vote ouvert (currentOpenMotion && !closed_at)
+   *   closed  \u2014 vote ferm\u00e9 non proclam\u00e9 (currentOpenMotion && closed_at)
+   */
+  function _computeVoteState() {
+    var m = window.O && window.O.currentOpenMotion;
+    if (!m) return 'idle';
+    if (m.closed_at) return 'closed';
+    return 'open';
+  }
+  function _setVoteState(forced) {
+    var view = document.getElementById('viewExec');
+    if (!view) return;
+    var s = (forced != null) ? String(forced) : _computeVoteState();
+    if (view.getAttribute('data-vote-state') !== s) view.setAttribute('data-vote-state', s);
+  }
+  // Expose for operator-exec.js refreshExecView() to call on every refresh tick
+  window.O = window.O || {}; window.O.fn = window.O.fn || {};
+  window.O.fn.syncVoteState = _setVoteState;
+
+  // =========================================================================
+  // SSE INDICATOR \u2014 drives <ag-health-bar sse-state="..."> (single surface)
+  // Legacy DOM SSE indicator removed in Plan 01.3 (F-6) \u2014 the ambient pill on
+  // the health bar is now the canonical SSE state surface.
+  // =========================================================================
 
   function setSseIndicator(state) {
-    var el = document.getElementById('opSseIndicator');
-    var lb = document.getElementById('opSseLabel');
-    if (el) el.setAttribute('data-sse-state', state);
-    if (lb) lb.textContent = SSE_LABELS[state] || state;
+    _setHb('sse-state', state);
     // Sync checklist SSE row + banner (CHECK-03)
     if (O.fn.updateChecklistSseRow) O.fn.updateChecklistSseRow(state);
   }
+
+  // =========================================================================
+  // <ag-health-bar id="opHealthBar"> motion-change hook (Plan 01.3 / F-5)
+  // Called from operator-motions.js whenever O.currentOpenMotion is set/cleared.
+  // Pushes motion-number + motion-title attributes onto #opHealthBar.
+  // COCKPIT-05 reactive-attribute contract.
+  // =========================================================================
+
+  window.O = window.O || {}; window.O.fn = window.O.fn || {};
+  window.O.fn.notifyMotionChange = function() {
+    var m = window.O.currentOpenMotion;
+    if (m) {
+      _setHb('motion-number', m.number || m.short_id || '');
+      var t = m.title || '';
+      _setHb('motion-title', t.length > 80 ? t.slice(0, 77) + '\u2026' : t);
+    } else {
+      _setHb('motion-number', '');
+      _setHb('motion-title', 'Aucune r\u00e9solution active');
+    }
+  };
 
   /**
    * Try to connect SSE for the current meeting. If SSE is available
@@ -116,6 +193,7 @@
 
     case 'motion.opened':
       O.fn.loadResolutions().then(function() {
+        _setVoteState(); // v2.4 D-04 mirror
         if (O.currentOpenMotion) {
           var title = O.currentOpenMotion.title;
           setNotif('info', 'Vote ouvert: ' + title);
@@ -138,6 +216,7 @@
     case 'motion.closed':
     case 'motion.updated':
       O.fn.loadResolutions().then(function() {
+        _setVoteState(); // v2.4 D-04 mirror
         if (O.currentMode === 'exec') O.fn.refreshExecView();
       }).catch(function(err) {
         setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));
@@ -148,16 +227,32 @@
       O.fn.loadQuorumStatus();
       if (O.currentMode === 'setup') O.fn.loadDashboard();
       if (O.currentMode === 'exec' && O.fn.refreshExecChecklist) O.fn.refreshExecChecklist();
+      // Drive votes-remaining attribute on the health bar (Plan 01.3 / COCKPIT-05).
+      try {
+        var motion = window.O && window.O.currentOpenMotion;
+        if (motion) {
+          var cast = motion.votes_cast != null ? motion.votes_cast : 0;
+          var totalVoters = (data && data.data && data.data.total) || (data && data.total) || motion.total_voters || 0;
+          if (totalVoters > 0) {
+            var remaining = Math.max(0, totalVoters - cast);
+            _setHb('votes-remaining', remaining + ' / ' + totalVoters);
+          }
+        }
+      } catch (e) { /* swallow — health bar update is best-effort */ }
       break;
 
     case 'quorum.updated':
       O.fn.loadQuorumStatus();
       if (O.currentMode === 'setup') O.fn.loadDashboard();
-      var nowMet = data && (data.quorum_met === true || (data.data && data.data.quorum_met === true));
-      if (_prevQuorumMet === false && nowMet === true) {
-        setNotif('success', 'Quorum atteint !');
+      // Drive quorum-state + quorum-ratio attributes on the health bar (Plan 01.3 / COCKPIT-02,07).
+      // Legacy success toast removed: persistent indicator replaces ephemeral notification.
+      var p = (data && data.data) ? data.data : (data || {});
+      var qCur = (p.quorum_current != null) ? p.quorum_current : (p.present_count != null ? p.present_count : null);
+      var qReq = p.quorum_required != null ? p.quorum_required : null;
+      if (qCur != null && qReq != null) {
+        _setHb('quorum-state', _computeQuorumState(qCur, qReq));
+        _setHb('quorum-ratio', qCur + ' / ' + qReq);
       }
-      _prevQuorumMet = nowMet ? true : (nowMet === false ? false : _prevQuorumMet);
       break;
 
     case 'operator.presence':
@@ -203,8 +298,10 @@
         badge = document.createElement('span');
         badge.id = 'opPresenceBadge';
         badge.style.cssText = 'font-size:0.75rem;margin-left:0.75rem;background:var(--color-warning-bg,#fef3c7);color:var(--color-warning,#92400e);border-radius:0.375rem;padding:0.125rem 0.5rem;';
-        var indicator = document.getElementById('opSseIndicator');
-        if (indicator && indicator.parentElement) indicator.parentElement.appendChild(badge);
+        // Plan 01.3 / F-6 — legacy DOM SSE indicator removed; anchor to meeting bar right cluster.
+        var anchor = document.querySelector('.op-meeting-bar-right') || document.getElementById('opHealthBar');
+        if (anchor) anchor.appendChild(badge);
+        else document.body.appendChild(badge);
       }
       badge.textContent = count + ' opérateur(s) actif(s)';
       badge.style.display = '';

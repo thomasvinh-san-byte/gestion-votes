@@ -1,0 +1,82 @@
+Migration lexicale public/members.htmx.html — Plan 04.1 LEX-01 + LEX-02
+========================================================================
+
+Audit grep : 18 occurrences correspondant à `membre|participant|votant|Approuver|approuv`.
+
+Contexte global : ce fichier EST la page de gestion CRUD du registre des membres.
+Par construction, l'écrasante majorité des occurrences "membre/membres" doivent rester :
+le sujet de la page est précisément l'inscrit générique.
+
+Décisions cas par cas (chaque ligne classifiée selon <lexicon_rules> du plan) :
+
+[CONSERVÉ] Ligne 2 — `<!-- GO-LIVE-STATUS: ready — Gestion des membres. -->`
+  Justification : commentaire technique de page CRUD. Garder.
+
+[CONSERVÉ] Ligne 15 — `<meta name="description" content="Gestion des membres - AG-VOTE">`
+  Justification : meta description SEO/onglet. Page CRUD. Garder.
+
+[CONSERVÉ] Ligne 26 — `<a href="#membersList" class="skip-link">Aller à la liste des membres</a>`
+  Justification : skip-link a11y vers la liste du registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 58 — onboarding tip "Importez un CSV pour ajouter des membres en masse"
+  Justification : import CSV registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 59 — onboarding tip "Chaque membre reçoit un lien de vote unique"
+  Justification : envoi du lien de vote à chaque inscrit du registre. Inscrit générique
+  (le lien est envoyé à tous les inscrits, pas spécifiquement aux éligibles d'un scrutin
+  donné). Garder.
+
+[CONSERVÉ] Ligne 60 — onboarding tip "Organisez les membres en groupes"
+  Justification : groupes du registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 101 — onboarding step "Ajouter des membres"
+  Justification : étape d'onboarding CRUD. Garder.
+
+[CONSERVÉ] Ligne 126 — `aria-label="Gestion des membres"` (mgmt-tabs)
+  Justification : a11y label de la zone CRUD. Garder.
+
+[CONSERVÉ] Ligne 148 — bouton "Ajouter un membre"
+  Justification : action CRUD ajout inscrit. Garder.
+
+[CONSERVÉ] Ligne 188 — `placeholder="Rechercher un membre..."`
+  Justification : recherche dans la liste du registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 225 — `<span class="results-count" id="membersCount">0 membre</span>`
+  Justification : compteur dynamique du registre filtré. CRUD. Garder.
+
+[CONSERVÉ] Ligne 226 — `<span ...>Affichage de l'ensemble des membres</span>`
+  Justification : sous-titre du compteur registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 238 — `aria-label="Pagination des membres"`
+  Justification : a11y label pagination registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 261 — texte "Organisez vos membres par catégories, collèges électoraux, départements"
+  Justification : description de la fonctionnalité Groupes (registre). CRUD. Garder.
+
+[CONSERVÉ] Ligne 262 — popover "Groupes de membres / Catégorisez vos membres par collèges électoraux..."
+  Justification : popover descriptif fonctionnalité Groupes. CRUD. Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 287 — `<a href="/assets/modele_import_membres.csv">`
+  Justification : nom de fichier d'asset CSV (registre). Hors scope copy. Garder verbatim.
+
+[CONSERVÉ TECHNIQUE] Ligne 291 — `<a href="/assets/demo_membres_ag.csv">`
+  Justification : nom de fichier d'asset CSV démo. Hors scope copy. Garder verbatim.
+
+[CONSERVÉ] Ligne 293 — "Exemple avec 25 membres (démo)"
+  Justification : label du fichier démo. CRUD. Garder.
+
+[CONSERVÉ] Ligne 334 — `<h3 id="memberDetailTitle">Fiche membre</h3>`
+  Justification : titre du modal de fiche d'inscrit. CRUD. Garder.
+
+[CONSERVÉ - HORS SCOPE LEX-01] Aucune occurrence "Approuver" / "approbation" trouvée. Pas de migration LEX-02 nécessaire.
+
+Total : 0 migration nécessaire, 18 occurrences conservées avec justification.
+
+Cohérence sémantique parfaite : c'est la page-référence pour le concept "membre = inscrit
+générique du registre". Aucune sous-page de scrutin/présence n'y vit.
+
+Anti-patterns évités :
+- Pas de transformation aveugle "membre" → "votant" (la page traite du registre, pas d'un
+  scrutin actif).
+- Pas de modification d'ids/attributes/asset paths (membersList, memberDetailTitle,
+  modele_import_membres.csv, demo_membres_ag.csv, membersCount).

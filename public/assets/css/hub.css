@@ -18,7 +18,7 @@
   gap: 1.25rem;
   padding: 1.5rem 1.75rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-md);
   position: relative;
@@ -45,7 +45,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px var(--color-primary-glow);
+  box-shadow: var(--shadow-glow-brand-md);
 }
 
 .hub-hero-body {
@@ -121,7 +121,7 @@
 
 .hub-checklist-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -168,7 +168,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   margin-top: 1px;
   transition: background 0.2s, border-color 0.2s;
 }
@@ -260,7 +260,7 @@
 
 .hub-quorum-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -329,7 +329,7 @@
 
 .hub-motions-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -406,7 +406,7 @@
 
 .hub-attachments-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -466,7 +466,7 @@
   margin-bottom: var(--space-card, 1.5rem);
   padding: 1rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-sm);
 }
@@ -478,7 +478,7 @@
 .hub-error {
   padding: 1rem 1.5rem;
   background: var(--color-danger-subtle);
-  border: 1px solid var(--color-danger);
+  border: var(--border-danger);
   border-radius: 8px;
   margin-bottom: 1rem;
   color: var(--color-danger);

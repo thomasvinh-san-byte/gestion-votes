@@ -377,6 +377,37 @@ class MeetingRepository extends AbstractRepository {
         );
     }
 
+    /**
+     * Insert a fixture meeting for test/dev seeding.
+     *
+     * Reuses the standard `create()` SQL path then optionally moves the meeting
+     * to a non-default status (the schema enforces 'draft' on insert). This
+     * keeps the production schema invariants intact while letting tests target
+     * arbitrary states (setup, running, closed, validated, archived).
+     *
+     * MUST only be called from dev-only endpoints (TestSeedController) — not
+     * a substitute for the full meeting-creation workflow which validates RBAC,
+     * audit trail, and tenant ownership.
+     *
+     * Source: TEST-V24-01 / D-01 — Plan 03.1 (Phase 3 v2.4).
+     */
+    public function createForTest(
+        string $tenantId,
+        string $status = 'draft',
+        string $title = 'Fixture meeting',
+    ): string {
+        $id = api_uuid4();
+        $this->create($id, $tenantId, $title, null, null, null, 'ag_ordinaire');
+
+        if ($status !== 'draft') {
+            // Bypass UPDATABLE_FIELDS gate intentionally is unnecessary — 'status'
+            // is in the allowlist. updateFields covers the path safely.
+            $this->updateFields($id, $tenantId, ['status' => $status]);
+        }
+
+        return $id;
+    }
+
     private const UPDATABLE_FIELDS = [
         'title', 'description', 'meeting_type', 'status', 'scheduled_at', 'started_at', 'ended_at',
         'location', 'quorum_policy_id', 'vote_policy_id', 'convocation_no',

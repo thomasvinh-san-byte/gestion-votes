@@ -1,0 +1,93 @@
+Migration lexicale public/help.htmx.html — Plan 04.1 LEX-01 + LEX-02
+=====================================================================
+
+Audit grep : 22 occurrences correspondant à `membre|participant|votant|Approuver|approuv`.
+
+Décisions cas par cas (chaque ligne classifiée selon <lexicon_rules> du plan) :
+
+[CONSERVÉ] Ligne 269 — "ajouter les membres" (déroulement type étape Préparation)
+  Justification : étape de préparation = ajout d'inscrits au registre de la séance. Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 339 — "L'opérateur génère des codes de vote à usage unique (un par votant)"
+  Justification : déjà cohérent (token = un par éligible au scrutin). Garder.
+
+[CONSERVÉ] Ligne 340 — "Chaque votant reçoit un lien unique"
+  Justification : déjà cohérent. Garder.
+
+[CONSERVÉ] Ligne 341 — "Le votant accède à la page de vote, choisit son vote et confirme"
+  Justification : déjà cohérent. Verbe "confirme" cohérent avec LEX-02 (confirmer = action utilisateur sur son propre vote). Garder.
+
+[CONSERVÉ] Ligne 343 — "Le bulletin est enregistré avec le poids du votant"
+  Justification : déjà cohérent (poids attaché au votant éligible). Garder.
+
+[CONSERVÉ] Ligne 354 — "Un membre (mandant) peut donner sa procuration à un autre membre (mandataire)"
+  Justification : doctrine procuration légale — un inscrit (qu'il soit présent ou absent à la séance) délègue son droit de vote. Le mot "membre" ici porte le sens "personne inscrite ayant le droit de voter en assemblée", pas spécifiquement éligible à un scrutin courant. Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 356 — "Un membre ne peut pas se donner procuration à lui-même"
+  Justification : règle légale procuration. Cohérent avec L354. Garder.
+
+[CONSERVÉ] Ligne 386 — "sans relier chaque bulletin à un votant"
+  Justification : déjà cohérent (votant = bulletin déposé dans un scrutin). Garder.
+
+[CONSERVÉ] Ligne 392 — "Un votant peut-il modifier son vote ?"
+  Justification : déjà cohérent. Garder.
+
+[CONSERVÉ] Ligne 405 — titre section "Gestion des membres"
+  Justification : section FAQ dédiée à la gestion CRUD du registre. Inscrit générique. Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 408 — `data-search="importer membres csv"`
+  Justification : data-search = mot-clé de recherche FAQ. Garder verbatim (ne pas casser la recherche utilisateur).
+
+[CONSERVÉ] Ligne 410 — "Comment importer des membres en CSV ?"
+  Justification : import CSV du registre = ajout de N inscrits. CRUD. Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 424 — `data-search="groupes membres categories"`
+  Justification : data-search FAQ. Garder.
+
+[CONSERVÉ] Ligne 426 — "A quoi servent les groupes de membres ?"
+  Justification : groupes du registre. CRUD. Garder.
+
+[CONSERVÉ] Ligne 430 — "Les groupes permettent d'organiser les membres par catégories"
+  Justification : registre. Garder.
+
+[CONSERVÉ] Ligne 432 — "Filtrage rapide dans la liste des membres"
+  Justification : registre. Garder.
+
+[CONSERVÉ TECHNIQUE] Ligne 440 — `data-search="supprimer desactiver membre"`
+  Justification : data-search FAQ. Garder.
+
+[CONSERVÉ] Ligne 442 — "Peut-on supprimer un membre ?"
+  Justification : CRUD inscrit. Garder.
+
+[CONSERVÉ] Ligne 446 — "Un membre ne peut pas être supprimé s'il a participé à au moins une séance"
+  Justification : CRUD inscrit. Le verbe "a participé" = a été participant d'une séance ; verbe natif français, pas une transformation lexicale nécessaire. Garder.
+
+[CONSERVÉ] Ligne 456 — "à chaque membre actif"
+  Justification : envoi convocation à tous les inscrits actifs du registre. Inscrit générique. Garder.
+
+[CONSERVÉ] Ligne 543 — "Registre des membres" (table d'export)
+  Justification : nom officiel de l'export = registre des inscrits. Garder.
+
+[CONSERVÉ - HORS SCOPE LEX-01] Aucune occurrence "Approuver" / "approbation" trouvée. Pas de migration LEX-02 nécessaire.
+
+==== AJOUT GLOSSAIRE ====
+
+[AJOUT] Section "Vocabulaire" insérée après #faqContent et avant #exports-table.
+  Contenu :
+   - Définition "Membre" : inscrit générique CRUD.
+   - Définition "Participant" : membre marqué présent à la séance, compte pour le quorum.
+   - Définition "Votant" : participant éligible à un scrutin actif.
+   - Règle d'usage : "votant" (pas "membre votant"), "participant" (pas "membre présent").
+   - Définitions LEX-02 : Confirmer / Valider / Verrouiller-archiver.
+   - Mention explicite : "Approuver" banni du copy de finalisation.
+  Justification : acceptance criteria task 2 du plan exige un encadré pédagogique
+  Vocabulaire si absent. Cristallise la convention AgVote pour les utilisateurs.
+  Patterns CSS utilisés : .help-section-heading (existant), .card .card-body (existant),
+  .vocab-list (à styler dans help.css en suivi — non bloquant : <dl> a un rendu navigateur natif acceptable).
+
+Total : 0 migration sur le copy existant (toutes occurrences déjà cohérentes), 1 ajout structurel (section Vocabulaire).
+
+Anti-patterns évités :
+- Pas de transformation aveugle "membre" → "votant" (la doctrine procuration lignes 354-356 reste en "membre" inscrit-générique, conforme à la règle d'or).
+- Pas de modification de data-search techniques (408, 424, 440).
+- Pas de transformation de "membre actif" L456 (envoi à tous les inscrits actifs — pas spécifique au scrutin).

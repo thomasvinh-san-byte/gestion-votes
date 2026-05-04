@@ -1,0 +1,245 @@
+/*
+ * editorial.css — Pages editoriales (audit, trust, archives, report)
+ * Phase 2 / EDITORIAL-01..09
+ *
+ * Wrapper .ag-editorial : Fraunces serif sur contenu, max-width 720px,
+ * grid layout avec sidebar ≥1024px. Texte aligne a gauche uniquement.
+ *
+ * Tokens references (verifies dans design-system.css) :
+ *   --font-display / --font-sans / --font-mono
+ *   --space-1..--space-8, --gap-md, --gap-lg
+ *   --radius-full (pas de --radius-pill ; --radius-full = 9999px)
+ *   --border-subtle, --border-default
+ *   --shadow-xs
+ *   --color-text, --color-bg-subtle
+ */
+
+/* ---- Wrapper principal : grid 2 colonnes (contenu + sidebar) ---- */
+.ag-editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) minmax(0, 1fr);
+  gap: var(--gap-lg);
+  max-width: 1100px;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  font-family: var(--font-display);
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+/* ---- Verrou text-align: left sur tous les enfants directs ---- */
+/* Refactoring UI : centrer du long-form text est un anti-pattern de lisibilite. */
+.ag-editorial > * {
+  text-align: left;
+}
+
+/* ---- Colonne contenu (premiere grid cell) ---- */
+.ag-editorial > .ag-editorial-content,
+.ag-editorial > main,
+.ag-editorial > article {
+  max-width: 720px;
+  line-height: 1.55;
+}
+
+/* ---- Sidebar (deuxieme grid cell — hash, meta, nav interne) ---- */
+.ag-editorial > .ag-editorial-sidebar,
+.ag-editorial > aside {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+/* ---- Controles UI : forcer var(--font-sans) (Bricolage) ---- */
+/* Typography duality : Fraunces sur contenu editorial, Bricolage sur controles. */
+.ag-editorial .btn,
+.ag-editorial button,
+.ag-editorial input,
+.ag-editorial select,
+.ag-editorial textarea,
+.ag-editorial .filter-tab,
+.ag-editorial .audit-filter-tabs,
+.ag-editorial details > summary {
+  font-family: var(--font-sans);
+}
+
+/* ---- Hashes / UUID / codes : JetBrains Mono ---- */
+.ag-editorial code,
+.ag-editorial .ag-mono,
+.ag-editorial .hash,
+.ag-editorial .uuid {
+  font-family: var(--font-mono);
+}
+
+/* ---- Pill resolution monospace (en-tete / liste / tableau uniquement) ---- */
+/* EDITORIAL-04 : interdit inline en flux paragraphe — applique par convention HTML. */
+.ag-resolution-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  padding-inline: var(--space-2);
+  padding-block: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  border: var(--border-subtle);
+  box-shadow: var(--shadow-xs);
+  white-space: nowrap;
+}
+
+/* ---- En-tete print : invisible a l'ecran (Plan 02.4 ajoutera @media print) ---- */
+.ag-editorial-print-header {
+  display: none;
+}
+
+/* ---- Mobile : collapse grid en flux vertical ---- */
+@media (max-width: 1023.98px) {
+  .ag-editorial {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---- Sous 768px : largeur 100% + padding lateral, pas de scroll horizontal ---- */
+@media (max-width: 767.98px) {
+  .ag-editorial {
+    padding-inline: var(--space-3);
+    gap: var(--gap-md);
+  }
+  .ag-editorial > .ag-editorial-content,
+  .ag-editorial > main,
+  .ag-editorial > article {
+    max-width: 100%;
+  }
+}
+
+/* ========================================================================== */
+/* @media print — EDITORIAL-07                                                */
+/* Pages editoriales imprimees : masquer UI, page-break sur blocs critiques,  */
+/* en-tete present en debut de document, footer avec numero de page.          */
+/*                                                                            */
+/* F-5 lock (Schoger) : NE PAS utiliser la propriete `position:running(name)` */
+/* ni `@page { @top-left { content: element(...) } }` — supportes uniquement  */
+/* par Prince/antiword, IGNORES par Chrome/Firefox/Safari. Pragmatic fallback */
+/* : <header class="ag-editorial-print-header"> cache hors print (declare     */
+/* plus haut dans le fichier), revele ici. EDITORIAL-07 : partial — en-tete   */
+/* present en debut du document imprime, pas repete sur chaque page. Si       */
+/* repetition par page requise, route via dompdf (backlog v2.4).              */
+/*                                                                            */
+/* `!important` autorises ICI (et seulement ici) : pattern standard pour      */
+/* forcer l'override des styles ecran a l'impression.                         */
+/* ========================================================================== */
+
+@page {
+  size: A4;
+  margin: 2cm 1.5cm 2cm 1.5cm;
+
+  @bottom-right {
+    content: "Page " counter(page) " sur " counter(pages);
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    color: #555;
+  }
+}
+
+@media print {
+  /* Reinitialiser couleurs / fonds : economiser l'encre, garantir lisibilite N&B */
+  :root,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Wrapper imprime : pas de grid sidebar, flux vertical pleine largeur */
+  .ag-editorial {
+    display: block;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .ag-editorial > .ag-editorial-content,
+  .ag-editorial > main,
+  .ag-editorial > article {
+    max-width: 100%;
+  }
+
+  /* Masquer les controles UI : boutons, filtres, sidebar, modals, scripts */
+  .ag-editorial .btn,
+  .ag-editorial button,
+  .ag-editorial input,
+  .ag-editorial select,
+  .ag-editorial textarea,
+  .ag-editorial .filter-tab,
+  .ag-editorial .audit-filter-tabs,
+  .ag-editorial .audit-filter-tabs__more,
+  .ag-editorial details > summary,
+  .ag-editorial > .ag-editorial-sidebar,
+  .ag-editorial > aside,
+  ag-integrity-modal,
+  .ag-integrity-footer a,
+  nav,
+  header.app-header,
+  .htmx-indicator {
+    display: none !important;
+  }
+
+  /* `[hidden]` reste hidden a l'impression (semantique HTML preservee) */
+  [hidden] {
+    display: none !important;
+  }
+
+  /* Conserver visible le hash d'integrite dans le footer du PV (sans le lien) */
+  .ag-integrity-footer {
+    display: block !important;
+    margin-top: 1cm;
+    border-top: 1px solid #000;
+    padding-top: 0.5cm;
+    font-size: 9pt;
+    font-family: var(--font-mono);
+    page-break-before: avoid;
+  }
+
+  /* Blocs critiques : eviter les sauts de page au milieu */
+  .ag-resolution,
+  .ag-integrity-footer,
+  .ag-editorial table,
+  .ag-editorial blockquote,
+  .ag-editorial pre {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* En-tetes : pas de saut juste apres */
+  .ag-editorial h1,
+  .ag-editorial h2,
+  .ag-editorial h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Liens : afficher l'URL apres le texte sauf intra-document (#anchor) */
+  .ag-editorial a[href]:not([href^="#"]):after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    font-family: var(--font-mono);
+    color: #555;
+  }
+
+  /* En-tete de document imprime (cache hors print plus haut dans le fichier) */
+  .ag-editorial-print-header {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 9pt;
+    color: #555;
+    border-bottom: 1px solid #000;
+    padding-bottom: 0.3cm;
+    margin-bottom: 0.5cm;
+  }
+
+  /* Hashes/UUID/codes en monospace lisible N&B */
+  .ag-mono,
+  code,
+  .ag-resolution-pill {
+    font-family: var(--font-mono);
+    color: #000;
+  }
+}

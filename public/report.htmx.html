@@ -19,6 +19,10 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/report.css">
+  <link rel="stylesheet" href="/assets/css/editorial.css">
+  <link rel="stylesheet" href="/assets/css/components/ag-integrity-modal.css">
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/utils/sse-debounce.js" defer></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/components/ag-integrity-modal.js" defer></script>
 </head>
 <body>
   <!-- Skip links -->
@@ -52,7 +56,7 @@
 
     <!-- Main Content -->
     <main class="app-main" id="main-content" role="main">
-      <div class="container">
+      <div class="ag-editorial container">
         <!-- Notification area -->
         <div id="notif_box" class="hidden mb-4"></div>
 
@@ -247,6 +251,15 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
+  <!-- Integrity footer + modal (B-2 fix : auto-hidden côté JS dans connectedCallback) -->
+  <footer class="ag-integrity-footer">
+    <p>
+      Hash d'int&eacute;grit&eacute; : <code class="ag-mono" data-integrity-hash></code>
+      <a href="#" data-action="open-integrity-modal">V&eacute;rifier l'int&eacute;grit&eacute;</a>
+    </p>
+  </footer>
+  <ag-integrity-modal hidden data-date="" data-events="[]"></ag-integrity-modal>
+
   <!-- Scripts -->
   <script nonce="%%CSP_NONCE%%" src="/assets/js/core/utils.js"></script>
   <script type="module" nonce="%%CSP_NONCE%%" src="/assets/js/components/index.js"></script>
@@ -255,5 +268,14 @@
   <script nonce="%%CSP_NONCE%%" src="/assets/js/services/meeting-context.js"></script>
 
   <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/report.js"></script>
+  <script nonce="%%CSP_NONCE%%">
+    document.querySelectorAll('[data-action="open-integrity-modal"]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        var modal = document.querySelector('ag-integrity-modal');
+        if (modal && typeof modal.open === 'function') { modal.open(); }
+      });
+    });
+  </script>
 </body>
 </html>

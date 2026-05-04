@@ -66,6 +66,7 @@ use AgVote\Controller\RgpdExportController;
 use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\SetupController;
+use AgVote\Controller\TestSeedController;
 use AgVote\Controller\TrustController;
 use AgVote\Controller\PageController;
 use AgVote\Controller\VotePublicController;
@@ -166,6 +167,15 @@ return function (Router $router): void {
         $router->mapAny("{$prefix}/dev_seed_members", DevSeedController::class, 'seedMembers', $op);
         $router->mapAny("{$prefix}/dev_seed_attendances", DevSeedController::class, 'seedAttendances', $op);
         $router->map('POST', "{$prefix}/test/seed-user", DevSeedController::class, 'seedUser');
+        // TEST-V24-01 / D-01..D-04 — seed a meeting + motions for Playwright @integration specs.
+        // Triple-guarded: this conditional registration + EnvGuardMiddleware + controller-level guardProduction().
+        $router->map(
+            'POST',
+            "{$prefix}/test/seed-meeting",
+            TestSeedController::class,
+            'seedMeeting',
+            ['env_guard' => true],
+        );
     }
 
     // ── Documentation ──
@@ -384,6 +394,12 @@ return function (Router $router): void {
 
     // -- Setup (first-run, no auth) --
     $router->mapAny('/setup', SetupController::class, 'setup');
+
+    // -- Admin error stats : page route registered via PAGE SHELL ROUTES
+    //    below ('admin-error-stats'). JSON endpoint registered above
+    //    ($prefix/admin_error_stats → stats()).
+    //    LOG-V25-03 reworked v2.4 P2.3 (audit_events filter) into a real
+    //    error_events backend; the legacy 'show' method is no longer used.
 
     // -- Account (session-authenticated) --
     $router->mapAny('/account', AccountController::class, 'account');

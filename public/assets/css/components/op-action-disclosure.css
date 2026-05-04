@@ -1,0 +1,115 @@
+/* =============================================================================
+   op-action-disclosure — Phase v2.4 / COCKPIT-V24-01 / D-03
+   =============================================================================
+   <details class="op-action-disclosure"> + <summary> pattern.
+   Native HTML disclosure (Tab+Enter accessible by default), no custom JS for
+   keyboard a11y. State persistence via localStorage handled by
+   public/assets/js/pages/operator-disclosure.js.
+
+   Visual contract :
+   - <summary> stylé comme un bouton secondaire btn btn-sm
+   - Compteur (N) injecté en JS au load (count children)
+   - Pas de transition d'ouverture (instant) — D-discrétion CONTEXT.md
+   - Panneau ouvre en floating au-dessus du flux (position absolute) pour
+     éviter le reflow de la barre quand on déploie.
+   ============================================================================= */
+
+.op-action-disclosure {
+  position: relative;
+  display: inline-block;
+}
+
+.op-action-disclosure__trigger {
+  /* Match btn btn-sm btn-secondary visual */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 500;
+  line-height: 1.25;
+  border: var(--border-default);
+  border-radius: var(--radius-md, 0.375rem);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  white-space: nowrap;
+  transition: background-color 80ms ease, border-color 80ms ease;
+}
+
+/* Remove native marker on summary */
+.op-action-disclosure__trigger::-webkit-details-marker { display: none; }
+.op-action-disclosure__trigger::marker { content: ""; }
+
+.op-action-disclosure__trigger:hover {
+  background: var(--color-surface-hover, var(--color-bg));
+  border-color: var(--color-border-strong, var(--color-text-muted));
+}
+
+.op-action-disclosure__trigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.op-action-disclosure[open] > .op-action-disclosure__trigger {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
+.op-action-disclosure__chevron {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  transition: transform 120ms ease;
+}
+
+.op-action-disclosure[open] .op-action-disclosure__chevron {
+  transform: rotate(180deg);
+}
+
+.op-action-disclosure__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25em;
+  padding: 0 0.375em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 0.75em;
+  color: var(--color-text-muted);
+}
+
+/* Content panel — floats above the flow (no reflow on toggle) */
+.op-action-disclosure__content {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 14rem;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  border: var(--border-default);
+  border-radius: var(--radius-md, 0.375rem);
+  box-shadow: var(--shadow-md);
+}
+
+/* Each child button stretches full-width inside the panel */
+.op-action-disclosure__content > .btn,
+.op-action-disclosure__content > ag-tooltip > .btn,
+.op-action-disclosure__content > * {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* prefers-reduced-motion : strip transitions */
+@media (prefers-reduced-motion: reduce) {
+  .op-action-disclosure__trigger,
+  .op-action-disclosure__chevron {
+    transition: none;
+  }
+}

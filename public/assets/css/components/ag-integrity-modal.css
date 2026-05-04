@@ -1,0 +1,93 @@
+/*
+ * ag-integrity-modal.css — EDITORIAL-05
+ * Modal pédagogique d'intégrité du PV (préambule français + chaîne audit_events).
+ *
+ * Tokens design-system uniquement (vérifiés F-6 contre design-system.css) :
+ *   --color-surface-raised, --color-text-secondary, --color-text-muted
+ *   --shadow-lg, --border-default, --radius-md
+ *   --font-display (Fraunces, préambule), --font-mono (JetBrains Mono, hashes)
+ *   --font-sans (Bricolage, base), --space-* (paddings/margins)
+ */
+
+ag-integrity-modal[hidden] { display: none; }
+
+ag-integrity-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-sans);
+}
+
+.ag-integrity-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.ag-integrity-modal__dialog {
+  position: relative;
+  max-width: 640px;
+  width: calc(100% - var(--space-8));
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--color-surface-raised);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-6);
+}
+
+.ag-integrity-modal__dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.ag-integrity-modal__dialog header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.ag-integrity-close {
+  background: transparent;
+  border: var(--border-none);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.ag-integrity-preamble {
+  font-family: var(--font-display);
+  line-height: 1.6;
+  margin-top: 0;
+  margin-bottom: var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.ag-integrity-chain {
+  list-style: decimal;
+  padding-left: var(--space-6);
+  margin: 0;
+}
+
+.ag-integrity-event {
+  margin-bottom: var(--space-3);
+}
+
+.ag-integrity-hash {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.ag-integrity-meta {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}

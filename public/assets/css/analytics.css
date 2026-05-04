@@ -14,7 +14,7 @@
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
 }
 
 .analytics-page-header h1 {
@@ -109,7 +109,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   top: 64px;
   z-index: 10;
   background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
 }
 
 .analytics-period-pills {
@@ -139,7 +139,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .analytics-period-pill.active {
   background: var(--color-primary);
   color: var(--color-primary-text);
-  box-shadow: none;
+  box-shadow: var(--shadow-none);
 }
 
 .analytics-filter-actions {
@@ -296,7 +296,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .overview-card {
   background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   padding: var(--space-card);
   box-shadow: var(--shadow-sm);
@@ -365,7 +365,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   padding: 1rem;
   margin-bottom: 1rem;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: 8px;
 }
 
@@ -411,14 +411,14 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .chart-card {
   position: relative;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .chart-card-header {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -460,7 +460,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   width: 28px;
   height: 28px;
   margin: -14px 0 0 -14px;
-  border: 3px solid var(--color-border);
+  border: var(--border-thick-3);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: chartSpin 0.7s linear infinite;
@@ -503,7 +503,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .data-table td {
   padding: 8px 12px;
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
 }
 
 .data-table th {
@@ -570,7 +570,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .analytics-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   margin-bottom: var(--space-6);
   padding: 0;
   position: relative;
@@ -716,7 +716,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   gap: var(--space-3);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--color-surface);
 }
 
@@ -847,7 +847,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .donut-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: 8px;
   padding: 14px;
   text-align: center;

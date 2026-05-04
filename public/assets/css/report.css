@@ -16,7 +16,7 @@
   gap: var(--space-2);
   padding: var(--space-4);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: border-color var(--duration-fast), background-color var(--duration-fast), transform var(--duration-fast);
@@ -67,13 +67,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: var(--space-12);
   color: var(--color-text-muted);
   text-align: center;
 }
 .pv-empty-state-icon {
   opacity: 0.5;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 .pv-empty-state-title {
   font-weight: 600;
@@ -81,7 +81,7 @@
 }
 .pv-empty-state-desc {
   font-size: 13px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 .pv-empty-state .skeleton {
   margin: 0 auto 0.5rem;
@@ -121,7 +121,7 @@
 
 .pv-timeline-step.active .pv-step-dot {
   background: var(--color-primary);
-  box-shadow: 0 0 0 4px var(--color-primary-subtle);
+  box-shadow: var(--shadow-focus-ring-lg);
 }
 
 .pv-step-label {
@@ -143,7 +143,7 @@
   flex: 1;
   height: 2px;
   background: var(--color-border);
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 
 /* =============================================================================
@@ -261,7 +261,7 @@
   /* Remove card borders/shadows for print */
   .card {
     border: none;
-    box-shadow: none;
+    box-shadow: var(--shadow-none);
     padding: 0;
   }
 

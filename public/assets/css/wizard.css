@@ -47,7 +47,7 @@
   animation: wizSlideIn var(--duration-deliberate, 300ms) var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1)) both;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
 }
 
 .wiz-step.active {
@@ -81,7 +81,7 @@
   top: 0;
   z-index: var(--z-sticky, 10);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   padding: 2px;
   box-shadow: var(--shadow-sm);
@@ -233,7 +233,7 @@
   gap: 8px;
   padding: 6px 14px;
   background: var(--color-danger-subtle);
-  border: 1px solid var(--color-danger);
+  border: var(--border-danger);
   border-radius: var(--radius) var(--radius) 0 0;
   color: var(--color-danger);
   font-size: 0.875rem;
@@ -248,7 +248,7 @@
 .wiz-section {
   margin-bottom: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
 }
 
 .wiz-section:first-of-type {
@@ -355,7 +355,7 @@
    ============================================================================= */
 
 .wiz-advanced-toggle {
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
   border-radius: var(--radius);
   margin-top: 0.25rem;
 }
@@ -425,7 +425,7 @@ input[type="time"].field-input {
   align-items: center;
   justify-content: space-between;
   padding: 8px 1.5rem;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
   background: var(--color-bg-subtle);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
@@ -443,7 +443,7 @@ input[type="time"].field-input {
 .btn-ghost {
   background: transparent;
   color: var(--color-text);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
 }
 
 .btn-ghost:hover {
@@ -462,7 +462,7 @@ input[type="time"].field-input {
   padding: 8px 12px;
   background: var(--color-bg-subtle);
   border-radius: 10px;
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
   margin-bottom: 0.5rem;
 }
 
@@ -537,7 +537,7 @@ input[type="time"].field-input {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
   border-radius: var(--radius-sm);
   transition: background 0.15s ease;
 }
@@ -572,7 +572,7 @@ input[type="time"].field-input {
 
 .members-total-row {
   padding: 8px 0;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
   margin-top: 0.5rem;
   font-size: 0.8125rem;
   color: var(--color-text-muted);
@@ -605,7 +605,7 @@ input[type="time"].field-input {
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: var(--radius);
   margin-bottom: 0.5rem;
   color: var(--color-text-muted);
@@ -643,7 +643,7 @@ input[type="time"].field-input {
   align-items: flex-start;
   gap: 10px;
   padding: 8px;
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
   border-radius: var(--radius);
   cursor: pointer;
   background: var(--color-surface);
@@ -653,7 +653,7 @@ input[type="time"].field-input {
 
 .wiz-template-card:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary);
+  box-shadow: var(--shadow-ring-1px-primary);
 }
 
 .wiz-template-card-icon {
@@ -698,7 +698,7 @@ input[type="time"].field-input {
   padding: 14px;
   background: var(--color-bg-subtle);
   border-radius: var(--radius);
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
   margin-bottom: 1rem;
 }
 
@@ -732,7 +732,7 @@ input[type="time"].field-input {
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   cursor: pointer;
   color: var(--color-text-muted);
   background: transparent;
@@ -759,7 +759,7 @@ input[type="time"].field-input {
   align-items: flex-start;
   gap: 10px;
   padding: 1rem 0.75rem;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
   cursor: grab;
   border-radius: var(--radius-sm);
   transition: background 0.15s ease, box-shadow 0.15s ease;
@@ -843,7 +843,7 @@ input[type="time"].field-input {
   padding: 2px 8px;
   background: var(--color-surface);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
 }
 
 .reso-actions {
@@ -856,7 +856,7 @@ input[type="time"].field-input {
 
 .review-section {
   margin-bottom: 1rem;
-  border: 1px solid var(--color-border-subtle);
+  border: var(--border-subtle);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -901,7 +901,7 @@ input[type="time"].field-input {
   justify-content: space-between;
   padding: 6px 14px;
   font-size: 0.8125rem;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
 }
 
 .review-label {
@@ -915,7 +915,7 @@ input[type="time"].field-input {
 
 .review-row-block {
   padding: 6px 14px;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: var(--border-subtle);
 }
 
 .review-empty {

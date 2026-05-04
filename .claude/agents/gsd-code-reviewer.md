@@ -369,3 +369,74 @@ _Depth: {depth}_
   - deep: Cross-file analysis including import graph and call chains
 
 </success_criteria>
+
+## Arguments supportés
+
+En complément du champ `files` passé par le workflow `/gsd-code-review`, l'agent accepte
+les arguments suivants pour cadrer le scope et éviter les timeouts sur les gros lots.
+
+| Argument | Défaut | Description |
+|---|---|---|
+| `--scope=<value>` | `all` | Filtre les fichiers à reviewer (voir patterns ci-dessous) |
+| `--timeout-min=<N>` | `60` (max `120`) | Budget total d'analyse en minutes |
+| `--exclude=<glob>` | aucun | Glob à exclure (multi-valued autorisé) |
+
+### `--scope` — patterns Glob associés
+
+- `js` : `**/*.js` (en excluant `vendor/**`, `node_modules/**`, `dist/**`, `*.min.js`, `*.bundle.js`)
+- `php` : `app/**/*.php` + `public/api/**/*.php`
+- `tests` : `tests/**/*.php` + `tests/e2e/**/*.js`
+- `all` : tous les périmètres ci-dessus combinés
+
+### `--timeout-min` — bornes
+
+- Défaut : `60` minutes — couvre la review d'une phase v2.x typique (≈ 30-50 fichiers)
+- Maximum : `120` minutes — au-delà, **chunker** explicitement (voir ci-dessous)
+- En dessous de `60 × 0.7 = 42` minutes pour un scope > 50 fichiers, l'agent doit chunker
+
+### `--exclude` — usage
+
+Multi-valued. Chaque occurrence ajoute un pattern à la liste d'exclusion.
+
+```
+/gsd-code-review --scope=php --exclude=**/Repository/Traits/** --exclude=**/legacy/**
+```
+
+## Pattern de chunking (anti-timeout)
+
+Si le scope dépasse l'un de ces seuils :
+
+- **> 50 fichiers**
+- **> 500 KB de code total** (somme des tailles des fichiers in-scope)
+- **> `timeout-min × 0.7`** (estimation pessimiste — anticipe les overruns)
+
+L'agent **doit splitter** en 2 ou 3 chunks séquentiels :
+
+1. Calculer la taille totale (`wc -c $(find ... )`) et le nombre de fichiers
+2. Découper en N chunks (2 ou 3) de taille équivalente, en regroupant par dossier quand possible (cohérence de revue)
+3. Pour chaque chunk : produire un REVIEW partiel, écrire un checkpoint JSON dans `.planning/.review-progress.json` (clés : `chunk_index`, `files_reviewed`, `findings_count`, `next_chunk_files`)
+4. Si un chunk échoue (timeout, erreur), les chunks précédents restent valides et leurs findings écrits dans REVIEW.md sont préservés
+5. À la fin, agréger tous les findings dans un unique REVIEW.md final, en concaténant les sections par sévérité (Critical, Warning, Info)
+
+**Important** : le checkpoint JSON est nettoyé une fois la review complète (delete `.planning/.review-progress.json`).
+
+## Exemples d'invocation
+
+```
+# Review JS uniquement avec timeout serré
+/gsd:code-review --scope=js --timeout-min=30
+
+# Review PHP complète, en excluant les traits Repository
+/gsd:code-review --scope=php --exclude=**/Repository/Traits/**
+
+# Review complète d'une phase, timeout étendu
+/gsd:code-review --scope=all --timeout-min=120
+
+# Review tests seulement
+/gsd:code-review --scope=tests
+```
+
+## Liens
+
+- [`.planning/codebase/EXPLORE-PATTERNS.md`](../../.planning/codebase/EXPLORE-PATTERNS.md) — patterns de scan codebase (anti-BEM-substring) utilisés en complément de la review
+- [`tests/e2e/README.md`](../../tests/e2e/README.md) — README e2e qui référence cet agent

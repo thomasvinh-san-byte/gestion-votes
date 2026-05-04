@@ -1,0 +1,92 @@
+/*
+ * ag-shortcuts-overlay.css — Overlay d'aide des raccourcis clavier (cockpit opérateur).
+ *
+ * Activé par operator-keybindings.js sur la touche '?'. Markup créé dynamiquement,
+ * id = #agShortcutsOverlay, structure BEM (ag-shortcuts-overlay__card / __title /
+ * __list / __close).
+ *
+ * Tokens utilisés (avec fallbacks défensifs) :
+ *   --surface-base       (fallback #fff)            — fond de la carte + bouton
+ *   --surface-sunken                                — fond des <kbd> et hover bouton
+ *   --color-text                                    — texte principal
+ *   --color-text-muted                              — descriptions <dd>
+ *   --color-border                                  — bordures <kbd> et bouton
+ *   --radius-base        (fallback 8px)             — rayon carte + bouton
+ *   --shadow-lg                                     — ombre portée carte
+ *   --font-mono                                     — police des touches <kbd>
+ *
+ * Aucune règle de priorité forcée. Pas de préfixes vendeur. Pas de hex en dur sauf le scrim rgba()
+ * du backdrop (impossible de faire un scrim semi-transparent sans canal alpha explicite).
+ */
+
+.ag-shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1rem;
+}
+
+.ag-shortcuts-overlay[hidden] {
+  display: none;
+}
+
+.ag-shortcuts-overlay__card {
+  background: var(--surface-base, #fff);
+  color: var(--color-text);
+  border-radius: var(--radius-base, 8px);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem 2rem;
+  max-width: 480px;
+  width: 100%;
+}
+
+.ag-shortcuts-overlay__title {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.ag-shortcuts-overlay__list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0 0 1.25rem;
+}
+
+.ag-shortcuts-overlay__list dt {
+  font-family: var(--font-mono);
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ag-shortcuts-overlay__list dd {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.ag-shortcuts-overlay__list kbd {
+  font-family: var(--font-mono);
+  background: var(--surface-sunken);
+  border: var(--border-default);
+  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.8125rem;
+}
+
+.ag-shortcuts-overlay__close {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: var(--border-default);
+  background: var(--surface-base);
+  border-radius: var(--radius-base, 8px);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ag-shortcuts-overlay__close:hover {
+  background: var(--surface-sunken);
+}

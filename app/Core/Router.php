@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Core;
 
 use AgVote\Core\Http\ApiResponseException;
+use AgVote\Core\Middleware\EnvGuardMiddleware;
 use AgVote\Core\Middleware\MiddlewareInterface;
 use AgVote\Core\Middleware\RateLimitGuard;
 use AgVote\Core\Middleware\RoleMiddleware;
@@ -269,6 +270,15 @@ final class Router {
      */
     private static function buildMiddleware(array $config): array {
         $middlewares = [];
+
+        // env_guard runs FIRST so dev-only endpoints return 404 in production
+        // before any auth/role/rate-limit logic kicks in.
+        if (isset($config['env_guard'])) {
+            $allowed = is_array($config['env_guard'])
+                ? $config['env_guard']
+                : ['development', 'dev', 'test', 'testing', 'demo'];
+            $middlewares[] = new EnvGuardMiddleware($allowed);
+        }
 
         if (isset($config['role'])) {
             $middlewares[] = new RoleMiddleware($config['role']);

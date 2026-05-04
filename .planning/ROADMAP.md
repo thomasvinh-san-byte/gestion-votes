@@ -15,7 +15,8 @@
 - ✅ **v2.0 Operateur Live UX** - Phases 1-4 (shipped 2026-04-29) — see `.planning/milestones/v2.0-ROADMAP.md`
 - ✅ **v2.1 Hardening Sécurité** - Phases 1-6 (shipped 2026-04-29) — see `.planning/milestones/v2.1-REQUIREMENTS.md` — 21 contremesures F02-F22
 - ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
-- 🚧 **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (planning, 29 requirements après revue UX) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, screenshot panel gate
+- ✅ **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (PR #259 ouvert 2026-05-04, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, + quick task TECH-01 (234 borders consolidées, 6 nouveaux tokens) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
+- 🚧 **v2.4 Polish & Robustness** - Phases 1-4 (planning, 12 requirements, démarre post-merge PR #259) — cockpit declutter ≤25 boutons + persona color confinement, error observability (business_error → codes ciblés + race conditions empty-state idempotency), test infrastructure (seed-meeting helper, code-reviewer scope splits, Playwright dual-install fix), print + tech debt residuel (dompdf header + ~140 borders + ~45 shadows tokens ≥95 %)
 
 ## Phases
 
@@ -218,7 +219,7 @@ See `.planning/REQUIREMENTS.md` (will be archived to v2.2-REQUIREMENTS.md when v
 
 </details>
 
-### 🚧 v2.3 Layout Refonte & UX Polish (Planning)
+### ✅ v2.3 Layout Refonte & UX Polish (Shipped — PR #259, gates pending dev machine)
 
 **Milestone Goal:** Compléter la refonte visuelle initiée en v2.2 sur les écrans à plus haute charge émotionnelle (cockpit live opérateur, PV éditorial, dashboard, login), appliquer la convention lexicale unifiée, et résoudre le backlog UX/UI critique (modales focus trap, error messages "et maintenant?"). Test ultime : un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
 
@@ -256,34 +257,45 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   5. Raccourcis clavier actifs sur la vue exécution : `L` lance le vote actif, `F` ferme le scrutin actif, `→` ou `N` passe à la résolution suivante, `?` affiche un overlay des raccourcis. Désactivés dans les inputs/textareas/contenteditable.
   6. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright operator-e2e.
 
+**Plans:** 4 plans
+- [x] 01.1-PLAN.md — Custom element <ag-health-bar> + stylesheet (states, pulse, responsive) — shipped 2026-04-30 (commits c337607, 8338ff8)
+- [x] 01.2-PLAN.md — Keyboard shortcuts module + overlay (L/F/→/?/Escape) — shipped 2026-04-30 (commits 22f571e, d2a81c2)
+- [x] 01.3-PLAN.md — Wire <ag-health-bar> + keybindings into operator.htmx.html (SSE + at-risk threshold) — shipped 2026-04-30 (commits 5d719cd, 416566e, b61854f)
+- [x] 01.4-PLAN.md — Playwright E2E: health-bar states, keyboard shortcuts, regression check
+
 ### Phase 2: Pages éditoriales
 
 **Goal**: Donner aux pages à valeur de preuve (`/audit`, `/trust`, `/archives`, `/report`) un traitement éditorial qui dégage immédiatement le sérieux légal — police serif Fraunces sur le contenu, largeur de lecture plafonnée, monospace JetBrains Mono pour les hashes/UUID.
 
-**Depends on**: Phase 1 (custom element pattern établi)
-**Requirements**: EDITORIAL-01, EDITORIAL-02, EDITORIAL-03, EDITORIAL-04, EDITORIAL-05, EDITORIAL-06, EDITORIAL-07
+**Depends on**: Phase 1 (custom element pattern établi) + quick task TECH-01 (consolidation shadows/borders) **livrée avant le démarrage de Phase 2**
+**Requirements**: EDITORIAL-01, EDITORIAL-02, EDITORIAL-03, EDITORIAL-04, EDITORIAL-05, EDITORIAL-06, EDITORIAL-07, EDITORIAL-08, EDITORIAL-09
 **Success Criteria** (what must be TRUE):
-  1. Les 4 pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) wrappent leur contenu dans `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6.
-  2. Les contrôles UI (boutons, filtres, dropdowns) restent en sans-serif (Bricolage Grotesque) — la dualité serif/sans est un signal fort de "ceci est un document légal".
+  1. Les 4 pages éditoriales (`/audit`, `/trust`, `/archives`, `/report`) wrappent leur contenu dans `.ag-editorial` avec `max-width: 720px`, `font-family: var(--font-display)` (Fraunces), line-height 1.55-1.6. Tous les enfants directs `.ag-editorial > *` sont en `text-align: left` explicite — verrouillé par test (CSS lint ou PHPUnit qui scanne les templates).
+  2. Les contrôles UI (boutons, filtres, dropdowns) restent en sans-serif (Bricolage Grotesque) — la dualité serif/sans est un signal fort de "ceci est un document légal". **Audit livré** des 5 filter tabs sur `/audit` : tabs utilisés <5 % du temps déplacés dans `<details>` "Plus de filtres" (le PLAN.md nomme les tabs retenus en avant et ceux pliés).
   3. Les hashes audit, UUID de motions, codes de vote affichés utilisent `var(--font-mono)` (JetBrains Mono).
   4. Les numéros de résolution dans le PV apparaissent en pill `--radius-pill` monospace **uniquement en en-tête de section, en liste, ou en tableau** ; inline en flux serif, ils restent en mono sans pill (le pill casserait le rythme de lecture).
   5. Le hash d'intégrité du PV est affiché en bas du document avec un lien "Vérifier l'intégrité" qui ouvre un modal. Le modal commence par un préambule pédagogique en français ("Voici la preuve que ce PV n'a pas été modifié depuis le [date]. Chaque ligne ci-dessous est un sceau cryptographique reliant la précédente — modifier une seule virgule briserait la chaîne.") avant d'afficher la chaîne de hash audit_events.
   6. Sous 768px, la largeur 720px passe à 100% width avec padding latéral — pas de scroll horizontal.
   7. `@media print` actif sur les 4 pages éditoriales : contrôles UI masqués (boutons, filtres, sidebar), `page-break-inside: avoid` sur les blocs résolution/hash, en-tête répété (titre séance + date) et numéro de page en footer. Imprimé en N&B reste lisible sans dépendre du contraste couleur.
+  8. Le wrapper `.ag-editorial` utilise **`display: grid`** (pas flex) pour structurer la colonne contenu (max-width 720px) et une colonne sidebar (hash d'intégrité + méta + nav interne) sur viewport ≥ 1024px ; collapse vertical sous 1024px.
+  9. **0 padding/margin hardcodés** dans `public/assets/css/audit.css` après Phase 2 (et tout autre CSS touché par `.ag-editorial`) — `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/audit.css` retourne 0. Tous via tokens.
 
 ### Phase 3: Layouts secondaires
 
 **Goal**: Simplifier le dashboard pour qu'il livre l'info principale en un coup d'œil, et alléger la page de login de son orbe animé + de son surplus marketing pour faire de la place au formulaire.
 
-**Depends on**: Nothing (peut paralléliser avec Phase 1-2)
-**Requirements**: DASHBOARD-01, DASHBOARD-02, DASHBOARD-03, DASHBOARD-04, LOGIN-01, LOGIN-02
+**Depends on**: Quick task TECH-01 (consolidation shadows/borders) **livrée** avant Phase 3
+**Requirements**: DASHBOARD-01, DASHBOARD-02, DASHBOARD-03, DASHBOARD-04, DASHBOARD-05, DASHBOARD-06, LOGIN-01, LOGIN-02, LOGIN-03
 **Success Criteria** (what must be TRUE):
   1. Le dashboard affiche au plus 3 KPI cards (au lieu de 4). Le PLAN.md de la phase nomme explicitement le KPI supprimé et justifie pourquoi il a la moindre charge décisionnelle. Le KPI déposé est intégré ailleurs (lien vers `/analytics`) — aucune information perdue.
   2. La hero card pleine largeur affiche **3 états distincts** d'imminence : *ambient* (séance dans <60min, >5min, action "Préparer"), *urgent* (séance dans <5min, accent warning, action "Démarrer maintenant"), *live* (séance en cours, accent danger pulse, action "Reprendre"). Aucune hero card si >60min.
   3. Les actions rapides (Créer séance, Importer membres, etc.) sont reléguées en bas du dashboard avec `--surface-sunken` background.
   4. **Empty state** quand aucune séance prévue ni récente (<30j) : message centré "Aucune séance prévue. Créez-en une pour commencer." + CTA primaire vers `/seances/nouvelle`. Pas d'illustration décorative.
-  5. La page `/login.html` ne contient plus l'orbe animé (suppression de `.login-orb` et de la radial-gradient associée).
-  6. Le panel brand login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — ratio 50/50 ou 40/60 form-dominant.
+  5. **Audit + groupement des 15 shortcut-cards** : top 5 utilisés en avant en grille principale, le reste replié derrière un disclosure "Toutes les actions" ou groupé par persona. Le PLAN.md nomme les 5 retenues et justifie leur priorité.
+  6. **Layout dashboard via `display: grid`** : hero card pleine largeur + grille KPI 3 colonnes (`grid-template-columns: repeat(3, 1fr)` ou équivalent). Plus de `flex-basis` hacks pour aligner les KPI.
+  7. La page `/login.html` ne contient plus l'orbe animé (suppression de `.login-orb` et de la radial-gradient associée) **ni le pattern de fond `login-brand-grid`**. Le `login-brand-glow` radial atténué peut rester comme single subtle gradient.
+  8. Le panel brand login passe de "logo + tagline + 3 features" à "logo + tagline + 1 bénéfice" — ratio 50/50 ou 40/60 form-dominant.
+  9. **0 padding/margin hardcodés** dans `public/assets/css/login.css` et `public/assets/css/pages.css` après Phase 3 — `grep -cE "(padding|margin):\s+[0-9]+" public/assets/css/login.css public/assets/css/pages.css` retourne 0/0. Tous via tokens.
 
 ### Phase 4: Lexique + UX critique
 
@@ -303,68 +315,128 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 
 </details>
 
+### 🚧 v2.4 Polish & Robustness (Planning)
+
+**Milestone Goal:** Consolider la fiabilité production post-v2.3 — éliminer les frictions toolchain identifiées (test infra dual-install, code-reviewer timeout sur 33 fichiers), refactorer les codes d'erreur génériques en codes ciblés observables (`business_error` → 3 codes spécifiques), et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée (≤25 boutons visibles, palette danger confinée à l'urgence).
+
+**Scope:** Polish UI ciblé + observability + tooling. Zéro logique métier nouvelle. Sécurité backend (SEC-V2-01..03) déférée milestone v2.5 dédié. Mobile-first opérateur + animations design-system déférés v2.6+.
+
+**Strategy:** 4 phases. P1+P2 parallélisables (zones disjointes : cockpit JS/CSS vs services PHP). P3 prérequis avant v2.5 (pentest sans friction). P4 opportuniste, peut chevaucher P1-P3.
+
+**Source des requirements** : `.planning/v2.4-BACKLOG-PLAN.md` — tri thématique des 17 entrées backlog v2.3.
+
+## Phase Details (v2.4)
+
+### Phase 1: Cockpit Polish & Hygiène
+
+**Goal**: Atteindre une charge cognitive opérateur maîtrisée — réduire de ~70 à ≤25 le nombre de boutons/éléments cliquables visibles simultanément dans le cockpit, et confiner la palette rouge danger aux états critiques uniquement (jamais décoratif sur sidebar/nav/présence).
+
+**Depends on**: v2.3 mergée (PR #259)
+**Requirements**: COCKPIT-V24-01, COCKPIT-V24-02
+**Success Criteria** (what must be TRUE):
+  1. Le cockpit opérateur en mode `exec` affiche **≤25 boutons / éléments cliquables visibles simultanément** sur viewport ≥1024px. Le PLAN.md identifie chaque bouton actuel (~70), propose un regroupement (panel rétractable, persona-scoped, contextual-only), et justifie quels sont conservés en avant. Audit avant/après livré.
+  2. Le rouge `--color-danger` / `--color-danger-subtle` apparaît **uniquement** dans des états critiques (quorum perdu animé, vote raté, hero card live). Sidebar opérateur, nav, indicateurs de présence/connexion utilisent une palette neutre ou success. Audit grep livré dans le PLAN.md identifiant tous les call-sites actuels et leur traitement (gardé / migré / supprimé).
+  3. Aucune régression sur les flows existants (lancer vote, fermer scrutin, passer motion) — vérifié par les tests Playwright `cockpit-keyboard-shortcuts.spec.js` et `critical-path-operator.spec.js`.
+
+### Phase 2: Error Observability & Resilience
+
+**Goal**: Le code générique `business_error` est remplacé par 3 codes spécifiques (couvrant les 3 cas d'usage documentés en 04.6-AUDIT.md), les empty-states avec rafale d'événements SSE prévient les double-render via guards d'idempotence, et `Logger::error()` est enrichi avec contexte standardisé (`request_id`, `user_id`, `tenant_id`, `error_code`, `caller`) sur tous les call-sites identifiés.
+
+**Depends on**: v2.3 mergée (parallélisable avec P1)
+**Requirements**: ERR-V24-01, ERR-V24-02, ERR-V24-03
+**Success Criteria** (what must be TRUE):
+  1. `business_error` reste émis < 5 % des erreurs en prod (mesure via grep logs ou dashboard). Les 3 codes spécifiques sont définis dans `app/Services/ErrorDictionary.php` avec next-step conforme à v2.3 ERR-02. Tous les callers `business_error` migrés.
+  2. Test E2E reproductible avec injection synthétique de 5 events SSE en 100ms : modal d'intégrité ne re-render pas (debounce ≥250ms ou state-machine `idle | rendering | rendered`). Idem pour dashboard hero card live.
+  3. `Logger::error()` accepte un context array standardisé. Les 50+ call-sites identifiés par audit grep sont migrés. Un dashboard simple (page admin ou commande CLI) affiche le **taux d'utilisation du next-step ErrorDictionary** par code — métrique pour valider Phase 4 v2.3 ERR-02 en production.
+
+### Phase 3: Test Infrastructure
+
+**Goal**: Toolchain sans friction — un nouveau contributeur passe d'un clone à `green tests run` en <30 min. `gsd-code-reviewer` peut auditer 50+ fichiers sans timeout. Le pattern "Explore scan anti-BEM-substring" est documenté pour éviter les faux-positifs (cf. Phase 3 v2.3 Schoger S-8).
+
+**Depends on**: v2.3 mergée (prérequis pour milestone v2.5 sécurité — pentest sans friction Playwright)
+**Requirements**: TEST-V24-01, TEST-V24-02, TEST-V24-03, TEST-V24-04, TEST-V24-05
+**Success Criteria** (what must be TRUE):
+  1. `tests/e2e/helpers/seed-meeting.js` est implémenté avec signature `seedMeeting({tenantId, status, motionsCount}) → meetingId` et active le test `@integration` F-4 (`modal-focus-trap.spec.js`) précédemment skippé. Test passe en CI dev.
+  2. `gsd-code-reviewer` accepte `--scope=js|php|tests|all` et `--timeout-min=N` (défaut 60). Vérifié via review v2.4 sur 50+ fichiers sans timeout. Documentation à jour.
+  3. Dual-install Playwright résolu : un seul `package.json` source de vérité (`tests/e2e/`), root supprimé ou stub minimal. README dual-install supprimé.
+  4. `tests/e2e/README.md` documente install + browsers + auth-setup rate-limit + procédures debug. Vérifié par walkthrough fresh-clone (≤30 min jusqu'au premier test vert).
+  5. `.planning/codebase/EXPLORE-PATTERNS.md` documente le pattern de scan anti-BEM-substring avec 3 anti-patterns concrets et exemple correct.
+
+### Phase 4: Print + Tech Debt residuel
+
+**Goal**: L'export PDF (dompdf) gagne un header répété + footer pagination sur tous les PVs. Les ~140 borders et ~45 shadows hardcoded restantes (cas BASSE confiance reportés depuis TECH-01 quick) sont migrées vers tokens ; ratio ≥95 %.
+
+**Depends on**: v2.3 mergée (opportuniste, peut chevaucher P1-P3)
+**Requirements**: TECH-V24-01, TECH-V24-02
+**Success Criteria** (what must be TRUE):
+  1. Génération PDF (`ProcurationPdfService` + `MeetingReportsService` si applicable) produit un header répété sur chaque page (titre séance + date) et un footer numéro de page. Vérifié visuellement sur 3 PVs longs (≥10 pages).
+  2. `grep -cE "(border|box-shadow):\s+[0-9]+|#[0-9a-f]{3,6}" public/assets/css/` ratio tokens vs hardcoded ≥95 %. Liste produite des residuels et migrations livrées en atomic commits per fichier.
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Design Tokens | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 2. Components | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 3. Personas | v2.2 | 1/1 | ✓ In PR #256 | - |
+| 4. Layout & Lexique (partial) | v2.2 | 1/1 | ⚠ Partial in PR #256 | - |
+| 1. Cockpit Opérateur live | v2.3 | 4/4 | ✓ Complete (Playwright manual) | 2026-04-30 |
+| 2. Pages éditoriales | v2.3 | 6/6 | ✓ Complete | 2026-04-30 |
+| 3. Layouts secondaires | v2.3 | 5/5 | ✓ Complete | 2026-04-30 |
+| 4. Lexique + UX critique | v2.3 | 6/6 | ✓ Complete (Playwright + screenshot panel manual followups) | 2026-04-30 |
+| 1. Cockpit Polish & Hygiène | v2.4 | 0/0 | ○ Planning (post-merge PR #259) | - |
+| 2. Error Observability | v2.4 | 0/0 | ○ Planning | - |
+| 3. Test Infrastructure | v2.4 | 0/0 | ○ Planning | - |
+| 4. Print + Tech Debt residuel | v2.4 | 0/0 | ○ Planning | - |
+
 ---
 
 ## Milestone v2.5 — Real-time Live Cockpit + Logger Migration
 
 **Defined:** 2026-05-04 — sourced from `.planning/v2.4-MILESTONE-AUDIT.md` tech_debt frontmatter (12 items deferred).
 
-**Milestone Goal:** Boucler les items differred du milestone v2.4 — donner au cockpit operator un signal SSE temps réel autonome, migrer la dette `error_log()` legacy vers `Logger::errorContext()`, et instrumenter une vraie source `error_events` pour `/admin/error-stats`.
+**Milestone Goal:** Boucler les items deferred du milestone v2.4 — donner au cockpit operator un signal SSE temps réel autonome, migrer la dette `error_log()` legacy vers `Logger::*`, et instrumenter une vraie source `error_events` pour `/admin/error-stats`.
 
-**Strategy:** 3 phases continuant la numérotation depuis v2.3 (5, 6, 7). Aucune nouvelle dépendance.
+**Strategy:** 3 phases continuant la numérotation depuis v2.4 (5, 6, 7). Aucune nouvelle dépendance.
 
 ### Phase 5: SSE Live Pulse
 
-**Goal:** Émettre un `meeting.heartbeat` SSE toutes les 10s avec snapshot quorum + status + presence, et câbler le frontend cockpit operator pour rafraîchir les éléments live sans dépendre d'un dispatch d'event explicite.
+**Goal:** Émettre `meeting.heartbeat` SSE 10s avec snapshot quorum + status + presence ; câbler frontend cockpit operator.
 
-**Depends on:** v2.4 (PR #260) — l'utility `AgSseDebounce.create()` existe et le hero card live attend ce signal
+**Depends on:** v2.4 (PR #260 merged)
 **Requirements:** HEARTBEAT-V25-01, HEARTBEAT-V25-02, HEARTBEAT-V25-03, HEARTBEAT-V25-04
-**Success Criteria:**
-  1. `public/api/v1/events.php` émet `meeting.heartbeat` event SSE toutes les 10s pendant la connexion long-poll. Payload contient `meeting_id`, `server_time`, `status`, `validated_at`, `quorum {applied, met, present_members, eligible_members, present_weight, eligible_weight}`, `operator_count`. Sub-queries try/catch isolées. *Critère partiellement satisfait — commit `02179ea`.*
-  2. `event-stream.js` whitelist inclut `meeting.heartbeat`. `operator-realtime.js` dispatche vers `applyHeartbeat(data)` qui hash le payload et skip DOM repaint si identique. *Critère partiellement satisfait — commit `02179ea`.*
-  3. PHPUnit `HeartbeatPayloadTest` ≥3 tests GREEN (cas nominal, séance introuvable, redis fail) sur `buildHeartbeatPayload()`.
-  4. Playwright `sse-heartbeat.spec.js` valide réception d'≥1 event `meeting.heartbeat` après 12s de connexion + DOM `quorumStatusBadge` reflète le payload.
+**Status:** ◆ Code done (commit `02179ea`), tests deferred per stop-tests directive
 
 ### Phase 6: Logger Migration & Error Tracking
 
-**Goal:** Migrer 47 sites `error_log()` legacy vers `Logger::errorContext()`, créer la table `error_events` qui capture chaque `api_fail()` côté serveur, recâbler `/admin/error-stats` sur cette source, et instrumenter le tracking next-step ErrorDictionary.
+**Goal:** Migrer 47 sites `error_log()` legacy ; créer `error_events` table qui capture chaque `api_fail()` ; recâbler `/admin/error-stats` ; instrumenter tracking next-step.
 
-**Depends on:** v2.4 (PR #260) — `Logger::errorContext()` helper et page `/admin/error-stats` existent (filtrent actuellement audit_events avec banner limitation)
+**Depends on:** v2.4 (PR #260 merged)
 **Requirements:** LOG-V25-01, LOG-V25-02, LOG-V25-03, LOG-V25-04
-**Success Criteria:**
-  1. `grep -rn "error_log(" app/ public/api/` retourne 0 résultat (hors `app/Core/Logger.php`). Audit produit `06-logger-migration/AUDIT.md` figeant la liste cible avant migration. Atomic commit per fichier migré.
-  2. Table `error_events` créée par migration SQL versionnée, RLS tenant_id en place. `api_fail()` enrichi pour insérer une row à chaque retour erreur (insert direct ou async via Logger queue). Tests : `ErrorEventsRepositoryTest` (3 cas) + `ApiFailCaptureTest` (3 codes émis → 3 rows persistées + tenant isolation).
-  3. `/admin/error-stats` consomme `error_events` (banner "limitation 6 actions audit-flavored" retiré). Page affiche top 10 codes 7j + courbe émission par heure + drill-down par tenant. RBAC admin préservé. `AdminErrorStatsControllerTest` 4 cas GREEN.
-  4. Endpoint `POST /api/v1/metrics/next-step-clicked` avec rate-limit + CSRF. ErrorDictionary suggestions HTMX émettent beacon. `/admin/error-stats` affiche % clic / ignorance par code.
+**Status:** ✓ Complete (4/4 reqs done)
 
 ### Phase 7: Cockpit Polish résiduel
 
-**Goal:** Boucler les 2 caveats v2.4 sur le cockpit operator — sub-tab Avancé qui peut faire passer la barre des 25 cliquables, et audit des 49 tokens 1-site introduits par le push 95%→100% borders/shadows.
+**Goal:** Boucler les 2 caveats v2.4 — sub-tab Avancé ≤25 cliquables strict + audit 49 tokens 1-site.
 
-**Depends on:** v2.4 (PR #260) — sub-tab Avancé et tokens 1-site existent uniquement post-merge
+**Depends on:** v2.4 (PR #260 merged)
 **Requirements:** COCKPIT-V25-01, TOKENS-V25-01
-**Success Criteria:**
-  1. Spec Playwright `cockpit-button-count.spec.js` étendu d'1 cas (sub-tab Avancé activé) → toujours ≤25 cliquables visibles. Fix typique 1-line CSS dans `operator.css`.
-  2. Audit document `.planning/v2.5-TOKENS-AUDIT.md` examine 49 tokens 1-site (liste figée v2.4 P4.3), classe chacun en *keep* (valeur unique légitime, par ex. animation-keyframe spécifique) ou *consolidate* (rapprocher d'un token existant + migrer le call-site avec atomic commit). Compte final tokens 1-site < 30.
+**Status:** ⏸ Pending
+
+### Bonus — SEC-V2-01 closeout
+
+**Goal:** Éliminer le footgun `tenantId = ''` default dans le repository layer.
+
+**Requirements:** SEC-V2-01, SEC-V2-01-extended
+**Status:** ✓ Complete (27 method signatures hardened across 11 repos)
 
 ---
 
-## Progress
+### v2.5 Progress
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Design Tokens | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
-| 2. Components | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
-| 3. Personas | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
-| 4. Layout & Lexique (partial) | v2.2 | 1/1 | ✓ Merged PR #256 | 2026-04-29 |
-| 1. Cockpit Opérateur live | v2.3 | 4/4 | ✓ Shipped PR #259 | 2026-05-03 |
-| 2. Pages éditoriales | v2.3 | 6/6 | ✓ Shipped PR #259 | 2026-05-03 |
-| 3. Layouts secondaires | v2.3 | 5/5 | ✓ Shipped PR #259 | 2026-05-03 |
-| 4. Lexique + UX critique | v2.3 | 6/6 | ✓ Shipped PR #259 | 2026-05-03 |
-| 1. Cockpit Polish & Hygiène | v2.4 | 2/2 | ✓ Shipped PR #260 | 2026-05-04 |
-| 2. Error Observability | v2.4 | 3/3 | ✓ Shipped PR #260 | 2026-05-04 |
-| 3. Test Infrastructure | v2.4 | 2/2 | ✓ Shipped PR #260 | 2026-05-04 |
-| 4. Print + Tech Debt résiduel | v2.4 | 3/3 | ✓ Shipped PR #260 | 2026-05-04 |
-| 5. SSE Live Pulse | v2.5 | 2/4 | ◆ Code done, tests deferred (user stop-tests directive) | - |
-| 6. Logger Migration & Error Tracking | v2.5 | 4/4 | ✓ Complete | 2026-05-04 |
-| 7. Cockpit Polish résiduel | v2.5 | 0/2 | ⚠ Blocked — depends on v2.4 PR #260 merge | - |
+| Phase | Plans | Status | Completed |
+|---|---|---|---|
+| 5. SSE Live Pulse | 2/4 | ◆ Code done, tests deferred | 2026-05-04 (partial) |
+| 6. Logger Migration & Error Tracking | 4/4 | ✓ Complete | 2026-05-04 |
+| 7. Cockpit Polish résiduel | 0/2 | ⏸ Pending | - |
+| Bonus SEC-V2-01 | 2/2 | ✓ Complete | 2026-05-04 |

@@ -88,7 +88,7 @@
   justify-content: space-between;
   padding: 4px 12px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border-soft, var(--color-border));
+  border: var(--border-soft);
   border-radius: 10px;
   margin: 8px 12px 0;
   flex-shrink: 0;
@@ -115,7 +115,7 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   flex-shrink: 0;
 }
 
@@ -175,7 +175,7 @@
   padding: 0.75rem 1.25rem;
   margin-bottom: 1rem;
   background: linear-gradient(135deg, var(--color-success-subtle) 0%, var(--color-surface) 100%);
-  border: 2px solid var(--color-success);
+  border: var(--border-emphasis-success);
   border-radius: 12px;
   animation: speakerFadeIn 0.3s ease-out;
 }
@@ -231,7 +231,7 @@
   font-size: var(--text-xl);
   color: var(--color-text);
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   padding: 0.25rem 0.75rem;
   border-radius: 8px;
   white-space: nowrap;
@@ -266,7 +266,7 @@
 
 .speech-panel {
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   border-radius: 16px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
@@ -304,7 +304,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  border: 3px solid var(--color-border);
+  border: var(--border-thick-3);
   background: var(--color-bg-subtle);
   cursor: pointer;
   transition: transform var(--duration-fast), background-color var(--duration-normal), border-color var(--duration-normal), box-shadow var(--duration-normal);
@@ -437,7 +437,7 @@
 
 .motion-card {
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 1rem;
@@ -507,7 +507,7 @@
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
   border-radius: 100px;
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   background: var(--color-surface);
   font-size: var(--text-sm);
   font-weight: 800;
@@ -572,7 +572,7 @@
 
 /* Resolution details (collapsible) */
 .reso-details {
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: 12px;
   padding: 0.625rem 0.875rem;
   background: var(--color-surface);
@@ -619,7 +619,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   border-radius: 12px;
   overflow: hidden;
   background: var(--color-surface);
@@ -816,7 +816,7 @@
   right: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
-  border: 2px solid color-mix(in oklch, var(--color-text-inverse) 30%, transparent);
+  border: var(--border-emphasis-text-inverse-alpha-30);
   font-size: 0.6875rem;
   font-weight: 800;
   color: color-mix(in oklch, var(--color-text-inverse) 60%, transparent);
@@ -918,7 +918,7 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-success);
+  border: var(--border-emphasis-success);
   background: var(--color-success-subtle);
   color: var(--color-success);
   font-size: var(--text-sm);
@@ -968,7 +968,7 @@
   justify-content: space-between;
   padding: 1rem 1.5rem;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   flex-shrink: 0;
 }
 
@@ -1013,7 +1013,7 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: 100px;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--color-surface);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -1055,7 +1055,7 @@
   align-items: stretch;
   justify-content: space-around;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   flex-shrink: 0;
   padding: 0;
   padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -1149,7 +1149,7 @@
 .confirm-sheet {
   width: min(680px, 100%);
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   border-radius: 16px;
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -1175,7 +1175,7 @@
 }
 
 .confirm-box {
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: 12px;
   padding: 0.875rem;
   display: grid;
@@ -1204,7 +1204,7 @@
   padding: 0.625rem 1rem;
   margin: 0 1rem;
   background: var(--color-warning-bg-8);
-  border: 1px solid var(--color-warning-border-25);
+  border: var(--border-warning-alpha-25);
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -1487,8 +1487,8 @@
     background: var(--color-bg-subtle);
   }
   .vote-app {
-    border-left: 1px solid var(--color-border);
-    border-right: 1px solid var(--color-border);
+    border-left: var(--border-default);
+    border-right: var(--border-default);
     box-shadow: var(--shadow-sm);
   }
 }
@@ -1501,7 +1501,7 @@
   gap: 6px;
   padding: 0.5rem 1rem;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: var(--border-subtle);
   flex-shrink: 0;
 }
 
@@ -1520,7 +1520,7 @@
 .vote-dot.active {
   background: var(--color-primary);
   transform: scale(1.4);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  box-shadow: var(--shadow-focus-glow);
 }
 
 .vote-dot-counter {
@@ -1563,7 +1563,7 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md, 8px);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -1738,7 +1738,7 @@
 
 /* Selected button ring (applied by JS after tap) */
 .vote-btn-selected {
-  box-shadow: 0 0 0 3px var(--color-primary) !important;
+  box-shadow: var(--shadow-ring-3px-primary-strong) !important;
 }
 
 /* =============================================================================
@@ -1970,7 +1970,7 @@
   background: var(--color-surface);
   border-radius: var(--radius-base, 8px);
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
 }
 
 .blocked-overlay-icon {

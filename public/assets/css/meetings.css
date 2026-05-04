@@ -26,7 +26,7 @@
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
   background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary-border, var(--color-border));
+  border: var(--border-default);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
   position: relative;
@@ -93,7 +93,7 @@
 .filter-pill {
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full, 999px);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: var(--text-sm, 0.875rem);
@@ -167,7 +167,7 @@
 /* ─── View toggle button group ─── */
 .view-toggle {
   display: flex;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md, 8px);
   overflow: hidden;
 }
@@ -218,7 +218,7 @@
   border-radius: var(--radius-full);
   background: var(--color-neutral-subtle, var(--color-bg-subtle));
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   font-weight: var(--font-semibold, 600);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -326,7 +326,7 @@
 .type-chip-label {
   display: inline-block;
   padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-full);
   font-size: var(--text-xs, 0.75rem);
   font-weight: var(--font-medium, 500);
@@ -367,7 +367,7 @@
   gap: var(--space-2);
   margin-top: var(--space-3);
   padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-default);
   flex-wrap: wrap;
 }
 
@@ -382,7 +382,7 @@
 .calendar-container.active {
   display: block;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg, 12px);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -393,7 +393,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-default);
   background: var(--color-surface-raised, var(--color-surface));
 }
 
@@ -409,7 +409,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-md, 8px);
   background: var(--color-surface);
   cursor: pointer;
@@ -467,7 +467,7 @@
 
 .calendar-day.today {
   background: var(--color-primary-subtle);
-  box-shadow: inset 0 0 0 2px var(--color-primary);
+  box-shadow: var(--shadow-ring-inset-2px-primary);
 }
 
 .calendar-day-num {
@@ -518,7 +518,7 @@
 .calendar-day-popover {
   position: absolute;
   background: var(--color-surface-raised, var(--color-surface));
-  border: 1px solid var(--color-border);
+  border: var(--border-default);
   border-radius: var(--radius-lg, 12px);
   padding: var(--space-2);
   box-shadow: var(--shadow-lg);
