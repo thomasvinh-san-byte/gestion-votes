@@ -93,6 +93,22 @@ final class ErrorEventsRepository extends AbstractRepository {
         ], $rows);
     }
 
+    /**
+     * Storage stats — total rows + oldest event timestamp. Admin-only,
+     * intentionally global (cross-tenant) so the op can see retention pressure.
+     *
+     * @return array{total: int, oldest_at: ?string}
+     */
+    public function storageStats(): array {
+        $row = $this->selectOne(
+            'SELECT COUNT(*) AS total, MIN(occurred_at) AS oldest_at FROM error_events',
+        );
+        return [
+            'total' => (int) ($row['total'] ?? 0),
+            'oldest_at' => $row['oldest_at'] ?? null,
+        ];
+    }
+
     public function totalSince(int $hours = 168, ?string $tenantId = null): int {
         $sql = 'SELECT COUNT(*) FROM error_events WHERE occurred_at >= NOW() - (:hours || \' hours\')::interval';
         $params = [':hours' => (string) $hours];

@@ -61,6 +61,7 @@ final class AdminErrorStatsController extends AbstractController {
             'total' => $repo->totalSince($hours, $tenantFilter),
             'top_codes' => $topCodes,
             'timeline' => $repo->timelineSince($hours, $tenantFilter),
+            'storage' => $repo->storageStats(),
         ]);
     }
 }
