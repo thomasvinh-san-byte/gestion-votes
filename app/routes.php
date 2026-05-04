@@ -24,6 +24,7 @@ declare(strict_types=1);
  */
 
 use AgVote\Controller\AdminController;
+use AgVote\Controller\AdminErrorStatsController;
 use AgVote\Controller\AgendaController;
 use AgVote\Controller\AnalyticsController;
 use AgVote\Controller\AttendancesController;
@@ -86,6 +87,7 @@ return function (Router $router): void {
     $rlAdmin = ['role' => 'admin', 'rate_limit' => ['admin_ops', 30, 60]];
     $rlOpAdm = ['role' => ['operator', 'admin', 'president'], 'rate_limit' => ['admin_ops', 30, 60]];
     $router->mapAny("{$prefix}/admin_audit_log", AdminController::class, 'auditLog', $admin);
+    $router->map('GET', "{$prefix}/admin_error_stats", AdminErrorStatsController::class, 'stats', $admin);
     $router->mapAny("{$prefix}/admin_meeting_roles", AdminController::class, 'meetingRoles', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_reset_demo", MeetingWorkflowController::class, 'resetDemo', $rlOpAdm);
     $router->mapAny("{$prefix}/admin_roles", AdminController::class, 'roles', $admin);
@@ -393,7 +395,7 @@ return function (Router $router): void {
     $pageRoutes = [
         'dashboard', 'wizard', 'hub', 'operator', 'postsession',
         'vote', 'validate', 'archives', 'meetings', 'audit', 'members',
-        'users', 'analytics', 'settings', 'admin', 'help',
+        'users', 'analytics', 'settings', 'admin', 'admin-error-stats', 'help',
         'email-templates', 'public', 'report', 'trust', 'docs',
     ];
     foreach ($pageRoutes as $page) {

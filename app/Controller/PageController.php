@@ -21,7 +21,7 @@ final class PageController {
     private const PAGES = [
         'dashboard', 'wizard', 'hub', 'operator', 'postsession',
         'validate', 'archives', 'meetings', 'audit', 'members',
-        'users', 'analytics', 'settings', 'admin', 'help',
+        'users', 'analytics', 'settings', 'admin', 'admin-error-stats', 'help',
         'email-templates', 'public', 'report', 'trust', 'docs',
     ];
 
