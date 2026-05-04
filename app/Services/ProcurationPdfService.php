@@ -35,13 +35,45 @@ final class ProcurationPdfService
 
         $generatedAt = date('d/m/Y à H:i');
 
+        // Build header text for @page @top-center.
+        // D-03: format "[Titre séance] — [JJ/MM/YYYY]" (em-dash U+2014).
+        // The plain (non-HTML-escaped) meeting title is used to compose a CSS
+        // string literal — htmlspecialchars would inject &quot; entities that
+        // dompdf does not decode inside @page content. Instead we apply a
+        // CSS-string-safe escape (backslash-escape " and \) to keep the text
+        // literal while preserving UTF-8 accents (DejaVu Sans renders them).
+        $rawTitle = (string) ($meeting['title'] ?? '');
+        $headerText = $rawTitle !== '' && $scheduledAt
+            ? $rawTitle . ' — ' . $dateFormatted
+            : ($rawTitle !== '' ? $rawTitle : 'Procuration');
+        $headerCss = self::escapeCssString($headerText);
+
         $html = <<<HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <style>
-@page { margin: 2cm; }
+@page {
+    margin-top: 3cm;
+    margin-bottom: 2cm;
+    margin-left: 2cm;
+    margin-right: 2cm;
+    @top-center {
+        content: "{$headerCss}";
+        font-family: "DejaVu Sans", sans-serif;
+        font-size: 9pt;
+        color: #666;
+    }
+    @bottom-center {
+        content: "Page " counter(page) " sur " counter(pages);
+        font-family: "DejaVu Sans", sans-serif;
+        font-size: 9pt;
+        color: #888;
+    }
+}
+/* Preserve page-break rules (v2.3 P2 EDITORIAL-07 compatibility) */
+.legal-box, .signature-table, .info-table { page-break-inside: avoid; }
 body {
     font-family: "DejaVu Sans", Arial, sans-serif;
     font-size: 12pt;
@@ -244,5 +276,21 @@ HTML;
         $dompdf->render();
 
         return (string) $dompdf->output();
+    }
+
+    /**
+     * Escape a string for safe inclusion inside a CSS double-quoted string literal
+     * (e.g. `@page @top-center { content: "..."; }`).
+     *
+     * Backslashes and double-quotes are escaped per CSS spec. Newlines are stripped
+     * (CSS strings cannot contain raw newlines). UTF-8 accents are preserved as-is —
+     * dompdf renders them via the configured DejaVu Sans font.
+     */
+    private static function escapeCssString(string $s): string
+    {
+        $s = str_replace(["\r\n", "\r", "\n"], ' ', $s);
+        $s = str_replace('\\', '\\\\', $s);
+        $s = str_replace('"', '\\"', $s);
+        return $s;
     }
 }
