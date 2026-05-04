@@ -1277,7 +1277,7 @@
   text-decoration: none;
   color: inherit;
   border-radius: var(--radius-lg);
-  border: 1px solid transparent;
+  border: var(--border-transparent);
   transition: var(--transition-ui);
 }
 .shortcut-card:hover {
