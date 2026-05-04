@@ -519,7 +519,7 @@
 .demo-panel {
   padding: var(--space-3) var(--space-4);
   background: var(--color-primary-subtle);
-  border: var(--border-primary-alpha-22);
+  border: var(--border-primary-alpha-25);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
   color: var(--color-text-secondary);
