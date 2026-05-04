@@ -88,7 +88,7 @@
   justify-content: space-between;
   padding: 4px 12px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border-soft, var(--color-border));
+  border: var(--border-soft);
   border-radius: 10px;
   margin: 8px 12px 0;
   flex-shrink: 0;
@@ -304,7 +304,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  border: 3px solid var(--color-border);
+  border: var(--border-thick-3);
   background: var(--color-bg-subtle);
   cursor: pointer;
   transition: transform var(--duration-fast), background-color var(--duration-normal), border-color var(--duration-normal), box-shadow var(--duration-normal);
@@ -1204,7 +1204,7 @@
   padding: 0.625rem 1rem;
   margin: 0 1rem;
   background: var(--color-warning-bg-8);
-  border: 1px solid var(--color-warning-border-25);
+  border: var(--border-warning-alpha-25);
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -1738,7 +1738,7 @@
 
 /* Selected button ring (applied by JS after tap) */
 .vote-btn-selected {
-  box-shadow: 0 0 0 3px var(--color-primary) !important;
+  box-shadow: var(--shadow-ring-3px-primary-strong) !important;
 }
 
 /* =============================================================================
