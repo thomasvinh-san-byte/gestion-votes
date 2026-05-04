@@ -229,6 +229,62 @@ class MeetingReportsServiceTest extends TestCase
     }
 
     // =========================================================================
+    // Test 5: @page header/footer rules in PDF HTML (Plan 04.1 — D-02..D-04)
+    // =========================================================================
+
+    public function testBuildPdfHtmlContainsAtPageWithHeaderAndFooter(): void
+    {
+        $meeting = $this->buildMeeting([
+            'title' => 'AG Annuelle 2026',
+            'scheduled_at' => '2026-04-10 10:00:00',
+        ]);
+        $service = $this->buildService();
+
+        $html = $service->buildPdfHtml(
+            $meeting,
+            [$this->buildAttendance(['full_name' => 'Alice'])],
+            [$this->buildMotion(['title' => 'Résolution 1'])],
+            [],
+            'Association Test',
+            false,
+        );
+
+        // D-02: declarative @page rules present
+        $this->assertStringContainsString('@page', $html);
+        // D-03: header carries titre + em-dash + date JJ/MM/YYYY
+        $this->assertStringContainsString('@top-center', $html);
+        $this->assertStringContainsString('AG Annuelle 2026 — 10/04/2026', $html);
+        // D-04: French pagination via dompdf native counters
+        $this->assertStringContainsString('@bottom-center', $html);
+        $this->assertStringContainsString('counter(page)', $html);
+        $this->assertStringContainsString('counter(pages)', $html);
+        $this->assertStringContainsString('Page " counter(page) " sur " counter(pages)', $html);
+        // v2.3 P2 EDITORIAL-07 compatibility: page-break preservation
+        $this->assertStringContainsString('page-break-inside:avoid', $html);
+    }
+
+    public function testBuildPdfHtmlEscapesQuotesInHeaderTitle(): void
+    {
+        $meeting = $this->buildMeeting([
+            'title' => 'AG "spéciale" 2026',
+            'scheduled_at' => '2026-04-10 10:00:00',
+        ]);
+        $service = $this->buildService();
+
+        $html = $service->buildPdfHtml(
+            $meeting,
+            [$this->buildAttendance()],
+            [$this->buildMotion()],
+            [],
+            'Association Test',
+            false,
+        );
+
+        // Quotes inside the title are backslash-escaped in CSS @top-center { content: "..." }
+        $this->assertStringContainsString('AG \\"spéciale\\" 2026', $html);
+    }
+
+    // =========================================================================
     // HELPER: fixture builders
     // =========================================================================
 

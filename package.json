@@ -2,16 +2,17 @@
   "private": true,
   "name": "ag-vote",
   "version": "1.5.0",
+  "//": "Playwright SOT lives in tests/e2e/package.json — root keeps only ESLint + frontend deps. See tests/e2e/README.md and bin/check-deps.sh (TEST-V24-03 / Plan 03.1).",
   "scripts": {
     "vendor:copy": "cp node_modules/htmx.org/dist/htmx.min.js public/assets/vendor/htmx.min.js && cp node_modules/chart.js/dist/chart.umd.js public/assets/vendor/chart.umd.js",
     "lint": "eslint public/assets/js/ --ignore-pattern 'vendor/'",
     "lint:ci": "eslint public/assets/js/ --ignore-pattern 'vendor/' --max-warnings 360",
     "lint:fix": "eslint public/assets/js/ --ignore-pattern 'vendor/' --fix",
-    "test:e2e": "npx playwright test --config=tests/e2e/playwright.config.js",
-    "test:e2e:chromium": "npx playwright test --config=tests/e2e/playwright.config.js --project=chromium"
+    "test:e2e": "cd tests/e2e && npx playwright test",
+    "test:e2e:chromium": "cd tests/e2e && npx playwright test --project=chromium",
+    "check:deps": "bash bin/check-deps.sh"
   },
   "devDependencies": {
-    "@playwright/test": "1.59.1",
     "eslint": "^9.0.0"
   },
   "dependencies": {

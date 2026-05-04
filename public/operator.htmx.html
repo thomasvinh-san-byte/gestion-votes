@@ -17,6 +17,26 @@
   <meta name="description" content="Console opérateur - AG-VOTE">
   <title>Console opérateur — AG-VOTE</title>
   <script nonce="%%CSP_NONCE%%" src="/assets/js/theme-init.js"></script>
+  <!-- Phase v2.4 / COCKPIT-V24-01 / D-05 sidebar collapse defaults :
+       sur la console opérateur, seuls les groupes "prep" et "live" sont ouverts
+       par défaut. Si l'utilisateur a déjà personnalisé sa sidebar (clé non vide),
+       on respecte sa préférence. Doit s'exécuter AVANT shell.js qui lit cette clé. -->
+  <script nonce="%%CSP_NONCE%%">
+    (function() {
+      try {
+        var KEY = 'ag-vote-sidebar-groups';
+        if (!window.localStorage.getItem(KEY)) {
+          window.localStorage.setItem(KEY, JSON.stringify({
+            prep:  false,
+            live:  false,
+            post:  true,
+            audit: true,
+            admin: true
+          }));
+        }
+      } catch (e) { /* private mode / quota — fallback to default expanded */ }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
@@ -24,6 +44,7 @@
   <link rel="stylesheet" href="/assets/css/operator.css">
   <link rel="stylesheet" href="/assets/css/components/ag-health-bar.css">
   <link rel="stylesheet" href="/assets/css/components/ag-shortcuts-overlay.css">
+  <link rel="stylesheet" href="/assets/css/components/op-action-disclosure.css">
 </head>
 <body>
   <!-- Skip links -->
@@ -62,23 +83,34 @@
       <div class="op-meeting-bar-right">
         <!-- Legacy SSE indicator removed in Phase v2.3 / COCKPIT-01 — the ambient sse-state pill on <ag-health-bar id="opHealthBar"> is now the single SSE state surface. -->
         <span class="op-clock-chip"><strong id="barClock">--:--</strong></span>
-        <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données" aria-label="Actualiser les données">
-          <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
-        </button>
-        <ag-popover trigger="click" position="bottom" width="320">
-          <button slot="trigger" class="tour-trigger-btn" aria-label="Aide sur cette page">
-            <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
-            Aide
-          </button>
-          <div slot="content">
-            <strong>Console opérateur &mdash; Comment ça marche</strong>
-            <ul class="onboarding-tips">
-              <li>Mode Préparation : gérez membres et résolutions</li>
-              <li>Mode Exécution : pilotez les votes en direct</li>
-              <li>Le bouton principal change selon l'état de la séance</li>
-            </ul>
+        <!-- Phase v2.4 / COCKPIT-V24-01 / D-03 — meeting bar : Actualiser + Aide repliés.
+             Aide reste accessible via "Plus d'actions" (toujours visible Tab+Enter). -->
+        <details class="op-action-disclosure" id="opMeetingBarActions">
+          <summary class="op-action-disclosure__trigger" aria-haspopup="menu" aria-label="Plus d'actions de séance">
+            Plus d'actions
+            <span class="op-action-disclosure__count" aria-hidden="true">(0)</span>
+            <svg class="op-action-disclosure__chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <div class="op-action-disclosure__content" role="menu">
+            <button class="btn btn-sm btn-secondary" id="btnBarRefresh" title="Actualiser les données" aria-label="Actualiser les données" role="menuitem">
+              <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-refresh-cw"></use></svg> Actualiser
+            </button>
+            <ag-popover trigger="click" position="bottom" width="320">
+              <button slot="trigger" class="tour-trigger-btn btn btn-sm btn-secondary" aria-label="Aide sur cette page" role="menuitem">
+                <svg class="icon icon-xs" aria-hidden="true"><use href="/assets/icons.svg#icon-help-circle"></use></svg>
+                Aide
+              </button>
+              <div slot="content">
+                <strong>Console opérateur &mdash; Comment ça marche</strong>
+                <ul class="onboarding-tips">
+                  <li>Mode Préparation : gérez membres et résolutions</li>
+                  <li>Mode Exécution : pilotez les votes en direct</li>
+                  <li>Le bouton principal change selon l'état de la séance</li>
+                </ul>
+              </div>
+            </ag-popover>
           </div>
-        </ag-popover>
+        </details>
       </div>
     </header>
 
@@ -1163,7 +1195,12 @@
         <!-- ============================================================
              VIEW: EXECUTION — exec console with vote card as centerpiece
              ============================================================ -->
-        <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution">
+        <!-- Phase v2.4 / COCKPIT-V24-01 (D-04 contextual-only) — data-vote-state mirror :
+             attribut sur #viewExec piloté par operator-realtime.js (pattern v2.3 P1 _setHb).
+             Valeurs : idle (aucun vote actif), open (vote ouvert), closed (vote fermé non proclamé).
+             Les boutons critical-path et contextual-only ciblent cet attribut via [data-show-when]
+             (cf. operator.css section "EXEC VIEW — contextual button visibility"). -->
+        <section id="viewExec" class="view-exec" hidden aria-label="Mode exécution" data-vote-state="idle">
 
           <!-- Phase v2.3 / COCKPIT-01..05,07 — single source of truth for session health.
                Attributes are driven reactively by operator-realtime.js from SSE events. -->
@@ -1183,19 +1220,33 @@
             </div>
             <div class="op-exec-header-right">
               <span class="op-live-chrono" id="opExecTimer">00:00:00</span>
-              <a class="btn btn-sm btn-secondary" id="opBtnRoomDisplay" href="/public" target="_blank" data-meeting-link>
-                <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
-              </a>
-              <ag-tooltip text="Mode focus : 5 zones essentielles" position="bottom">
-                <button class="op-focus-toggle btn btn-sm btn-secondary" id="opBtnFocusMode"
-                        type="button" aria-pressed="false"
-                        aria-label="Activer le mode focus — masquer les informations secondaires"
-                        title="Mode focus : 5 zones essentielles">
-                  <svg class="icon icon-text op-focus-icon-on" aria-hidden="true"><use href="/assets/icons.svg#icon-zoom-in"></use></svg>
-                  <svg class="icon icon-text op-focus-icon-off" aria-hidden="true" hidden><use href="/assets/icons.svg#icon-eye"></use></svg>
-                  <span class="op-focus-toggle-label">Focus</span>
-                </button>
-              </ag-tooltip>
+              <!-- Phase v2.4 / COCKPIT-V24-01 / D-03 — disclosure "Plus d'actions" :
+                   actions secondaires (Projection, Focus) repliées derrière un summary.
+                   Native <details> = Tab+Enter accessible par défaut. État persisté
+                   via localStorage par operator-disclosure.js (clé agOperatorDisclosure:opHeaderActions).
+                   Le bouton Clôturer (critical-path D-06) reste en accès direct. -->
+              <details class="op-action-disclosure" id="opHeaderActions">
+                <summary class="op-action-disclosure__trigger" aria-haspopup="menu" aria-label="Plus d'actions secondaires">
+                  Plus d'actions
+                  <span class="op-action-disclosure__count" aria-hidden="true">(0)</span>
+                  <svg class="op-action-disclosure__chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                </summary>
+                <div class="op-action-disclosure__content" role="menu">
+                  <a class="btn btn-sm btn-secondary" id="opBtnRoomDisplay" href="/public" target="_blank" data-meeting-link role="menuitem">
+                    <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-monitor"></use></svg> Projection
+                  </a>
+                  <ag-tooltip text="Mode focus : 5 zones essentielles" position="bottom">
+                    <button class="op-focus-toggle btn btn-sm btn-secondary" id="opBtnFocusMode"
+                            type="button" aria-pressed="false" role="menuitem"
+                            aria-label="Activer le mode focus — masquer les informations secondaires"
+                            title="Mode focus : 5 zones essentielles">
+                      <svg class="icon icon-text op-focus-icon-on" aria-hidden="true"><use href="/assets/icons.svg#icon-zoom-in"></use></svg>
+                      <svg class="icon icon-text op-focus-icon-off" aria-hidden="true" hidden><use href="/assets/icons.svg#icon-eye"></use></svg>
+                      <span class="op-focus-toggle-label">Focus</span>
+                    </button>
+                  </ag-tooltip>
+                </div>
+              </details>
               <ag-tooltip text="Clôturer la séance en cours" position="bottom">
                 <button class="btn btn-sm btn-danger" id="opBtnCloseSession">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer
@@ -1511,8 +1562,11 @@
               </div><!-- /op-resolution-card -->
 
               <!-- Sticky action bar (pinned at bottom) -->
+              <!-- Phase v2.4 / COCKPIT-V24-01 (D-04) : boutons contextuels via data-show-when.
+                   Proclamer visible uniquement vote-state=closed ; CloseVote uniquement open.
+                   ToggleVote (Lancer/Fermer) toujours visible — label switché par JS. -->
               <div class="op-action-bar" id="opActionBar" hidden>
-                <ag-tooltip text="Proclamer le résultat du vote (raccourci : P)" position="top">
+                <ag-tooltip text="Proclamer le résultat du vote (raccourci : P)" position="top" data-show-when="vote-state:closed">
                   <button class="btn btn-primary btn-lg" id="opBtnProclaim" disabled>
                     <span class="op-kbd-hint">P</span>
                     <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-check-circle"></use></svg>
@@ -1525,7 +1579,7 @@
                     Lancer le vote <kbd>L</kbd>
                   </button>
                 </ag-tooltip>
-                <button class="btn btn-sm btn-secondary" id="execBtnCloseVote" hidden>
+                <button class="btn btn-sm btn-secondary" id="execBtnCloseVote" hidden data-show-when="vote-state:open">
                   <svg class="icon icon-text" aria-hidden="true"><use href="/assets/icons.svg#icon-square"></use></svg> Clôturer le vote
                 </button>
               </div>
@@ -1719,5 +1773,6 @@
   <script nonce="%%CSP_NONCE%%" src="/assets/js/components/ag-health-bar.js"></script>
   <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-keybindings.js"></script>
   <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-realtime.js"></script>
+  <script nonce="%%CSP_NONCE%%" src="/assets/js/pages/operator-disclosure.js"></script>
 </body>
 </html>

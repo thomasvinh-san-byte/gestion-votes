@@ -97,17 +97,17 @@
  * La pulse cible la zone vote, pas le bar. Le bar reçoit une bordure danger statique.
  */
 @keyframes ag-health-bar-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-danger) 60%, transparent); }
-  50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-danger) 0%, transparent); }
+  0%, 100% { box-shadow: var(--shadow-keyframe-health-bar-pulse-from); }
+  50%      { box-shadow: var(--shadow-keyframe-health-bar-pulse-mid); }
 }
 
 #viewExec[data-quorum-state="missed"] {
   animation: ag-health-bar-pulse 1.5s ease-in-out infinite;
-  box-shadow: inset 0 0 0 1px var(--color-danger);
+  box-shadow: var(--shadow-ring-inset-1px-danger);
 }
 
 .ag-health-bar:has(.ag-health-bar__quorum[data-state="missed"]) {
-  border: 1px solid var(--color-danger);
+  border: var(--border-danger);
 }
 
 /* prefers-reduced-motion (COCKPIT-03) */

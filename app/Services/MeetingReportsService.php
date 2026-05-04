@@ -165,7 +165,28 @@ final class MeetingReportsService {
         bool $isPreview,
     ): string {
         $meetingId = (string) ($meeting['id'] ?? '');
-        $css = '@page{margin:2cm}body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:11pt;line-height:1.5;color:#333}h1{font-size:18pt;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:10px;margin-bottom:20px}h2{font-size:14pt;color:#2563eb;margin-top:25px;margin-bottom:10px}h3{font-size:12pt;color:#374151;margin-top:15px;margin-bottom:8px}.header-info{background:#f8fafc;border:1px solid #e2e8f0;padding:15px;margin-bottom:20px;border-radius:4px}.header-info p{margin:5px 0}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #d1d5db;padding:8px 12px;text-align:left}th{background:#f3f4f6;font-weight:bold}tr:nth-child(even){background:#f9fafb}.result-box{background:#f0fdf4;border:1px solid #86efac;padding:10px 15px;margin:10px 0;border-radius:4px}.result-rejected{background:#fef2f2;border-color:#fca5a5}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10pt;font-weight:bold}.badge-success{background:#dcfce7;color:#166534}.badge-danger{background:#fee2e2;color:#991b1b}.badge-warning{background:#fef3c7;color:#92400e}.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:9pt;color:#6b7280}.draft-watermark{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:80pt;color:rgba(220,38,38,0.15);font-weight:bold;z-index:-1;white-space:nowrap}.draft-banner{background:#fef2f2;border:2px solid #dc2626;color:#dc2626;padding:10px 15px;margin-bottom:20px;border-radius:4px;text-align:center;font-weight:bold}';
+
+        // D-03 / D-04: build header text "[Titre séance] — [JJ/MM/YYYY]" and
+        // footer "Page X sur Y". Header value must be CSS-string-safe (escape
+        // backslashes + double-quotes; preserve UTF-8 accents — dompdf renders
+        // them via DejaVu Sans).
+        $rawTitle = (string) ($meeting['title'] ?? 'Séance');
+        $scheduledAt = $meeting['scheduled_at'] ?? null;
+        $dateForHeader = $scheduledAt ? date('d/m/Y', strtotime((string) $scheduledAt)) : '';
+        $headerText = $dateForHeader !== ''
+            ? $rawTitle . ' — ' . $dateForHeader
+            : $rawTitle;
+        $headerCss = self::escapeCssString($headerText);
+
+        $pageCss = '@page{margin-top:3cm;margin-bottom:2cm;margin-left:2cm;margin-right:2cm;'
+            . '@top-center{content:"' . $headerCss . '";font-family:"DejaVu Sans",sans-serif;font-size:9pt;color:#666}'
+            . '@bottom-center{content:"Page " counter(page) " sur " counter(pages);font-family:"DejaVu Sans",sans-serif;font-size:9pt;color:#888}'
+            . '}';
+        // Preserve v2.3 P2 EDITORIAL-07 page-break behaviour on logical blocks
+        // so the new @page rules do not split résolutions / hash blocks across pages.
+        $pageBreakCss = '.result-box,.header-info,h2,h3{page-break-inside:avoid}';
+        $css = $pageCss . $pageBreakCss
+            . 'body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:11pt;line-height:1.5;color:#333}h1{font-size:18pt;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:10px;margin-bottom:20px}h2{font-size:14pt;color:#2563eb;margin-top:25px;margin-bottom:10px}h3{font-size:12pt;color:#374151;margin-top:15px;margin-bottom:8px}.header-info{background:#f8fafc;border:1px solid #e2e8f0;padding:15px;margin-bottom:20px;border-radius:4px}.header-info p{margin:5px 0}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #d1d5db;padding:8px 12px;text-align:left}th{background:#f3f4f6;font-weight:bold}tr:nth-child(even){background:#f9fafb}.result-box{background:#f0fdf4;border:1px solid #86efac;padding:10px 15px;margin:10px 0;border-radius:4px}.result-rejected{background:#fef2f2;border-color:#fca5a5}.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10pt;font-weight:bold}.badge-success{background:#dcfce7;color:#166534}.badge-danger{background:#fee2e2;color:#991b1b}.badge-warning{background:#fef3c7;color:#92400e}.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:9pt;color:#6b7280}.draft-watermark{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:80pt;color:rgba(220,38,38,0.15);font-weight:bold;z-index:-1;white-space:nowrap}.draft-banner{background:#fef2f2;border:2px solid #dc2626;color:#dc2626;padding:10px 15px;margin-bottom:20px;border-radius:4px;text-align:center;font-weight:bold}';
         $html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Procès-verbal - ' . htmlspecialchars($meeting['title'] ?? 'Séance') . '</title><style>' . $css . '</style></head><body>';
 
         if ($isPreview) {
@@ -289,5 +310,21 @@ final class MeetingReportsService {
         $this->meetingReportRepo->upsertHash($meetingId, $hash, $tenantId);
 
         return ['html' => $html, 'hash' => $hash];
+    }
+
+    /**
+     * Escape a string for safe inclusion inside a CSS double-quoted string literal
+     * (e.g. `@page @top-center { content: "..."; }`).
+     *
+     * Backslashes and double-quotes are escaped per CSS spec. Newlines are stripped
+     * (CSS strings cannot contain raw newlines). UTF-8 accents are preserved as-is —
+     * dompdf renders them via the configured DejaVu Sans font.
+     */
+    private static function escapeCssString(string $s): string
+    {
+        $s = str_replace(["\r\n", "\r", "\n"], ' ', $s);
+        $s = str_replace('\\', '\\\\', $s);
+        $s = str_replace('"', '\\"', $s);
+        return $s;
     }
 }

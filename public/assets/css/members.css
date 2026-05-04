@@ -134,7 +134,7 @@
 .onboarding-step.pending {
   color: var(--color-text-muted);
   background: var(--color-surface);
-  border: 1px dashed var(--color-border);
+  border: var(--border-dashed);
 }
 
 .onboarding-step.pending[data-scroll-to] {
@@ -150,13 +150,13 @@
 .onboarding-step.done {
   color: var(--color-success-on-subtle);
   background: color-mix(in oklch, var(--color-success) 8%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-success) 20%, transparent);
+  border: var(--border-success-alpha-20);
 }
 
 .onboarding-step.action {
   color: var(--color-primary-on-subtle);
   background: color-mix(in oklch, var(--color-primary) 8%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-primary) 25%, transparent);
+  border: var(--border-primary-alpha-25);
   font-weight: var(--font-semibold);
 }
 
@@ -526,7 +526,7 @@
 .member-card:hover {
   background: var(--color-bg-subtle);
   border-color: transparent;
-  box-shadow: none;
+  box-shadow: var(--shadow-none);
 }
 
 .member-card.is-active {
@@ -556,7 +556,7 @@
 
 .member-card.is-active .member-avatar {
   background: color-mix(in oklch, var(--color-success) 10%, transparent);
-  box-shadow: 0 0 0 2px var(--color-success);
+  box-shadow: var(--shadow-ring-2px-success);
   border-color: var(--color-success);
   color: var(--color-success-on-subtle);
 }
@@ -633,7 +633,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
+  border: var(--border-transparent);
   background: transparent;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -849,7 +849,7 @@ input[type="color"] {
 /* Upload zone */
 
 .upload-zone {
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: var(--radius-md);
   padding: var(--space-10) var(--space-6);
   text-align: center;

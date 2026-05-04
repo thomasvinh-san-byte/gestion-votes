@@ -139,16 +139,14 @@ test.describe('@cockpit-v2.3 operator keyboard shortcuts', () => {
   // operator view actually wires `aria-keyshortcuts="L"` on the real toggle button and
   // that pressing L on the live page reaches a real button click.
   // STOP — do NOT retry blindly within this plan if it fails twice (CLAUDE.md test budget).
-  test('@integration L on real operator view reaches the production toggle button', async ({ page }) => {
-    // Use the same seeding pattern as critical-path-operator.spec.js — it creates a real
-    // meeting via the API helper. If the helper isn't available, this test is `.skip`'d
-    // to avoid blocking Wave 3 on a missing fixture; the skip is logged in the SUMMARY.
-    let helper;
-    try { helper = require('../helpers/seed-meeting'); } catch (_) { helper = null; }
-    test.skip(!helper, 'seed-meeting helper unavailable — F-4 smoke test deferred to gap-closure plan');
+  //
+  // Reactivated by Plan 03.1 (TEST-V24-01) — the seed-meeting helper now drives the
+  // dev-only `/api/v1/test/seed-meeting` endpoint to materialise a fixture meeting.
+  test('@integration L on real operator view reaches the production toggle button', async ({ page, request }) => {
+    const { seedRunningMeeting } = require('../helpers/seed-meeting');
 
     await loginAsOperator(page);
-    const meeting = await helper.seedRunningMeeting();
+    const meeting = await seedRunningMeeting(request, { motionsCount: 1 });
     await page.goto(`/operator?meeting=${meeting.id}`);
     // Real production button must exist with aria-keyshortcuts (Plan 01.3 Task 1 step 3 / B-2).
     const toggleBtn = page.locator('#opBtnToggleVote[aria-keyshortcuts="L"]');

@@ -134,7 +134,7 @@
 
 .health-dot.ok   { background: var(--color-success); }
 .health-dot.warn { background: var(--color-warning); }
-.health-dot.danger { background: var(--color-danger); }
+.health-dot.danger { background: var(--color-warning); }
 
 /* =============================================================================
    MEETING BAR ACTIONS ROW — second compact row
@@ -319,13 +319,13 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: var(--color-danger);
+  background: var(--color-text-muted);
   transition: background 0.3s;
 }
 
 [data-sse-state="live"] .op-sse-dot {
   background: var(--color-success);
-  box-shadow: 0 0 6px var(--color-success-glow);
+  box-shadow: var(--shadow-glow-success-sm);
   animation: ssePulse 2s ease-in-out infinite;
 }
 
@@ -335,18 +335,18 @@
 }
 
 [data-sse-state="offline"] .op-sse-dot {
-  background: var(--color-danger);
+  background: var(--color-warning);
 }
 
 @keyframes ssePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 40%, transparent); }
-  50%       { opacity: 0.85; box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-success) 0%, transparent); }
+  0%, 100% { opacity: 1; box-shadow: var(--shadow-keyframe-sse-pulse-from); }
+  50%       { opacity: 0.85; box-shadow: var(--shadow-keyframe-sse-pulse-mid); }
 }
 
 /* Dark mode — keep vivid (intentional override) */
 [data-theme="dark"] [data-sse-state="live"] .op-sse-dot     { background: var(--color-success); }
 [data-theme="dark"] [data-sse-state="reconnecting"] .op-sse-dot { background: var(--color-warning); }
-[data-theme="dark"] [data-sse-state="offline"] .op-sse-dot  { background: var(--color-danger); }
+[data-theme="dark"] [data-sse-state="offline"] .op-sse-dot  { background: var(--color-warning); }
 
 /* =============================================================================
    AGENDA SIDEBAR — 280px fixed, scrollable
@@ -419,7 +419,7 @@
 }
 
 .op-agenda-item.adopted .op-agenda-status-dot { background: var(--color-success); }
-.op-agenda-item.rejected .op-agenda-status-dot { background: var(--color-danger); }
+.op-agenda-item.rejected .op-agenda-status-dot { background: var(--color-text-muted); }
 .op-agenda-item.open .op-agenda-status-dot     { background: var(--color-primary); animation: ssePulse 1.5s ease-in-out infinite; }
 .op-agenda-item.pending .op-agenda-status-dot  { background: var(--color-text-muted); }
 
@@ -488,6 +488,28 @@
   height: 100%;
   min-height: 0;
 }
+
+/* -----------------------------------------------------------------------------
+   EXEC VIEW — contextual button visibility (Phase v2.4 / COCKPIT-V24-01 / D-04)
+   -----------------------------------------------------------------------------
+   data-show-when="vote-state:<value>" hides the element unless the parent
+   #viewExec[data-vote-state] matches. The vote-state attribute is mirrored
+   from SSE motion.opened / motion.closed events by operator-realtime.js
+   (pattern hérité de v2.3 P1 _setHb sur quorum-state).
+
+   States:
+     idle     — aucun vote actif (no currentOpenMotion, no closed-not-proclaimed)
+     open     — un vote est ouvert (currentOpenMotion && !closed_at)
+     closed   — vote fermé en attente de proclamation (currentOpenMotion && closed_at)
+
+   Critical-path D-06 (#opBtnToggleVote) ne porte PAS data-show-when —
+   son libellé bascule Lancer/Fermer mais le bouton reste toujours visible.
+   ----------------------------------------------------------------------------- */
+[data-show-when] { display: none !important; }
+
+[data-vote-state="open"]   [data-show-when="vote-state:open"]   { display: revert !important; }
+[data-vote-state="closed"] [data-show-when="vote-state:closed"] { display: revert !important; }
+[data-vote-state="idle"]   [data-show-when="vote-state:idle"]   { display: revert !important; }
 
 /* Exec header: live dot + title + timer + actions */
 .op-exec-header {
@@ -663,7 +685,7 @@
 }
 
 .op-tag-quorum      { background: var(--color-success-subtle); border-color: var(--color-success); color: var(--color-success-text); }
-.op-tag-no-quorum   { background: var(--color-danger-subtle); border-color: var(--color-danger); color: var(--color-danger-text); }
+.op-tag-no-quorum   { background: var(--color-warning-subtle); border-color: var(--color-warning); color: var(--color-warning-text); }
 .op-tag-correspondance { background: var(--color-info-subtle, var(--color-primary-subtle)); border-color: var(--color-primary); color: var(--color-primary); }
 .op-tag-procurations   { background: var(--color-warning-subtle); border-color: var(--color-warning); color: var(--color-warning-text); }
 
@@ -689,7 +711,7 @@
 .op-resolution-progress .segment-pending  { background: var(--color-border); }
 .op-resolution-progress .segment-current  { background: var(--color-primary); }
 .op-resolution-progress .segment-adopted  { background: var(--color-success); }
-.op-resolution-progress .segment-rejected { background: var(--color-danger); }
+.op-resolution-progress .segment-rejected { background: var(--color-text-muted); }
 
 /* =============================================================================
    GUIDANCE BAR
@@ -719,7 +741,7 @@
   gap: 1rem;
   padding: 0.75rem 1rem;
   background: var(--color-success-subtle);
-  border: 1px solid var(--color-success);
+  border: var(--border-success);
   border-radius: var(--radius-md);
   margin: 0 var(--space-card);
   flex-shrink: 0;
@@ -793,15 +815,15 @@
   height: 10px;
   border-radius: 50%;
   background: var(--color-success);
-  box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 40%, transparent);
+  box-shadow: var(--shadow-keyframe-sse-pulse-from);
   animation: liveDotPulse 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 @keyframes liveDotPulse {
-  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 50%, transparent); }
-  70%  { box-shadow: 0 0 0 8px color-mix(in oklch, var(--color-success) 0%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 0%, transparent); }
+  0%   { box-shadow: var(--shadow-keyframe-live-dot-from); }
+  70%  { box-shadow: var(--shadow-keyframe-live-dot-mid); }
+  100% { box-shadow: var(--shadow-keyframe-live-dot-end); }
 }
 
 /* =============================================================================
@@ -861,7 +883,7 @@
 
 .op-vote-card--active {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+  box-shadow: var(--shadow-focus-ring);
 }
 
 /* Large vote counters: Pour / Contre / Abstention */
@@ -896,7 +918,7 @@
 }
 
 .op-vote-for    .op-vote-count { color: var(--color-success); }
-.op-vote-against .op-vote-count { color: var(--color-danger); }
+.op-vote-against .op-vote-count { color: var(--color-text); }
 .op-vote-abstain .op-vote-count { color: var(--color-warning); }
 
 /* Progress bars */
@@ -921,7 +943,7 @@
 }
 
 .op-bar-label.for     { color: var(--color-success); }
-.op-bar-label.against { color: var(--color-danger); }
+.op-bar-label.against { color: var(--color-text); }
 .op-bar-label.abstain { color: var(--color-warning); }
 
 .op-bar-track {
@@ -946,7 +968,7 @@
 }
 
 .op-bar-fill.for     { background: var(--color-success); }
-.op-bar-fill.against { background: var(--color-danger); }
+.op-bar-fill.against { background: var(--color-text-muted); }
 .op-bar-fill.abstain { background: var(--color-warning); }
 
 .op-bar-pct {
@@ -1031,7 +1053,7 @@
 }
 
 .exec-kpi.for     .exec-kpi-value { color: var(--color-success); }
-.exec-kpi.against .exec-kpi-value { color: var(--color-danger); }
+.exec-kpi.against .exec-kpi-value { color: var(--color-text); }
 .exec-kpi.abstain .exec-kpi-value { color: var(--color-warning); }
 
 /* Participation bar */
@@ -1067,7 +1089,7 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  border: var(--border-warning);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   color: var(--color-warning-text);
@@ -1305,7 +1327,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid var(--color-border);
+  border: var(--border-emphasis);
   flex-shrink: 0;
 }
 
@@ -1344,7 +1366,7 @@
   gap: 1rem;
   padding: 1rem 1.25rem;
   background: var(--color-success-subtle);
-  border: 1px solid var(--color-success);
+  border: var(--border-success);
   border-radius: var(--radius-lg);
   margin-bottom: 1rem;
 }
@@ -1653,7 +1675,7 @@
   gap: 1rem;
   padding: 0.875rem 1.25rem;
   background: var(--color-primary-subtle);
-  border: 1px solid var(--color-primary);
+  border: var(--border-primary);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-3);
 }
@@ -1673,11 +1695,11 @@
 
 .vote-live-panel {
   background: var(--color-surface);
-  border: 1px solid var(--color-primary);
+  border: var(--border-primary);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+  box-shadow: var(--shadow-focus-ring);
 }
 
 .vote-live-header {
@@ -1703,7 +1725,7 @@
 }
 
 .vote-results-live .for     { color: var(--color-success); }
-.vote-results-live .against { color: var(--color-danger); }
+.vote-results-live .against { color: var(--color-text); }
 .vote-results-live .abstain { color: var(--color-text-muted); }
 
 .vote-controls-wrapper {
@@ -1803,7 +1825,7 @@
 
 .export-card:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+  box-shadow: var(--shadow-focus-ring);
 }
 
 .export-icon { flex-shrink: 0; color: var(--color-primary); }
@@ -1996,7 +2018,7 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  border: var(--border-warning);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   color: var(--color-warning-text);
@@ -2183,7 +2205,7 @@
   bottom: 0;
   z-index: 10;
   background: var(--color-surface);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-edge-top);
   padding: var(--space-3) var(--space-4);
 }
 

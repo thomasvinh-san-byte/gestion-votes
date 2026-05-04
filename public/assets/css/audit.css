@@ -262,7 +262,7 @@
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
-  box-shadow: 0 0 0 2px var(--color-surface);
+  box-shadow: var(--shadow-ring-2px-surface);
 }
 
 .audit-severity-dot.info {
@@ -402,8 +402,8 @@ tr.audit-detail-inline td {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid var(--color-surface);
-  box-shadow: 0 0 0 2px var(--color-border);
+  border: var(--border-halo-surface);
+  box-shadow: var(--shadow-ring-2px-border);
   z-index: 1;
 }
 
@@ -444,7 +444,7 @@ tr.audit-detail-inline td {
 }
 
 .audit-timeline-item[data-severity="high"] .audit-timeline-dot {
-  box-shadow: 0 0 0 2px var(--color-danger);
+  box-shadow: var(--shadow-ring-2px-danger);
 }
 
 .audit-timeline-item[data-severity="medium"] .audit-timeline-content {

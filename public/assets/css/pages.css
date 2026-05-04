@@ -271,7 +271,7 @@
 
 .vote-live-panel {
   background: var(--color-warning-subtle);
-  border: 2px solid var(--color-warning);
+  border: var(--border-emphasis-warning);
   border-radius: var(--radius);
   padding: var(--space-6);
   margin-bottom: var(--space-6);
@@ -588,8 +588,8 @@
 }
 
 @keyframes live-glow {
-  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 10%, transparent); }
-  100% { box-shadow: 0 4px 20px color-mix(in oklch, var(--color-success) 20%, transparent); }
+  0% { box-shadow: var(--shadow-keyframe-live-glow-from); }
+  100% { box-shadow: var(--shadow-keyframe-live-glow-to); }
 }
 
 .meeting-card.is-live::before {
@@ -656,7 +656,7 @@
 
 .create-card {
   background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-bg-subtle) 100%);
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: 12px;
   padding: var(--space-6);
   margin-bottom: var(--space-8);
@@ -767,7 +767,7 @@
 
 /* File drop zone */
 .file-drop-zone {
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: var(--radius);
   padding: var(--space-4);
   text-align: center;
@@ -889,7 +889,7 @@
 
 .stats-bar .stat-item.live {
   background: var(--color-success-subtle);
-  border: 1px solid var(--color-success);
+  border: var(--border-success);
 }
 
 .stats-bar .stat-item.live .stat-value {
@@ -902,7 +902,7 @@
 
 .stats-bar .stat-item.draft {
   background: var(--color-bg-subtle);
-  border: 1px dashed var(--color-border);
+  border: var(--border-dashed);
 }
 
 .stats-bar .stat-item.draft .stat-value {
@@ -942,7 +942,7 @@
   padding: var(--space-3) var(--space-5);
   margin-bottom: var(--space-card, 24px);
   background: color-mix(in oklch, var(--color-danger) 6%, var(--color-surface));
-  border: 2px solid var(--color-danger);
+  border: var(--border-emphasis-danger);
   border-radius: var(--radius-xl);
   text-decoration: none;
   color: inherit;
@@ -1053,7 +1053,7 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--color-surface-raised);
-  border: 1px solid var(--color-border-alpha);
+  border: var(--border-alpha);
   border-radius: var(--radius-base);
   transition: var(--transition-shadow), transform var(--duration-moderate) var(--ease-standard);
   text-decoration: none;
@@ -1149,20 +1149,20 @@
 /* État urgent (séance <5min) — accent ocre/warning */
 .hero-card--urgent {
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning-border);
+  border: var(--border-warning);
 }
 
 /* État live (séance en cours) — accent danger pulse (B1 lock)
    var(--color-danger-*) — PAS var(--color-success-*). */
 .hero-card--live {
   background: var(--color-danger-subtle);
-  border: 1px solid var(--color-danger-border);
+  border: var(--border-danger);
   animation: hero-card-pulse 2s ease-in-out infinite;
 }
 
 @keyframes hero-card-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-danger) 60%, transparent); }
-  50%      { box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-danger) 0%, transparent); }
+  0%, 100% { box-shadow: var(--shadow-keyframe-hero-pulse-from); }
+  50%      { box-shadow: var(--shadow-keyframe-hero-pulse-mid); }
 }
 
 /* prefers-reduced-motion : pulse désactivée si l'utilisateur le demande
@@ -1178,7 +1178,7 @@
 .dashboard-sessions {
   background: var(--color-surface);
   border-radius: var(--radius-base);
-  border: 1px solid var(--color-border-alpha);
+  border: var(--border-alpha);
   padding: var(--space-card, 24px);
 }
 .dashboard-panel-header {
@@ -1252,7 +1252,7 @@
   top: 80px;
   background: var(--color-bg-subtle);
   border-radius: var(--radius-base);
-  border: 1px solid var(--color-border-alpha);
+  border: var(--border-alpha);
   padding: var(--space-card, 24px);
 }
 .dashboard-aside__title {
@@ -1277,7 +1277,7 @@
   text-decoration: none;
   color: inherit;
   border-radius: var(--radius-lg);
-  border: 1px solid transparent;
+  border: var(--border-transparent);
   transition: var(--transition-ui);
 }
 .shortcut-card:hover {

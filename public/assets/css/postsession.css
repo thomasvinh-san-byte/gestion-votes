@@ -56,7 +56,7 @@
   flex: 1;
   padding: 10px 16px;
   border-radius: var(--radius-full);
-  border: 1.5px solid var(--color-border);
+  border: var(--border-thin-1-5);
   background: var(--color-surface);
   color: var(--color-text-muted);
   font-size: 0.8125rem;
@@ -79,7 +79,7 @@
   background: var(--color-primary);
   color: var(--color-primary-text, var(--color-text-inverse));
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  box-shadow: var(--shadow-focus-glow);
   font-weight: 700;
 }
 
@@ -167,7 +167,7 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-success-subtle);
-  border: 1px solid var(--color-success);
+  border: var(--border-success);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
 }
@@ -238,7 +238,7 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  border: var(--border-warning);
   border-radius: var(--radius);
   margin-bottom: var(--space-4);
 }
@@ -339,7 +339,7 @@
 
 /* ─── PV Summary card (Step 4) ─── */
 .ps-pv-summary {
-  border: 2px solid var(--color-success);
+  border: var(--border-emphasis-success);
 }
 
 .ps-pv-summary-content {
@@ -409,13 +409,13 @@
 .result-adopted {
   background: var(--color-success-subtle);
   color: var(--color-success-text);
-  border: 1px solid var(--color-success-border);
+  border: var(--border-success);
 }
 
 .result-rejected {
   background: var(--color-danger-subtle);
   color: var(--color-danger-text);
-  border: 1px solid var(--color-danger-border);
+  border: var(--border-danger);
 }
 
 /* Left-border color coding driven by data-verdict attribute (set by postsession.js) */

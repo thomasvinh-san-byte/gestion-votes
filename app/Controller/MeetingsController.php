@@ -61,7 +61,7 @@ final class MeetingsController extends AbstractController {
             $msg = $e->getMessage();
             if ($msg === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
             if (str_contains($msg, 'archivée')) { api_fail('meeting_archived_locked', 409, ['detail' => $msg]); }
-            api_fail('business_error', 409, ['detail' => $msg]);
+            api_fail('meeting_operation_failed', 409, ['detail' => $msg]);
         }
 
         if (isset($result['fields'])) {
@@ -90,7 +90,7 @@ final class MeetingsController extends AbstractController {
             $result = $service->getStatus(api_current_tenant_id(), api_current_role());
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'no_live_meeting') { api_fail('no_live_meeting', 404); }
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            api_fail('meeting_state_read_failed', 400, ['detail' => $e->getMessage()]);
         }
         api_ok($result);
     }
@@ -104,7 +104,7 @@ final class MeetingsController extends AbstractController {
             $result = $service->getStatusForMeeting($meetingId, api_current_tenant_id());
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            api_fail('meeting_state_read_failed', 400, ['detail' => $e->getMessage()]);
         }
         api_ok($result);
     }
@@ -119,7 +119,7 @@ final class MeetingsController extends AbstractController {
             $result = $service->getSummary($meetingId, api_current_tenant_id());
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            api_fail('meeting_state_read_failed', 400, ['detail' => $e->getMessage()]);
         }
         api_ok($result);
     }
@@ -133,7 +133,7 @@ final class MeetingsController extends AbstractController {
             $result = $service->getStats($meetingId, api_current_tenant_id());
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'meeting_not_found') { api_fail('meeting_not_found', 404); }
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            api_fail('meeting_state_read_failed', 400, ['detail' => $e->getMessage()]);
         }
         api_ok($result);
     }
@@ -208,7 +208,7 @@ final class MeetingsController extends AbstractController {
                     'detail' => 'Seules les séances en brouillon peuvent être supprimées.',
                 ]);
             }
-            api_fail('business_error', 400, ['detail' => $msg]);
+            api_fail('meeting_operation_failed', 400, ['detail' => $msg]);
         }
 
         audit_log('meeting_deleted', 'meeting', $meetingId, ['title' => $result['title']]);
@@ -283,7 +283,7 @@ final class MeetingsController extends AbstractController {
             if ($e->getMessage() === 'meeting_not_found') {
                 api_fail('meeting_not_found', 404);
             }
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            api_fail('meeting_transition_failed', 400, ['detail' => $e->getMessage()]);
         }
 
         audit_log('meeting.validated', 'meeting', $meetingId, [

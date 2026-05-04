@@ -51,7 +51,7 @@
   padding: 2rem;
   text-align: center;
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  border: var(--border-warning);
   margin: 1rem;
   border-radius: var(--radius-md);
 }
@@ -243,7 +243,7 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-warning-subtle);
-  border: 1px solid var(--color-warning);
+  border: var(--border-warning);
   border-left: 4px solid var(--color-warning);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
@@ -452,8 +452,7 @@
 
 .admin-tab:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 var(--ring-offset) var(--color-surface),
-              0 0 0 calc(var(--ring-offset) + var(--ring-width)) var(--ring-color);
+  box-shadow: var(--shadow-focus-offset);
 }
 
 .admin-tab.active {
@@ -671,7 +670,7 @@
 
 /* ─── Upload Zone ─── */
 .upload-zone {
-  border: 2px dashed var(--color-border);
+  border: var(--border-emphasis-dashed);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   text-align: center;

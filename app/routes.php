@@ -24,6 +24,7 @@ declare(strict_types=1);
  */
 
 use AgVote\Controller\AdminController;
+use AgVote\Controller\AdminErrorStatsController;
 use AgVote\Controller\AgendaController;
 use AgVote\Controller\AnalyticsController;
 use AgVote\Controller\AttendancesController;
@@ -64,6 +65,7 @@ use AgVote\Controller\RgpdExportController;
 use AgVote\Controller\SettingsController;
 use AgVote\Controller\SpeechController;
 use AgVote\Controller\SetupController;
+use AgVote\Controller\TestSeedController;
 use AgVote\Controller\TrustController;
 use AgVote\Controller\PageController;
 use AgVote\Controller\VotePublicController;
@@ -158,6 +160,15 @@ return function (Router $router): void {
         $router->mapAny("{$prefix}/dev_seed_members", DevSeedController::class, 'seedMembers', $op);
         $router->mapAny("{$prefix}/dev_seed_attendances", DevSeedController::class, 'seedAttendances', $op);
         $router->map('POST', "{$prefix}/test/seed-user", DevSeedController::class, 'seedUser');
+        // TEST-V24-01 / D-01..D-04 — seed a meeting + motions for Playwright @integration specs.
+        // Triple-guarded: this conditional registration + EnvGuardMiddleware + controller-level guardProduction().
+        $router->map(
+            'POST',
+            "{$prefix}/test/seed-meeting",
+            TestSeedController::class,
+            'seedMeeting',
+            ['env_guard' => true],
+        );
     }
 
     // ── Documentation ──
@@ -376,6 +387,10 @@ return function (Router $router): void {
 
     // -- Setup (first-run, no auth) --
     $router->mapAny('/setup', SetupController::class, 'setup');
+
+    // -- Admin error stats (admin-only, role enforced by middleware) --
+    // ERR-V24-03 / D-10 — Plan 02.3
+    $router->map('GET', '/admin/error-stats', AdminErrorStatsController::class, 'show', $admin);
 
     // -- Account (session-authenticated) --
     $router->mapAny('/account', AccountController::class, 'account');

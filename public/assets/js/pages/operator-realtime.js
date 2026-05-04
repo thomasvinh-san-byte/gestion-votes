@@ -55,6 +55,35 @@
   }
 
   // =========================================================================
+  // <viewExec> data-vote-state mirror (Phase v2.4 / COCKPIT-V24-01 / D-04)
+  // =========================================================================
+  /**
+   * Compute current vote-state from O.currentOpenMotion and write to #viewExec.
+   * Pattern h\u00e9rit\u00e9 de _setHb(quorum-state) v2.3 P1 \u2014 single mirror, no event wiring
+   * required, safe to call multiple times (no-op if attribute unchanged).
+   *
+   * Values:
+   *   idle    \u2014 aucun vote actif (no currentOpenMotion)
+   *   open    \u2014 vote ouvert (currentOpenMotion && !closed_at)
+   *   closed  \u2014 vote ferm\u00e9 non proclam\u00e9 (currentOpenMotion && closed_at)
+   */
+  function _computeVoteState() {
+    var m = window.O && window.O.currentOpenMotion;
+    if (!m) return 'idle';
+    if (m.closed_at) return 'closed';
+    return 'open';
+  }
+  function _setVoteState(forced) {
+    var view = document.getElementById('viewExec');
+    if (!view) return;
+    var s = (forced != null) ? String(forced) : _computeVoteState();
+    if (view.getAttribute('data-vote-state') !== s) view.setAttribute('data-vote-state', s);
+  }
+  // Expose for operator-exec.js refreshExecView() to call on every refresh tick
+  window.O = window.O || {}; window.O.fn = window.O.fn || {};
+  window.O.fn.syncVoteState = _setVoteState;
+
+  // =========================================================================
   // SSE INDICATOR \u2014 drives <ag-health-bar sse-state="..."> (single surface)
   // Legacy DOM SSE indicator removed in Plan 01.3 (F-6) \u2014 the ambient pill on
   // the health bar is now the canonical SSE state surface.
@@ -164,6 +193,7 @@
 
     case 'motion.opened':
       O.fn.loadResolutions().then(function() {
+        _setVoteState(); // v2.4 D-04 mirror
         if (O.currentOpenMotion) {
           var title = O.currentOpenMotion.title;
           setNotif('info', 'Vote ouvert: ' + title);
@@ -186,6 +216,7 @@
     case 'motion.closed':
     case 'motion.updated':
       O.fn.loadResolutions().then(function() {
+        _setVoteState(); // v2.4 D-04 mirror
         if (O.currentMode === 'exec') O.fn.refreshExecView();
       }).catch(function(err) {
         setNotif('error', 'Erreur temps reel : ' + (err && err.message ? err.message : 'Connexion perdue'));

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Layout Refonte & UX Polish
-status: Shipped — PR #259 awaiting manual gates + merge
-stopped_at: "Milestone v2.3 shipped via PR #259 (https://github.com/thomasvinh-san-byte/gestion-votes/pull/259). 116 commits, 124 files (+14650/-1319), 35/35 reqs PASSED per .planning/v2.3-MILESTONE-AUDIT.md. Code review v2.3 = 0 critical / 2 warnings (vérifiés déjà mitigés post-review) / 6 infos. Hygiene cleanup F2 (operator-exec.js docstring) + F3 (orphan partial operator-exec.html) appliqué dans commit 80475c3. PHPUnit guards (EditorialConventionsTest + UxConventionsTest) 7/7 PASSED, 41 assertions. Pending = 3 gates manuelles bloquées sandbox (A1 Playwright CDN denied, B1.1 visual review, D1 screenshot panel) → à exécuter sur dev machine avant merge. Backlog v2.4 trié en 4 phases (Cockpit Polish / Error Obs / Test Infra / Print+Tech Debt) + v2.5 dédié sécurité — voir .planning/v2.4-BACKLOG-PLAN.md."
-last_updated: "2026-05-04T00:00:00.000Z"
+milestone: v2.4
+milestone_name: Polish & Robustness
+status: Milestone v2.4 SHIPPED — PR #260, awaiting dev-machine gates + merge
+stopped_at: "Milestone v2.4 Polish & Robustness — 4/4 phases complete (103 commits depuis main, 9/9 plans). Phase 1 Cockpit (2 plans, 11 commits): declutter ≤25 + palette danger 21→9. Phase 2 Error Obs (3 plans, 15 commits): business_error 11→1, SSE debounce attributeChangedCallback, Logger::errorContext + admin /admin/error-stats. Phase 3 Test Infra (2 plans, 13 commits): /api/v1/test/seed-meeting endpoint dev-only triple-guarded, dual-install Playwright résolu, gsd-code-reviewer doc + e2e README + EXPLORE-PATTERNS.md. Phase 4 Print + Tech Debt (3 plans, 55+ commits): dompdf @page header/footer 18 PHPUnit GREEN, borders/shadows ratio 62.7% → 83.2% (04.2 partial) → 100% (04.3 push 95% strict via 49 tokens 1-site capture verbatim). Cumulative tests: 31+ PHPUnit GREEN, 3+ Playwright specs nouveaux (run dev-machine déféré). Coordination parallèle 8-way (toutes phases) : 0 conflit git. Pending dev-machine gates : Playwright (cockpit-button-count + sse-burst-idempotency + F-4 modal/keyboard) + screenshots before/after Phases 1+4 + 3 PVs longs PDF visuels + smoke regression CSS borders/shadows 17 files."
+last_updated: "2026-05-04T07:45:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -17,21 +17,34 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-29)
+See: .planning/PROJECT.md (updated 2026-05-04)
 
-**Core value:** Test ultime — un utilisateur tiers regardant un screenshot avant/après doit dire "celui-là est plus rassurant" sans qu'on lui explique pourquoi.
-**Current focus:** Phase 04 — Lexique + UX critique
+**Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
+**Current focus:** Milestone v2.4 PR #260 SHIPPED — dev-machine gates + merge pending
 
 ## Current Position
 
-Milestone: v2.3 Layout Refonte & UX Polish
-Branch: feat/v2.3-cockpit-operateur (Phase 01 + 02 + 03 complete)
-Phase: 04 (Lexique + UX critique) — EXECUTING (5/6 plans done — 04.1, 04.2, 04.3, 04.4, 04.5 ; 04.6 pending)
-Plan: 5 of 6 (next — 04.6 ERR-04 audit prévention top 5 codes + milestone screenshot panel gate reminder)
+Milestone: v2.4 Polish & Robustness
+Branch: feat/v2.4-cockpit-polish (103 commits depuis main, ready for ship)
+Phase: 4 ✓ COMPLETE (Print + Tech Debt, 3/3 plans, 55+ commits)
+Plan: 9 of 9 done across all 4 phases
+Status: ALL PHASES COMPLETE — awaiting dev-machine gates + lifecycle (audit/complete/cleanup)
+Last activity: 2026-05-04 — Phase 4 plans 04.1+04.2+04.3 done, ratio borders/shadows 62.7% → 100% strict
 
-Progress: [#########.] 98% (4/4 plans of phase 01) + 6/6 plans of phase 02 + 5/5 plans of phase 03 + 5/6 plans of phase 04 — 3/4 phases of milestone v2.3 done
+**Progress milestone v2.4** : ████████████████████████ 100% (4/4 phases)
 
-**Base de planning :** v2.2 entièrement mergée dans main (PR #256, commit edd7079). Tokens, components, personas, ag-modal, CopyConventionsTest tous disponibles côté code.
+**Caveats documentés** :
+- Phase 1 : sub-tab "Avancé" peut faire passer count à ~28 si activé (01.3 follow-up potentiel)
+- Phase 2 : hero card live SSE (AC ERR-V24-02 #2) différée v2.5+ — pas d'émetteur SSE actuel
+- Phase 2 : 47 sites `error_log()` legacy déférés v2.5+ migration vers Logger::errorContext()
+- Phase 2 : audit_events ne capture pas api_fail() → page admin error-stats limitée à 6 actions audit-flavored
+- Phase 3 : F-4 trouvé dans cockpit-keyboard-shortcuts.spec.js (pas modal-focus-trap.spec.js comme plan supposait)
+- Phase 3 : agent file path corrigé `.claude/agents/` (pas `.claude/get-shit-done/agents/`)
+- Phase 3 : insight EXPLORE-PATTERNS — POSIX `\b` unsafe pour CSS hyphenated tokens, utiliser `<token>($|[^a-zA-Z_-])`
+- Phase 3 : TEST-V24-02 runtime validation (code-reviewer 50+ files) déférée dev-machine
+- Phase 4 : 04.2 livré 83.2 % partial — user a choisi Option 2 (push 95% strict via 1-site tokens)
+- Phase 4 : 04.3 follow-up a atteint 100% (49 nouveaux tokens 1-site, capture verbatim, 0 nouvelle valeur littérale)
+- Phase 4 : D-08 amendé (token proliferation acceptée par décision utilisateur), backlog v2.5+ pour consolidation potentielle
 
 ## Accumulated Context
 

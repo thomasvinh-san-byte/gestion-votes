@@ -121,7 +121,7 @@
 
 .pv-timeline-step.active .pv-step-dot {
   background: var(--color-primary);
-  box-shadow: 0 0 0 4px var(--color-primary-subtle);
+  box-shadow: var(--shadow-focus-ring-lg);
 }
 
 .pv-step-label {
@@ -261,7 +261,7 @@
   /* Remove card borders/shadows for print */
   .card {
     border: none;
-    box-shadow: none;
+    box-shadow: var(--shadow-none);
     padding: 0;
   }
 
