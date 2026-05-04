@@ -209,7 +209,7 @@ final class BallotsController extends AbstractController {
                 'member_id' => $memberId,
             ]);
         } catch (Throwable $e) {
-            error_log('[SSE] Broadcast failed after ballot cancel: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('SSE broadcast failed after ballot cancel', ['exception' => $e->getMessage()]);
         }
 
         api_ok([

@@ -137,7 +137,7 @@ final class SetupController {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $this->repo->createTenantAndAdmin($orgName, $email, $name, $hash);
         } catch (\PDOException $e) {
-            error_log('SetupController::handlePost [DB]: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('SetupController::handlePost DB failure', ['exception' => $e->getMessage()]);
             $this->renderForm(["Erreur lors de la creation du compte. Veuillez reessayer."], [
                 'organisation_name' => $orgName,
                 'admin_name'        => $name,
@@ -145,7 +145,7 @@ final class SetupController {
             ]);
             return;
         } catch (Throwable $e) {
-            error_log('SetupController::handlePost: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('SetupController::handlePost uncaught', ['exception' => $e->getMessage()]);
             $this->renderForm(["Une erreur inattendue s'est produite. Veuillez reessayer."], [
                 'organisation_name' => $orgName,
                 'admin_name'        => $name,
