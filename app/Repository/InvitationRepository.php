@@ -141,8 +141,9 @@ class InvitationRepository extends AbstractRepository {
             [':token' => $token],
         );
         if ($legacy !== null) {
-            error_log('INVITATION_LEGACY_TOKEN_LOOKUP | invitation_id=' . (string) $legacy['id']
-                . ' — plaintext token still present in DB. Re-issue this invitation to migrate it.');
+            \AgVote\Core\Logger::warning('Invitation legacy plaintext token lookup — re-issue required', [
+                'invitation_id' => (string) $legacy['id'],
+            ]);
         }
         return $legacy;
     }

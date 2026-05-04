@@ -145,7 +145,7 @@ final class AttendancesController extends AbstractController {
             $quorumResult = (new QuorumEngine())->computeForMeeting($meetingId, $tenantId);
             EventBroadcaster::quorumUpdated($meetingId, $quorumResult);
         } catch (Throwable $e) {
-            error_log('[SSE] Broadcast failed after attendance update: ' . $e->getMessage());
+            \AgVote\Core\Logger::error('SSE broadcast failed after attendance update', ['exception' => $e->getMessage()]);
         }
 
         api_ok([
