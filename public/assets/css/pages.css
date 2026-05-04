@@ -271,7 +271,7 @@
 
 .vote-live-panel {
   background: var(--color-warning-subtle);
-  border: 2px solid var(--color-warning);
+  border: var(--border-emphasis-warning);
   border-radius: var(--radius);
   padding: var(--space-6);
   margin-bottom: var(--space-6);
@@ -588,8 +588,8 @@
 }
 
 @keyframes live-glow {
-  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success) 10%, transparent); }
-  100% { box-shadow: 0 4px 20px color-mix(in oklch, var(--color-success) 20%, transparent); }
+  0% { box-shadow: var(--shadow-keyframe-live-glow-from); }
+  100% { box-shadow: var(--shadow-keyframe-live-glow-to); }
 }
 
 .meeting-card.is-live::before {
@@ -1053,7 +1053,7 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--color-surface-raised);
-  border: 1px solid var(--color-border-alpha);
+  border: var(--border-alpha);
   border-radius: var(--radius-base);
   transition: var(--transition-shadow), transform var(--duration-moderate) var(--ease-standard);
   text-decoration: none;
@@ -1161,8 +1161,8 @@
 }
 
 @keyframes hero-card-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-danger) 60%, transparent); }
-  50%      { box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-danger) 0%, transparent); }
+  0%, 100% { box-shadow: var(--shadow-keyframe-hero-pulse-from); }
+  50%      { box-shadow: var(--shadow-keyframe-hero-pulse-mid); }
 }
 
 /* prefers-reduced-motion : pulse désactivée si l'utilisateur le demande
@@ -1178,7 +1178,7 @@
 .dashboard-sessions {
   background: var(--color-surface);
   border-radius: var(--radius-base);
-  border: 1px solid var(--color-border-alpha);
+  border: var(--border-alpha);
   padding: var(--space-card, 24px);
 }
 .dashboard-panel-header {
@@ -1252,7 +1252,7 @@
   top: 80px;
   background: var(--color-bg-subtle);
   border-radius: var(--radius-base);
-  border: 1px solid var(--color-border-alpha);
+  border: var(--border-alpha);
   padding: var(--space-card, 24px);
 }
 .dashboard-aside__title {
