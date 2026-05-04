@@ -84,9 +84,18 @@ final class TestSeedController extends AbstractController {
     /**
      * Inner guard mirroring DevSeedController. Returns 403 if APP_ENV is
      * production/prod even when the route is somehow reached (belt-and-braces).
+     *
+     * Reads APP_ENV from $_ENV → getenv() → config('env') in that order so
+     * unit tests can drive the guard via the standard env mechanisms while
+     * production deployments keep using the configured `env` value.
      */
     private function guardProduction(): void {
-        $env = strtolower((string) (config('env', 'dev') ?? 'dev'));
+        $env = strtolower((string) (
+            $_ENV['APP_ENV']
+            ?? getenv('APP_ENV')
+            ?: config('env', 'dev')
+            ?? 'dev'
+        ));
         if (in_array($env, ['production', 'prod'], true)) {
             api_fail('endpoint_disabled', 403, [
                 'detail' => 'Cet endpoint de développement est désactivé en production.',
