@@ -24,6 +24,7 @@ declare(strict_types=1);
  */
 
 use AgVote\Controller\AdminController;
+use AgVote\Controller\AdminErrorStatsController;
 use AgVote\Controller\AgendaController;
 use AgVote\Controller\AnalyticsController;
 use AgVote\Controller\AttendancesController;
@@ -376,6 +377,10 @@ return function (Router $router): void {
 
     // -- Setup (first-run, no auth) --
     $router->mapAny('/setup', SetupController::class, 'setup');
+
+    // -- Admin error stats (admin-only, role enforced by middleware) --
+    // ERR-V24-03 / D-10 — Plan 02.3
+    $router->map('GET', '/admin/error-stats', AdminErrorStatsController::class, 'show', $admin);
 
     // -- Account (session-authenticated) --
     $router->mapAny('/account', AccountController::class, 'account');
