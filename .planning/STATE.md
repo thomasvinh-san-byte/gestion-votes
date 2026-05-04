@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Polish & Robustness
-status: Phase 2 complete — 5/5 plans across phases 1+2, awaiting dev-machine gates
-stopped_at: "Phases 1 + 2 v2.4 shipped 2026-05-04 sur branche feat/v2.4-cockpit-polish. Phase 1 (Cockpit Polish) : 2/2 plans (declutter + palette), 11 commits. Phase 2 (Error Observability) : 3/3 plans en parallèle, 15 commits. Plan 02.1 ErrorDictionary : 11 callers business_error → 1 fallback légitime, 3 codes spécifiques nommés depuis audit (meeting_transition_failed/operation_failed/state_read_failed — hypothèses CONTEXT rejetées par audit, tous callers domaine meeting), 3/3 tests GREEN. Plan 02.2 SSE debounce : découverte scout = ag-integrity-modal utilise attributeChangedCallback (pas EventSource), debounce appliqué là, hero card live n'a pas d'émetteur SSE actuel → AC #2 différée v2.5+, utility window.AgSseDebounce.create() réutilisable, 2 specs Playwright (run dev-machine déféré). Plan 02.3 Logger : 0 sites Logger::error/critical/alert dans codebase (estimation 30-50 réfutée), 47 error_log() legacy déférés v2.5+, helper errorContext()/criticalContext()/alertContext() shipped forward-compatible, page admin /admin/error-stats avec RBAC + RoleMiddleware admin, audit_events table ne capture pas api_fail() émissions → admin page affiche 6 actions audit-flavored avec banner limitation, 7 tests/31 assertions GREEN. Coordination 3-way parallèle réussie (zones disjointes ErrorDictionary/JS/Logger+admin, 0 conflit git). Pending dev-machine : Playwright sse-burst-idempotency + screenshots Phase 1."
-last_updated: "2026-05-04T06:30:00.000Z"
+status: Phase 3 complete — 7/9 plans across phases 1+2+3, awaiting dev-machine gates
+stopped_at: "Phases 1+2+3 v2.4 shipped 2026-05-04 sur branche feat/v2.4-cockpit-polish. Phase 1 (Cockpit) 2/2 plans 11 commits. Phase 2 (Error Obs) 3/3 plans 15 commits. Phase 3 (Test Infra) 2/2 plans 13 commits. Plan 03.1 seedMeeting+dual-install : 8 atomic commits (fde0dd4..a04c74d), endpoint dev-only /api/v1/test/seed-meeting triple-guarded (route condition + EnvGuardMiddleware + controller guardProduction + audit_log), MeetingRepository::createForTest + MotionRepository::createForTest réutilisent paths existants, helper seedMeeting Playwright + seedRunningMeeting variant, F-4 réactivé dans cockpit-keyboard-shortcuts.spec.js (PAS modal-focus-trap.spec.js comme plan supposait — adaptation documentée), root package.json plus de @playwright/test (proxy scripts vers tests/e2e), bin/check-deps.sh symmetric guard (exit 1 si root regression, exit 2 si SOT loss), 18/18 PHPUnit GREEN. Plan 03.2 docs : 5 atomic commits (5259732..9842434), gsd-code-reviewer.md +71 lignes (--scope/--timeout-min/--exclude + chunking pattern), tests/e2e/README.md réécrit 212 lignes avec 6 sections obligatoires + walkthrough <=30 min, EXPLORE-PATTERNS.md 167 lignes lead avec insight critique 'POSIX \\b unsafe pour CSS hyphenated tokens, utiliser <token>($|[^a-zA-Z_-])' validé real-file (.op-tab naive=7 vs correct=3), 03.2-VALIDATION TEST-02 runtime déféré dev-machine. Path correction : agent .claude/agents/ pas .claude/get-shit-done/agents/. Coordination 4-way parallèle réussie (Phases 2+3 partiel overlap, 0 conflit). Cumulative 18 PHPUnit + 13 PHPUnit Phase 2 = 31 tests GREEN. Pending dev-machine : Playwright F-4 + sse-burst-idempotency + cockpit-button-count + screenshots Phase 1."
+last_updated: "2026-05-04T07:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 50
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
+  percent: 75
 ---
 
 # AG-VOTE -- Project State
@@ -20,24 +20,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04)
 
 **Core value:** Consolider la fiabilité production post-v2.3 — toolchain sans friction + observability codes ciblés + cockpit ≤25 boutons + palette danger confinée.
-**Current focus:** Phase 3 v2.4 (Test Infrastructure) — démarre quand utilisateur veut
+**Current focus:** Phase 4 v2.4 (Print + Tech Debt residuel) — démarre quand utilisateur veut
 
 ## Current Position
 
 Milestone: v2.4 Polish & Robustness
 Branch: feat/v2.4-cockpit-polish (active, depuis main commit 2cca533)
-Phase: 2 ✓ COMPLETE (Error Observability, 3/3 plans, 15 commits)
-Plan: 5 of 5 done across phases 1+2
-Status: Phases 1+2 complete — awaiting dev-machine gates avant /gsd:ship 1+2
-Last activity: 2026-05-04 — Phase 2 plans 02.1+02.2+02.3 exécutés en parallèle 3-way, 0 conflit, PHPUnit 13 tests/57 assertions GREEN cumulés
+Phase: 3 ✓ COMPLETE (Test Infrastructure, 2/2 plans, 13 commits)
+Plan: 7 of 7 done across phases 1+2+3
+Status: Phases 1+2+3 complete — awaiting dev-machine gates avant /gsd:ship
+Last activity: 2026-05-04 — Phase 3 plans 03.1+03.2 exécutés en parallèle, 0 conflit, F-4 @integration test reactivated, 18 PHPUnit GREEN
 
-**Progress milestone v2.4** : ████████████░░░░░░░░░░░░ 50% (2/4 phases)
+**Progress milestone v2.4** : ██████████████████░░░░░░ 75% (3/4 phases)
 
 **Caveats documentés** :
 - Phase 1 : sub-tab "Avancé" peut faire passer count à ~28 si activé (01.3 follow-up potentiel)
-- Phase 2 : hero card live SSE (AC ERR-V24-02 #2) différée v2.5+ — pas d'émetteur SSE actuel (audit Plan 02.2)
+- Phase 2 : hero card live SSE (AC ERR-V24-02 #2) différée v2.5+ — pas d'émetteur SSE actuel
 - Phase 2 : 47 sites `error_log()` legacy déférés v2.5+ migration vers Logger::errorContext()
-- Phase 2 : audit_events ne capture pas api_fail() → page admin error-stats limitée à 6 actions audit-flavored avec banner limitation
+- Phase 2 : audit_events ne capture pas api_fail() → page admin error-stats limitée à 6 actions audit-flavored
+- Phase 3 : F-4 trouvé dans cockpit-keyboard-shortcuts.spec.js (pas modal-focus-trap.spec.js comme plan supposait — réactivé là)
+- Phase 3 : agent file path corrigé `.claude/agents/` (pas `.claude/get-shit-done/agents/`)
+- Phase 3 : insight EXPLORE-PATTERNS — POSIX `\b` unsafe pour CSS hyphenated tokens, utiliser `<token>($|[^a-zA-Z_-])`
+- Phase 3 : TEST-V24-02 runtime validation (code-reviewer 50+ files) déférée dev-machine
 
 ## Accumulated Context
 
