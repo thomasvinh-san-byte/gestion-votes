@@ -52,7 +52,7 @@
 
 .validation-zone.validation-zone-danger {
   background: linear-gradient(135deg, var(--color-danger-subtle) 0%, var(--color-surface) 100%);
-  border: 2px dashed var(--color-danger);
+  border: var(--border-emphasis-danger-dashed);
 }
 
 .validation-zone.locked {
