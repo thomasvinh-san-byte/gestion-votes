@@ -134,7 +134,7 @@
 
 .health-dot.ok   { background: var(--color-success); }
 .health-dot.warn { background: var(--color-warning); }
-.health-dot.danger { background: var(--color-danger); }
+.health-dot.danger { background: var(--color-warning); }
 
 /* =============================================================================
    MEETING BAR ACTIONS ROW — second compact row
@@ -419,7 +419,7 @@
 }
 
 .op-agenda-item.adopted .op-agenda-status-dot { background: var(--color-success); }
-.op-agenda-item.rejected .op-agenda-status-dot { background: var(--color-danger); }
+.op-agenda-item.rejected .op-agenda-status-dot { background: var(--color-text-muted); }
 .op-agenda-item.open .op-agenda-status-dot     { background: var(--color-primary); animation: ssePulse 1.5s ease-in-out infinite; }
 .op-agenda-item.pending .op-agenda-status-dot  { background: var(--color-text-muted); }
 
@@ -488,6 +488,28 @@
   height: 100%;
   min-height: 0;
 }
+
+/* -----------------------------------------------------------------------------
+   EXEC VIEW — contextual button visibility (Phase v2.4 / COCKPIT-V24-01 / D-04)
+   -----------------------------------------------------------------------------
+   data-show-when="vote-state:<value>" hides the element unless the parent
+   #viewExec[data-vote-state] matches. The vote-state attribute is mirrored
+   from SSE motion.opened / motion.closed events by operator-realtime.js
+   (pattern hérité de v2.3 P1 _setHb sur quorum-state).
+
+   States:
+     idle     — aucun vote actif (no currentOpenMotion, no closed-not-proclaimed)
+     open     — un vote est ouvert (currentOpenMotion && !closed_at)
+     closed   — vote fermé en attente de proclamation (currentOpenMotion && closed_at)
+
+   Critical-path D-06 (#opBtnToggleVote) ne porte PAS data-show-when —
+   son libellé bascule Lancer/Fermer mais le bouton reste toujours visible.
+   ----------------------------------------------------------------------------- */
+[data-show-when] { display: none !important; }
+
+[data-vote-state="open"]   [data-show-when="vote-state:open"]   { display: revert !important; }
+[data-vote-state="closed"] [data-show-when="vote-state:closed"] { display: revert !important; }
+[data-vote-state="idle"]   [data-show-when="vote-state:idle"]   { display: revert !important; }
 
 /* Exec header: live dot + title + timer + actions */
 .op-exec-header {
@@ -689,7 +711,7 @@
 .op-resolution-progress .segment-pending  { background: var(--color-border); }
 .op-resolution-progress .segment-current  { background: var(--color-primary); }
 .op-resolution-progress .segment-adopted  { background: var(--color-success); }
-.op-resolution-progress .segment-rejected { background: var(--color-danger); }
+.op-resolution-progress .segment-rejected { background: var(--color-text-muted); }
 
 /* =============================================================================
    GUIDANCE BAR
@@ -896,7 +918,7 @@
 }
 
 .op-vote-for    .op-vote-count { color: var(--color-success); }
-.op-vote-against .op-vote-count { color: var(--color-danger); }
+.op-vote-against .op-vote-count { color: var(--color-text); }
 .op-vote-abstain .op-vote-count { color: var(--color-warning); }
 
 /* Progress bars */
@@ -921,7 +943,7 @@
 }
 
 .op-bar-label.for     { color: var(--color-success); }
-.op-bar-label.against { color: var(--color-danger); }
+.op-bar-label.against { color: var(--color-text); }
 .op-bar-label.abstain { color: var(--color-warning); }
 
 .op-bar-track {
@@ -946,7 +968,7 @@
 }
 
 .op-bar-fill.for     { background: var(--color-success); }
-.op-bar-fill.against { background: var(--color-danger); }
+.op-bar-fill.against { background: var(--color-text-muted); }
 .op-bar-fill.abstain { background: var(--color-warning); }
 
 .op-bar-pct {
@@ -1031,7 +1053,7 @@
 }
 
 .exec-kpi.for     .exec-kpi-value { color: var(--color-success); }
-.exec-kpi.against .exec-kpi-value { color: var(--color-danger); }
+.exec-kpi.against .exec-kpi-value { color: var(--color-text); }
 .exec-kpi.abstain .exec-kpi-value { color: var(--color-warning); }
 
 /* Participation bar */
@@ -1703,7 +1725,7 @@
 }
 
 .vote-results-live .for     { color: var(--color-success); }
-.vote-results-live .against { color: var(--color-danger); }
+.vote-results-live .against { color: var(--color-text); }
 .vote-results-live .abstain { color: var(--color-text-muted); }
 
 .vote-controls-wrapper {
