@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\HttpCache;
 use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Service\MeetingLifecycleService;
 use InvalidArgumentException;
@@ -80,7 +81,8 @@ final class MeetingsController extends AbstractController {
 
     public function archivesList(): void {
         api_request('GET');
-        api_ok(['items' => $this->repo()->meeting()->listArchivedWithReports(api_current_tenant_id())]);
+        // PERF-V27-03: ETag + 304 short-circuit on the archives list hot path.
+        HttpCache::sendOk(['items' => $this->repo()->meeting()->listArchivedWithReports(api_current_tenant_id())]);
     }
 
     public function status(): void {
