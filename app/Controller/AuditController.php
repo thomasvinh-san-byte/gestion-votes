@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\HttpCache;
+
 /**
  * Consolidates 5 audit/timeline endpoints.
  *
@@ -86,7 +88,8 @@ final class AuditController extends AbstractController {
             ];
         }
 
-        api_ok([
+        // PERF-V27-03: ETag + 304 short-circuit on the audit timeline hot path.
+        HttpCache::sendOk([
             'meeting_id' => $meetingId,
             'total' => $total,
             'limit' => $limit,
