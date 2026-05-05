@@ -271,7 +271,8 @@
 
 .vote-live-panel {
   background: var(--color-warning-subtle);
-  border: var(--border-emphasis-warning);
+  border: var(--border-emphasis);
+  border-color: var(--color-warning);
   border-radius: var(--radius);
   padding: var(--space-6);
   margin-bottom: var(--space-6);

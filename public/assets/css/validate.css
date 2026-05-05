@@ -45,14 +45,17 @@
 .validation-zone {
   padding: var(--space-6);
   background: linear-gradient(135deg, var(--color-primary-subtle) 0%, var(--color-surface) 100%);
-  border: var(--border-emphasis-primary);
+  border: var(--border-emphasis);
+  border-color: var(--color-primary);
   border-radius: var(--radius-xl);
   text-align: center;
 }
 
 .validation-zone.validation-zone-danger {
   background: linear-gradient(135deg, var(--color-danger-subtle) 0%, var(--color-surface) 100%);
-  border: var(--border-emphasis-danger-dashed);
+  border: var(--border-emphasis);
+  border-style: dashed;
+  border-color: var(--color-danger);
 }
 
 .validation-zone.locked {
