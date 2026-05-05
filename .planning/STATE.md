@@ -4,14 +4,14 @@ milestone: "v2.6"
 milestone_name: "Clôture dette technique"
 status: in_progress
 stopped_at: ""
-last_updated: "2026-05-05T09:30:00Z"
-last_activity: 2026-05-05 -- Phase 2 (Codes erreur ciblés) ✓ COMPLETE. 20/27 tests GREEN (10+3+7), business_error direct-emit 1→0, ~80 service throws snake_case bénéficient de l'extracteur, idempotency guard intra-request ErrorEventsRepository. 3 phases restantes (3/4/5).
+last_updated: "2026-05-05T11:00:00Z"
+last_activity: 2026-05-05 -- Phase 3 (Tokens cleanup 7.2-7.4) ✓ COMPLETE. 10 tokens 1-site retirés (-2 width / -4 emphasis / -4 rings) sur design-system.css + 9 fichiers callers migrés. Audit final v2.6-TOKENS-AUDIT-FINAL.md : 31 tokens 1-site (cible <30, delta +1 documenté drift v2.5→v2.6 hors-scope), borders 97.7% + shadows 100% (cible ≥95%). 2 phases restantes (4/5).
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 4
-  percent: 40
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 6
+  percent: 60
 ---
 
 # AG-VOTE -- Project State

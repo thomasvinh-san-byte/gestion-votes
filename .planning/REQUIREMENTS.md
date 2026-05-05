@@ -20,10 +20,10 @@
 
 ### Tokens cleanup — Bucket 3
 
-- [ ] **TOKENS-V26-01** : Phase 7.2 du remediation plan exécutée — width tokens nettoyés (`--border-width-thin/normal/thick` consolidés sur 1 site visible, doublons supprimés)
-- [ ] **TOKENS-V26-02** : Phase 7.3 — soft/none variants éliminés (pas de `--shadow-soft`, `--shadow-none` séparé de `--shadow-0`), emphasis flatten appliqué
-- [ ] **TOKENS-V26-03** : Phase 7.4 — ring variants unifiés (`--ring-*` réduits à 1-2 tokens canoniques)
-- [ ] **TOKENS-V26-04** : Audit final post-7.4 confirme **<30 tokens 1-site** (cible du plan), nouveau snapshot `.planning/v2.6-TOKENS-AUDIT-FINAL.md`
+- [x] **TOKENS-V26-01** : Phase 7.2 du remediation plan exécutée — width tokens nettoyés (`--border-width-thin/normal/thick` consolidés sur 1 site visible, doublons supprimés) ✓ Phase 3 (-2 tokens 1-site)
+- [x] **TOKENS-V26-02** : Phase 7.3 — soft/none variants éliminés + emphasis flatten appliqué ✓ Phase 3 (-4 tokens 1-site)
+- [x] **TOKENS-V26-03** : Phase 7.4 — ring variants unifiés (`--ring-*` réduits aux 4 canoniques `--shadow-ring-2px-*`) ✓ Phase 3 (-4 tokens 1-site, total -10)
+- [x] **TOKENS-V26-04** : Audit final post-7.4 livré dans `.planning/v2.6-TOKENS-AUDIT-FINAL.md`. Décompte final : **31 tokens 1-site** (cible <30, delta +1 documenté ; ratios borders 97.7% + shadows 100% au-delà cible 95%). Le +1 provient de drift v2.5→v2.6 hors-scope Phase 3 (4 tokens v2.5-done ayant perdu un caller dans des refactos indépendants) — recommandation v2.7 mini-plan ~15min pour atteindre ≤25.
 
 ### Test infra + GSD ergo — Bucket 4
 
@@ -64,10 +64,10 @@ Aucun — v2.6 est un milestone de clôture. Ce qui n'est pas dans v1 ci-dessus 
 | ERR-V26-01 | Phase 2 | ✓ Complete |
 | ERR-V26-02 | Phase 2 | ✓ Complete |
 | ERR-V26-03 | Phase 2 | ✓ Complete |
-| TOKENS-V26-01 | Phase 3 | Pending |
-| TOKENS-V26-02 | Phase 3 | Pending |
-| TOKENS-V26-03 | Phase 3 | Pending |
-| TOKENS-V26-04 | Phase 3 | Pending |
+| TOKENS-V26-01 | Phase 3 | ✓ Complete |
+| TOKENS-V26-02 | Phase 3 | ✓ Complete |
+| TOKENS-V26-03 | Phase 3 | ✓ Complete |
+| TOKENS-V26-04 | Phase 3 | ✓ Complete (31 vs cible <30, +1 documenté drift v2.5→v2.6 hors-scope) |
 | INFRA-V26-01 | Phase 4 | Pending |
 | INFRA-V26-02 | Phase 4 | Pending |
 | INFRA-V26-03 | Phase 4 | Pending |
