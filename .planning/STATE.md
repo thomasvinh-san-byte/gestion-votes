@@ -4,12 +4,12 @@ milestone: "v2.7"
 milestone_name: "Cohérence visuelle & finitions perçues"
 status: planning
 stopped_at: ""
-last_updated: "2026-05-05T11:30:00Z"
-last_activity: 2026-05-05 -- Milestone v2.7 bootstrapped. 4 buckets confirmés : cohérence visuelle migration design (cœur), loading states, 404 race graceful UX, Query N+1 + HTTP cache. Cadré 1 semaine ~15 reqs.
+last_updated: "2026-05-05T12:00:00Z"
+last_activity: 2026-05-05 -- Roadmap v2.7 créé inline (roadmapper agent timeout). 4 phases : (1) Cohérence visuelle & migration design (6 reqs, cœur), (2) Loading states systematiques (3 reqs), (3) 404 race graceful UX (3 reqs), (4) Query N+1 + HTTP cache (3 reqs). Phase 1 informe Phase 2 (skeleton variants), 2/3/4 indépendantes parallélisables. Prochaine étape : /gsd:plan-phase 1.
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
@@ -22,15 +22,15 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.7 Cohérence visuelle & finitions perçues — defining requirements.
+**Current focus:** v2.7 Cohérence visuelle & finitions perçues — roadmap défini, prêt à planifier Phase 1.
 
 ## Current Position
 
 Milestone: v2.7 Cohérence visuelle & finitions perçues
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap defined, awaiting first /gsd:plan-phase)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 — v2.7 bootstrapped. 4 buckets : cohérence visuelle migration (cœur), loading states, 404 race UX, Query N+1 + HTTP cache. Cadré 1 sem.
+Status: Roadmap ready
+Last activity: 2026-05-05 — Roadmap v2.7 créé. 4 phases / 15 reqs / 100% coverage. Phase 1 (audit + migration cohérence) recommandée d'abord pour informer Phase 2 ; Phases 2/3/4 indépendantes parallélisables.
 
 ## Accumulated Context
 

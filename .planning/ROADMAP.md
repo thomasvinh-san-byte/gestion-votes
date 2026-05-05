@@ -17,6 +17,7 @@
 - ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
 - ✅ **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (PR #259 ouvert 2026-05-04, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, + quick task TECH-01 (234 borders consolidées, 6 nouveaux tokens) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
 - 🚧 **v2.4 Polish & Robustness** - Phases 1-4 (planning, 12 requirements, démarre post-merge PR #259) — cockpit declutter ≤25 boutons + persona color confinement, error observability (business_error → codes ciblés + race conditions empty-state idempotency), test infrastructure (seed-meeting helper, code-reviewer scope splits, Playwright dual-install fix), print + tech debt residuel (dompdf header + ~140 borders + ~45 shadows tokens ≥95 %)
+- 🚧 **v2.7 Cohérence visuelle & finitions perçues** - Phases 1-4 (planning, 15 requirements, ~1 sem cadré) — design system completion + perceived UX/perf : (1) audit + migration cohérence visuelle 30+ écrans (typo Inter/Newsreader/Mono, ≥99% tokens hex+spacing+motion, HTML legacy → composants v2.x), (2) loading states systematiques (skeleton HTMX>300ms + spinner submit + optimistic UI vote/présence), (3) 404 race graceful UX (HTMX swap empty-state vs toast — FOLLOWUP-3 v2.3 originel), (4) Query N+1 + HTTP cache (audit + eager loading findManyByIds + ETag/Last-Modified GET HTMX). **Hors scope explicite** : SSE scaling multi-op, mobile responsive, AAA, capacités métier neuves.
 - ✅ **v2.6 Clôture dette technique** - Phases 1-5 (shipped 2026-05-05, 17 reqs / 16 satisfied + 1 fix-pushed-pending-retest, 32 PHPUnit GREEN + 1 Playwright live PASS) — liquidation dette accumulée v2.3/v2.5 : voir `.planning/milestones/v2.6-ROADMAP.md`
 
 ## Phases
@@ -472,6 +473,65 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
 
 </details>
 
+## Phase Details (v2.7)
+
+**Note d'ordonnancement :** Phase 1 (audit visuel) sert d'input idéal pour Phase 2 (variants `<ag-skeleton>` informés par les patterns vus). Phases 2/3/4 sont indépendantes entre elles et parallélisables. Recommandation : Phase 1 d'abord, puis 2/3/4 en parallèle.
+
+### Phase 1: Cohérence visuelle & migration design
+
+**Goal**: Tous les écrans de l'app utilisent le design system v2.x — aucun aspect "v1 brut" résiduel. Audit cartographique livre un scoring 0-3 par écran, exécution migre les écarts (typo, tokens hex/spacing/motion, HTML legacy → composants v2.x, interactions homogènes).
+
+**Depends on**: Nothing (independent — informs Phase 2)
+**Requirements**: VISUAL-V27-01, VISUAL-V27-02, VISUAL-V27-03, VISUAL-V27-04, VISUAL-V27-05, VISUAL-V27-06
+**Success Criteria** (what must be TRUE):
+  1. Audit `.planning/v2.7-VISUAL-AUDIT.md` livré avec scoring 0-3 sur ≥30 écrans (postsession, archives, members, procurations, audit, analytics, admin/*, dashboard, operator, vote, login, setup, etc.) + screenshot reference par écran. Aucun écran avec score 0 (v1 brut) après exécution.
+  2. Audit grep `font-family` retourne 0 hits pour `Arial`, `Helvetica`, `Verdana`, `Times New Roman` brut (hors emails). Inter / Newsreader / JetBrains Mono partout selon contexte.
+  3. Audit grep `#[0-9a-fA-F]{3,6}` dans `public/assets/css/` (hors `design-system.css` et `email-*.css`) retourne ≤5 hits documentés (cas exceptionnels justifiés). Cible ≥99% colors via `var(--color-*)`.
+  4. Audit grep `padding|margin: \d+px` dans `public/assets/css/` (hors `design-system.css`) retourne ≤10 hits documentés. Cible ≥99% spacing via `var(--space-*)`.
+  5. Aucun `<dialog>` brut ou `<div class="modal">` legacy résiduel — tous remplacés par `<ag-modal>`. Aucune carte ad-hoc avec `box-shadow + border-radius` inline — tous `<ag-card>` ou pattern card design-system.
+  6. Audit grep `transition: \d+\.?\d*s` retourne 0 hits hors design-system.css — tous via `var(--motion-*)` + `var(--ease-*)`. States hover/focus/active uniformes (audit visual sur 5 boutons / 5 inputs / 5 cards échantillon).
+
+**Plans:** TBD (likely 2 plans : audit + execution)
+
+### Phase 2: Loading states systematiques
+
+**Goal**: L'utilisateur perçoit l'app comme rapide même quand la requête prend 300ms — skeleton screens, spinners submit, optimistic UI sur les actions critiques. Aucun double-submit possible.
+
+**Depends on**: Phase 1 (audit visuel informe les variants `<ag-skeleton>`)
+**Requirements**: LOADING-V27-01, LOADING-V27-02, LOADING-V27-03
+**Success Criteria** (what must be TRUE):
+  1. Composant `<ag-skeleton>` réutilisable avec ≥4 variants (text, card, table, avatar) intégré automatiquement aux HTMX swaps >300ms via `htmx:beforeRequest` / `htmx:afterRequest` listener central. Test visuel : dashboard cards / audit list / archives list / members list affichent le skeleton pendant le swap.
+  2. Tous les forms POST/PATCH/DELETE affichent un spinner inline + bouton `disabled` pendant la requête, via attribut data ou pattern HTMX `hx-indicator` étendu. Test : tenter double-clic sur "Voter" → 1 seule requête envoyée, bouton bloqué visible.
+  3. 3 actions critiques implémentent l'optimistic UI : (a) vote cast (UI affiche le vote enregistré avant retour serveur, rollback visible si erreur), (b) présence toggle (badge change instantanément), (c) motion next (motion suivante affichée immédiatement). État "pending" CSS visible (opacité ou pulse subtil).
+
+**Plans:** TBD (likely 1 plan)
+
+### Phase 3: 404 race graceful UX
+
+**Goal**: Quand une séance ou motion est supprimée entre l'affichage liste et le clic action, l'utilisateur voit un empty-state amical à la place du toast d'erreur rouge — frustration éliminée. FOLLOWUP-3 v2.3 originel finalement adressé.
+
+**Depends on**: Nothing (independent)
+**Requirements**: RACE-V27-01, RACE-V27-02, RACE-V27-03
+**Success Criteria** (what must be TRUE):
+  1. Listener global HTMX `htmx:responseError` détecte les `404 Not Found` sur swap target, lit le code d'erreur JSON (`meeting_not_found`, `motion_not_found`), substitue le contenu par un empty-state contextualisé. Aucun toast d'erreur rouge dans ce cas.
+  2. Composant `<ag-empty-state>` réutilisable avec 3 variants (`resource-deleted`, `no-data-yet`, `error`) — variant `resource-deleted` affiche message + CTA retour (vers `/dashboard` pour meeting deleted, vers parent meeting pour motion deleted). Aligné design system v2.x (typo, tokens, espace).
+  3. Test E2E `tests/e2e/specs/race-404-empty-state.spec.js` simule séance supprimée entre liste-affichée et clic-action (delete via `/api/v1/test/seed-meeting?action=delete` ou direct DB), vérifie empty-state visible et toast absent.
+
+**Plans:** TBD (likely 1 plan)
+
+### Phase 4: Query N+1 + HTTP cache
+
+**Goal**: Les pages HTMX hot (dashboard, audit, archives, members) répondent en <100ms p95 grâce à l'élimination des N+1 et au cache HTTP ETag. Mesurable.
+
+**Depends on**: Nothing (independent)
+**Requirements**: PERF-V27-01, PERF-V27-02, PERF-V27-03
+**Success Criteria** (what must be TRUE):
+  1. Audit `.planning/v2.7-N+1-AUDIT.md` livré avec liste des call-sites N+1 dans `app/Controller/` (foreach qui appelle un repo en interne) + estimation gain par site (queries économisées par requête HTTP).
+  2. 5-10 hot paths refactorés via méthodes `findManyByIds(array $ids)` ajoutées aux repos concernés (probablement `MotionRepository`, `MemberRepository`, `BallotRepository`, `AuditEventRepository`). Test PHPUnit prouve "N queries → 1 query" pour chaque refacto via mock PDO + counter.
+  3. ETag/Last-Modified sur 3-5 GET HTMX hot endpoints idempotents (dashboard cards, audit list, archives list, members list). Header `Cache-Control: private, must-revalidate` + handler `If-None-Match` retourne `304 Not Modified`. Test PHPUnit prouve `304` sur même ETag, `200` sur ETag différent.
+
+**Plans:** TBD (likely 1 plan)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -493,6 +553,10 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
 | 3. Tokens cleanup 7.2-7.4 | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
 | 4. Test infra + GSD ergo | v2.6 | 3/3 | ✓ Shipped | 2026-05-05 |
 | 5. Print/PDF polish | v2.6 | 1/1 | ✓ Shipped | 2026-05-05 |
+| 1. Cohérence visuelle & migration design | v2.7 | 0/2 | ○ Planning | - |
+| 2. Loading states systematiques | v2.7 | 0/1 | ○ Planning | - |
+| 3. 404 race graceful UX | v2.7 | 0/1 | ○ Planning | - |
+| 4. Query N+1 + HTTP cache | v2.7 | 0/1 | ○ Planning | - |
 
 ---
 
