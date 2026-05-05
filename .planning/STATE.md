@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: ""
-milestone_name: ""
-status: between_milestones_with_ops_pending
-stopped_at: "v2.5 archived. 6 ad-hoc improvement commits shipped on main post-archive (SEC-V2-02/03 + COCKPIT-V25-01 + TOKENS Phase 7.1+7.2 + observability:purge-events CLI + storage footer + health latency + 5xx request_id). 3/6 dev-machine ops actions DONE (§1 DB migrations applied via apply-migrations-v2.5.sh after fix 2871f3c uuid cast; §2 GitHub state repaired). 3 actions pending: §3 Playwright, §4 visual inspection, §5 cron schedule. Bootstrapping v2.6 milestone next. See .planning/OPS-CHECKLIST.md."
-last_updated: "2026-05-05T05:42:00Z"
-last_activity: 2026-05-05 -- DB migrations applied (error_events, next_step_clicks, invitation_revoke_pre_hmac). Fix 2871f3c corrected uuid::text cast in pre-HMAC revoke migration. About to bootstrap v2.6 milestone (option 2 retenue par utilisateur).
+milestone: "v2.6"
+milestone_name: "Clôture dette technique"
+status: planning
+stopped_at: ""
+last_updated: "2026-05-05T05:48:00Z"
+last_activity: 2026-05-05 -- Milestone v2.6 bootstrapped. 5 buckets confirmed (tests heartbeat, codes erreur ciblés, TOKENS 7.2-7.4, test infra+GSD ergo, Print/PDF). Ambition clôture stricte ~1 sem. Defining requirements next.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -18,28 +18,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-04 after v2.5 milestone + 6 ad-hoc improvements)
+See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** Close OPS-CHECKLIST 6 actions on dev-machine, then either bootstrap v2.6 milestone (`/gsd:new-milestone v2.6`) or continue ad-hoc on main.
+**Current focus:** v2.6 Clôture dette technique — defining requirements.
 
 ## Current Position
 
-Milestone: v2.5 Real-time Live Cockpit + Logger Migration
-Branch: claude/gsd-ux-review-YG5K0
-Phase: 7 of 7 — BLOCKED on v2.4 PR #260 merge
-- Phase 5 SSE Live Pulse: 2/4 (heartbeat code shipped 02179ea, tests deferred per directive)
-- Phase 6 Logger Migration & Error Tracking: 4/4 ✓ COMPLETE
-- Phase 7 Cockpit Polish résiduel: 0/2 — depends on v2.4 hero card sub-tab + 49 tokens 1-site
-
-Plan: 6 of 10 reqs done (60%)
-
-Progress: [######....] 60%
-
-**Base de planning :** v2.2 mergée (PR #256), v2.3 shipped (PR #259), v2.4 shipped (PR #260, awaiting merge). v2.5 livré directement sur cette branche : heartbeat (02179ea) + Phase 6 complète (Logger migration + error_events table + /admin/error-stats + next-step CTR tracking).
-
-**Unblock path:** Merge v2.4 PR #260 → rebase this branch → execute COCKPIT-V25-01 + TOKENS-V25-01.
+Milestone: v2.6 Clôture dette technique
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-05 — Milestone v2.6 started. 5 buckets : tests heartbeat, codes erreur ciblés, TOKENS 7.2-7.4, test infra+GSD ergo, Print/PDF.
 
 ## Accumulated Context
 

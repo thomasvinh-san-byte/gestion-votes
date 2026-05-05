@@ -87,9 +87,25 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-## Current Milestone: Planning next milestone
+## Current Milestone: v2.6 Clôture dette technique
 
-**Status (2026-05-04):** v2.5 archived, ready for next milestone definition via `/gsd-new-milestone`.
+**Goal :** Liquider la dette explicite accumulée v2.3/v2.5 et atteindre un état "tout shipped, zéro carry-forward". Pas d'ajout opportuniste — chaque item est tracé en amont. Ambition : clôture stricte, ~1 semaine, 5 phases courtes.
+
+**Target features (5 buckets) :**
+- **Bucket 1 — Tests heartbeat** : HEARTBEAT-V25-03 (PHPUnit payload `meeting.heartbeat`) + HEARTBEAT-V25-04 (Playwright `sse-heartbeat.spec.js` 12s tick) — lève le stop-tests directive v2.5
+- **Bucket 2 — Codes erreur ciblés** : `business_error` générique → 3 codes ciblés (différés Phase 4 v2.3 follow-up 04.6-FOLLOWUP-2) + race conditions empty-state idempotency (04.6-FOLLOWUP-3)
+- **Bucket 3 — TOKENS 7.2-7.4** : width/soft/none cleanup + emphasis flatten + ring variants — cible <30 tokens 1-site (suite du 4-phase remediation plan dans `.planning/v2.5-TOKENS-AUDIT.md`)
+- **Bucket 4 — Test infra + GSD ergo** : seed-meeting helper `@integration` + Playwright dual-install fix + test infra README + Explore patterns doc + code-reviewer budget timeout / scope splits
+- **Bucket 5 — Print/PDF polish** : dompdf header répétabilité + em-dash UTF-8 fallback + pagination robuste sur PVs ≥10 pages
+
+**Hors scope explicite :**
+- 3 OPS résiduelles (§3 Playwright runs, §4 visual inspection, §5 cron schedule) — restent dev-machine, pas de code à écrire
+- Nouvelles capacités métier — pas en milestone de clôture
+- Refactos opportunistes — clôture stricte, pas d'ajout en cours de route
+
+**Status (2026-05-05):** v2.5 archivée + 6 commits ad-hoc post-archive shippés sur main. v2.6 en planning. Phases v2.3/v2.4 archivées dans `milestones/v2.5-phases/`.
+
+**Recently shipped (post-v2.5 close, on main, no PR yet):**
 
 **Recently shipped (post-v2.5 close, on main, no PR yet):**
 
@@ -269,4 +285,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-04 — v2.3 shipped via PR #259 (35/35 reqs PASSED, gates manuelles pending dev machine), v2.4 Polish & Robustness in planning (12 reqs, 4 phases)*
+*Last updated: 2026-05-05 — v2.6 milestone bootstrapped (Clôture dette technique, 5 buckets, ~1 sem). v2.5 archived; phase dirs v2.3/v2.4 leftover déplacés vers `milestones/v2.5-phases/`.*
