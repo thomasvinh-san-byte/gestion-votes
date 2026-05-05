@@ -532,7 +532,9 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
   2. 5-10 hot paths refactorés via méthodes `findManyByIds(array $ids)` ajoutées aux repos concernés (probablement `MotionRepository`, `MemberRepository`, `BallotRepository`, `AuditEventRepository`). Test PHPUnit prouve "N queries → 1 query" pour chaque refacto via mock PDO + counter.
   3. ETag/Last-Modified sur 3-5 GET HTMX hot endpoints idempotents (dashboard cards, audit list, archives list, members list). Header `Cache-Control: private, must-revalidate` + handler `If-None-Match` retourne `304 Not Modified`. Test PHPUnit prouve `304` sur même ETag, `200` sur ETag différent.
 
-**Plans:** TBD (likely 1 plan)
+**Plans:** 2 plans
+- [ ] 04-01-PLAN.md — Audit N+1 dans app/Controller/ + refactor hot paths via méthodes batch (PERF-V27-01 + PERF-V27-02)
+- [ ] 04-02-PLAN.md — HttpCache primitive (ETag + 304) + wiring sur 3-5 GET HTMX hot endpoints (PERF-V27-03)
 
 
 ## Progress
@@ -559,7 +561,7 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
 | 1. Cohérence visuelle & migration design | v2.7 | 0/2 | ○ Planning | - |
 | 2. Loading states systematiques | v2.7 | 0/1 | ○ Planning | - |
 | 3. 404 race graceful UX | v2.7 | 0/1 | ○ Planning | - |
-| 4. Query N+1 + HTTP cache | v2.7 | 0/1 | ○ Planning | - |
+| 4. Query N+1 + HTTP cache | v2.7 | 0/2 | ○ Planning | - |
 
 ---
 
