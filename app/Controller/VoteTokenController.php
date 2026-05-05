@@ -53,23 +53,34 @@ final class VoteTokenController extends AbstractController {
         $createdCount = 0;
         $voteTokenRepo = $this->repo()->voteToken();
 
+        // PERF-V27-02: pre-compute all hashes, then batch DELETE + batch INSERT
+        // (was 2*N round-trips: one delete + one insert per voter).
         api_transaction(function () use ($voters, $voteTokenRepo, $meetingId, $motionId, $tenant, $expiresAt, &$generated, &$createdCount) {
+            $rowsToInsert = [];
+            $memberIds = [];
             foreach ($voters as $v) {
                 $raw = api_uuid4();
                 $hash = hash_hmac('sha256', $raw, APP_SECRET);
-
-                $voteTokenRepo->deleteUnusedByMotionAndMember($meetingId, $motionId, $v['member_id'], $tenant);
-                $voteTokenRepo->insert($hash, $tenant, $meetingId, $v['member_id'], $motionId, $expiresAt);
-
-                $createdCount++;
-
+                $memberIds[] = $v['member_id'];
+                $rowsToInsert[] = [
+                    'token_hash' => $hash,
+                    'tenant_id'  => $tenant,
+                    'meeting_id' => $meetingId,
+                    'member_id'  => $v['member_id'],
+                    'motion_id'  => $motionId,
+                    'expires_at' => $expiresAt,
+                ];
                 $generated[] = [
                     'member_id' => $v['member_id'],
                     'member_name' => $v['member_name'],
                     'token' => $raw,
                     'url' => '/vote.php?token=' . $raw,
                 ];
+                $createdCount++;
             }
+
+            $voteTokenRepo->deleteUnusedByMotionAndMembers($meetingId, $motionId, $memberIds, $tenant);
+            $voteTokenRepo->insertMany($rowsToInsert);
         });
 
         audit_log('vote_tokens_generated', 'motion', $motionId, [

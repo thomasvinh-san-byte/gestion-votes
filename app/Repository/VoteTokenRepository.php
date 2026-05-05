@@ -202,6 +202,60 @@ class VoteTokenRepository extends AbstractRepository {
     }
 
     /**
+     * PERF-V27-02 — batch variant of deleteUnusedByMotionAndMember(). Single
+     * DELETE … WHERE member_id IN (…) (replaces N foreach calls in
+     * VoteTokenController::generate()).
+     *
+     * @param string[] $memberIds
+     */
+    public function deleteUnusedByMotionAndMembers(string $meetingId, string $motionId, array $memberIds, string $tenantId): void {
+        if (count($memberIds) === 0) {
+            return;
+        }
+        $params = [':mid' => $meetingId, ':mo' => $motionId, ':tid' => $tenantId];
+        $in = $this->buildInClause('mb', $memberIds, $params);
+        $this->execute(
+            "DELETE FROM vote_tokens
+             WHERE meeting_id = :mid AND motion_id = :mo AND tenant_id = :tid
+               AND used_at IS NULL AND member_id IN ({$in})",
+            $params,
+        );
+    }
+
+    /**
+     * PERF-V27-02 — batch INSERT for many tokens at once (replaces N insert()
+     * calls in VoteTokenController::generate()).
+     *
+     * Each row in $rows must contain: token_hash, tenant_id, meeting_id,
+     * member_id, motion_id, expires_at. Empty input is a no-op.
+     *
+     * @param array<int, array{token_hash:string, tenant_id:string, meeting_id:string, member_id:string, motion_id:string, expires_at:string}> $rows
+     */
+    public function insertMany(array $rows): void {
+        if (count($rows) === 0) {
+            return;
+        }
+        $tuples = [];
+        $params = [];
+        foreach (array_values($rows) as $i => $row) {
+            $tuples[] = "(:hash{$i}, :tid{$i}, :mid{$i}, :mem{$i}, :mot{$i}, :exp{$i})";
+            $params[":hash{$i}"] = $row['token_hash'];
+            $params[":tid{$i}"]  = $row['tenant_id'];
+            $params[":mid{$i}"]  = $row['meeting_id'];
+            $params[":mem{$i}"]  = $row['member_id'];
+            $params[":mot{$i}"]  = $row['motion_id'];
+            $params[":exp{$i}"]  = $row['expires_at'];
+        }
+        $valuesSql = implode(', ', $tuples);
+        $this->execute(
+            "INSERT INTO vote_tokens (token_hash, tenant_id, meeting_id, member_id, motion_id, expires_at)
+             VALUES {$valuesSql}
+             ON CONFLICT (token_hash) DO NOTHING",
+            $params,
+        );
+    }
+
+    /**
      * Supprime tous les tokens lies aux motions d'une seance (USING JOIN).
      */
     public function deleteByMeetingMotions(string $meetingId, string $tenantId): void {
