@@ -30,7 +30,7 @@ Milestone: v2.6 Clôture dette technique
 Phase: 1/5 ✓ COMPLETE — Tests heartbeat (TEST-V26-01 + TEST-V26-02)
 Plan: —
 Status: Phase 1 verified, ready for next phase (2/3/4/5 indépendantes)
-Last activity: 2026-05-05 — Phase 1 shipped. Worktree-parallel exec : 01-01 (HeartbeatPayloadBuilder + PHPUnit 8/29 GREEN) + 01-02 (Playwright spec, full run pending live stack). Verifier PASS 5/5 must-haves. Goal "stop-tests v2.5 levé" atteint.
+Last activity: 2026-05-05 — Quick task 260505-001 livré (Docker autoload fix + rebuild.sh --quick). Débloque SC-3 Phase 1 (Playwright run) après rebuild image dev-server. Phase 1 v2.6 reste 1/5 — phases 2-5 indépendantes en attente.
 
 Progress: [##........] 20% (1/5 phases, 2/5 plans)
 
@@ -68,6 +68,7 @@ None — main à jour post-v2.5 (commits ade443f / eeb9aa4 / d7bf36e shippés di
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Sceller le setup: bloquer SetupController si un admin existe et exiger CSRF | 2026-04-29 | 8c0e64a | [1-sceller-le-setup-bloquer-setupcontroller](./quick/1-sceller-le-setup-bloquer-setupcontroller/) |
+| 260505-001 | Docker autoload fix (split install/dump-autoload) + rebuild.sh --quick fast path | 2026-05-05 | 1a1dfb7 | [260505-001-docker-autoload-fix-rebuild-improve](./quick/260505-001-docker-autoload-fix-rebuild-improve/) |
 
 ## Session Continuity
 
