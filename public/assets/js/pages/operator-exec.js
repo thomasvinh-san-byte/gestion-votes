@@ -1151,15 +1151,40 @@
   // GUIDANCE PANEL BUTTON HANDLERS (OPC-04 / OPC-05)
   // =========================================================================
 
-  // Post-vote: "Vote suivant" — focus/open next openable motion
+  // Post-vote: "Vote suivant" — focus/open next openable motion (LOADING-V27-03)
   document.addEventListener('click', function(e) {
     if (e.target.id === 'opBtnNextVote') {
       var nextMotion = O.motionsCache.find(function(m) { return !m.opened_at && !m.closed_at; });
       if (nextMotion) {
-        // Scroll the agenda item into view and open the vote
+        // Optimistic UI: scroll + highlight the upcoming motion immediately,
+        // then fire openVote in the background. Toast on error is handled by
+        // openVote itself (utils.js shared error toasts).
         var agendaItem = document.querySelector('[data-motion-id="' + nextMotion.id + '"]');
-        if (agendaItem) agendaItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        O.fn.openVote(nextMotion.id);
+        if (agendaItem) {
+          agendaItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          agendaItem.classList.add('is-pending');
+        }
+        try {
+          var p = O.fn.openVote(nextMotion.id);
+          if (p && typeof p.finally === 'function') {
+            p.finally(function() {
+              if (agendaItem) agendaItem.classList.remove('is-pending');
+            });
+          } else if (p && typeof p.then === 'function') {
+            // Older promises without .finally
+            p.then(
+              function() { if (agendaItem) agendaItem.classList.remove('is-pending'); },
+              function() { if (agendaItem) agendaItem.classList.remove('is-pending'); }
+            );
+          } else {
+            // Synchronous return — clear pending state on next tick.
+            setTimeout(function() {
+              if (agendaItem) agendaItem.classList.remove('is-pending');
+            }, 800);
+          }
+        } catch (err) {
+          if (agendaItem) agendaItem.classList.remove('is-pending');
+        }
       }
     }
     if (e.target.id === 'opBtnCloseSession' || e.target.id === 'opBtnEndSession') {
