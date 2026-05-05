@@ -44,7 +44,9 @@ SELECT COUNT(*) FROM invitations
 
 ---
 
-## 2. Push retroactive tags + delete dead branches (sandbox blocked by proxy)
+## 2. Push retroactive tags + delete dead branches ✅ DONE (2026-05-05)
+
+> Closed via `bin/repair-github-state.sh`. Remote state confirmed: only `main` branch + tags v2.2..v2.5. The sub-section below is kept for reference / re-run.
 
 **Easiest path** — one-shot helper script :
 

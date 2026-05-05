@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: ""
 milestone_name: ""
 status: between_milestones_with_ops_pending
-stopped_at: "v2.5 archived. 6 ad-hoc improvement commits shipped on main post-archive (SEC-V2-02/03 + COCKPIT-V25-01 + TOKENS Phase 7.1+7.2 + observability:purge-events CLI + storage footer + health latency + 5xx request_id). 6 dev-machine ops actions pending in .planning/OPS-CHECKLIST.md (3 DB migrations + tag/branch push + Playwright + visual inspection + cron + sanity)."
-last_updated: "2026-05-04T13:00:00Z"
-last_activity: 2026-05-04 -- consolidated all deferred dev-machine gates into single OPS-CHECKLIST.md (commit b39fe05). Created retroactive tags v2.2/v2.3/v2.4 locally (push blocked by sandbox proxy — see checklist section 2).
+stopped_at: "v2.5 archived. 6 ad-hoc improvement commits shipped on main post-archive (SEC-V2-02/03 + COCKPIT-V25-01 + TOKENS Phase 7.1+7.2 + observability:purge-events CLI + storage footer + health latency + 5xx request_id). 2/6 dev-machine ops actions DONE (§2 GitHub state repair: branches deleted, tags v2.2..v2.5 pushed). 4 actions pending: §1 DB migrations (CRITICAL), §3 Playwright, §4 visual inspection, §5 cron schedule. See .planning/OPS-CHECKLIST.md."
+last_updated: "2026-05-05T05:30:00Z"
+last_activity: 2026-05-05 -- GitHub state repaired (5 stale branches deleted, tags v2.2/v2.3/v2.4 pushed). v2.3 absorbed via symbolic merge -s ours (commit 1be624e). Migration helper scripts confirmed up-to-date and idempotent.
 progress:
   total_phases: 0
   completed_phases: 0
