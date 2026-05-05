@@ -7,9 +7,9 @@ stopped_at: ""
 last_updated: "2026-05-05T05:48:00Z"
 last_activity: 2026-05-05 -- Milestone v2.6 bootstrapped. 5 buckets confirmed (tests heartbeat, codes erreur ciblés, TOKENS 7.2-7.4, test infra+GSD ergo, Print/PDF). Ambition clôture stricte ~1 sem. Defining requirements next.
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
