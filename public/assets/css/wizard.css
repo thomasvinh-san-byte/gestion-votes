@@ -83,7 +83,7 @@
   background: var(--color-surface);
   border: var(--border-default);
   border-radius: var(--radius-lg);
-  padding: 2px;
+  padding: var(--space-0-5);
   box-shadow: var(--shadow-sm);
 }
 
@@ -92,7 +92,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: var(--space-1-5) var(--space-3);
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-text-muted);
@@ -107,7 +107,7 @@
   width: 24px;
   height: 2px;
   background: var(--color-border);
-  margin-right: 4px;
+  margin-right: var(--space-1);
   flex-shrink: 0;
 }
 
@@ -144,7 +144,7 @@
   background: var(--color-bg-subtle);
   color: var(--color-text-muted);
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all var(--duration-moderate) var(--ease-standard);
 }
 
 .wiz-step-item.active .wiz-snum {
@@ -162,7 +162,7 @@
    ============================================================================= */
 
 .wiz-step-body {
-  padding: 0.75rem 1.5rem;
+  padding: var(--space-3) var(--space-6);
 }
 
 /* =============================================================================
@@ -231,7 +231,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: var(--space-1-5) var(--space-4);
   background: var(--color-danger-subtle);
   border: var(--border-danger);
   border-radius: var(--radius) var(--radius) 0 0;
@@ -246,8 +246,8 @@
    ============================================================================= */
 
 .wiz-section {
-  margin-bottom: 0.5rem;
-  padding-top: 0.5rem;
+  margin-bottom: var(--space-2);
+  padding-top: var(--space-2);
   border-top: var(--border-subtle);
 }
 
@@ -265,13 +265,13 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--space-1);
 }
 
 .wiz-required-note {
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  margin-bottom: 0.375rem;
+  margin-bottom: var(--space-1-5);
 }
 
 .wiz-required-note .req,
@@ -290,14 +290,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 
 /* Field hint */
 .field-hint {
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-1);
   line-height: 1.4;
 }
 
@@ -315,7 +315,7 @@
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
 }
 
 .field-info-btn:hover {
@@ -331,7 +331,7 @@
   display: none;
   font-size: 0.75rem;
   color: var(--color-danger);
-  margin-top: 4px;
+  margin-top: var(--space-1);
   font-weight: 500;
 }
 
@@ -357,14 +357,14 @@
 .wiz-advanced-toggle {
   border: var(--border-subtle);
   border-radius: var(--radius);
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
 }
 
 .wiz-advanced-summary {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: var(--space-1-5) var(--space-4);
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -391,7 +391,7 @@
 }
 
 .wiz-advanced-body {
-  padding: 0 14px 10px;
+  padding: 0 var(--space-4) var(--space-2-5);
 }
 
 /* =============================================================================
@@ -424,7 +424,7 @@ input[type="time"].field-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 1.5rem;
+  padding: var(--space-2) var(--space-6);
   border-top: var(--border-subtle);
   background: var(--color-bg-subtle);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -459,11 +459,11 @@ input[type="time"].field-input {
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   background: var(--color-bg-subtle);
   border-radius: 10px;
   border: var(--border-subtle);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .wiz-member-add-row .field { margin: 0; }
@@ -476,7 +476,7 @@ input[type="time"].field-input {
    ============================================================================= */
 
 .wiz-toggle-row {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-3);
 }
 
 .toggle-label {
@@ -497,7 +497,7 @@ input[type="time"].field-input {
   border-radius: 0.75rem;
   position: relative;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background var(--duration-moderate) var(--ease-standard);
   flex-shrink: 0;
 }
 
@@ -510,7 +510,7 @@ input[type="time"].field-input {
   position: absolute;
   top: 3px;
   left: 3px;
-  transition: transform 0.2s ease;
+  transition: transform var(--duration-moderate) var(--ease-standard);
   box-shadow: var(--shadow-sm);
 }
 
@@ -529,17 +529,17 @@ input[type="time"].field-input {
 .members-action-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .member-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: var(--space-2-5) var(--space-4);
   border-bottom: var(--border-subtle);
   border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
+  transition: background var(--duration-normal) var(--ease-standard);
 }
 
 .member-row:hover {
@@ -571,9 +571,9 @@ input[type="time"].field-input {
 }
 
 .members-total-row {
-  padding: 8px 0;
+  padding: var(--space-2) 0;
   border-top: var(--border-subtle);
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
@@ -604,14 +604,14 @@ input[type="time"].field-input {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: var(--border-emphasis-dashed);
   border-radius: var(--radius);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
   color: var(--color-text-muted);
   font-size: 0.8125rem;
   background: var(--color-bg-subtle);
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--duration-moderate) var(--ease-standard), background var(--duration-moderate) var(--ease-standard);
 }
 
 .upload-zone-title {
@@ -635,14 +635,14 @@ input[type="time"].field-input {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .wiz-template-card {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 8px;
+  padding: var(--space-2);
   border: var(--border-subtle);
   border-radius: var(--radius);
   cursor: pointer;
@@ -683,7 +683,7 @@ input[type="time"].field-input {
 .wiz-template-card-desc {
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  margin-top: 2px;
+  margin-top: var(--space-0-5);
 }
 
 /* =============================================================================
@@ -691,15 +691,15 @@ input[type="time"].field-input {
    ============================================================================= */
 
 .reso-add-trigger {
-  margin: 6px 0;
+  margin: var(--space-1-5) 0;
 }
 
 .reso-add-panel {
-  padding: 14px;
+  padding: var(--space-4);
   background: var(--color-bg-subtle);
   border-radius: var(--radius);
   border: var(--border-subtle);
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .reso-add-title {
@@ -708,14 +708,14 @@ input[type="time"].field-input {
   gap: 6px;
   font-size: 0.8125rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-3);
   color: var(--color-text);
 }
 
 .reso-add-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 /* =============================================================================
@@ -728,7 +728,7 @@ input[type="time"].field-input {
 }
 
 .chip {
-  padding: 4px 12px;
+  padding: var(--space-1) var(--space-3);
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -758,11 +758,11 @@ input[type="time"].field-input {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 1rem 0.75rem;
+  padding: var(--space-4) var(--space-3);
   border-bottom: var(--border-subtle);
   cursor: grab;
   border-radius: var(--radius-sm);
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition: background var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
 }
 
 .reso-row:hover {
@@ -789,8 +789,8 @@ input[type="time"].field-input {
   flex-shrink: 0;
   cursor: grab;
   user-select: none;
-  padding-top: 2px;
-  transition: color 0.15s ease;
+  padding-top: var(--space-0-5);
+  transition: color var(--duration-normal) var(--ease-standard);
 }
 
 .reso-row:hover .reso-drag-handle {
@@ -821,13 +821,13 @@ input[type="time"].field-input {
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--color-text);
-  margin-bottom: 3px;
+  margin-bottom: var(--space-1);
 }
 
 .reso-desc {
   font-size: 12px;
   color: var(--color-text-muted);
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
   line-height: 1.4;
 }
 
@@ -840,7 +840,7 @@ input[type="time"].field-input {
 }
 
 .reso-meta span {
-  padding: 2px 8px;
+  padding: var(--space-0-5) var(--space-2);
   background: var(--color-surface);
   border-radius: var(--radius-sm);
   border: var(--border-subtle);
@@ -855,7 +855,7 @@ input[type="time"].field-input {
    ============================================================================= */
 
 .review-section {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
   border: var(--border-subtle);
   border-radius: var(--radius);
   overflow: hidden;
@@ -865,7 +865,7 @@ input[type="time"].field-input {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
+  padding: var(--space-2) var(--space-4);
   background: var(--color-bg-subtle);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -899,7 +899,7 @@ input[type="time"].field-input {
 .review-row {
   display: flex;
   justify-content: space-between;
-  padding: 6px 14px;
+  padding: var(--space-1-5) var(--space-4);
   font-size: 0.8125rem;
   border-top: var(--border-subtle);
 }
@@ -914,7 +914,7 @@ input[type="time"].field-input {
 }
 
 .review-row-block {
-  padding: 6px 14px;
+  padding: var(--space-1-5) var(--space-4);
   border-top: var(--border-subtle);
 }
 
@@ -922,7 +922,7 @@ input[type="time"].field-input {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   font-style: italic;
-  padding: 4px 0;
+  padding: var(--space-1) 0;
 }
 
 .review-reso-list {
@@ -933,7 +933,7 @@ input[type="time"].field-input {
 
 .review-reso-list li {
   font-size: 0.8125rem;
-  padding: 6px 0;
+  padding: var(--space-1-5) 0;
   color: var(--color-text);
   display: flex;
   gap: 8px;
@@ -951,13 +951,13 @@ input[type="time"].field-input {
 }
 
 .review-warning {
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   background: var(--color-warning-subtle);
   border-left: 3px solid var(--color-warning);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-size: 0.8125rem;
   color: var(--color-warning);
-  margin-top: 10px;
+  margin-top: var(--space-2-5);
   font-weight: 500;
 }
 
@@ -967,11 +967,11 @@ input[type="time"].field-input {
 
 .wiz-step .alert {
   border-radius: var(--radius);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .alert-warn-recap {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   margin-bottom: 0;
 }
 
@@ -990,7 +990,7 @@ input[type="time"].field-input {
 /* Tablet / landscape (600-1024px) — keep horizontal, tighten spacing */
 @media (max-width: 1024px) and (min-width: 601px) {
   .wiz-step-body {
-    padding: 0.75rem 1rem;
+    padding: var(--space-3) var(--space-4);
   }
 
   .wiz-template-grid {
@@ -1002,7 +1002,7 @@ input[type="time"].field-input {
   }
 
   .step-nav {
-    padding: 8px 1rem;
+    padding: var(--space-2) var(--space-4);
   }
 }
 
@@ -1021,11 +1021,11 @@ input[type="time"].field-input {
   }
 
   .wiz-step-body {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .step-nav {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .wiz-step-item span {
@@ -1034,7 +1034,7 @@ input[type="time"].field-input {
 
   .wiz-step-item {
     justify-content: center;
-    padding: 10px;
+    padding: var(--space-2-5);
   }
 
   .members-action-row {

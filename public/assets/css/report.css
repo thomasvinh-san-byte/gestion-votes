@@ -84,7 +84,7 @@
   margin-top: var(--space-1);
 }
 .pv-empty-state .skeleton {
-  margin: 0 auto 0.5rem;
+  margin: 0 auto var(--space-2);
 }
 .pv-empty-state .skeleton:last-child {
   margin-bottom: 0;

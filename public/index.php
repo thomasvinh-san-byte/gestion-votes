@@ -14,6 +14,12 @@ declare(strict_types=1);
  * Without URL rewriting (current state):
  *   Each .php file in public/api/v1/ still works directly.
  *   This front controller is opt-in via .htaccess / nginx config.
+ *
+ * Frontend shell scripts (loaded by every *.htmx.html template, not by
+ * this front controller):
+ *   /assets/js/core/utils.js              — HTMX/CSRF/idempotency helpers
+ *   /assets/js/components/index.js        — Web component registry
+ *   /assets/js/core/loading-states.js     — Skeleton + submit spinner (LOADING-V27-01/02)
  */
 
 // ─── Resolve the request URI ───────────────────────────────────────────────

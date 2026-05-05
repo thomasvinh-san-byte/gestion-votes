@@ -117,11 +117,15 @@ final class DashboardController extends AbstractController {
 
             $closed = $motionRepo->listClosedWithManualTally($tenantId, $meetingId);
 
+            // PERF-V27-02: pre-fetch all ballot counts in one batch query (was N+1).
+            $closedIds = array_map(fn($mo) => (string) $mo['id'], $closed);
+            $ballotsCounts = $ballotRepo->countByMotionIds($closedIds, $tenantId, $meetingId);
+
             foreach ($closed as $mo) {
                 $manualTotal = (int) ($mo['manual_total'] ?? 0);
                 $sumManual = (int) ($mo['manual_for'] ?? 0) + (int) ($mo['manual_against'] ?? 0) + (int) ($mo['manual_abstain'] ?? 0);
 
-                $ballotsCount = $ballotRepo->countForMotion($tenantId, $meetingId, (string) $mo['id']);
+                $ballotsCount = $ballotsCounts[(string) $mo['id']] ?? 0;
 
                 $manualOk = ($manualTotal > 0 && $manualTotal === $sumManual);
                 $evoteOk = ($ballotsCount > 0);

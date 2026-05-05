@@ -208,6 +208,36 @@ class InvitationRepository extends AbstractRepository {
     }
 
     /**
+     * PERF-V27-02 — batch lookup of invitation statuses for many members in one
+     * query (replaces N findStatusByMeetingAndMember() calls in
+     * EmailController::sendBulkInvitations() when only_unsent=true).
+     *
+     * Returns a map indexed by member_id; missing members are absent from the map.
+     * Empty input returns [] without hitting the database.
+     *
+     * @param  string[]              $memberIds
+     * @return array<string, string> member_id => status
+     */
+    public function findStatusesByMeetingAndMembers(string $meetingId, array $memberIds, string $tenantId): array {
+        if (count($memberIds) === 0) {
+            return [];
+        }
+        $params = [':mid' => $meetingId, ':tid' => $tenantId];
+        $in = $this->buildInClause('mem', $memberIds, $params);
+        $rows = $this->selectAll(
+            "SELECT member_id, status
+             FROM invitations
+             WHERE meeting_id = :mid AND tenant_id = :tid AND member_id IN ({$in})",
+            $params,
+        );
+        $map = [];
+        foreach ($rows as $r) {
+            $map[(string) $r['member_id']] = (string) $r['status'];
+        }
+        return $map;
+    }
+
+    /**
      * Upsert pour envoi en masse (avec status et sent_at parametrables).
      * Stocke le token_hash au lieu du token brut.
      */

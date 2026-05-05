@@ -93,7 +93,7 @@
 
 .template-card-type {
   font-size: var(--text-xs);
-  padding: 0.25rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm, 4px);
   background: var(--color-bg-subtle);
   font-weight: 500;
@@ -149,7 +149,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-12, 3rem);
+  padding: var(--space-12, var(--space-12));
   text-align: center;
   color: var(--color-text-muted);
 }
@@ -286,8 +286,8 @@
 
 .variable-tag {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
-  margin: 0.125rem;
+  padding: var(--space-1) var(--space-2);
+  margin: var(--space-0-5);
   background: var(--color-surface);
   border: var(--border-default);
   border-radius: var(--radius-sm, 4px);

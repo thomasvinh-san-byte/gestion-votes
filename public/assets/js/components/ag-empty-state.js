@@ -39,9 +39,19 @@ function _esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// RACE-V27-02 — variant presets (defaults only — explicit attributes always win).
+// Adding a new variant key here is enough; the render() path picks up the icon
+// default and CSS modifier class automatically. Unknown variant values fall
+// through to the legacy behaviour (no class, generic icon).
+var VARIANTS = {
+  'resource-deleted': { iconDefault: 'generic', cssMod: 'empty-state--resource-deleted' },
+  'no-data-yet':      { iconDefault: 'generic', cssMod: 'empty-state--no-data-yet' },
+  'error':            { iconDefault: 'generic', cssMod: 'empty-state--error' }
+};
+
 class AgEmptyState extends HTMLElement {
   static get observedAttributes() {
-    return ['icon', 'title', 'description', 'action-label', 'action-href'];
+    return ['icon', 'title', 'description', 'action-label', 'action-href', 'variant'];
   }
 
   connectedCallback() { this.render(); }
@@ -51,7 +61,12 @@ class AgEmptyState extends HTMLElement {
   }
 
   render() {
-    var icon = this.getAttribute('icon') || 'generic';
+    var variant = this.getAttribute('variant');
+    var variantCfg = (variant && VARIANTS[variant]) || null;
+
+    // Explicit `icon` always wins ; variant only supplies a default when
+    // the attribute is absent. Preserves rétrocompat absolue (Test 3).
+    var icon = this.getAttribute('icon') || (variantCfg ? variantCfg.iconDefault : 'generic');
     var title = this.getAttribute('title') || '';
     var desc = this.getAttribute('description') || '';
     var actionLabel = this.getAttribute('action-label');
@@ -60,7 +75,8 @@ class AgEmptyState extends HTMLElement {
     // Preserve slotted action child if present before overwriting innerHTML
     var slottedAction = this.querySelector('[slot="action"]');
 
-    var h = '<div class="empty-state animate-fade-in">';
+    var wrapperClass = 'empty-state animate-fade-in' + (variantCfg ? ' ' + variantCfg.cssMod : '');
+    var h = '<div class="' + wrapperClass + '">';
     // icon="none" — skip le bloc icon (DASHBOARD-04 pure typographie)
     if (icon !== 'none') {
       var svg = EMPTY_SVG[icon] || EMPTY_SVG.generic;

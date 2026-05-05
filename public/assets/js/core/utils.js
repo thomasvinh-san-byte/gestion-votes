@@ -14,6 +14,58 @@ window.Utils = window.Utils || {};
   'use strict';
 
   // ==========================================================================
+  // RACE-V27-01 — graceful 404 swap
+  // ==========================================================================
+  // Must be registered BEFORE the generic htmx:responseError handler below
+  // (lines ~360+). Source-of-truth lives in ./htmx-404-handler.js — this
+  // block is inlined here because utils.js is auto-loaded by 21 templates
+  // (avoids per-template <script> edits). If you change one, change both.
+  (function setupHtmx404Handler() {
+    var KNOWN_404_CODES = {
+      'meeting_not_found': {
+        fallbackMessage: 'Cette séance n\'existe plus.',
+        ctaLabel: 'Retour aux séances',
+        ctaHref: '/dashboard.htmx.html'
+      },
+      'motion_not_found': {
+        fallbackMessage: 'Cette résolution n\'existe plus.',
+        ctaLabel: 'Retour à la séance',
+        ctaHref: '/operator'
+      }
+    };
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function renderEmptyStateHtml(code, message) {
+      var cfg = KNOWN_404_CODES[code];
+      var msg = message || cfg.fallbackMessage;
+      return '<ag-empty-state variant="resource-deleted"'
+        + ' title="' + escapeHtml(msg) + '"'
+        + ' description=""'
+        + ' action-label="' + escapeHtml(cfg.ctaLabel) + '"'
+        + ' action-href="' + escapeHtml(cfg.ctaHref) + '">'
+        + '</ag-empty-state>';
+    }
+
+    document.body.addEventListener('htmx:beforeOnLoad', function (e) {
+      var xhr = e.detail && e.detail.xhr;
+      if (!xhr || xhr.status !== 404) return;
+      var body = null;
+      try { body = JSON.parse(xhr.responseText); } catch (_) { return; }
+      var code = body && body.error;
+      if (!code || !KNOWN_404_CODES[code]) return;
+      // Hijack: swap an empty-state instead of triggering responseError + toast
+      e.detail.shouldSwap = true;
+      e.detail.isError = false; // suppresses htmx:responseError + generic toast
+      e.detail.serverResponse = renderEmptyStateHtml(code, body.message);
+    });
+  })();
+
+  // ==========================================================================
   // CSRF SUPPORT
   // ==========================================================================
 

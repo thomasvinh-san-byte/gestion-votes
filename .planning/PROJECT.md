@@ -94,11 +94,31 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 ### Active
 
-(None — v2.6 shipped 2026-05-05. Bootstrap v2.7 via `/gsd:new-milestone`.)
+- [ ] Cohérence visuelle complète : 0 écran en aspect "v1 brut", design system v2.x partout
+- [ ] Loading states systematiques : skeleton + spinner + optimistic UI sur actions critiques
+- [ ] 404 race graceful UX : empty-state amical au lieu de toast d'erreur
+- [ ] Query N+1 hot paths refactored + HTTP cache ETag sur endpoints idempotents
 
-## Current Milestone: Planning next milestone
+## Current Milestone: v2.7 Cohérence visuelle & finitions perçues
 
-**Status (2026-05-05):** v2.6 ✅ SHIPPED. Audit `gaps_found` accepté (1 fix-pushed-pending-retest tracé en OPS-CHECKLIST). Ready to bootstrap v2.7 via `/gsd:new-milestone`.
+**Goal :** Finir la migration vers le design system v2.x (cohérence visuelle complète, plus aucun écran "v1 brut") + livrer les finitions UX et perf qui se voient. Pas de capacité métier neuve — milestone de polish stratégique. Cadré 1 semaine, 4 phases.
+
+**Target features (4 buckets) :**
+- **Bucket 1 — Cohérence visuelle & migration design** (~6 reqs) : audit screens non-migrés, migration typo Inter/Newsreader/JetBrains Mono, élimination `#hex` brut + spacing brut, remplacement HTML legacy par composants v2.x, cohérence interactions, audit final ratio tokens ≥99%
+- **Bucket 2 — Loading states systematiques** (~3 reqs) : skeleton screens HTMX swaps >300ms, spinner submit buttons, optimistic UI sur actions critiques (votes, présence)
+- **Bucket 3 — 404 race graceful UX** (~3 reqs) : HTMX response handler 404 detection, empty-state amical en place du toast, pattern réutilisable event-stream + HTMX listeners (FOLLOWUP-3 v2.3 originel)
+- **Bucket 4 — Query N+1 + HTTP cache** (~3 reqs) : audit grep N+1 controllers, eager loading via `findManyByIds()`, ETag/Last-Modified sur GET HTMX hot endpoints
+
+**Hors scope explicite :**
+- SSE scaling multi-op (complex + low ROI <5 op simultanés)
+- Mobile responsive deep audit (milestone séparée)
+- Accessibility AAA (multi-milestone)
+- Lazy-load assets / defer / preload (overlap Bucket 1+2)
+- Capacité métier neuve (signature, archivage hash chain export, etc.) — pas en milestone polish
+
+**Status (2026-05-05) :** v2.6 ✅ SHIPPED. v2.7 en planning.
+
+## Previously: v2.6 Clôture dette technique (Shipped 2026-05-05)
 
 ## Previously: v2.6 Clôture dette technique (Shipped 2026-05-05)
 

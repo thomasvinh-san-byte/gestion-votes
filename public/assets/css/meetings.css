@@ -125,7 +125,7 @@
   font-size: 11px;
   font-weight: var(--font-bold, 700);
   background: color-mix(in oklch, currentColor 15%, transparent);
-  padding: 1px 6px;
+  padding: 1px var(--space-1-5);
   border-radius: var(--radius-full, 999px);
   min-width: 20px;
   text-align: center;
@@ -214,7 +214,7 @@
 /* ─── Meeting type badge ─── */
 .meeting-type-badge {
   font-size: 0.6875rem;
-  padding: 2px 8px;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-full);
   background: var(--color-neutral-subtle, var(--color-bg-subtle));
   color: var(--color-text-muted);
@@ -479,7 +479,7 @@
 
 .calendar-event {
   display: block;
-  padding: 1px 4px;
+  padding: 1px var(--space-1);
   border-radius: 3px;
   font-size: 0.6rem;
   font-weight: var(--font-medium, 500);

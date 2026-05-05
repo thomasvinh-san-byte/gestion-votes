@@ -163,6 +163,18 @@ final class EmailController extends AbstractController {
         $skippedNoEmail = [];
         $skippedAlreadySent = [];
 
+        // PERF-V27-02: pre-fetch all invitation statuses in one batch query
+        // (was N+1: one findStatusByMeetingAndMember per member when only_unsent).
+        $statusesByMember = [];
+        if ($onlyUnsent) {
+            $allMemberIds = array_map(fn($m) => (string) $m['id'], $members);
+            $statusesByMember = $invitationRepo->findStatusesByMeetingAndMembers(
+                $meetingId,
+                $allMemberIds,
+                $tenantId,
+            );
+        }
+
         foreach ($members as $m) {
             $memberId = (string) $m['id'];
             $memberName = (string) ($m['full_name'] ?? '');
@@ -174,7 +186,7 @@ final class EmailController extends AbstractController {
             }
 
             if ($onlyUnsent) {
-                $st = $invitationRepo->findStatusByMeetingAndMember($meetingId, $memberId, $tenantId);
+                $st = $statusesByMember[$memberId] ?? null;
                 if ($st === 'sent') {
                     $skipped++;
                     $skippedAlreadySent[] = $memberName ?: $email;

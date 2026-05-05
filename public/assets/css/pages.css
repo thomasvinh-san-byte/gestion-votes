@@ -520,7 +520,7 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-text);
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 var(--space-3) 0;
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -672,7 +672,7 @@
 }
 
 .create-card h3 {
-  margin: 0 0 1.25rem 0;
+  margin: 0 0 var(--space-5) 0;
   font-size: 1.1rem;
   font-weight: 600;
   display: flex;
@@ -941,7 +941,7 @@
   align-items: center;
   gap: 14px;
   padding: var(--space-3) var(--space-5);
-  margin-bottom: var(--space-card, 24px);
+  margin-bottom: var(--space-card, var(--space-6));
   background: color-mix(in oklch, var(--color-danger) 6%, var(--color-surface));
   border: var(--border-emphasis-danger);
   border-radius: var(--radius-xl);
@@ -1180,14 +1180,14 @@
   background: var(--color-surface);
   border-radius: var(--radius-base);
   border: var(--border-alpha);
-  padding: var(--space-card, 24px);
+  padding: var(--space-card, var(--space-6));
 }
 .dashboard-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4, 16px);
-  padding-bottom: var(--space-3, 12px);
+  margin-bottom: var(--space-4, var(--space-4));
+  padding-bottom: var(--space-3, var(--space-3));
   border-bottom: var(--border-subtle);
 }
 .dashboard-panel-title {
@@ -1254,7 +1254,7 @@
   background: var(--color-bg-subtle);
   border-radius: var(--radius-base);
   border: var(--border-alpha);
-  padding: var(--space-card, 24px);
+  padding: var(--space-card, var(--space-6));
 }
 .dashboard-aside__title {
   font-size: var(--text-sm);
@@ -1262,7 +1262,7 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider, 0.05em);
-  margin: 0 0 var(--space-3, 12px) 0;
+  margin: 0 0 var(--space-3, var(--space-3)) 0;
 }
 .dashboard-aside ag-tooltip {
   display: block;
@@ -1270,7 +1270,7 @@
 
 /* Shortcut cards */
 .shortcut-card {
-  padding: var(--space-3, 12px) var(--space-4, 16px);
+  padding: var(--space-3, var(--space-3)) var(--space-4, var(--space-4));
   cursor: pointer;
   display: flex;
   align-items: center;

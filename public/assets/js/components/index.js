@@ -56,6 +56,8 @@ import './ag-stepper.js';
 import './ag-confirm.js';
 import './ag-pdf-viewer.js';
 import './ag-empty-state.js';
+// — Loading primitives (Phase 2 v2.7)
+import './ag-skeleton.js';
 
 // Export for programmatic use
 export { default as AgKpi } from './ag-kpi.js';
@@ -80,4 +82,5 @@ export { default as AgStepper } from './ag-stepper.js';
 export { default as AgConfirm } from './ag-confirm.js';
 export { default as AgPdfViewer } from './ag-pdf-viewer.js';
 export { default as AgEmptyState } from './ag-empty-state.js';
+export { default as AgSkeleton } from './ag-skeleton.js';
 

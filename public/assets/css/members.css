@@ -12,7 +12,7 @@
 
 .app-main.members-main {
   padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 22px);
+  padding-left: calc(var(--sidebar-rail) + var(--space-5));
 }
 
 @media (max-width: 768px) {
@@ -245,7 +245,7 @@
   color: var(--color-text-muted);
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  margin-bottom: -var(--space-0-5);
   transition: color var(--duration-fast), border-color var(--duration-fast);
   display: flex;
   align-items: center;
@@ -403,7 +403,7 @@
 }
 
 .search-input-field {
-  padding-left: calc(var(--space-3) + 16px + var(--space-2));
+  padding-left: calc(var(--space-3) + var(--space-4) + var(--space-2));
 }
 
 /* Filter chips */
@@ -531,7 +531,7 @@
 
 .member-card.is-active {
   border-left: 3px solid var(--color-success);
-  padding-left: calc(var(--space-5) - 3px);
+  padding-left: calc(var(--space-5) - var(--space-1));
 }
 
 .member-card.is-inactive { opacity: 0.5; }
@@ -753,7 +753,7 @@
 input[type="color"] {
   width: 36px;
   height: 36px;
-  padding: 2px;
+  padding: var(--space-0-5);
   border: var(--border-default);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -996,40 +996,12 @@ input[type="color"] {
 }
 
 /* =============================================================================
-   MEMBER DETAIL DIALOG
+   MEMBER DETAIL MODAL — body styling (wrapper migré vers <ag-modal> en 01-02)
+   <ag-modal> .modal-b applique déjà var(--space-5) ; la classe interne reste
+   à 0 padding pour éviter un double cadrage.
    ============================================================================= */
 
-dialog.member-detail-dialog {
-  width: min(600px, calc(100% - 2rem));
-  border: var(--border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
-  padding: 0;
-  margin: auto;
-  position: fixed;
-  inset: 0;
-  height: fit-content;
-}
-
-dialog.member-detail-dialog::backdrop { background: var(--color-backdrop); }
-
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: var(--border-default);
-}
-
-.dialog-header h3 {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-}
-
-.dialog-body { padding: var(--space-5); }
+.dialog-body { padding: 0; }
 
 /* Detail content */
 

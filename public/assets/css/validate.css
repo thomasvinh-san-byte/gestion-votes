@@ -148,7 +148,7 @@
 .validate-modal-checkbox input[type="checkbox"] {
   width: 20px;
   height: 20px;
-  margin-top: 2px;
+  margin-top: var(--space-0-5);
   flex-shrink: 0;
   accent-color: var(--color-danger);
 }

@@ -176,6 +176,15 @@ return function (Router $router): void {
             'seedMeeting',
             ['env_guard' => true],
         );
+        // RACE-V27-01 — delete any meeting (bypass 'draft' guard) for race tests.
+        // Triple-guarded: this conditional + EnvGuardMiddleware + guardProduction().
+        $router->map(
+            'POST',
+            "{$prefix}/test/delete-meeting",
+            TestSeedController::class,
+            'deleteMeeting',
+            ['env_guard' => true],
+        );
     }
 
     // ── Documentation ──

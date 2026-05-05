@@ -282,6 +282,49 @@ class AttendanceRepository extends AbstractRepository {
     }
 
     /**
+     * PERF-V27-02 — batch variant of upsertMode() for bulk endpoints.
+     * Single round-trip with multi-row VALUES + ON CONFLICT … RETURNING (xmax = 0).
+     *
+     * Replaces N foreach calls in AttendancesController::bulkUpdate().
+     * Returns the count of created vs updated rows (xmax=0 means freshly inserted).
+     * Empty input returns ['created' => 0, 'updated' => 0] without hitting DB.
+     *
+     * @param  string[] $memberIds
+     * @return array{created: int, updated: int}
+     */
+    public function upsertModeBulk(string $meetingId, array $memberIds, string $mode, string $tenantId): array {
+        if (count($memberIds) === 0) {
+            return ['created' => 0, 'updated' => 0];
+        }
+        $tuples = [];
+        $params = [':tid' => $tenantId, ':mid' => $meetingId, ':mode' => $mode];
+        foreach (array_values($memberIds) as $i => $memberId) {
+            $key = ":mem{$i}";
+            $tuples[] = "(gen_random_uuid(), :tid, :mid, {$key}, :mode, now(), now())";
+            $params[$key] = $memberId;
+        }
+        $valuesSql = implode(', ', $tuples);
+        $rows = $this->selectAll(
+            "INSERT INTO attendances (id, tenant_id, meeting_id, member_id, mode, created_at, updated_at)
+             VALUES {$valuesSql}
+             ON CONFLICT (tenant_id, meeting_id, member_id) DO UPDATE SET
+               mode = EXCLUDED.mode, updated_at = now()
+             RETURNING (xmax = 0) AS inserted",
+            $params,
+        );
+        $created = 0;
+        $updated = 0;
+        foreach ($rows as $r) {
+            if ((bool) ($r['inserted'] ?? false)) {
+                $created++;
+            } else {
+                $updated++;
+            }
+        }
+        return ['created' => $created, 'updated' => $updated];
+    }
+
+    /**
      * Upsert de presence pour le seeding (ON CONFLICT met a jour le mode).
      */
     public function upsertSeed(string $id, string $tenantId, string $meetingId, string $memberId, string $mode): void {
