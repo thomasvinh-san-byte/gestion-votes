@@ -17,7 +17,7 @@
 - ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
 - ✅ **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (PR #259 ouvert 2026-05-04, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, + quick task TECH-01 (234 borders consolidées, 6 nouveaux tokens) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
 - 🚧 **v2.4 Polish & Robustness** - Phases 1-4 (planning, 12 requirements, démarre post-merge PR #259) — cockpit declutter ≤25 boutons + persona color confinement, error observability (business_error → codes ciblés + race conditions empty-state idempotency), test infrastructure (seed-meeting helper, code-reviewer scope splits, Playwright dual-install fix), print + tech debt residuel (dompdf header + ~140 borders + ~45 shadows tokens ≥95 %)
-- 🚧 **v2.6 Clôture dette technique** - Phases 1-5 (planning, 17 requirements, ~1 sem, clôture stricte) — liquidation dette accumulée v2.3/v2.5 : tests heartbeat (HEARTBEAT-V25-03/04), codes erreur ciblés (business_error → codes spécifiques + idempotency empty-state), tokens cleanup Phases 7.2-7.4 (<30 tokens 1-site), test infra + GSD ergo (seed-meeting @integration, dual-install resolved, README, Explore patterns, code-reviewer scope splits), print/PDF polish (header répété, em-dash UTF-8, pagination robuste). **Toutes phases indépendantes et parallélisables — l'ordre 1→5 est arbitraire.**
+- ✅ **v2.6 Clôture dette technique** - Phases 1-5 (shipped 2026-05-05, 17 reqs / 16 satisfied + 1 fix-pushed-pending-retest, 32 PHPUnit GREEN + 1 Playwright live PASS) — liquidation dette accumulée v2.3/v2.5 : voir `.planning/milestones/v2.6-ROADMAP.md`
 
 ## Phases
 
@@ -374,9 +374,18 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   2. `grep -cE "(border|box-shadow):\s+[0-9]+|#[0-9a-f]{3,6}" public/assets/css/` ratio tokens vs hardcoded ≥95 %. Liste produite des residuels et migrations livrées en atomic commits per fichier.
 
 
-## Phase Details (v2.6)
+<details>
+<summary>✅ v2.6 Clôture dette technique (Phases 1-5) — SHIPPED 2026-05-05</summary>
 
-**Note d'ordonnancement :** Les 5 phases v2.6 sont **indépendantes et parallélisables**. Aucune dépendance technique entre elles. L'exécuteur peut piocher dans n'importe quel ordre selon disponibilité, energy, ou opportunisme. La numérotation 1→5 reflète la liste des buckets dans `REQUIREMENTS.md`, pas une séquence d'exécution obligatoire.
+See `.planning/milestones/v2.6-ROADMAP.md` for full details.
+
+**Phases:** 5 (1-5)
+**Plans:** 10
+**Tests:** 32 PHPUnit GREEN (102 assertions) + 1 Playwright spec live PASS
+**Stats:** 156 files changed, +8719 / -391 LOC, 57 commits, 1 day
+**Audit:** `gaps_found` accepted (1 fix-pushed-pending-retest)
+
+**Note d'ordonnancement :** Les 5 phases v2.6 étaient **indépendantes et parallélisables**. Aucune dépendance technique entre elles. La numérotation 1→5 reflète la liste des buckets dans `REQUIREMENTS.md`, pas une séquence d'exécution obligatoire.
 
 ### Phase 1: Tests heartbeat (PHPUnit + Playwright)
 
@@ -460,6 +469,8 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 
 **Plans:** 1 plan
 - [ ] 05-01-PLAN.md — Smoke test parsing PDF binaire long (smalot/pdfparser dev dep + LongPvFixtureBuilder + 4 tests SC1/SC2/SC3 + non-regression PV courts) — couvre PDF-V26-01/02/03
+
+</details>
 
 ## Progress
 

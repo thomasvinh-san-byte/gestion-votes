@@ -1,18 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: "v2.6"
-milestone_name: "Clôture dette technique"
-status: in_progress
+milestone: ""
+milestone_name: ""
+status: between_milestones
 stopped_at: ""
-status: ready_for_lifecycle
-last_updated: "2026-05-05T12:30:00Z"
-last_activity: 2026-05-05 -- ALL 5 PHASES SHIPPED. Phase 4 (Test infra + GSD ergo) + Phase 5 (Print/PDF polish) completed via /gsd:autonomous parallel dispatch. 17/17 reqs covered. Runtime gates dev-machine deferred (Playwright F-4 runs, fresh-clone walkthrough timing, gsd-code-reviewer real review, PDF visual inspection) — pattern aligned with Phase 1 SC-3. Ready for milestone lifecycle (audit → complete → cleanup).
+last_updated: "2026-05-05T11:00:00Z"
+last_activity: 2026-05-05 -- v2.6 milestone SHIPPED. Audit gaps_found (1 unsatisfied INFRA-V26-01 runtime gate fix `80854f0` pending re-test) accepté en tech debt. Phase dirs archived to milestones/v2.6-phases/, audit + tokens-audit moved to milestones/. Ready for /gsd:new-milestone v2.7 or ad-hoc work.
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # AG-VOTE -- Project State
@@ -23,17 +22,17 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — **ALL 5 PHASES ✓ SHIPPED**, ready for milestone lifecycle (audit → complete → cleanup).
+**Current focus:** Between milestones — v2.6 ✅ SHIPPED 2026-05-05. Bootstrap v2.7 via `/gsd:new-milestone` ou continuer ad-hoc sur main.
 
 ## Current Position
 
-Milestone: v2.6 Clôture dette technique
-Phase: 5/5 ✓ ALL COMPLETE — Tests heartbeat + Codes erreur ciblés + Tokens cleanup + Test infra + Print/PDF
+Milestone: — (none active)
+Phase: —
 Plan: —
-Status: Ready for milestone audit/complete/cleanup
-Last activity: 2026-05-05 — Phases 4+5 shipped via autonomous parallel dispatch. 17/17 reqs covered. Runtime gates dev-machine deferred consistent with established pattern. Milestone lifecycle next.
+Status: v2.6 archived. Ready for next milestone or ad-hoc work.
+Last activity: 2026-05-05 — v2.6 milestone shipped (17 reqs / 16 satisfied + 1 fix-pushed-pending-retest, 32 PHPUnit + 1 Playwright live PASS). Phase dirs + audit docs archived to milestones/.
 
-Progress: [##########] 100% (5/5 phases, 9/9 plans)
+Progress: — (no active milestone)
 
 ## Accumulated Context
 

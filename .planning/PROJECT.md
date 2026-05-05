@@ -84,19 +84,32 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
   - `error_events` table + `api_fail()` capture + `/admin/error-stats` recâblée
   - `next_step_clicks` tracking endpoint + dashboard CTR colonne
   - SEC-V2-01 closeout étendu : 27 method signatures hardened across 11 repos
+- ✓ **v2.6 Clôture dette technique** (shipped 2026-05-05, 17 reqs / 16 satisfied + 1 fix-pushed, 32 PHPUnit GREEN + 1 Playwright live PASS) — voir `.planning/milestones/v2.6-ROADMAP.md`
+  - HEARTBEAT-V25-03/04 stop-tests directive levée (PHPUnit + Playwright live)
+  - business_error direct emit 1 → 0 via AbstractController extractor (~80 services snake_case auto-promoted)
+  - ErrorEventsRepository idempotency guard intra-request (md5 rid|code|route)
+  - 10 tokens 1-site retirés (-2 width / -4 emphasis / -4 ring), ratios borders 97.7% + shadows 100%
+  - PDF qualité éditoriale verrouillée par 4 PHPUnit smoke tests via smalot/pdfparser ^2 (production code intact)
+  - EXPLORE-PATTERNS.md placé `.planning/intel/` canonique
 
 ### Active
 
-## Current Milestone: v2.6 Clôture dette technique
+(None — v2.6 shipped 2026-05-05. Bootstrap v2.7 via `/gsd:new-milestone`.)
 
-**Goal :** Liquider la dette explicite accumulée v2.3/v2.5 et atteindre un état "tout shipped, zéro carry-forward". Pas d'ajout opportuniste — chaque item est tracé en amont. Ambition : clôture stricte, ~1 semaine, 5 phases courtes.
+## Current Milestone: Planning next milestone
 
-**Target features (5 buckets) :**
-- **Bucket 1 — Tests heartbeat** : HEARTBEAT-V25-03 (PHPUnit payload `meeting.heartbeat`) + HEARTBEAT-V25-04 (Playwright `sse-heartbeat.spec.js` 12s tick) — lève le stop-tests directive v2.5
-- **Bucket 2 — Codes erreur ciblés** : `business_error` générique → 3 codes ciblés (différés Phase 4 v2.3 follow-up 04.6-FOLLOWUP-2) + race conditions empty-state idempotency (04.6-FOLLOWUP-3)
-- **Bucket 3 — TOKENS 7.2-7.4** : width/soft/none cleanup + emphasis flatten + ring variants — cible <30 tokens 1-site (suite du 4-phase remediation plan dans `.planning/v2.5-TOKENS-AUDIT.md`)
-- **Bucket 4 — Test infra + GSD ergo** : seed-meeting helper `@integration` + Playwright dual-install fix + test infra README + Explore patterns doc + code-reviewer budget timeout / scope splits
-- **Bucket 5 — Print/PDF polish** : dompdf header répétabilité + em-dash UTF-8 fallback + pagination robuste sur PVs ≥10 pages
+**Status (2026-05-05):** v2.6 ✅ SHIPPED. Audit `gaps_found` accepté (1 fix-pushed-pending-retest tracé en OPS-CHECKLIST). Ready to bootstrap v2.7 via `/gsd:new-milestone`.
+
+## Previously: v2.6 Clôture dette technique (Shipped 2026-05-05)
+
+**Goal :** Liquider la dette explicite accumulée v2.3/v2.5 et atteindre un état "tout shipped, zéro carry-forward". Pas d'ajout opportuniste — chaque item tracé en amont. Ambition : clôture stricte, 1 jour livré (cible ~1 semaine).
+
+**Shipped (5 buckets) :**
+- ✅ **Bucket 1 — Tests heartbeat** : HeartbeatPayloadBuilder extracted + 8 PHPUnit (29 ass) + Playwright spec live PASS — HEARTBEAT-V25-03/04 fully closed
+- ✅ **Bucket 2 — Codes erreur ciblés** : AbstractController extractor snake_case (~80 services bénéficient auto) + 3 normalizations + 2 ErrorDictionary entries + ErrorEventsRepository idempotency guard + 20 PHPUnit
+- ✅ **Bucket 3 — TOKENS 7.2-7.4** : 10 tokens 1-site retirés sur design-system.css + 9 callers migrés. Final 31 tokens 1-site (cible <30, delta +1 documenté drift v2.5→v2.6 hors-scope), borders 97.7% + shadows 100%
+- ✅ **Bucket 4 — Test infra + GSD ergo** : seedMeeting verify, dual-install audit, EXPLORE-PATTERNS canonical, code-reviewer flags. INFRA-V26-01 runtime fix `80854f0` pending re-test dev-machine
+- ✅ **Bucket 5 — Print/PDF polish** : 4 PHPUnit smoke parsing PDF binaire (46 ass) via smalot/pdfparser ^2 — production code intact
 
 **Hors scope explicite :**
 - 3 OPS résiduelles (§3 Playwright runs, §4 visual inspection, §5 cron schedule) — restent dev-machine, pas de code à écrire

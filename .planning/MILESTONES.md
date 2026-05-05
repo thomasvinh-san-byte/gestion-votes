@@ -1,5 +1,43 @@
 # Milestones
 
+## v2.6 Clôture dette technique (Shipped: 2026-05-05)
+
+**Phases:** 1-5 (5 phases v2.6, indépendantes et parallélisables)
+**Plans:** 10 plans, 17/17 reqs covered (16 satisfied + 1 unsatisfied runtime fix pushé pending re-test)
+**Tests:** 32 PHPUnit GREEN (102 assertions) + 1 Playwright spec live PASS (sse-heartbeat 16.8s)
+**Stats:** 156 files changed, +8719 / -391 LOC, 57 commits, 1 day timeline (05:55 → 10:46 UTC)
+
+**Key accomplishments:**
+
+- Stop-tests v2.5 directive levée : HEARTBEAT-V25-03/04 livrés (PHPUnit 8/29 + Playwright spec opérationnelle live)
+- `business_error` direct-emit count : 1 → 0 via `AbstractController::extractBusinessErrorCode()` (8 lignes catch enhancement) — bénéficie automatiquement à ~80 sites snake_case existants (`meeting_not_found`, `motion_not_found`, etc.)
+- `ErrorEventsRepository::capture()` guard d'idempotence intra-request (md5 rid|code|route) — empêche double-row sur rafale SSE
+- 10 tokens 1-site retirés (-2 width / -4 emphasis / -4 ring variants) sur `design-system.css` + 9 callers migrés ; ratios borders 97.7% + shadows 100% (au-dessus cible 95%)
+- `EXPLORE-PATTERNS.md` placé à `.planning/intel/` canonique avec stub redirect + refs actives mises à jour
+- PDF qualité éditoriale verrouillée par 4 PHPUnit smoke tests (parsing PDF binaire via `smalot/pdfparser` ^2 nouveau dev dep) — production code intact, vérifie header répété + UTF-8 accents + pagination Page X sur Y
+
+**Bug fixes en cours de milestone (quick tasks + emergency commits) :**
+- Docker autoload bug (`composer dump-autoload --classmap-authoritative` post `COPY . .` + `bin/rebuild.sh --quick` flag autoload-only)
+- Alpine repo drift fix (`apk upgrade --no-cache` avant `apk add --virtual *-dev`)
+- CI lint-js fixes (`_prevQuorumMet` declaration + `module` global UMD)
+- CI PHPUnit OOM (`-d memory_limit=2G` sur validate + coverage step)
+- enum `meeting_status` `'running'` → `'live'` dans `seedRunningMeeting` JS helper
+
+**Tech debt deferred (v2.7 candidates) :**
+- INFRA-V26-01 runtime gate : commit `80854f0` enum fix pushé, re-test live pending
+- INFRA-V26-03 fresh-clone walkthrough chronométré (≤30 min cible)
+- INFRA-V26-05 real `gsd-code-reviewer` v2.6 review ≥30 fichiers
+- TOKENS visual regression 5 pages + 6 orphans + 3 emphasis residuels (~15 min v2.7 mini-cleanup pour ≤25 1-site)
+- PDF visual inspection PV ≥10 pages réel
+- 2 résiduels French throws (AttendancesService, BallotsService) → snake_case
+- 4 pre-existing ErrorDictionaryTest failures (pré-v2.6, hors-scope)
+
+**Audit:** `gaps_found` (1 unsatisfied req fix-pushed-pending-retest) — accepted as tech debt per audit recommendation Option B (pragmatic close).
+
+**Archived to:** `.planning/milestones/v2.6-ROADMAP.md` + `.planning/milestones/v2.6-REQUIREMENTS.md` + `.planning/milestones/v2.6-MILESTONE-AUDIT.md` + `.planning/milestones/v2.6-TOKENS-AUDIT-FINAL.md`
+
+---
+
 ## v2.5 Real-time Live Cockpit + Logger Migration (Shipped: 2026-05-04)
 
 **PRs delivered:** #261 (v2.5 implementation) + #262 (v2.4 dead artifacts cleanup)
