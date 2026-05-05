@@ -491,7 +491,10 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
   5. Aucun `<dialog>` brut ou `<div class="modal">` legacy résiduel — tous remplacés par `<ag-modal>`. Aucune carte ad-hoc avec `box-shadow + border-radius` inline — tous `<ag-card>` ou pattern card design-system.
   6. Audit grep `transition: \d+\.?\d*s` retourne 0 hits hors design-system.css — tous via `var(--motion-*)` + `var(--ease-*)`. States hover/focus/active uniformes (audit visual sur 5 boutons / 5 inputs / 5 cards échantillon).
 
-**Plans:** TBD (likely 2 plans : audit + execution)
+**Plans:** 3 plans
+- [ ] 01-01-PLAN.md — Audit cartographique cohérence visuelle (≥30 écrans scoring 0-3 + baselines grep + backlog migration concret) — VISUAL-V27-01
+- [ ] 01-02-PLAN.md — Migrations structurelles (transitions → motion/ease tokens, modal legacy → ag-modal, hex print) — VISUAL-V27-02/03/05/06
+- [ ] 01-03-PLAN.md — Migration spacing massive 24 fichiers CSS + livrable v2.7-TOKENS-FINAL.md (clôture phase 1) — VISUAL-V27-04 + V27-03 ratios
 
 ### Phase 2: Loading states systematiques
 
@@ -558,7 +561,7 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
 | 3. Tokens cleanup 7.2-7.4 | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
 | 4. Test infra + GSD ergo | v2.6 | 3/3 | ✓ Shipped | 2026-05-05 |
 | 5. Print/PDF polish | v2.6 | 1/1 | ✓ Shipped | 2026-05-05 |
-| 1. Cohérence visuelle & migration design | v2.7 | 0/2 | ○ Planning | - |
+| 1. Cohérence visuelle & migration design | v2.7 | 0/3 | ○ Planning | - |
 | 2. Loading states systematiques | v2.7 | 0/1 | ○ Planning | - |
 | 3. 404 race graceful UX | v2.7 | 0/1 | ○ Planning | - |
 | 4. Query N+1 + HTTP cache | v2.7 | 0/2 | ○ Planning | - |
