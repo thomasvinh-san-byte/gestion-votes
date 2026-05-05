@@ -441,7 +441,10 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   4. Pattern Explore scan anti-BEM-substring documenté dans `.planning/intel/EXPLORE-PATTERNS.md` (ou équivalent) avec ≥3 anti-patterns concrets + 1 exemple correct (cf. Phase 3 v2.3 Schoger S-8).
   5. `gsd-code-reviewer` agent accepte budget timeout configurable (`--timeout-min=N`, défaut 60) et scope splits (`--files=js`, `--files=php`, `--files=tests`). Vérifié sur 1 review v2.6 réelle (≥30 fichiers sans timeout).
 
-**Plans:** TBD
+**Plans:** 3 plans
+- [ ] 04-01-PLAN.md — Vérification gate 3 runs verts test @integration F-4 (cockpit-keyboard-shortcuts.spec.js) avec helper seedMeeting (INFRA-V26-01)
+- [ ] 04-02-PLAN.md — Audit dual-install (check-deps.sh + grep counts) + walkthrough fresh-clone chronométré ≤30 min (INFRA-V26-02 + INFRA-V26-03)
+- [ ] 04-03-PLAN.md — Déplacement EXPLORE-PATTERNS.md vers `.planning/intel/` + vérification gsd-code-reviewer sur review v2.6 réelle (INFRA-V26-04 + INFRA-V26-05)
 
 ### Phase 5: Print/PDF polish
 
