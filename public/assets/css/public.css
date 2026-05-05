@@ -904,7 +904,7 @@ body.projection-body {
   font-size: clamp(0.6rem, 1.2vw, 0.75rem);
   font-weight: 600;
   white-space: nowrap;
-  transition: all .2s ease;
+  transition: all var(--duration-moderate) var(--ease-standard);
 }
 
 .tracker-pill.pending {

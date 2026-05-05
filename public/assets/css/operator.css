@@ -320,7 +320,7 @@
   border-radius: 50%;
   flex-shrink: 0;
   background: var(--color-text-muted);
-  transition: background 0.3s;
+  transition: background var(--duration-deliberate) var(--ease-standard);
 }
 
 [data-sse-state="live"] .op-sse-dot {
@@ -397,7 +397,7 @@
   padding: 9px 11px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background 0.15s var(--ease-default);
+  transition: background var(--duration-normal) var(--ease-default);
   font-size: var(--text-sm);
   display: flex;
   align-items: flex-start;
@@ -963,7 +963,7 @@
 .op-bar-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.4s var(--ease-default);
+  transition: width var(--duration-elaborate) var(--ease-default);
   width: var(--bar-pct, 0%);
 }
 
@@ -1562,7 +1562,7 @@
   height: 100%;
   background: var(--color-primary);
   border-radius: 2px;
-  transition: width 0.4s var(--ease-default);
+  transition: width var(--duration-elaborate) var(--ease-default);
 }
 
 .hub-check-item {
@@ -1615,7 +1615,7 @@
 .hub-accordion-chevron {
   width: 16px;
   height: 16px;
-  transition: transform 0.2s;
+  transition: transform var(--duration-moderate) var(--ease-standard);
   color: var(--color-text-muted);
 }
 

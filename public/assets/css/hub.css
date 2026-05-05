@@ -170,7 +170,7 @@
   justify-content: center;
   border: var(--border-emphasis);
   margin-top: 1px;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background var(--duration-moderate) var(--ease-standard), border-color var(--duration-moderate) var(--ease-standard);
 }
 
 .hub-checklist-check-icon {
@@ -296,7 +296,7 @@
   color: var(--color-text-muted);
   padding: 2px;
   border-radius: 50%;
-  transition: color 0.15s;
+  transition: color var(--duration-normal) var(--ease-standard);
 }
 
 .hub-quorum-info-btn:hover {
@@ -433,7 +433,7 @@
   padding: 8px 12px;
   border-radius: var(--radius-base);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--duration-normal) var(--ease-standard);
   border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
 }
 

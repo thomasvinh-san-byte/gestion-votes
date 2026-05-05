@@ -714,7 +714,7 @@
   border-radius: inherit;
   background: radial-gradient(circle at center, color-mix(in oklch, var(--color-text-inverse) 30%, transparent) 0%, transparent 70%);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--duration-moderate) var(--ease-linear);
   pointer-events: none;
 }
 
@@ -1511,7 +1511,7 @@
   height: 8px;
   border-radius: 50%;
   background: var(--color-border);
-  transition: background .2s ease, transform .2s ease;
+  transition: background var(--duration-moderate) var(--ease-standard), transform var(--duration-moderate) var(--ease-standard);
 }
 
 .vote-dot.done {
@@ -1569,7 +1569,7 @@
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background .15s ease, color .15s ease;
+  transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
 }
 
 .vote-zoom-toggle:hover {

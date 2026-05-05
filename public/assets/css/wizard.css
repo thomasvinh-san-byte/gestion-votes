@@ -144,7 +144,7 @@
   background: var(--color-bg-subtle);
   color: var(--color-text-muted);
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all var(--duration-moderate) var(--ease-standard);
 }
 
 .wiz-step-item.active .wiz-snum {
@@ -315,7 +315,7 @@
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
 }
 
 .field-info-btn:hover {
@@ -497,7 +497,7 @@ input[type="time"].field-input {
   border-radius: 0.75rem;
   position: relative;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background var(--duration-moderate) var(--ease-standard);
   flex-shrink: 0;
 }
 
@@ -510,7 +510,7 @@ input[type="time"].field-input {
   position: absolute;
   top: 3px;
   left: 3px;
-  transition: transform 0.2s ease;
+  transition: transform var(--duration-moderate) var(--ease-standard);
   box-shadow: var(--shadow-sm);
 }
 
@@ -539,7 +539,7 @@ input[type="time"].field-input {
   padding: 10px 14px;
   border-bottom: var(--border-subtle);
   border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
+  transition: background var(--duration-normal) var(--ease-standard);
 }
 
 .member-row:hover {
@@ -611,7 +611,7 @@ input[type="time"].field-input {
   color: var(--color-text-muted);
   font-size: 0.8125rem;
   background: var(--color-bg-subtle);
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--duration-moderate) var(--ease-standard), background var(--duration-moderate) var(--ease-standard);
 }
 
 .upload-zone-title {
@@ -762,7 +762,7 @@ input[type="time"].field-input {
   border-bottom: var(--border-subtle);
   cursor: grab;
   border-radius: var(--radius-sm);
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  transition: background var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
 }
 
 .reso-row:hover {
@@ -790,7 +790,7 @@ input[type="time"].field-input {
   cursor: grab;
   user-select: none;
   padding-top: 2px;
-  transition: color 0.15s ease;
+  transition: color var(--duration-normal) var(--ease-standard);
 }
 
 .reso-row:hover .reso-drag-handle {
