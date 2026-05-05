@@ -26,6 +26,7 @@ use AgVote\Core\Providers\RedisProvider;
 use AgVote\Core\Providers\RepositoryFactory;
 use AgVote\Service\QuorumEngine;
 use AgVote\SSE\EventBroadcaster;
+use AgVote\SSE\HeartbeatPayloadBuilder;
 use AgVote\SSE\SseAuthGate;
 
 // ── Auth + tenant gate (F05) ─────────────────────────────────────────────
@@ -170,6 +171,7 @@ $lastHeartbeat = 0;
 $heartbeatInterval = 10;
 $quorumEngine = new QuorumEngine();
 $meetingRepo = RepositoryFactory::getInstance()->meeting();
+$heartbeatBuilder = HeartbeatPayloadBuilder::fromQuorumEngine($quorumEngine, $meetingRepo);
 
 // ── Main event loop ─────────────────────────────────────────────────────
 // Strategy: Poll Redis channel every 1s for new events.
@@ -199,7 +201,7 @@ while ((time() - $startTime) < $maxDuration) {
         $lastEventId++;
         sendEvent(
             'meeting.heartbeat',
-            buildHeartbeatPayload($meetingId, $sessionTenantId, $quorumEngine, $meetingRepo, $presenceKey, $redis),
+            $heartbeatBuilder->build($meetingId, $sessionTenantId, $presenceKey, $redis),
             (string) $lastEventId,
         );
         $lastHeartbeat = time();
@@ -246,61 +248,6 @@ function sendEvent(string $type, array $data, string $id = ''): void {
         ob_flush();
     }
     flush();
-}
-
-/**
- * Build a meeting.heartbeat payload — fresh status + quorum + presence snapshot
- * emitted every 10s independently of event-driven dispatches. Each sub-query is
- * try/catch isolated so a single failure does not break the SSE loop.
- */
-function buildHeartbeatPayload(
-    string $meetingId,
-    ?string $tenantId,
-    \AgVote\Service\QuorumEngine $quorum,
-    \AgVote\Repository\MeetingRepository $meetingRepo,
-    ?string $presenceKey,
-    $redis,
-): array {
-    $payload = [
-        'meeting_id' => $meetingId,
-        'server_time' => date('c'),
-    ];
-
-    if ($tenantId !== null && $tenantId !== '') {
-        try {
-            $row = $meetingRepo->findByIdForTenant($meetingId, $tenantId);
-            if ($row !== null) {
-                $payload['status'] = (string) ($row['status'] ?? '');
-                $payload['validated_at'] = $row['validated_at'] ?? null;
-            }
-        } catch (Throwable $e) {
-            // Heartbeat must never break the SSE loop
-        }
-
-        try {
-            $q = $quorum->computeForMeeting($meetingId, $tenantId);
-            $payload['quorum'] = [
-                'applied' => (bool) ($q['applied'] ?? false),
-                'met' => $q['met'] ?? null,
-                'present_members' => (int) ($q['numerator']['members'] ?? 0),
-                'eligible_members' => (int) ($q['eligible']['members'] ?? 0),
-                'present_weight' => (float) ($q['numerator']['weight'] ?? 0),
-                'eligible_weight' => (float) ($q['eligible']['weight'] ?? 0),
-            ];
-        } catch (Throwable $e) {
-            // Quorum compute may throw RuntimeException for missing meetings — skip
-        }
-    }
-
-    if ($presenceKey !== null) {
-        try {
-            $payload['operator_count'] = (int) $redis->sCard($presenceKey);
-        } catch (Throwable $e) {
-            // Redis unavailable — omit operator_count
-        }
-    }
-
-    return $payload;
 }
 
 /**
