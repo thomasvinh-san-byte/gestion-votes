@@ -86,16 +86,44 @@ class EtagHotEndpointsTest extends ControllerTestCase
     {
         $meetingRepo = $this->createMock(MeetingRepository::class);
         $meetingRepo->method('listForDashboard')->willReturn($meetings);
-        // No specific meeting_id so findByIdForTenant won't matter unless set.
-        $meetingRepo->method('findByIdForTenant')->willReturn(null);
+        // If the controller picks a suggested meeting from the list, return it
+        // from findByIdForTenant so the controller proceeds (no 404).
+        if (count($meetings) > 0) {
+            $meetingRepo->method('findByIdForTenant')->willReturn($meetings[0]);
+        } else {
+            $meetingRepo->method('findByIdForTenant')->willReturn(null);
+        }
+
+        // Stats repo : return empty defaults so controller proceeds without errors.
+        $statsRepo = $this->createMock(MeetingStatsRepository::class);
+        $statsRepo->method('getDashboardStats')->willReturn([
+            'present_count' => 0,
+            'proxy_count' => 0,
+            'open_motions' => 0,
+        ]);
+
+        $memberRepo = $this->createMock(MemberRepository::class);
+        $memberRepo->method('countNotDeleted')->willReturn(0);
+        $memberRepo->method('sumNotDeletedVoteWeight')->willReturn(0.0);
+
+        $attRepo = $this->createMock(AttendanceRepository::class);
+        $attRepo->method('dashboardSummary')->willReturn(['present_weight' => 0.0]);
+
+        $motionRepo = $this->createMock(MotionRepository::class);
+        $motionRepo->method('findCurrentOpen')->willReturn(null);
+        $motionRepo->method('listOpenable')->willReturn([]);
+        $motionRepo->method('listClosedWithManualTally')->willReturn([]);
+
+        $ballotRepo = $this->createMock(BallotRepository::class);
+        $ballotRepo->method('countByMotionIds')->willReturn([]);
 
         $this->injectRepos([
             MeetingRepository::class      => $meetingRepo,
-            MeetingStatsRepository::class => $this->createMock(MeetingStatsRepository::class),
-            MemberRepository::class       => $this->createMock(MemberRepository::class),
-            AttendanceRepository::class   => $this->createMock(AttendanceRepository::class),
-            MotionRepository::class       => $this->createMock(MotionRepository::class),
-            BallotRepository::class       => $this->createMock(BallotRepository::class),
+            MeetingStatsRepository::class => $statsRepo,
+            MemberRepository::class       => $memberRepo,
+            AttendanceRepository::class   => $attRepo,
+            MotionRepository::class       => $motionRepo,
+            BallotRepository::class       => $ballotRepo,
             ProxyRepository::class        => $this->createMock(ProxyRepository::class),
         ]);
     }
