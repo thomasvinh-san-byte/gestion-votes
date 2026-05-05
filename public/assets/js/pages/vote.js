@@ -189,8 +189,15 @@
     var memberId = selectedMemberId();
     if (!meetingId || !memberId) return;
 
+    var btn = document.getElementById('btnPresence');
     var newAbsent = !_isAbsent;
     var mode = newAbsent ? 'absent' : 'present';
+    var prevAbsent = _isAbsent;
+
+    // Optimistic UI (LOADING-V27-03): mutate DOM synchronously, rollback on error.
+    _isAbsent = newAbsent;
+    updatePresenceUI();
+    if (btn) btn.classList.add('is-pending');
 
     try {
       var result = await apiPost('/api/v1/attendances_upsert.php', {
@@ -198,13 +205,15 @@
         member_id: memberId,
         mode: mode
       });
-      if (result && result.ok) {
-        _isAbsent = newAbsent;
-        updatePresenceUI();
-      } else {
-        notify('error', 'Erreur de mise a jour de presence');
+      if (!(result && result.ok)) {
+        throw new Error('upsert_failed');
       }
+      if (btn) btn.classList.remove('is-pending');
     } catch(e) {
+      // Rollback to previous state and surface the error.
+      _isAbsent = prevAbsent;
+      updatePresenceUI();
+      if (btn) btn.classList.remove('is-pending');
       notify('error', 'Erreur de mise a jour de presence');
     }
   }
