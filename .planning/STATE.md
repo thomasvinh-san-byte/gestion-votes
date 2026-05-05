@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: ""
-milestone_name: ""
-status: between_milestones
+milestone: "v2.7"
+milestone_name: "Cohérence visuelle & finitions perçues"
+status: planning
 stopped_at: ""
-last_updated: "2026-05-05T11:00:00Z"
-last_activity: 2026-05-05 -- v2.6 milestone SHIPPED. Audit gaps_found (1 unsatisfied INFRA-V26-01 runtime gate fix `80854f0` pending re-test) accepté en tech debt. Phase dirs archived to milestones/v2.6-phases/, audit + tokens-audit moved to milestones/. Ready for /gsd:new-milestone v2.7 or ad-hoc work.
+last_updated: "2026-05-05T11:30:00Z"
+last_activity: 2026-05-05 -- Milestone v2.7 bootstrapped. 4 buckets confirmés : cohérence visuelle migration design (cœur), loading states, 404 race graceful UX, Query N+1 + HTTP cache. Cadré 1 semaine ~15 reqs.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -22,17 +22,15 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** Between milestones — v2.6 ✅ SHIPPED 2026-05-05. Bootstrap v2.7 via `/gsd:new-milestone` ou continuer ad-hoc sur main.
+**Current focus:** v2.7 Cohérence visuelle & finitions perçues — defining requirements.
 
 ## Current Position
 
-Milestone: — (none active)
-Phase: —
+Milestone: v2.7 Cohérence visuelle & finitions perçues
+Phase: Not started (defining requirements)
 Plan: —
-Status: v2.6 archived. Ready for next milestone or ad-hoc work.
-Last activity: 2026-05-05 — v2.6 milestone shipped (17 reqs / 16 satisfied + 1 fix-pushed-pending-retest, 32 PHPUnit + 1 Playwright live PASS). Phase dirs + audit docs archived to milestones/.
-
-Progress: — (no active milestone)
+Status: Defining requirements
+Last activity: 2026-05-05 — v2.7 bootstrapped. 4 buckets : cohérence visuelle migration (cœur), loading states, 404 race UX, Query N+1 + HTTP cache. Cadré 1 sem.
 
 ## Accumulated Context
 
