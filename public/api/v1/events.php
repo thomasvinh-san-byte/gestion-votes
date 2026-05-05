@@ -171,7 +171,7 @@ $lastHeartbeat = 0;
 $heartbeatInterval = 10;
 $quorumEngine = new QuorumEngine();
 $meetingRepo = RepositoryFactory::getInstance()->meeting();
-$heartbeatBuilder = new HeartbeatPayloadBuilder($quorumEngine, $meetingRepo);
+$heartbeatBuilder = HeartbeatPayloadBuilder::fromQuorumEngine($quorumEngine, $meetingRepo);
 
 // ── Main event loop ─────────────────────────────────────────────────────
 // Strategy: Poll Redis channel every 1s for new events.

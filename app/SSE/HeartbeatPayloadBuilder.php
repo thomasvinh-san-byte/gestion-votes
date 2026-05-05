@@ -6,6 +6,7 @@ namespace AgVote\SSE;
 
 use AgVote\Repository\MeetingRepository;
 use AgVote\Service\QuorumEngine;
+use Closure;
 use Throwable;
 
 /**
@@ -15,12 +16,34 @@ use Throwable;
  * Each sub-query is try/catch isolated so a single failure does not break
  * the SSE loop. Extracted from public/api/v1/events.php for unit testability
  * (TEST-V26-01 / HEARTBEAT-V25-03).
+ *
+ * The quorum lookup is injected as a Closure rather than the QuorumEngine
+ * class directly because QuorumEngine is final — wrapping the call in a
+ * closure lets unit tests substitute a stub without bypassing PHP's final
+ * class restrictions.
  */
 final class HeartbeatPayloadBuilder {
+    /** @var Closure(string, ?string): array */
+    private readonly Closure $quorumLookup;
+
+    /**
+     * @param Closure(string, ?string): array $quorumLookup function ($meetingId, $tenantId) => quorum array
+     */
     public function __construct(
-        private readonly QuorumEngine $quorum,
+        Closure $quorumLookup,
         private readonly MeetingRepository $meetingRepo,
     ) {
+        $this->quorumLookup = $quorumLookup;
+    }
+
+    /**
+     * Convenience factory that wires the builder against the production QuorumEngine.
+     */
+    public static function fromQuorumEngine(QuorumEngine $quorum, MeetingRepository $meetingRepo): self {
+        return new self(
+            static fn (string $meetingId, ?string $tenantId): array => $quorum->computeForMeeting($meetingId, $tenantId),
+            $meetingRepo,
+        );
     }
 
     /**
@@ -50,7 +73,7 @@ final class HeartbeatPayloadBuilder {
             }
 
             try {
-                $q = $this->quorum->computeForMeeting($meetingId, $tenantId);
+                $q = ($this->quorumLookup)($meetingId, $tenantId);
                 $payload['quorum'] = [
                     'applied'          => (bool) ($q['applied'] ?? false),
                     'met'              => $q['met'] ?? null,
