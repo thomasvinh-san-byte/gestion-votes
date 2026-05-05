@@ -3894,6 +3894,58 @@ textarea:focus-visible,
   100% { background-position: -200% 0; }
 }
 
+/* ── ag-skeleton variants (LOADING-V27-01) ──────────────────────────────────
+   Utility classes mirroring <ag-skeleton variant="..."> for inline static HTML.
+   The custom element renders its own shimmer in shadow DOM; these classes are
+   for templates that prefer plain markup. They reuse the .skeleton base
+   defined above (background + animation). */
+.ag-skeleton-card {
+  height: 120px;
+  width: 100%;
+  border-radius: var(--radius-base);
+}
+.ag-skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.ag-skeleton-text {
+  height: 0.875rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Optimistic-UI pending state (LOADING-V27-03) ───────────────────────────
+   Applied via window.LoadingStates.applyOptimistic() while a background
+   request is in flight after an instant DOM mutation. */
+.is-pending {
+  opacity: 0.6;
+  transition: opacity var(--duration-fast) var(--ease-default);
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-pending {
+    opacity: 0.7;
+    transition: none;
+  }
+}
+
+/* ── Submit spinner (LOADING-V27-02) ────────────────────────────────────────
+   Applied automatically by loading-states.js during HTMX or native form
+   submits. Anti-double-submit is enforced via the [data-submitting] flag. */
+button[data-submitting="true"],
+input[data-submitting="true"] {
+  opacity: 0.7;
+  cursor: progress;
+  pointer-events: none;
+}
+button[data-submitting="true"] .btn-spinner-slot,
+input[data-submitting="true"] .btn-spinner-slot {
+  display: inline-flex;
+  margin-inline-end: var(--space-2);
+  vertical-align: middle;
+}
+
 /* =============================================================================
    13. STAT COMPONENTS (base)
    ============================================================================= */
