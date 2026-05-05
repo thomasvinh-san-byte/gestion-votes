@@ -504,7 +504,8 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
   2. Tous les forms POST/PATCH/DELETE affichent un spinner inline + bouton `disabled` pendant la requête, via attribut data ou pattern HTMX `hx-indicator` étendu. Test : tenter double-clic sur "Voter" → 1 seule requête envoyée, bouton bloqué visible.
   3. 3 actions critiques implémentent l'optimistic UI : (a) vote cast (UI affiche le vote enregistré avant retour serveur, rollback visible si erreur), (b) présence toggle (badge change instantanément), (c) motion next (motion suivante affichée immédiatement). État "pending" CSS visible (opacité ou pulse subtil).
 
-**Plans:** TBD (likely 1 plan)
+**Plans:** 1 plan
+- [ ] 02-01-PLAN.md — `<ag-skeleton>` + central HTMX listener + submit spinner + optimistic UI 3 sites (LOADING-V27-01/02/03)
 
 ### Phase 3: 404 race graceful UX
 
@@ -519,6 +520,7 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
 
 **Plans:** TBD (likely 1 plan)
 
+
 ### Phase 4: Query N+1 + HTTP cache
 
 **Goal**: Les pages HTMX hot (dashboard, audit, archives, members) répondent en <100ms p95 grâce à l'élimination des N+1 et au cache HTTP ETag. Mesurable.
@@ -531,6 +533,7 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
   3. ETag/Last-Modified sur 3-5 GET HTMX hot endpoints idempotents (dashboard cards, audit list, archives list, members list). Header `Cache-Control: private, must-revalidate` + handler `If-None-Match` retourne `304 Not Modified`. Test PHPUnit prouve `304` sur même ETag, `200` sur ETag différent.
 
 **Plans:** TBD (likely 1 plan)
+
 
 ## Progress
 
