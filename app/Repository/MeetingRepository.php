@@ -560,6 +560,27 @@ class MeetingRepository extends AbstractRepository {
     }
 
     /**
+     * Supprime une seance peu importe son statut (bypass du guard 'draft').
+     *
+     * MUST only be called from dev-only endpoints (TestSeedController) — not
+     * for production code paths. La suppression cascade automatiquement vers
+     * motions, ballots, attendances, etc. via les FK ON DELETE CASCADE
+     * définies dans schema-master.sql (toutes les tables enfants de meetings
+     * ont la clause ON DELETE CASCADE — vérifié 2026-05).
+     *
+     * Source: RACE-V27-01 — Plan 03-01 (Phase 3 v2.7).
+     *
+     * @return bool True si une ligne a été supprimée, false sinon.
+     */
+    public function deleteForTest(string $tenantId, string $meetingId): bool {
+        $rows = $this->execute(
+            'DELETE FROM meetings WHERE id = :id AND tenant_id = :tid',
+            [':id' => $meetingId, ':tid' => $tenantId],
+        );
+        return $rows > 0;
+    }
+
+    /**
      * Supprime une seance en brouillon et ses donnees associees.
      * Ne fonctionne que pour les seances au statut 'draft'.
      */
