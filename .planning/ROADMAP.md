@@ -423,7 +423,9 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   4. Audit final post-7.4 livré dans `.planning/v2.6-TOKENS-AUDIT-FINAL.md` : décompte tokens 1-site **<30**, classification keep/consolidate/done à jour, ratio tokens ≥95 % maintenu sur borders/shadows.
   5. Aucune régression CSS visible : 5 pages échantillon (login, dashboard, operator, audit, settings) inspectées avant/après — pixel diff <2 % ou justifié.
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 03-01-PLAN.md — Mechanical CSS edits Phase 7.2 (widths) + 7.3 (emphasis flatten) + 7.4 (ring unification), 3 atomic commits, 10 tokens 1-site retirés
+- [ ] 03-02-PLAN.md — Final audit `v2.6-TOKENS-AUDIT-FINAL.md` (décompte <30 + ratios ≥95% + checklist régression dev-machine 5 pages échantillon)
 **UI hint**: yes
 
 ### Phase 4: Test infra + GSD ergo
