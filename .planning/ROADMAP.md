@@ -455,7 +455,8 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   3. Footer `Page X sur Y` correct sur toutes les pages d'un PV ≥10 pages ; pas de coupure de contenu en bas de page (`page-break-inside: avoid` respecté sur les blocs résolution/hash, déjà installé v2.4 TECH-V24-01 — vérifié non-régressé).
   4. Aucune régression sur la génération PDF des cas courts (≤3 pages) déjà validée en v2.4.
 
-**Plans:** TBD
+**Plans:** 1 plan
+- [ ] 05-01-PLAN.md — Smoke test parsing PDF binaire long (smalot/pdfparser dev dep + LongPvFixtureBuilder + 4 tests SC1/SC2/SC3 + non-regression PV courts) — couvre PDF-V26-01/02/03
 
 ## Progress
 
