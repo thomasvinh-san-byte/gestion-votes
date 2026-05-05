@@ -243,4 +243,12 @@ if (!function_exists('api_file')) {
 // across different PHPUnit invocation modes.
 require_once __DIR__ . '/Unit/ControllerTestCase.php';
 
+// Test fixtures referenced by other test classes need to be pre-loaded because
+// the test suite uses the namespace `Tests\Unit\...` which is NOT registered
+// in composer's PSR-4 autoload (composer.json maps `AgVote\Tests\\` -> `tests/`).
+// PHPUnit loads test files via direct `require`, so a fixture class never
+// triggers autoload by itself. Pre-loading it here keeps the existing namespace
+// convention without modifying composer.json.
+require_once __DIR__ . '/Unit/Fixtures/LongPvFixtureBuilder.php';
+
 // RateLimiter configuration removed — Redis is now mandatory, no file fallback.
