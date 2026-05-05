@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: ""
 milestone_name: ""
 status: between_milestones_with_ops_pending
-stopped_at: "v2.5 archived. 6 ad-hoc improvement commits shipped on main post-archive (SEC-V2-02/03 + COCKPIT-V25-01 + TOKENS Phase 7.1+7.2 + observability:purge-events CLI + storage footer + health latency + 5xx request_id). 2/6 dev-machine ops actions DONE (§2 GitHub state repair: branches deleted, tags v2.2..v2.5 pushed). 4 actions pending: §1 DB migrations (CRITICAL), §3 Playwright, §4 visual inspection, §5 cron schedule. See .planning/OPS-CHECKLIST.md."
-last_updated: "2026-05-05T05:30:00Z"
-last_activity: 2026-05-05 -- GitHub state repaired (5 stale branches deleted, tags v2.2/v2.3/v2.4 pushed). v2.3 absorbed via symbolic merge -s ours (commit 1be624e). Migration helper scripts confirmed up-to-date and idempotent.
+stopped_at: "v2.5 archived. 6 ad-hoc improvement commits shipped on main post-archive (SEC-V2-02/03 + COCKPIT-V25-01 + TOKENS Phase 7.1+7.2 + observability:purge-events CLI + storage footer + health latency + 5xx request_id). 3/6 dev-machine ops actions DONE (§1 DB migrations applied via apply-migrations-v2.5.sh after fix 2871f3c uuid cast; §2 GitHub state repaired). 3 actions pending: §3 Playwright, §4 visual inspection, §5 cron schedule. Bootstrapping v2.6 milestone next. See .planning/OPS-CHECKLIST.md."
+last_updated: "2026-05-05T05:42:00Z"
+last_activity: 2026-05-05 -- DB migrations applied (error_events, next_step_clicks, invitation_revoke_pre_hmac). Fix 2871f3c corrected uuid::text cast in pre-HMAC revoke migration. About to bootstrap v2.6 milestone (option 2 retenue par utilisateur).
 progress:
   total_phases: 0
   completed_phases: 0
