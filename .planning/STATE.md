@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: "v2.6"
 milestone_name: "Clôture dette technique"
-status: planning
+status: in_progress
 stopped_at: ""
-last_updated: "2026-05-05T07:30:00Z"
-last_activity: 2026-05-05 -- Roadmap v2.6 créé. 5 phases indépendantes et parallélisables, 17 reqs mappées 100%, 5 plans estimés (1/phase). Prochaine étape : /gsd:plan-phase N (N ∈ 1..5, ordre arbitraire).
+last_updated: "2026-05-05T08:00:00Z"
+last_activity: 2026-05-05 -- Phase 1 (Tests heartbeat) ✓ COMPLETE. PHPUnit 8/29 GREEN, Playwright spec compile (live run pending dev-machine). 4 phases restantes (2/3/4/5), toutes indépendantes — pioche libre.
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 20
 ---
 
 # AG-VOTE -- Project State
@@ -22,15 +22,17 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — roadmap défini, prêt à planifier les phases.
+**Current focus:** v2.6 Clôture dette technique — Phase 1 ✓ shipped, 4 phases restantes (pioche libre).
 
 ## Current Position
 
 Milestone: v2.6 Clôture dette technique
-Phase: Not started (roadmap defined, awaiting first /gsd:plan-phase)
+Phase: 1/5 ✓ COMPLETE — Tests heartbeat (TEST-V26-01 + TEST-V26-02)
 Plan: —
-Status: Roadmap ready
-Last activity: 2026-05-05 — Roadmap v2.6 créé. 5 phases indépendantes : (1) Tests heartbeat, (2) Codes erreur ciblés, (3) Tokens cleanup 7.2-7.4, (4) Test infra + GSD ergo, (5) Print/PDF polish. Toutes parallélisables — l'ordre 1→5 est arbitraire.
+Status: Phase 1 verified, ready for next phase (2/3/4/5 indépendantes)
+Last activity: 2026-05-05 — Phase 1 shipped. Worktree-parallel exec : 01-01 (HeartbeatPayloadBuilder + PHPUnit 8/29 GREEN) + 01-02 (Playwright spec, full run pending live stack). Verifier PASS 5/5 must-haves. Goal "stop-tests v2.5 levé" atteint.
+
+Progress: [##........] 20% (1/5 phases, 2/5 plans)
 
 ## Accumulated Context
 

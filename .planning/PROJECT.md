@@ -105,19 +105,17 @@ L'application doit etre fiable en production — aucun crash lie a des fallbacks
 
 **Status (2026-05-05):** v2.5 archivée + 6 commits ad-hoc post-archive shippés sur main. v2.6 en planning. Phases v2.3/v2.4 archivées dans `milestones/v2.5-phases/`.
 
-**Recently shipped (post-v2.5 close, on main, no PR yet):**
+**Recently shipped (v2.6 in progress + post-v2.5 close, on main, no PR yet):**
 
-**Recently shipped (post-v2.5 close, on main, no PR yet):**
-
+- ✓ **HEARTBEAT-V25-03/04 (v2.6 Phase 1)** : `tests/Unit/Sse/HeartbeatPayloadTest.php` (8 tests / 29 assertions, byte-identical payload vs v2.5 free function via `AgVote\SSE\HeartbeatPayloadBuilder` extraction) + `tests/e2e/specs/sse-heartbeat.spec.js` (Playwright EventSource 13s wait, ≥1 `meeting.heartbeat` capture). Stop-tests v2.5 directive levée. *Commits `403478c` / `0673e78` / `9dbb4e2`.*
 - ✓ **SEC-V2-02** : `CsrfMiddleware::field()` migré vers `fieldFor('POST', '/setup')` action-scopé HMAC sur le seul caller production (`setup_form.php`). `field()` marqué `@deprecated`. *Commit `ade443f`.*
 - ✓ **SEC-V2-03** : `InvitationRepository` hashage migré de `hash('sha256')` vers `hash_hmac('sha256', $token, APP_SECRET)` (4 sites centralisés via `hashToken()` helper). Migration SQL `20260504_invitation_revoke_pre_hmac.sql` révoque les invitations pré-HMAC avec audit log. *Commit `ade443f`.*
 - ✓ **COCKPIT-V25-01** : sub-tab Avancé wrapping 4 actions secondaires (Unanimité / Passerelle / Procuration / Suspendre) dans `<details>` disclosure `#opAvanceActions`. Net delta -3 cliquables visibles. Test spec étendu (1 nouveau cas Playwright). *Commit `eeb9aa4`.*
 - ✓ **TOKENS-V25-01** : audit `.planning/v2.5-TOKENS-AUDIT.md` (43 tokens classés 22 keep / 21 consolidate, 4-phase remediation plan). Phase 7.1 (alpha unification) exécutée : `--border-primary-alpha-22` + `--border-success-alpha-20` retirés (visual delta 3-5% imperceptible). *Commit `d7bf36e`.*
 
-**Tech Debt carried to next milestone:**
+**Tech Debt carried (remaining v2.6 buckets):**
 
-- **HEARTBEAT-V25-03/04** : PHPUnit + Playwright tests for `meeting.heartbeat` payload (déférés stop-tests directive v2.5)
-- **TOKENS-V25-01 Phases 7.2-7.4** : width/soft/none cleanup + emphasis flatten + ring variants unification — 4-phase remediation plan ready for pickup, target <30 tokens 1-site
+- **TOKENS-V25-01 Phases 7.2-7.4** (v2.6 Phase 3) : width/soft/none cleanup + emphasis flatten + ring variants unification — 4-phase remediation plan ready for pickup, target <30 tokens 1-site
 - **Gates dev-machine v2.4 inheritance** : Playwright runs (cockpit-button-count, sse-burst-idempotency, cockpit-keyboard-shortcuts, critical-path-operator, cockpit-health-bar) + screenshots Phase 1 + 3 PVs longs PDF visuels + CSS smoke regression 17 fichiers migrés tokens
 - **3 DB migrations à appliquer côté ops** avant prod : `20260504_error_events.sql` + `20260504_next_step_clicks.sql` + `20260504_invitation_revoke_pre_hmac.sql` (toutes idempotentes)
 

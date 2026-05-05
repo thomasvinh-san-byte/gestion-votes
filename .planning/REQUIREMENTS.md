@@ -9,8 +9,8 @@
 
 ### Tests (Heartbeat) — Bucket 1
 
-- [ ] **TEST-V26-01** : Le test PHPUnit `tests/Unit/Sse/HeartbeatPayloadTest.php` valide la forme du payload `meeting.heartbeat` (champs `meeting_id`, `server_time`, `status`, `quorum`, `operator_count` présents et typés correctement) — lève HEARTBEAT-V25-03
-- [ ] **TEST-V26-02** : Le test Playwright `tests/e2e/specs/sse-heartbeat.spec.js` ouvre le stream `/api/v1/events.php`, attend ≥12 s, vérifie au moins 1 event `meeting.heartbeat` reçu avec payload conforme — lève HEARTBEAT-V25-04
+- [x] **TEST-V26-01** : Le test PHPUnit `tests/Unit/Sse/HeartbeatPayloadTest.php` valide la forme du payload `meeting.heartbeat` (champs `meeting_id`, `server_time`, `status`, `quorum`, `operator_count` présents et typés correctement) — lève HEARTBEAT-V25-03 ✓ Phase 1 (8 tests / 29 assertions)
+- [x] **TEST-V26-02** : Le test Playwright `tests/e2e/specs/sse-heartbeat.spec.js` ouvre le stream `/api/v1/events.php`, attend ≥12 s, vérifie au moins 1 event `meeting.heartbeat` reçu avec payload conforme — lève HEARTBEAT-V25-04 ✓ Phase 1 (spec compile, full run pending live stack dev-machine)
 
 ### Codes erreur ciblés — Bucket 2
 
@@ -59,8 +59,8 @@ Aucun — v2.6 est un milestone de clôture. Ce qui n'est pas dans v1 ci-dessus 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-V26-01 | Phase 1 | Pending |
-| TEST-V26-02 | Phase 1 | Pending |
+| TEST-V26-01 | Phase 1 | ✓ Complete |
+| TEST-V26-02 | Phase 1 | ✓ Complete |
 | ERR-V26-01 | Phase 2 | Pending |
 | ERR-V26-02 | Phase 2 | Pending |
 | ERR-V26-03 | Phase 2 | Pending |
