@@ -82,6 +82,47 @@ final class TestSeedController extends AbstractController {
     }
 
     /**
+     * POST /api/v1/test/delete-meeting
+     *
+     * Body (JSON): { tenantId: string, meetingId: string }
+     * Response: { ok: true, data: { deleted: true } }
+     *
+     * Supprime une séance peu importe son statut (bypass du guard 'draft' de
+     * deleteDraft()) — destiné aux specs Playwright qui doivent reproduire la
+     * race « ressource supprimée pendant l'affichage ». Triple-guarded :
+     * route conditional + EnvGuardMiddleware + guardProduction().
+     *
+     * Source: RACE-V27-01 — Plan 03-01 (Phase 3 v2.7).
+     */
+    public function deleteMeeting(): void {
+        $this->guardProduction();
+
+        $in = api_request('POST');
+        $tenantId = trim((string) ($in['tenantId'] ?? ''));
+        $meetingId = trim((string) ($in['meetingId'] ?? ''));
+
+        if ($tenantId === '' || $meetingId === '') {
+            api_fail('invalid_request', 422, ['detail' => 'tenantId et meetingId requis.']);
+        }
+
+        $meetingRepo = $this->meetingRepo ?? $this->repo()->meeting();
+        $deleted = $meetingRepo->deleteForTest($tenantId, $meetingId);
+
+        audit_log(
+            'test_delete_meeting',
+            'meeting',
+            $meetingId,
+            [
+                'tenant_id' => $tenantId,
+                'deleted' => $deleted,
+            ],
+            $meetingId,
+        );
+
+        api_ok(['deleted' => $deleted]);
+    }
+
+    /**
      * Inner guard mirroring DevSeedController. Returns 403 if APP_ENV is
      * production/prod even when the route is somehow reached (belt-and-braces).
      *

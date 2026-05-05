@@ -80,4 +80,36 @@ async function seedRunningMeeting(request, { tenantId = DEFAULT_TENANT_ID, motio
   return { id };
 }
 
-module.exports = { seedMeeting, seedRunningMeeting, DEFAULT_TENANT_ID };
+/**
+ * Supprime une séance via l'endpoint dev `/api/v1/test/delete-meeting`
+ * (bypass du guard 'draft' de deleteDraft, cf. MeetingRepository::deleteForTest).
+ *
+ * Throws si l'endpoint répond non-2xx — destiné aux specs `@race-404` qui
+ * doivent reproduire la race « ressource supprimée pendant l'affichage ».
+ *
+ * Source: RACE-V27-01 — Plan 03-01 (Phase 3 v2.7).
+ *
+ * @param {import('@playwright/test').APIRequestContext} request
+ * @param {{ tenantId: string, meetingId: string }} opts
+ * @returns {Promise<boolean>} true si une ligne a été supprimée.
+ */
+async function deleteMeeting(request, { tenantId, meetingId } = {}) {
+  if (!tenantId) throw new Error('deleteMeeting: tenantId is required');
+  if (!meetingId) throw new Error('deleteMeeting: meetingId is required');
+
+  const response = await request.post('/api/v1/test/delete-meeting', {
+    data: { tenantId, meetingId },
+  });
+
+  if (!response.ok()) {
+    const body = await response.text();
+    throw new Error(
+      `deleteMeeting failed: ${response.status()} ${response.statusText()} — ${body}`,
+    );
+  }
+
+  const json = await response.json();
+  return Boolean(json?.data?.deleted ?? json?.deleted);
+}
+
+module.exports = { seedMeeting, seedRunningMeeting, deleteMeeting, DEFAULT_TENANT_ID };

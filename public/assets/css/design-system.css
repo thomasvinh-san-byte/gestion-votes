@@ -2737,6 +2737,29 @@ body:has(.drawer-backdrop.open) {
   background: var(--color-primary-hover);
 }
 
+/* Variants v2.7 RACE-V27-02 — 3 modificateurs design-system aligned.
+   Defaults only — explicit attributes on <ag-empty-state> always win ;
+   ces classes ne modifient que la teinte/opacité de l'icône et du titre
+   pour fournir un signal visuel calme adapté au contexte. */
+.empty-state--resource-deleted .empty-state-icon {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+.empty-state--resource-deleted .empty-state-title {
+  color: var(--color-text);
+}
+.empty-state--no-data-yet .empty-state-icon {
+  color: var(--color-primary);
+  opacity: 0.5;
+}
+.empty-state--error .empty-state-icon {
+  color: var(--color-danger);
+  opacity: 0.7;
+}
+.empty-state--error .empty-state-title {
+  color: var(--color-danger);
+}
+
 /* ─── Progress Bar ─── */
 .progress-bar {
   height: 8px;
