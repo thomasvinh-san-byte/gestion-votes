@@ -63,6 +63,34 @@ class MemberGroupRepository extends AbstractRepository {
     }
 
     /**
+     * PERF-V27-02 — batch lookup of groups by IDs (one round-trip).
+     * Replaces N foreach calls to findById() in MemberGroupsController for
+     * validation. Returns map id => row; missing IDs are absent from the map.
+     * Empty input returns [] without hitting DB.
+     *
+     * @param  string[]                     $groupIds
+     * @return array<string, array<string, mixed>> id => group row
+     */
+    public function findManyByIds(array $groupIds, string $tenantId): array {
+        if (count($groupIds) === 0) {
+            return [];
+        }
+        $params = [':tid' => $tenantId];
+        $in = $this->buildInClause('id', $groupIds, $params);
+        $rows = $this->selectAll(
+            "SELECT id, tenant_id, name, description, color, sort_order, is_active, created_at, updated_at
+             FROM member_groups
+             WHERE tenant_id = :tid AND id IN ({$in})",
+            $params,
+        );
+        $map = [];
+        foreach ($rows as $r) {
+            $map[(string) $r['id']] = $r;
+        }
+        return $map;
+    }
+
+    /**
      * Trouve un groupe par nom (pour unicite).
      */
     public function findByName(string $name, string $tenantId): ?array {

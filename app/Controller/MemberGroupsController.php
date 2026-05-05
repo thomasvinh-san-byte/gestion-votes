@@ -235,14 +235,20 @@ final class MemberGroupsController extends AbstractController {
             api_fail('member_not_found', 404);
         }
 
-        $validGroupIds = [];
+        // PERF-V27-02: validate UUIDs in-memory, then batch-fetch existing groups
+        // in a single round-trip (was N findById() calls).
+        $candidateIds = [];
         foreach ($groupIds as $groupId) {
             $groupId = trim((string) $groupId);
             if (!api_is_uuid($groupId)) {
                 throw new InvalidArgumentException("group_id invalide: {$groupId}");
             }
-            $group = $groupRepo->findById($groupId, $tenantId);
-            if (!$group) {
+            $candidateIds[] = $groupId;
+        }
+        $existingGroups = $groupRepo->findManyByIds($candidateIds, $tenantId);
+        $validGroupIds = [];
+        foreach ($candidateIds as $groupId) {
+            if (!isset($existingGroups[$groupId])) {
                 throw new InvalidArgumentException("Groupe introuvable: {$groupId}");
             }
             $validGroupIds[] = $groupId;
