@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AgVote\Controller;
 
+use AgVote\Core\Http\HttpCache;
+
 /**
  * Consolidates dashboard.php and wizard_status.php.
  */
@@ -141,7 +143,8 @@ final class DashboardController extends AbstractController {
             ];
         }
 
-        api_ok($data);
+        // PERF-V27-03: ETag + 304 short-circuit on the dashboard hot path.
+        HttpCache::sendOk($data);
     }
 
     public function wizardStatus(): void {
