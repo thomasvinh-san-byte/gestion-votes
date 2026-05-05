@@ -60,6 +60,36 @@ class BallotRepository extends AbstractRepository {
     }
 
     /**
+     * PERF-V27-02 — batch count of ballots per motion. Replaces N foreach calls
+     * to countForMotion() in DashboardController::index().
+     *
+     * Returns a map indexed by motion_id where missing entries default to 0.
+     * Empty input returns [] without hitting the database.
+     *
+     * @param  string[]           $motionIds
+     * @return array<string, int> motion_id => total ballots count (0 for missing IDs)
+     */
+    public function countByMotionIds(array $motionIds, string $tenantId, string $meetingId): array {
+        if (count($motionIds) === 0) {
+            return [];
+        }
+        $params = [':tid' => $tenantId, ':mid' => $meetingId];
+        $in = $this->buildInClause('mo', $motionIds, $params);
+        $rows = $this->selectAll(
+            "SELECT motion_id, COUNT(*)::int AS cnt
+             FROM ballots
+             WHERE tenant_id = :tid AND meeting_id = :mid AND motion_id IN ({$in})
+             GROUP BY motion_id",
+            $params,
+        );
+        $map = array_fill_keys($motionIds, 0);
+        foreach ($rows as $r) {
+            $map[(string) $r['motion_id']] = (int) $r['cnt'];
+        }
+        return $map;
+    }
+
+    /**
      * Insere un ballot depuis un token de vote (tablette/QR code).
      */
     public function insertFromToken(
