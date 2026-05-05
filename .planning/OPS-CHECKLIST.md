@@ -10,13 +10,27 @@
 
 Without these, half the new code is silently no-op (capture try/catch swallows DB errors).
 
+**Easiest path** — use the helper script (auto-parses `.env`, asks confirmation, idempotent):
+
 ```bash
-psql "$DB_DSN" -f database/migrations/20260504_error_events.sql
-psql "$DB_DSN" -f database/migrations/20260504_next_step_clicks.sql
-psql "$DB_DSN" -f database/migrations/20260504_invitation_revoke_pre_hmac.sql
+bin/apply-migrations-v2.5.sh           # interactive
+bin/apply-migrations-v2.5.sh --dry-run # show what would run
+bin/apply-migrations-v2.5.sh --yes     # non-interactive (CI/cron)
 ```
 
-All three are **idempotent** (`CREATE TABLE IF NOT EXISTS` / `WHERE revoked_at IS NULL`). Safe to re-run.
+**Manual path** — if you don't want the script :
+
+```bash
+# psql expects host/port/dbname flags, not the PHP-PDO format DB_DSN.
+# Either source .env and translate, or use flags directly:
+psql -h localhost -U vote_app -d vote_app -f database/migrations/20260504_error_events.sql
+psql -h localhost -U vote_app -d vote_app -f database/migrations/20260504_next_step_clicks.sql
+psql -h localhost -U vote_app -d vote_app -f database/migrations/20260504_invitation_revoke_pre_hmac.sql
+```
+
+> **Pourquoi `psql "$DB_DSN"` ne marche pas :** le `DB_DSN` du `.env` est au format PHP PDO (`pgsql:host=...;port=...;dbname=...`), incompatible avec le CLI psql qui attend une URL `postgresql://` ou des flags séparés. Le script `bin/apply-migrations-v2.5.sh` traduit automatiquement.
+
+All three migrations are **idempotent** (`CREATE TABLE IF NOT EXISTS` / `WHERE revoked_at IS NULL`). Safe to re-run.
 
 **Verify after:**
 ```sql
