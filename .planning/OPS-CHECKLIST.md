@@ -46,22 +46,35 @@ SELECT COUNT(*) FROM invitations
 
 ## 2. Push retroactive tags + delete dead branches (sandbox blocked by proxy)
 
-I created tags **v2.2 / v2.3 / v2.4** locally, plus **v2.5** is already on origin. They need to be pushed:
+**Easiest path** — one-shot helper script :
 
 ```bash
-# From your machine (not proxy):
-git fetch origin
-git push origin v2.4 v2.3 v2.2
+bin/repair-github-state.sh           # interactive
+bin/repair-github-state.sh --dry-run # show without executing
+bin/repair-github-state.sh --yes     # non-interactive
 ```
 
-Delete the 5 stale branches:
+Le script :
+- Refuse de tourner si `origin` pointe encore sur le proxy sandbox (127.0.0.1)
+- Push tags v2.2 / v2.3 / v2.4 (skip ceux déjà sur remote)
+- Delete les 5 branches mortes (skip celles déjà supprimées)
+- Cleanup local + `git remote prune origin`
+- Affiche l'état final (branches + tags)
+- Idempotent
+
+**Manual path** — si tu préfères tout faire à la main :
 
 ```bash
+git fetch origin --tags --prune
+git push origin v2.4 v2.3 v2.2
+
 git push origin --delete chore/v25-cleanup-dead-v24-artifacts \
                           claude/gsd-ux-review-YG5K0 \
                           feat/v2.2-design-tokens \
                           feat/v2.3-cockpit-operateur \
                           feat/v2.4-cockpit-polish
+
+git remote prune origin
 ```
 
 **Verify after:** `git ls-remote --heads origin` shows only `main`. `git ls-remote --tags origin` shows v2.2..v2.5.
