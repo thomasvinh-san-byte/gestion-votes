@@ -1,111 +1,87 @@
-# Requirements: AgVote v2.4 Polish & Robustness
+# Requirements: AgVote v2.6 — Clôture dette technique
 
-**Defined:** 2026-05-04
-**Core Value:** Consolider la fiabilité production post-v2.3 — éliminer les frictions de toolchain identifiées, refactorer les codes d'erreur génériques en codes ciblés observables, et finir le polish cockpit pour atteindre une charge cognitive opérateur maîtrisée.
+**Defined:** 2026-05-05
+**Core Value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
 
-**Source des requirements :** backlog v2.3 trié dans `.planning/v2.4-BACKLOG-PLAN.md` (4 phases validées) — heritage Schoger S-1 + S-6, code-review v2.3 followups, Phase 4 audit ERR-04 followups, A1 gate friction (sandbox install Playwright), Phase 3 Schoger S-8 propagation d'erreur scan.
-
-**Pré-requis** : v2.3 mergée (PR #259) avant démarrage Phase 1 v2.4.
-
----
+**Goal :** Liquider la dette explicite accumulée v2.3/v2.5 et atteindre un état "tout shipped, zéro carry-forward". Clôture stricte, ~1 semaine, 5 phases courtes, pas d'ajout opportuniste.
 
 ## v1 Requirements
 
-### Cockpit Polish & Hygiène (Phase 1)
+### Tests (Heartbeat) — Bucket 1
 
-- [ ] **COCKPIT-V24-01**: Le cockpit opérateur affiche au plus **25 boutons / éléments cliquables visibles** simultanément (vs ~70 actuellement). Le PLAN.md de la phase identifie chaque bouton actuel, propose un regroupement (panel rétractable, persona-scoped, contextual-only), et justifie quels sont conservés en avant. *Schoger S-1 — declutter.*
+- [x] **TEST-V26-01** : Le test PHPUnit `tests/Unit/Sse/HeartbeatPayloadTest.php` valide la forme du payload `meeting.heartbeat` (champs `meeting_id`, `server_time`, `status`, `quorum`, `operator_count` présents et typés correctement) — lève HEARTBEAT-V25-03 ✓ Phase 1 (8 tests / 29 assertions)
+- [x] **TEST-V26-02** : Le test Playwright `tests/e2e/specs/sse-heartbeat.spec.js` ouvre le stream `/api/v1/events.php`, attend ≥12 s, vérifie au moins 1 event `meeting.heartbeat` reçu avec payload conforme — lève HEARTBEAT-V25-04 ✓ Phase 1 (spec compile, full run pending live stack dev-machine)
 
-- [ ] **COCKPIT-V24-02**: Le rouge danger (`--color-danger`, `--color-danger-subtle`) est utilisé **uniquement** pour signaler un état critique nécessitant une action immédiate (quorum perdu, vote raté). Les indicateurs de présence/connexion utilisent une palette neutre ou success ; la sidebar/nav opérateur n'a aucun rouge décoratif. Audit livré dans le PLAN.md. *Schoger S-6 — persona color confinement.*
+### Codes erreur ciblés — Bucket 2
 
-### Error Observability & Resilience (Phase 2)
+- [ ] **ERR-V26-01** : 3 sites `business_error` génériques identifiés Phase 4 v2.3 (follow-up 04.6-FOLLOWUP-2) sont remplacés par des codes ciblés observables (ex. `meeting_not_found`, `vote_already_cast`, `quorum_not_reached`) avec entrées correspondantes dans `ErrorDictionary.php`
+- [ ] **ERR-V26-02** : Les routes empty-state (rafale d'events SSE) sont rendues idempotentes — un test dédié vérifie que 2 requêtes back-to-back sur la même ressource vide retournent le même code/payload sans état corrompu (follow-up 04.6-FOLLOWUP-3)
+- [ ] **ERR-V26-03** : Le dashboard `/admin/error-stats` reflète ces nouveaux codes (vérifié par test smoke après 1 cycle de capture)
 
-- [ ] **ERR-V24-01**: Le code d'erreur générique `business_error` est remplacé par **3 codes spécifiques** dans `app/Services/ErrorDictionary.php` couvrant les 3 cas d'usage actuels documentés en 04.6-AUDIT.md. Chaque caller migré vers le code spécifique. `business_error` reste émis < 5 % des erreurs en prod. *04.6-FOLLOWUP-2.*
+### Tokens cleanup — Bucket 3
 
-- [ ] **ERR-V24-02**: Les empty-states avec rafale d'événements SSE (modal d'intégrité, dashboard hero card live) implémentent un guard d'idempotence (debounce ≥250ms ou state-machine `idle | rendering | rendered`) qui **prévient les double-render** lors de bursts. Test E2E reproductible avec injection synthétique de 5 events en 100ms. *04.6-FOLLOWUP-3.*
+- [ ] **TOKENS-V26-01** : Phase 7.2 du remediation plan exécutée — width tokens nettoyés (`--border-width-thin/normal/thick` consolidés sur 1 site visible, doublons supprimés)
+- [ ] **TOKENS-V26-02** : Phase 7.3 — soft/none variants éliminés (pas de `--shadow-soft`, `--shadow-none` séparé de `--shadow-0`), emphasis flatten appliqué
+- [ ] **TOKENS-V26-03** : Phase 7.4 — ring variants unifiés (`--ring-*` réduits à 1-2 tokens canoniques)
+- [ ] **TOKENS-V26-04** : Audit final post-7.4 confirme **<30 tokens 1-site** (cible du plan), nouveau snapshot `.planning/v2.6-TOKENS-AUDIT-FINAL.md`
 
-- [ ] **ERR-V24-03**: `Logger::error()` enrichi avec contexte standardisé (`request_id`, `user_id`, `tenant_id`, `error_code`, `caller`) sur tous les call-sites identifiés par l'audit. Un dashboard simple (page admin ou commande CLI) affiche le **taux d'utilisation du next-step ErrorDictionary** par code (cliques sur la suggestion vs ignorance) — métrique pour valider Phase 4 v2.3 ERR-02.
+### Test infra + GSD ergo — Bucket 4
 
-### Test Infrastructure (Phase 3)
+- [ ] **INFRA-V26-01** : `tests/e2e/helpers/seed-meeting.js` permet d'activer les tests `@integration` (test F-4 de Phase 1 v2.4 — actuellement skippé faute de fixture)
+- [ ] **INFRA-V26-02** : Playwright dual-install résolu — un seul `npm install` à la racine ou doc claire qui explique la double install (`tests/e2e/`)
+- [ ] **INFRA-V26-03** : README `tests/e2e/README.md` documente Playwright deps, browsers (chromium/firefox/webkit), auth-setup rate-limit, comment écrire un nouveau spec
+- [ ] **INFRA-V26-04** : Doc pattern Explore scan dans `.planning/intel/` ou équivalent — anti faux-positifs BEM substring (Phase 3 Schoger S-8)
+- [ ] **INFRA-V26-05** : `gsd-code-reviewer` agent reçoit budget timeout configurable + scope splits (`--files=js`, `--files=php`, `--files=tests`)
 
-- [ ] **TEST-V24-01**: `tests/e2e/helpers/seed-meeting.js` est implémenté (signature `seedMeeting({tenantId, status, motionsCount}) → meetingId`) et active le test `@integration` F-4 (modal-focus-trap.spec.js) précédemment skippé. Test passe en CI dev. *01.4-FOLLOWUP-2.*
+### Print/PDF polish — Bucket 5
 
-- [ ] **TEST-V24-02**: `gsd-code-reviewer` accepte un argument `--scope=js|php|tests|all` et un budget timeout configurable (`--timeout-min=N`, défaut 60). Documentation dans `.claude/get-shit-done/agents/gsd-code-reviewer.md`. Vérifié via review v2.4 sur 50+ fichiers sans timeout. *GSD-V2.4-1.*
+- [ ] **PDF-V26-01** : Header dompdf répétabilité — sur PV ≥10 pages, le header `[Titre séance] — JJ/MM/YYYY` apparaît sur **chaque** page (pas seulement la première)
+- [ ] **PDF-V26-02** : Em-dash UTF-8 (`—`) rendu correctement dans le PDF (pas de `?` ou `??`) — test smoke automatisé sur fixture PV avec accents et symboles français
+- [ ] **PDF-V26-03** : Pagination robuste — footer `Page X sur Y` correct sur toutes les pages, pas de coupure de contenu en bas de page
 
-- [ ] **TEST-V24-03**: Le dual-install Playwright (root `package.json` + `tests/e2e/package.json`) est résolu : un seul `package.json` source de vérité (`tests/e2e/`), root supprimé ou stub minimal vers tests/e2e. README à jour. *GSD-V2.4-2.*
+## v2 Requirements (deferred / out-of-milestone)
 
-- [ ] **TEST-V24-04**: `tests/e2e/README.md` créé (ou enrichi) avec : install commands (`sudo npx playwright install --with-deps chromium`), browsers téléchargés par défaut, gestion auth-setup rate-limit (5min cooldown assessor), procédures debug. *GSD-V2.4-3.*
-
-- [ ] **TEST-V24-05**: Un guide `.planning/codebase/EXPLORE-PATTERNS.md` documente le pattern de scan évitant les faux-positifs BEM substring (ex: `shortcut-cards` matche `shortcut-cards__title` mais pas `shortcut-cards-grid`). 3 anti-patterns concrets recensés, exemple correct fourni. *03.2-FOLLOWUP-1.*
-
-### Print + Tech Debt residuel (Phase 4)
-
-- [ ] **TECH-V24-01**: L'export PDF (dompdf via `ProcurationPdfService` + `MeetingReportsService` si applicable) génère un **header répété** sur chaque page (titre séance + date) et un footer numéro de page. Vérifié visuellement sur 3 PVs longs (≥10 pages). *EDITORIAL-07-FULL — partial v2.3 = CSS print only.*
-
-- [ ] **TECH-V24-02**: Le ratio borders/shadows utilisant les design tokens vs valeurs hardcodées atteint **≥95 %** (vs ~70 % post-v2.3 quick TECH-01). Audit produit la liste des ~140 borders + ~45 shadows residuels et les migre cas-par-cas. Atomic commits per fichier pour revert ciblé. *TECH-01-BASSE.*
-
----
-
-## v2 Requirements (déférés milestone v2.5+)
-
-### Sécurité (milestone v2.5 dédié)
-
-- **SEC-V24-01**: `MotionRepository` tenantId check sur tous finders publics
-- **SEC-V24-02**: `F10` `fieldFor()` sanitization input
-- **SEC-V24-03**: Hash invitation HMAC vs plain token
-
-### UX ambitieux (milestone v2.6+)
-
-- **UX-V24-01**: Système d'animations cohérent (motion design tokens)
-- **UX-V24-02**: A/B testing infra KPI
-- **UX-V24-03**: Mobile-first opérateur (refonte responsive complète)
-- **UX-V24-04**: Empty states illustrés (designer dependency)
-
----
+Aucun — v2.6 est un milestone de clôture. Ce qui n'est pas dans v1 ci-dessus est explicitement out-of-scope.
 
 ## Out of Scope
 
-Explicitement exclu de v2.4 :
-
 | Feature | Reason |
 |---------|--------|
-| Refonte business logic | v2.4 = polish + observability, pas de nouveau métier |
-| Nouvelles dépendances framework | Stack PHP 8.4 + HTMX + vanilla JS reste fixe |
-| Migration `gh` CLI | MCP server github suffit, dual stack overhead non justifié |
-| Sécurité backend (SEC-*) | Bloc cohérent → milestone v2.5 dédié |
-| Mobile responsive opérateur | Hors-scope (v2.6+ design lead requis) |
-| Animations / motion design | Hors-scope (v2.6+ design system requis) |
-
----
+| OPS dev-machine §3 (Playwright runs) | Dev-machine, pas de code à écrire — restera dans OPS-CHECKLIST jusqu'à exécution manuelle |
+| OPS dev-machine §4 (visual inspection) | Idem — inspection browser, hors-code |
+| OPS dev-machine §5 (cron schedule) | Idem — config sysadmin, hors-code |
+| Nouvelles capacités métier (signature, archivage hash chain, procuration en lot…) | Milestone de clôture, pas d'ajout |
+| Refactos opportunistes en cours de route | Clôture stricte — toute découverte ouvre une seed/todo, pas un ajout milestone |
+| Migration vers framework | Hors charte projet (refactoring incrémental uniquement) |
+| Logger context enrichment dashboards | ERR-monitoring du backlog v2.4 — différé, non bloquant pour la dette listée |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COCKPIT-V24-01 | Phase 1 | Pending |
-| COCKPIT-V24-02 | Phase 1 | Pending |
-| ERR-V24-01 | Phase 2 | Pending |
-| ERR-V24-02 | Phase 2 | Pending |
-| ERR-V24-03 | Phase 2 | Pending |
-| TEST-V24-01 | Phase 3 | Pending |
-| TEST-V24-02 | Phase 3 | Pending |
-| TEST-V24-03 | Phase 3 | Pending |
-| TEST-V24-04 | Phase 3 | Pending |
-| TEST-V24-05 | Phase 3 | Pending |
-| TECH-V24-01 | Phase 4 | Pending |
-| TECH-V24-02 | Phase 4 | Pending |
+| TEST-V26-01 | Phase 1 | ✓ Complete |
+| TEST-V26-02 | Phase 1 | ✓ Complete |
+| ERR-V26-01 | Phase 2 | Pending |
+| ERR-V26-02 | Phase 2 | Pending |
+| ERR-V26-03 | Phase 2 | Pending |
+| TOKENS-V26-01 | Phase 3 | Pending |
+| TOKENS-V26-02 | Phase 3 | Pending |
+| TOKENS-V26-03 | Phase 3 | Pending |
+| TOKENS-V26-04 | Phase 3 | Pending |
+| INFRA-V26-01 | Phase 4 | Pending |
+| INFRA-V26-02 | Phase 4 | Pending |
+| INFRA-V26-03 | Phase 4 | Pending |
+| INFRA-V26-04 | Phase 4 | Pending |
+| INFRA-V26-05 | Phase 4 | Pending |
+| PDF-V26-01 | Phase 5 | Pending |
+| PDF-V26-02 | Phase 5 | Pending |
+| PDF-V26-03 | Phase 5 | Pending |
 
-**Coverage:**
-- v1 requirements: 12 total
-- Mapped to phases: 12
-- Unmapped: 0 ✓
+**Coverage :**
+- v1 requirements : 17 total
+- Mapped to phases : 17
+- Unmapped : 0 ✓
 
 ---
-
-*Requirements defined: 2026-05-04 from `.planning/v2.4-BACKLOG-PLAN.md`*
-*Last updated: 2026-05-04 — initial v2.4 definition*
-
----
-
-## Archived Milestones
-
-- **v2.5 Real-time Live Cockpit + Logger Migration** (shipped 2026-05-04) — see [`.planning/milestones/v2.5-REQUIREMENTS.md`](milestones/v2.5-REQUIREMENTS.md)
+*Requirements defined : 2026-05-05*
+*Last updated : 2026-05-05 after v2.6 milestone bootstrap*

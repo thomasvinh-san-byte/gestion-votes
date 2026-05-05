@@ -6,7 +6,9 @@
 
 ---
 
-## 1. Apply 3 DB migrations on prod (CRITICAL)
+## 1. Apply 3 DB migrations on prod (CRITICAL) ✅ DONE (2026-05-05)
+
+> Closed via `bin/apply-migrations-v2.5.sh` after fix `2871f3c` (uuid cast). All 3 migrations applied idempotently. `error_events` + `next_step_clicks` tables present (count = 0, fresh dev). `invitation_revoke_pre_hmac` ran clean (`INSERT 0 0` — aucune invitation pending pré-HMAC sur ce dev). Section kept for reference / re-run on prod.
 
 Without these, half the new code is silently no-op (capture try/catch swallows DB errors).
 
@@ -194,8 +196,8 @@ Si tu veux dégonfler la cérémonie GSD :
 
 | # | Action | Required | Effort | Blocker if skipped ? |
 |---|---|---|---|---|
-| 1 | Apply 3 DB migrations | Yes | 2 min | **YES** — observability code is no-op without |
-| 2 | Push tags + delete branches | Yes | 1 min | No, but repo is messy |
+| 1 | Apply 3 DB migrations | ✅ DONE 2026-05-05 | 2 min | ~~YES — observability code is no-op without~~ closed |
+| 2 | Push tags + delete branches | ✅ DONE 2026-05-05 | 1 min | ~~No, but repo is messy~~ closed |
 | 3 | Run Playwright suite | Yes | 5-10 min | Tests written but never run = real risk |
 | 4 | Browser visual inspection | Yes | 30-60 min | UX bugs invisibles autrement |
 | 5 | Cron schedule | Yes | 10 min | Tables grow indefinitely |

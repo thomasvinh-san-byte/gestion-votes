@@ -17,6 +17,7 @@
 - ✅ **v2.2 Refonte Visuelle & Cohérence** - Phases 1-4 (shipped 2026-04-29, PR #256 mergée — partial : 5 items L01/L03/L04/L05/X01 reportés v2.3, livré L02/X02/X03/X04)
 - ✅ **v2.3 Layout Refonte & UX Polish** - Phases 1-4 (PR #259 ouvert 2026-05-04, 35/35 reqs PASSED, gates manuelles A1+B1.1+D1 pending dev machine) — cockpit santé, pages éditoriales, lexique unifié, modales focus trap, + quick task TECH-01 (234 borders consolidées, 6 nouveaux tokens) — voir `.planning/milestones/v2.3-REQUIREMENTS.md`
 - 🚧 **v2.4 Polish & Robustness** - Phases 1-4 (planning, 12 requirements, démarre post-merge PR #259) — cockpit declutter ≤25 boutons + persona color confinement, error observability (business_error → codes ciblés + race conditions empty-state idempotency), test infrastructure (seed-meeting helper, code-reviewer scope splits, Playwright dual-install fix), print + tech debt residuel (dompdf header + ~140 borders + ~45 shadows tokens ≥95 %)
+- 🚧 **v2.6 Clôture dette technique** - Phases 1-5 (planning, 17 requirements, ~1 sem, clôture stricte) — liquidation dette accumulée v2.3/v2.5 : tests heartbeat (HEARTBEAT-V25-03/04), codes erreur ciblés (business_error → codes spécifiques + idempotency empty-state), tokens cleanup Phases 7.2-7.4 (<30 tokens 1-site), test infra + GSD ergo (seed-meeting @integration, dual-install resolved, README, Explore patterns, code-reviewer scope splits), print/PDF polish (header répété, em-dash UTF-8, pagination robuste). **Toutes phases indépendantes et parallélisables — l'ordre 1→5 est arbitraire.**
 
 ## Phases
 
@@ -372,6 +373,86 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   1. Génération PDF (`ProcurationPdfService` + `MeetingReportsService` si applicable) produit un header répété sur chaque page (titre séance + date) et un footer numéro de page. Vérifié visuellement sur 3 PVs longs (≥10 pages).
   2. `grep -cE "(border|box-shadow):\s+[0-9]+|#[0-9a-f]{3,6}" public/assets/css/` ratio tokens vs hardcoded ≥95 %. Liste produite des residuels et migrations livrées en atomic commits per fichier.
 
+
+## Phase Details (v2.6)
+
+**Note d'ordonnancement :** Les 5 phases v2.6 sont **indépendantes et parallélisables**. Aucune dépendance technique entre elles. L'exécuteur peut piocher dans n'importe quel ordre selon disponibilité, energy, ou opportunisme. La numérotation 1→5 reflète la liste des buckets dans `REQUIREMENTS.md`, pas une séquence d'exécution obligatoire.
+
+### Phase 1: Tests heartbeat (PHPUnit + Playwright)
+
+**Goal**: Lever le stop-tests directive v2.5 — la forme du payload `meeting.heartbeat` est verrouillée par un test PHPUnit, et la livraison réelle (tick toutes les 10s sur le stream SSE) est garantie par un test Playwright.
+
+**Depends on**: Nothing (independent)
+**Requirements**: TEST-V26-01, TEST-V26-02
+**Success Criteria** (what must be TRUE):
+  1. `tests/Unit/Sse/HeartbeatPayloadTest.php` existe et passe : il instancie le builder de payload heartbeat et vérifie présence + types des 5 champs (`meeting_id` UUID-shape, `server_time` ISO-8601, `status` enum, `quorum` array {applied, met, present_members, eligible_members, present_weight, eligible_weight}, `operator_count` int).
+  2. `tests/e2e/specs/sse-heartbeat.spec.js` ouvre `/api/v1/events.php` (auth opérateur via fixture), attend ≥12 secondes, capture au moins 1 event nommé `meeting.heartbeat` et valide la conformité du payload reçu.
+  3. Les deux tests sont reproductibles (≥3 runs verts consécutifs sans flake) et peuvent être lancés isolément (`phpunit tests/Unit/Sse/HeartbeatPayloadTest.php` et `npx playwright test sse-heartbeat`).
+  4. HEARTBEAT-V25-03 et HEARTBEAT-V25-04 sont marqués done dans le tableau de tech debt v2.5.
+
+**Plans:** 2 plans
+- [ ] 01-01-PLAN.md — Extract HeartbeatPayloadBuilder + PHPUnit shape test (TEST-V26-01)
+- [ ] 01-02-PLAN.md — Playwright spec verifying meeting.heartbeat delivery on /api/v1/events.php (TEST-V26-02)
+
+### Phase 2: Codes erreur ciblés + idempotency empty-state
+
+**Goal**: Le code générique `business_error` restant (3 sites identifiés Phase 4 v2.3 follow-up 04.6-FOLLOWUP-2) est remplacé par des codes spécifiques observables ; les empty-states soumis à rafale d'events SSE sont rendus idempotents (follow-up 04.6-FOLLOWUP-3) ; le dashboard `/admin/error-stats` refléchit les nouveaux codes.
+
+**Depends on**: Nothing (independent)
+**Requirements**: ERR-V26-01, ERR-V26-02, ERR-V26-03
+**Success Criteria** (what must be TRUE):
+  1. Les 3 sites `business_error` génériques résiduels sont migrés vers des codes spécifiques (par ex. `meeting_not_found`, `vote_already_cast`, `quorum_not_reached`) avec entrées correspondantes ajoutées à `app/Services/ErrorDictionary.php` (en français, avec next-step actionnable conforme à la convention v2.3 ERR-02).
+  2. Un test ciblé (PHPUnit ou spec Playwright dédiée) émet 2 requêtes back-to-back sur la même ressource vide et vérifie : même code de retour, même payload, aucun état corrompu (compteur d'audit incrémenté ≤1 fois, pas de double-event SSE).
+  3. Le dashboard `/admin/error-stats` (recâblé v2.5 sur `error_events`) affiche les 3 nouveaux codes après 1 cycle de capture en environnement dev/demo — vérifié par smoke test (curl ou spec).
+  4. Aucune régression sur les codes existants ; `business_error` n'apparaît plus comme code émis par les 3 call-sites migrés (audit grep livré).
+
+**Plans:** TBD
+
+### Phase 3: Tokens cleanup 7.2-7.4 (<30 tokens 1-site)
+
+**Goal**: Exécuter les Phases 7.2, 7.3, 7.4 du plan de remediation établi dans `.planning/v2.5-TOKENS-AUDIT.md` (suite de la Phase 7.1 alpha unification déjà shippée). Cible : passer **sous 30 tokens 1-site** dans `design-system.css` (état actuel ~43 → 22 keep + 21 consolidate à liquider).
+
+**Depends on**: Nothing (independent)
+**Requirements**: TOKENS-V26-01, TOKENS-V26-02, TOKENS-V26-03, TOKENS-V26-04
+**Success Criteria** (what must be TRUE):
+  1. **Phase 7.2 (width)** : tokens `--border-width-thin/normal/thick` consolidés sur 1 site visible (souvent `1px`/`2px`/`3px` doublonnés) ; doublons retirés de `design-system.css`. Aucune régression visuelle sur les bordures inspectées (5 pages échantillon).
+  2. **Phase 7.3 (soft/none)** : variants soft/none éliminés (par ex. `--shadow-soft`, `--shadow-none` ne coexistent plus avec `--shadow-0`) ; emphasis flatten appliqué (1 niveau d'emphase au lieu de 2-3). Audit grep livré.
+  3. **Phase 7.4 (ring)** : `--ring-*` réduit à 1-2 tokens canoniques (par ex. `--ring-default` + éventuellement `--ring-strong` pour focus accentué). Tous les call-sites migrés ; tokens retirés ne sont plus référencés (`grep` retourne 0 hit).
+  4. Audit final post-7.4 livré dans `.planning/v2.6-TOKENS-AUDIT-FINAL.md` : décompte tokens 1-site **<30**, classification keep/consolidate/done à jour, ratio tokens ≥95 % maintenu sur borders/shadows.
+  5. Aucune régression CSS visible : 5 pages échantillon (login, dashboard, operator, audit, settings) inspectées avant/après — pixel diff <2 % ou justifié.
+
+**Plans:** TBD
+**UI hint**: yes
+
+### Phase 4: Test infra + GSD ergo
+
+**Goal**: Toolchain sans friction pour les tests E2E et GSD review. `seed-meeting` helper active enfin les tests `@integration` skippés depuis Phase 1 v2.4. Playwright dual-install résolu et documenté. Pattern Explore anti-faux-positifs documenté. `gsd-code-reviewer` accepte budget timeout + scope splits.
+
+**Depends on**: Nothing (independent)
+**Requirements**: INFRA-V26-01, INFRA-V26-02, INFRA-V26-03, INFRA-V26-04, INFRA-V26-05
+**Success Criteria** (what must be TRUE):
+  1. `tests/e2e/helpers/seed-meeting.js` fournit la fixture nécessaire pour activer le test F-4 `@integration` Phase 1 v2.4 actuellement skippé ; le test passe en CI dev (≥3 runs verts).
+  2. Playwright dual-install résolu : soit un seul `npm install` à la racine résout tout, soit le double install (`tests/e2e/`) est documenté avec rationale claire dans `tests/e2e/README.md` (pourquoi cette double install est nécessaire et comment l'éviter de poser problème).
+  3. `tests/e2e/README.md` documente : install + browsers (chromium/firefox/webkit), gestion auth-setup rate-limit, procédure pour écrire un nouveau spec, debug local. Walkthrough fresh-clone réussi en ≤30 min.
+  4. Pattern Explore scan anti-BEM-substring documenté dans `.planning/intel/EXPLORE-PATTERNS.md` (ou équivalent) avec ≥3 anti-patterns concrets + 1 exemple correct (cf. Phase 3 v2.3 Schoger S-8).
+  5. `gsd-code-reviewer` agent accepte budget timeout configurable (`--timeout-min=N`, défaut 60) et scope splits (`--files=js`, `--files=php`, `--files=tests`). Vérifié sur 1 review v2.6 réelle (≥30 fichiers sans timeout).
+
+**Plans:** TBD
+
+### Phase 5: Print/PDF polish
+
+**Goal**: La génération PDF (dompdf) atteint la qualité éditoriale exigée pour PVs longs : header répété sur chaque page, encodage UTF-8 correct (em-dash sans `?`), pagination robuste sur PVs ≥10 pages.
+
+**Depends on**: Nothing (independent)
+**Requirements**: PDF-V26-01, PDF-V26-02, PDF-V26-03
+**Success Criteria** (what must be TRUE):
+  1. Sur un PV ≥10 pages (fixture de test), le header `[Titre séance] — JJ/MM/YYYY` apparaît **sur chaque page** (vérifié visuellement + smoke test parsant le PDF généré pour la présence du titre N fois).
+  2. Em-dash UTF-8 (`—`) et caractères français accentués (é, à, ç, ô, etc.) rendus correctement dans le PDF — pas de `?` ni de mojibake. Test smoke automatisé sur fixture PV contenant un panel d'accents et symboles français.
+  3. Footer `Page X sur Y` correct sur toutes les pages d'un PV ≥10 pages ; pas de coupure de contenu en bas de page (`page-break-inside: avoid` respecté sur les blocs résolution/hash, déjà installé v2.4 TECH-V24-01 — vérifié non-régressé).
+  4. Aucune régression sur la génération PDF des cas courts (≤3 pages) déjà validée en v2.4.
+
+**Plans:** TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -388,6 +469,11 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 2. Error Observability | v2.4 | 0/0 | ○ Planning | - |
 | 3. Test Infrastructure | v2.4 | 0/0 | ○ Planning | - |
 | 4. Print + Tech Debt residuel | v2.4 | 0/0 | ○ Planning | - |
+| 1. Tests heartbeat | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
+| 2. Codes erreur ciblés | v2.6 | 0/1 | ○ Planning | - |
+| 3. Tokens cleanup 7.2-7.4 | v2.6 | 0/1 | ○ Planning | - |
+| 4. Test infra + GSD ergo | v2.6 | 0/1 | ○ Planning | - |
+| 5. Print/PDF polish | v2.6 | 0/1 | ○ Planning | - |
 
 ---
 
