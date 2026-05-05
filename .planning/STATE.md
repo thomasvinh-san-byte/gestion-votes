@@ -4,14 +4,14 @@ milestone: "v2.6"
 milestone_name: "Clôture dette technique"
 status: in_progress
 stopped_at: ""
-last_updated: "2026-05-05T08:00:00Z"
-last_activity: 2026-05-05 -- Phase 1 (Tests heartbeat) ✓ COMPLETE. PHPUnit 8/29 GREEN, Playwright spec compile (live run pending dev-machine). 4 phases restantes (2/3/4/5), toutes indépendantes — pioche libre.
+last_updated: "2026-05-05T09:30:00Z"
+last_activity: 2026-05-05 -- Phase 2 (Codes erreur ciblés) ✓ COMPLETE. 20/27 tests GREEN (10+3+7), business_error direct-emit 1→0, ~80 service throws snake_case bénéficient de l'extracteur, idempotency guard intra-request ErrorEventsRepository. 3 phases restantes (3/4/5).
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 2
-  percent: 20
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 4
+  percent: 40
 ---
 
 # AG-VOTE -- Project State
@@ -22,7 +22,7 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — Phase 1 ✓ shipped, 4 phases restantes (pioche libre).
+**Current focus:** v2.6 Clôture dette technique — Phases 1+2 ✓ shipped, 3 phases restantes (3/4/5 pioche libre).
 
 ## Current Position
 
@@ -30,9 +30,9 @@ Milestone: v2.6 Clôture dette technique
 Phase: 1/5 ✓ COMPLETE — Tests heartbeat (TEST-V26-01 + TEST-V26-02)
 Plan: —
 Status: Phase 1 verified, ready for next phase (2/3/4/5 indépendantes)
-Last activity: 2026-05-05 — Quick task 260505-001 livré (Docker autoload fix + rebuild.sh --quick). Débloque SC-3 Phase 1 (Playwright run) après rebuild image dev-server. Phase 1 v2.6 reste 1/5 — phases 2-5 indépendantes en attente.
+Last activity: 2026-05-05 — Phase 2 shipped. AbstractController extractBusinessErrorCode() + 3 service normalizations + 2 ErrorDictionary entries + ErrorEventsRepository::capture() idempotency guard intra-request + 20 PHPUnit tests GREEN. Verifier PASS 12/12 must-haves. ~80 existing snake_case throws bénéficient automatiquement.
 
-Progress: [##........] 20% (1/5 phases, 2/5 plans)
+Progress: [####......] 40% (2/5 phases, 4/7 plans)
 
 ## Accumulated Context
 

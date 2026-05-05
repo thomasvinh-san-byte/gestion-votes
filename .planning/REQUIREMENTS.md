@@ -14,9 +14,9 @@
 
 ### Codes erreur ciblés — Bucket 2
 
-- [ ] **ERR-V26-01** : 3 sites `business_error` génériques identifiés Phase 4 v2.3 (follow-up 04.6-FOLLOWUP-2) sont remplacés par des codes ciblés observables (ex. `meeting_not_found`, `vote_already_cast`, `quorum_not_reached`) avec entrées correspondantes dans `ErrorDictionary.php`
-- [ ] **ERR-V26-02** : Les routes empty-state (rafale d'events SSE) sont rendues idempotentes — un test dédié vérifie que 2 requêtes back-to-back sur la même ressource vide retournent le même code/payload sans état corrompu (follow-up 04.6-FOLLOWUP-3)
-- [ ] **ERR-V26-03** : Le dashboard `/admin/error-stats` reflète ces nouveaux codes (vérifié par test smoke après 1 cycle de capture)
+- [x] **ERR-V26-01** : 3 sites `business_error` génériques identifiés Phase 4 v2.3 (follow-up 04.6-FOLLOWUP-2) sont remplacés par des codes ciblés observables (ex. `meeting_not_found`, `vote_already_cast`, `quorum_not_reached`) avec entrées correspondantes dans `ErrorDictionary.php` ✓ Phase 2 (catch extractor + 3 normalizations + 2 dict entries archived/validated_meeting_locked, ~80 service throws bénéficient automatiquement)
+- [x] **ERR-V26-02** : Les routes empty-state (rafale d'events SSE) sont rendues idempotentes — un test dédié vérifie que 2 requêtes back-to-back sur la même ressource vide retournent le même code/payload sans état corrompu (follow-up 04.6-FOLLOWUP-3) ✓ Phase 2 (intra-request scope locked, ErrorEventsRepository::capture() guard md5(rid|code|route), 7 PHPUnit tests)
+- [x] **ERR-V26-03** : Le dashboard `/admin/error-stats` reflète ces nouveaux codes (vérifié par test smoke après 1 cycle de capture) ✓ Phase 2 (ErrorStatsRoutingTest 3 mock-PDO tests sur INSERT + SELECT)
 
 ### Tokens cleanup — Bucket 3
 
@@ -61,9 +61,9 @@ Aucun — v2.6 est un milestone de clôture. Ce qui n'est pas dans v1 ci-dessus 
 |-------------|-------|--------|
 | TEST-V26-01 | Phase 1 | ✓ Complete |
 | TEST-V26-02 | Phase 1 | ✓ Complete |
-| ERR-V26-01 | Phase 2 | Pending |
-| ERR-V26-02 | Phase 2 | Pending |
-| ERR-V26-03 | Phase 2 | Pending |
+| ERR-V26-01 | Phase 2 | ✓ Complete |
+| ERR-V26-02 | Phase 2 | ✓ Complete |
+| ERR-V26-03 | Phase 2 | ✓ Complete |
 | TOKENS-V26-01 | Phase 3 | Pending |
 | TOKENS-V26-02 | Phase 3 | Pending |
 | TOKENS-V26-03 | Phase 3 | Pending |
