@@ -10,7 +10,7 @@
 ### Tests (Heartbeat) — Bucket 1
 
 - [x] **TEST-V26-01** : Le test PHPUnit `tests/Unit/Sse/HeartbeatPayloadTest.php` valide la forme du payload `meeting.heartbeat` (champs `meeting_id`, `server_time`, `status`, `quorum`, `operator_count` présents et typés correctement) — lève HEARTBEAT-V25-03 ✓ Phase 1 (8 tests / 29 assertions)
-- [x] **TEST-V26-02** : Le test Playwright `tests/e2e/specs/sse-heartbeat.spec.js` ouvre le stream `/api/v1/events.php`, attend ≥12 s, vérifie au moins 1 event `meeting.heartbeat` reçu avec payload conforme — lève HEARTBEAT-V25-04 ✓ Phase 1 (spec compile, full run pending live stack dev-machine)
+- [x] **TEST-V26-02** : Le test Playwright `tests/e2e/specs/sse-heartbeat.spec.js` ouvre le stream `/api/v1/events.php`, attend ≥12 s, vérifie au moins 1 event `meeting.heartbeat` reçu avec payload conforme — lève HEARTBEAT-V25-04 ✓ Phase 1 (spec compile + runtime gate dev-machine PASS 1/3 runs 16.8s)
 
 ### Codes erreur ciblés — Bucket 2
 
@@ -27,7 +27,7 @@
 
 ### Test infra + GSD ergo — Bucket 4
 
-- [x] **INFRA-V26-01** : `tests/e2e/helpers/seed-meeting.js` permet d'activer les tests `@integration` ✓ Phase 4 (audit static PASS — helper + spec + route TestSeedController présents et corrects ; gate runtime 3 runs verts déférée dev-machine)
+- [ ] **INFRA-V26-01** : `tests/e2e/helpers/seed-meeting.js` permet d'activer les tests `@integration` ⚠ Phase 4 (audit static PASS — helper + spec + route TestSeedController présents ; runtime gate dev-machine **FAIL 3/3** : endpoint `/api/v1/test/seed-meeting` retourne HTTP 500 — investigation en cours)
 - [x] **INFRA-V26-02** : Playwright dual-install résolu (`bin/check-deps.sh` guard + `tests/e2e/` SOT pour `@playwright/test`) ✓ Phase 4 (audit confirme état attendu présent depuis v2.4 P3)
 - [x] **INFRA-V26-03** : README `tests/e2e/README.md` documente Playwright deps + browsers + auth-setup rate-limit + procédure write spec ✓ Phase 4 (5 sections requises présentes, walkthrough scaffold prêt à compléter dev-machine)
 - [x] **INFRA-V26-04** : Doc pattern Explore scan déplacé à `.planning/intel/EXPLORE-PATTERNS.md` (canonical) avec stub redirect à l'ancien path + refs actives mises à jour (e2e README + agent doc) ✓ Phase 4
@@ -68,7 +68,7 @@ Aucun — v2.6 est un milestone de clôture. Ce qui n'est pas dans v1 ci-dessus 
 | TOKENS-V26-02 | Phase 3 | ✓ Complete |
 | TOKENS-V26-03 | Phase 3 | ✓ Complete |
 | TOKENS-V26-04 | Phase 3 | ✓ Complete (31 vs cible <30, +1 documenté drift v2.5→v2.6 hors-scope) |
-| INFRA-V26-01 | Phase 4 | ✓ Complete (runtime gate dev-machine) |
+| INFRA-V26-01 | Phase 4 | ⚠ Runtime FAIL — endpoint /test/seed-meeting 500 (investigation) |
 | INFRA-V26-02 | Phase 4 | ✓ Complete |
 | INFRA-V26-03 | Phase 4 | ✓ Complete (walkthrough scaffold dev-machine) |
 | INFRA-V26-04 | Phase 4 | ✓ Complete |

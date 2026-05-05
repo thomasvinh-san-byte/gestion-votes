@@ -11,7 +11,7 @@
  *   test.beforeAll(async ({ request }) => {
  *     meetingId = await seedMeeting(request, {
  *       tenantId: 'aaaaaaaa-1111-2222-3333-444444444444',
- *       status: 'running',
+ *       status: 'live', // PG enum meeting_status — see schema-master.sql
  *       motionsCount: 3,
  *     });
  *   });
@@ -73,7 +73,10 @@ const DEFAULT_TENANT_ID = 'aaaaaaaa-1111-2222-3333-444444444444';
  * @returns {Promise<{ id: string }>}
  */
 async function seedRunningMeeting(request, { tenantId = DEFAULT_TENANT_ID, motionsCount = 3 } = {}) {
-  const id = await seedMeeting(request, { tenantId, status: 'running', motionsCount });
+  // PG enum meeting_status values: draft, scheduled, frozen, live, paused,
+  // closed, validated, archived. The semantic "running" state in service code
+  // (e.g. AttendancesService, MeetingTransitionService) maps to enum 'live'.
+  const id = await seedMeeting(request, { tenantId, status: 'live', motionsCount });
   return { id };
 }
 
