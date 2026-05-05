@@ -438,5 +438,5 @@ L'agent **doit splitter** en 2 ou 3 chunks séquentiels :
 
 ## Liens
 
-- [`.planning/codebase/EXPLORE-PATTERNS.md`](../../.planning/codebase/EXPLORE-PATTERNS.md) — patterns de scan codebase (anti-BEM-substring) utilisés en complément de la review
+- [`.planning/intel/EXPLORE-PATTERNS.md`](../../.planning/intel/EXPLORE-PATTERNS.md) — patterns de scan codebase (anti-BEM-substring) utilisés en complément de la review
 - [`tests/e2e/README.md`](../../tests/e2e/README.md) — README e2e qui référence cet agent
