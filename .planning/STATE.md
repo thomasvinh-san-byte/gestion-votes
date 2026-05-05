@@ -4,8 +4,8 @@ milestone: "v2.6"
 milestone_name: "Clôture dette technique"
 status: planning
 stopped_at: ""
-last_updated: "2026-05-05T05:48:00Z"
-last_activity: 2026-05-05 -- Milestone v2.6 bootstrapped. 5 buckets confirmed (tests heartbeat, codes erreur ciblés, TOKENS 7.2-7.4, test infra+GSD ergo, Print/PDF). Ambition clôture stricte ~1 sem. Defining requirements next.
+last_updated: "2026-05-05T07:30:00Z"
+last_activity: 2026-05-05 -- Roadmap v2.6 créé. 5 phases indépendantes et parallélisables, 17 reqs mappées 100%, 5 plans estimés (1/phase). Prochaine étape : /gsd:plan-phase N (N ∈ 1..5, ordre arbitraire).
 progress:
   total_phases: 5
   completed_phases: 0
@@ -22,22 +22,22 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — defining requirements.
+**Current focus:** v2.6 Clôture dette technique — roadmap défini, prêt à planifier les phases.
 
 ## Current Position
 
 Milestone: v2.6 Clôture dette technique
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap defined, awaiting first /gsd:plan-phase)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 — Milestone v2.6 started. 5 buckets : tests heartbeat, codes erreur ciblés, TOKENS 7.2-7.4, test infra+GSD ergo, Print/PDF.
+Status: Roadmap ready
+Last activity: 2026-05-05 — Roadmap v2.6 créé. 5 phases indépendantes : (1) Tests heartbeat, (2) Codes erreur ciblés, (3) Tokens cleanup 7.2-7.4, (4) Test infra + GSD ergo, (5) Print/PDF polish. Toutes parallélisables — l'ordre 1→5 est arbitraire.
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting v2.2:
+Recent decisions affecting v2.2 / v2.6 :
 
 - [v2.2 strategy] Pyramide stricte : tokens → components → personas → layout. Une PR par étage, pas de stack.
 - [v2.2 brand] Bleu République `oklch(0.45 0.180 265)` (#2c468f) — plus profond que l'ancien (0.480) et harmonisé avec le DSFR sans le copier.
@@ -49,15 +49,17 @@ Recent decisions affecting v2.2:
 - [v2.2 emails] Hex en dur conservé (compat clients email), source de vérité = DESIGN.md table de mapping.
 - [v2.2 dark detection] `prefers-color-scheme` natif via `:where()` pour spécificité 0 ; toggle JS utilisateur reste prioritaire.
 - [v2.2 lexique] Convention "membre/participant/votant" + "confirmer/valider/verrouiller-archiver" appliquée Phase 4 (avec layout).
+- [v2.6 ordre phases] 5 phases indépendantes et parallélisables — la numérotation 1→5 reflète les buckets de REQUIREMENTS.md, pas une séquence d'exécution obligatoire. L'exécuteur peut piocher dans n'importe quel ordre selon disponibilité ou opportunisme.
+- [v2.6 strict closure] Pas d'ajout opportuniste : toute découverte en cours de route ouvre une seed/todo, pas un ajout milestone. Cible : zéro carry-forward.
 
 ### Pending Todos
 
-- Planifier v2.3 Phase 1 (Cockpit Opérateur live) via /gsd:plan-phase 1 — sur base requirements amendée (COCKPIT-01..07)
-- Décider si la branche d'exécution sera `feat/v2.3-cockpit-operateur` (recommandé : 1 PR par phase) ou continuer sur `claude/gsd-ux-review-YG5K0`
+- Lancer la première phase v2.6 via `/gsd:plan-phase N` (N ∈ {1..5}, ordre arbitraire — toutes phases indépendantes).
+- Optionnel : créer une branche `feat/v2.6-cloture-dette` depuis main avant de planifier (recommandation : 1 PR par phase, ou 1 PR global vu la taille modeste de chaque phase).
 
 ### Blockers/Concerns
 
-None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
+None — main à jour post-v2.5 (commits ade443f / eeb9aa4 / d7bf36e shippés directement). v2.6 prêt à planifier.
 
 ### Quick Tasks Completed
 
@@ -67,8 +69,13 @@ None — main à jour, branche en avance d'1 commit (UX review). Rien à rebase.
 
 ## Session Continuity
 
-Last session: 2026-04-29
-Stopped at: v2.2 entièrement mergée dans main (PR #256 = edd7079). v2.3 bootstrap + UX review (Zhuo/Norman) appliquée — REQUIREMENTS étendu de 22 à 29, ROADMAP enrichi, screenshot panel gate ajouté.
+Last session: 2026-05-05
+Stopped at: Roadmap v2.6 défini (5 phases, 17 reqs, 100% coverage). Phases indépendantes — toutes parallélisables. Prêt pour /gsd:plan-phase.
 Resume file: None
 
-**Next action:** `/gsd:plan-phase 1` pour Cockpit Opérateur live (COCKPIT-01..07). Recommandation : créer `feat/v2.3-cockpit-operateur` depuis main avant de planifier — la branche `claude/gsd-ux-review-YG5K0` reste réservée à la revue (1 commit, prête à merger ou cherry-pick).
+**Next action:** `/gsd:plan-phase N` (N ∈ {1..5}) pour démarrer la première phase v2.6. Phases disponibles (ordre libre) :
+- 1. Tests heartbeat (PHPUnit + Playwright) — TEST-V26-01/02
+- 2. Codes erreur ciblés + idempotency empty-state — ERR-V26-01/02/03
+- 3. Tokens cleanup 7.2-7.4 (<30 tokens 1-site) — TOKENS-V26-01/02/03/04
+- 4. Test infra + GSD ergo — INFRA-V26-01..05
+- 5. Print/PDF polish — PDF-V26-01/02/03
