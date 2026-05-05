@@ -20,6 +20,16 @@ LABEL org.opencontainers.image.title="AG-VOTE" \
       org.opencontainers.image.source="https://github.com/thomasvinh-san-byte/gestion-votes" \
       org.opencontainers.image.licenses="MIT"
 
+# Sync installed packages with the Alpine v3.21 repo BEFORE adding any -dev
+# packages. The upstream PHP image is rebuilt periodically but the Alpine repo
+# can advance core libs (e.g. musl) in between. When that happens, a later
+# `apk add --virtual *-dev` fails: *-dev packages pin to the current repo's
+# musl-dev version, which conflicts with the older musl baked into the base
+# image (observed Alpine bug : `musl-1.2.5-r9 breaks: musl-dev-1.2.5-r11`).
+# Pre-upgrading aligns every installed package in one shot — pas une rustine,
+# c'est la pratique idiomatique Alpine pour neutraliser ce drift.
+RUN apk upgrade --no-cache
+
 # Runtime libs (permanent — explicitly installed so apk del won't touch them)
 RUN apk add --no-cache \
     nginx supervisor curl postgresql-client libpq \
