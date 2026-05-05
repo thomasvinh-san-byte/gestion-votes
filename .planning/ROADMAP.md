@@ -561,10 +561,10 @@ See `.planning/milestones/v2.6-ROADMAP.md` for full details.
 | 3. Tokens cleanup 7.2-7.4 | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
 | 4. Test infra + GSD ergo | v2.6 | 3/3 | ✓ Shipped | 2026-05-05 |
 | 5. Print/PDF polish | v2.6 | 1/1 | ✓ Shipped | 2026-05-05 |
-| 1. Cohérence visuelle & migration design | v2.7 | 0/3 | ○ Planning | - |
-| 2. Loading states systematiques | v2.7 | 0/1 | ○ Planning | - |
-| 3. 404 race graceful UX | v2.7 | 0/1 | ○ Planning | - |
-| 4. Query N+1 + HTTP cache | v2.7 | 0/2 | ○ Planning | - |
+| 1. Cohérence visuelle & migration design | v2.7 | 3/3 | ✓ Shipped | 2026-05-05 |
+| 2. Loading states systematiques | v2.7 | 1/1 | ✓ Shipped | 2026-05-05 |
+| 3. 404 race graceful UX | v2.7 | 1/1 | ✓ Shipped | 2026-05-05 |
+| 4. Query N+1 + HTTP cache | v2.7 | 2/2 | ✓ Shipped | 2026-05-05 |
 
 ---
 
