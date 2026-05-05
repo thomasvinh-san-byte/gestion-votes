@@ -364,26 +364,21 @@ table {
   --border-emphasis-dashed:  2px dashed var(--color-border);
   --border-emphasis-success: 2px solid var(--color-success);
   --border-emphasis-danger:  2px solid var(--color-danger);
-  --border-emphasis-primary: 2px solid var(--color-primary);
 
   /* Border shorthand tokens — residual 1-site captures (v2.4 P4 / TECH-V24-02 follow-up 04.3) */
   /* D-08 amendment: aggressive 1-site tokens accepted to push ratio >=95% strict.
      All values are verbatim captures of pre-existing hardcoded sites — zero new literal values. */
-  --border-thin-1-5:                1.5px solid var(--color-border);                       /* width 1.5px (login, postsession) */
-  --border-thick-3:                 3px solid var(--color-border);                         /* width 3px (analytics, vote) */
+  --border-thick:                   3px solid var(--color-border);                         /* width 3px (analytics, vote) */
   --border-glass-thin:              1px solid oklch(1 0 0 / 0.18);                         /* glassmorphism login splash */
   --border-glass-thick:             2px solid oklch(1 0 0 / 0.30);                         /* glassmorphism login spinner */
   --border-halo-surface:            2px solid var(--color-surface);                        /* surface halo decoration (audit timeline) */
   --border-alpha:                   1px solid var(--color-border-alpha);                   /* alpha-tinted border (pages dashboard cards) */
   --border-warning-alpha-25:        1px solid var(--color-warning-border-25);              /* alpha-25 warning border */
-  --border-emphasis-warning:        2px solid var(--color-warning);                        /* 2px warning (live panel) */
-  --border-emphasis-danger-dashed:  2px dashed var(--color-danger);                        /* 2px dashed danger (validate zone) */
 
   /* Color-mix inline borders (alpha-tinted variants for chips/zones) */
   --border-danger-alpha-25:   1px solid color-mix(in oklch, var(--color-danger) 25%, transparent);    /* login form errors */
   --border-success-alpha-25:  1px solid color-mix(in oklch, var(--color-success) 25%, transparent);   /* login form success + members card (TOKENS-V25-01: alpha-20 unified to alpha-25) */
   --border-primary-alpha-25:  1px solid color-mix(in oklch, var(--color-primary) 25%, transparent);   /* members card + login info panel (TOKENS-V25-01: alpha-22 unified to alpha-25) */
-  --border-emphasis-text-inverse-alpha-30: 2px solid color-mix(in oklch, var(--color-text-inverse) 30%, transparent); /* vote dark mode */
 
   /* Transparent spacer (preserves layout width without visible border) */
   --border-transparent: 1px solid transparent;                                              /* spacer (pages, members) */
@@ -538,15 +533,11 @@ table {
   /* Reset */
   --shadow-none: none;                                                                /* explicit reset (analytics, members, report print) */
 
-  /* Single-site rings */
-  --shadow-ring-1px-primary:        0 0 0 1px var(--color-primary);                   /* wizard template card hover */
+  /* Canonical sem rings (2px width, semantic color) */
   --shadow-ring-2px-surface:        0 0 0 2px var(--color-surface);                   /* audit severity dot */
-  --shadow-ring-2px-border:         0 0 0 2px var(--color-border);                    /* audit timeline dot */
+  --shadow-ring-2px-border:         0 0 0 2px var(--color-border);                    /* audit timeline dot, wizard hover */
   --shadow-ring-2px-danger:         0 0 0 2px var(--color-danger);                    /* audit timeline high severity */
   --shadow-ring-2px-success:        0 0 0 2px var(--color-success);                   /* member active avatar */
-  --shadow-ring-3px-primary-strong: 0 0 0 3px var(--color-primary);                   /* vote selected button (used with !important) */
-  --shadow-ring-inset-2px-primary:  inset 0 0 0 2px var(--color-primary);             /* calendar today */
-  --shadow-ring-inset-1px-danger:   inset 0 0 0 1px var(--color-danger);              /* health bar quorum missed */
 
   /* Focus offset shadow (multi-layer using --ring-* vars) */
   --shadow-focus-offset:            0 0 0 var(--ring-offset) var(--color-surface),
