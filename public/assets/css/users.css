@@ -174,7 +174,7 @@
 .filter-tab {
   display: inline-flex;
   align-items: center;
-  padding: 0.3rem 0.75rem;
+  padding: 0.3rem var(--space-3);
   border: var(--border-default);
   border-radius: var(--radius-full);
   background: var(--color-surface);
@@ -221,7 +221,7 @@
   grid-template-columns: 44px 1fr 110px 80px 110px 110px;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 1.25rem;
+  padding: var(--space-2) var(--space-5);
   border-bottom: var(--border-default);
   background: var(--color-bg-subtle, var(--color-surface-alt));
   font-size: 0.72rem;
@@ -242,7 +242,7 @@
   grid-template-columns: 44px 1fr 110px 80px 110px 110px;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 1.25rem;
+  padding: var(--space-2-5) var(--space-5);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
   transition: background var(--duration-fast);
@@ -426,7 +426,7 @@
 .skeleton-row {
   display: flex;
   gap: 1rem;
-  padding: 0.75rem 1.25rem;
+  padding: var(--space-3) var(--space-5);
   border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
 }
 
@@ -563,7 +563,7 @@
   }
 
   .user-row {
-    padding: 0.5rem 0.875rem;
+    padding: var(--space-2) var(--space-4);
   }
 }
 

@@ -48,11 +48,11 @@
 
 /* Noscript fallback warning */
 .noscript-warning {
-  padding: 2rem;
+  padding: var(--space-8);
   text-align: center;
   background: var(--color-warning-subtle);
   border: var(--border-warning);
-  margin: 1rem;
+  margin: var(--space-4);
   border-radius: var(--radius-md);
 }
 
@@ -70,7 +70,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: 14px; /* wireframe v3.19.2 density — single canonical definition */
+  margin-bottom: var(--space-4); /* wireframe v3.19.2 density — single canonical definition */
 }
 
 /* page-title & page-sub are now in design-system.css (wireframe shell) */
@@ -362,7 +362,7 @@
 /* ─── Role Badges (system + meeting roles) ─── */
 .role-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
@@ -381,7 +381,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 6px;
+  padding: 1px var(--space-1-5);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   background: var(--color-bg-subtle);
@@ -411,7 +411,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2, 0.5rem);
-  padding: var(--space-3, 0.75rem) 0;
+  padding: var(--space-3, var(--space-3)) 0;
 }
 
 /* Skeleton width modifiers (replace inline style="width:N%") */
@@ -438,7 +438,7 @@
   color: var(--color-text-secondary);
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  margin-bottom: -var(--space-0-5);
   background: none;
   border-top: none;
   border-left: none;
@@ -510,7 +510,7 @@
 
 .inline-form .form-label {
   font-size: var(--text-xs);
-  margin-bottom: 2px;
+  margin-bottom: var(--space-0-5);
 }
 
 .inline-form .form-input {
@@ -527,7 +527,7 @@
 
 .perm-matrix th,
 .perm-matrix td {
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   border: var(--border-subtle);
   text-align: center;
 }
@@ -576,7 +576,7 @@
 
 .state-node-sm {
   font-size: var(--text-xs);
-  padding: 2px 8px;
+  padding: var(--space-0-5) var(--space-2);
 }
 
 .state-arrow {
@@ -767,8 +767,8 @@
 
 /* ── Onboarding tip list ── */
 .onboarding-tips {
-  margin: 0.5rem 0 0;
-  padding-left: 1.25rem;
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   line-height: 1.6;
@@ -777,8 +777,8 @@
 /* ── Sidebar brand ── */
 .nav-brand {
   height: 48px;
-  padding: 0 8px 0 14px;
-  margin-bottom: 4px;
+  padding: 0 var(--space-2) 0 var(--space-4);
+  margin-bottom: var(--space-1);
 }
 .nav-brand .logo-mark {
   width: 22px;

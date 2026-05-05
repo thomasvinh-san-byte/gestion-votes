@@ -12,7 +12,7 @@
 
 .app-main.members-main {
   padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 22px);
+  padding-left: calc(var(--sidebar-rail) + var(--space-5));
 }
 
 @media (max-width: 768px) {
@@ -245,7 +245,7 @@
   color: var(--color-text-muted);
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  margin-bottom: -var(--space-0-5);
   transition: color var(--duration-fast), border-color var(--duration-fast);
   display: flex;
   align-items: center;
@@ -403,7 +403,7 @@
 }
 
 .search-input-field {
-  padding-left: calc(var(--space-3) + 16px + var(--space-2));
+  padding-left: calc(var(--space-3) + var(--space-4) + var(--space-2));
 }
 
 /* Filter chips */
@@ -531,7 +531,7 @@
 
 .member-card.is-active {
   border-left: 3px solid var(--color-success);
-  padding-left: calc(var(--space-5) - 3px);
+  padding-left: calc(var(--space-5) - var(--space-1));
 }
 
 .member-card.is-inactive { opacity: 0.5; }
@@ -753,7 +753,7 @@
 input[type="color"] {
   width: 36px;
   height: 36px;
-  padding: 2px;
+  padding: var(--space-0-5);
   border: var(--border-default);
   border-radius: var(--radius-sm);
   cursor: pointer;

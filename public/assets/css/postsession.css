@@ -54,7 +54,7 @@
 
 .ps-seg {
   flex: 1;
-  padding: 10px 16px;
+  padding: var(--space-2-5) var(--space-4);
   border-radius: var(--radius-full);
   border: var(--border-default);
   background: var(--color-surface);
@@ -560,7 +560,7 @@
   .ps-seg {
     flex: 1 1 calc(50% - 2px);
     font-size: 13px;
-    padding: 10px 8px;
+    padding: var(--space-2-5) var(--space-2);
   }
 
   .ps-exports-layout {

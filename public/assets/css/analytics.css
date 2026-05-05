@@ -57,7 +57,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 /* Analytics page main content no padding */
 .app-main.analytics-main {
   padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 22px);
+  padding-left: calc(var(--sidebar-rail) + var(--space-5));
 }
 
 /* =============================================================================
@@ -68,13 +68,13 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .period-selector {
   display: flex;
   gap: 0.25rem;
-  padding: 0.25rem;
+  padding: var(--space-1);
   background: var(--color-bg-subtle);
   border-radius: 6px;
 }
 
 .period-btn {
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   border: none;
   background: transparent;
   border-radius: 4px;
@@ -116,12 +116,12 @@ body:has(.analytics-main) .page-header .page-header-actions {
   display: flex;
   gap: var(--space-1);
   background: var(--color-bg-subtle);
-  padding: 3px;
+  padding: var(--space-1);
   border-radius: var(--radius-full);
 }
 
 .analytics-period-pill {
-  padding: 8px 16px;
+  padding: var(--space-2) var(--space-4);
   border: none;
   background: transparent;
   border-radius: var(--radius-full);
@@ -235,7 +235,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .chart-card-subtitle {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
-  margin: 2px 0 0;
+  margin: var(--space-0-5) 0 0;
   font-weight: 400;
 }
 
@@ -261,7 +261,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   }
 
   .analytics-period-pill {
-    padding: 5px 10px;
+    padding: var(--space-1) var(--space-2-5);
     font-size: 0.8rem;
   }
 }
@@ -307,7 +307,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .overview-card-value {
@@ -332,7 +332,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .overview-card-sub {
   font-size: 0.8rem;
   color: var(--color-text-muted);
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 .overview-card-trend {
@@ -342,7 +342,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-text-muted);
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
 }
 
 .overview-card-trend.up {
@@ -362,8 +362,8 @@ body:has(.analytics-main) .page-header .page-header-actions {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
   background: var(--color-surface);
   border: var(--border-default);
   border-radius: 8px;
@@ -459,7 +459,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   left: 50%;
   width: 28px;
   height: 28px;
-  margin: -14px 0 0 -14px;
+  margin: -var(--space-4) 0 0 -var(--space-4);
   border: var(--border-thick);
   border-top-color: var(--color-primary);
   border-radius: 50%;
@@ -501,7 +501,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 
 .data-table th,
 .data-table td {
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   text-align: left;
   border-bottom: var(--border-default);
 }
@@ -553,12 +553,12 @@ body:has(.analytics-main) .page-header .page-header-actions {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: var(--space-12);
   color: var(--color-text-muted);
 }
 
 .error-message {
-  padding: 1.5rem;
+  padding: var(--space-6);
   text-align: center;
   color: var(--color-danger);
 }
@@ -577,7 +577,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .analytics-tab {
-  padding: 0.75rem 1.25rem;
+  padding: var(--space-3) var(--space-5);
   border: none;
   background: transparent;
   cursor: pointer;
@@ -624,7 +624,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  padding: 0 5px;
+  padding: 0 var(--space-1);
   border-radius: var(--radius-full);
   background: var(--color-danger);
   color: var(--color-primary-text);
@@ -682,7 +682,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 }
 
 .privacy-notice a {
-  margin-left: 0.5rem;
+  margin-left: var(--space-2);
 }
 
 /* =============================================================================
@@ -770,7 +770,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
    ============================================================================= */
 
 .anomaly-flag {
-  margin-right: 0.25rem;
+  margin-right: var(--space-1);
 }
 
 /* =============================================================================
@@ -780,7 +780,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .analytics-year-filter {
   width: auto;
   min-width: 100px;
-  padding: 0.375rem 0.75rem;
+  padding: var(--space-1-5) var(--space-3);
   font-size: var(--text-sm);
   border-radius: 6px;
 }
@@ -837,7 +837,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .donut-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-4);
 }
 
 .donut-section--hero {
@@ -849,7 +849,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   background: var(--color-surface);
   border: var(--border-default);
   border-radius: 8px;
-  padding: 14px;
+  padding: var(--space-4);
   text-align: center;
   max-width: 360px;
   width: 100%;
@@ -873,14 +873,14 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .donut-card-title {
   font-weight: 600;
   font-size: var(--text-base);
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-4);
 }
 
 .donut-wrapper {
   position: relative;
   width: 180px;
   height: 180px;
-  margin: 0 auto 1rem;
+  margin: 0 auto var(--space-4);
 }
 
 .donut-card--horizontal .donut-wrapper {
@@ -922,7 +922,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
 .donut-center-label {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
 }
 
 .donut-legend {
@@ -1022,9 +1022,9 @@ body:has(.analytics-main) .page-header .page-header-actions {
   .mobile-bnav { display: none !important; }
 
   .app-main { margin: 0; padding: 0; }
-  .tab-content { display: block !important; page-break-inside: avoid; margin-bottom: 2rem; }
-  .tab-content::before { content: attr(data-print-title); font-size: 1.25rem; font-weight: 700; display: block; margin-bottom: 1rem; border-bottom: 2px solid var(--color-text); padding-bottom: 0.5rem; }
-  .chart-card { break-inside: avoid; margin-bottom: 1rem; }
-  .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .tab-content { display: block !important; page-break-inside: avoid; margin-bottom: var(--space-8); }
+  .tab-content::before { content: attr(data-print-title); font-size: 1.25rem; font-weight: 700; display: block; margin-bottom: var(--space-4); border-bottom: 2px solid var(--color-text); padding-bottom: var(--space-2); }
+  .chart-card { break-inside: avoid; margin-bottom: var(--space-4); }
+  .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: var(--space-8); }
   body { background: var(--color-bg); color: var(--color-text); }
 }
