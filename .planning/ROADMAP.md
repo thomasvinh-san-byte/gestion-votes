@@ -469,7 +469,7 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 2. Error Observability | v2.4 | 0/0 | ○ Planning | - |
 | 3. Test Infrastructure | v2.4 | 0/0 | ○ Planning | - |
 | 4. Print + Tech Debt residuel | v2.4 | 0/0 | ○ Planning | - |
-| 1. Tests heartbeat | v2.6 | 0/1 | ○ Planning | - |
+| 1. Tests heartbeat | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
 | 2. Codes erreur ciblés | v2.6 | 0/1 | ○ Planning | - |
 | 3. Tokens cleanup 7.2-7.4 | v2.6 | 0/1 | ○ Planning | - |
 | 4. Test infra + GSD ergo | v2.6 | 0/1 | ○ Planning | - |
