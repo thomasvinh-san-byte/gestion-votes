@@ -54,12 +54,23 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 
 # Dependencies (cached layer — lock file required)
+# Split en deux étapes : install sans autoload d'abord (cache stable tant que
+# composer.lock ne bouge pas), puis dump-autoload optimisé APRÈS COPY . . pour
+# que le classmap couvre l'arbre app/ complet. Sinon le classmap optimisé est
+# généré sur un container qui ne contient que composer.json/.lock — toute
+# nouvelle classe sous app/ tombe sur un PSR-4 fallback fragile.
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
-    && rm -f /usr/bin/composer
+RUN composer install --no-dev --no-autoloader --no-interaction --no-progress
 
 # Application
 COPY . .
+
+# Generate optimized classmap with full app/ tree present (classmap-authoritative
+# désactive le fallback PSR-4 — toute classe doit être dans le map, ce qui rend
+# les erreurs 'class not found' immédiates au build plutôt que silencieuses au
+# runtime).
+RUN composer dump-autoload --optimize --classmap-authoritative --no-interaction \
+    && rm -f /usr/bin/composer
 
 # Overwrite with minified assets from stage 1
 COPY --from=assets /assets/ public/assets/

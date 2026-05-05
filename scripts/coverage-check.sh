@@ -60,7 +60,7 @@ echo "Running PHPUnit Unit suite with clover coverage output..."
 # generates clover.xml (it does even with failing tests), this script
 # can evaluate thresholds against the resulting coverage data.
 set +e
-php ${PHP_FLAGS} vendor/bin/phpunit --testsuite Unit --coverage-clover "${CLOVER_FILE}"
+php -d memory_limit=2G ${PHP_FLAGS} vendor/bin/phpunit --testsuite Unit --coverage-clover "${CLOVER_FILE}"
 PHPUNIT_EXIT=$?
 set -e
 echo "PHPUnit exit code: ${PHPUNIT_EXIT} (failures don't block coverage measurement)"
