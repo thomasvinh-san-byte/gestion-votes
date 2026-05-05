@@ -34,7 +34,7 @@ SELECT
     'system',
     'invitation.bulk_revoke_sec_v2_03',
     'invitation',
-    revoked.id::text,
+    revoked.id,
     jsonb_build_object(
         'reason', 'pre_hmac_token_hash',
         'sec_advisory', 'SEC-V2-03',
