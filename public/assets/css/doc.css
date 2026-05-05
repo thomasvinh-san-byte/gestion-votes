@@ -19,7 +19,7 @@
   font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: 700;
-  margin: 0.5rem 0 0;
+  margin: var(--space-2) 0 0;
   color: var(--color-text);
 }
 
@@ -46,7 +46,7 @@
 
 .app-main.doc-main {
   padding: 0;
-  padding-left: calc(var(--sidebar-rail) + 22px);
+  padding-left: calc(var(--sidebar-rail) + var(--space-5));
 }
 
 .doc-layout {
@@ -63,7 +63,7 @@
   top: 0;
   max-height: 100vh;
   overflow-y: auto;
-  padding: 1.5rem 1rem;
+  padding: var(--space-6) var(--space-4);
   border-right: var(--border-default);
   background: var(--color-bg-subtle);
   font-size: var(--text-sm);
@@ -76,7 +76,7 @@
   top: 1.5rem;
   max-height: calc(100vh - 3rem);
   overflow-y: auto;
-  padding: 1.5rem 1rem;
+  padding: var(--space-6) var(--space-4);
   border-left: var(--border-default);
   font-size: 0.8rem;
   background: var(--color-surface-raised); /* QA-02: elevated TOC rail above doc page surface */
@@ -97,7 +97,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-3);
 }
 
 .doc-toc ul,
@@ -112,12 +112,12 @@
 }
 
 .doc-toc li.toc-sub {
-  padding-left: 0.75rem;
+  padding-left: var(--space-3);
 }
 
 .doc-toc a {
   display: block;
-  padding: 0.25rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   color: var(--color-text-secondary);
   text-decoration: none;
   border-left: 2px solid transparent;
@@ -140,7 +140,7 @@
 /* Document Index */
 
 .doc-index-section {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .doc-index-title {
@@ -149,8 +149,8 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
-  margin-bottom: 0.375rem;
-  padding-left: 0.5rem;
+  margin-bottom: var(--space-1-5);
+  padding-left: var(--space-2);
 }
 
 .doc-index li {
@@ -159,7 +159,7 @@
 
 .doc-index a {
   display: block;
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem var(--space-2);
   color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: 4px;
@@ -183,7 +183,7 @@
    ============================================================================= */
 
 .doc-content {
-  padding: 14px 18px;
+  padding: var(--space-4) var(--space-5);
   min-width: 0;
 }
 
@@ -191,16 +191,16 @@
 
 .doc-not-found {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--space-16) var(--space-8);
 }
 
 .doc-not-found h2 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 var(--space-3);
 }
 
 .doc-not-found p {
   color: var(--color-text-muted);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
 }
 
 /* =============================================================================
@@ -222,8 +222,8 @@
 .prose h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  margin: 0 0 1rem;
-  padding-bottom: 0.5rem;
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-2);
   border-bottom: 2px solid var(--color-primary);
   color: var(--color-text);
 }
@@ -231,8 +231,8 @@
 .prose h2 {
   font-size: 1.35rem;
   font-weight: 600;
-  margin: 1.5rem 0 0.5rem;
-  padding-bottom: 0.375rem;
+  margin: var(--space-6) 0 var(--space-2);
+  padding-bottom: var(--space-1-5);
   border-bottom: var(--border-default);
   color: var(--color-text);
 }
@@ -240,14 +240,14 @@
 .prose h3 {
   font-size: 1.1rem;
   font-weight: 600;
-  margin: 1.25rem 0 0.375rem;
+  margin: var(--space-5) 0 var(--space-1-5);
   color: var(--color-text);
 }
 
 .prose h4 {
   font-size: var(--text-base);
   font-weight: 600;
-  margin: 1.5rem 0 0.5rem;
+  margin: var(--space-6) 0 var(--space-2);
   color: var(--color-text-secondary);
 }
 
@@ -255,7 +255,7 @@
 .prose h6 {
   font-size: 0.9rem;
   font-weight: 600;
-  margin: 1.25rem 0 0.5rem;
+  margin: var(--space-5) 0 var(--space-2);
   color: var(--color-text-secondary);
 }
 
@@ -267,7 +267,7 @@
 /* ─── Paragraphs ─── */
 
 .prose p {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-4);
 }
 
 /* ─── Links ─── */
@@ -298,17 +298,17 @@
 
 .prose ul,
 .prose ol {
-  margin: 0 0 1rem;
-  padding-left: 1.5rem;
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-6);
 }
 
 .prose li {
-  margin-bottom: 0.375rem;
+  margin-bottom: var(--space-1-5);
 }
 
 .prose li > ul,
 .prose li > ol {
-  margin-top: 0.375rem;
+  margin-top: var(--space-1-5);
   margin-bottom: 0;
 }
 
@@ -327,8 +327,8 @@
 /* ─── Blockquotes ─── */
 
 .prose blockquote {
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-left: 4px solid var(--color-primary);
   background: var(--color-bg-subtle);
   border-radius: 0 6px 6px 0;
@@ -352,8 +352,8 @@
 }
 
 .prose pre {
-  margin: 0 0 1.25rem;
-  padding: 1rem 1.25rem;
+  margin: 0 0 var(--space-5);
+  padding: var(--space-4) var(--space-5);
   background: var(--color-surface);
   border: var(--border-default);
   border-radius: 8px;
@@ -376,13 +376,13 @@
 .prose table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0 0 1.25rem;
+  margin: 0 0 var(--space-5);
   font-size: var(--text-sm);
 }
 
 .prose thead th {
   text-align: left;
-  padding: 0.625rem 0.75rem;
+  padding: var(--space-2-5) var(--space-3);
   font-weight: 600;
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -393,7 +393,7 @@
 }
 
 .prose tbody td {
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
   vertical-align: top;
 }
@@ -407,7 +407,7 @@
 .prose hr {
   border: none;
   border-top: var(--border-default);
-  margin: 1.25rem 0;
+  margin: var(--space-5) 0;
 }
 
 /* ─── Images ─── */
@@ -422,16 +422,16 @@
 /* ─── Definition Lists ─── */
 
 .prose dl {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-4);
 }
 
 .prose dt {
   font-weight: 600;
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
 }
 
 .prose dd {
-  margin: 0.25rem 0 0 1.5rem;
+  margin: var(--space-1) 0 0 var(--space-6);
   color: var(--color-text-secondary);
 }
 
@@ -447,7 +447,7 @@
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  padding: 0.25rem 0.625rem;
+  padding: var(--space-1) var(--space-2-5);
   font-size: 0.7rem;
   font-family: inherit;
   background: var(--color-bg-subtle);
@@ -509,7 +509,7 @@
     max-height: none;
     border-right: none;
     border-bottom: var(--border-default);
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .doc-toc-rail {
@@ -517,13 +517,13 @@
   }
 
   .doc-content {
-    padding: 14px;
+    padding: var(--space-4);
   }
 }
 
 @media (max-width: 480px) {
   .doc-page-header {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .doc-page-header h1 {
@@ -531,7 +531,7 @@
   }
 
   .doc-content {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .prose {
@@ -547,7 +547,7 @@
   }
 
   .prose pre {
-    padding: 0.75rem;
+    padding: var(--space-3);
     font-size: 0.8rem;
   }
 
@@ -557,6 +557,6 @@
 
   .prose thead th,
   .prose tbody td {
-    padding: 0.375rem 0.5rem;
+    padding: var(--space-1-5) var(--space-2);
   }
 }
