@@ -119,15 +119,12 @@ final class AttendancesController extends AbstractController {
         $existingIds = $memberRepo->filterExistingIds($validUuids, $tenantId);
         $existingSet = array_flip($existingIds);
 
+        // PERF-V27-02: single batch INSERT … ON CONFLICT RETURNING replaces
+        // the foreach upsertMode loop (was N round-trips).
         api_transaction(function () use ($existingIds, $attendanceRepo, $meetingId, $mode, $tenantId, &$created, &$updated) {
-            foreach ($existingIds as $memberId) {
-                $wasCreated = $attendanceRepo->upsertMode($meetingId, $memberId, $mode, $tenantId);
-                if ($wasCreated) {
-                    $created++;
-                } else {
-                    $updated++;
-                }
-            }
+            $counts = $attendanceRepo->upsertModeBulk($meetingId, $existingIds, $mode, $tenantId);
+            $created = $counts['created'];
+            $updated = $counts['updated'];
         });
 
         audit_log('attendances_bulk_update', 'attendance', $meetingId, [
