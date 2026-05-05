@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: ""
 milestone_name: ""
-status: between_milestones
-stopped_at: "v2.5 archived (PR #261/#262 merged 2026-05-04, tag v2.5). 8/12 reqs done + 2 SEC bonus done · 4 deferred (2 tests stop-tests directive + 2 Phase 7 reportée v2.6+). Tech debt carried to next milestone documented in PROJECT.md."
-last_updated: "2026-05-04T12:00:00Z"
-last_activity: 2026-05-04 -- /gsd:complete-milestone v2.5 (archived to milestones/v2.5-{ROADMAP,REQUIREMENTS}.md, MILESTONES.md updated, ROADMAP.md collapsed, PROJECT.md evolved, REQUIREMENTS.md v2.5 stripped, tag v2.5)
+status: between_milestones_with_ops_pending
+stopped_at: "v2.5 archived. 6 ad-hoc improvement commits shipped on main post-archive (SEC-V2-02/03 + COCKPIT-V25-01 + TOKENS Phase 7.1+7.2 + observability:purge-events CLI + storage footer + health latency + 5xx request_id). 6 dev-machine ops actions pending in .planning/OPS-CHECKLIST.md (3 DB migrations + tag/branch push + Playwright + visual inspection + cron + sanity)."
+last_updated: "2026-05-04T13:00:00Z"
+last_activity: 2026-05-04 -- consolidated all deferred dev-machine gates into single OPS-CHECKLIST.md (commit b39fe05). Created retroactive tags v2.2/v2.3/v2.4 locally (push blocked by sandbox proxy — see checklist section 2).
 progress:
   total_phases: 0
   completed_phases: 0
@@ -18,10 +18,11 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-04 after v2.5 milestone)
+See: .planning/PROJECT.md (updated 2026-05-04 after v2.5 milestone + 6 ad-hoc improvements)
+**Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** Planning next milestone (v2.6) — run `/gsd-new-milestone` to start questioning → research → requirements → roadmap cycle.
+**Current focus:** Close OPS-CHECKLIST 6 actions on dev-machine, then either bootstrap v2.6 milestone (`/gsd:new-milestone v2.6`) or continue ad-hoc on main.
 
 ## Current Position
 
