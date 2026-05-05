@@ -480,8 +480,8 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 1. Tests heartbeat | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
 | 2. Codes erreur ciblés | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
 | 3. Tokens cleanup 7.2-7.4 | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
-| 4. Test infra + GSD ergo | v2.6 | 0/1 | ○ Planning | - |
-| 5. Print/PDF polish | v2.6 | 0/1 | ○ Planning | - |
+| 4. Test infra + GSD ergo | v2.6 | 3/3 | ✓ Shipped | 2026-05-05 |
+| 5. Print/PDF polish | v2.6 | 1/1 | ✓ Shipped | 2026-05-05 |
 
 ---
 

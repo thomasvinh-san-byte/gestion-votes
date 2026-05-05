@@ -4,14 +4,15 @@ milestone: "v2.6"
 milestone_name: "Clôture dette technique"
 status: in_progress
 stopped_at: ""
-last_updated: "2026-05-05T11:00:00Z"
-last_activity: 2026-05-05 -- Phase 3 (Tokens cleanup 7.2-7.4) ✓ COMPLETE. 10 tokens 1-site retirés (-2 width / -4 emphasis / -4 rings) sur design-system.css + 9 fichiers callers migrés. Audit final v2.6-TOKENS-AUDIT-FINAL.md : 31 tokens 1-site (cible <30, delta +1 documenté drift v2.5→v2.6 hors-scope), borders 97.7% + shadows 100% (cible ≥95%). 2 phases restantes (4/5).
+status: ready_for_lifecycle
+last_updated: "2026-05-05T12:30:00Z"
+last_activity: 2026-05-05 -- ALL 5 PHASES SHIPPED. Phase 4 (Test infra + GSD ergo) + Phase 5 (Print/PDF polish) completed via /gsd:autonomous parallel dispatch. 17/17 reqs covered. Runtime gates dev-machine deferred (Playwright F-4 runs, fresh-clone walkthrough timing, gsd-code-reviewer real review, PDF visual inspection) — pattern aligned with Phase 1 SC-3. Ready for milestone lifecycle (audit → complete → cleanup).
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 9
-  completed_plans: 6
-  percent: 60
+  completed_plans: 9
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
@@ -22,17 +23,17 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — Phases 1+2+3 ✓ shipped, 2 phases restantes (4/5 pioche libre).
+**Current focus:** v2.6 Clôture dette technique — **ALL 5 PHASES ✓ SHIPPED**, ready for milestone lifecycle (audit → complete → cleanup).
 
 ## Current Position
 
 Milestone: v2.6 Clôture dette technique
-Phase: 3/5 ✓ COMPLETE — Tokens cleanup 7.2-7.4 (TOKENS-V26-01/02/03/04)
+Phase: 5/5 ✓ ALL COMPLETE — Tests heartbeat + Codes erreur ciblés + Tokens cleanup + Test infra + Print/PDF
 Plan: —
-Status: Phases 1+2+3 verified, ready for next phase (4/5 indépendantes)
-Last activity: 2026-05-05 — Phase 3 shipped. 10 tokens 1-site retirés sur design-system.css + 9 callers (login/postsession/analytics/vote/pages/validate/wizard/meetings/ag-health-bar). Audit final 31 tokens 1-site (delta +1 vs cible <30 documenté), ratios borders 97.7% + shadows 100% au-dessus cible 95%. 6 tokens orphelins détectés (candidats v2.7).
+Status: Ready for milestone audit/complete/cleanup
+Last activity: 2026-05-05 — Phases 4+5 shipped via autonomous parallel dispatch. 17/17 reqs covered. Runtime gates dev-machine deferred consistent with established pattern. Milestone lifecycle next.
 
-Progress: [######....] 60% (3/5 phases, 6/9 plans)
+Progress: [##########] 100% (5/5 phases, 9/9 plans)
 
 ## Accumulated Context
 

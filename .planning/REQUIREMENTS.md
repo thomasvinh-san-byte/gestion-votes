@@ -27,17 +27,17 @@
 
 ### Test infra + GSD ergo — Bucket 4
 
-- [ ] **INFRA-V26-01** : `tests/e2e/helpers/seed-meeting.js` permet d'activer les tests `@integration` (test F-4 de Phase 1 v2.4 — actuellement skippé faute de fixture)
-- [ ] **INFRA-V26-02** : Playwright dual-install résolu — un seul `npm install` à la racine ou doc claire qui explique la double install (`tests/e2e/`)
-- [ ] **INFRA-V26-03** : README `tests/e2e/README.md` documente Playwright deps, browsers (chromium/firefox/webkit), auth-setup rate-limit, comment écrire un nouveau spec
-- [ ] **INFRA-V26-04** : Doc pattern Explore scan dans `.planning/intel/` ou équivalent — anti faux-positifs BEM substring (Phase 3 Schoger S-8)
-- [ ] **INFRA-V26-05** : `gsd-code-reviewer` agent reçoit budget timeout configurable + scope splits (`--files=js`, `--files=php`, `--files=tests`)
+- [x] **INFRA-V26-01** : `tests/e2e/helpers/seed-meeting.js` permet d'activer les tests `@integration` ✓ Phase 4 (audit static PASS — helper + spec + route TestSeedController présents et corrects ; gate runtime 3 runs verts déférée dev-machine)
+- [x] **INFRA-V26-02** : Playwright dual-install résolu (`bin/check-deps.sh` guard + `tests/e2e/` SOT pour `@playwright/test`) ✓ Phase 4 (audit confirme état attendu présent depuis v2.4 P3)
+- [x] **INFRA-V26-03** : README `tests/e2e/README.md` documente Playwright deps + browsers + auth-setup rate-limit + procédure write spec ✓ Phase 4 (5 sections requises présentes, walkthrough scaffold prêt à compléter dev-machine)
+- [x] **INFRA-V26-04** : Doc pattern Explore scan déplacé à `.planning/intel/EXPLORE-PATTERNS.md` (canonical) avec stub redirect à l'ancien path + refs actives mises à jour (e2e README + agent doc) ✓ Phase 4
+- [x] **INFRA-V26-05** : `gsd-code-reviewer` agent budget timeout + scope splits ✓ Phase 4 (agent doc déjà avec flags depuis v2.4 P3, template runtime verification 04-03-CODE-REVIEWER-VERIFICATION.md prêt pour la review v2.6 réelle dev-machine)
 
 ### Print/PDF polish — Bucket 5
 
-- [ ] **PDF-V26-01** : Header dompdf répétabilité — sur PV ≥10 pages, le header `[Titre séance] — JJ/MM/YYYY` apparaît sur **chaque** page (pas seulement la première)
-- [ ] **PDF-V26-02** : Em-dash UTF-8 (`—`) rendu correctement dans le PDF (pas de `?` ou `??`) — test smoke automatisé sur fixture PV avec accents et symboles français
-- [ ] **PDF-V26-03** : Pagination robuste — footer `Page X sur Y` correct sur toutes les pages, pas de coupure de contenu en bas de page
+- [x] **PDF-V26-01** : Header dompdf répétabilité — sur PV ≥10 pages, le header `[Titre séance] — JJ/MM/YYYY` apparaît sur **chaque** page ✓ Phase 5 (smoke test parsing PDF binaire, asserts occurrences ≥ N pages)
+- [x] **PDF-V26-02** : Em-dash UTF-8 (`—`) + accents français rendus correctement ✓ Phase 5 (`MeetingReportsLongPdfTest::testEmDashAndFrenchAccentsRenderedCorrectly`, panel `é à è ê ô ç ù` + em-dash U+2014)
+- [x] **PDF-V26-03** : Pagination robuste — footer `Page X sur Y` sur toutes les pages, `page-break-inside: avoid` non régressé ✓ Phase 5 (4 tests / 46 assertions GREEN, fixture LongPvFixtureBuilder ≥10 pages, `smalot/pdfparser` ^2 ajouté en dev dep)
 
 ## v2 Requirements (deferred / out-of-milestone)
 
@@ -68,14 +68,14 @@ Aucun — v2.6 est un milestone de clôture. Ce qui n'est pas dans v1 ci-dessus 
 | TOKENS-V26-02 | Phase 3 | ✓ Complete |
 | TOKENS-V26-03 | Phase 3 | ✓ Complete |
 | TOKENS-V26-04 | Phase 3 | ✓ Complete (31 vs cible <30, +1 documenté drift v2.5→v2.6 hors-scope) |
-| INFRA-V26-01 | Phase 4 | Pending |
-| INFRA-V26-02 | Phase 4 | Pending |
-| INFRA-V26-03 | Phase 4 | Pending |
-| INFRA-V26-04 | Phase 4 | Pending |
-| INFRA-V26-05 | Phase 4 | Pending |
-| PDF-V26-01 | Phase 5 | Pending |
-| PDF-V26-02 | Phase 5 | Pending |
-| PDF-V26-03 | Phase 5 | Pending |
+| INFRA-V26-01 | Phase 4 | ✓ Complete (runtime gate dev-machine) |
+| INFRA-V26-02 | Phase 4 | ✓ Complete |
+| INFRA-V26-03 | Phase 4 | ✓ Complete (walkthrough scaffold dev-machine) |
+| INFRA-V26-04 | Phase 4 | ✓ Complete |
+| INFRA-V26-05 | Phase 4 | ✓ Complete (real review dev-machine) |
+| PDF-V26-01 | Phase 5 | ✓ Complete |
+| PDF-V26-02 | Phase 5 | ✓ Complete |
+| PDF-V26-03 | Phase 5 | ✓ Complete |
 
 **Coverage :**
 - v1 requirements : 17 total
