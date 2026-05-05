@@ -328,16 +328,10 @@
     </footer>
   </div>
 
-  <!-- Member detail dialog -->
-  <dialog id="memberDetailDialog" class="member-detail-dialog" aria-labelledby="memberDetailTitle">
-    <div class="dialog-header">
-      <h3 id="memberDetailTitle">Fiche membre</h3>
-      <button class="btn btn-ghost btn-icon btn-sm" id="closeMemberDetail" type="button" aria-label="Fermer">
-        <svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-x"></use></svg>
-      </button>
-    </div>
+  <!-- Member detail modal -->
+  <ag-modal id="memberDetailDialog" title="Fiche membre" size="md">
     <div class="dialog-body" id="memberDetailBody"></div>
-  </dialog>
+  </ag-modal>
 
   <!-- Drawer -->
   <div class="drawer-backdrop" data-drawer-close></div>

@@ -1189,7 +1189,7 @@
   justify-content: center;
 }
 
-.op-quorum-modal {
+.op-quorum-card {
   max-width: 480px; /* component-internal cap (modal dialog), not a page container */
   width: 90%;
   padding: 2rem;
@@ -1201,7 +1201,7 @@
   gap: 1rem;
 }
 
-.op-quorum-modal h2 {
+.op-quorum-card h2 {
   margin: 0;
   font-size: var(--text-xl);
   font-weight: var(--font-bold);

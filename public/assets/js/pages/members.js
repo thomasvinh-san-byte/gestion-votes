@@ -478,16 +478,11 @@
       </div>
     `;
 
-    if (typeof memberDetailDialog.showModal === 'function') memberDetailDialog.showModal();
-    else memberDetailDialog.setAttribute('open', 'open');
+    if (typeof memberDetailDialog.open === 'function') memberDetailDialog.open();
   };
 
-  document.getElementById('closeMemberDetail').addEventListener('click', () => memberDetailDialog.close());
-  memberDetailDialog.addEventListener('click', (e) => {
-    const r = memberDetailDialog.getBoundingClientRect();
-    const inside = r.top <= e.clientY && e.clientY <= r.bottom && r.left <= e.clientX && e.clientX <= r.right;
-    if (!inside) memberDetailDialog.close();
-  });
+  // <ag-modal> handles its own close button + backdrop click + Escape key.
+  // No need for explicit close listener on a separate header button.
 
   // ==========================================
   // RENDER MEMBERS
@@ -1051,7 +1046,7 @@
     case 'edit-member':
       e.stopPropagation();
       window.editMember(id);
-      if (memberDetailDialog.open) memberDetailDialog.close();
+      memberDetailDialog.close();
       break;
     case 'delete-member':
       e.stopPropagation();
@@ -1059,7 +1054,7 @@
       break;
     case 'toggle-active':
       window.toggleActive(id, btn.dataset.active === 'true');
-      if (memberDetailDialog.open) memberDetailDialog.close();
+      memberDetailDialog.close();
       break;
     }
   });

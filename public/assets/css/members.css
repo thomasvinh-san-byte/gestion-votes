@@ -996,40 +996,12 @@ input[type="color"] {
 }
 
 /* =============================================================================
-   MEMBER DETAIL DIALOG
+   MEMBER DETAIL MODAL — body styling (wrapper migré vers <ag-modal> en 01-02)
+   <ag-modal> .modal-b applique déjà var(--space-5) ; la classe interne reste
+   à 0 padding pour éviter un double cadrage.
    ============================================================================= */
 
-dialog.member-detail-dialog {
-  width: min(600px, calc(100% - 2rem));
-  border: var(--border-default);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
-  padding: 0;
-  margin: auto;
-  position: fixed;
-  inset: 0;
-  height: fit-content;
-}
-
-dialog.member-detail-dialog::backdrop { background: var(--color-backdrop); }
-
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: var(--border-default);
-}
-
-.dialog-header h3 {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-}
-
-.dialog-body { padding: var(--space-5); }
+.dialog-body { padding: 0; }
 
 /* Detail content */
 
