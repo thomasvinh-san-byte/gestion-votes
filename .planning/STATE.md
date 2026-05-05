@@ -4,14 +4,15 @@ milestone: "v2.7"
 milestone_name: "Cohérence visuelle & finitions perçues"
 status: planning
 stopped_at: ""
-last_updated: "2026-05-05T12:00:00Z"
-last_activity: 2026-05-05 -- Roadmap v2.7 créé inline (roadmapper agent timeout). 4 phases : (1) Cohérence visuelle & migration design (6 reqs, cœur), (2) Loading states systematiques (3 reqs), (3) 404 race graceful UX (3 reqs), (4) Query N+1 + HTTP cache (3 reqs). Phase 1 informe Phase 2 (skeleton variants), 2/3/4 indépendantes parallélisables. Prochaine étape : /gsd:plan-phase 1.
+status: ready_for_lifecycle
+last_updated: "2026-05-05T13:00:00Z"
+last_activity: 2026-05-05 -- v2.7 ALL 4 phases SHIPPED via /gsd:autonomous. 7 plans done (1×3 + 2×1 + 3×1 + 4×2). Spacing 508→22 (-96%), borders 99.22%, 5 N+1 hot paths refactored, HTTP cache 304 short-circuit on 3 hot GET endpoints, ag-skeleton + loading-states + ag-empty-state + 404 hijack handler. Ready for milestone lifecycle.
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 5
-  completed_plans: 0
-  percent: 0
+  completed_phases: 4
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
 # AG-VOTE -- Project State

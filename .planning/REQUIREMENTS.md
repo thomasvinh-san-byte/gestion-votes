@@ -56,21 +56,21 @@ Aucun déclaré formellement — voir Out of Scope ci-dessous pour items consid�
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VISUAL-V27-01 | Phase 1 | Pending |
-| VISUAL-V27-02 | Phase 1 | Pending |
-| VISUAL-V27-03 | Phase 1 | Pending |
-| VISUAL-V27-04 | Phase 1 | Pending |
-| VISUAL-V27-05 | Phase 1 | Pending |
-| VISUAL-V27-06 | Phase 1 | Pending |
-| LOADING-V27-01 | Phase 2 | Pending |
-| LOADING-V27-02 | Phase 2 | Pending |
-| LOADING-V27-03 | Phase 2 | Pending |
-| RACE-V27-01 | Phase 3 | Pending |
-| RACE-V27-02 | Phase 3 | Pending |
-| RACE-V27-03 | Phase 3 | Pending |
-| PERF-V27-01 | Phase 4 | Pending |
-| PERF-V27-02 | Phase 4 | Pending |
-| PERF-V27-03 | Phase 4 | Pending |
+| VISUAL-V27-01 | Phase 1 | ✓ Complete |
+| VISUAL-V27-02 | Phase 1 | ✓ Complete |
+| VISUAL-V27-03 | Phase 1 | ✓ Complete |
+| VISUAL-V27-04 | Phase 1 | ✓ Complete |
+| VISUAL-V27-05 | Phase 1 | ✓ Complete |
+| VISUAL-V27-06 | Phase 1 | ✓ Complete |
+| LOADING-V27-01 | Phase 2 | ✓ Complete |
+| LOADING-V27-02 | Phase 2 | ✓ Complete |
+| LOADING-V27-03 | Phase 2 | ✓ Complete |
+| RACE-V27-01 | Phase 3 | ✓ Complete |
+| RACE-V27-02 | Phase 3 | ✓ Complete |
+| RACE-V27-03 | Phase 3 | ✓ Complete |
+| PERF-V27-01 | Phase 4 | ✓ Complete |
+| PERF-V27-02 | Phase 4 | ✓ Complete |
+| PERF-V27-03 | Phase 4 | ✓ Complete |
 
 **Coverage :**
 - v1 requirements : 15 total
