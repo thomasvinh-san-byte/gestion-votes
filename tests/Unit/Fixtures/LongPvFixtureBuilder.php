@@ -32,15 +32,34 @@ final class LongPvFixtureBuilder
     public const MEETING_DATE_ISO = '2026-06-15T10:00:00Z';
     public const MEETING_DATE_HUMAN = '15/06/2026';
 
-    /** Description riche en accents francais + em-dash + apostrophe typographique. */
+    /**
+     * Description riche en accents francais + em-dash + apostrophe typographique.
+     *
+     * Doit contenir AU MOINS UN exemplaire de chaque accent du panel teste par
+     * MeetingReportsLongPdfTest::testEmDashAndFrenchAccentsRenderedCorrectly :
+     *   é (e-aigu)        — "résolution"
+     *   à (a-grave)       — "à l'unanimité"
+     *   è (e-grave)       — "règlement"
+     *   ê (e-circonflexe) — "enquêtes"
+     *   ô (o-circonflexe) — "coût" (et "Notre-Dame du Pôle")
+     *   ç (c-cedille)     — "français" / "ça"
+     *   ù (u-grave)       — "où"
+     *   ï (i-trema)       — "naïves"
+     *   — (em-dash, U+2014)
+     *   ’ (apostrophe typographique, U+2019)
+     */
     private const RICH_DESCRIPTION_TEMPLATE =
         "Cette résolution n°%d propose l'adoption — à l'unanimité du conseil — du règlement"
         . " intérieur révisé pour l'exercice 2026. Les modifications portent notamment sur les"
         . " modalités de convocation, les règles de quorum aménagé pour les séances exceptionnelles,"
-        . " ainsi que la procédure de procuration électronique. Le président rappelle qu’aucune"
-        . " objection formelle n’a été déposée pendant la phase consultative. L’approbation"
-        . " requiert la majorité absolue des présents et représentés. Les éventuelles abstentions"
-        . " seront comptabilisées séparément conformément au règlement en vigueur.";
+        . " ainsi que la procédure de procuration électronique française. Le président rappelle"
+        . " qu’aucune objection formelle n’a été déposée pendant la phase consultative. Les"
+        . " enquêtes préalables menées par le bureau ont confirmé que là où le règlement précédent"
+        . " imposait un coût additionnel — fonction du nombre de procurations naïves agrégées,"
+        . " selon le rôle attribué à chaque pôle de décision —"
+        . " la nouvelle rédaction supprime ce point de friction. L’approbation requiert la"
+        . " majorité absolue des présents et représentés ; les éventuelles abstentions seront"
+        . " comptabilisées séparément, conformément au règlement en vigueur.";
 
     /** Panel des prenoms varies pour stresser le rendu de la table de presence. */
     private const FIRST_NAMES = [
