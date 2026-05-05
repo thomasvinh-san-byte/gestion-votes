@@ -63,14 +63,28 @@ final class JsonResponse {
     }
 
     /**
+     * @return array<string, string> Optional response headers (e.g. ETag, Cache-Control).
+     */
+    public function getHeaders(): array {
+        return $this->headers;
+    }
+
+    /**
      * Send the response to the client (headers + body).
+     *
+     * Status 304 (Not Modified) and 204 (No Content) MUST NOT include a body
+     * per RFC 7232 §4.1 / RFC 7230 §3.3.2 — body emission is skipped along with
+     * the Content-Type header so caches behave correctly.
      */
     public function send(): void {
         http_response_code($this->statusCode);
-        header('Content-Type: application/json; charset=utf-8');
         foreach ($this->headers as $name => $value) {
             header("{$name}: {$value}");
         }
+        if ($this->statusCode === 304 || $this->statusCode === 204) {
+            return;
+        }
+        header('Content-Type: application/json; charset=utf-8');
         echo json_encode($this->body, JSON_UNESCAPED_UNICODE);
     }
 }
