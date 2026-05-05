@@ -53,7 +53,7 @@ final class MeetingTransitionService {
             ];
         }
         if ($fromStatus === 'archived') {
-            throw new RuntimeException('Séance archivée : aucune transition autorisée.');
+            throw new RuntimeException('archived_meeting_locked');
         }
 
         return [
@@ -248,7 +248,7 @@ final class MeetingTransitionService {
             throw new RuntimeException('meeting_not_found');
         }
         if (!empty($mt['validated_at'])) {
-            throw new RuntimeException('Séance validée : reset interdit (séance figée).');
+            throw new RuntimeException('validated_meeting_locked');
         }
 
         // F09: status whitelist. Resetting a live or closed meeting was

@@ -41,7 +41,7 @@ final class MeetingLifecycleService {
         $repo = $this->repos->meeting();
         $current = $repo->findByIdForTenant($meetingId, $tenantId);
         if (!$current) { throw new RuntimeException('meeting_not_found'); }
-        if ((string) $current['status'] === 'archived') { throw new RuntimeException('Séance archivée : modification interdite.'); }
+        if ((string) $current['status'] === 'archived') { throw new RuntimeException('archived_meeting_locked'); }
         $fields = [];
         if ($title !== null) { $fields['title'] = $title; }
         if ($presidentName !== null) { $fields['president_name'] = $presidentName; }

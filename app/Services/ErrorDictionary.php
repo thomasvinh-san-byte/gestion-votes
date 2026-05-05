@@ -115,6 +115,10 @@ final class ErrorDictionary {
         'precondition_failed' => 'Une condition préalable n\'est pas remplie, vérifiez les prérequis affichés avant de renouveler l\'action.',
         'invalid_state' => 'L\'opération n\'est pas possible dans l\'état actuel, vérifiez le statut de la ressource avant de recommencer.',
 
+        // ERR-V26-01: codes ciblés extraits de RuntimeException via AbstractController
+        'archived_meeting_locked' => 'Séance archivée : aucune transition ni modification autorisée, créez une nouvelle séance pour repartir d\'un état modifiable ou consultez l\'archive en lecture seule.',
+        'validated_meeting_locked' => 'Séance validée : la réinitialisation est interdite pour préserver l\'audit, créez une nouvelle séance si vous devez recommencer le processus de vote.',
+
         // Authentication (suppléments)
         'invalid_credentials' => 'Identifiants invalides, vérifiez votre email et mot de passe ou réinitialisez-le depuis le formulaire de connexion.',
         'missing_credentials' => 'Identifiants manquants, complétez votre email et mot de passe avant de soumettre.',
