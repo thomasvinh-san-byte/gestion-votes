@@ -1,3 +1,4 @@
+/* global module */
 /**
  * sse-debounce.js — Debounce helper pour handlers SSE empty-state (Plan 02.2 / ERR-V24-02)
  *

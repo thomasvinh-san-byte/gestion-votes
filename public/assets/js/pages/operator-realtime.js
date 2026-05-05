@@ -17,6 +17,9 @@
   var pollRunning = false;
   var newVoteDebounceTimer = null;
   var sseStream = null;
+  // Track quorum.met across heartbeats so we can fire the "Quorum atteint !"
+  // toast on the false → true transition (avoids re-firing on every tick).
+  var _prevQuorumMet = null;
   var sseConnected = false;
   var _sseFallbackToastEl = null;
   var _operatorPresenceCount = 0;
