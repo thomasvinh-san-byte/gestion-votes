@@ -402,7 +402,7 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 **Requirements**: ERR-V26-01, ERR-V26-02, ERR-V26-03
 **Success Criteria** (what must be TRUE):
   1. Les 3 sites `business_error` génériques résiduels sont migrés vers des codes spécifiques (par ex. `meeting_not_found`, `vote_already_cast`, `quorum_not_reached`) avec entrées correspondantes ajoutées à `app/Services/ErrorDictionary.php` (en français, avec next-step actionnable conforme à la convention v2.3 ERR-02).
-  2. Un test ciblé (PHPUnit ou spec Playwright dédiée) émet 2 requêtes back-to-back sur la même ressource vide et vérifie : même code de retour, même payload, aucun état corrompu (compteur d'audit incrémenté ≤1 fois, pas de double-event SSE).
+  2. Un test ciblé (PHPUnit) émet 2 captures `error_events` back-to-back **dans le même handler / la même requête HTTP** sur la même ressource vide et vérifie : même code retourné, même payload, aucun état corrompu (compteur d'audit incrémenté ≤1 fois). Scope explicitement intra-request — la dedupe cross-process / cross-request n'est pas dans ce milestone (couverte par le `request_id` unique côté capture pipeline). Pas de double-row dans `error_events` quand un même handler est invoqué 2-3 fois pour le même événement (rafale SSE retry / event-bus + catch-all overlap).
   3. Le dashboard `/admin/error-stats` (recâblé v2.5 sur `error_events`) affiche les 3 nouveaux codes après 1 cycle de capture en environnement dev/demo — vérifié par smoke test (curl ou spec).
   4. Aucune régression sur les codes existants ; `business_error` n'apparaît plus comme code émis par les 3 call-sites migrés (audit grep livré).
 
