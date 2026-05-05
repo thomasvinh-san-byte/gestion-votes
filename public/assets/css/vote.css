@@ -1739,7 +1739,7 @@
 
 /* Selected button ring (applied by JS after tap) */
 .vote-btn-selected {
-  box-shadow: var(--shadow-ring-3px-primary-strong) !important;
+  box-shadow: 0 0 0 3px var(--color-primary) !important;
 }
 
 /* =============================================================================

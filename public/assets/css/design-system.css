@@ -533,15 +533,11 @@ table {
   /* Reset */
   --shadow-none: none;                                                                /* explicit reset (analytics, members, report print) */
 
-  /* Single-site rings */
-  --shadow-ring-1px-primary:        0 0 0 1px var(--color-primary);                   /* wizard template card hover */
+  /* Canonical sem rings (2px width, semantic color) */
   --shadow-ring-2px-surface:        0 0 0 2px var(--color-surface);                   /* audit severity dot */
-  --shadow-ring-2px-border:         0 0 0 2px var(--color-border);                    /* audit timeline dot */
+  --shadow-ring-2px-border:         0 0 0 2px var(--color-border);                    /* audit timeline dot, wizard hover */
   --shadow-ring-2px-danger:         0 0 0 2px var(--color-danger);                    /* audit timeline high severity */
   --shadow-ring-2px-success:        0 0 0 2px var(--color-success);                   /* member active avatar */
-  --shadow-ring-3px-primary-strong: 0 0 0 3px var(--color-primary);                   /* vote selected button (used with !important) */
-  --shadow-ring-inset-2px-primary:  inset 0 0 0 2px var(--color-primary);             /* calendar today */
-  --shadow-ring-inset-1px-danger:   inset 0 0 0 1px var(--color-danger);              /* health bar quorum missed */
 
   /* Focus offset shadow (multi-layer using --ring-* vars) */
   --shadow-focus-offset:            0 0 0 var(--ring-offset) var(--color-surface),

@@ -653,7 +653,7 @@ input[type="time"].field-input {
 
 .wiz-template-card:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-ring-1px-primary);
+  box-shadow: var(--shadow-ring-2px-border);
 }
 
 .wiz-template-card-icon {
