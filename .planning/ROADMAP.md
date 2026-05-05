@@ -390,7 +390,9 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   3. Les deux tests sont reproductibles (≥3 runs verts consécutifs sans flake) et peuvent être lancés isolément (`phpunit tests/Unit/Sse/HeartbeatPayloadTest.php` et `npx playwright test sse-heartbeat`).
   4. HEARTBEAT-V25-03 et HEARTBEAT-V25-04 sont marqués done dans le tableau de tech debt v2.5.
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 01-01-PLAN.md — Extract HeartbeatPayloadBuilder + PHPUnit shape test (TEST-V26-01)
+- [ ] 01-02-PLAN.md — Playwright spec verifying meeting.heartbeat delivery on /api/v1/events.php (TEST-V26-02)
 
 ### Phase 2: Codes erreur ciblés + idempotency empty-state
 
