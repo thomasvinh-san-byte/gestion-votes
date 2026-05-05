@@ -22,17 +22,17 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — Phases 1+2 ✓ shipped, 3 phases restantes (3/4/5 pioche libre).
+**Current focus:** v2.6 Clôture dette technique — Phases 1+2+3 ✓ shipped, 2 phases restantes (4/5 pioche libre).
 
 ## Current Position
 
 Milestone: v2.6 Clôture dette technique
-Phase: 1/5 ✓ COMPLETE — Tests heartbeat (TEST-V26-01 + TEST-V26-02)
+Phase: 3/5 ✓ COMPLETE — Tokens cleanup 7.2-7.4 (TOKENS-V26-01/02/03/04)
 Plan: —
-Status: Phase 1 verified, ready for next phase (2/3/4/5 indépendantes)
-Last activity: 2026-05-05 — Phase 2 shipped. AbstractController extractBusinessErrorCode() + 3 service normalizations + 2 ErrorDictionary entries + ErrorEventsRepository::capture() idempotency guard intra-request + 20 PHPUnit tests GREEN. Verifier PASS 12/12 must-haves. ~80 existing snake_case throws bénéficient automatiquement.
+Status: Phases 1+2+3 verified, ready for next phase (4/5 indépendantes)
+Last activity: 2026-05-05 — Phase 3 shipped. 10 tokens 1-site retirés sur design-system.css + 9 callers (login/postsession/analytics/vote/pages/validate/wizard/meetings/ag-health-bar). Audit final 31 tokens 1-site (delta +1 vs cible <30 documenté), ratios borders 97.7% + shadows 100% au-dessus cible 95%. 6 tokens orphelins détectés (candidats v2.7).
 
-Progress: [####......] 40% (2/5 phases, 4/7 plans)
+Progress: [######....] 60% (3/5 phases, 6/9 plans)
 
 ## Accumulated Context
 
