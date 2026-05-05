@@ -250,7 +250,7 @@
   width: 100%;
   height: 56px;
   padding: var(--space-5) var(--space-4) var(--space-2);
-  border: var(--border-thin-1-5);
+  border: var(--border-default);
   border-radius: var(--radius-md);
   font-size: var(--text-base);
   background: var(--color-surface);

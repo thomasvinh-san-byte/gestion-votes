@@ -460,7 +460,7 @@ body:has(.analytics-main) .page-header .page-header-actions {
   width: 28px;
   height: 28px;
   margin: -14px 0 0 -14px;
-  border: var(--border-thick-3);
+  border: var(--border-thick);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: chartSpin 0.7s linear infinite;

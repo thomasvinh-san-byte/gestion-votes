@@ -369,8 +369,7 @@ table {
   /* Border shorthand tokens — residual 1-site captures (v2.4 P4 / TECH-V24-02 follow-up 04.3) */
   /* D-08 amendment: aggressive 1-site tokens accepted to push ratio >=95% strict.
      All values are verbatim captures of pre-existing hardcoded sites — zero new literal values. */
-  --border-thin-1-5:                1.5px solid var(--color-border);                       /* width 1.5px (login, postsession) */
-  --border-thick-3:                 3px solid var(--color-border);                         /* width 3px (analytics, vote) */
+  --border-thick:                   3px solid var(--color-border);                         /* width 3px (analytics, vote) */
   --border-glass-thin:              1px solid oklch(1 0 0 / 0.18);                         /* glassmorphism login splash */
   --border-glass-thick:             2px solid oklch(1 0 0 / 0.30);                         /* glassmorphism login spinner */
   --border-halo-surface:            2px solid var(--color-surface);                        /* surface halo decoration (audit timeline) */
