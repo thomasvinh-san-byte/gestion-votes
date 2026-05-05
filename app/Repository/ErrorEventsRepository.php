@@ -15,6 +15,16 @@ use Throwable;
  * tenant drill-down).
  */
 final class ErrorEventsRepository extends AbstractRepository {
+    /**
+     * In-memory idempotency cache for capture() — scope is the lifetime of
+     * the RepositoryFactory singleton (= one HTTP request). Prevents double-INSERT
+     * when the same handler fires multiple times in a single request (SSE empty-state
+     * rafale, retry middleware, catch-all + explicit fallback). See ERR-V26-02.
+     *
+     * @var array<string, true>
+     */
+    private static array $captureSeenKeys = [];
+
     public function capture(
         string $errorCode,
         int $httpStatus,
@@ -25,6 +35,18 @@ final class ErrorEventsRepository extends AbstractRepository {
         ?string $requestId,
         array $payload,
     ): void {
+        // Idempotency guard (ERR-V26-02): skip if same (request_id, error_code, route)
+        // already captured in this HTTP request. Skip the guard entirely if we don't
+        // have both a request_id and a route — in that case dedup isn't well-defined
+        // (CLI jobs, bootstrap hooks, etc.).
+        if ($requestId !== null && $requestId !== '' && $route !== null && $route !== '') {
+            $key = md5($requestId . '|' . $errorCode . '|' . $route);
+            if (isset(self::$captureSeenKeys[$key])) {
+                return;
+            }
+            self::$captureSeenKeys[$key] = true;
+        }
+
         try {
             $this->execute(
                 'INSERT INTO error_events
@@ -49,6 +71,17 @@ final class ErrorEventsRepository extends AbstractRepository {
                 'error_code' => $errorCode,
             ]);
         }
+    }
+
+    /**
+     * Test-only: reset the in-memory idempotency cache. Production code should
+     * never call this — the cache resets naturally between HTTP requests since
+     * the RepositoryFactory is rebuilt per request.
+     *
+     * @internal
+     */
+    public static function resetIdempotencyCache(): void {
+        self::$captureSeenKeys = [];
     }
 
     /**
