@@ -406,7 +406,9 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   3. Le dashboard `/admin/error-stats` (recâblé v2.5 sur `error_events`) affiche les 3 nouveaux codes après 1 cycle de capture en environnement dev/demo — vérifié par smoke test (curl ou spec).
   4. Aucune régression sur les codes existants ; `business_error` n'apparaît plus comme code émis par les 3 call-sites migrés (audit grep livré).
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 02-01-PLAN.md — AbstractController catch enhancement + 3 service normalizations + ErrorDictionary entries (ERR-V26-01, ERR-V26-03)
+- [ ] 02-02-PLAN.md — Idempotency guard sur ErrorEventsRepository::capture() + tests PHPUnit (ERR-V26-02)
 
 ### Phase 3: Tokens cleanup 7.2-7.4 (<30 tokens 1-site)
 
@@ -470,7 +472,7 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 3. Test Infrastructure | v2.4 | 0/0 | ○ Planning | - |
 | 4. Print + Tech Debt residuel | v2.4 | 0/0 | ○ Planning | - |
 | 1. Tests heartbeat | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
-| 2. Codes erreur ciblés | v2.6 | 0/1 | ○ Planning | - |
+| 2. Codes erreur ciblés | v2.6 | 0/2 | ○ Planning | - |
 | 3. Tokens cleanup 7.2-7.4 | v2.6 | 0/1 | ○ Planning | - |
 | 4. Test infra + GSD ergo | v2.6 | 0/1 | ○ Planning | - |
 | 5. Print/PDF polish | v2.6 | 0/1 | ○ Planning | - |
