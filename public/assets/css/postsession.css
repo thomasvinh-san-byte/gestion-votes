@@ -56,7 +56,7 @@
   flex: 1;
   padding: 10px 16px;
   border-radius: var(--radius-full);
-  border: var(--border-thin-1-5);
+  border: var(--border-default);
   background: var(--color-surface);
   color: var(--color-text-muted);
   font-size: 0.8125rem;

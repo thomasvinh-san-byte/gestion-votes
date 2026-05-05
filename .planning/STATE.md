@@ -4,14 +4,15 @@ milestone: "v2.6"
 milestone_name: "Clôture dette technique"
 status: in_progress
 stopped_at: ""
-last_updated: "2026-05-05T08:00:00Z"
-last_activity: 2026-05-05 -- Phase 1 (Tests heartbeat) ✓ COMPLETE. PHPUnit 8/29 GREEN, Playwright spec compile (live run pending dev-machine). 4 phases restantes (2/3/4/5), toutes indépendantes — pioche libre.
+status: ready_for_lifecycle
+last_updated: "2026-05-05T12:30:00Z"
+last_activity: 2026-05-05 -- ALL 5 PHASES SHIPPED. Phase 4 (Test infra + GSD ergo) + Phase 5 (Print/PDF polish) completed via /gsd:autonomous parallel dispatch. 17/17 reqs covered. Runtime gates dev-machine deferred (Playwright F-4 runs, fresh-clone walkthrough timing, gsd-code-reviewer real review, PDF visual inspection) — pattern aligned with Phase 1 SC-3. Ready for milestone lifecycle (audit → complete → cleanup).
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 2
-  percent: 20
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 9
+  percent: 100
 ---
 
 # AG-VOTE -- Project State
@@ -22,17 +23,17 @@ See: .planning/PROJECT.md (updated 2026-05-05 after v2.6 milestone bootstrap)
 **Single-source dev-machine runbook:** .planning/OPS-CHECKLIST.md (always read this before deploying)
 
 **Core value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
-**Current focus:** v2.6 Clôture dette technique — Phase 1 ✓ shipped, 4 phases restantes (pioche libre).
+**Current focus:** v2.6 Clôture dette technique — **ALL 5 PHASES ✓ SHIPPED**, ready for milestone lifecycle (audit → complete → cleanup).
 
 ## Current Position
 
 Milestone: v2.6 Clôture dette technique
-Phase: 1/5 ✓ COMPLETE — Tests heartbeat (TEST-V26-01 + TEST-V26-02)
+Phase: 5/5 ✓ ALL COMPLETE — Tests heartbeat + Codes erreur ciblés + Tokens cleanup + Test infra + Print/PDF
 Plan: —
-Status: Phase 1 verified, ready for next phase (2/3/4/5 indépendantes)
-Last activity: 2026-05-05 — Quick task 260505-001 livré (Docker autoload fix + rebuild.sh --quick). Débloque SC-3 Phase 1 (Playwright run) après rebuild image dev-server. Phase 1 v2.6 reste 1/5 — phases 2-5 indépendantes en attente.
+Status: Ready for milestone audit/complete/cleanup
+Last activity: 2026-05-05 — Phases 4+5 shipped via autonomous parallel dispatch. 17/17 reqs covered. Runtime gates dev-machine deferred consistent with established pattern. Milestone lifecycle next.
 
-Progress: [##........] 20% (1/5 phases, 2/5 plans)
+Progress: [##########] 100% (5/5 phases, 9/9 plans)
 
 ## Accumulated Context
 

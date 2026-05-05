@@ -50,7 +50,8 @@ abstract class AbstractController {
             ]);
             api_fail('internal_error', 500, ['message' => 'Erreur interne du serveur. Veuillez réessayer.']);
         } catch (RuntimeException $e) {
-            api_fail('business_error', 400, ['detail' => $e->getMessage()]);
+            $code = self::extractBusinessErrorCode($e->getMessage()) ?? 'business_error';
+            api_fail($code, 400, ['detail' => $e->getMessage()]);
         } catch (Throwable $e) {
             \AgVote\Core\Logger::error(static::class . '::' . $method . ' uncaught', [
                 'exception' => $e->getMessage(),
@@ -58,6 +59,30 @@ abstract class AbstractController {
             ]);
             api_fail('internal_error', 500, ['message' => 'Erreur interne du serveur. Veuillez réessayer.']);
         }
+    }
+
+    /**
+     * Detects whether a RuntimeException message is a snake_case error code.
+     *
+     * Many service-layer RuntimeExceptions already carry a snake_case code as
+     * their message (e.g. 'meeting_not_found', 'archived_meeting_locked').
+     * This extractor surfaces the code through api_fail() instead of the
+     * generic 'business_error', so /admin/error-stats records actionable codes.
+     *
+     * Pattern: 3-40 chars, lowercase letters/digits, underscore-separated,
+     * starts with letter, no double underscore, no trailing underscore.
+     * French messages with spaces/punctuation/accents are rejected (returns
+     * null) and the caller falls back to 'business_error'.
+     */
+    private static function extractBusinessErrorCode(string $message): ?string {
+        $trimmed = trim($message);
+        if ($trimmed === '' || strlen($trimmed) < 3 || strlen($trimmed) > 40) {
+            return null;
+        }
+        if (preg_match('/^[a-z][a-z0-9]*(_[a-z0-9]+)*$/', $trimmed) === 1) {
+            return $trimmed;
+        }
+        return null;
     }
 
     /**

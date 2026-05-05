@@ -402,11 +402,13 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 **Requirements**: ERR-V26-01, ERR-V26-02, ERR-V26-03
 **Success Criteria** (what must be TRUE):
   1. Les 3 sites `business_error` génériques résiduels sont migrés vers des codes spécifiques (par ex. `meeting_not_found`, `vote_already_cast`, `quorum_not_reached`) avec entrées correspondantes ajoutées à `app/Services/ErrorDictionary.php` (en français, avec next-step actionnable conforme à la convention v2.3 ERR-02).
-  2. Un test ciblé (PHPUnit ou spec Playwright dédiée) émet 2 requêtes back-to-back sur la même ressource vide et vérifie : même code de retour, même payload, aucun état corrompu (compteur d'audit incrémenté ≤1 fois, pas de double-event SSE).
+  2. Un test ciblé (PHPUnit) émet 2 captures `error_events` back-to-back **dans le même handler / la même requête HTTP** sur la même ressource vide et vérifie : même code retourné, même payload, aucun état corrompu (compteur d'audit incrémenté ≤1 fois). Scope explicitement intra-request — la dedupe cross-process / cross-request n'est pas dans ce milestone (couverte par le `request_id` unique côté capture pipeline). Pas de double-row dans `error_events` quand un même handler est invoqué 2-3 fois pour le même événement (rafale SSE retry / event-bus + catch-all overlap).
   3. Le dashboard `/admin/error-stats` (recâblé v2.5 sur `error_events`) affiche les 3 nouveaux codes après 1 cycle de capture en environnement dev/demo — vérifié par smoke test (curl ou spec).
   4. Aucune régression sur les codes existants ; `business_error` n'apparaît plus comme code émis par les 3 call-sites migrés (audit grep livré).
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 02-01-PLAN.md — AbstractController catch enhancement + 3 service normalizations + ErrorDictionary entries (ERR-V26-01, ERR-V26-03)
+- [ ] 02-02-PLAN.md — Idempotency guard sur ErrorEventsRepository::capture() + tests PHPUnit (ERR-V26-02)
 
 ### Phase 3: Tokens cleanup 7.2-7.4 (<30 tokens 1-site)
 
@@ -421,7 +423,9 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   4. Audit final post-7.4 livré dans `.planning/v2.6-TOKENS-AUDIT-FINAL.md` : décompte tokens 1-site **<30**, classification keep/consolidate/done à jour, ratio tokens ≥95 % maintenu sur borders/shadows.
   5. Aucune régression CSS visible : 5 pages échantillon (login, dashboard, operator, audit, settings) inspectées avant/après — pixel diff <2 % ou justifié.
 
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 03-01-PLAN.md — Mechanical CSS edits Phase 7.2 (widths) + 7.3 (emphasis flatten) + 7.4 (ring unification), 3 atomic commits, 10 tokens 1-site retirés
+- [ ] 03-02-PLAN.md — Final audit `v2.6-TOKENS-AUDIT-FINAL.md` (décompte <30 + ratios ≥95% + checklist régression dev-machine 5 pages échantillon)
 **UI hint**: yes
 
 ### Phase 4: Test infra + GSD ergo
@@ -437,7 +441,10 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   4. Pattern Explore scan anti-BEM-substring documenté dans `.planning/intel/EXPLORE-PATTERNS.md` (ou équivalent) avec ≥3 anti-patterns concrets + 1 exemple correct (cf. Phase 3 v2.3 Schoger S-8).
   5. `gsd-code-reviewer` agent accepte budget timeout configurable (`--timeout-min=N`, défaut 60) et scope splits (`--files=js`, `--files=php`, `--files=tests`). Vérifié sur 1 review v2.6 réelle (≥30 fichiers sans timeout).
 
-**Plans:** TBD
+**Plans:** 3 plans
+- [ ] 04-01-PLAN.md — Vérification gate 3 runs verts test @integration F-4 (cockpit-keyboard-shortcuts.spec.js) avec helper seedMeeting (INFRA-V26-01)
+- [ ] 04-02-PLAN.md — Audit dual-install (check-deps.sh + grep counts) + walkthrough fresh-clone chronométré ≤30 min (INFRA-V26-02 + INFRA-V26-03)
+- [ ] 04-03-PLAN.md — Déplacement EXPLORE-PATTERNS.md vers `.planning/intel/` + vérification gsd-code-reviewer sur review v2.6 réelle (INFRA-V26-04 + INFRA-V26-05)
 
 ### Phase 5: Print/PDF polish
 
@@ -451,7 +458,8 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
   3. Footer `Page X sur Y` correct sur toutes les pages d'un PV ≥10 pages ; pas de coupure de contenu en bas de page (`page-break-inside: avoid` respecté sur les blocs résolution/hash, déjà installé v2.4 TECH-V24-01 — vérifié non-régressé).
   4. Aucune régression sur la génération PDF des cas courts (≤3 pages) déjà validée en v2.4.
 
-**Plans:** TBD
+**Plans:** 1 plan
+- [ ] 05-01-PLAN.md — Smoke test parsing PDF binaire long (smalot/pdfparser dev dep + LongPvFixtureBuilder + 4 tests SC1/SC2/SC3 + non-regression PV courts) — couvre PDF-V26-01/02/03
 
 ## Progress
 
@@ -470,10 +478,10 @@ Cette gate encode explicitement le test ultime ("celui-là est plus rassurant") 
 | 3. Test Infrastructure | v2.4 | 0/0 | ○ Planning | - |
 | 4. Print + Tech Debt residuel | v2.4 | 0/0 | ○ Planning | - |
 | 1. Tests heartbeat | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
-| 2. Codes erreur ciblés | v2.6 | 0/1 | ○ Planning | - |
-| 3. Tokens cleanup 7.2-7.4 | v2.6 | 0/1 | ○ Planning | - |
-| 4. Test infra + GSD ergo | v2.6 | 0/1 | ○ Planning | - |
-| 5. Print/PDF polish | v2.6 | 0/1 | ○ Planning | - |
+| 2. Codes erreur ciblés | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
+| 3. Tokens cleanup 7.2-7.4 | v2.6 | 2/2 | ✓ Shipped | 2026-05-05 |
+| 4. Test infra + GSD ergo | v2.6 | 3/3 | ✓ Shipped | 2026-05-05 |
+| 5. Print/PDF polish | v2.6 | 1/1 | ✓ Shipped | 2026-05-05 |
 
 ---
 

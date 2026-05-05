@@ -223,7 +223,7 @@ tests/e2e/
 ## Liens utiles
 
 - [`helpers/seed-meeting.js`](helpers/seed-meeting.js) — helper test data (livré par plan 03.1)
-- [`../../.planning/codebase/EXPLORE-PATTERNS.md`](../../.planning/codebase/EXPLORE-PATTERNS.md) — patterns de scan codebase sans faux-positifs
+- [`../../.planning/intel/EXPLORE-PATTERNS.md`](../../.planning/intel/EXPLORE-PATTERNS.md) — patterns de scan codebase sans faux-positifs
 - [`../../.claude/agents/gsd-code-reviewer.md`](../../.claude/agents/gsd-code-reviewer.md) — agent code-review (`--scope`, `--timeout-min`)
 - [`../../.planning/phases/03-test-infrastructure/03-CONTEXT.md`](../../.planning/phases/03-test-infrastructure/03-CONTEXT.md) — décisions phase test infra v2.4
 
