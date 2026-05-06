@@ -363,3 +363,86 @@ docker compose exec db psql -U app -d agvote -c \
 **Recommandation** : valider en live la diffusion SSE de l'event de transition (cockpit opérateur doit refresh seul). Si OK, ne rien refacto. Stage 2 peut auditer si l'enum à 8 états (`draft|scheduled|frozen|live|paused|closed|validated|archived`) est sur-dimensionné — peut-être que `paused` et `scheduled` ajoutent de la complexité sans valeur user.
 
 ---
+
+## Étape 05 — Émargement présence + quorum (AUDIT-CHEMIN-05)
+
+**Description du flow** : opérateur marque les membres présents (`present`, `remote`, `proxy`, `excused`). `QuorumEngine` calcule en continu si le quorum est atteint, en pondérant les voix selon `voting_power` des membres. Politique configurable par séance ou tenant : seuil simple (`single`), double seuil (`double`), seuil évolutif 2e convocation (`evolving`).
+
+**Code concerné** :
+- `app/Controller/AttendancesController.php` (174 lignes) — `listForMeeting`, `bulk` (marquage en masse), `upsert` (un membre), `setPresentFrom` (timestamp arrivée tardive). Routes mappées avec rôles `operator/president/trust/admin`.
+- `app/Services/AttendancesService.php` (161 lignes) — logique upsert + lookup membre.
+- `app/Services/QuorumEngine.php` (359 lignes) — moteur principal :
+  - `computeForMeeting()` : politique meeting → fallback `settings.settQuorumThreshold` → `noPolicy`.
+  - `computeForMotion()` : politique motion-level → fallback meeting → `noPolicy`.
+  - `computeInternal()` : calcule sur ratios `present_count / eligible_count` ET `present_weight / eligible_weight`, applique mode (single/double/evolving), respecte `include_proxies` et `count_remote` flags, filtre `lateCutoff` (motion ouverte avant arrivée → exclu).
+- `app/Controller/QuorumController.php` (182 lignes) — endpoints `/api/v1/quorum*`, `/quorum_status`.
+- `app/routes.php` lignes 128-134 (attendances) et 365-367 (quorum).
+- `database/schema-master.sql` ligne 47 : `attendance_mode AS ENUM ('present','remote','proxy','excused')`. Lignes 214-237 : table `quorum_policies` avec contraintes CHECK : `mode IN ('single','evolving','double')`, `denominator IN ('eligible_members','eligible_weight')`, `threshold` ∈ [0,1], `threshold_call2` optionnel, `denominator2`/`threshold2` optionnels.
+
+**Tests existants** :
+- `tests/Unit/AttendancesControllerTest.php` + `AttendancesServiceTest.php`.
+- `tests/Unit/QuorumEngineTest.php` (référence centrale CLAUDE.md "complex business logic — Quorum/majority calculation, weighted voting").
+- `tests/Unit/QuorumEngineSettingsTest.php` — fallback settings tenant.
+- `tests/Unit/QuorumLogicTest.php` — règles algébriques.
+- `tests/Unit/QuorumControllerTest.php`.
+- `tests/Unit/WeightedVoteRegressionTest.php` — anti-régression pondération.
+
+**Recoupement archive** :
+- v2.0 Operateur Live UX : refacto majeur du calcul quorum + pondération.
+- PROJECT.md : `⚠ Quorum/pondération/procurations — code v2.0` (validated mais pas re-vérifié E2E récent).
+- v2.7 N+1 audit (`v2.7-N+1-AUDIT.md`) — possible point d'optimisation `attendance.countPresentMembers` répété.
+
+**Verdict statique** : ✓
+
+**Justification** :
+- Code très bien architecturé : separation politique (quorum_policies) / calcul (QuorumEngine) / persistance (AttendanceRepository). DI nullable via constructeur (CLAUDE.md compliance), services finaux.
+- Algorithme correct : itère sur tous les `attendance_mode` autorisés (`present` toujours, `remote` si `count_remote`, `proxy` si `include_proxies`), calcule ratios SUR LES POIDS (`sumPresentWeight`) ET sur le compte de membres (`countPresentMembers`) selon `denominator` (`eligible_members` ou `eligible_weight`).
+- Mode `double` (deux seuils indépendants tous deux à respecter) et `evolving` (threshold différent en 2e convocation) implémentés correctement.
+- Triple fallback chain bien ordonné : motion-level → meeting-level → tenant settings → `noPolicy`. Le fallback `settings.settQuorumThreshold` synthétise une policy minimale ("Réglages tenant"), évite un `noPolicy` désagréable.
+- Late arrival : `lateCutoff = motion.opened_at` permet d'exclure les arrivants tardifs du quorum d'une motion ouverte avant. Pertinent légalement.
+- Couverture tests forte : 5 fichiers tests dédiés + un anti-régression (`WeightedVoteRegressionTest`).
+- Note mineure : `noPolicy` retourne `met: null` (pas `false`) — l'UI doit savoir distinguer "pas de politique" vs "non atteint". À vérifier que le cockpit ne traite pas `null` comme "atteint".
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : étape 02 (50 membres importés) + étape 03 (séance MID + motions) + étape 04 (séance en frozen).
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+
+# 1. Récupérer la liste des membres + quelques IDs
+MEMBERS_JSON=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members)
+echo "$MEMBERS_JSON" | jq '.items[:3]'
+
+# 2. Marquer 30 membres présents en bulk (10 avec poids 5, 20 avec poids 1)
+MID_LIST=$(echo "$MEMBERS_JSON" | jq -r '.items[:30] | map({member_id: .id, mode: "present"}) | tostring')
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"items\":$MID_LIST}" \
+  http://localhost:8080/api/v1/attendances_bulk | jq
+
+# 3. Calcul quorum
+curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/quorum_status?meeting_id=$MID" | jq
+# attendu : applied: true, met: true ou false, details.primary.{numerator_members, numerator_weight, denominator_members, denominator_weight, ratio, met}
+
+# 4. Vérifier en DB la cohérence
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT mode, count(*), sum(m.voting_power) AS total_weight \
+   FROM attendances a JOIN members m ON m.id = a.member_id \
+   WHERE a.meeting_id='$MID' AND a.tenant_id=(SELECT tenant_id FROM meetings WHERE id='$MID') \
+   GROUP BY mode"
+# attendu : 30 lignes 'present' avec sum(voting_power) cohérent (ex 50)
+
+# 5. Stress test : marquer 1 membre 'remote' et vérifier que le calcul l'inclut si count_remote=true
+M_REMOTE=$(echo "$MEMBERS_JSON" | jq -r '.items[31].id')
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"member_id\":\"$M_REMOTE\",\"mode\":\"remote\"}" \
+  http://localhost:8080/api/v1/attendances_upsert | jq
+
+curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/quorum_status?meeting_id=$MID" | jq
+# attendu : numerator_members augmenté de 1, ratio recalculé
+```
+
+**Impact** : 🟡 nice-to-have — moteur mature, défensif, bien testé. Pas de blocage attendu.
+
+**Recommandation** : valider en live qu'une politique de quorum tenant fallback existe par défaut (sinon `met: null` → cockpit peut afficher "—" au lieu de "atteint"). Stage 2 peut interroger : 3 modes (single/double/evolving) sont-ils tous nécessaires en pratique ? Le mode `double` est rare en associations (plus typique en copropriété — donc à proscrire selon CLAUDE.md ?), à confirmer terrain.
+
+---
