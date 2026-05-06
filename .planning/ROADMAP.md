@@ -34,7 +34,10 @@ Post-pivot, les milestones sont **nommés par feature/audit** plutôt que par ve
 5. Génération réelle d'un PV ≥5 pages avec contenu varié (résolution + élection + procuration), inspection visuelle
 6. Audit ne fait AUCUN fix — juste constat. Tickets fixes = livrable Stage 3 décision
 
-**Plans** : TBD
+**Plans** : 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Audit statique 12 étapes (setup → archive) + synthèse Stage 2/3 vers `.planning/CRITICAL-PATH-AUDIT.md`
 
 ### ⏳ M-AUDIT-STACK (planning)
 
