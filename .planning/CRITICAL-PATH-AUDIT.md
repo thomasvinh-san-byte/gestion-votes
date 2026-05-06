@@ -272,3 +272,94 @@ docker compose exec db psql -U app -d agvote -c \
 À investiguer en priorité Stage 2 (audit du domaine métier réel demandé) avant Stage 3 (décision direction).
 
 ---
+
+## Étape 04 — Ouverture séance live (AUDIT-CHEMIN-04)
+
+**Description du flow** : transitions guardées `draft → scheduled → frozen → live`. À chaque step, pré-requis vérifiés (motions présentes, attendance pointée, quorum atteint en warning). Transition unique via `meeting_transition` ou multi-step "fast-forward" via `launch`. Cockpit opérateur accessible une fois `live`. Audit_event émis. Évent SSE diffusé.
+
+**Code concerné** :
+- `app/Controller/MeetingWorkflowController.php` (256 lignes) — `transition`, `launch`, `readyCheck`, `resetDemo`. Gère HTTP, audit_log, broadcast SSE.
+- `app/Services/MeetingTransitionService.php` (269 lignes) — `transition()` valide enum status, `launch()` calcule path multi-step (`draft → ['scheduled', 'frozen', 'live']`, `scheduled → ['frozen', 'live']`, `frozen → ['live']`), agrège `issues` et `warnings` de chaque step.
+- `app/Services/MeetingWorkflowService.php` (237 lignes) — `issuesBeforeTransition()` règles déclaratives :
+  - `draft → scheduled` : exige motions présentes (`no_motions`).
+  - `scheduled → frozen` : exige attendance pointée (`no_attendance`), warning si pas de président.
+  - `frozen → live` : warning `quorum_not_met` (non bloquant — l'opérateur décide).
+  - `live → paused` : bloque si vote ouvert.
+  - `live → closed` : bloque si vote ouvert.
+  - `closed → validated` : exige résultats consolidés (codes `bad_closed_results`).
+- `app/Services/MeetingLifecycleService.php` (274 lignes) — wizard, summary, stats.
+- `app/Controller/OperatorController.php` (130 lignes) — endpoints cockpit.
+- `app/Services/OperatorWorkflowService.php` (297 lignes).
+- `app/routes.php` ligne 299 : `/meeting_transition`. Lignes 262 : `/meeting_status`, `/meeting_status_for_meeting`.
+- `database/schema-master.sql` ligne 28 : `meeting_status AS ENUM ('draft','scheduled','frozen','live','paused','closed','validated','archived')`. Ligne 280 : `status meeting_status NOT NULL DEFAULT 'draft'`. Index partiels pour `frozen`, `paused`, `validated`.
+
+**Tests existants** :
+- `tests/Unit/MeetingWorkflowControllerTest.php`.
+- `tests/Unit/MeetingWorkflowServiceTest.php`.
+- `tests/Unit/MeetingTransitionServiceTest.php` + `MeetingTransitionTest.php`.
+- `tests/Unit/StateTransitionCoherenceTest.php` — validation cohérence des transitions.
+- `tests/Unit/RelaxRoleTransitionsTest.php` — assouplissements RBAC.
+- `tests/Unit/OperatorControllerTest.php` + `OperatorWorkflowServiceTest.php`.
+
+**Recoupement archive** :
+- v2.0 "Operateur Live UX" — refacto majeur du cockpit + transitions. Documenté `⚠ Validated, à re-vérifier E2E` dans PROJECT.md.
+- v2.7 mentionne pre-existing test failures sur Meeting update/delete (étape 03) ; les transitions (étape 04) sont distinctes et non listées comme cassées.
+
+**Verdict statique** : ✓
+
+**Justification** :
+- Le service est très bien structuré : règles déclaratives par couple `(fromStatus, toStatus)`, séparation `issues` (bloquants) vs `warnings` (informatifs, opérateur décide), idempotence via early-return `already_in_target`, refus définitif sur `archived`.
+- `launch()` simule chaque step intermédiaire et agrège tous les pré-requis avant d'autoriser le saut multi-step → empêche d'arriver à `live` avec une étape intermédiaire non valide.
+- Couverture tests robuste (6 fichiers tests dédiés transitions + state).
+- Index PostgreSQL partiels sur `frozen`, `paused`, `validated` → bonnes performances pour requêtes "trouve la séance live courante".
+- Garde solide : `archived_meeting_locked` sur tous les transitions, `meeting_archived_locked` cohérent avec étape 03.
+- Nuance : `paused` et `scheduled` sont des states intermédiaires qui élargissent l'enum. À valider live qu'ils ne créent pas de blocage UX (ex. opérateur clique "lancer" → l'app reste en `scheduled` au lieu de jumpler à `live` car attendance non pointée).
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : MID = séance créée à l'étape 03 avec 1+ motion ; auth admin/operator OK.
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+
+# 1. Vérifier readyCheck (pré-requis avant lancement)
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\"}" \
+  http://localhost:8080/api/v1/meeting_ready_check | jq
+# attendu : { issues: [{code: "no_attendance", ...}], warnings: [...] }
+
+# 2. Tenter transition draft → live directement (devrait être interdit OU resort en multi-step launch)
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"to_status\":\"live\"}" \
+  http://localhost:8080/api/v1/meeting_transition | jq
+# attendu : 422 ou 409 — la transition single-step ne saute pas les états
+
+# 3. Marquer attendance (préalable pour passer scheduled → frozen — voir étape 05)
+# ... (curl /attendances_bulk avec liste de membres)
+
+# 4. Launch multi-step : draft → scheduled → frozen → live en un seul appel
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\"}" \
+  http://localhost:8080/api/v1/meeting_launch | jq
+# attendu : { meeting_id, from_status: "draft", to_status: "live", path: ["scheduled","frozen","live"], warnings: [...] }
+
+# 5. Idempotence : retenter transition vers live (déjà live)
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"to_status\":\"live\"}" \
+  http://localhost:8080/api/v1/meeting_transition | jq
+# attendu : { from_status: "live", to_status: "live", already_in_target: true }
+
+# 6. Vérifier accès cockpit opérateur après passage live
+curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/meeting_status?meeting_id=$MID" | jq
+# attendu : status: "live", données chargées (membres, motions, présences)
+
+# 7. Vérifier audit_event
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT action, payload FROM audit_events WHERE resource_type='meeting' AND resource_id='$MID' ORDER BY created_at DESC LIMIT 5"
+# attendu : meeting_transitioned (de draft vers scheduled, frozen, live)
+```
+
+**Impact** : 🟡 nice-to-have — code mature, pré-requis bien définis. Pas de blocage attendu en live.
+
+**Recommandation** : valider en live la diffusion SSE de l'event de transition (cockpit opérateur doit refresh seul). Si OK, ne rien refacto. Stage 2 peut auditer si l'enum à 8 états (`draft|scheduled|frozen|live|paused|closed|validated|archived`) est sur-dimensionné — peut-être que `paused` et `scheduled` ajoutent de la complexité sans valeur user.
+
+---
