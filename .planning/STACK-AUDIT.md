@@ -109,3 +109,47 @@
 **Recommandation Stage 3** : **prioriser** dans M-DECISION roadmap. Faisable en milestone unique "M-IO-CONSOLIDATION" (1 plan, 3 tasks : reader, test, cleanup deps).
 
 ---
+
+## AUDIT-STACK-03 — `erusev/parsedown` v1.8.0 (Markdown rendering)
+
+**Rôle aujourd'hui** : rendu Markdown → HTML pour les pages d'aide in-app (`/doc/{page}` servies depuis `app/docs/*.md`). Mode safe activé (`setSafeMode(true)`), TOC généré côté contrôleur.
+
+**Sites d'usage** :
+- `app/Controller/DocController.php` (1 usage : `new Parsedown()` + `->text()`)
+- `public/doc.php` (référence — wrapper legacy)
+- **2 sites au total**, 1 service réel.
+
+**Version actuelle** : `^1.8` lock `1.8.0`. **Projet quasi-mort** : pas de release depuis 2019, 200+ issues ouvertes, **émet des deprecation warnings sur PHP 8.4** (callable strings, optional params before required) — déjà neutralisés via `error_reporting(E_ALL & ~E_DEPRECATED)` ligne 122 de `DocController.php`. C'est une rustine, pas une solution.
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **league/commonmark** | Standard CommonMark + GFM, maintenu activement (dernière release <30j), PHP 8.4 natif, extensions modulaires (TOC, Attributes, FootNotes), conforme spec CommonMark | Légèrement plus lourd (~150 Ko vendor vs ~30 Ko Parsedown) |
+| **michelf/php-markdown** | Léger, maintenu | API datée, pas GFM par défaut, moins extensible |
+| **Parsedown 2.0-beta** | Migration "logique" | Beta depuis 2019, **abandonné de facto** |
+| **Garder Parsedown 1.8** | Rien à faire | Warnings PHP 8.4 suppressed (rustine), risque cassage PHP 8.5/9.0, surface attack mode safe non auditée depuis 6 ans |
+
+**Verdict** : **replace** (par `league/commonmark`)
+
+**Justification** :
+- Projet upstream **abandonné** (pas de release depuis 6 ans, deprecations PHP 8.4 non patchées).
+- Suppression `error_reporting()` rustine = code plus propre.
+- league/commonmark = standard de facto PHP, maintenu par PHP League, conforme CommonMark spec (interopérabilité éditeurs Markdown).
+- Usage limité (2 sites) → migration triviale.
+
+**Coût migration estimé** : **XS** (<2h)
+- `composer require league/commonmark` + `composer remove erusev/parsedown` — 5min.
+- Réécrire `DocController::renderMarkdown()` (lignes 121-128) avec `League\CommonMark\GithubFlavoredMarkdownConverter` — 30min.
+- Supprimer la rustine `error_reporting()` — gratuit, vient avec.
+- Vérifier `public/doc.php` (probablement obsolète si Router gère `/doc/*`) — 30min.
+- Tester rendu d'une page `.md` représentative — 30min.
+
+**Bénéfice attendu** :
+- Sortie d'une dépendance abandonnée (dette de sécurité latente).
+- Suppression du `error_reporting()` masking → restaure la visibilité des deprecations légitimes ailleurs.
+- Compatibilité PHP 8.5+ garantie (commonmark CI couvre).
+
+**Recommandation Stage 3** : **petite priorité** — peut être absorbé dans le milestone "M-IO-CONSOLIDATION" suggéré pour AUDIT-STACK-02, ou traité en quick-fix isolé.
+
+---
