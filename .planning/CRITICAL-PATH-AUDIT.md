@@ -131,7 +131,7 @@ curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf
 **Justification** :
 - Le code est fonctionnel et défensif : auto-détection encoding (`mb_detect_encoding` avec fallback Win-1252/ISO-8859-1), auto-détection séparateur, alias français étendus pour les en-têtes (`pondération`, `tantièmes`, `poids`, `prénom`, `collège`), upsert idempotent (email puis full_name), gestion groupes avec création-à-la-volée, transaction PDO, audit_log, idempotency guard sur retries.
 - **Nuance 1 (style)** : `ImportController.php` est écrit en one-liners ultra-denses (1 statement = 1 ligne, plusieurs `;` séparés). Très peu lisible. Risque de maintenance, mais pas un bug. Probablement compressé pour rester sous une LOC budget.
-- **Nuance 2 (CLAUDE.md)** : la mention `'tantiemes', 'tantièmes'` dans le column map (ligne 125 ImportService.php) est un terme à connotation copropriété. CLAUDE.md proscrit "copropriété/syndic" comme vocabulaire user-visible. Ici c'est un alias en-tête CSV donc l'utilisateur a juste l'option d'utiliser ce mot dans son fichier source — ce n'est pas affiché dans l'UI. Acceptable mais à noter.
+- **Nuance 2 (CLAUDE.md)** : la mention `'tantiemes', 'tantièmes'` dans le column map (ligne 125 ImportService.php) est un terme métier à proscrire selon CLAUDE.md (vocabulaire hors cible asso/collectivité). Ici c'est un alias en-tête CSV donc l'utilisateur a juste l'option d'utiliser ce mot dans son fichier source — ce n'est pas affiché dans l'UI. Acceptable mais à noter.
 - **Nuance 3 (test coverage)** : pas de stress test 50-lignes visible ; les tests existants couvrent le happy path et quelques edge cases (duplicate emails). Comportement sur ligne corrompue au milieu du batch (ex. ligne 25/50 invalide) : selon le code, l'erreur est ajoutée à `errors[]`, la ligne est `skipped++`, le batch continue. Pas de rollback total. C'est cohérent mais à confirmer en live.
 - **Nuance 4 (limites)** : taille fichier max 10 Mo (file upload) / 5 Mo (csv_content). Pas de limite explicite sur le nombre de lignes — pour 50 lignes c'est sans problème, pour 5000 lignes ce serait à vérifier (timeout PHP ? mémoire ?).
 
@@ -443,7 +443,7 @@ curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/quorum_status?meeting_id
 
 **Impact** : 🟡 nice-to-have — moteur mature, défensif, bien testé. Pas de blocage attendu.
 
-**Recommandation** : valider en live qu'une politique de quorum tenant fallback existe par défaut (sinon `met: null` → cockpit peut afficher "—" au lieu de "atteint"). Stage 2 peut interroger : 3 modes (single/double/evolving) sont-ils tous nécessaires en pratique ? Le mode `double` est rare en associations (plus typique en copropriété — donc à proscrire selon CLAUDE.md ?), à confirmer terrain.
+**Recommandation** : valider en live qu'une politique de quorum tenant fallback existe par défaut (sinon `met: null` → cockpit peut afficher "—" au lieu de "atteint"). Stage 2 peut interroger : 3 modes (single/double/evolving) sont-ils tous nécessaires en pratique ? Le mode `double` est rare en associations (cible CLAUDE.md), à confirmer terrain.
 
 ---
 
