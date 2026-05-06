@@ -11,22 +11,22 @@
 
 ### Phase 1 — Sessions Redis (P0, bloquant UX dogfood)
 
-- [ ] **CLEANUP-SESSIONS-01** : Configurer PHP `session.save_handler = redis` + `session.save_path = "tcp://redis:6379?database=1"` via `Dockerfile` ou `php.ini` custom. Vérifier que phpredis extension est chargée (déjà OK per AUDIT-STACK-05).
-- [ ] **CLEANUP-SESSIONS-02** : Migration hard-cutover (acceptable car pas de prod live). Documenter dans CHANGELOG.md ou `.planning/intel/SESSIONS-MIGRATION.md` les implications opérationnelles (TTL Redis = `session.gc_maxlifetime`, basique flush sur upgrade Redis).
-- [ ] **CLEANUP-SESSIONS-03** : Test PHPUnit + Playwright qui prouvent persistance sessions au redeploy. Test scenario : login → `docker compose down && docker compose up` (sans `-v`) → session toujours active. Cible : test E2E `tests/e2e/specs/session-persistence.spec.js`.
+- [x] **CLEANUP-SESSIONS-01** : Configurer PHP `session.save_handler = redis` + `session.save_path = "tcp://redis:6379?database=1"` via `Dockerfile` ou `php.ini` custom. Vérifier que phpredis extension est chargée (déjà OK per AUDIT-STACK-05).
+- [x] **CLEANUP-SESSIONS-02** : Migration hard-cutover (acceptable car pas de prod live). Documenter dans CHANGELOG.md ou `.planning/intel/SESSIONS-MIGRATION.md` les implications opérationnelles (TTL Redis = `session.gc_maxlifetime`, basique flush sur upgrade Redis).
+- [x] **CLEANUP-SESSIONS-03** : Test PHPUnit + Playwright qui prouvent persistance sessions au redeploy. Test scenario : login → `docker compose down && docker compose up` (sans `-v`) → session toujours active. Cible : test E2E `tests/e2e/specs/session-persistence.spec.js`.
 
 ### Phase 2 — Fixes chemin critique (3 ⚠ Stage 1)
 
-- [ ] **CLEANUP-CHEMIN-IMPORT** : Fixer edge cases import CSV/XLSX identifiés AUDIT-CHEMIN-02. Investigation détaillée dans `.planning/archive-pre-pivot-2026-05-05/CRITICAL-PATH-AUDIT.md` étape 02. Probables : dédoublonnage email case-insensitive, encodings (Latin-1 / UTF-8 BOM), validation poids vote bornes. Test PHPUnit ciblé.
-- [ ] **CLEANUP-CHEMIN-MOTION-KIND** : Ajouter colonne `motion.kind` (default `'resolution'`) via migration DB + adapter `MotionRepository::create()` + UI passe la valeur. Préserve compat retrofit (toutes les motions existantes deviennent `'resolution'` par défaut). Pas de scrutin majoritaire, pas de table candidates — juste la colonne pour permettre l'expression du gap dans le schéma. Test PHPUnit + migration idempotente.
-- [ ] **CLEANUP-CHEMIN-PROCURATION** : Vérifier + fixer la cap incohérence latente identifiée AUDIT-CHEMIN-08. Étape probable : revoir `ProxyService::canDelegate()` ou équivalent pour s'assurer que cap `max_proxies_per_member` est respecté à la fois côté validation client et côté service métier. Test PHPUnit qui prouve qu'un membre ne peut pas porter plus de N procurations.
+- [x] **CLEANUP-CHEMIN-IMPORT** : Fixer edge cases import CSV/XLSX identifiés AUDIT-CHEMIN-02. Investigation détaillée dans `.planning/archive-pre-pivot-2026-05-05/CRITICAL-PATH-AUDIT.md` étape 02. Probables : dédoublonnage email case-insensitive, encodings (Latin-1 / UTF-8 BOM), validation poids vote bornes. Test PHPUnit ciblé.
+- [x] **CLEANUP-CHEMIN-MOTION-KIND** : Ajouter colonne `motion.kind` (default `'resolution'`) via migration DB + adapter `MotionRepository::create()` + UI passe la valeur. Préserve compat retrofit (toutes les motions existantes deviennent `'resolution'` par défaut). Pas de scrutin majoritaire, pas de table candidates — juste la colonne pour permettre l'expression du gap dans le schéma. Test PHPUnit + migration idempotente.
+- [x] **CLEANUP-CHEMIN-PROCURATION** : Vérifier + fixer la cap incohérence latente identifiée AUDIT-CHEMIN-08. Étape probable : revoir `ProxyService::canDelegate()` ou équivalent pour s'assurer que cap `max_proxies_per_member` est respecté à la fois côté validation client et côté service métier. Test PHPUnit qui prouve qu'un membre ne peut pas porter plus de N procurations.
 
 ### Phase 3 — Quick-wins infra (Stage 2 priorités)
 
-- [ ] **CLEANUP-INFRA-DOC** : Fix doc `CLAUDE.md` / `STACK.md` mention "GD pour pixel email tracking" — incorrecte (pixel = GIF base64 hardcodé). Réviser sections concernées.
-- [ ] **CLEANUP-INFRA-GD-REMOVE** : Retirer `ext-gd` du `Dockerfile` + `composer.json` `config.platform` + adapter doc. Vérifier qu'aucun `imagecreate*()` ou similaire n'est utilisé dans le code (AUDIT-STACK-05 a confirmé : non utilisé). PHP `php -l` + tests existants doivent rester verts.
-- [ ] **CLEANUP-INFRA-PARSEDOWN** : Remplacer `erusev/parsedown` ^1.8 par `league/commonmark` ^2.x. Identifier les 1-2 sites d'usage (probablement `EmailTemplateService` ou similar), adapter signature API (`Parsedown->text($md)` → `$converter->convert($md)->getContent()`). Composer `composer remove erusev/parsedown` + `composer require league/commonmark`. Test PHPUnit qui prouve rendu équivalent sur fixture markdown.
-- [ ] **CLEANUP-INFRA-OPENSPOUT-IMPORT** : Migrer le path import XLSX (probablement `XlsxImporter` ou `ImportService`) de `phpspreadsheet` vers `openspout/openspout` (déjà dépendance pour export). API streaming au lieu de in-memory. `composer remove phpoffice/phpspreadsheet` + adapter code import + test PHPUnit fixture XLSX.
+- [x] **CLEANUP-INFRA-DOC** : Fix doc `CLAUDE.md` / `STACK.md` mention "GD pour pixel email tracking" — incorrecte (pixel = GIF base64 hardcodé). Réviser sections concernées.
+- [x] **CLEANUP-INFRA-GD-REMOVE** : Retirer `ext-gd` du `Dockerfile` + `composer.json` `config.platform` + adapter doc. Vérifier qu'aucun `imagecreate*()` ou similaire n'est utilisé dans le code (AUDIT-STACK-05 a confirmé : non utilisé). PHP `php -l` + tests existants doivent rester verts.
+- [x] **CLEANUP-INFRA-PARSEDOWN** : Remplacer `erusev/parsedown` ^1.8 par `league/commonmark` ^2.x. Identifier les 1-2 sites d'usage (probablement `EmailTemplateService` ou similar), adapter signature API (`Parsedown->text($md)` → `$converter->convert($md)->getContent()`). Composer `composer remove erusev/parsedown` + `composer require league/commonmark`. Test PHPUnit qui prouve rendu équivalent sur fixture markdown.
+- [x] **CLEANUP-INFRA-OPENSPOUT-IMPORT** : Migrer le path import XLSX (probablement `XlsxImporter` ou `ImportService`) de `phpspreadsheet` vers `openspout/openspout` (déjà dépendance pour export). API streaming au lieu de in-memory. `composer remove phpoffice/phpspreadsheet` + adapter code import + test PHPUnit fixture XLSX.
 
 ## v2 Requirements (post M-INFRA-CLEANUP)
 
@@ -48,16 +48,16 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEANUP-SESSIONS-01 | Phase 1 | Pending |
-| CLEANUP-SESSIONS-02 | Phase 1 | Pending |
-| CLEANUP-SESSIONS-03 | Phase 1 | Pending |
-| CLEANUP-CHEMIN-IMPORT | Phase 2 | Pending |
-| CLEANUP-CHEMIN-MOTION-KIND | Phase 2 | Pending |
-| CLEANUP-CHEMIN-PROCURATION | Phase 2 | Pending |
-| CLEANUP-INFRA-DOC | Phase 3 | Pending |
-| CLEANUP-INFRA-GD-REMOVE | Phase 3 | Pending |
-| CLEANUP-INFRA-PARSEDOWN | Phase 3 | Pending |
-| CLEANUP-INFRA-OPENSPOUT-IMPORT | Phase 3 | Pending |
+| CLEANUP-SESSIONS-01 | Phase 1 | Shipped |
+| CLEANUP-SESSIONS-02 | Phase 1 | Shipped |
+| CLEANUP-SESSIONS-03 | Phase 1 | Shipped |
+| CLEANUP-CHEMIN-IMPORT | Phase 2 | Shipped |
+| CLEANUP-CHEMIN-MOTION-KIND | Phase 2 | Shipped |
+| CLEANUP-CHEMIN-PROCURATION | Phase 2 | Shipped |
+| CLEANUP-INFRA-DOC | Phase 3 | Shipped |
+| CLEANUP-INFRA-GD-REMOVE | Phase 3 | Shipped |
+| CLEANUP-INFRA-PARSEDOWN | Phase 3 | Shipped |
+| CLEANUP-INFRA-OPENSPOUT-IMPORT | Phase 3 | Shipped |
 
 **Coverage :**
 - v1 requirements : 10 total

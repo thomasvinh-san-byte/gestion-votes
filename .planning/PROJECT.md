@@ -48,7 +48,7 @@ L'historique pré-pivot est archivé dans `.planning/archive-pre-pivot-2026-05-0
 
 Une fois Stage 1+2+3 done **(✓ Stages closed 2026-05-05)** :
 
-- [ ] **M-INFRA-CLEANUP** : Foundation propre AVANT features. 3 phases (~2.5-3j) : Sessions Redis P0 + 3 fixes ⚠ chemin (import/motion.kind/procuration) + quick-wins infra (ext-gd remove + Parsedown→CommonMark + OpenSpout import).
+- [x] **M-INFRA-CLEANUP** ✓ shipped 2026-05-06. Output : `.planning/milestones/M-INFRA-CLEANUP-MILESTONE-AUDIT.md`. 10/10 reqs sur 3 phases / 9 commits. Foundation propre, prête pour features 1.0.
 
 Une fois Stage 1+2+3 done :
 

@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: "M-INFRA-CLEANUP"
-milestone_name: "Foundation cleanup AVANT features (post-pivot)"
+milestone: "M-Signature"
+milestone_name: "Signature électronique PV eIDAS avancée"
 status: planning
 stopped_at: ""
-last_updated: "2026-05-05T16:00:00Z"
-last_activity: 2026-05-05 -- Stages 1+2+3 SHIPPED. M-INFRA-CLEANUP bootstrappé. 10 reqs CLEANUP-SESSIONS/CHEMIN/INFRA en 3 phases parallélisables. Première vraie BUILD milestone post-pivot.
+last_updated: "2026-05-06T07:00:00Z"
+last_activity: 2026-05-06 -- M-INFRA-CLEANUP shipped (10 reqs / 3 phases / 9 commits). Foundation propre. Awaiting M-Signature bootstrap.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,36 +21,36 @@ progress:
 See: `.planning/PROJECT.md` (post-pivot — Core Value offensive).
 
 **Core value :** Le secrétaire de séance fait en 5 clics ce qui prenait 1h en papier, avec traçabilité légale ≥ procès-verbal manuscrit.
-**Current focus :** M-INFRA-CLEANUP — foundation propre avant features 1.0.
+**Current focus :** M-Signature — première feature 1.0, débloque dogfood réel.
 
 ## Current Position
 
-Milestone: M-INFRA-CLEANUP (post Stage 1+2+3 audits/decision)
-Phase: Not started (3 phases déjà identifiées dans REQUIREMENTS.md, à phaser concrètement via /gsd:plan-phase)
+Milestone: M-Signature (post M-INFRA-CLEANUP shipped 2026-05-06)
+Phase: Not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-05 — Stages 1+2+3 done. M-INFRA-CLEANUP bootstrappé.
+Status: Awaiting bootstrap
+Last activity: 2026-05-06 — M-INFRA-CLEANUP shipped et auditée. Foundation propre.
 
 Progress: — (no plans yet)
 
-## Pivot Context (post Stages 1+2+3)
+## Pivot Context (post Stages 1+2+3+M-INFRA-CLEANUP)
 
 **Roadmap finale actée :**
-1. ✅ M-AUDIT-CHEMIN (Stage 1)
-2. ✅ M-AUDIT-STACK (Stage 2)
-3. ✅ M-DECISION (Stage 3 — Voie A confirmée)
-4. 🚧 M-INFRA-CLEANUP (foundation cleanup ~2.5-3j)
-5. ⏳ M-Signature (Signature électronique PV)
+1. ✅ M-AUDIT-CHEMIN (Stage 1, 2026-05-05)
+2. ✅ M-AUDIT-STACK (Stage 2, 2026-05-05)
+3. ✅ M-DECISION (Stage 3, 2026-05-05)
+4. ✅ M-INFRA-CLEANUP (foundation cleanup, 2026-05-06)
+5. 🚧 M-Signature (Signature électronique PV eIDAS avancée)
 6. ⏳ M-VoteDistant (Vote distant token)
 7. ⏳ M-Stats (Stats cross-séance)
 
-**M-INFRA-CLEANUP scope (10 reqs, 3 phases) :**
+**M-INFRA-CLEANUP — résumé :**
 
-**Phase 1 — Sessions Redis (P0)** : 3 reqs (config + migration + tests). Bloquant UX dogfood.
-**Phase 2 — Fixes ⚠ chemin** : 3 reqs (import edge cases + motion.kind + procuration cap). Correctness Stage 1.
-**Phase 3 — Quick-wins infra** : 4 reqs (doc fix + ext-gd remove + Parsedown→CommonMark + OpenSpout import). Stage 2 priorités.
+- Phase 1 Sessions Redis : 3 reqs ✅ (commits 389e320 / cf8bf33 / c3ba672)
+- Phase 2 Fixes ⚠ chemin : 3 reqs ✅ (commits a081542 / 012c91d / 596bf21)
+- Phase 3 Quick-wins infra : 4 reqs ✅ (commits 2035c34 / 9e5173a / 079ba5b)
 
-**Phases parallélisables** : files modified disjoints (Sessions = Dockerfile/php.ini + sessions tests ; Chemin = MotionRepository/ImportService/ProxyService + tests ; Infra = Dockerfile/composer.json + EmailTemplate/XlsxImporter + tests). Ordre conseillé : Phase 1 d'abord (P0), puis 2+3 en parallèle.
+**Audit milestone :** voir `.planning/milestones/M-INFRA-CLEANUP-MILESTONE-AUDIT.md`. Status `passed`.
 
 ## Accumulated Context
 
@@ -58,18 +58,17 @@ Progress: — (no plans yet)
 Voir `.planning/DECISION.md` (Stage 3 formal record).
 
 ### Pending Todos
-- Phaser M-INFRA-CLEANUP via /gsd:plan-phase
-- Dispatcher executors (1 par phase = 3 executors parallélisables)
-- Auditer + clore M-INFRA-CLEANUP
-- Bootstrap M-Signature
+- Bootstrap M-Signature (eIDAS avancée, DocuSign API ou Cryptolib auto-hébergé)
+- Appliquer migration `20260506_motion_kind.sql` au prochain entrypoint dev-machine
+- Exécuter test E2E `session-persistence.spec.js` en dev-machine (Docker requis)
 
 ### Blockers/Concerns
-Aucun. Audits Stage 1+2+3 ont validé que la stack tient et que le chemin critique a juste 3 ⚠ corrigeables.
+Aucun. Foundation propre. Stack alignée Voie A.
 
 ## Session Continuity
 
-Last session: 2026-05-05 (continue from M-DECISION close → M-INFRA-CLEANUP bootstrap)
-Stopped at: M-INFRA-CLEANUP bootstrappé, awaiting /gsd:plan-phase pour les 3 phases.
+Last session: 2026-05-06 (M-INFRA-CLEANUP shipped + auditée + closed)
+Stopped at: M-INFRA-CLEANUP fermée, awaiting M-Signature bootstrap.
 Resume file: None.
 
-**Next action:** `/gsd:plan-phase 1` (Sessions Redis P0) ou `/gsd:autonomous` pour driver M-INFRA-CLEANUP entier.
+**Next action:** `/gsd:new-milestone M-Signature` ou `/gsd:autonomous` pour driver M-Signature.
