@@ -44,6 +44,13 @@ final class CsvImporter {
             $content = mb_convert_encoding($content, 'UTF-8', $encoding);
         }
 
+        // Strip UTF-8 BOM (Excel "CSV UTF-8" exports prepend EF BB BF). Without
+        // this, the first header keeps the BOM as a leading character and
+        // strtolower(trim(...)) cannot recover it — the column is silently lost.
+        if (is_string($content) && strncmp($content, "\xEF\xBB\xBF", 3) === 0) {
+            $content = substr($content, 3);
+        }
+
         // Write normalized content to temp file for fgetcsv
         $tmpPath = tempnam(sys_get_temp_dir(), 'csv_enc_');
         file_put_contents($tmpPath, $content);

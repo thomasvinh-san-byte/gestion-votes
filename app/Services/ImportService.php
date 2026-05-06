@@ -122,7 +122,7 @@ final class ImportService {
             'first_name' => ['first_name', 'prenom', 'prénom'],
             'last_name' => ['last_name', 'nom_famille'],
             'email' => ['email', 'mail', 'e-mail'],
-            'voting_power' => ['voting_power', 'ponderation', 'pondération', 'weight', 'tantiemes', 'tantièmes', 'poids'],
+            'voting_power' => ['voting_power', 'ponderation', 'pondération', 'weight', 'poids'],
             'is_active' => ['is_active', 'actif', 'active'],
             'groups' => ['groups', 'groupes', 'group', 'groupe', 'college', 'collège', 'categorie', 'catégorie'],
         ];
@@ -186,10 +186,31 @@ final class ImportService {
         return in_array($val, ['1', 'true', 'oui', 'yes', 'actif', 'active', 'o', 'y'], true);
     }
 
+    /**
+     * Parses a voting power cell into a clamped float.
+     *
+     * - Accepts comma-as-decimal (French Excel exports).
+     * - Falls back to 1.0 for empty / non-numeric / non-positive input.
+     * - Rejects NaN / Inf (returned by `(float)` for malformed scientific
+     *   notation or pathological values like "1e1000").
+     * - Caps at MAX_VOTING_POWER to absorb malformed cells (e.g. "1e9")
+     *   without poisoning quorum calculations downstream.
+     */
+    public const MAX_VOTING_POWER = 1000.0;
+
     public static function parseVotingPower(string $val): float {
         $val = str_replace(',', '.', trim($val));
+        if ($val === '') {
+            return 1.0;
+        }
+        if (!is_numeric($val)) {
+            return 1.0;
+        }
         $power = (float) $val;
-        return $power > 0 ? $power : 1.0;
+        if (!is_finite($power) || $power <= 0) {
+            return 1.0;
+        }
+        return min($power, self::MAX_VOTING_POWER);
     }
 
     // ========================================================================

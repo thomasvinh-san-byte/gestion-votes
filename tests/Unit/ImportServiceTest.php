@@ -216,7 +216,10 @@ class ImportServiceTest extends TestCase {
     // =========================================================================
 
     public function testMapColumnsAllVotingPowerAliases(): void {
-        $aliases = ['voting_power', 'ponderation', 'pondération', 'weight', 'tantiemes', 'tantièmes', 'poids'];
+        // Note: 'tantiemes' / 'tantièmes' aliases were dropped post Stage 1
+        // audit — copro vocabulary, out of scope for assos/collectivités
+        // (CLAUDE.md proscription).
+        $aliases = ['voting_power', 'ponderation', 'pondération', 'weight', 'poids'];
         $columnMap = ImportService::getMembersColumnMap();
 
         foreach ($aliases as $alias) {
@@ -471,6 +474,43 @@ class ImportServiceTest extends TestCase {
 
     public function testParseVotingPowerEmptyDefaultsToOne(): void {
         $this->assertEquals(1.0, ImportService::parseVotingPower(''));
+    }
+
+    public function testParseVotingPowerCapsExtremeValuesAtMax(): void {
+        // Malformed cells (a stray scientific notation, a row with a payroll
+        // amount in the wrong column…) used to poison quorum maths because
+        // the float was returned as-is. CLEANUP-CHEMIN-IMPORT clamps to
+        // ImportService::MAX_VOTING_POWER.
+        $this->assertEquals(
+            ImportService::MAX_VOTING_POWER,
+            ImportService::parseVotingPower('1e9'),
+        );
+        $this->assertEquals(
+            ImportService::MAX_VOTING_POWER,
+            ImportService::parseVotingPower('999999'),
+        );
+    }
+
+    public function testParseVotingPowerRejectsNonNumeric(): void {
+        $this->assertEquals(1.0, ImportService::parseVotingPower('abc'));
+        $this->assertEquals(1.0, ImportService::parseVotingPower('--3'));
+    }
+
+    public function testParseVotingPowerRejectsNonFinite(): void {
+        // (float)'1e1000' === INF in PHP; previous code returned INF unchanged.
+        $this->assertEquals(1.0, ImportService::parseVotingPower('1e1000'));
+    }
+
+    public function testGetMembersColumnMapDropsCoproVocab(): void {
+        // CLAUDE.md proscribes "copropriété" / "syndic" vocabulary. The
+        // tantième aliases were copro-only and have no place in the
+        // associations/collectivités scope.
+        $aliases = ImportService::getMembersColumnMap()['voting_power'];
+        $this->assertNotContains('tantiemes', $aliases);
+        $this->assertNotContains('tantièmes', $aliases);
+        // Regression guard: the supported French alias must remain.
+        $this->assertContains('pondération', $aliases);
+        $this->assertContains('poids', $aliases);
     }
 
     // =========================================================================
