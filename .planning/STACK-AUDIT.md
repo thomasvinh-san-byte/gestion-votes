@@ -58,3 +58,54 @@
 **Recommandation Stage 3** : aucune action. Surveiller `dompdf/dompdf` 4.x si annoncé. Maintenir test de smoke PV ≥10 pages (déjà identifié comme dette dans PROJECT.md "Fonctionnel non vérifié récemment").
 
 ---
+
+## AUDIT-STACK-02 — `phpoffice/phpspreadsheet` v1.30.2 + `openspout/openspout` v5.6.0 (Excel I/O)
+
+**Rôle aujourd'hui** : **dual-track** XLSX I/O découvert pendant l'audit (non explicité dans REQUIREMENTS.md initial) :
+- **OpenSpout v5.6** = chemin **export XLSX** streaming (`ExportService.php`, `Writer\XLSX\Writer`). Mémoire constante quel que soit le nombre de lignes — adapté aux exports résultats AG.
+- **PhpSpreadsheet v1.30.2** = chemin **import XLSX** uniquement (`XlsxImporter.php`, `IOFactory::load()` + `getRowIterator()`). Charge tout le workbook en mémoire.
+
+**Sites d'usage** :
+- `app/Services/ExportService.php` (310 lignes, OpenSpout) — exports résultats motions, PV xlsx, attendances.
+- `app/Services/XlsxImporter.php` (300 lignes, PhpSpreadsheet) — imports membres / procurations / motions / présences depuis XLSX.
+- `app/Controller/AnalyticsController.php` (1 reférence — confirmer si export ou import).
+- 3 sites au total, séparation propre entre import et export.
+
+**Versions actuelles** :
+- `phpoffice/phpspreadsheet ^1.29` lock `1.30.2` (1.x EOL annoncée Q4 2026 → migration 2.x ou 3.x à prévoir)
+- `openspout/openspout ^5.6` lock `v5.6.0` (5.x maintenue activement, PHP 8.4 supporté)
+
+**Recoupement Stage 1** : étape 02 audit chemin critique (import CSV/XLSX membres) marquée `⚠` — la nuance documentée concerne l'encoding/separator detection, pas la libraire elle-même. La présence d'OpenSpout côté export prouve que la migration partielle est faisable.
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **OpenSpout-only** (étendre OpenSpout côté import via `Reader\XLSX\Reader`) | API symétrique avec l'export, mémoire constante au lieu de O(n), -2 Mo de deps Composer (PhpSpreadsheet pèse ~5 Mo, OpenSpout ~500 Ko), suppression d'une dépendance sur fin de vie | OpenSpout Reader ne calcule pas les formules (`isFormula()` + `getCalculatedValue()` actuellement utilisés ligne 61-62 de XlsxImporter) — **mais** le cas d'usage import membre n'a aucune raison légitime d'embarquer une formule. Trivial à supprimer. |
+| **CSV-only** (supprimer XLSX import entièrement) | Stack ultra-légère, formats triviaux | Cible utilisateur (secrétaire asso non-tech) export naturellement depuis Excel/LibreOffice. Forcer CSV ajoute friction. **Disqualifié.** |
+| **Box/Spout** (ancien projet, deprecated) | — | Officiellement archivé, OpenSpout est le fork. **Disqualifié.** |
+| **Garder dual-track actuel** | Statu quo, fonctionne | Maintient 2 dépendances pour 1 problème, PhpSpreadsheet 1.x EOL Q4 2026, surcoût mental pour chaque dev qui touche I/O Excel |
+
+**Verdict** : **replace** (PhpSpreadsheet → OpenSpout côté import)
+
+**Justification** :
+- Asymétrie injustifiée : export streaming (mémoire constante) mais import non-streaming (charge tout). Un fichier import 5000 lignes consommerait ~50 Mo RAM avec PhpSpreadsheet vs <2 Mo avec OpenSpout Reader.
+- Deadline upstream : PhpSpreadsheet 1.x EOL Q4 2026 → migration forcée tôt ou tard, autant la faire vers OpenSpout (déjà en place côté export) plutôt que vers PhpSpreadsheet 2.x/3.x.
+- API OpenSpout Reader très proche de l'usage actuel (foreach sur sheets + foreach rows + getCells) — réécriture mécanique.
+- Suppression de `phpoffice/phpspreadsheet` allège l'image Docker (~5 Mo vendor + dépendances transitives `markbaker/complex`, `markbaker/matrix`, etc.).
+
+**Coût migration estimé** : **S** (1 jour)
+- Réécrire `XlsxImporter::readFile()` (45 lignes lignes 33-92) avec `OpenSpout\Reader\XLSX\Reader` — 1-2h de code.
+- Adapter le test `tests/Unit/XlsxImporterTest.php` si présent — 1-2h.
+- Retirer `phpoffice/phpspreadsheet` du `composer.json` + run `composer update` + verify — 30min.
+- Vérifier `AnalyticsController.php` (1 référence) — 30min.
+
+**Bénéfice attendu** :
+- 1 dépendance retirée (~5 Mo image Docker).
+- Mémoire d'import constante (gain perçu sur fichiers >1000 lignes).
+- Symétrie API import/export (réduit la charge cognitive dev future).
+- Hors zone EOL annoncée.
+
+**Recommandation Stage 3** : **prioriser** dans M-DECISION roadmap. Faisable en milestone unique "M-IO-CONSOLIDATION" (1 plan, 3 tasks : reader, test, cleanup deps).
+
+---
