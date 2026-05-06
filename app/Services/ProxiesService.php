@@ -40,6 +40,16 @@ use InvalidArgumentException;
  * @see PROXY_MAX_PER_RECEIVER Environment variable for the cap
  */
 final class ProxiesService {
+    /**
+     * Default cap per receiver when `proxy_max_per_receiver` is not set
+     * in tenant_settings. Aligned across API upsert and CSV/XLSX import:
+     * Stage 1 audit (CRITICAL-PATH-AUDIT.md étape 08) caught a latent
+     * inconsistency where ProxiesService defaulted to 99 while
+     * ImportController defaulted to 3. French association practice is
+     * 1-3 proxies max per receiver, so we standardize on 3.
+     */
+    public const DEFAULT_MAX_PER_RECEIVER = 3;
+
     private ProxyRepository $repo;
 
     public function __construct(?ProxyRepository $repo = null) {
@@ -70,7 +80,7 @@ final class ProxiesService {
      * @throws InvalidArgumentException If validation fails
      */
     public function upsert(string $meetingId, string $giverMemberId, string $receiverMemberId, string $tenantId): void {
-        $maxPerReceiver = (int) config('proxy_max_per_receiver', 99);
+        $maxPerReceiver = (int) config('proxy_max_per_receiver', self::DEFAULT_MAX_PER_RECEIVER);
         $repo = $this->repo;
 
         if ($giverMemberId === '') {

@@ -6,6 +6,7 @@ namespace AgVote\Controller;
 
 use AgVote\Core\Security\IdempotencyGuard;
 use AgVote\Service\ImportService;
+use AgVote\Service\ProxiesService;
 
 final class ImportController extends AbstractController {
     private ?ImportService $importService = null;
@@ -47,14 +48,14 @@ final class ImportController extends AbstractController {
 
     public function proxiesCsv(): void {
         $in = api_request('POST'); [$mid] = $this->requireWritableMeeting($in);
-        $dry = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN); $maxPPR = (int) config('proxy_max_per_receiver', 3);
+        $dry = filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN); $maxPPR = (int) config('proxy_max_per_receiver', ProxiesService::DEFAULT_MAX_PER_RECEIVER);
         $file = api_file('file', 'csv_file'); [$h, $rw] = $this->readCsvOrContent($file, $in['csv_content'] ?? null);
         $this->runProxiesImport($h, $rw, $mid, $dry, $maxPPR, $file ? ($file['name'] ?? 'upload.csv') : 'csv_content', 'proxies_import');
     }
 
     public function proxiesXlsx(): void {
         $in = api_request('POST'); [$mid] = $this->requireWritableMeeting($in); [$h, $rw] = $this->readImportFile('xlsx');
-        $this->runProxiesImport($h, $rw, $mid, filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN), (int) config('proxy_max_per_receiver', 3), api_file('file', 'xlsx_file')['name'] ?? '', 'proxies_import_xlsx');
+        $this->runProxiesImport($h, $rw, $mid, filter_var($in['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN), (int) config('proxy_max_per_receiver', ProxiesService::DEFAULT_MAX_PER_RECEIVER), api_file('file', 'xlsx_file')['name'] ?? '', 'proxies_import_xlsx');
     }
 
     public function motionsCsv(): void {

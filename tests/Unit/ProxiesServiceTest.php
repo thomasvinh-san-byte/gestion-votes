@@ -152,7 +152,8 @@ class ProxiesServiceTest extends TestCase {
             ->method('countActiveAsGiverForUpdate')
             ->willReturn(0);
 
-        // Cap reached (99 is the default from config())
+        // Cap reached: 99 is well above the aligned default
+        // (ProxiesService::DEFAULT_MAX_PER_RECEIVER = 3 post Stage 1 fix).
         $this->proxyRepo
             ->method('countActiveAsReceiverForUpdate')
             ->with(self::MEETING_ID, self::RECEIVER_ID, self::TENANT_ID)
