@@ -528,3 +528,60 @@ Ils sont consommés par `public/api/v1/events.php` (script procédural SSE long-
 - **Action S concrète** : migrer sessions PHP fichier → Redis. Bloque pas le pivot mais améliore UX dogfood (un opérateur de séance ne perd pas sa session après un déploiement). Inclure dans M-INFRA-CLEANUP.
 
 ---
+
+## AUDIT-STACK-12 — PostgreSQL extensions + indexes
+
+**Rôle aujourd'hui** : PostgreSQL 16 (compose externe), connectivité PDO (`pdo_pgsql`). 30 tables + 88 index dans `database/schema-master.sql`, 29 migrations dans `database/migrations/` (61 index supplémentaires). **149 index au total** sur ~30 tables → ratio ~5 index/table, raisonnable.
+
+**Extensions PostgreSQL utilisées** :
+- `citext` — emails case-insensitive (CREATE EXTENSION dans schema-master.sql)
+- `pgcrypto` — `gen_random_uuid()` pour PK UUID v4
+Aucune autre extension custom (pas de PostGIS / pgvector / etc., aligné avec besoins fonctionnels).
+
+**Index audit par table critique** :
+
+| Table | Index présents | Hot path couvert ? | Manquant probable ? |
+|---|---|---|---|
+| `users` | uniqueness `(tenant_id, email)` (citext), role | ✓ login, tenant scope | — |
+| `members` | `(tenant_id, full_name)` UNIQUE, `(tenant_id, external_ref)` UNIQUE, `(tenant_id, is_active)` | ✓ import dedup, listing | Possiblement `(tenant_id, lower(email))` si recherche par email pratiquée — à confirmer en code |
+| `meetings` | `tenant_id`, `status`, `(tenant_id, status)` | ✓ filtre dashboard | — |
+| `motions` | `(tenant_id, meeting_id)`, `(tenant_id, meeting_id, opened_at) WHERE closed_at IS NULL` (partial), `(meeting_id, slug)` UNIQUE | ✓ live (vote en cours) | — |
+| `ballots` | `(tenant_id, meeting_id)`, `motion_id`, `(tenant_id, meeting_id, motion_id)` (covering F-hardening) | ✓ tally rapide | — |
+| `audit_events` | `(tenant_id, created_at)`, `(resource_type, resource_id)` partial, `(action, created_at DESC)`, `(tenant_id, action, created_at DESC)` (covering v2.7) | ✓ /admin/audit listings | — |
+| `email_queue` | `scheduled_at WHERE status='pending'` partial, `(tenant_id, status)`, `(meeting_id)` partial, `(status, scheduled_at) WHERE pending/processing` | ✓ worker pickup, retries | — |
+| `paper_ballots` | `code_hash` UNIQUE, `code_hash WHERE used_at IS NULL` partial | ✓ scan code | — |
+| `attendances` | À vérifier | ? | Probablement `(tenant_id, meeting_id, member_id)` UNIQUE existant |
+| `proxies` | À vérifier | ? | Probablement `(tenant_id, meeting_id, giver_id)` UNIQUE |
+
+**Découvertes** :
+1. **Covering indexes v2.7** annoncés dans REQUIREMENTS.md : **vérifiés présents** :
+   - `idx_ballots_tenant_meeting_motion` (migration `20260218_security_hardening.sql`)
+   - `idx_audit_tenant_action_time` (migration `20260311_audit_covering_index.sql`, marqué CONCURRENTLY = production-safe)
+2. **Migrations idempotentes** : tous les `CREATE INDEX IF NOT EXISTS` → re-exécution sûre.
+3. **Pas de index unused détecté** statiquement (audit pg_stat_user_indexes nécessite live runtime → out of scope sandbox).
+4. Pas d'index manifestement manquant identifié sans analyse runtime (`EXPLAIN ANALYZE` sur requêtes hot — Stage 3 followup possible).
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **Migrer vers MySQL 8** | Aucun | Régression : pas de partial index identique, pas de citext, pas de UUIDv4 natif sans extension. **Disqualifié.** |
+| **SQLite** | Embed simple | Pas adapté concurrence cible (multi-op live), pas de partial index identique. **Disqualifié.** |
+| **MongoDB / NoSQL** | — | Schemas relationnels avec contraintes (FK + UNIQUE composite) au cœur du domaine, NoSQL régresserait l'intégrité. **Disqualifié.** |
+| **Garder PostgreSQL 16** | Stack mature, citext/pgcrypto disponibles, 149 index couvrent les hot paths, partial index supportés | Pas d'alerte réelle |
+
+**Verdict** : **keep**
+
+**Justification** :
+- Schéma bien indexé, partial index utilisés à bon escient pour réduire taille (ex. `email_queue.status='pending'`, `paper_ballots.used_at IS NULL`).
+- Covering indexes v2.7 livrés (recoupement avec PROJECT.md "Validated v2.7 polish").
+- Extensions minimales (citext + pgcrypto = standard PostgreSQL).
+
+**Coût migration** : N/A (keep)
+**Bénéfice attendu** : N/A
+**Recommandation Stage 3** :
+- Aucune action critique.
+- **Followup post-pivot recommandé** : analyser `pg_stat_user_indexes` en dogfood réel pour identifier index *unused* à drop (effort XS, gain stockage marginal). À faire **après** premier déploiement asso pilote, pas en Stage 3.
+- **Followup post-pivot** : `EXPLAIN ANALYZE` sur top 5 requêtes hot (motion live tally, dashboard listings, audit search) pour vérifier qu'aucun seq scan n'apparaît. Effort S, à faire en M-DOGFOOD-OBSERVABILITY.
+
+---
