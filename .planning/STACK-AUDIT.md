@@ -236,3 +236,53 @@
 **Recommandation Stage 3** : **inclure dans M-INFRA-CLEANUP** — quick win, faible risque (sandbox docker build + healthcheck suffit à valider). Si dompdf venait à charger des images PNG dans des PV futurs, ext-gd peut être réinstallée trivialement.
 
 ---
+
+## AUDIT-STACK-06 — `AgVote\Core\Router` (routing custom, 348 lignes, 162 routes)
+
+**Rôle aujourd'hui** : routeur custom léger sans dépendance externe. Trois mécanismes :
+1. Routes exactes O(1) (`$routes` map) — chemin chaud
+2. Routes paramétrées O(n) avec placeholders `{id}` (`$paramRoutes`) — réservé aux routes dynamiques
+3. Routes spéciales bootstrap (`$specialRoutes`) — endpoints qui utilisent `bootstrap.php` au lieu d'`api.php` (essentiellement les pixels tracking et endpoints publics non-auth)
+4. Pipeline middleware `MiddlewarePipeline` (PSR-15-like mais home-made), middleware par config dans le `map()` 4e param.
+
+**Sites d'usage** :
+- `app/Core/Router.php` (348 lignes, classe `final`)
+- `app/routes.php` (162 routes mappées via `map()`/`mapAny()`/`mapMulti()`/`mapBootstrap()`)
+- `public/index.php` (entry point, instancie + dispatch)
+- 100% des routes API + HTML passent par lui, pas de fallback
+
+**Version actuelle** : custom, pas de versioning. Pattern : exact-match d'abord, fallback param-routes, fallback special-routes. Préserve compat URL `.php` pour migration depuis routing fichier.
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **Slim 4** | PSR-7/PSR-15 standard, écosystème middleware (rate-limit, CORS, JWT, OAuth), cache compilé, named routes, URL builder, error handler intégré | Migration de 162 routes (script automatisable mais à valider 1 par 1), middleware actuels (RateLimitGuard, RoleMiddleware, etc.) à porter en PSR-15, ~500 Ko vendor |
+| **Symfony Routing** (composant seul) | Compilation cache hyper-rapide, attributes-based routing, named routes natives | Surface beaucoup plus large (option configurations), couplage encore plus fort écosystème Symfony, pas de pipeline middleware natif |
+| **FastRoute (nikic)** | Routeur le plus rapide PHP, micro-lib | Pas de middleware (juste routing → handler), il faut greffer un container et un dispatcher = on reconstruit notre custom |
+| **Laravel Routing** | DX excellente | Couplage IoC container Laravel, hors scope |
+| **Custom Router actuel** | Zéro dépendance, 348 lignes auditables, perf O(1) sur exact-match (route chaude), pipeline middleware fonctionnel, déjà gère `.php` legacy + special routes | Pas de named routes / URL builder (les redirects utilisent des chaînes hardcodées dans tout le code, fragilité refacto), pas de cache compilé (162 routes registrées à chaque request — coût marginal mais O(n) sur params), pipeline middleware non-PSR-15 (pas réutilisable depuis l'écosystème) |
+
+**Verdict** : **keep**
+
+**Justification** :
+- 348 lignes simples, parfaitement auditables (vs ~5000 LOC Slim/Symfony Routing).
+- Performance acceptable : exact-match O(1) sur ~95% des routes, params O(n) sur ~5%.
+- 162 routes à re-câbler = travail mécanique mais surtout **tests E2E à re-valider** = effort L disproportionné vs gain.
+- L'absence de named routes est un irritant DX réel mais pas bloquant (une feature future peut introduire un wrapper minimal `RouteRegistry::url('motion.show', $id)` côté custom sans migrer).
+- La cible (asso self-hosted, ~10-100 req/min en pic AG) n'a aucune contrainte de perf qui justifierait un cache compilé.
+- Recoupement Stage 1 : aucune des 11 étapes audit chemin n'a identifié de bug routing.
+
+**Coût migration estimé** : **L** (~2 semaines)
+- Porter 162 routes vers Slim/Symfony — 3-5 jours
+- Réécrire 4-6 middlewares custom en PSR-15 (RateLimitGuard, RoleMiddleware, AuthMiddleware, CsrfMiddleware) — 2-3 jours
+- Re-tester chaque endpoint (Playwright + PHPUnit) — 2-3 jours
+- Risque régression sur edge cases (CORS, OPTIONS preflight, .php legacy URLs)
+
+**Bénéfice attendu** : marginal (named routes, écosystème middleware tiers) — non proportionnel.
+
+**Recommandation Stage 3** : aucune action immédiate. **Améliorations incrémentales possibles sans migration** :
+- Ajouter un wrapper `RouteRegistry` pour named routes (effort XS, gain DX visible)
+- Ajouter un cache compilé (sérialisation des `routes` + `paramRoutes` en APCu) si jamais perf devient un sujet (pas le cas)
+
+---
