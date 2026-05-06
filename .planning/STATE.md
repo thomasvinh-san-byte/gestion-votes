@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: "M-DECISION"
-milestone_name: "Décision direction Voie A formalisée (Stage 3 post-pivot)"
+milestone: "M-INFRA-CLEANUP"
+milestone_name: "Foundation cleanup AVANT features (post-pivot)"
 status: planning
 stopped_at: ""
-last_updated: "2026-05-05T15:30:00Z"
-last_activity: 2026-05-05 -- M-AUDIT-STACK closé. Verdict 11 keep/2 replace/1 remove → Voie A confirmée. M-DECISION bootstrappé Stage 3, doit livrer .planning/DECISION.md + scope concret M-INFRA-CLEANUP. Décision user : infra fix AVANT features.
+last_updated: "2026-05-05T16:00:00Z"
+last_activity: 2026-05-05 -- Stages 1+2+3 SHIPPED. M-INFRA-CLEANUP bootstrappé. 10 reqs CLEANUP-SESSIONS/CHEMIN/INFRA en 3 phases parallélisables. Première vraie BUILD milestone post-pivot.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -14,57 +14,62 @@ progress:
   percent: 0
 ---
 
-# AG-VOTE -- Project State (post-pivot)
+# AG-VOTE -- Project State (post-pivot, BUILD phase)
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (post-pivot — Core Value offensive).
 
 **Core value :** Le secrétaire de séance fait en 5 clics ce qui prenait 1h en papier, avec traçabilité légale ≥ procès-verbal manuscrit.
-**Current focus :** Stage 3 — formaliser la décision de direction et l'ordre roadmap.
+**Current focus :** M-INFRA-CLEANUP — foundation propre avant features 1.0.
 
 ## Current Position
 
-Milestone: M-DECISION (Stage 3 post-pivot)
-Phase: Not started (1 plan unique = écrire DECISION.md)
+Milestone: M-INFRA-CLEANUP (post Stage 1+2+3 audits/decision)
+Phase: Not started (3 phases déjà identifiées dans REQUIREMENTS.md, à phaser concrètement via /gsd:plan-phase)
 Plan: —
 Status: Defining requirements
-Last activity: 2026-05-05 — M-AUDIT-STACK shippé (722 lignes). M-DECISION bootstrappé. 3 reqs DECISION-01..03 prêts.
+Last activity: 2026-05-05 — Stages 1+2+3 done. M-INFRA-CLEANUP bootstrappé.
 
 Progress: — (no plans yet)
 
-## Pivot Context Summary (post Stage 1+2)
+## Pivot Context (post Stages 1+2+3)
 
-**Stage 1 (M-AUDIT-CHEMIN)** : 7✓/3⚠/0✗/1 hors-scope. Élection multi-candidats hors-scope.
-**Stage 2 (M-AUDIT-STACK)** : 11 keep/2 replace/1 remove. Voie A confirmée.
+**Roadmap finale actée :**
+1. ✅ M-AUDIT-CHEMIN (Stage 1)
+2. ✅ M-AUDIT-STACK (Stage 2)
+3. ✅ M-DECISION (Stage 3 — Voie A confirmée)
+4. 🚧 M-INFRA-CLEANUP (foundation cleanup ~2.5-3j)
+5. ⏳ M-Signature (Signature électronique PV)
+6. ⏳ M-VoteDistant (Vote distant token)
+7. ⏳ M-Stats (Stats cross-séance)
 
-**Décisions user post-audits :**
-- Voie A (refacto sur place) — pas de rebuild
-- M-ElectionMotion ANNULÉ
-- Infra fix AVANT features (M-INFRA-CLEANUP avant M-Signature)
-- Order top 3 priorités Stage 2 : Sessions Redis (1j) + OpenSpout import (1j) + quick-wins (XS) + 3 ⚠ Stage 1
+**M-INFRA-CLEANUP scope (10 reqs, 3 phases) :**
 
-**Roadmap finale post-Stage-3 :**
-1. M-INFRA-CLEANUP (~2.5-3j)
-2. M-Signature (eIDAS avancée)
-3. M-VoteDistant (token sans compte)
-4. M-Stats (cross-séance)
+**Phase 1 — Sessions Redis (P0)** : 3 reqs (config + migration + tests). Bloquant UX dogfood.
+**Phase 2 — Fixes ⚠ chemin** : 3 reqs (import edge cases + motion.kind + procuration cap). Correctness Stage 1.
+**Phase 3 — Quick-wins infra** : 4 reqs (doc fix + ext-gd remove + Parsedown→CommonMark + OpenSpout import). Stage 2 priorités.
+
+**Phases parallélisables** : files modified disjoints (Sessions = Dockerfile/php.ini + sessions tests ; Chemin = MotionRepository/ImportService/ProxyService + tests ; Infra = Dockerfile/composer.json + EmailTemplate/XlsxImporter + tests). Ordre conseillé : Phase 1 d'abord (P0), puis 2+3 en parallèle.
 
 ## Accumulated Context
 
 ### Decisions
-Voir PROJECT.md "Key Decisions" + MILESTONES.md M-AUDIT-* entries.
+Voir `.planning/DECISION.md` (Stage 3 formal record).
 
 ### Pending Todos
-- Phaser M-DECISION via /gsd:plan-phase OU directement dispatch executor (1 doc à écrire, ~10 min)
+- Phaser M-INFRA-CLEANUP via /gsd:plan-phase
+- Dispatcher executors (1 par phase = 3 executors parallélisables)
+- Auditer + clore M-INFRA-CLEANUP
+- Bootstrap M-Signature
 
 ### Blockers/Concerns
-Aucun.
+Aucun. Audits Stage 1+2+3 ont validé que la stack tient et que le chemin critique a juste 3 ⚠ corrigeables.
 
 ## Session Continuity
 
-Last session: 2026-05-05 (continue from M-AUDIT-STACK close → M-DECISION bootstrap)
-Stopped at: M-DECISION bootstrappé, awaiting executor pour DECISION.md.
+Last session: 2026-05-05 (continue from M-DECISION close → M-INFRA-CLEANUP bootstrap)
+Stopped at: M-INFRA-CLEANUP bootstrappé, awaiting /gsd:plan-phase pour les 3 phases.
 Resume file: None.
 
-**Next action:** dispatch executor M-DECISION (1 doc à écrire, ~10 min).
+**Next action:** `/gsd:plan-phase 1` (Sessions Redis P0) ou `/gsd:autonomous` pour driver M-INFRA-CLEANUP entier.

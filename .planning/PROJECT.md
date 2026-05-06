@@ -44,7 +44,11 @@ L'historique pré-pivot est archivé dans `.planning/archive-pre-pivot-2026-05-0
 
 - [x] **Stage 1** ✓ — M-AUDIT-CHEMIN shippé 2026-05-05. Output : `.planning/CRITICAL-PATH-AUDIT.md` (1165 lignes). Score 7✓/3⚠/0✗/1 hors-scope sur 11 étapes.
 - [x] **Stage 2** ✓ — M-AUDIT-STACK shippé 2026-05-05. Output : `.planning/STACK-AUDIT.md` (722 lignes). Verdict : 11 keep / 2 replace / 1 remove sur 13 composants. Voie A confirmée.
-- [ ] **Stage 3** : Décision direction formalisée (`.planning/DECISION.md`) — Voie A actée + scope fixes ordonnancés (Sessions Redis avant features, ext-gd remove, Parsedown→CommonMark, OpenSpout import, 3 ⚠ Stage 1) + roadmap features finale.
+- [x] **Stage 3** ✓ — M-DECISION shippé 2026-05-05. Output : `.planning/DECISION.md`. Voie A actée + roadmap finale + scope concret M-INFRA-CLEANUP.
+
+Une fois Stage 1+2+3 done **(✓ Stages closed 2026-05-05)** :
+
+- [ ] **M-INFRA-CLEANUP** : Foundation propre AVANT features. 3 phases (~2.5-3j) : Sessions Redis P0 + 3 fixes ⚠ chemin (import/motion.kind/procuration) + quick-wins infra (ext-gd remove + Parsedown→CommonMark + OpenSpout import).
 
 Une fois Stage 1+2+3 done :
 

@@ -13,8 +13,8 @@ Post-pivot, les milestones sont **nommés par feature/audit** plutôt que par ve
 
 - ✅ **M-AUDIT-CHEMIN** — Audit chemin critique fonctionnel (shipped 2026-05-05) — voir `.planning/milestones/M-AUDIT-CHEMIN-MILESTONE-AUDIT.md`
 - ✅ **M-AUDIT-STACK** — Audit stack technique (shipped 2026-05-05) — voir `.planning/milestones/M-AUDIT-STACK-MILESTONE-AUDIT.md`
-- 🚧 **M-DECISION** — Décision direction Voie A formalisée + scope fixes + roadmap features (Stage 3)
-- ⏳ **M-INFRA-CLEANUP** — Sessions Redis + ext-gd remove + Parsedown→CommonMark + OpenSpout import + 3 fixes ⚠ Stage 1 (~2.5-3j, AVANT features per décision user 2026-05-05)
+- ✅ **M-DECISION** — Décision direction Voie A formalisée (shipped 2026-05-05) — voir `.planning/DECISION.md`
+- 🚧 **M-INFRA-CLEANUP** — Foundation cleanup AVANT features (~2.5-3j) : Phase 1 Sessions Redis P0 + Phase 2 fixes ⚠ chemin (import/motion.kind/procuration) + Phase 3 quick-wins infra
 - ⏳ **M-Signature** — Signature électronique PV eIDAS avancée
 - ⏳ **M-VoteDistant** — Vote distant token sans compte
 - ⏳ **M-Stats** — Stats cross-séance dashboard direction
