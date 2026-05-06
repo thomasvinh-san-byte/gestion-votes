@@ -644,3 +644,79 @@ Build : `apk upgrade --no-cache` initial (alignement musl), 2 groupes apk (`.php
 - **Évaluer FrankenPHP en M-INFRA-CLEANUP** une fois les autres dettes traitées (sessions Redis + ext-gd retirée + dump-autoload classmap déjà OK). Faisable post-pivot si signal terrain "ops simplification souhaitée".
 
 ---
+
+## AUDIT-STACK-14 — Synthèse + recommandations Stage 3
+
+### Récapitulatif des 13 verdicts
+
+| # | Composant | Version / taille | Verdict | Coût migration |
+|---|---|---|---|---|
+| 01 | `dompdf/dompdf` | v3.1.4 | **keep** | N/A |
+| 02 | `phpoffice/phpspreadsheet` (+ `openspout/openspout`) | v1.30.2 + v5.6.0 | **replace** (PhpSpreadsheet → OpenSpout Reader) | S (1 jour) |
+| 03 | `erusev/parsedown` | v1.8.0 | **replace** (→ league/commonmark) | XS (<2h) |
+| 04 | `symfony/mailer` | v8.0.4 | **keep** | N/A |
+| 05 | Extensions PHP | 8 ext | **keep 7, remove `gd`** | XS (<1h) |
+| 06 | `AgVote\Core\Router` | 348 L, 162 routes | **keep** | N/A |
+| 07 | `AgVote\Core\Logger` | 359 L, 29 sites | **keep** | N/A |
+| 08 | `AgVote\Core\Security\IdempotencyGuard` | 87 L, 7 sites | **keep** | N/A |
+| 09 | `AgVote\Core\Http\*` | 644 L, 6 fichiers | **keep** | N/A |
+| 10 | `AgVote\SSE\*` | 477 L, 3 fichiers | **keep** | N/A |
+| 11 | Redis | 8 sites | **keep** + recommandation **migrer sessions → Redis** | S (1 jour) |
+| 12 | PostgreSQL + indexes | 149 idx / 30 tables | **keep** | N/A |
+| 13 | Docker multi-stage | 119 L Dockerfile | **keep** (FrankenPHP différé) | N/A |
+
+### Compteurs
+
+- **keep** : **11** sur 13 (85%)
+- **replace** : **2** (PhpSpreadsheet, Parsedown)
+- **remove** : **1** (ext-gd)
+- **migration latérale recommandée** : **1** (sessions PHP fichier → Redis)
+
+### Effort total estimé migrations (Stage 3+)
+
+| Action | Coût | Bloqueur ? | Bénéfice |
+|---|---|---|---|
+| Retirer `ext-gd` du Dockerfile | XS (<1h) | Non | -3 Mo image, -30s build, surface attack réduite |
+| Remplacer `Parsedown` → `league/commonmark` | XS (<2h) | Non | Sortie d'une dépendance abandonnée, suppression rustine `error_reporting()`, compat PHP 8.5+ |
+| Migrer sessions PHP fichier → Redis | S (1 jour) | Non | Sessions persistent au redéploy container (UX dogfood) |
+| Remplacer `PhpSpreadsheet` import → `OpenSpout` Reader | S (1 jour) | Non (PhpSpreadsheet 1.x EOL Q4 2026 = échéance moyen terme) | -5 Mo vendor, mémoire constante import, symétrie API export |
+| **Total Stage 3 court-terme** | **~2,5 jours dev** | — | — |
+
+Tous les efforts sont **non-bloquants** pour le pivot et **isolables** en milestones séparées (ne touchent pas le chemin critique fonctionnel).
+
+### Verdict global Stage 3
+
+**✓ Voie A (refacto sur place) confirmée.**
+
+L'audit n'a révélé **aucun gap structurel majeur** justifiant une migration langage (PHP) ou framework. Sur 13 composants audités :
+- **11 keeps** : la stack est saine. Custom code AgVote (Router/Logger/IdempotencyGuard/Http/SSE) encode des règles de sécurité (F02-F22, F05) et des conventions domain qui sont des **assets** plutôt que de la dette.
+- **3 actions ciblées** (replace ext-gd, replace Parsedown, replace PhpSpreadsheet) toutes avec coût XS-S et bénéfice immédiat.
+- **0 risques runtime structurels détectés** en audit statique sandbox.
+
+La Core Value pivot (*"le secrétaire de séance fait en 5 clics ce qui prenait 1h en papier, traçabilité légale ≥ papier"*) **n'est bloquée par aucun élément de stack**. Les 3 features 1.0 prioritaires (Signature PV, Vote distant token, Stats cross-séance) peuvent être construites sur la stack existante sans pré-requis stack.
+
+### Top 3 priorités Stage 3 (ratio impact/effort)
+
+| # | Action | Coût | Impact |
+|---|---|---|---|
+| **1** | **Migrer sessions PHP fichier → Redis** | S (1 jour) | **Élevé** : ferme la dette UX dogfood "user déconnecté au redéploy" — bloquant en pratique pour démo/pilote asso |
+| **2** | **Remplacer `phpoffice/phpspreadsheet` → `OpenSpout` Reader côté import** | S (1 jour) | **Moyen** : ferme l'asymétrie mémoire import/export, sort de la zone EOL Q4 2026, recoupe Stage 1 étape 02 (audit chemin import CSV/XLSX marqué ⚠) |
+| **3** | **Quick-wins infra** : retirer `ext-gd` Dockerfile + remplacer `parsedown` → `league/commonmark` | XS+XS (<3h cumul) | **Faible techniquement** mais **élevé en hygiène** : sort d'une dépendance abandonnée (Parsedown CVE latentes), réduit image Docker, supprime rustine `error_reporting()` |
+
+### Décision recommandée Stage 3 (M-DECISION)
+
+1. **Confirmer Voie A** sur la base des deux audits Stage 1 (chemin) + Stage 2 (stack).
+2. **Constituer un milestone unique "M-INFRA-CLEANUP"** absorbant les 4 actions ci-dessus (sessions Redis + OpenSpout import + ext-gd + Parsedown). Effort total ~2,5 jours dev.
+3. **Démarrer M-Signature** en parallèle (pas de dépendance bloquante stack).
+
+### Findings hors-scope identifiés mais à logger pour Stage 3+
+
+- **Doc inexacte** : STACK.md ligne 73 et CLAUDE.md mention "GD pour 1x1 tracking pixel" → faux (pixel = base64 hardcodé). À corriger en passant.
+- **Sessions filesystem `/tmp`** : non documenté comme dette dans PROJECT.md "Dette technique connue" → à ajouter.
+- **Race condition courte IdempotencyGuard** : à documenter comme limitation connue dans le PHPDoc du fichier.
+- **Followup runtime** : `pg_stat_user_indexes` + `EXPLAIN ANALYZE` sur top requêtes hot — à différer en M-DOGFOOD-OBSERVABILITY post-déploiement asso pilote.
+
+---
+
+*Audit réalisé : 2026-05-06. Boundary respectée : aucun fichier production modifié. Toutes les recommandations sont actionnables et chiffrées.*
+
