@@ -71,7 +71,6 @@ All verified at container startup (fail-fast guard in `Dockerfile`):
 |-----------|---------|
 | `pdo_pgsql` | PostgreSQL connectivity via PDO |
 | `pgsql` | PostgreSQL client functions |
-| `gd` | Image processing (1x1 email tracking pixel generation) |
 | `zip` | Archive support (XLSX export internals) |
 | `intl` | Internationalization, `transliterator_transliterate()` for filenames |
 | `mbstring` | Multibyte string handling |

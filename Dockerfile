@@ -31,20 +31,22 @@ LABEL org.opencontainers.image.title="AG-VOTE" \
 RUN apk upgrade --no-cache
 
 # Runtime libs (permanent — explicitly installed so apk del won't touch them)
+# ext-gd was dropped in M-INFRA-CLEANUP (Phase 3) — the email tracking
+# pixel is a base64-decoded GIF (EmailTrackingController::outputPixel),
+# not a GD render. Removing libpng/libjpeg-turbo/freetype shrinks the
+# runtime image by ~3MB.
 RUN apk add --no-cache \
     nginx supervisor curl postgresql-client libpq \
-    libpng libjpeg-turbo freetype libzip icu-libs oniguruma \
+    libzip icu-libs oniguruma \
     zlib zstd-libs brotli-libs lz4-libs gettext
 
 # Build-time headers in a virtual group (cleanly removed after compile)
 RUN apk add --no-cache --virtual .php-build-deps \
-    postgresql-dev libpng-dev libjpeg-turbo-dev \
-    freetype-dev libzip-dev icu-dev oniguruma-dev
+    postgresql-dev libzip-dev icu-dev oniguruma-dev
 
 # PHP extensions (compile against -dev headers)
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo_pgsql pgsql gd zip intl mbstring opcache
+RUN docker-php-ext-install -j$(nproc) \
+        pdo_pgsql pgsql zip intl mbstring opcache
 
 # Redis extension (phpredis)
 RUN apk add --no-cache --virtual .redis-deps $PHPIZE_DEPS \
@@ -56,7 +58,7 @@ RUN apk add --no-cache --virtual .redis-deps $PHPIZE_DEPS \
 # Then verify every required extension still loads (fail-fast guard).
 RUN apk del .php-build-deps \
     && rm -rf /tmp/pear \
-    && php -r 'foreach(["gd","intl","zip","pdo_pgsql","pgsql","mbstring","redis","Zend OPcache"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"FATAL: ext-$e failed to load after cleanup\n");exit(1);}}'
+    && php -r 'foreach(["intl","zip","pdo_pgsql","pgsql","mbstring","redis","Zend OPcache"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"FATAL: ext-$e failed to load after cleanup\n");exit(1);}}'
 
 # Composer (install deps then remove — not needed at runtime)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -70,7 +72,13 @@ WORKDIR /var/www
 # généré sur un container qui ne contient que composer.json/.lock — toute
 # nouvelle classe sous app/ tombe sur un PSR-4 fallback fragile.
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-autoloader --no-interaction --no-progress
+# --ignore-platform-req=ext-gd: dompdf and phpoffice/phpspreadsheet declare
+# ext-gd as a require, but neither code path is exercised in AgVote (PVs use
+# CSS/text only — no <img> raster; XLSX exports stream via OpenSpout).
+# Stage 2 audit confirmed zero image* usage in app/. Skipping ext-gd
+# install shaves ~3MB off the runtime image without behavioural impact.
+RUN composer install --no-dev --no-autoloader --no-interaction --no-progress \
+        --ignore-platform-req=ext-gd
 
 # Application
 COPY . .

@@ -100,11 +100,10 @@ Application web de gestion de votes pour associations et collectivites, construi
 - Minimum 512MB RAM, 1GB free disk for uploads
 - pdo_pgsql - Database connectivity
 - pgsql - PostgreSQL client functions
-- gd - Image processing (for email tracking pixels)
 - zip - Archive support (xlsx export)
 - intl - Internationalization
 - mbstring - Multibyte string handling
-- redis - Redis client (optional, gracefully disabled if not available)
+- redis - Redis client (mandatory post M-INFRA-CLEANUP — sessions, cache, rate-limit, SSE)
 - Zend OPcache - Performance optimization
 <!-- GSD:stack-end -->
 
