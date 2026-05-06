@@ -23,10 +23,13 @@ trait MotionWriterTrait {
         bool $secret,
         ?string $votePolicyId,
         ?string $quorumPolicyId,
+        ?string $kind = null,
     ): void {
+        // kind: NULL or '' → fall back to the DB default ('resolution') so
+        // legacy callers stay untouched. CLEANUP-CHEMIN-MOTION-KIND.
         $this->execute(
-            "INSERT INTO motions (id, tenant_id, meeting_id, agenda_id, title, description, secret, vote_policy_id, quorum_policy_id, created_at)
-             VALUES (:id, :tid, :mid, NULLIF(:aid,'')::uuid, :title, :desc, :secret, NULLIF(:vpid,'')::uuid, NULLIF(:qpid,'')::uuid, now())",
+            "INSERT INTO motions (id, tenant_id, meeting_id, agenda_id, title, description, secret, vote_policy_id, quorum_policy_id, kind, created_at)
+             VALUES (:id, :tid, :mid, NULLIF(:aid,'')::uuid, :title, :desc, :secret, NULLIF(:vpid,'')::uuid, NULLIF(:qpid,'')::uuid, COALESCE(NULLIF(:kind,''), 'resolution'), now())",
             [
                 ':id' => $id,
                 ':tid' => $tenantId,
@@ -37,6 +40,7 @@ trait MotionWriterTrait {
                 ':secret' => $secret ? 't' : 'f',
                 ':vpid' => $votePolicyId ?? '',
                 ':qpid' => $quorumPolicyId ?? '',
+                ':kind' => $kind ?? '',
             ],
         );
     }
