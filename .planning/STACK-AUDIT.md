@@ -416,3 +416,59 @@
 **Recommandation Stage 3** : aucune action. **Optionnel** : implémenter `Psr\Http\Message\ServerRequestInterface` côté `Request` (sans changer l'API publique) si une lib tierce le demande un jour — adapter pattern, effort S.
 
 ---
+
+## AUDIT-STACK-10 — `AgVote\SSE\*` (Server-Sent Events custom, 477 lignes)
+
+**Rôle aujourd'hui** : 3 fichiers gérant le canal SSE temps-réel pour le cockpit opérateur live (motion ouverte, vote casté, présence multi-op, heartbeat 10s) :
+
+| Fichier | Lignes | Rôle |
+|---|---|---|
+| `SseAuthGate.php` | 129 | Gate auth + tenant-isolation pour SSE consumers (F05 hardening) — décide allowed/auth_required/session_expired/etc. |
+| `EventBroadcaster.php` | 248 | Publication d'événements vers Redis queue (`sse:event_queue`, max 1000 messages), event types domain (motion.opened, vote.cast, etc.) |
+| `HeartbeatPayloadBuilder.php` | 100 | Construit payload heartbeat (status meeting + quorum + présence) — try/catch isolé par sub-query pour resilience |
+
+Ils sont consommés par `public/api/v1/events.php` (script procédural SSE long-lived qui pop la Redis queue).
+
+**Sites d'usage** :
+- `app/SSE/*` (3 classes)
+- `public/api/v1/events.php` (consumer SSE)
+- 8 services `EventBroadcaster::xxx()` (NotificationsService, AttendancesService, OfficialResultsService, MotionsService, ProxiesService, MeetingReportsService, BallotsService, etc.)
+
+**Caractéristiques** :
+- Architecture pub/sub via Redis LIST (LPUSH côté broadcaster, BRPOP côté consumer dans events.php)
+- Heartbeat 10s + events pushés en dispatch
+- Queue plafonnée à 1000 messages (`MAX_QUEUE_SIZE`) — auto-éviction au-delà
+- Auth par session (cookie) côté SSE consumer, gate ré-évaluée à chaque heartbeat
+- Recoupement Stage 1 : étapes 06 (vote en direct) et 09 (cockpit operateur) reposent dessus, marquées ✓ et ⚠ respectivement
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **Mercure** (hub SSE PHP officiel Symfony) | SSE standard, JWT auth, topic-based subscriptions, Caddy-based hub Go scalable | **Hub séparé** (un binaire Go à déployer) → casse le modèle "1 container Docker" actuel, complexifie ops self-hosted asso ; auth JWT à intégrer (plus complexe que session actuelle) |
+| **Centrifugo** | Très scalable, multi-protocole (WS/SSE/HTTP polling), client JS officiel | Hub séparé Go, auth tokens JWT/HMAC, WS par défaut (HTMX 2.0.6 utilise SSE) — surdimensionné pour cible asso (max ~10 op simultanés, déjà out of scope >10 dans PROJECT.md) |
+| **Pusher / Ably / SaaS** | Délégation totale | Coût récurrent, dépendance externe → incompatible self-hosted asso. **Disqualifié.** |
+| **WebSocket via Ratchet/ReactPHP** | Bidirectionnel | HTMX 2.0.6 utilise SSE, pas WS ; ajouter WS = pivot frontend ; nginx proxy WS plus complexe à config ; aucun besoin bidirectionnel actuel |
+| **Long-polling pur** (sans SSE) | Compatibilité IE/proxy old | Régression UX (latence ~3-5s vs <1s en SSE) ; HTMX gère SSE proprement ; pas de bénéfice pour cible (Chrome/Firefox/Edge récents) |
+| **Garder SSE custom AgVote** | 477 lignes auditables, gate auth + tenant-isolation F05 documentée, rester sur 1 container Docker (cible self-hosted), HTMX 2.0.6 SSE-natif, scalabilité actuelle suffisante (PROJECT.md "Out of Scope: SSE scaling >10 op simultanés") | Pas de pub/sub natif Redis (utilise LIST + BRPOP, qui marche mais n'est pas le pattern Redis idiomatique → idéalement passer à Redis Streams pour ack + replay) ; un seul consumer SSE par requête (pas de fan-out natif si plusieurs ops connectés au même meeting → chaque consumer pop sa propre fenêtre = duplication ?) — à vérifier en code |
+
+**Verdict** : **keep**
+
+**Justification** :
+- Boundary explicite PROJECT.md : "SSE scaling >10 op simultanés = out of scope" → la complexité d'une migration Mercure/Centrifugo n'est pas alignée avec la cible.
+- Single-container Docker = pilier ops cible asso ; ajouter un hub séparé contredit cette contrainte.
+- Stage 1 recoupement : étape 06 (vote direct) ✓, étape 09 (cockpit live) ⚠ — la nuance ⚠ étape 09 concerne **scaling présence multi-op**, déjà boundary out-of-scope.
+- 477 lignes + Redis queue = stack simple et maîtrisée.
+
+**Coût migration estimé** : **L** (~1-2 semaines)
+- Déployer Mercure ou Centrifugo en sidecar Docker — 2-3 jours
+- Réécrire `EventBroadcaster::queue()` → publish topic + JWT — 2-3 jours
+- Réécrire frontend HTMX SSE (URL + auth header) — 2-3 jours
+- Refactor SseAuthGate → JWT signer/verifier — 1-2 jours
+- Re-tester scenarios multi-op + heartbeat + reconnect — 2-3 jours
+
+**Bénéfice attendu** : scaling ops >10 (hors scope), topic-based subscriptions natives (irrelevant pour le pattern actuel meeting-broadcast).
+
+**Recommandation Stage 3** : aucune action. **Amélioration optionnelle** : migrer la queue Redis LIST → Redis Streams (effort S) pour avoir ack + replay si reconnect — mais seulement si reconnects buggy se manifestent en dogfood réel (post-pivot, non préemptif). Sinon différer définitivement jusqu'à signal terrain "scaling SSE".
+
+---
