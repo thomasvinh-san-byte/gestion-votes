@@ -372,3 +372,47 @@
 **Recommandation Stage 3** : **keep** + amélioration optionnelle XS si effort planifié sur la couche sécurité ailleurs (sinon différer). Documenter la race condition courte comme limitation connue dans `app/Core/Security/IdempotencyGuard.php` (PHPDoc).
 
 ---
+
+## AUDIT-STACK-09 — `AgVote\Core\Http\*` (primitives HTTP custom, ~644 lignes)
+
+**Rôle aujourd'hui** : 6 fichiers wrappant les superglobales et formant un mini-toolkit HTTP :
+
+| Fichier | Lignes | Rôle |
+|---|---|---|
+| `Request.php` | 175 | Wrap `$_GET/$_POST/$_SERVER` + body JSON ; cache `php://input` ; helpers `query()`, `body()`, `requireUuid()`, `validate()` |
+| `JsonResponse.php` | 90 | Value object réponse JSON ; factory `ok($data)` / `fail($error, $code)` ; rendu via `send()` ; redaction 5xx en non-dev |
+| `ApiResponseException.php` | 29 | Exception porteuse de `JsonResponse` (non-rendu, propagation jusqu'au router) |
+| `HttpCache.php` | 80 | Helpers ETag / Cache-Control |
+| `ClientIp.php` | 116 | Extraction IP réelle robuste (F02 hardening, anti-spoofing X-Forwarded-For) |
+| `UrlValidator.php` | 154 | Validation URL stricte (anti-SSRF, scheme allowlist) |
+
+**Sites d'usage** : usage transverse (controllers, middleware, helpers globaux `api_*`).
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **PSR-7 (`nyholm/psr7` ou `laminas-diactoros`) + PSR-15 middleware** | Standard PHP-FIG, immutabilité, écosystème (Slim, Mezzio, Symfony HttpKernel adapter), interopérabilité libs tierces | Surcoût ~2 Mo vendor + couplage transverse (toutes les méthodes deviennent `(ServerRequestInterface): ResponseInterface`), refonte de **toute la couche controller** (`AbstractController::handle()` + helpers `api_ok/api_fail/api_query`), perte de la fluidité actuelle (PSR-7 immutabilité = `withHeader()` chaining verbeux) |
+| **Symfony HttpFoundation** | Plus pragmatique que PSR-7 strict, déjà compatible avec écosystème Symfony en place | Couplage Symfony renforcé, ~3 Mo vendor, refonte transverse identique |
+| **Garder Http/ custom** | 644 lignes spécifiques au besoin AgVote (ClientIp F02 anti-spoofing, UrlValidator anti-SSRF, JsonResponse `ok/fail` enrichi en français), zéro surcoût vendor, helpers globaux `api_*` ergonomiques (1 ligne là où PSR-7 demande 4-5) | Pas d'interop directe avec libs PSR-15 tierces (irrelevant en pratique car aucune lib actuelle ne le requiert) ; `Request` lit `$_SERVER` directement à la construction → pas immuable, mais c'est intentionnel (mock via `$_SERVER` en test) |
+
+**Verdict** : **keep**
+
+**Justification** :
+- Les 6 classes encodent des **règles de sécurité spécifiques** (ClientIp F02, UrlValidator anti-SSRF, JsonResponse redaction 5xx) qui sont des **assets** plutôt que de la dette — porter ces règles dans des Decorators PSR-15 = 2x plus de code pour le même résultat.
+- L'API ergonomique (`api_ok($data)`, `api_fail('not_found', 404)`) couvre 95% des cas controller en 1 ligne, équivalent PSR-7 = `return new JsonResponse(['ok' => true, 'data' => $data]);` ou via factories — plus verbeux.
+- Migration = refonte transverse de tous les controllers (~50 fichiers) + middleware (~6 fichiers) → coût XL, gain interop théorique mais non-utilisé.
+- Recoupement : Stage 1 audit chemin n'a relevé aucun bug attribuable aux primitives HTTP custom. Le hardening F02-F22 mentionné dans archives est intégré dedans.
+
+**Coût migration estimé** : **XL** (>2 semaines)
+- Refonte AbstractController + tous controllers (50+ fichiers) — 5-7 jours
+- Refonte 6 middlewares → PSR-15 — 2-3 jours
+- Refonte helpers `api_*` globaux (transparence wrapper ?) — 2 jours
+- Re-test E2E + Playwright complet — 3-4 jours
+- Risque régression sécurité (ClientIp anti-spoofing, redaction 5xx, CSRF token extraction)
+
+**Bénéfice attendu** : interop PSR-15 (jamais utilisée actuellement, hypothétique).
+
+**Recommandation Stage 3** : aucune action. **Optionnel** : implémenter `Psr\Http\Message\ServerRequestInterface` côté `Request` (sans changer l'API publique) si une lib tierce le demande un jour — adapter pattern, effort S.
+
+---
