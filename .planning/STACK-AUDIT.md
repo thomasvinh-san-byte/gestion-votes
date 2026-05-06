@@ -472,3 +472,59 @@ Ils sont consommés par `public/api/v1/events.php` (script procédural SSE long-
 **Recommandation Stage 3** : aucune action. **Amélioration optionnelle** : migrer la queue Redis LIST → Redis Streams (effort S) pour avoir ack + replay si reconnect — mais seulement si reconnects buggy se manifestent en dogfood réel (post-pivot, non préemptif). Sinon différer définitivement jusqu'à signal terrain "scaling SSE".
 
 ---
+
+## AUDIT-STACK-11 — Redis (cache + rate-limit + SSE queue + idempotency + security signals)
+
+**Rôle aujourd'hui** : Redis 7 (Alpine), conexion gérée par `AgVote\Core\Providers\RedisProvider` (singleton, ping pour healthcheck, fallback `RuntimeException` si phpredis absent — ce qui ne se produit jamais en prod car ext-redis fail-fast au boot Dockerfile ligne 59).
+
+**Usages réels identifiés (8 sites)** :
+
+| Composant | Usage | Criticité |
+|---|---|---|
+| `IdempotencyGuard` | Cache réponses POST 1h | Important (évite double imports) |
+| `RateLimiter` (`Core/Security/RateLimiter.php`) | Compteurs sliding window par contexte (auth_login, csv_import, public_vote, admin_ops) | Critique (F02 anti-bruteforce) |
+| `AccountLockout` (`Core/Security/AccountLockout.php`) | Counter F13 progressive lockout par compte | Critique (F13 hardening) |
+| `SecuritySignal` (`Core/Security/SecuritySignal.php`) | F21 signal events (failed login, suspicious activity) | Important (audit) |
+| `EventBroadcaster` | Queue SSE LIST `sse:event_queue` | Critique (cockpit live ne marche pas sans) |
+| `events.php` | Consumer SSE BRPOP | Critique |
+| `health.php` | Healthcheck endpoint | Confort |
+| `RedisHealthCommand` (CLI) | Diagnostic ops | Confort |
+
+**Découverte audit** : **Redis n'est pas utilisé pour les sessions** (`deploy/php.ini` ligne `session.save_path = "/tmp"` → sessions fichier). Le STACK.md ligne 103 le mentionne explicitement : "session.save_path = "/tmp" (file-based sessions — NOT Redis-backed)". Les sessions filesystem `/tmp` sont éphémères au container redémarré → **dette UX latente** (utilisateurs déconnectés à chaque redéploy).
+
+**Version actuelle** : Redis 7 (Docker compose externe), phpredis (PECL).
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **Retirer Redis entièrement, fallback fichier** | -1 service à déployer, op simplifiée pour cible asso self-hosted | Perd rate-limit cohérent multi-process (PHP-FPM workers concurrents → file lock contention), perd queue SSE atomique (LIST+BRPOP n'a pas d'équivalent fichier propre), perd security signals indexables — **régression sécurité majeure** F02/F13/F21. **Disqualifié.** |
+| **SQLite local pour rate-limit + idempotency** | Simple, single-file, ACID | Pas adapté pour BRPOP-like (SSE queue), contention écriture sous concurrence (sqlite global lock). Adopté seulement si on retire SSE — incompatible. |
+| **PostgreSQL pour rate-limit + idempotency + SSE LISTEN/NOTIFY** | Réutilise infra existante (1 service au lieu de 2), pg_notify natif pour SSE | LISTEN/NOTIFY non persistent (pas de replay), requêtes counters tablée plus lente que Redis INCR (mais à l'échelle cible : non bloquant), refonte 5 services Security + SSE = effort L |
+| **DragonflyDB ou KeyDB** (drop-in Redis) | Compat protocole Redis | Inutile : Redis 7 fonctionne. Pivot non justifié. |
+| **Garder Redis** | Toutes les abstractions sont déjà en place, perf in-memory inégalable, single-instance suffit pour cible (~10 ops, ~50 votants), backup non critique (data éphémère = compteurs + queue) | 1 service supplémentaire à déployer Docker compose, mémoire ~30-50 Mo |
+
+**Verdict** :
+- Redis lui-même → **keep**
+- **Migration Sessions → Redis recommandée** comme amélioration séparée (résoud la dette latente UX au redéploy)
+
+**Justification** :
+- Les 8 usages sont nécessaires et adaptés au composant (in-memory atomique, queue native, healthcheck simple).
+- Aucun fallback fichier ne préserve la cohérence concurrente requise pour rate-limit + SSE.
+- Single Redis instance = trivial à déployer dans une compose (image alpine ~5 Mo).
+- "Possibilité retirer pour single-tenant self-hosted ?" (REQUIREMENTS.md AUDIT-STACK-11) → **non**, le retrait régresserait F02/F13/F21 sécurité.
+
+**Coût migration sessions → Redis** : **S** (~1 jour)
+- Configurer `session.save_handler = redis` + `session.save_path = "tcp://redis:6379?prefix=sess:&auth=..."` dans `deploy/php.ini`
+- Tester avec un container restart pour vérifier persistence sessions
+- Documenter dans `.env.production.example`
+
+**Bénéfice attendu** :
+- Sessions persistent au redéploy container.
+- Single source of truth (Redis) pour tous les états éphémères.
+
+**Recommandation Stage 3** :
+- Redis : **keep**.
+- **Action S concrète** : migrer sessions PHP fichier → Redis. Bloque pas le pivot mais améliore UX dogfood (un opérateur de séance ne perd pas sa session après un déploiement). Inclure dans M-INFRA-CLEANUP.
+
+---
