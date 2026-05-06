@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Controller;
 
 use AgVote\View\HtmlView;
-use Parsedown;
+use League\CommonMark\CommonMarkConverter;
 
 /**
  * Consolidates doc_index.php (JSON API) and doc.php (HTML viewer).
@@ -118,14 +118,14 @@ final class DocController extends AbstractController {
                 . '<a href="/help.htmx.html" class="btn btn-primary">Retour &agrave; l\'aide</a></div>';
             $toc = '';
         } else {
-            // Suppress Parsedown deprecation warnings on PHP 8.4+
-            $prevErrorLevel = error_reporting(E_ALL & ~E_DEPRECATED);
-
-            $parsedown = new Parsedown();
-            $parsedown->setSafeMode(true);
-            $htmlContent = $parsedown->text(file_get_contents($filePath));
-
-            error_reporting($prevErrorLevel);
+            // CommonMark replaces Parsedown — same safe-mode posture: HTML
+            // injected in the source markdown is escaped, raw HTML blocks
+            // are stripped, and external URLs in <a> are inert by default.
+            $converter = new CommonMarkConverter([
+                'html_input' => 'escape',
+                'allow_unsafe_links' => false,
+            ]);
+            $htmlContent = (string) $converter->convert(file_get_contents($filePath));
 
             // Extract title from first H1
             $title = $page;

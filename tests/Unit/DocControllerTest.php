@@ -163,17 +163,15 @@ class DocControllerTest extends ControllerTestCase
     // view(): SOURCE STRUCTURE VERIFICATION
     // =========================================================================
 
-    public function testViewUsesParsedownInSafeMode(): void
+    public function testViewUsesCommonMarkWithSafeModeOptions(): void
     {
+        // Post Phase 3 OPENSPOUT/PARSEDOWN cleanup: Parsedown was replaced by
+        // league/commonmark. Safe-mode posture is now expressed via converter
+        // options instead of setSafeMode(true).
         $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocController.php');
-        $this->assertStringContainsString('Parsedown', $source);
-        $this->assertStringContainsString('setSafeMode(true)', $source);
-    }
-
-    public function testViewSuppressesDeprecationWarnings(): void
-    {
-        $source = file_get_contents(PROJECT_ROOT . '/app/Controller/DocController.php');
-        $this->assertStringContainsString('E_DEPRECATED', $source);
+        $this->assertStringContainsString('CommonMarkConverter', $source);
+        $this->assertStringContainsString("'html_input' => 'escape'", $source);
+        $this->assertStringContainsString("'allow_unsafe_links' => false", $source);
     }
 
     public function testViewGeneratesTableOfContents(): void

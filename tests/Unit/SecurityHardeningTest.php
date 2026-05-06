@@ -80,15 +80,24 @@ class SecurityHardeningTest extends TestCase {
         );
     }
 
-    public function testParsedownSafeModeUsed(): void {
+    public function testCommonMarkSafeModeUsed(): void {
         $docController = PROJECT_ROOT . '/app/Controller/DocController.php';
         $this->assertFileExists($docController);
 
         $content = file_get_contents($docController);
+        // CommonMark replaces Parsedown post M-INFRA-CLEANUP. Safe posture
+        // is encoded as constructor options on CommonMarkConverter:
+        // html_input=escape strips raw HTML, allow_unsafe_links=false
+        // neutralizes javascript:/data: hrefs.
         $this->assertStringContainsString(
-            'setSafeMode(true)',
+            "'html_input' => 'escape'",
             $content,
-            'Parsedown must be used with setSafeMode(true) to prevent XSS',
+            'CommonMark must escape raw HTML in source markdown to prevent XSS.',
+        );
+        $this->assertStringContainsString(
+            "'allow_unsafe_links' => false",
+            $content,
+            'CommonMark must reject unsafe link schemes (javascript:, data:).',
         );
     }
 }
