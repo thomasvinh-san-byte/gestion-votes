@@ -101,3 +101,82 @@ curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf
 **Recommandation** : valider en live le flow complet avant le prochain stage. Si OK, ne rien refacto. Stage 2 peut auditer la stack `CsrfMiddleware` + `RateLimiter` + `AccountLockout` pour décider keep/replace, mais le code applicatif lui-même est sain.
 
 ---
+
+## Étape 02 — Import CSV membres (AUDIT-CHEMIN-02)
+
+**Description du flow** : opérateur upload un fichier CSV (ou XLSX) avec ~50 membres. Colonnes attendues : `name` (ou `first_name`+`last_name`), `email`, `voting_power`, `is_active`, `groups`. Système détecte encoding (UTF-8/Win-1252/ISO-8859-1), détecte séparateur (`,` vs `;`), valide colonnes, dédoublonne emails (in-batch + DB), valide poids vote, persiste en transaction.
+
+**Code concerné** :
+- `app/Controller/ImportController.php` (174 lignes, très dense, one-liners) — handlers `membersCsv`, `membersXlsx`, `attendancesCsv/Xlsx`, `proxiesCsv/Xlsx`, `motionsCsv/Xlsx`. Chaque handler : (1) `IdempotencyGuard::check()` retourne cache si idempotent ; (2) lit fichier ; (3) délègue à `ImportService` puis `CsvImporter::processMemberImport()` ; (4) `audit_log` ; (5) `IdempotencyGuard::store()`.
+- `app/Services/ImportService.php` (250 lignes) — façade : `mapColumns()`, `getMembersColumnMap()` (alias français : `nom`, `prénom`, `pondération`, `tantièmes`, `poids`, `groupes`, `collège`...), `parseVotingPower()`, `parseBoolean()`, `validateUploadedFile()`, `checkDuplicateEmails()`, `readCsvFile()` / `readXlsxFile()`.
+- `app/Services/CsvImporter.php` (292 lignes) — `readFile()` détecte encoding via `mb_detect_encoding`, normalise UTF-8, détecte `;` vs `,`. `processMemberImport()` valide ligne par ligne (nom min 2 char, email format), upsert via `member()->updateImport()` ou `createImport()`, gère groupes (séparateurs `|` ou `;`).
+- `app/Services/XlsxImporter.php` (300 lignes) — utilise `phpoffice/phpspreadsheet` (déjà déclaré dans composer.json).
+- `app/Controller/MembersController.php` (244 lignes) — CRUD membres `/api/v1/members*`.
+- `app/Controller/MemberGroupsController.php` — CRUD groupes.
+- `app/routes.php` lignes 243-246 : `members_import_csv`, `members_import_xlsx` avec `rate_limit` `csv_import` 10/3600s.
+- `database/schema-master.sql` lignes 174-192 : table `members` (uniqueness sur `(tenant_id, full_name)` et `(tenant_id, external_ref)` ; index actif).
+
+**Tests existants** :
+- `tests/Unit/ImportControllerTest.php` — handlers controller.
+- `tests/Unit/ImportServiceTest.php` — column map + parsing.
+- `tests/Unit/MembersControllerTest.php` + `MemberGroupsControllerTest.php` — CRUD.
+- Note : pas de fixture 50-membres explicite vu dans la sandbox ; le test peut couvrir 5-10 lignes mais le scaling à 50 reste à valider en live.
+
+**Recoupement archive** :
+- v1.5/v1.6 : import CSV membres + procurations livrés et durcis (lecture archive `MILESTONES.md`).
+- Sécurité : `IdempotencyGuard` couvre les retries (F22-like), `validateUploadedFile()` couvre upload vector, taille max 10 Mo (file) / 5 Mo (csv_content). Audit `member_import` event émis.
+
+**Verdict statique** : ⚠
+
+**Justification** :
+- Le code est fonctionnel et défensif : auto-détection encoding (`mb_detect_encoding` avec fallback Win-1252/ISO-8859-1), auto-détection séparateur, alias français étendus pour les en-têtes (`pondération`, `tantièmes`, `poids`, `prénom`, `collège`), upsert idempotent (email puis full_name), gestion groupes avec création-à-la-volée, transaction PDO, audit_log, idempotency guard sur retries.
+- **Nuance 1 (style)** : `ImportController.php` est écrit en one-liners ultra-denses (1 statement = 1 ligne, plusieurs `;` séparés). Très peu lisible. Risque de maintenance, mais pas un bug. Probablement compressé pour rester sous une LOC budget.
+- **Nuance 2 (CLAUDE.md)** : la mention `'tantiemes', 'tantièmes'` dans le column map (ligne 125 ImportService.php) est un terme à connotation copropriété. CLAUDE.md proscrit "copropriété/syndic" comme vocabulaire user-visible. Ici c'est un alias en-tête CSV donc l'utilisateur a juste l'option d'utiliser ce mot dans son fichier source — ce n'est pas affiché dans l'UI. Acceptable mais à noter.
+- **Nuance 3 (test coverage)** : pas de stress test 50-lignes visible ; les tests existants couvrent le happy path et quelques edge cases (duplicate emails). Comportement sur ligne corrompue au milieu du batch (ex. ligne 25/50 invalide) : selon le code, l'erreur est ajoutée à `errors[]`, la ligne est `skipped++`, le batch continue. Pas de rollback total. C'est cohérent mais à confirmer en live.
+- **Nuance 4 (limites)** : taille fichier max 10 Mo (file upload) / 5 Mo (csv_content). Pas de limite explicite sur le nombre de lignes — pour 50 lignes c'est sans problème, pour 5000 lignes ce serait à vérifier (timeout PHP ? mémoire ?).
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : admin créé via étape 01, login OK, session active dans /tmp/cookies.txt
+
+# 1. Générer un CSV 50 membres avec poids variés
+{
+  echo "nom,email,poids,actif,groupes"
+  for i in $(seq 1 50); do
+    weight=$(awk -v n=$i 'BEGIN{print (n%5==0)?5:1}')
+    echo "Membre $i,membre$i@example.org,$weight,1,Groupe$((i%3))"
+  done
+} > /tmp/members50.csv
+
+# 2. Récupérer un CSRF token + uploader le CSV
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" \
+  -F "file=@/tmp/members50.csv" \
+  http://localhost:8080/api/v1/members_import_csv | jq
+
+# attendu : { ok: true, imported: 50, skipped: 0, errors: [] }
+
+# 3. Vérifier en DB (depuis container postgres)
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT count(*), sum(voting_power) FROM members WHERE tenant_id = (SELECT id FROM tenants LIMIT 1)"
+# attendu : count=50, sum cohérent (10*5 + 40*1 = 90)
+
+# 4. Stress test idempotence : ré-uploader le même fichier
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" \
+  -F "file=@/tmp/members50.csv" \
+  http://localhost:8080/api/v1/members_import_csv | jq
+# attendu : imported=0 (ou =50 si update path), skipped=50, errors=[] — pas de doublons
+
+# 5. Test ligne corrompue (email invalide)
+sed -i 's|membre25@example.org|not-an-email|' /tmp/members50.csv
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" \
+  -F "file=@/tmp/members50.csv" \
+  http://localhost:8080/api/v1/members_import_csv | jq
+# attendu : skipped=1, errors=[{line: 26, error: "Email invalide"}], imported=49 ou similaire
+```
+
+**Impact** : 🟡 nice-to-have — base solide, comportement documenté, pas de show-stopper visible.
+
+**Recommandation** : à valider en live avec un fichier CSV réel (encoding Excel français = Windows-1252) pour confirmer l'auto-détection. Stage 2 peut s'interroger sur la nécessité de garder XLSX en plus de CSV (`phpspreadsheet` est lourd en mémoire — pertinent pour stack audit). Le style one-liner d'`ImportController.php` est un candidat refacto Stage 3 si Voie A choisie.
+
+---
