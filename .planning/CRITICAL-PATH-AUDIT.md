@@ -728,3 +728,93 @@ done
 4. Stage 2 peut envisager de retirer le scope `partial` (`agenda_limits text[]`) si jamais utilisé — complexité non justifiée.
 
 ---
+
+## Étape 09 — Clôture séance (AUDIT-CHEMIN-09)
+
+**Description du flow** : transition `live → closed` ou `paused → closed`. Pré-requis : aucune motion ouverte. Conséquences : `motion.opened_at IS NOT NULL && closed_at NULL` doit être vide, ballots interdits, audit_event émis. Réouverture interdite (mais `closed → live` peut exister, à vérifier). Date `ended_at` posée. `closed_by = userId`.
+
+**Code concerné** :
+- `app/Controller/MeetingWorkflowController.php` — handler `transition` reçoit `to_status: closed`.
+- `app/Services/MeetingTransitionService.php` lignes 194-222 — `buildTransitionFields()` :
+  - Cas `closed` : `ended_at = now()` (si pas déjà), `closed_by = userId`.
+  - Cas `paused` : `paused_at = now()`, `paused_by = userId`.
+- `app/Services/MeetingWorkflowService.php` lignes 99-113 — `issuesBeforeTransition()` :
+  - `live → paused` : bloque si `countOpenMotions > 0` avec message "Impossible de mettre en pause : N vote(s) en cours. Fermez le vote avant de mettre en pause."
+  - `live → closed` ou `paused → closed` : bloque si `countOpenMotions > 0` avec message "N résolution(s) encore ouverte(s)".
+- `app/Services/BallotsService.php` (cf. étape 06) : garde `meeting.status === 'live'` → après close, `castBallot()` rejette avec "Impossible de voter sur une motion dont la séance n'est pas en cours".
+- `database/schema-master.sql` ligne 280 : `status meeting_status DEFAULT 'draft'`. Colonnes `frozen_at/by`, `started_at`, `opened_by`, `paused_at/by`, `ended_at`, `closed_by`, `validated_at/by/by_user_id`, `archived_at` (cf lecture précédente).
+
+**Tests existants** :
+- `tests/Unit/MeetingTransitionServiceTest.php` + `MeetingTransitionTest.php`.
+- `tests/Unit/MeetingWorkflowServiceTest.php`.
+- `tests/Unit/StateTransitionCoherenceTest.php`.
+
+**Recoupement archive** :
+- v2.0 Operateur Live UX : workflow lifecycle complet.
+- F09 hardening (mentionné lignes 230-260 dans `MeetingTransitionService.php`) : `resetDemo` ne peut PAS reset une séance `live`/`frozen`/`closed`/`validated`/`archived` — protection contre wipe accidentel pendant AG. Whitelist `RESETTABLE_STATUSES = ['draft', 'scheduled']`. Très défensif.
+
+**Verdict statique** : ✓
+
+**Justification** :
+- Pré-requis et side effects propres : `countOpenMotions` bloque close si vote ouvert (messages français explicites), `ended_at`/`closed_by` posés automatiquement, audit_event via le contrôleur, broadcast SSE.
+- Anti-réouverture implicite : la machine d'état ne définit pas explicitement `closed → live` dans le path `launch`. Pour réouvrir, il faut retransitionner manuellement via `meeting_transition` — accepté par le service mais l'opérateur doit le vouloir explicitement (pas dans le happy path UI).
+- Idempotence : early-return `already_in_target` si `from_status === to_status`.
+- F09 (resetDemo whitelist) : protection robuste contre destruction accidentelle des ballots pendant une AG live.
+- Couverture tests robuste sur transitions et coherence.
+- Nuance : la transition `closed → live` est techniquement permise par `MeetingTransitionService::transition()` (pas dans le `match` du `launch`, mais le single-step `transition()` ne refuse pas). Comportement ambigu → si l'UI propose un bouton "réouvrir séance fermée", c'est documenté ? À valider live + UX review.
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : étape 04 (séance MID en live), étape 06 (motion MOTID votée puis fermée).
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+
+# 1. Tenter close avec une motion encore ouverte → doit être bloqué
+# (Préalable : ouvrir une 2e motion sans la fermer)
+MOTID2=$(curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/motions_for_meeting?meeting_id=$MID" | jq -r '.items[1].id')
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID2\"}" http://localhost:8080/api/v1/motions_open
+
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"to_status\":\"closed\"}" \
+  http://localhost:8080/api/v1/meeting_transition | jq
+# attendu : 422/409 avec "issues" : code "motion_open", message "1 résolution(s) encore ouverte(s)"
+
+# 2. Fermer la motion
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID2\"}" http://localhost:8080/api/v1/motions_close
+
+# 3. Maintenant la transition close doit passer
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"to_status\":\"closed\"}" \
+  http://localhost:8080/api/v1/meeting_transition | jq
+# attendu : { from_status: "live", to_status: "closed", transitioned_at: ... }
+
+# 4. Vérifier en DB que ended_at et closed_by sont posés
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT status, started_at, ended_at, closed_by FROM meetings WHERE id='$MID'"
+# attendu : status="closed", ended_at=<now>, closed_by=<user_id>
+
+# 5. Tenter de voter une motion sur séance fermée
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\",\"member_id\":\"$A\",\"value\":\"for\"}" \
+  http://localhost:8080/api/v1/ballots_cast | jq
+# attendu : erreur "Impossible de voter sur une motion dont la séance n'est pas en cours"
+
+# 6. Test idempotence : fermer 2x
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"to_status\":\"closed\"}" \
+  http://localhost:8080/api/v1/meeting_transition | jq
+# attendu : already_in_target: true (200, pas 409)
+
+# 7. Tester resetDemo refusé sur closed (F09)
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\"}" http://localhost:8080/api/v1/admin_reset_demo | jq
+# attendu : erreur meeting_status_not_resettable
+```
+
+**Impact** : 🟡 nice-to-have — couche mature, comportement logique. F09 hardening solide.
+
+**Recommandation** : valider en live qu'aucune action utilisateur (vote, marquer présence, modifier motion) ne fonctionne sur séance `closed`. Stage 2 peut clarifier la sémantique de `closed → live` (réouverture autorisée ou pas) — soit l'expliciter dans le service avec gate, soit l'enlever de l'enum-passable.
+
+---
