@@ -534,3 +534,86 @@ docker compose exec db psql -U app -d agvote -c \
 **Recommandation** : valider en live le cas TOCTOU (vote pendant close) — difficile à reproduire mais le code prévoit. SSE broadcast à valider visuellement (cockpit refresh seul). Stage 2 ne devrait pas remettre en cause cette couche — c'est l'asset le plus solide du codebase.
 
 ---
+
+## Étape 07 — Vote motion élection multi-candidats (AUDIT-CHEMIN-07)
+
+**Description du flow demandé par REQUIREMENTS** : motion type "élection" avec N candidats, M sièges. Votants choisissent K candidats (K ≤ M ou autre règle). Calcul résultats : scrutin majoritaire à 1 ou 2 tours, vote d'approbation, possiblement STV.
+
+**Code concerné** : **AUCUN.**
+
+Recherche exhaustive dans le codebase :
+```bash
+$ grep -rnE "candidate|candidat|election|stv|borda|condorcet|approval" \
+    app/Services/VoteEngine.php \
+    app/Services/OfficialResultsService.php \
+    app/Services/BallotsService.php
+# 0 match
+```
+
+```bash
+$ grep -rnE "kind|motion_type|motion_kind" app/ database/ | grep -v "test\|.htmx\|README"
+# 1 match: BallotsController.php:408 'kind' => $kind  (audit_log incident, pas type motion)
+```
+
+```bash
+$ grep -nE "candidate|candidat" app/ database/
+# Matches non liés (MemberGroups, RGPD purge, URL validator) — aucun lien avec voting
+```
+
+**État réel du modèle de vote** :
+- Table `ballots.value` : enum `motion_value AS ENUM ('for','against','abstain','nsp')`. Pas de colonne `candidate_id`, pas de table `candidates`, pas de table `motion_candidates`.
+- Service `VoteEngine.php` : 346 lignes calculant uniquement majorité Pour/Contre/Abstention selon `vote_policy` (seuils, exclusion abstentions). Pas de routine multi-choix.
+- Service `OfficialResultsService.php` : consolidation `official_for`/`official_against`/`official_abstain`/`official_total` — pas de structure pour "candidat X a reçu N voix".
+- Aucune route `/elections/*`, `/candidates/*`, ni endpoint de vote multi-choix.
+- L'`evote_results jsonb` colonne `motions` (schema ligne 463) est utilisée pour stocker tally résolutif structuré, pas un classement candidats.
+
+**Tests existants** : aucun test "election", "candidate", "multi-choice" trouvé dans `tests/Unit/`. Le flow n'est pas testé car non implémenté.
+
+**Recoupement archive** :
+- Aucun milestone v1.0 → v2.7 ne mentionne "élection" ou "scrutin majoritaire à plusieurs candidats" (lecture rapide `MILESTONES.md`).
+- Le flow "membre A vote pour le candidat B" n'a jamais existé dans cette base de code.
+
+**Verdict statique** : ✗
+
+**Justification** :
+- La fonctionnalité **n'existe pas**. Le requirement AUDIT-CHEMIN-07 décrit un flow non implémenté.
+- C'est un trou fonctionnel **structurel** (schéma DB + service + UI manquants), pas un bug.
+- Si on essaie de "détourner" un vote résolutif pour faire une élection (ex. créer une motion par candidat avec vote `for`/`against`), cela donne un résultat approximatif (vote d'approbation par défaut) mais ne couvre pas :
+  - sièges multiples (élire 3 trésoriers parmi 5 candidats),
+  - règles "1 électeur = K voix maximum",
+  - 2e tour,
+  - départage en cas d'égalité,
+  - bulletin secret avec liste de noms.
+
+**Reproduction live (dev-machine)** :
+```bash
+# Le test "live" consiste à confirmer le constat statique.
+
+# 1. Confirmer absence de table candidates
+docker compose exec db psql -U app -d agvote -c "\\d motions" | grep -iE "kind|type|candidate"
+# attendu : aucune ligne
+
+docker compose exec db psql -U app -d agvote -c "\\dt" | grep -iE "candidate|election"
+# attendu : aucune table
+
+# 2. Tenter une "élection" en créant 1 motion par candidat (workaround)
+A_BUREAU=$(curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"title\":\"Election bureau\"}" \
+  http://localhost:8080/api/v1/agendas | jq -r .agenda_id)
+for cand in Alice Bob Claire; do
+  curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+    -d "{\"agenda_id\":\"$A_BUREAU\",\"title\":\"Election $cand au bureau\"}" \
+    http://localhost:8080/api/v1/motions | jq
+done
+# attendu : 3 motions séparées créées. Le user devra voter "pour" sur chacune ou les ranger soi-même.
+# La synthèse "qui est élu" doit être faite manuellement, pas par le système.
+```
+
+**Impact** : 🛑 bloquant dogfood — si la 1re asso pilote a une élection à son AG (tâche extrêmement courante : élection bureau, conseil d'administration, président), le système ne sait pas le faire proprement. Workaround "1 motion par candidat" dégrade l'UX et perd la sémantique électorale.
+
+**Recommandation** : décision majeure pour Stage 3.
+- **Option 1 (étroit)** : retirer AUDIT-CHEMIN-07 de REQUIREMENTS, déclarer "scope = vote résolutif uniquement", documenter que les élections doivent être gérées hors-app. Coût : zéro. Risque : on rate des cas d'usage.
+- **Option 2 (refacto)** : ajouter `motion.kind`, table `candidates`, ballot multi-choix, calcul majoritaire 1 tour. Coût : ~2 semaines dev. À budgéter dans une feature `M-ElectionMotion` Stage 3+.
+- **Option 3 (rebuild)** : si Stage 2 conclut que la stack PHP/HTMX n'est pas le bon choix pour ce besoin (workflow complexe avec UX riche), ce gap renforce l'argument Voie C (rebuild from scratch). À considérer.
+
+---
