@@ -180,3 +180,95 @@ curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" \
 **Recommandation** : à valider en live avec un fichier CSV réel (encoding Excel français = Windows-1252) pour confirmer l'auto-détection. Stage 2 peut s'interroger sur la nécessité de garder XLSX en plus de CSV (`phpspreadsheet` est lourd en mémoire — pertinent pour stack audit). Le style one-liner d'`ImportController.php` est un candidat refacto Stage 3 si Voie A choisie.
 
 ---
+
+## Étape 03 — Création séance + ordre du jour (AUDIT-CHEMIN-03)
+
+**Description du flow** : opérateur ouvre le wizard de création d'une séance (titre, date, président, type), persiste la séance en `draft`, ajoute des points d'ordre du jour (`agendas`), puis crée des motions (`motions`) attachées à chaque point d'agenda. Vérifier persistance, ordre, validation, idempotence.
+
+**Code concerné** :
+- `app/Controller/MeetingsController.php` (297 lignes) — `index`, `update`, `archive`, `archivesList`, `status`, `statusForMeeting`, `summary`, `stats`, `createMeeting` (avec `IdempotencyGuard`), `deleteMeeting`. Délègue à `MeetingLifecycleService::createFromWizard()`.
+- `app/Services/MeetingLifecycleService.php` — orchestre wizard create + lifecycle.
+- `app/Services/MeetingValidator.php` (96 lignes) — règles `canBeValidated()` (président renseigné, pas de motion ouverte, motions fermées avec résultats exploitables, consolidation).
+- `app/Controller/AgendaController.php` (131 lignes) — `listForMeeting`, `create` (avec validation `ValidationSchemas::agenda()`, idempotency, `nextIdx()` auto-incrément), `lateRules` (règles arrivée tardive quorum/vote), `listForMeetingPublic`.
+- `app/Controller/MotionsController.php` (316 lignes) — `createOrUpdate` (validation schema : `agenda_id` UUID requis, `title` 1-500 char, `description` ≤ 10000 char, `secret` bool, `vote_policy_id`/`quorum_policy_id` optionnels), `createSimple` (sans agenda — créé auto), `listForMeeting`, `deleteMotion`, `reorder`, `tally`, `current`, `open`, `close`, `degradedTally`, `overrideDecision`.
+- `app/Services/MotionsService.php` (626 lignes) — service métier dense.
+- `app/routes.php` lignes 253-260 (meetings), 118-124 (agendas), 335-345 (motions).
+- `database/schema-master.sql` ligne 60-62 : enum `motion_value AS ENUM ('for','against','abstain','nsp')`. Lignes 437-475 : table `motions` avec colonnes `secret bool`, `position int`, `vote_policy_id`, `quorum_policy_id`, `decision`, `official_*`, `manual_*`, `evote_results jsonb`. Triggers : `motions_body_from_description` (sync body ← description), `auto_generate_motion_slug`.
+
+**Tests existants** :
+- `tests/Unit/MeetingsControllerTest.php` — handlers (note PROJECT.md : "6 pre-existing MeetingsControllerTest failures hors scope v2.7" — donc déjà connus comme cassés sur update/delete).
+- `tests/Unit/MeetingValidatorTest.php` — règles validation.
+- `tests/Unit/MeetingLifecycleServiceTest.php` — wizard + transitions.
+- `tests/Unit/AgendaControllerTest.php`.
+- `tests/Unit/MotionsControllerTest.php` + `MotionsServiceTest.php` + `MotionsControllerOverrideDecisionTest.php`.
+- `tests/Unit/MotionRepositoryTenantIsolationTest.php` — isolation multi-tenant.
+
+**Recoupement archive** :
+- v1.4-v1.5 : création séance et wizard livrés. v2.0 Operateur Live UX a renforcé.
+- PROJECT.md mentionne `6 pre-existing MeetingsControllerTest failures (update/delete, hors scope v2.7)` — dette technique connue côté tests.
+
+**Verdict statique** : ⚠
+
+**Justification** :
+- **Constat majeur (à creuser)** : le schéma SQL ne possède **AUCUNE colonne `kind` / `type`** sur `motions`. L'enum `motion_value` est `('for','against','abstain','nsp')` — c'est la valeur d'un ballot, pas le type de motion. Aucun mention de "election", "candidate", "open_question" dans `app/Services/VoteEngine.php`, `OfficialResultsService.php`, `MotionsService.php`, ni dans `database/schema-master.sql`. Recherche `grep -rnE "motion_kind|motion\.kind|->kind"` dans `app/` retourne 1 seul match : `BallotsController.php:408 'kind' => $kind` qui est en fait la *catégorie d'un incident* dans `audit_log('vote_incident', ...)`.
+- **Conséquence directe** : la fonctionnalité **"vote motion élection multi-candidats"** demandée par REQUIREMENTS AUDIT-CHEMIN-07 et la fonctionnalité **"question ouverte"** ne sont **pas implémentées en sandbox** sur la stack actuelle. Le wizard, l'agenda et le `MotionsController::createOrUpdate` exposent uniquement `title`/`description`/`secret`. Le moteur de vote (étapes 06-08) ne connaît que For/Against/Abstain/NSP.
+- Le code de création de séance lui-même est sain : validation centralisée (`InputValidator::schema()` + `ValidationSchemas`), idempotency guard, audit_log, gestion erreurs typée (mapping `RuntimeException` → code HTTP), guard `meeting_archived/validated` immutable, `slug` auto-généré par trigger PG, `position` auto via `nextIdx()`.
+- **Dette technique connue** : "6 pre-existing MeetingsControllerTest failures sur update/delete" (PROJECT.md). À investiguer Stage 2/3.
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : login admin OK, /tmp/cookies.txt actif, CSRF récupéré.
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+
+# 1. Créer une séance via wizard
+MID=$(curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d '{"title":"AG ordinaire 2026","scheduled_at":"2026-06-01T18:00:00Z","president_name":"Sophie Martin"}' \
+  http://localhost:8080/api/v1/meetings | jq -r .meeting_id)
+echo "MID=$MID"
+
+# 2. Ajouter 3 points d'agenda
+A1=$(curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"title\":\"Approbation comptes 2025\"}" \
+  http://localhost:8080/api/v1/agendas | jq -r .agenda_id)
+A2=$(curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"title\":\"Election bureau\"}" \
+  http://localhost:8080/api/v1/agendas | jq -r .agenda_id)
+A3=$(curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"title\":\"Question ouverte budget 2027\"}" \
+  http://localhost:8080/api/v1/agendas | jq -r .agenda_id)
+
+# 3. Tenter d'ajouter 3 motions de natures différentes
+# 3a. Résolution simple (For/Against/Abstain) — devrait marcher
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"agenda_id\":\"$A1\",\"title\":\"Adoption comptes 2025\",\"description\":\"Approuver le bilan financier\"}" \
+  http://localhost:8080/api/v1/motions | jq
+
+# 3b. Election multi-candidats — chercher si un payload avec "kind":"election" est accepté ou ignoré
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"agenda_id\":\"$A2\",\"title\":\"Election trésorier\",\"kind\":\"election\",\"candidates\":[\"Alice\",\"Bob\",\"Claire\"]}" \
+  http://localhost:8080/api/v1/motions | jq
+# attendu (selon code statique) : "kind" et "candidates" sont SILENT-IGNORED par InputValidator (pas dans schema). Motion créée comme résolution standard.
+
+# 3c. Question ouverte — même comportement attendu
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"agenda_id\":\"$A3\",\"title\":\"Budget 2027 ?\",\"kind\":\"open_question\"}" \
+  http://localhost:8080/api/v1/motions | jq
+# attendu : motion créée mais le "kind" perdu.
+
+# 4. Vérifier en DB que les motions sont créées sans champ kind/type
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT id, title, secret, position FROM motions WHERE meeting_id='$MID' ORDER BY position"
+# attendu : 3 lignes, aucune colonne 'kind' présente.
+```
+
+**Impact** : 🛑 bloquant dogfood (selon scope cible) — si la 1re asso pilote utilise le vote majoritaire de personnes (ex. élection bureau), le système ne sait pas le faire. Si elle se limite à des résolutions Pour/Contre/Abstention (cas comptes annuels, motions ordinaires d'AG), pas de blocage. Cette ambiguïté est centrale pour la décision de Stage 3.
+
+**Recommandation** : ⚠ La création séance/agenda/motion résolution est saine. Mais **le périmètre fonctionnel doit être clarifié immédiatement** : le requirement AUDIT-CHEMIN-07 (élection multi-candidats) suppose une feature **non implémentée**. Trois scénarios :
+1. Si la cible asso n'a JAMAIS d'élection : reformuler REQUIREMENTS pour retirer AUDIT-CHEMIN-07 et déclarer "scope = vote résolutif uniquement".
+2. Si l'élection est nécessaire pour dogfood : c'est un blocker majeur — Stage 3 devra ajouter un milestone feature `M-ElectionMotion` (schema + service + UI).
+3. Voir si une `motion.secret = true` + bulletin libre approxime "élection" — peu probable car le moteur compte For/Against/Abstain, pas des noms.
+
+À investiguer en priorité Stage 2 (audit du domaine métier réel demandé) avant Stage 3 (décision direction).
+
+---
