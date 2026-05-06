@@ -160,6 +160,18 @@ else
   echo "Cookie secure: OFF, OPcache revalidation: ON (local dev)"
 fi
 
+# Sessions Redis : inject authenticated save_path at runtime because REDIS_PASSWORD
+# is env-only (not bakeable into the image). Overrides the unauthenticated
+# default in deploy/php.ini. Last declaration wins under PHP_INI_SCAN_DIR.
+if [ -n "${REDIS_PASSWORD}" ]; then
+  {
+    echo "session.save_path = \"tcp://${REDIS_HOST:-redis}:${REDIS_PORT:-6379}?auth=${REDIS_PASSWORD}&database=1&prefix=agvote-sess:\""
+  } >> /tmp/php-runtime/zz-runtime.ini
+  echo "Sessions: Redis ${REDIS_HOST:-redis}:${REDIS_PORT:-6379} DB1 (authenticated)"
+else
+  echo "Sessions: Redis ${REDIS_HOST:-redis}:${REDIS_PORT:-6379} DB1 (no auth — set REDIS_PASSWORD in production)"
+fi
+
 # Make PHP scan the runtime directory for additional ini files
 export PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d:/tmp/php-runtime"
 
