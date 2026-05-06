@@ -585,3 +585,62 @@ Aucune autre extension custom (pas de PostGIS / pgvector / etc., aligné avec be
 - **Followup post-pivot** : `EXPLAIN ANALYZE` sur top 5 requêtes hot (motion live tally, dashboard listings, audit search) pour vérifier qu'aucun seq scan n'apparaît. Effort S, à faire en M-DOGFOOD-OBSERVABILITY.
 
 ---
+
+## AUDIT-STACK-13 — Docker multi-stage Alpine + nginx + supervisord
+
+**Rôle aujourd'hui** : Dockerfile 119 lignes, 2 stages :
+1. **assets** (Node 20.19-alpine3.21) : minification CSS/JS (terser + clean-css-cli), discardé après build
+2. **runtime** (php:8.4-fpm-alpine3.21) : nginx + supervisord + php-fpm + email queue worker (Symfony Console boucle infinie en 30 prio)
+
+Process supervisor (`deploy/supervisord.conf`, 72 lignes) orchestre :
+- `php-fpm` (priority 10)
+- `nginx` (priority 20)
+- `email-queue` worker (priority 30, Symfony Console boucle infinie avec backoff exponentiel 60→900s)
+- (probablement d'autres programs pour SSE/cleanup, à vérifier)
+
+Build : `apk upgrade --no-cache` initial (alignement musl), 2 groupes apk (`.php-build-deps` virtual + permanent runtime libs), ext PHP compilées (`docker-php-ext-install`), phpredis (PECL), Composer 2 (depuis image officielle, retiré post-install), classmap autoload `--classmap-authoritative`, run as `www-data`.
+
+**Caractéristiques** :
+- Healthcheck HTTP `/api/v1/health.php` (interval 30s)
+- Port 8080 exposé
+- Container ne tourne PAS en root (USER www-data)
+- Rechargement live config nginx via `nginx.conf.template` + entrypoint
+- Multi-stage propre : pas de Composer, pas de Node, pas de gcc dans l'image runtime finale.
+
+**Mesure approximative image runtime** : ~150-200 Mo (php:8.4-fpm-alpine3.21 base ~80 Mo + nginx + supervisord + libs runtime + vendor PHP ~25 Mo + sources ~5 Mo).
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **FrankenPHP** (Caddy embarqué + worker mode PHP) | 1 binary single-process (pas de supervisord), Caddy = TLS automatique + HTTP/2/3, mode worker PHP-FPM-like sans le surcoût FPM, image plus simple | Migration : refonte nginx.conf → Caddyfile (~230L → ~50L Caddy), tester worker mode (incompat avec sessions fichier `/tmp` cf. AUDIT-STACK-11 ; **dépendance** : il faudrait d'abord migrer sessions Redis), supervisord toujours requis pour email-queue + autres workers async, donc le gain "1 binary" n'est pas total. PHP 8.4 supporté FrankenPHP. |
+| **RoadRunner** (workers PHP Go) | Performance × 5-10 sur app stateful, request lifecycle Go-natif | Refonte transverse (workers stateful, attention superglobales), incompat plug-and-play avec routing custom + bootstrap actuel, maturité écosystème |
+| **Swoole/OpenSwoole** (event loop async) | Async natif, perf | Réécriture transverse, contraintes async (pas tous les libs compat), surdimensionné pour cible |
+| **php-fpm + nginx séparés** (2 containers) | Patron "1 process = 1 container" Docker idiomatique | Cible asso self-hosted = ops Docker compose simple, 2 containers = surcoût mental ; perf marginale |
+| **php-fpm + Apache** | Apache mod_php classique | Régression vs nginx (perf/connexions), pas de gain |
+| **Garder Dockerfile actuel** | Stack mature, multi-stage propre, fail-fast guard ext PHP, `apk upgrade` initial qui résout musl drift documenté, run non-root, supervisord couvre tous les processes (php-fpm + nginx + workers) | Pas le plus minimal possible (~150-200 Mo) ; si gd retiré (AUDIT-STACK-05) → -3 Mo |
+
+**Verdict** : **keep** (avec amélioration optionnelle FrankenPHP différée)
+
+**Justification** :
+- Stack actuelle mature, alignée avec les best-practices Docker (multi-stage, non-root, healthcheck, fail-fast guard, classmap-authoritative).
+- FrankenPHP est attractif mais demande **prérequis** (sessions Redis cf. AUDIT-STACK-11) et **n'élimine pas supervisord** (email-queue worker reste async).
+- Le gain "1 binary" est partiel ; le gain "Caddy TLS auto" est neutralisé en self-hosted asso (souvent derrière un reverse-proxy maison ou Traefik existant).
+- Recoupement Stage 1 : aucune des étapes audit chemin n'a relevé de problème ops/Docker.
+- Le commentaire `apk upgrade --no-cache` lignes 23-31 documente la rustine musl drift Alpine — preuve de maturité ops.
+
+**Coût migration FrankenPHP estimé** : **M** (3-5 jours)
+- Pré-requis : sessions Redis (AUDIT-STACK-11) — 1 jour
+- Refonte Dockerfile (base FrankenPHP image) — 1 jour
+- Refonte nginx.conf → Caddyfile (~230L conditionnel/regex/cache → équivalent Caddy) — 1-2 jours
+- Garder supervisord pour email-queue + workers async — pas de changement
+- Tester en sandbox docker compose — 1 jour
+- Risque : worker mode PHP requiert que le code soit "stateless-friendly" (pas de superglobales mutées entre requests) — à auditer
+
+**Bénéfice attendu** : -1 process (nginx supprimé) ; perf request +20-30% en mode worker (mais cible n'a aucun problème de perf actuel) ; image possiblement -30 Mo (FrankenPHP image plus compacte).
+
+**Recommandation Stage 3** :
+- **keep** pour Stage 3 immédiat (Voie A confirmée) — pas d'urgence.
+- **Évaluer FrankenPHP en M-INFRA-CLEANUP** une fois les autres dettes traitées (sessions Redis + ext-gd retirée + dump-autoload classmap déjà OK). Faisable post-pivot si signal terrain "ops simplification souhaitée".
+
+---
