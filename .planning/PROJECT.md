@@ -56,6 +56,7 @@ Une fois Stage 1+2+3 done :
 
 | Item | Pourquoi exclu |
 |---|---|
+| **Élection multi-candidats / scrutin majoritaire** | **Découvert lors Stage 1 audit (2026-05-05) : non implémenté dans le code actuel (motion_value enum limité à for/against/abstain/nsp). Décision user post-audit : pas dans le scope du pivot. La cible (asso loi 1901, copro, syndicat étudiant, conseil municipal) vote majoritairement par résolution Pour/Contre/Abstention. Si demande terrain explicite après dogfood, re-évaluer en milestone séparée.** |
 | SaaS multi-tenant + billing self-service | Self-hosted Docker suffit pour la cible asso/collectivité ; multi-tenant ajoute complexité opérationnelle sans valeur user immédiate. |
 | Mobile app native (iOS/Android) | Web responsive HTMX suffit ; l'opérateur de séance utilise un laptop, les votants distants peuvent voter sur leur smartphone via web. |
 | Accessibility WCAG AAA | AA partiel suffisant pour cible asso ; AAA = effort démesuré pour gain marginal. |

@@ -15,7 +15,7 @@
 - [ ] **AUDIT-CHEMIN-04** : Ouverture séance live — passage status `draft → frozen → live`, accessibilité opérateur, cockpit chargé. Verdict + détail.
 - [ ] **AUDIT-CHEMIN-05** : Émargement présence + quorum — marquer 30/50 membres présents (ou via QR/token), vérifier calcul quorum atteint avec pondération. Verdict + détail.
 - [ ] **AUDIT-CHEMIN-06** : Vote motion résolution simple (Pour/Contre/Abstention) — ouvrir vote, votants émettent leurs voix, fermer vote, vérifier comptage. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-07** : Vote motion élection à plusieurs candidats — différent du résolution (multi-choix, possibly STV/scrutin majoritaire). Vérifier calcul résultats. Verdict + détail.
+- [x] **AUDIT-CHEMIN-07** : Vote motion élection à plusieurs candidats — **POST-AUDIT DECISION 2026-05-05** : feature non implémentée (audit révèle absence motion_value enum élection + table candidates + scrutin majoritaire dans VoteEngine). Sortie du scope du pivot — voir PROJECT.md "Out of Scope". Verdict audit : ✗ documenté + reclassé hors-scope.
 - [ ] **AUDIT-CHEMIN-08** : Vote avec procuration active — assignation procuration entre 2 membres, vérifier que le porteur de procuration vote pour les 2 (pondération doublée respectée). Verdict + détail.
 - [ ] **AUDIT-CHEMIN-09** : Clôture séance — passage status `live → closed`, lock des motions, irréversibilité. Verdict + détail.
 - [ ] **AUDIT-CHEMIN-10** : Génération PV PDF (≥5 pages avec contenu varié) — header + footer + accents UTF-8 + pagination + signature placeholder. Inspection visuelle. Verdict + détail.

@@ -1163,3 +1163,29 @@ Cet audit n'a modifié aucun fichier de production (`app/`, `public/`, `database
 ---
 
 *Audit clos 2026-05-06. Stage 2 (audit stack) à lancer avec les priorités recommandées ci-dessus.*
+
+---
+
+## Addendum 2026-05-05 — Décision user post-audit
+
+**Étape 7 (élection multi-candidats) reclassée HORS-SCOPE du pivot.**
+
+L'audit a correctement diagnostiqué que la feature n'existe pas (motion_value enum `for/against/abstain/nsp` only, pas de table candidates, pas de scrutin majoritaire dans VoteEngine). User a décidé que ce gap structurel **n'est pas dans le scope du pivot stratégique** :
+
+- Cible (asso loi 1901, copro, syndicat étudiant, conseil municipal) vote **majoritairement par résolution Pour/Contre/Abstention** — pas par élection à plusieurs candidats
+- Si demande terrain explicite après dogfood, re-évaluer en milestone séparée
+- M-ElectionMotion proposée par l'audit Stage 3 : **ANNULÉE**
+
+**Score effectif post-décision** : 7✓ / 3⚠ / 0✗ / 1 hors-scope sur 11 étapes.
+
+**Stage 3 décision direction inchangée** : Voie A (refacto sur place) reste recommandée.
+
+**Roadmap post-décision** :
+1. Stage 2 — M-AUDIT-STACK (audit composants custom)
+2. Stage 3 — M-DECISION (formalise Voie A + scope les fixes des 3 ⚠)
+3. Build features 1.0 :
+   - M-Signature (Signature électronique PV)
+   - M-VoteDistant (Vote distant token)
+   - M-Stats (Stats cross-séance)
+
+L'étape 7 reste **documentée comme tech debt connue** dans cet audit, **mais ne bloque plus** la trajectoire vers 1.0 + dogfood.
