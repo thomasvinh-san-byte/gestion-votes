@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: "M-AUDIT-STACK"
-milestone_name: "Audit stack technique (Stage 2 post-pivot)"
+milestone: "M-DECISION"
+milestone_name: "Décision direction Voie A formalisée (Stage 3 post-pivot)"
 status: planning
 stopped_at: ""
-last_updated: "2026-05-05T15:00:00Z"
-last_activity: 2026-05-05 -- M-AUDIT-CHEMIN closé (Stage 1, 11 étapes auditées, 7✓/3⚠/0✗/1 hors-scope, élection multi-candidats reclassée hors-scope par décision user). M-AUDIT-STACK bootstrappé Stage 2. 14 reqs AUDIT-STACK-01..14.
+last_updated: "2026-05-05T15:30:00Z"
+last_activity: 2026-05-05 -- M-AUDIT-STACK closé. Verdict 11 keep/2 replace/1 remove → Voie A confirmée. M-DECISION bootstrappé Stage 3, doit livrer .planning/DECISION.md + scope concret M-INFRA-CLEANUP. Décision user : infra fix AVANT features.
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,58 +21,50 @@ progress:
 See: `.planning/PROJECT.md` (post-pivot — Core Value offensive).
 
 **Core value :** Le secrétaire de séance fait en 5 clics ce qui prenait 1h en papier, avec traçabilité légale ≥ procès-verbal manuscrit.
-**Current focus :** Stage 2 — auditer la stack technique avant décision Voie A/B/C.
+**Current focus :** Stage 3 — formaliser la décision de direction et l'ordre roadmap.
 
 ## Current Position
 
-Milestone: M-AUDIT-STACK (Stage 2 post-pivot)
-Phase: Not started (defining phases via /gsd:plan-phase)
+Milestone: M-DECISION (Stage 3 post-pivot)
+Phase: Not started (1 plan unique = écrire DECISION.md)
 Plan: —
 Status: Defining requirements
-Last activity: 2026-05-05 — M-AUDIT-CHEMIN shippé. M-AUDIT-STACK bootstrappé. 14 reqs AUDIT-STACK-01..14 prêts à phaser.
+Last activity: 2026-05-05 — M-AUDIT-STACK shippé (722 lignes). M-DECISION bootstrappé. 3 reqs DECISION-01..03 prêts.
 
-Progress: — (no plans yet, milestone just bootstrapped)
+Progress: — (no plans yet)
 
-## Pivot Context (2026-05-05)
+## Pivot Context Summary (post Stage 1+2)
 
-**Stage 1 verdict (M-AUDIT-CHEMIN) :**
-- Score statique : 7✓ / 3⚠ / 0✗ / 1 hors-scope sur 11 étapes
-- Découverte : élection multi-candidats non implémentée → reclassée hors-scope post-décision user
-- Verdict provisoire Stage 3 : Voie A (refacto sur place). Stack tient.
+**Stage 1 (M-AUDIT-CHEMIN)** : 7✓/3⚠/0✗/1 hors-scope. Élection multi-candidats hors-scope.
+**Stage 2 (M-AUDIT-STACK)** : 11 keep/2 replace/1 remove. Voie A confirmée.
 
-**Stage 2 priorités identifiées par Stage 1 audit :**
-- dompdf 3.1 runtime
-- phpspreadsheet footprint
-- Custom AgVote (Router / Logger / IdempotencyGuard / Http / SSE)
-- Redis usage et fallbacks
-- Docker multi-stage simplification
+**Décisions user post-audits :**
+- Voie A (refacto sur place) — pas de rebuild
+- M-ElectionMotion ANNULÉ
+- Infra fix AVANT features (M-INFRA-CLEANUP avant M-Signature)
+- Order top 3 priorités Stage 2 : Sessions Redis (1j) + OpenSpout import (1j) + quick-wins (XS) + 3 ⚠ Stage 1
 
-**Roadmap post-Stage-3 :**
-- M-DECISION (formalise Voie A + scope fixes 3 ⚠ + roadmap features)
-- M-Signature (Signature électronique PV)
-- M-VoteDistant (Vote distant token sans compte)
-- M-Stats (Stats cross-séance)
-- M-ElectionMotion : ANNULÉE
+**Roadmap finale post-Stage-3 :**
+1. M-INFRA-CLEANUP (~2.5-3j)
+2. M-Signature (eIDAS avancée)
+3. M-VoteDistant (token sans compte)
+4. M-Stats (cross-séance)
 
 ## Accumulated Context
 
 ### Decisions
-Décisions logged inline dans PROJECT.md "Key Decisions" + MILESTONES.md.
+Voir PROJECT.md "Key Decisions" + MILESTONES.md M-AUDIT-* entries.
 
 ### Pending Todos
-- Phaser M-AUDIT-STACK via `/gsd:plan-phase` — 1 plan unique séquentiel recommandé (cohérent avec M-AUDIT-CHEMIN)
-- Démarrer audit statique sur 14 reqs
+- Phaser M-DECISION via /gsd:plan-phase OU directement dispatch executor (1 doc à écrire, ~10 min)
 
 ### Blockers/Concerns
 Aucun.
 
-### Quick Tasks Completed
-(Aucune post-pivot.)
-
 ## Session Continuity
 
-Last session: 2026-05-05 (continue from M-AUDIT-CHEMIN close → M-AUDIT-STACK bootstrap)
-Stopped at: M-AUDIT-STACK bootstrapped, awaiting /gsd:plan-phase for the 14 audit reqs.
+Last session: 2026-05-05 (continue from M-AUDIT-STACK close → M-DECISION bootstrap)
+Stopped at: M-DECISION bootstrappé, awaiting executor pour DECISION.md.
 Resume file: None.
 
-**Next action:** `/gsd:plan-phase` → 1 plan unique pour les 14 reqs AUDIT-STACK.
+**Next action:** dispatch executor M-DECISION (1 doc à écrire, ~10 min).

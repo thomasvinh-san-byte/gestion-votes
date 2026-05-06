@@ -12,12 +12,13 @@ Post-pivot, les milestones sont **nommés par feature/audit** plutôt que par ve
 ## Milestones
 
 - ✅ **M-AUDIT-CHEMIN** — Audit chemin critique fonctionnel (shipped 2026-05-05) — voir `.planning/milestones/M-AUDIT-CHEMIN-MILESTONE-AUDIT.md`
-- 🚧 **M-AUDIT-STACK** — Audit stack technique (Stage 2)
-- ⏳ **M-DECISION** — Décision direction Voie A formalisée + scope fixes 3 ⚠ + roadmap features (post-Stage 2)
-- ⏳ **M-Signature** — Signature électronique PV eIDAS avancée (post-décision)
-- ⏳ **M-VoteDistant** — Vote distant token sans compte (post-Signature)
-- ⏳ **M-Stats** — Stats cross-séance dashboard direction (post-VoteDistant)
-- ❌ **M-ElectionMotion** — ANNULÉ post-décision user 2026-05-05 (élection multi-candidats hors-scope)
+- ✅ **M-AUDIT-STACK** — Audit stack technique (shipped 2026-05-05) — voir `.planning/milestones/M-AUDIT-STACK-MILESTONE-AUDIT.md`
+- 🚧 **M-DECISION** — Décision direction Voie A formalisée + scope fixes + roadmap features (Stage 3)
+- ⏳ **M-INFRA-CLEANUP** — Sessions Redis + ext-gd remove + Parsedown→CommonMark + OpenSpout import + 3 fixes ⚠ Stage 1 (~2.5-3j, AVANT features per décision user 2026-05-05)
+- ⏳ **M-Signature** — Signature électronique PV eIDAS avancée
+- ⏳ **M-VoteDistant** — Vote distant token sans compte
+- ⏳ **M-Stats** — Stats cross-séance dashboard direction
+- ❌ **M-ElectionMotion** — ANNULÉ post-décision user 2026-05-05
 
 ## Phases
 

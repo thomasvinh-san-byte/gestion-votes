@@ -42,9 +42,9 @@ L'historique pré-pivot est archivé dans `.planning/archive-pre-pivot-2026-05-0
 
 > Trois étapes séquentielles avant de bouger sur les features métier.
 
-- [x] **Stage 1** ✓ — M-AUDIT-CHEMIN shippé 2026-05-05. Output : `.planning/CRITICAL-PATH-AUDIT.md` (1165 lignes). Score 7✓/3⚠/0✗/1 hors-scope sur 11 étapes (élection multi-candidats reclassée hors-scope post-décision user). Verdict provisoire : Voie A (refacto sur place).
-- [ ] **Stage 2** : Audit stack technique — justifier chaque dépendance + composant custom. Livrable : `STACK-AUDIT.md` avec recommandations keep/replace/remove + coût/bénéfice.
-- [ ] **Stage 3** : Décision direction formalisée (Voie A confirmée + scope fixes 3 ⚠ + roadmap features) sur la base des 2 audits.
+- [x] **Stage 1** ✓ — M-AUDIT-CHEMIN shippé 2026-05-05. Output : `.planning/CRITICAL-PATH-AUDIT.md` (1165 lignes). Score 7✓/3⚠/0✗/1 hors-scope sur 11 étapes.
+- [x] **Stage 2** ✓ — M-AUDIT-STACK shippé 2026-05-05. Output : `.planning/STACK-AUDIT.md` (722 lignes). Verdict : 11 keep / 2 replace / 1 remove sur 13 composants. Voie A confirmée.
+- [ ] **Stage 3** : Décision direction formalisée (`.planning/DECISION.md`) — Voie A actée + scope fixes ordonnancés (Sessions Redis avant features, ext-gd remove, Parsedown→CommonMark, OpenSpout import, 3 ⚠ Stage 1) + roadmap features finale.
 
 Une fois Stage 1+2+3 done :
 
