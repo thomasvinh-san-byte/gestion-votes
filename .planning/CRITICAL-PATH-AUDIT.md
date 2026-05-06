@@ -1032,3 +1032,134 @@ curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application
 4. Stage 2 : la solution custom hash chain + trigger PG est solide. Pas de raison de la remplacer par une lib externe (ex. immutable-log SaaS, blockchain) — l'overhead de migration ne justifie pas l'évolution.
 
 ---
+
+## Synthèse (AUDIT-CHEMIN-12)
+
+### Tableau récapitulatif
+
+| #  | Étape                                  | Verdict | Impact |
+|----|----------------------------------------|---------|--------|
+| 01 | Setup admin vierge                     | ✓       | 🟡     |
+| 02 | Import CSV membres                     | ⚠       | 🟡     |
+| 03 | Création séance + ordre du jour        | ⚠       | 🛑     |
+| 04 | Ouverture séance live                  | ✓       | 🟡     |
+| 05 | Émargement présence + quorum           | ✓       | 🟡     |
+| 06 | Vote motion résolution simple          | ✓       | 🟡     |
+| 07 | Vote motion élection multi-candidats   | ✗       | 🛑     |
+| 08 | Vote avec procuration active           | ⚠       | 🟡     |
+| 09 | Clôture séance                         | ✓       | 🟡     |
+| 10 | Génération PV PDF                      | ✓       | 🟡     |
+| 11 | Archive + audit hash chain             | ✓       | 🟡     |
+
+### Compteurs
+
+**Total ✓** : 7 | **⚠** : 3 | **✗** : 1 | **❓** : 0 (avec 7+3+1+0 = 11 étapes)
+
+### Bloquants identifiés
+
+**🛑 Bloquant dogfood (1) :**
+- **Étape 07 (✗)** : Vote motion élection multi-candidats — fonctionnalité non implémentée dans le code (pas de `motion.kind`, pas de table `candidates`, pas de scrutin majoritaire). Si la 1re asso pilote a une élection à son AG (cas extrêmement courant : élection bureau, conseil d'administration), workaround "1 motion par candidat" dégrade UX et perd la sémantique électorale.
+- **Étape 03 (⚠ → potentiellement 🛑)** : Création motion ne supporte que `title`/`description`/`secret`. Les types "élection" et "question ouverte" demandés par REQUIREMENTS sont silencieusement ignorés. C'est le même gap que l'étape 07, vu côté création.
+
+**🔴 Bloquant 1.0 shipped (0)** : aucun.
+
+### Non-bloquants
+
+**🟡 Nice-to-have (10)** : étapes 01, 02, 04, 05, 06, 08, 09, 10, 11. Toutes ✓ ou ⚠ techniquement saines. Quelques nuances :
+- Étape 02 : style one-liner ultra-dense d'`ImportController.php` est un candidat refacto.
+- Étape 08 : incohérence des defaults `proxy_max_per_receiver` (3 dans import vs 99 dans API upsert) → bug latent à fixer Stage 3.
+- Étape 10 : 2 services PV existent (`MeetingReportService.php` + `MeetingReportsService.php`) — clarifier le legacy.
+
+**⚪ Esthétique (0)** : aucun pur polish identifié.
+
+### Inconnus (live required)
+
+Aucune étape n'est en ❓ — la lecture statique a permis de trancher partout. Cependant **toutes** les étapes ✓ et ⚠ doivent être confirmées en live dev-machine via les procédures de reproduction fournies, car la sandbox n'a pas pu exécuter Docker / DB / requests réelles.
+
+Les points spécifiquement à valider en live :
+- Étape 01 : flow complet setup → login → dashboard, cookies de session, redirect 302 puis 404 idempotent.
+- Étape 02 : encoding Excel français Windows-1252 auto-détecté correctement.
+- Étape 04 : SSE broadcast event de transition (cockpit refresh seul).
+- Étape 06 : cas TOCTOU concurrent (vote pendant close de motion).
+- Étape 08 : incohérence cap procuration `3 vs 99` confirmée en runtime.
+- Étape 10 : visuel PV ≥ 5 pages avec accents français, header répété, footer "Page X sur Y".
+- Étape 11 : `verifyChain` détecte une modif manuelle d'audit_events.
+
+### Verdict global Stage 1
+
+**Le chemin critique fonctionne en lecture statique pour 7 étapes sur 11 (64% ✓), avec 3 étapes ⚠ techniquement saines mais avec des nuances mineures, et 1 étape ✗ bloquante (élection multi-candidats non implémentée).**
+
+L'application AgVote est **techniquement solide** sur le périmètre **vote résolutif simple** (For/Against/Abstain/NSP) :
+- Auth + setup mature et défensif (F02-F22 hardening cumulé).
+- Import CSV/XLSX fonctionnel avec auto-détection encoding.
+- Workflow lifecycle séance (8 états) cohérent et idempotent.
+- Pondération + procuration anti-chaîne avec TOCTOU-safe transactions.
+- Hash chain audit en trigger PG = registre légal quasi-imparable.
+- Génération PV PDF (dompdf 3.1) avec tests anti-régression.
+
+**Mais le périmètre fonctionnel est plus étroit que ce que REQUIREMENTS suggérait** :
+- Pas d'élection multi-candidats (gap structurel : schema + service + UI à construire).
+- Pas de signature électronique (gap budgété, M-Signature post Stage 3).
+- Pas de question ouverte (gap structurel, similar à élection).
+- Vote distant par token déjà partiellement implémenté (VoteToken visible dans tests) mais non audité ici en détail.
+
+**Trois risques majeurs identifiés** :
+1. **Gap fonctionnel élection** (étape 07) — bloquant dogfood selon profil de la 1re asso pilote.
+2. **Incohérence cap procuration** (étape 08) — bug latent à fixer.
+3. **Tests legacy MeetingsController failures** (PROJECT.md) — dette technique non traitée.
+
+### Recommandation pour Stage 2 (audit stack)
+
+Priorités d'investigation :
+1. **HAUTE** : `dompdf 3.1` — confirmer en runtime que le PV se génère bien sur ≥ 10 pages avec accents et procuration. Tester perf (< 5 sec). Si OK, garder. Sinon, évaluer `wkhtmltopdf` (binaire externe, plus rapide) ou `ChromeHeadless` (Puppeteer-like).
+2. **HAUTE** : `phpoffice/phpspreadsheet` — souvent gourmand en mémoire pour XLSX. Mesurer footprint sur fichier 50 lignes. Si > 50 Mo, envisager retirer le support XLSX (ne garder que CSV) — la valeur user est marginale (Excel exporte en CSV).
+3. **MOYENNE** : Custom Router / Logger / IdempotencyGuard / RateLimiter / AccountLockout / CsrfMiddleware — composants custom AgVote. Mesurer LOC + tests + coût maintenance vs équivalents Symfony/Laminas. **Si bien testé et stable, garder** (régle "don't fix what works").
+4. **MOYENNE** : phpredis (extension PHP) — vérifier disponibilité Docker Alpine 3.21, fallback filesystem confirmé pour SSE.
+5. **MOYENNE** : `symfony/mailer ^8.0` — version récente, OK probable. Vérifier compat PHP 8.4.
+6. **BASSE** : `dompdf` config → décider si hash chain custom PG-trigger reste préférable à une solution append-only externe (low priority — le custom marche très bien).
+7. **BASSE** : HTMX 2.0.6 — frontend léger, validé en v2.0/2.7. Pas de raison de challenger.
+
+### Recommandation pour Stage 3 (décision Voie A/B/C)
+
+**Voie A (refacto sur place) — RECOMMANDÉE en première intention**
+
+Arguments pour :
+- 7/11 étapes ✓, 3/11 ⚠ techniquement saines, 1/11 ✗ identifié et localisé (élection).
+- Architecture défensive bien établie (TOCTOU, hash chain, transactions, idempotence). Le code n'est pas pourri — il est juste incomplet sur 1 axe (élection).
+- Coût refacto :
+  - Bug `proxy_max_per_receiver` : 1 ligne de fix.
+  - Clarification `MeetingReportService` legacy : 1 PR de cleanup.
+  - 6 tests MeetingsController failures : à investiguer (peut-être 1-2 jours).
+  - Feature `M-ElectionMotion` (motion.kind, table candidates, ballot multi-choix, scrutin majoritaire 1 tour) : ~2 semaines dev (schema + service + UI). Peut être planifiée en milestone séparée.
+- Total estimé : ~3 semaines pour atteindre 11/11 ✓ + élection.
+
+Arguments contre :
+- Style one-liner d'`ImportController.php` rend lecture difficile — coût de prise de main pour un nouveau dev.
+- Si Stage 2 révèle de gros problèmes stack (ex. perf dompdf catastrophique), Voie A devient plus chère.
+
+**Voie B (rebuild partiel infra) — Si Stage 2 conclut perf insuffisante**
+
+Cas d'usage : si dompdf 3.1 n'est pas viable, ou si la stack PHP-FPM/HTMX bottleneck en prod réelle. Reconstruire ciblé (ex. PV PDF avec `chrome-headless`, frontend avec Vue 3 ou Svelte). Garder le coeur métier (BallotsService, QuorumEngine, hash chain).
+
+Arguments pour : limite le risque tout en améliorant le point faible identifié.
+
+Arguments contre : 4-6 semaines de travail pour gain incrémental. Risque de régressions.
+
+**Voie C (rebuild from scratch) — DÉCONSEILLÉE sauf découverte majeure Stage 2**
+
+Cas d'usage : si Stage 2 révèle un défaut architectural systémique (ex. multi-tenant cassé en profondeur, sécurité défaillante de fond, perf O(N²) partout). Aucun signal de cette gravité dans l'audit Stage 1.
+
+Arguments contre majeurs :
+- 6+ mois de travail.
+- Perte des 28 milestones de hardening (F02-F22, TOCTOU, hash chain).
+- Pas d'utilisateur réel encore → on rebuild un produit qu'on ne sait pas utile.
+
+**Recommandation finale Stage 3** : **Voie A**, avec milestone explicite `M-ElectionMotion` budgeté immédiatement après le pivot, et fix tickets (proxy cap + tests legacy) en parallèle. Si Stage 2 révèle un blocker de stack, escalader à Voie B.
+
+### Boundary respectée
+
+Cet audit n'a modifié aucun fichier de production (`app/`, `public/`, `database/`, `tests/`, `composer.*`). Tickets de fix (proxy cap, MeetingsController legacy tests, MeetingReportService dedup, élection feature) = livrable Stage 3 (M-DECISION).
+
+---
+
+*Audit clos 2026-05-06. Stage 2 (audit stack) à lancer avec les priorités recommandées ci-dessus.*
