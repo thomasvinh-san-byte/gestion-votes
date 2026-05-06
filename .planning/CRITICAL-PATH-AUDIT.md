@@ -818,3 +818,105 @@ curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application
 **Recommandation** : valider en live qu'aucune action utilisateur (vote, marquer présence, modifier motion) ne fonctionne sur séance `closed`. Stage 2 peut clarifier la sémantique de `closed → live` (réouverture autorisée ou pas) — soit l'expliciter dans le service avec gate, soit l'enlever de l'enum-passable.
 
 ---
+
+## Étape 10 — Génération PV PDF (AUDIT-CHEMIN-10)
+
+**Description du flow** : depuis une séance `closed`, opérateur déclenche `POST /meeting_generate_report_pdf`. Service génère HTML structuré (titre, en-tête, présents, motions avec résultats pondérés, signature placeholder), passe à `dompdf` qui rend en PDF. Header répété à chaque page, footer "Page X sur Y", accents français corrects (DejaVu Sans), pagination automatique. PDF servi avec `Content-Disposition: attachment`.
+
+**Code concerné** :
+- `app/Controller/MeetingReportsController.php` (261 lignes) — `generateReport` (HTML), `generatePdf` (PDF binaire).
+- `app/Services/MeetingReportsService.php` (330 lignes) — service principal :
+  - Ligne 182-189 : CSS in-line avec `@page` margin, `@top-center` (header), `@bottom-center` (footer "Page X sur Y" via `counter(page) " sur " counter(pages)`), `font-family: "DejaVu Sans"`.
+  - Ligne 190 : `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">`.
+  - Ligne 276 : `$options->set('defaultFont', 'DejaVu Sans')`.
+  - Ligne 279 : `$dompdf->loadHtml($html, 'UTF-8')`.
+  - Watermark "BROUILLON" possible (`.draft-watermark` / `.draft-banner` classes).
+- `app/Services/MeetingReportService.php` (319 lignes) — variante (legacy ?). Confirme `<meta charset="utf-8">` ligne 65.
+- `app/Services/ReportGenerator.php` (296 lignes) — Stream HTML standalone (non-PDF) pour preview.
+- `app/Services/ProcurationPdfService.php` (296 lignes) — PDF mandat de procuration (étape 08), même engine dompdf.
+- `app/routes.php` lignes 303-304 : `/meeting_generate_report` (HTML), `/meeting_generate_report_pdf` (PDF).
+- `composer.json` ligne 7 : `"dompdf/dompdf": "^3.1"`.
+
+**Tests existants** :
+- `tests/Unit/MeetingReportServiceTest.php`.
+- `tests/Unit/MeetingReportsServiceTest.php`.
+- `tests/Unit/MeetingReportsControllerTest.php`.
+- `tests/Unit/MeetingReportsLongPdfTest.php` — **stress test long PDF**, contient :
+  - `testHeaderRepeatedOnEveryPageOfLongPv` (ligne 179).
+  - `testEmDashAndFrenchAccentsRenderedCorrectly` (ligne 258).
+  - `testFooterPageXSurYOnEveryPage` (ligne 327).
+  - `testShortPvStillRendersInPriorPageBudget` (ligne 398).
+- `tests/Unit/ProcurationPdfServiceTest.php` + `ProcurationPdfControllerTest.php`.
+
+**Recoupement archive** :
+- v1.4 → v2.7 : génération PV PDF mature, anti-régression sur header/footer/accents/pagination.
+- PROJECT.md mentionne "Génération PV PDF (dompdf, header répété, accents UTF-8)" comme `⚠ validated mais pas re-vérifié visuellement`.
+- PROJECT.md note "Génération PV ≥10 pages réelle (smoke test PHPUnit OK, visuel jamais validé)".
+- `dompdf 3.1` est une version récente (3.x supporte mieux UTF-8 que 2.x).
+
+**Verdict statique** : ✓
+
+**Justification** :
+- Setup dompdf textbook : `defaultFont = "DejaVu Sans"` (police embarquée qui couvre Latin-1 + Latin Extended → tous les accents français), `loadHtml($html, 'UTF-8')` explicite, `<meta charset="UTF-8">` dans le DOM, `htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')` partout pour escaping safe.
+- CSS @page propre : header répété (`@top-center`), footer pagination (`@bottom-center` avec `counter(page) " sur " counter(pages)`), marges, font cohérente.
+- Tests anti-régression dédiés : `testHeaderRepeatedOnEveryPageOfLongPv`, `testFooterPageXSurYOnEveryPage`, `testEmDashAndFrenchAccentsRenderedCorrectly`. C'est rare et précieux.
+- `Procès-verbal - <title>` titre dans le DOM, watermark "BROUILLON" possible si pas validé, structure sémantique HTML5 (h1/h2/h3, table, tr/th/td).
+- Couleurs et badges (success/danger/warning) cohérents.
+- Nuance 1 : 2 services de PV existent (`MeetingReportService.php` 319 lignes + `MeetingReportsService.php` 330 lignes). Il y en a probablement un legacy. À clarifier.
+- Nuance 2 : pas de signature électronique implémentée. La feature `M-Signature` (eIDAS) est explicitement mentionnée comme `Out-of-Scope post Stage 3`. Le PV actuel a une *zone signature placeholder* mais aucune signature cryptographique. Pour la valeur légale, c'est un gap de produit (mais c'est dans la roadmap).
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : étape 09 (séance MID closed avec 3+ motions résolues, 30+ ballots, 1+ proxies).
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+
+# 1. Générer le PV en PDF
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"format\":\"pdf\"}" \
+  http://localhost:8080/api/v1/meeting_generate_report_pdf \
+  -o /tmp/pv.pdf
+ls -lh /tmp/pv.pdf
+file /tmp/pv.pdf
+# attendu : PDF document, version X.Y, ~50-200 KB pour 5 pages
+
+# 2. Vérifier le contenu textuel (sans ouvrir le PDF)
+pdftotext /tmp/pv.pdf - | head -50
+# attendu : "Procès-verbal", titre séance avec accents corrects, président, date, liste motions
+
+# 3. Compter les pages
+pdfinfo /tmp/pv.pdf | grep Pages
+# attendu : Pages: 3-10 selon contenu
+
+# 4. Test accents (tester é, è, ç, à, ù, ï)
+pdftotext /tmp/pv.pdf - | grep -oE "Procès-verbal|élu|président|décision|résolution" | sort -u
+# attendu : tous présents avec accents bien rendus
+
+# 5. Visuel : ouvrir avec viewer
+xdg-open /tmp/pv.pdf
+# vérifier visuellement :
+#   - header répété sur chaque page (titre séance + date)
+#   - footer "Page 1 sur N" sur chaque page
+#   - structure : titre H1, sections H2 (Membres, Motions, Procurations), tables résultats
+#   - accents français lisibles (pas de □ ni ?)
+#   - décisions colorées (vert adopté, rouge rejeté)
+#   - pas de débordement de texte
+
+# 6. Test long PV (forcer ≥10 pages avec beaucoup de motions/ballots)
+# créer 20 motions, 50 ballots chacune, puis générer
+# attendu : pagination fluide, header présent partout, footer page X sur Y exact
+
+# 7. Stress charset Win-1252 (membre importé depuis Excel français — voir étape 02)
+# ouvrir PV qui inclut un nom avec ç ou œ
+# attendu : caractères rendus correctement
+```
+
+**Impact** : 🟡 nice-to-have — couche solide avec tests anti-régression dédiés. Charset/font configurés correctement. Risque résiduel : pas de signature cryptographique (gap produit, pas bug code).
+
+**Recommandation** :
+1. Valider visuellement le PV avec contenu réel asso pilote (5-10 pages, accents, tableau résultats).
+2. Stage 2 : choisir entre `MeetingReportService.php` et `MeetingReportsService.php` — supprimer le legacy.
+3. Stage 3 / `M-Signature` : ajouter signature électronique eIDAS avancée (ce gap est connu et budgété).
+4. dompdf 3.1 est OK ; pas de raison de migrer vers wkhtmltopdf ou autre engine. Garder.
+
+---
