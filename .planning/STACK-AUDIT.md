@@ -286,3 +286,50 @@
 - Ajouter un cache compilé (sérialisation des `routes` + `paramRoutes` en APCu) si jamais perf devient un sujet (pas le cas)
 
 ---
+
+## AUDIT-STACK-07 — `AgVote\Core\Logger` (Logger custom JSON, 359 lignes, 29 sites)
+
+**Rôle aujourd'hui** : logger statique JSON structuré avec :
+- 8 niveaux (debug → emergency, mapping numérique standard PSR-3)
+- Auto-fill contexte : `request_id` (UUID v4 généré au boot), `user_id`, `tenant_id` via helpers globaux
+- Méthodes spécialisées : `Logger::api()` (HTTP access log avec duration), `Logger::auth()` (login event avec success bool), `Logger::security()` (security warning), `Logger::exception()` (stack trace formaté)
+- Sortie : fichier configuré ou `error_log` PHP par défaut
+- Min level configurable
+
+**Sites d'usage** : 29 fichiers (controllers + services + middleware + providers)
+
+**Version actuelle** : custom, classe `static`. Compatible **PSR-3 interface** (cf. PHPDoc ligne 14 "Compatible avec les standards PSR-3 (interface simplifiee)") mais n'implémente pas réellement `Psr\Log\LoggerInterface` (méthodes statiques au lieu d'instance).
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **Monolog 3.x** | Standard de facto PSR-3, ~25 handlers (Stripe, Sentry, Slack, Loggly, Syslog, Rotating, ELK, Stream), ~10 processors (memory, web, git, intro), formatters (JSON, line, HTML), maintenu activement | Migration **mécanique** des 29 sites mais **architecturale** : le logger statique doit devenir un service injecté (impacte DI partout). Perte de l'auto-fill contexte (à reconstituer via Processor). Vendor +500 Ko |
+| **PSR-3 logger maison + adaptateur** | Garde l'API `Logger::info(...)` mais expose un `LoggerAdapter` PSR-3 pour les libs tierces qui en demanderaient un | C'est ce que fait *déjà* le custom, en filigrane. Surcoût implémentation = quasi nul, gain = quasi nul tant qu'aucune lib ne le requiert |
+| **Symfony Console\Logger** | Cohérent avec le reste de l'écosystème Symfony en place | Limité au CLI, ne remplace pas l'usage HTTP |
+| **Sentry SDK direct** | Tracking exceptions production | Ne remplace pas le logger applicatif (complémentaire) ; à intégrer en post-pivot si dogfood révèle besoin |
+| **Garder Logger custom** | API ergonomique (`Logger::auth()`, `Logger::security()`, `Logger::api()` sont des helpers domain-specific qui deviennent des Processors complexes en Monolog), auto-fill request_id/user_id/tenant_id, 359 lignes auditables, **migré v2.5 récemment** (cf. REQUIREMENTS.md "47 sites migrés v2.5") — code stable | Pas de handlers tiers out-of-box (Sentry/Slack à intégrer manuellement si besoin futur), API statique = couplage direct (mais isolé via méthodes domain) |
+
+**Verdict** : **keep**
+
+**Justification** :
+- API domain-specific (`Logger::auth()`, `Logger::security()`, `Logger::api()`) est un atout réel — encode des conventions de logging (champs `auth_event`, `security_event`, `http.duration_ms`) qui seraient à dupliquer comme Processors Monolog.
+- Migration récente v2.5 (47 sites passés au custom Logger) — re-migrer maintenant = jeter un effort fraîchement consenti.
+- Auto-fill `request_id` + contexte session = exactement ce qu'un Processor Monolog ferait, mais déjà en place.
+- Aucune intégration tierce (Sentry/Slack) demandée par la roadmap pivot. Si un besoin émerge plus tard, **on peut greffer un Monolog handler en parallèle** (le custom Logger peut faire un `Monolog::log()` en plus du write fichier) — donc le besoin "écosystème handlers" n'est pas bloqué par le keep.
+- Coupling : le Logger est `static`, donc pas DI-friendly pour tests, mais en pratique les tests utilisent `Logger::configure(['file' => /tmp/test.log])` puis lisent le fichier — pattern fonctionnel.
+
+**Coût migration estimé** : **L** (~1-2 semaines)
+- Refactor 29 sites de `Logger::method()` → `$this->logger->method()` (DI partout) — 3-5 jours mécanique mais touche tous les services
+- Reconstruire l'auto-fill via Monolog Processors — 1 jour
+- Re-implémenter les helpers domain (`api()`, `auth()`, `security()`) comme Processors ou comme Channels — 1 jour
+- Tests à mettre à jour (mock LoggerInterface au lieu d'introspection fichier) — 2-3 jours
+- Risque : régression silencieuse sur logs (champs structurés perdus si Processor mal config)
+
+**Bénéfice attendu** : marginal aujourd'hui (aucun handler tiers requis), latent (si Sentry/Slack adoptés en post-pivot).
+
+**Recommandation Stage 3** : aucune action. **Améliorations incrémentales possibles sans migration** :
+- Implémenter formellement `Psr\Log\LoggerInterface` via un wrapper (effort XS) pour permettre injection dans libs tierces (ex. Symfony Mailer accepte un PSR-3 logger)
+- Si Sentry adopté plus tard : ajouter un handler Sentry directement dans `Logger::write()` — effort S, sans migration globale
+
+---
