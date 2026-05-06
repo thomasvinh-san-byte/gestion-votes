@@ -446,3 +446,91 @@ curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/quorum_status?meeting_id
 **Recommandation** : valider en live qu'une politique de quorum tenant fallback existe par défaut (sinon `met: null` → cockpit peut afficher "—" au lieu de "atteint"). Stage 2 peut interroger : 3 modes (single/double/evolving) sont-ils tous nécessaires en pratique ? Le mode `double` est rare en associations (plus typique en copropriété — donc à proscrire selon CLAUDE.md ?), à confirmer terrain.
 
 ---
+
+## Étape 06 — Vote motion résolution simple (AUDIT-CHEMIN-06)
+
+**Description du flow** : opérateur ouvre une motion résolution (POST `/motions_open`). Votants envoient leur ballot (`for`/`against`/`abstain`/`nsp`) via `POST /ballots_cast`. Opérateur ferme la motion (POST `/motions_close`). `VoteEngine` calcule le résultat pondéré et le décide (`adopted`/`rejected`).
+
+**Code concerné** :
+- `app/Controller/BallotsController.php` (414 lignes) — `listForMotion`, `cast` (vote endpoint), `manualVote`, `redeemPaperBallot`, `cancel`. Validation et appel à `BallotsService`.
+- `app/Services/BallotsService.php` (221 lignes) — `castBallot()` :
+  - Garde tenant (multi-tenant safe via `_tenant_id`).
+  - Garde state : `meeting.status === 'live'`, `motion.opened_at IS NOT NULL && closed_at IS NULL`, séance non validée.
+  - Garde présence : `attendancesService->isPresentDirect()` (mode `present` ou `remote`, EXCLUE `proxy` pour éviter chaînes).
+  - Garde poids : `weight = member.voting_power`, valide `>= 0`, `<= 1e6`, fini.
+  - **Anti-TOCTOU explicite** : `meetingRepo->lockForUpdate()` (SELECT FOR UPDATE) en transaction, puis re-validation `motion_opened_at/closed_at` à l'intérieur du lock (cas course concurrent close).
+  - Idempotence : `UNIQUE (motion_id, member_id)` en DB → SQLSTATE 23505 capturé → message français explicite "Ce membre a déjà voté".
+  - Audit : SSE broadcast `EventBroadcaster::voteCast()` après transaction (best-effort, échec loggé sans bloquer).
+- `app/Services/VoteEngine.php` (346 lignes) — calcul tally, décision (majorité simple, qualifiée, etc. selon vote_policy).
+- `app/Services/OfficialResultsService.php` (399 lignes) — consolidation manuelle vs e-vote.
+- `app/routes.php` ligne 145-150 (ballots), 341-342 (motions open/close).
+- `database/schema-master.sql` lignes 662-679 : table `ballots` avec `UNIQUE (motion_id, member_id)`, `value motion_value NOT NULL`, `weight numeric(12,4) NOT NULL DEFAULT 1.0`, `is_proxy_vote bool`, `proxy_source_member_id`. Trigger `ballots_fill_context` remplit `meeting_id`/`tenant_id` automatiquement depuis la motion.
+
+**Tests existants** :
+- `tests/Unit/BallotsControllerTest.php` + `BallotsServiceTest.php`.
+- `tests/Unit/VoteEngineTest.php` + `VoteEngineSettingsTest.php` + `VoteLogicTest.php`.
+- `tests/Unit/WeightedVoteRegressionTest.php` — anti-régression poids.
+- `tests/Unit/OfficialResultsServiceTest.php`.
+- `tests/Unit/DataIntegrityLocksTest.php` — locks SQL transactions.
+- `tests/Unit/MotionsControllerTest.php` (handlers open/close).
+
+**Recoupement archive** :
+- v1.6 → v2.0 → v2.7 : moteur de vote pondéré durci en 28 milestones successifs.
+- F22 (CSRF action-scoped), F13/F21 (rate limit + lockout) appliqués à `ballots_cast`.
+- v2.7-N+1-AUDIT.md mentionne possible optimisation `tally()` répété sur SSE broadcast — non bloquant, perf.
+- TOCTOU défensive ajoutée explicitement (commentaires "TOCTOU prevention" dans BallotsService.php) — c'est un travail de durcissement récent.
+
+**Verdict statique** : ✓
+
+**Justification** :
+- Implémentation référence quasi parfaite : transaction PG avec `SELECT FOR UPDATE`, re-validation systématique en zone protégée, contrainte UNIQUE en DB pour idempotence (pas en applicatif fragile), trigger `ballots_fill_context` qui assure la cohérence tenant_id/meeting_id même si l'appelant les omet, audit_log + SSE broadcast en best-effort.
+- Anti-chaîne procuration : un `proxy_source_member_id` ne peut pas être lui-même en mode `proxy` à la séance — la garde `isPresentDirect` (qui exclut `proxy`) empêche la procuration transitive A→B→C.
+- Validation weight stricte : `is_finite($weight) && $weight >= 0.0 && $weight <= 1e6` empêche `Infinity`, `NaN`, valeurs négatives, valeurs absurdes.
+- Messages d'erreur en français explicite : "Ce membre a déjà voté sur cette résolution. Un re-vote nécessite une annulation préalable par l'opérateur." — UX clair.
+- Couverture tests étendue (8+ fichiers tests directement liés). Régression pondération couverte.
+- Nuance : le test PROJECT.md "6 pre-existing MeetingsControllerTest failures" concerne meeting update/delete (étape 03), PAS les ballots. Les ballots restent verts.
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : étape 04 (séance live) + étape 05 (30 présents). Mention motion_id MOTID = première motion résolution.
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+
+# 1. Ouvrir le vote sur la motion
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\"}" http://localhost:8080/api/v1/motions_open | jq
+
+# 2. 30 votants émettent leur ballot (test idempotence + tally)
+for MID_MEMBER in $(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members | jq -r '.items[:30] | .[].id'); do
+  VAL=$(awk 'BEGIN{srand(); r=rand(); if (r<0.6) print "for"; else if (r<0.85) print "against"; else print "abstain"}')
+  curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+    -d "{\"motion_id\":\"$MOTID\",\"member_id\":\"$MID_MEMBER\",\"value\":\"$VAL\"}" \
+    http://localhost:8080/api/v1/ballots_cast > /dev/null
+done
+
+# 3. Test idempotence : re-voter le même membre doit échouer
+SAMPLE=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members | jq -r '.items[0].id')
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\",\"member_id\":\"$SAMPLE\",\"value\":\"for\"}" \
+  http://localhost:8080/api/v1/ballots_cast | jq
+# attendu : 409/422 avec message "Ce membre a déjà voté..."
+
+# 4. Fermer le vote
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\"}" http://localhost:8080/api/v1/motions_close | jq
+
+# 5. Récupérer le tally pondéré
+curl -sb /tmp/cookies.txt "http://localhost:8080/api/v1/ballots_result?motion_id=$MOTID" | jq
+# attendu : { for: <weighted>, against: <weighted>, abstain: <weighted>, total: ..., decision: "adopted"|"rejected" }
+
+# 6. Vérifier en DB que les poids sont bien appliqués (pas un compte flat)
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT value, count(*) AS n, sum(weight) AS total_weight FROM ballots WHERE motion_id='$MOTID' GROUP BY value"
+# attendu : sum(weight) > count(*) si certains membres ont voting_power > 1
+```
+
+**Impact** : 🟡 nice-to-have — coeur métier, code mature et défensif. Le résultat doit être correct. Si confirmé en live, c'est une force de l'app.
+
+**Recommandation** : valider en live le cas TOCTOU (vote pendant close) — difficile à reproduire mais le code prévoit. SSE broadcast à valider visuellement (cockpit refresh seul). Stage 2 ne devrait pas remettre en cause cette couche — c'est l'asset le plus solide du codebase.
+
+---
