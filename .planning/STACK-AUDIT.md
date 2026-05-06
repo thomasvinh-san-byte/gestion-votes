@@ -190,3 +190,49 @@
 **Recommandation Stage 3** : aucune action. Surveiller la sortie Symfony 9.0 (~Nov 2027) et planifier mise à jour alors. Continuer à isoler tout usage Symfony Mailer derrière `MailerService` (pattern actuel).
 
 ---
+
+## AUDIT-STACK-05 — Extensions PHP (`gd`, `intl`, `zip`, `pdo_pgsql`, `pgsql`, `mbstring`, `redis`, `Zend OPcache`)
+
+**Rôle aujourd'hui** : extensions installées au build Docker (Dockerfile lignes 45-47, 50-53) et vérifiées au démarrage par fail-fast guard (ligne 59).
+
+**Audit usage par extension** :
+
+| Extension | Usage attesté code | Verdict |
+|---|---|---|
+| `pdo_pgsql` | `AbstractRepository` (PDO PostgreSQL) — base du Repository layer | **keep** |
+| `pgsql` | Fonctions `pg_*` natives (pas seulement PDO). À vérifier : `grep -rEn "pg_(connect\|query\|escape)" app/` → audit code montre uniquement PDO en pratique | **keep par prudence** (peut être requis transitivement par certaines fonctions PG) |
+| `mbstring` | 24 sites usage (`mb_detect_encoding`, `mb_convert_encoding`, etc.) — CSV import français | **keep** |
+| `redis` (phpredis) | `RedisProvider` + 8 sites (cache, rate-limit, idempotency, SSE queue, security signals) | **keep** |
+| `Zend OPcache` | Performance PHP en production, 128 Mo cache, 4000 fichiers accélérés | **keep** |
+| `intl` | 2 usages : `transliterator_transliterate` dans `ExportService` (filenames sans accent), `IntlDateFormatter` dans `EmailTemplateService` (dates FR longues) | **keep** |
+| `zip` | **Aucun usage applicatif direct** (pas de `ZipArchive` dans `app/` ni `public/`), mais **requis transitivement** par dompdf/openspout/phpspreadsheet (lock : `ext-zip: *` déclaré 4 fois) | **keep** (transitif) |
+| `gd` | **Découverte audit** : aucun usage. `EmailTrackingController::outputPixel()` ligne 156 utilise `base64_decode('R0lGODlhAQABAI...')` (GIF hardcoded) — **pas** GD. STACK.md ligne 73 et CLAUDE.md mention "1x1 email tracking pixel generation" sont **inexacts**. | **remove** |
+
+**Découverte significative** : extension `gd` installée + compilée avec freetype/jpeg dans le Dockerfile (lignes 45-46), libs runtime `libpng libjpeg-turbo freetype` permanentes (ligne 36-37), build deps `libpng-dev libjpeg-turbo-dev freetype-dev` (ligne 41-42), **pour rien**. C'est de la dette infra documentaire (les commentaires affirment l'usage mais le code prouve l'absence).
+
+**Alternatives évaluées (gd)** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **Retirer ext-gd** | -~3 Mo image Docker (libs gd + freetype + jpeg + png), -~30s build (compilation `docker-php-ext-install gd`), suppression 3 packages -dev | Aucun, puisque inutilisé |
+| **Garder par prudence** | Si futur usage planifié | Aucun futur usage planifié dans roadmap pivot (Signature PV, VoteDistant, Stats) |
+
+**Verdict** :
+- `pdo_pgsql`, `pgsql`, `mbstring`, `redis`, `Zend OPcache`, `intl`, `zip` → **keep** (toutes utilisées directement ou transitivement)
+- `gd` → **remove** (aucun usage attesté, doc obsolète)
+
+**Coût migration** : **XS** (< 1h)
+- Retirer `gd` de `docker-php-ext-install` (Dockerfile ligne 47).
+- Retirer `--with-freetype --with-jpeg` (ligne 45) → `docker-php-ext-configure gd` devient obsolète, ligne supprimable.
+- Retirer du fail-fast guard ligne 59 (string `"gd"`).
+- Retirer libs runtime `libpng libjpeg-turbo freetype` (ligne 37) — sauf si requis par autre composant (à vérifier : phpspreadsheet/dompdf images embarquées ? Probablement pas en runtime, mais à confirmer en sandbox).
+- Retirer build deps `libpng-dev libjpeg-turbo-dev freetype-dev` (ligne 42).
+- Mettre à jour `.planning/codebase/STACK.md` ligne 73 et `CLAUDE.md` mention pixel tracking → "GIF base64 hardcodé".
+
+**Bénéfice attendu** :
+- Image Docker -~3 Mo, build -~30s, surface attack réduite (fontes CVE historiques freetype).
+- Cohérence doc/code.
+
+**Recommandation Stage 3** : **inclure dans M-INFRA-CLEANUP** — quick win, faible risque (sandbox docker build + healthcheck suffit à valider). Si dompdf venait à charger des images PNG dans des PV futurs, ext-gd peut être réinstallée trivialement.
+
+---
