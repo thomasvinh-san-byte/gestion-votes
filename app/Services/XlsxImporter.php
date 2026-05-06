@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use AgVote\Core\Providers\RepositoryFactory;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use OpenSpout\Reader\XLSX\Reader;
 use Throwable;
 
 /**
@@ -34,46 +34,57 @@ final class XlsxImporter {
     // ========================================================================
 
     /**
-     * Reads an XLSX file and returns rows as arrays
+     * Reads an XLSX file and returns rows as arrays.
      *
-     * @param string $filePath Path to the XLSX file
-     * @param int $sheetIndex Sheet index to read (default: 0 = first sheet)
+     * Backed by OpenSpout (streaming reader) — same dependency the export
+     * path already uses. PhpSpreadsheet's in-memory model is replaced for
+     * lower memory footprint on larger imports.
      *
-     * @return array ['headers' => array, 'rows' => array, 'error' => ?string]
+     * Note: $sheetIndex is honoured by skipping iterator entries; OpenSpout
+     * only exposes a sheet iterator, not random access.
+     *
+     * @return array{headers: array<int,string>, rows: array<int,array<int,string>>, error: ?string}
      */
     public static function readFile(string $filePath, int $sheetIndex = 0): array {
+        $reader = new Reader();
+
         try {
-            $spreadsheet = IOFactory::load($filePath);
-            $sheet = $spreadsheet->getSheet($sheetIndex);
+            $reader->open($filePath);
 
-            $rows = [];
             $headers = [];
+            $rows = [];
             $rowIndex = 0;
+            $currentSheet = -1;
 
-            foreach ($sheet->getRowIterator() as $row) {
-                $cellIterator = $row->getCellIterator();
-                $cellIterator->setIterateOnlyExistingCells(false);
-
-                $rowData = [];
-                foreach ($cellIterator as $cell) {
-                    $value = $cell->getValue();
-                    // Handle formulas
-                    if ($cell->isFormula()) {
-                        $value = $cell->getCalculatedValue();
-                    }
-                    $rowData[] = $value !== null ? (string) $value : '';
+            foreach ($reader->getSheetIterator() as $sheet) {
+                $currentSheet++;
+                if ($currentSheet !== $sheetIndex) {
+                    continue;
                 }
 
-                if ($rowIndex === 0) {
-                    // First row = headers
-                    $headers = array_map(fn ($h) => strtolower(trim($h)), $rowData);
-                } else {
-                    // Skip empty rows
-                    if (!empty(array_filter($rowData, fn ($v) => trim($v) !== ''))) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $rowData = [];
+                    foreach ($row->toArray() as $value) {
+                        // OpenSpout returns DateTime/numeric/bool natively; coerce to
+                        // string to mirror the previous PhpSpreadsheet contract that
+                        // downstream parsers (parseBoolean, parseVotingPower, …) rely on.
+                        if ($value instanceof \DateTimeInterface) {
+                            $rowData[] = $value->format('Y-m-d');
+                        } elseif (is_bool($value)) {
+                            $rowData[] = $value ? '1' : '0';
+                        } else {
+                            $rowData[] = $value !== null ? (string) $value : '';
+                        }
+                    }
+
+                    if ($rowIndex === 0) {
+                        $headers = array_map(fn ($h) => strtolower(trim($h)), $rowData);
+                    } elseif (!empty(array_filter($rowData, fn ($v) => trim($v) !== ''))) {
                         $rows[] = $rowData;
                     }
+                    $rowIndex++;
                 }
-                $rowIndex++;
+                break; // only read the requested sheet
             }
 
             return [
@@ -81,13 +92,14 @@ final class XlsxImporter {
                 'rows' => $rows,
                 'error' => null,
             ];
-
         } catch (Throwable $e) {
             return [
                 'headers' => [],
                 'rows' => [],
                 'error' => 'Erreur lecture fichier Excel: ' . $e->getMessage(),
             ];
+        } finally {
+            $reader->close();
         }
     }
 

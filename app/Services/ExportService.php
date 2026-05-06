@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AgVote\Service;
 
 use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Color;
+use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
 
 /**
@@ -196,69 +198,8 @@ final class ExportService {
     }
 
     // ========================================================================
-    // EXPORT XLSX (PhpSpreadsheet)
+    // EXPORT XLSX STREAMING (OpenSpout, single + multi-sheet)
     // ========================================================================
-
-    /** @return \PhpOffice\PhpSpreadsheet\Spreadsheet */
-    public function createSpreadsheet(array $headers, array $rows, string $sheetTitle = 'Données'): \PhpOffice\PhpSpreadsheet\Spreadsheet {
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
-        $colIndex = 1;
-        foreach ($headers as $header) {
-            $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
-            // F15: headers are app-controlled, but pipe through the same gate
-            // for consistency in case a future caller passes user input here.
-            $cell->setValue($this->sanitizeCsvCell($header));
-            $cell->getStyle()->getFont()->setBold(true);
-            $cell->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
-            $colIndex++;
-        }
-        $rowIndex = 2;
-        foreach ($rows as $row) {
-            $colIndex = 1;
-            foreach ($row as $value) {
-                // F15: same formula-injection gate as CSV. setExplicitCellValue
-                // would also work but breaks number/date detection. Prefix-with-'
-                // is the OWASP-recommended approach.
-                $sheet->getCellByColumnAndRow($colIndex, $rowIndex)
-                    ->setValue($this->sanitizeCsvCell($value));
-                $colIndex++;
-            }
-            $rowIndex++;
-        }
-        foreach (range('A', $sheet->getHighestColumn()) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-        $sheet->freezePane('A2');
-        return $spreadsheet;
-    }
-
-    public function addSheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet, array $headers, array $rows, string $sheetTitle): void {
-        $sheet = $spreadsheet->createSheet();
-        $sheet->setTitle(mb_substr($sheetTitle, 0, 31));
-        $colIndex = 1;
-        foreach ($headers as $header) {
-            $cell = $sheet->getCellByColumnAndRow($colIndex, 1);
-            $cell->setValue($header);
-            $cell->getStyle()->getFont()->setBold(true);
-            $cell->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
-            $colIndex++;
-        }
-        $rowIndex = 2;
-        foreach ($rows as $row) {
-            $colIndex = 1;
-            foreach ($row as $value) {
-                $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->setValue($value);
-                $colIndex++;
-            }
-            $rowIndex++;
-        }
-        foreach (range('A', $sheet->getHighestColumn()) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-        $sheet->freezePane('A2');
-    }
 
     public function initXlsxOutput(string $filename): void {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -267,15 +208,45 @@ final class ExportService {
         header('X-Content-Type-Options: nosniff');
     }
 
-    public function outputSpreadsheet(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet): void {
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
+    /**
+     * Stream a single-sheet XLSX report directly to php://output.
+     *
+     * Replaces the legacy createSpreadsheet/outputSpreadsheet pair (which
+     * built a full PhpSpreadsheet workbook in memory before serializing).
+     */
+    public function streamReportXlsx(array $headers, array $rows, string $sheetTitle, string $filename): void {
+        $this->initXlsxOutput($filename);
+
+        $writer = new Writer();
+        $writer->openToFile('php://output');
+        $writer->getCurrentSheet()->setName(mb_substr($sheetTitle, 0, 31));
+
+        $headerStyle = $this->headerStyle();
+        $writer->addRow(Row::fromValues(
+            array_map(fn ($h) => $this->sanitizeCsvCell($h), $headers),
+            $headerStyle,
+        ));
+
+        foreach ($rows as $row) {
+            $writer->addRow(Row::fromValues(
+                array_map(fn ($v) => $this->sanitizeCsvCell($v), array_values($row)),
+            ));
+        }
+
+        $writer->close();
     }
 
-    /** @return \PhpOffice\PhpSpreadsheet\Spreadsheet */
-    public function createFullExportSpreadsheet(array $meeting, array $attendanceRows, array $motionRows, array $voteRows = []): \PhpOffice\PhpSpreadsheet\Spreadsheet {
-        $summaryHeaders = ['Information', 'Valeur'];
-        $summaryData = [
+    /**
+     * Stream a multi-sheet XLSX (full meeting export) directly to php://output.
+     */
+    public function streamFullExportXlsx(array $meeting, array $attendanceRows, array $motionRows, array $voteRows, string $filename): void {
+        $this->initXlsxOutput($filename);
+
+        $writer = new Writer();
+        $writer->openToFile('php://output');
+
+        $summaryRows = [
+            ['Information', 'Valeur'],
             ['Séance', $meeting['title'] ?? ''],
             ['Date', $this->formatDate($meeting['scheduled_at'] ?? null, false)],
             ['Statut', $this->translateMeetingStatus($meeting['status'] ?? '')],
@@ -290,21 +261,57 @@ final class ExportService {
             ['Résolutions adoptées', count(array_filter($motionRows, fn ($r) => ($r['decision'] ?? '') === 'adopted'))],
             ['Résolutions rejetées', count(array_filter($motionRows, fn ($r) => ($r['decision'] ?? '') === 'rejected'))],
         ];
-        $spreadsheet = $this->createSpreadsheet($summaryHeaders, $summaryData, 'Résumé');
-        $this->addSheet($spreadsheet, $this->getAttendanceHeaders(), array_map([$this, 'formatAttendanceRow'], $attendanceRows), 'Émargement');
-        $this->addSheet($spreadsheet, $this->getMotionResultsHeaders(), array_map([$this, 'formatMotionResultRow'], $motionRows), 'Résolutions');
-        if (!empty($voteRows)) {
-            $votesFormatted = [];
-            foreach ($voteRows as $r) {
-                if (!empty($r['voter_name'])) {
-                    $votesFormatted[] = $this->formatVoteRow($r);
-                }
-            }
-            if (!empty($votesFormatted)) {
-                $this->addSheet($spreadsheet, $this->getVotesHeaders(), $votesFormatted, 'Votes');
+        $this->addSheetToWriter($writer, 'Résumé', $summaryRows[0], array_slice($summaryRows, 1), false);
+
+        $this->addSheetToWriter(
+            $writer,
+            'Émargement',
+            $this->getAttendanceHeaders(),
+            array_map([$this, 'formatAttendanceRow'], $attendanceRows),
+        );
+
+        $this->addSheetToWriter(
+            $writer,
+            'Résolutions',
+            $this->getMotionResultsHeaders(),
+            array_map([$this, 'formatMotionResultRow'], $motionRows),
+        );
+
+        $votesFormatted = [];
+        foreach ($voteRows as $r) {
+            if (!empty($r['voter_name'])) {
+                $votesFormatted[] = $this->formatVoteRow($r);
             }
         }
-        $spreadsheet->setActiveSheetIndex(0);
-        return $spreadsheet;
+        if (!empty($votesFormatted)) {
+            $this->addSheetToWriter(
+                $writer,
+                'Votes',
+                $this->getVotesHeaders(),
+                $votesFormatted,
+            );
+        }
+
+        $writer->close();
+    }
+
+    private function addSheetToWriter(Writer $writer, string $title, array $headers, array $rows, bool $newSheet = true): void {
+        if ($newSheet) {
+            $writer->addNewSheetAndMakeItCurrent();
+        }
+        $writer->getCurrentSheet()->setName(mb_substr($title, 0, 31));
+
+        $headerStyle = $this->headerStyle();
+        $writer->addRow(Row::fromValues($headers, $headerStyle));
+
+        foreach ($rows as $row) {
+            $writer->addRow(Row::fromValues(array_values($row)));
+        }
+    }
+
+    private function headerStyle(): Style {
+        return (new Style())
+            ->setFontBold()
+            ->setBackgroundColor(Color::rgb(0xE0, 0xE0, 0xE0));
     }
 }

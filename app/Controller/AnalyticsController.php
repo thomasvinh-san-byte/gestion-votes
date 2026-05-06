@@ -129,11 +129,12 @@ final class AnalyticsController extends AbstractController {
         }
 
         if ($format === 'xlsx') {
-            $spreadsheet = $exportService->createSpreadsheet($headers, $rows, "Rapport {$reportType}");
-            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            header('Content-Disposition: attachment; filename="' . $filename . '.xlsx"');
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-            $writer->save('php://output');
+            $exportService->streamReportXlsx(
+                $headers,
+                $rows,
+                "Rapport {$reportType}",
+                $filename . '.xlsx',
+            );
             return;
         }
     }
