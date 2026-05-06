@@ -617,3 +617,114 @@ done
 - **Option 3 (rebuild)** : si Stage 2 conclut que la stack PHP/HTMX n'est pas le bon choix pour ce besoin (workflow complexe avec UX riche), ce gap renforce l'argument Voie C (rebuild from scratch). À considérer.
 
 ---
+
+## Étape 08 — Vote avec procuration active (AUDIT-CHEMIN-08)
+
+**Description du flow** : membre A donne procuration à membre B pour la séance. B est présent (`present` ou `remote`), A absent. B vote sur motion → ballot enregistré avec `is_proxy_vote=true`, `proxy_source_member_id = B.id`, `member_id = A.id`, `weight = A.voting_power` (poids de A appliqué au choix de B). Plus tôt, vérifier que B vote aussi pour lui-même séparément (vote direct).
+
+**Code concerné** :
+- `app/Services/ProxiesService.php` (143 lignes) — `upsert()`, `revoke()`, `hasActiveProxy()`, `hasActiveProxyForUpdate()`. Documenté en JSDoc clair :
+  - Anti-self-delegation (`giver != receiver`).
+  - Tenant coherence (meeting + giver + receiver même tenant).
+  - **Anti-chaîne** : si B a déjà délégué à C, A ne peut pas déléguer à B (lock `countActiveAsGiverForUpdate`).
+  - Cap par receiver : `proxy_max_per_receiver` env var (default 99 ici, mais 3 dans `ImportController.php` config — incohérence à noter).
+  - Transaction avec `SELECT FOR UPDATE` pour éviter TOCTOU concurrent proxy creation.
+- `app/Services/ProcurationPdfService.php` (296 lignes) — génération PDF de mandat de procuration (signature physique).
+- `app/Services/BallotsService.php` (cf. étape 06) — `castBallot()` avec branche `isProxyVote` :
+  - `proxy_source_member_id` UUID requis.
+  - Mandataire doit être présent (`isPresentDirect` exclut mode `proxy` → empêche chaîne A→B→C runtime).
+  - `hasActiveProxyForUpdate()` re-vérifie en transaction (TOCTOU sur révocation entre check et insert).
+- `app/Controller/ProxiesController.php` (123 lignes) — endpoints CRUD.
+- `app/routes.php` ligne 358-362 (proxies + import).
+- `database/schema-master.sql` lignes 616-633 :
+  - Table `proxies` : `UNIQUE (tenant_id, meeting_id, giver_member_id)` (un membre = max 1 procuration active par séance), `CHECK (giver_member_id <> receiver_member_id)` (anti-self-delegation au niveau DB), `revoked_at` pour soft-delete, `scope proxy_scope DEFAULT 'full'`, `agenda_limits text[]` pour procuration partielle (par point d'agenda).
+  - Index partiel `WHERE revoked_at IS NULL` pour requêtes "actives uniquement".
+
+**Tests existants** :
+- `tests/Unit/ProxiesControllerTest.php` + `ProxiesServiceTest.php`.
+- `tests/Unit/ProcurationPdfControllerTest.php` + `ProcurationPdfServiceTest.php`.
+
+**Recoupement archive** :
+- v1.5/v1.6 : import procurations + mandat PDF.
+- v2.0 Operateur Live UX : durcissement TOCTOU procuration (les commentaires "TOCTOU prevention" dans ProxiesService.php sont récents).
+- PROJECT.md : `⚠ Vote en direct avec quorum/pondération/procurations` validated mais pas re-vérifié récent.
+
+**Verdict statique** : ⚠
+
+**Justification** :
+- Le code est extrêmement défensif : 4 règles de validation explicites avec messages français, anti-chaîne **vérifiée 2x** (au upsert ET au cast), transaction avec `SELECT FOR UPDATE`, contrainte DB `UNIQUE` sur giver (un membre = 1 proxy max active par séance), `CHECK` au niveau SQL pour anti-self-delegation.
+- Modèle data sain : `revoked_at` permet historique (pas de DELETE), `scope='full'|partial` + `agenda_limits text[]` permet procurations partielles (non testé en lecture statique).
+- **Incohérence de cap** : `ProxiesService.php:73` lit `config('proxy_max_per_receiver', 99)` (default 99). `ImportController.php:50` lit `config('proxy_max_per_receiver', 3)` (default 3). Les deux defaults diffèrent ! Si `proxy_max_per_receiver` n'est pas configuré dans tenant_settings, l'API `/proxies` accepte jusqu'à 99 mais l'import CSV plafonne à 3. Selon la source, on a un bug d'incohérence ou les deux sont voulus différents. **À investiguer.**
+- Côté ballot : `BallotsService.castBallot()` re-valide le proxy en transaction avec `hasActiveProxyForUpdate()` → si A révoque entre-temps, le vote de B est rejeté avec message "Procuration révoquée avant le vote". Excellent.
+- Anti-chaîne complet : (1) au moment de créer la proxy (anti-A→B si B a déjà donné à C), (2) au moment du vote (mandataire doit être en mode `present`/`remote`, pas `proxy`).
+- Limites légales : la cap par receiver (3 ou 99) est configurable par env var. Pour une asso loi 1901 française, le standard est typiquement 1-3 procurations max — donc default 3 d'`ImportController.php` est plus correct que default 99 d'API. **À aligner.**
+- Couverture tests : 4 fichiers. Pas de stress test sur "B révoque sa délégation pendant que A vote" (cas TOCTOU) — couvert par le code mais peut-être pas par tests.
+
+**Reproduction live (dev-machine)** :
+```bash
+# 0. Préalable : étape 02 (membres importés) + étape 03 (séance MID + motion résolution MOTID)
+# Choisir 2 membres : A (donneur, absent) et B (receveur, présent)
+
+CSRF=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/auth_csrf | jq -r .csrf_token)
+A=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members | jq -r '.items[0].id')
+B=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members | jq -r '.items[1].id')
+
+# 1. Marquer B présent, A absent
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"items\":[{\"member_id\":\"$B\",\"mode\":\"present\"}]}" \
+  http://localhost:8080/api/v1/attendances_bulk | jq
+
+# 2. A donne procuration à B
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"giver_member_id\":\"$A\",\"receiver_member_id\":\"$B\"}" \
+  http://localhost:8080/api/v1/proxies | jq
+# attendu : ok: true
+
+# 3. Tester anti-chaîne : C tente de déléguer à A (mais A a délégué à B → interdit)
+C=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members | jq -r '.items[2].id')
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"meeting_id\":\"$MID\",\"giver_member_id\":\"$C\",\"receiver_member_id\":\"$A\"}" \
+  http://localhost:8080/api/v1/proxies | jq
+# attendu : 422 "Chaîne de procuration interdite (le mandataire délègue déjà)."
+
+# 4. Ouvrir vote sur motion + B vote pour A (proxy)
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\"}" http://localhost:8080/api/v1/motions_open
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\",\"member_id\":\"$A\",\"value\":\"for\",\"is_proxy_vote\":true,\"proxy_source_member_id\":\"$B\"}" \
+  http://localhost:8080/api/v1/ballots_cast | jq
+# attendu : ballot inserted avec weight = voting_power(A)
+
+# 5. B vote aussi pour lui-même
+curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+  -d "{\"motion_id\":\"$MOTID\",\"member_id\":\"$B\",\"value\":\"against\",\"is_proxy_vote\":false}" \
+  http://localhost:8080/api/v1/ballots_cast | jq
+# attendu : 2 ballots distincts pour la motion (A via proxy + B direct)
+
+# 6. Vérifier en DB
+docker compose exec db psql -U app -d agvote -c \
+  "SELECT b.member_id, b.value, b.weight, b.is_proxy_vote, b.proxy_source_member_id \
+   FROM ballots b WHERE b.motion_id='$MOTID' ORDER BY b.cast_at"
+# attendu : 2 lignes — (A, for, w_A, true, B) et (B, against, w_B, false, NULL)
+
+# 7. Test révocation pendant vote (TOCTOU) — difficile à scripter, à valider par mode debug
+
+# 8. Test cap : faire que B reçoive plein de procurations (jusqu'à voir l'erreur)
+for i in 2 3 4 5 6 7 8 9 10; do
+  G=$(curl -sb /tmp/cookies.txt http://localhost:8080/api/v1/members | jq -r ".items[$i].id")
+  curl -sb /tmp/cookies.txt -H "X-Csrf-Token: $CSRF" -H "Content-Type: application/json" \
+    -d "{\"meeting_id\":\"$MID\",\"giver_member_id\":\"$G\",\"receiver_member_id\":\"$B\"}" \
+    http://localhost:8080/api/v1/proxies | jq -r '.error // "ok"'
+done
+# Selon proxy_max_per_receiver setting tenant : voir où le cap se déclenche
+```
+
+**Impact** : 🟡 nice-to-have — couche solide, anti-fraude robuste. L'incohérence de cap (3 vs 99) est un bug latent, à fixer Stage 3.
+
+**Recommandation** : 
+1. **Bug à régler Stage 3** : aligner les defaults de `proxy_max_per_receiver` (UI/import vs upsert API). Fixer un default unique (3 ou 5 typique pour asso française).
+2. Valider en live le flow PV/PDF de mandat de procuration (`ProcurationPdfService`) — pas testé statiquement ici en profondeur.
+3. Tester en live le cas TOCTOU "B révoque sa délégation pendant que A vote" — code défensif, mais nécessite confirmation runtime.
+4. Stage 2 peut envisager de retirer le scope `partial` (`agenda_limits text[]`) si jamais utilisé — complexité non justifiée.
+
+---
