@@ -333,3 +333,42 @@
 - Si Sentry adopté plus tard : ajouter un handler Sentry directement dans `Logger::write()` — effort S, sans migration globale
 
 ---
+
+## AUDIT-STACK-08 — `AgVote\Core\Security\IdempotencyGuard` (87 lignes)
+
+**Rôle aujourd'hui** : guard léger pour endpoints POST. Lit le header `X-Idempotency-Key`, check Redis pour réponse cachée, retourne tel quel si trouvée. TTL 1h, prefix `idempotency:`. Fallback no-op si Redis indisponible (`extension_loaded('redis')` check).
+
+**Sites d'usage** : 7 fichiers (handlers POST sensibles : import membres CSV/XLSX, motions create, ballots cast, attendances, etc. — cf. ImportController étape 02 audit chemin)
+
+**Version actuelle** : custom, classe `final` méthodes statiques. 87 lignes.
+
+**Caractéristiques** :
+- Single key store (pas de fingerprinting body+method+uri comme `Request` PSR-7-style)
+- TTL hardcodé `1 hour` (constante `TTL = 3600`)
+- Sérialisation : Redis `OPT_SERIALIZER_JSON` (cf. `RedisProvider` ligne 81), donc `setex()` accepte un array directement
+- Clé d'idempotence reçue via header → confiance dans le client (qui doit générer un UUID v4)
+- Pas de "lock" : 2 requêtes concurrentes avec la même clé peuvent toutes deux exécuter avant que la première ait stocké le résultat → race condition possible (mais courte)
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **`symfony/lock`** + custom store | Locks distribués Redis natifs (`RedisStore`), TTL configurable, primitives `acquire()`/`release()` battle-tested, pas de race condition | Pas la même sémantique : `symfony/lock` empêche concurrence (acquire ou throw), mais ne **cache pas le résultat**. Il faudrait ajouter un store JSON par-dessus → on reconstruit ce qu'on a déjà |
+| **`stripe/idempotency` patterns** | Référence d'implémentation industrielle | Pas une lib PHP installable — c'est un pattern décrit, qu'on a déjà. |
+| **Implémentation maison renforcée** : ajouter `SETNX` (lock) + body fingerprint (`hash('sha256', method+uri+body)`) avant exécution + post-store résultat + délai d'attente sur lock concurrent | Race condition fermée, fingerprint protège contre key reuse abusif (client réutilise une key avec un body différent) | Coût XS, mais code AgVote actuel `IdempotencyGuard::check()` ne sait pas où se brancher pour le lock (le contrôleur fait l'execution avant `store()`) — une vraie consolidation `withIdempotency(callable)` serait plus propre |
+| **Garder `IdempotencyGuard` actuel** | 87 lignes auditables, fallback graceful, déjà câblé sur 7 endpoints critiques | Race condition courte (très peu probable en pratique : un client qui retry envoie typiquement la 2e requête après timeout HTTP, ~30s plus tard, donc le résultat est déjà en Redis), TTL non configurable per-endpoint, pas de fingerprint body |
+
+**Verdict** : **keep** (avec amélioration optionnelle)
+
+**Justification** :
+- Cas d'usage cible (asso, ~10-50 utilisateurs concurrents max) ne génère pas de scenarios de race condition réalistes — le retry HTTP humain ou navigateur arrive plusieurs secondes après la 1re requête, et celle-ci a déjà stocké en moins de 1s.
+- 87 lignes vs symfony/lock + custom store JSON ≈ 200 lignes maintenues pour le même résultat fonctionnel.
+- Recoupement Stage 1 étape 02 (audit chemin import CSV) : `IdempotencyGuard::check()` + `::store()` câblés, pattern fonctionnel constaté.
+
+**Coût migration estimé** : N/A (keep). Si "renforcement" choisi : **XS** (<2h) — ajouter `withIdempotency(callable, ?int $ttl)` + body fingerprint optionnel + Redis SETNX lock ; sites existants peuvent migrer progressivement.
+
+**Bénéfice attendu** : marginal aujourd'hui ; latent si charge concurrente augmente.
+
+**Recommandation Stage 3** : **keep** + amélioration optionnelle XS si effort planifié sur la couche sécurité ailleurs (sinon différer). Documenter la race condition courte comme limitation connue dans `app/Core/Security/IdempotencyGuard.php` (PHPDoc).
+
+---
