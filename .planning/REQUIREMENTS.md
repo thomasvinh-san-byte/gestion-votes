@@ -1,64 +1,73 @@
-# Requirements: AgVote — M-AUDIT-CHEMIN (Stage 1 post-pivot)
+# Requirements: AgVote — M-AUDIT-STACK (Stage 2 post-pivot)
 
 **Defined:** 2026-05-05
 **Core Value:** Le secrétaire de séance fait en 5 clics ce qui prenait 1h en papier — avec une traçabilité légale au moins équivalente au procès-verbal manuscrit.
 
-**Goal :** Prouver E2E que le flow user complet marche sur stack live, lister exhaustivement les trous. Aucun fix dans cette milestone — juste constat.
+**Goal :** Audit statique de chaque dépendance + composant custom de la stack. Pour chaque ligne : keep / replace / remove avec justification coût/bénéfice. Output : `.planning/STACK-AUDIT.md`.
 
 ## v1 Requirements
 
-### Audit chemin critique
+### Audit dépendances Composer
 
-- [ ] **AUDIT-CHEMIN-01** : Setup admin vierge — install Docker fresh, première connexion, création du compte admin, configuration tenant initial. Verdict ✓/⚠/✗/❓ + reproduction steps si ✗.
-- [ ] **AUDIT-CHEMIN-02** : Import CSV membres — fixture 50 membres avec attributs variés (poids vote, statut, email). Vérifier import, dédoublonnage, validation. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-03** : Création séance + ordre du jour — wizard de création complet, ajout 3+ motions (résolution + élection + question ouverte). Verdict + détail.
-- [ ] **AUDIT-CHEMIN-04** : Ouverture séance live — passage status `draft → frozen → live`, accessibilité opérateur, cockpit chargé. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-05** : Émargement présence + quorum — marquer 30/50 membres présents (ou via QR/token), vérifier calcul quorum atteint avec pondération. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-06** : Vote motion résolution simple (Pour/Contre/Abstention) — ouvrir vote, votants émettent leurs voix, fermer vote, vérifier comptage. Verdict + détail.
-- [x] **AUDIT-CHEMIN-07** : Vote motion élection à plusieurs candidats — **POST-AUDIT DECISION 2026-05-05** : feature non implémentée (audit révèle absence motion_value enum élection + table candidates + scrutin majoritaire dans VoteEngine). Sortie du scope du pivot — voir PROJECT.md "Out of Scope". Verdict audit : ✗ documenté + reclassé hors-scope.
-- [ ] **AUDIT-CHEMIN-08** : Vote avec procuration active — assignation procuration entre 2 membres, vérifier que le porteur de procuration vote pour les 2 (pondération doublée respectée). Verdict + détail.
-- [ ] **AUDIT-CHEMIN-09** : Clôture séance — passage status `live → closed`, lock des motions, irréversibilité. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-10** : Génération PV PDF (≥5 pages avec contenu varié) — header + footer + accents UTF-8 + pagination + signature placeholder. Inspection visuelle. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-11** : Archive + audit hash chain — passage `closed → validated → archived`, vérifier hash chain `audit_events.this_hash` cohérent (chaque ligne lien à `prev_hash` précédent), tentative de modif post-archive bloquée. Verdict + détail.
-- [ ] **AUDIT-CHEMIN-12** : Synthèse audit — produire `.planning/CRITICAL-PATH-AUDIT.md` consolidant les 11 verdicts ci-dessus, classifié par criticité (bloquant pour dogfood / bloquant pour 1.0 / nice-to-have / esthétique). Listing fait pour informer Stage 3 (décision direction).
+- [ ] **AUDIT-STACK-01** : `dompdf/dompdf ^3.1` (génération PV PDF). Audit poids, alternatives (mPDF / wkhtmltopdf / Typst), risques runtime (mémoire, CSS subset support). Recoupement avec étape 10 audit chemin (✓ static).
+- [ ] **AUDIT-STACK-02** : `phpoffice/phpspreadsheet ^1.29` (Excel/XLSX export ExportService). Audit poids (lourd), usage réel (combien d'imports/exports), alternatives (CSV-only suffisant ? OpenSpout léger ?). Recoupement avec étape 02 audit chemin (⚠).
+- [ ] **AUDIT-STACK-03** : `erusev/parsedown ^1.8` (Markdown templates email/doc). Audit usage, alternatives (CommonMark, native PHP), poids.
+- [ ] **AUDIT-STACK-04** : `symfony/mailer ^8.0` (SMTP MailerService). Audit version (^8 = bleeding edge ?), alternatives (PHPMailer simple), risques.
+- [ ] **AUDIT-STACK-05** : Extensions PHP (`gd`, `intl`, `zip`, `pdo_pgsql`, `pgsql`, `mbstring`, `redis`, `Zend OPcache`). Auditer si toutes utilisées, possibilité retirer.
 
-## v2 Requirements (post Stage 1, pour Stage 2/3)
+### Audit composants custom AgVote
 
-À définir post-Stage 1 sur base de l'audit livré.
+- [ ] **AUDIT-STACK-06** : `AgVote\Core\Router` (routing custom). Comparer Slim 4 / Symfony Routing / Laravel. Coût migration vs gain (PSR-15 middleware standard, error handling, named routes). Risque : 100+ routes à re-câbler.
+- [ ] **AUDIT-STACK-07** : `AgVote\Core\Logger` (Logger custom JSON). Comparer Monolog (PSR-3 standard). Coût migration (47 sites migrés v2.5) vs gain (handlers Stripe/Sentry/Slack out-of-box, processors).
+- [ ] **AUDIT-STACK-08** : `AgVote\Core\IdempotencyGuard` (idempotency custom). Comparer Symfony Lock + interceptor. Coût vs gain (locks distribués, TTL natif).
+- [ ] **AUDIT-STACK-09** : `AgVote\Core\Http\*` (Request, JsonResponse, ApiResponseException, HttpCache primitives). Évaluer remplacement par PSR-7 (Nyholm/Laminas) + PSR-15 middleware stack. Coût migration vs gain ecosystem.
+- [ ] **AUDIT-STACK-10** : `AgVote\SSE\*` (SseAuthGate, EventBroadcaster, HeartbeatPayloadBuilder). Custom sur custom. Évaluer si Mercure/Centrifugo simplifierait, ou si la complexité actuelle est justifiée.
 
-## Out of Scope (cette milestone)
+### Audit infra
+
+- [ ] **AUDIT-STACK-11** : Redis (cache + sessions + rate-limit + SSE queue + presence). Évaluer si toutes les usages sont nécessaires, fallbacks fichier (déjà partiel), risque coupling. Possibilité retirer pour single-tenant self-hosted ?
+- [ ] **AUDIT-STACK-12** : PostgreSQL extensions + indexes audit. Vérifier que les indexes hot paths v2.7 (covering indexes) sont effectivement créés via migrations. Détecter indexes manquants probables.
+- [ ] **AUDIT-STACK-13** : Docker multi-stage Alpine + nginx + supervisord. Evaluer simplification (FrankenPHP qui replace nginx+php-fpm+supervisord ?), coût migration vs gain (1 binary, simpler ops).
+
+### Synthèse
+
+- [ ] **AUDIT-STACK-14** : Synthèse `.planning/STACK-AUDIT.md` consolidant 13 audits + recommandations actionnables Stage 3 (M-DECISION). Décompte keep/replace/remove + estimation effort migration par item replacé. Verdict global : "Voie A (refacto sur place) confirmée" ou "ajustements infra recommandés".
+
+## v2 Requirements (post-Stage 2)
+
+À définir post-M-AUDIT-STACK sur base de l'audit livré.
+
+## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Fixer les bugs trouvés pendant l'audit | Stage 1 = constat, fix = Stage 3 décision Voie A/B/C |
-| Audit stack technique | Milestone séparée Stage 2 |
-| Décision Voie A/B/C | Milestone séparée Stage 3 |
-| Implémentation features (Signature, VoteDistant, Stats) | Post-Stage 3 décision |
-| Polish UI/UX, refacto code, optimisation perf | Hors-scope pivot — décidé en Stage 3 |
-| Stress test multi-utilisateurs >2 op simultanés | Hors-scope dogfood (1 secrétaire typique) |
+| Implémentation des migrations recommandées | Stage 2 = audit only ; les migrations effectives = Stage 3 décision + milestones séparées |
+| Benchmark performance runtime | Stage 2 = audit statique sandbox ; perf runtime = post-Stage 3 si Voie A confirmée |
+| Migration langage (PHP → Go / TypeScript) | Décision pré-audit : reste PHP. Re-evaluation seulement si l'audit révèle gap structurel majeur |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-CHEMIN-01 | TBD | Pending |
-| AUDIT-CHEMIN-02 | TBD | Pending |
-| AUDIT-CHEMIN-03 | TBD | Pending |
-| AUDIT-CHEMIN-04 | TBD | Pending |
-| AUDIT-CHEMIN-05 | TBD | Pending |
-| AUDIT-CHEMIN-06 | TBD | Pending |
-| AUDIT-CHEMIN-07 | TBD | Pending |
-| AUDIT-CHEMIN-08 | TBD | Pending |
-| AUDIT-CHEMIN-09 | TBD | Pending |
-| AUDIT-CHEMIN-10 | TBD | Pending |
-| AUDIT-CHEMIN-11 | TBD | Pending |
-| AUDIT-CHEMIN-12 | TBD | Pending |
+| AUDIT-STACK-01 | TBD | Pending |
+| AUDIT-STACK-02 | TBD | Pending |
+| AUDIT-STACK-03 | TBD | Pending |
+| AUDIT-STACK-04 | TBD | Pending |
+| AUDIT-STACK-05 | TBD | Pending |
+| AUDIT-STACK-06 | TBD | Pending |
+| AUDIT-STACK-07 | TBD | Pending |
+| AUDIT-STACK-08 | TBD | Pending |
+| AUDIT-STACK-09 | TBD | Pending |
+| AUDIT-STACK-10 | TBD | Pending |
+| AUDIT-STACK-11 | TBD | Pending |
+| AUDIT-STACK-12 | TBD | Pending |
+| AUDIT-STACK-13 | TBD | Pending |
+| AUDIT-STACK-14 | TBD | Pending |
 
 **Coverage :**
-- v1 requirements : 12 total
+- v1 requirements : 14 total
 - Mapped to phases : 0 (à phaser via /gsd:plan-phase)
-- Unmapped : 12
 
 ---
 *Requirements defined : 2026-05-05*
-*Stage 1 du pivot stratégique radical post-v2.7.*
+*Stage 2 du pivot stratégique radical post-v2.7.*

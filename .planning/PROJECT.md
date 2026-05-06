@@ -42,9 +42,9 @@ L'historique pré-pivot est archivé dans `.planning/archive-pre-pivot-2026-05-0
 
 > Trois étapes séquentielles avant de bouger sur les features métier.
 
-- [ ] **Stage 1** : Audit chemin critique fonctionnel — prouver E2E que le flow user (login → import membres → créer séance → ouvrir vote → vote → procuration → fermer → PV → archive) marche aujourd'hui sur stack live. Livrable : `CRITICAL-PATH-AUDIT.md` exhaustif (✓ / ⚠ / ✗ / ❓ par étape).
+- [x] **Stage 1** ✓ — M-AUDIT-CHEMIN shippé 2026-05-05. Output : `.planning/CRITICAL-PATH-AUDIT.md` (1165 lignes). Score 7✓/3⚠/0✗/1 hors-scope sur 11 étapes (élection multi-candidats reclassée hors-scope post-décision user). Verdict provisoire : Voie A (refacto sur place).
 - [ ] **Stage 2** : Audit stack technique — justifier chaque dépendance + composant custom. Livrable : `STACK-AUDIT.md` avec recommandations keep/replace/remove + coût/bénéfice.
-- [ ] **Stage 3** : Décision direction (Voie A refacto sur place / Voie B rebuild partiel / Voie C rebuild from scratch) sur la base des 2 audits.
+- [ ] **Stage 3** : Décision direction formalisée (Voie A confirmée + scope fixes 3 ⚠ + roadmap features) sur la base des 2 audits.
 
 Une fois Stage 1+2+3 done :
 
