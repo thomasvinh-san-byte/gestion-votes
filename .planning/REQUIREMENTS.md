@@ -1,82 +1,64 @@
-# Requirements: AgVote v2.7 — Cohérence visuelle & finitions perçues
+# Requirements: AgVote — M-AUDIT-CHEMIN (Stage 1 post-pivot)
 
 **Defined:** 2026-05-05
-**Core Value:** L'application doit être fiable en production — aucun crash lié à des fallbacks fichiers, fuites mémoire, ou timeouts silencieux.
+**Core Value:** Le secrétaire de séance fait en 5 clics ce qui prenait 1h en papier — avec une traçabilité légale au moins équivalente au procès-verbal manuscrit.
 
-**Goal :** Finir la migration vers le design system v2.x (cohérence visuelle complète, plus aucun écran "v1 brut") + livrer les finitions UX et perf qui se voient. Pas de capacité métier neuve. Cadré 1 semaine, 4 buckets.
+**Goal :** Prouver E2E que le flow user complet marche sur stack live, lister exhaustivement les trous. Aucun fix dans cette milestone — juste constat.
 
 ## v1 Requirements
 
-### Bucket 1 — Cohérence visuelle & migration design (Phase 1)
+### Audit chemin critique
 
-- [ ] **VISUAL-V27-01** : Audit cartographique des 30+ écrans de l'app (`postsession`, `archives`, `members`, `procurations`, `audit`, `analytics`, `admin/*`, `dashboard`, `operator`, `vote`, `login`, `setup`, etc.) → score de cohérence design system v2.x par écran (0-3 : 0 = v1 brut, 3 = pleinement migré). Livrable : `.planning/v2.7-VISUAL-AUDIT.md` avec tableau scoring + screenshots before reference.
-- [ ] **VISUAL-V27-02** : Migration typographique 100% — Inter pour UI, Newsreader pour contenu éditorial (`/audit`, `/trust`, `/archives`, `/report`), JetBrains Mono pour hashes/UUID/codes. Aucun `font-family: Arial, ...` ou `Helvetica` brut résiduel. Audit grep livré.
-- [ ] **VISUAL-V27-03** : Élimination `#hex` hardcoded dans CSS (hors `design-system.css` + emails) — tous les usages migrent vers `var(--color-*)`. Cible ≥99% borders + shadows + colors via tokens (au-delà des 95-97% v2.6). Audit final dans `.planning/v2.7-TOKENS-FINAL.md`.
-- [ ] **VISUAL-V27-04** : Élimination spacing brut (`padding: 12px`, `margin: 16px`, etc.) en dehors de `design-system.css`. Tous via `var(--space-*)`. Cible ≥99%. Audit grep livré.
-- [ ] **VISUAL-V27-05** : Migration HTML legacy → composants v2.x — chaque modale `<dialog>` ou `<div class="modal">` brute remplacée par `<ag-modal>`, chaque carte ad-hoc remplacée par `<ag-card>` ou pattern card design-system. Audit grep livré.
-- [ ] **VISUAL-V27-06** : Cohérence interactions — animations + transitions homogènes (timings via `var(--motion-*)`, easing via `var(--ease-*)`), states hover/focus/active uniformes. Aucun `transition: 0.3s ease` brut. Audit grep livré.
+- [ ] **AUDIT-CHEMIN-01** : Setup admin vierge — install Docker fresh, première connexion, création du compte admin, configuration tenant initial. Verdict ✓/⚠/✗/❓ + reproduction steps si ✗.
+- [ ] **AUDIT-CHEMIN-02** : Import CSV membres — fixture 50 membres avec attributs variés (poids vote, statut, email). Vérifier import, dédoublonnage, validation. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-03** : Création séance + ordre du jour — wizard de création complet, ajout 3+ motions (résolution + élection + question ouverte). Verdict + détail.
+- [ ] **AUDIT-CHEMIN-04** : Ouverture séance live — passage status `draft → frozen → live`, accessibilité opérateur, cockpit chargé. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-05** : Émargement présence + quorum — marquer 30/50 membres présents (ou via QR/token), vérifier calcul quorum atteint avec pondération. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-06** : Vote motion résolution simple (Pour/Contre/Abstention) — ouvrir vote, votants émettent leurs voix, fermer vote, vérifier comptage. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-07** : Vote motion élection à plusieurs candidats — différent du résolution (multi-choix, possibly STV/scrutin majoritaire). Vérifier calcul résultats. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-08** : Vote avec procuration active — assignation procuration entre 2 membres, vérifier que le porteur de procuration vote pour les 2 (pondération doublée respectée). Verdict + détail.
+- [ ] **AUDIT-CHEMIN-09** : Clôture séance — passage status `live → closed`, lock des motions, irréversibilité. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-10** : Génération PV PDF (≥5 pages avec contenu varié) — header + footer + accents UTF-8 + pagination + signature placeholder. Inspection visuelle. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-11** : Archive + audit hash chain — passage `closed → validated → archived`, vérifier hash chain `audit_events.this_hash` cohérent (chaque ligne lien à `prev_hash` précédent), tentative de modif post-archive bloquée. Verdict + détail.
+- [ ] **AUDIT-CHEMIN-12** : Synthèse audit — produire `.planning/CRITICAL-PATH-AUDIT.md` consolidant les 11 verdicts ci-dessus, classifié par criticité (bloquant pour dogfood / bloquant pour 1.0 / nice-to-have / esthétique). Listing fait pour informer Stage 3 (décision direction).
 
-### Bucket 2 — Loading states systematiques (Phase 2)
+## v2 Requirements (post Stage 1, pour Stage 2/3)
 
-- [ ] **LOADING-V27-01** : Skeleton screens sur HTMX swaps >300ms — composant réutilisable `<ag-skeleton>` avec variants (text, card, table, avatar) + intégration HTMX via `htmx:beforeRequest` / `htmx:afterRequest` automatique sur les targets >300ms identifiées (dashboard cards, audit list, archives list, members list).
-- [ ] **LOADING-V27-02** : Spinner systematic sur submit buttons — pendant la requête POST/PATCH/DELETE, le bouton affiche un spinner inline + `disabled` état. Pattern HTMX `hx-indicator` étendu, applicable sur tous les forms via attribut data. Aucun double-submit possible.
-- [ ] **LOADING-V27-03** : Optimistic UI sur 3 actions critiques — vote cast (UI affiche le vote enregistré avant retour serveur, rollback visible si erreur), présence toggle, motion next. Pattern via `htmx:beforeRequest` event handler central + état "pending" CSS visible.
+À définir post-Stage 1 sur base de l'audit livré.
 
-### Bucket 3 — 404 race graceful UX (Phase 3)
-
-- [ ] **RACE-V27-01** : HTMX response handler central — listener global qui détecte `404 Not Found` sur swap target et substitue le contenu par un empty-state amical au lieu de toast d'erreur. Pattern via `htmx:responseError` event handler, lit le code d'erreur JSON (`meeting_not_found`, `motion_not_found`) pour personnaliser le message.
-- [ ] **RACE-V27-02** : Empty-state component `<ag-empty-state>` réutilisable avec 3 variants (resource-deleted, no-data-yet, error). Variant "resource-deleted" affiche message + CTA retour (vers `/dashboard` pour meeting, vers parent meeting pour motion). Pattern aligné design system v2.x.
-- [ ] **RACE-V27-03** : Test E2E Playwright `tests/e2e/specs/race-404-empty-state.spec.js` — simule séance supprimée entre liste-affichée et clic-action, vérifie empty-state affiché en place du toast.
-
-### Bucket 4 — Query N+1 + HTTP cache (Phase 4)
-
-- [ ] **PERF-V27-01** : Audit grep N+1 patterns dans `app/Controller/` — identifier les boucles `foreach` qui appellent un repo en interne. Livrable : `.planning/v2.7-N+1-AUDIT.md` avec liste sites + estimation gain (queries économisées par requête).
-- [ ] **PERF-V27-02** : Refactor 5-10 hot paths identifiés via eager loading — ajouter méthodes `findManyByIds(array $ids)` aux repos concernés (probablement `MotionRepository`, `MemberRepository`, `BallotRepository`, `AuditEventRepository`), remplacer les boucles dans controllers. Test smoke PHPUnit qui prouve N queries → 1 query.
-- [ ] **PERF-V27-03** : ETag/Last-Modified sur 3-5 GET HTMX hot endpoints idempotents (dashboard cards, audit list, archives list, members list). Header `Cache-Control: private, must-revalidate` + handler `If-None-Match` returns `304 Not Modified`. Test PHPUnit prouvant 304 sur même ETag.
-
-## v2 Requirements (deferred / out-of-milestone)
-
-Aucun déclaré formellement — voir Out of Scope ci-dessous pour items considérés et reportés.
-
-## Out of Scope
+## Out of Scope (cette milestone)
 
 | Feature | Reason |
 |---------|--------|
-| SSE scaling multi-op (Redis pub/sub natif refactor) | Complex + low ROI <5 op simultanés ; refacto stack live = risque élevé |
-| Mobile responsive deep audit | Milestone séparée — scope trop large pour ~1 sem |
-| Accessibility WCAG AAA push | Trop gros — multi-milestone, AA partiel suffisant pour l'instant |
-| Lazy-load assets / defer scripts / image lazy / preload hints | Overlap avec Bucket 1 (audit cohérence) + Bucket 2 (loading) — plus efficace en finition continue post-v2.7 |
-| Capacités métier neuves (signature électronique, archivage hash chain export, procuration en lot, workflow assermenté) | Milestone polish, pas un milestone feature |
-| TOKENS mini-cleanup v2.6 (6 orphans + 3 emphasis variants) | Folded dans VISUAL-V27-03 (audit final tokens) |
-| 2 résiduels French throws (AttendancesService, BallotsService) | Backlog v2.8 — dette ERR-V27-XX |
-| 4 pre-existing ErrorDictionaryTest failures | Investigation séparée — pré-v2.6, pas dans scope cohérence visuelle |
-| INFRA-V26-01/03/05 dev-machine observations | Restent OPS-CHECKLIST, pas du code à écrire |
+| Fixer les bugs trouvés pendant l'audit | Stage 1 = constat, fix = Stage 3 décision Voie A/B/C |
+| Audit stack technique | Milestone séparée Stage 2 |
+| Décision Voie A/B/C | Milestone séparée Stage 3 |
+| Implémentation features (Signature, VoteDistant, Stats) | Post-Stage 3 décision |
+| Polish UI/UX, refacto code, optimisation perf | Hors-scope pivot — décidé en Stage 3 |
+| Stress test multi-utilisateurs >2 op simultanés | Hors-scope dogfood (1 secrétaire typique) |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VISUAL-V27-01 | Phase 1 | ✓ Complete |
-| VISUAL-V27-02 | Phase 1 | ✓ Complete |
-| VISUAL-V27-03 | Phase 1 | ✓ Complete |
-| VISUAL-V27-04 | Phase 1 | ✓ Complete |
-| VISUAL-V27-05 | Phase 1 | ✓ Complete |
-| VISUAL-V27-06 | Phase 1 | ✓ Complete |
-| LOADING-V27-01 | Phase 2 | ✓ Complete |
-| LOADING-V27-02 | Phase 2 | ✓ Complete |
-| LOADING-V27-03 | Phase 2 | ✓ Complete |
-| RACE-V27-01 | Phase 3 | ✓ Complete |
-| RACE-V27-02 | Phase 3 | ✓ Complete |
-| RACE-V27-03 | Phase 3 | ✓ Complete |
-| PERF-V27-01 | Phase 4 | ✓ Complete |
-| PERF-V27-02 | Phase 4 | ✓ Complete |
-| PERF-V27-03 | Phase 4 | ✓ Complete |
+| AUDIT-CHEMIN-01 | TBD | Pending |
+| AUDIT-CHEMIN-02 | TBD | Pending |
+| AUDIT-CHEMIN-03 | TBD | Pending |
+| AUDIT-CHEMIN-04 | TBD | Pending |
+| AUDIT-CHEMIN-05 | TBD | Pending |
+| AUDIT-CHEMIN-06 | TBD | Pending |
+| AUDIT-CHEMIN-07 | TBD | Pending |
+| AUDIT-CHEMIN-08 | TBD | Pending |
+| AUDIT-CHEMIN-09 | TBD | Pending |
+| AUDIT-CHEMIN-10 | TBD | Pending |
+| AUDIT-CHEMIN-11 | TBD | Pending |
+| AUDIT-CHEMIN-12 | TBD | Pending |
 
 **Coverage :**
-- v1 requirements : 15 total
-- Mapped to phases : 15
-- Unmapped : 0 ✓
+- v1 requirements : 12 total
+- Mapped to phases : 0 (à phaser via /gsd:plan-phase)
+- Unmapped : 12
 
 ---
 *Requirements defined : 2026-05-05*
-*Last updated : 2026-05-05 after v2.7 milestone bootstrap*
+*Stage 1 du pivot stratégique radical post-v2.7.*
