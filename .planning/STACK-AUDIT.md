@@ -153,3 +153,40 @@
 **Recommandation Stage 3** : **petite priorité** — peut être absorbé dans le milestone "M-IO-CONSOLIDATION" suggéré pour AUDIT-STACK-02, ou traité en quick-fix isolé.
 
 ---
+
+## AUDIT-STACK-04 — `symfony/mailer` v8.0.4 (SMTP transport)
+
+**Rôle aujourd'hui** : transport SMTP avec STARTTLS/TLS pour `MailerService`. Remplace une implémentation socket SMTP maison (cf. PHPDoc ligne 17-18 : "Replaces the hand-rolled SMTP socket implementation"). Supporte `smtp://` (port 587 STARTTLS) et `smtps://` (port 465 TLS). Lazy-init + cache par instance. Utilisé par `EmailQueueService` (envoi asynchrone via queue Redis) + invitations + reset password + monitoring webhooks email.
+
+**Sites d'usage** :
+- `app/Services/MailerService.php` (177 lignes) — wrapper unique
+- ~6 services/controllers consomment `MailerService` (EmailQueueService, PasswordResetController, MonitoringService, InvitationsService, etc.)
+- API publique (constructeur + retour `array{ok:bool,error:?string}`) volontairement préservée pour faciliter swap.
+
+**Version actuelle** : `^8.0` lock `v8.0.4`. **C'est la version stable courante** — Symfony 8.0 LTS est sortie 2025-Q4, supportée jusqu'à 2027 ; ce n'est pas du bleeding-edge malgré l'apparence du numéro majeur (Symfony incrémente le major chaque ~2 ans). Le projet utilise déjà 4 packages Symfony en `^8.0` (mailer, mime, console, event-dispatcher) — cohérent.
+
+**Alternatives évaluées** :
+
+| Alternative | Pour | Contre |
+|---|---|---|
+| **PHPMailer** | Plus simple en surface, populaire historiquement | API datée (pas de DSN, pas de transport plug-and-play), pas de connection pooling natif, retombe en bug-fix-only mode |
+| **Hand-rolled fsockopen SMTP** | Zéro dépendance | C'est précisément ce que la migration vers symfony/mailer a remplacé — retour en arrière non justifié |
+| **swiftmailer** | — | **Officiellement EOL depuis 2021**. Disqualifié. |
+| **MailHog/MailPit + REST** | Bonne UX dev | C'est un outil de capture, pas un transport. Hors scope. |
+| **SaaS API (SendGrid/Postmark/Mailgun SDK)** | Délivrabilité top, dashboard tracking | Dépendance commerciale, incompatible cible asso self-hosted (besoin SMTP local OVH/Gandi/relai self-hosted) |
+| **Garder symfony/mailer ^8** | Standard de facto PHP, DSN multi-transport, retry + queue support, MIME complet, maintenu | Couplage Symfony écosystème (mais déjà acté par symfony/console + event-dispatcher) |
+
+**Verdict** : **keep**
+
+**Justification** :
+- Standard de facto PHP moderne, maintenu.
+- Le projet utilise déjà 4 composants Symfony — la dette de couplage existe déjà, retirer mailer n'apporte rien.
+- API wrapper (`MailerService`) isole correctement (DI nullable pour test, retour `array{ok,error}`) — le swap futur reste possible si besoin.
+- "version 8 = bleeding-edge" mentionné dans REQUIREMENTS.md est une **fausse alerte** : Symfony 8.0 est LTS (release Nov 2025, support jusqu'à 2027).
+- Cas d'usage cible (asso self-hosted, SMTP relay externe) parfaitement couvert.
+
+**Coût migration estimé** : N/A (keep)
+**Bénéfice attendu** : N/A
+**Recommandation Stage 3** : aucune action. Surveiller la sortie Symfony 9.0 (~Nov 2027) et planifier mise à jour alors. Continuer à isoler tout usage Symfony Mailer derrière `MailerService` (pattern actuel).
+
+---
